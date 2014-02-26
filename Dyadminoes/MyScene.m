@@ -11,20 +11,41 @@
 #import "Dyadmino.h"
 
 #define kNumDyadminoesInRack 6
-const CGFloat kRadian = 57.2958f;
 
 @interface MyScene () <UIGestureRecognizerDelegate>
 @end
 
+  // TODO: have variable for chosen dyadmino sprite
+
+  // put board cells on their own sprite nodes
+  // TODO: establish SnapNodes for each wall type, and each rack slot
+  // name wall types, and rack slot types
+  // TODO: subclass DyadminoSprite and SnapNodes
+
 @implementation MyScene {
-  NSMutableArray *_spritesInPlayer1Rack;
+  
+  SKSpriteNode *_rackFieldSprite;
+  NSMutableArray *_dyadminoesInPlayerRack;
+  
+    // buttons
+  SKLabelNode *_switchPCModeButton;
+  SKLabelNode *_swapButton;
+
+    // touches
   UITapGestureRecognizer *_tapRecognizer;
-  NSMutableArray *_player1Rack;
+  
+    // bools and modes
+  
+  Dyadmino *_dyadminoBeingTouched;
+  BOOL _moveInAction;
+  BOOL _swapInAction;
+//  BOOL _moveInAction;
 }
 
 -(id)initWithSize:(CGSize)size {    
   if (self = [super initWithSize:size]) {
-    _spritesInPlayer1Rack = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
+    self.pile = [[Pile alloc] init];
+    _dyadminoesInPlayerRack = [self.pile populateOrCompletelySwapOutPlayer1Rack];
   }
   return self;
 }
@@ -35,12 +56,12 @@ const CGFloat kRadian = 57.2958f;
   _tapRecognizer.delegate = self;
   [self.view addGestureRecognizer:_tapRecognizer];
   
-  _player1Rack = [self.delegate returnPlayer1Rack];
-  
   [self layoutBoard];
   [self layoutTopBar];
   [self layoutPlayerRack];
 }
+
+#pragma mark - layout views
 
 -(void)layoutTopBar {
     // background
@@ -50,6 +71,20 @@ const CGFloat kRadian = 57.2958f;
   topBar.anchorPoint = CGPointZero;
   topBar.position = CGPointMake(0, self.frame.size.height - topBarHeight);
   [self addChild:topBar];
+  
+  _switchPCModeButton = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
+  _switchPCModeButton.position = CGPointMake(10, 40);
+  _switchPCModeButton.text = @"switch between letter and number";
+  _switchPCModeButton.fontSize = 10.f;
+  _switchPCModeButton.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeLeft;
+  [topBar addChild:_switchPCModeButton];
+  
+  _swapButton = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
+  _swapButton.position = CGPointMake(10, 10);
+  _swapButton.text = @"swap dyadminoes";
+  _swapButton.fontSize = 10.f;
+  _swapButton.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeLeft;
+  [topBar addChild:_swapButton];
 }
 
 -(void)layoutBoard {
@@ -75,6 +110,7 @@ const CGFloat kRadian = 57.2958f;
         SKLabelNode *testLabelNode = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
         testLabelNode.position = blankSpace.position;
         testLabelNode.text = @"C";
+        testLabelNode.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
         [self addChild:testLabelNode];
       }
     }
@@ -82,97 +118,120 @@ const CGFloat kRadian = 57.2958f;
 }
 
 -(void)layoutPlayerRack {
-    // background
   CGFloat rackHeight = 108.f;
-  SKSpriteNode *rack = [SKSpriteNode spriteNodeWithColor:[SKColor purpleColor]
+  _rackFieldSprite = [SKSpriteNode spriteNodeWithColor:[SKColor purpleColor]
                                                       size:CGSizeMake(self.frame.size.width, rackHeight)];
-  rack.anchorPoint = CGPointZero;
-  rack.position = CGPointMake(0, 0);
-  [self addChild:rack];
+  _rackFieldSprite.anchorPoint = CGPointZero;
+  _rackFieldSprite.position = CGPointMake(0, 0);
+  [self addChild:_rackFieldSprite];
+  [self loadOrReloadRackDyadminoes];
+}
+
+-(void)loadOrReloadRackDyadminoes {
+  [_rackFieldSprite removeAllChildren];
+  _dyadminoesInPlayerRack = [self.pile populateOrCompletelySwapOutPlayer1Rack];
   
-    // dyadminoes
   CGFloat xEdgeMargin = 12.f;
   CGFloat yBottomMargin = 12.f;
-
-  for (int i = 0; i < kNumDyadminoesInRack; i++) {
-    SKSpriteNode *dyadminoSprite = [SKSpriteNode spriteNodeWithImageNamed:@"blankTileNoSo"];
-    CGFloat xPadding = (self.frame.size.width - (xEdgeMargin * 2) - (dyadminoSprite.size.width * kNumDyadminoesInRack)) / (kNumDyadminoesInRack - 1);
-    dyadminoSprite.anchorPoint = CGPointMake(0.5, 0.5);
-    dyadminoSprite.position = CGPointMake(xEdgeMargin + (i * (dyadminoSprite.size.width + xPadding)) + dyadminoSprite.size.width / 2, yBottomMargin + dyadminoSprite.size.height / 2);
-    [self addChild:dyadminoSprite];
-    [_spritesInPlayer1Rack addObject:dyadminoSprite];
-
-    Dyadmino *dyadmino = _player1Rack[i];
-    
-    [self addPCSpritesToDyadminoSpriteForDyadmino:dyadmino];
+  
+  for (int i = 0; i < [_dyadminoesInPlayerRack count]; i++) {
+    Dyadmino *dyadmino = _dyadminoesInPlayerRack[i];
+//    dyadmino.pcMode = _pcMode;
+    CGFloat xPadding = (self.frame.size.width - (xEdgeMargin * 2) - (dyadmino.size.width * kNumDyadminoesInRack)) / (kNumDyadminoesInRack - 1);
+    dyadmino.position = CGPointMake(xEdgeMargin + (i * (dyadmino.size.width + xPadding)) + dyadmino.size.width / 2, yBottomMargin + dyadmino.size.height / 2);
+    [_rackFieldSprite addChild:dyadmino];
   }
 }
 
--(void)switchPCsOnDyadminoSprite:(SKSpriteNode *)dyadminoSprite {
-  NSUInteger tempIndex = [_spritesInPlayer1Rack indexOfObject:dyadminoSprite];
-  Dyadmino *dyadmino = [_player1Rack objectAtIndex:tempIndex];
-  if (dyadmino.rackOrientation == 0) {
-    dyadmino.rackOrientation = 1;
-  } else {
-    dyadmino.rackOrientation = 0;
+-(void)switchBetweenLetterAndNumberMode {
+  for (Dyadmino *dyadmino in self.pile.allDyadminoes) {
+    if ([dyadmino.pcMode isEqualToString:@"Letter"]) {
+      dyadmino.pcMode = @"Number";
+    } else {
+      dyadmino.pcMode = @"Letter";
+    }
+    [dyadmino selectAndPositionSprites];
   }
-  [self addPCSpritesToDyadminoSpriteForDyadmino:dyadmino];
 }
 
--(void)addPCSpritesToDyadminoSpriteForDyadmino:(Dyadmino *)dyadmino {
-  NSUInteger topPC;
-  NSUInteger bottomPC;
-  if (dyadmino.rackOrientation == 0) {
-    topPC = dyadmino.pc1;
-    bottomPC = dyadmino.pc2;
-  } else {
-    topPC = dyadmino.pc2;
-    bottomPC = dyadmino.pc1;
-  }
-  
-  NSUInteger tempIndex = [_player1Rack indexOfObject:dyadmino];
-  SKSpriteNode *dyadminoSprite = [_spritesInPlayer1Rack objectAtIndex:tempIndex];
-  
-  NSString *topPCString = [NSString stringWithFormat:@"pcLetter%i", topPC];
-  NSString *bottomPCString = [NSString stringWithFormat:@"pcLetter%i", bottomPC];
-  
-  SKSpriteNode *topPCSprite = [SKSpriteNode spriteNodeWithImageNamed:topPCString];
-  topPCSprite.anchorPoint = CGPointMake(0.5, 0.5);
-  topPCSprite.position= CGPointMake(0, dyadminoSprite.size.height / 4);
-  [dyadminoSprite addChild:topPCSprite];
-  
-  SKSpriteNode *bottomPCSprite = [SKSpriteNode spriteNodeWithImageNamed:bottomPCString];
-  bottomPCSprite.anchorPoint = CGPointMake(0.5, 0.5);
-  bottomPCSprite.position = CGPointMake(0, -dyadminoSprite.size.height / 4);
-  [dyadminoSprite addChild:bottomPCSprite];
-}
+#pragma mark - touch methods
 
 -(void)handleTap:(UIGestureRecognizer *)sender {
   CGPoint uiTouchLocation = [sender locationInView:self.view];
   CGPoint skTouchLocation = CGPointMake(uiTouchLocation.x, self.frame.size.height - uiTouchLocation.y);
   SKNode *touchNode = [self nodeAtPoint:skTouchLocation];
   
-  for (SKSpriteNode *dyadminoSprite in _spritesInPlayer1Rack) {
-    if ([touchNode intersectsNode:dyadminoSprite]) {
-      
-      SKAction *rotate180 = [SKAction rotateByAngle:180 / kRadian duration:0.15f];
-      SKAction *removeChildren = [SKAction runBlock:^{
-        [dyadminoSprite removeAllChildren];
-      }];
-      SKAction *resetOrient = [SKAction rotateToAngle:0 duration:0.f];
-      SKAction *rightPCs = [SKAction runBlock:^{
-        [self switchPCsOnDyadminoSprite:dyadminoSprite];
-      }];
-      SKAction *complete180 = [SKAction sequence:@[rotate180, removeChildren, resetOrient, rightPCs]];
-      [dyadminoSprite runAction:complete180];
+  if ([touchNode intersectsNode:_swapButton]) {
+    _dyadminoesInPlayerRack = [self.pile populateOrCompletelySwapOutPlayer1Rack];
+    [self loadOrReloadRackDyadminoes];
+  }
+  
+  if ([touchNode intersectsNode:_switchPCModeButton]) {
+    [self switchBetweenLetterAndNumberMode];
+  }
+  
+  for (Dyadmino *dyadmino in _dyadminoesInPlayerRack) {
+    if ([touchNode intersectsNode:dyadmino] && _swapInAction == NO) {
+      [self dyadminoRotateAnimation:dyadmino];
     }
   }
 }
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+  UITouch *touch = [touches anyObject];
+  CGPoint uiTouchLocation = [touch locationInView:self.view];
+  CGPoint skTouchLocation = CGPointMake(uiTouchLocation.x, self.frame.size.height - uiTouchLocation.y);
+  SKNode *touchNode = [self nodeAtPoint:skTouchLocation];
+  for (Dyadmino *dyadmino in _dyadminoesInPlayerRack) {
+    if ([touchNode intersectsNode:dyadmino]) {
+      _dyadminoBeingTouched = dyadmino;
+    }
+  }
+  _dyadminoBeingTouched.zPosition = 101;
 }
 
+-(void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+  UITouch *touch = [touches anyObject];
+  CGPoint uiTouchLocation = [touch locationInView:self.view];
+  CGPoint skTouchLocation = CGPointMake(uiTouchLocation.x, self.frame.size.height - uiTouchLocation.y);
+  _dyadminoBeingTouched.position = skTouchLocation;
+  
+  NSLog(@"touch is at %f, %f", skTouchLocation.x, skTouchLocation.y);
+}
+
+-(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+  _dyadminoBeingTouched.zPosition = 100;
+  _dyadminoBeingTouched = nil;
+}
+
+#pragma mark - animation methods
+
+-(void)dyadminoRotateAnimation:(Dyadmino *)dyadmino {
+  _swapInAction = YES;
+ 
+  SKAction *nextFrame = [SKAction runBlock:^{
+    dyadmino.rackOrientation = (dyadmino.rackOrientation + 1) % 6;
+    [dyadmino selectAndPositionSprites];
+  }];
+  
+  SKAction *resetAction = [SKAction runBlock:^{
+    _swapInAction = NO;
+  }];
+  
+  SKAction *completeAction = [SKAction sequence:@[nextFrame, nextFrame, nextFrame, resetAction]];
+  [dyadmino runAction:completeAction];
+}
+
+#pragma mark - update
+
 -(void)update:(CFTimeInterval)currentTime {
+}
+
+#pragma mark - helper methods
+
+-(NSUInteger)randomValueUpTo:(NSUInteger)high {
+  NSUInteger randInteger = ((int) arc4random() % high);
+  return randInteger;
 }
 
 @end

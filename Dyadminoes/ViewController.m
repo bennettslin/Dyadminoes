@@ -8,26 +8,11 @@
 
 #import "ViewController.h"
 #import "MyScene.h"
-#import "Pile.h"
-#import "Dyadmino.h"
-
-@interface ViewController () <KnowledgeOfPileDelegate>
-
-@end
 
 @implementation ViewController
 
 -(void)viewDidLoad {
   [super viewDidLoad];
-
-  self.pile = [[Pile alloc] init];
-
-  for (Dyadmino *dyadmino in self.pile.dyadminoesInPlayer1Rack) {
-  }
-}
-
--(NSMutableArray *)returnPlayer1Rack {
-  return self.pile.dyadminoesInPlayer1Rack;
 }
 
 -(BOOL)shouldAutorotate {
@@ -43,7 +28,7 @@
     // Create and configure the scene.
   MyScene * scene = [MyScene sceneWithSize:skView.bounds.size];
   scene.scaleMode = SKSceneScaleModeAspectFill;
-  scene.delegate = self;
+
     // Present the scene.
   [skView presentScene:scene];
 }

@@ -7,6 +7,7 @@
 //
 
 #import <XCTest/XCTest.h>
+#import "Pile.h"
 
 @interface DyadminoesTests : XCTestCase
 
@@ -26,9 +27,9 @@
     [super tearDown];
 }
 
-- (void)testExample
-{
-    XCTFail(@"No implementation for \"%s\"", __PRETTY_FUNCTION__);
+-(void)testPileCountAfterInstantiation {
+  Pile *pile = [[Pile alloc] init];
+  XCTAssertTrue([pile.allDyadminoes count] == 66, @"Pile count should be 66");
 }
 
 @end

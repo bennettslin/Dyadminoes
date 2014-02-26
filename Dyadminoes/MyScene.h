@@ -7,15 +7,10 @@
 //
 
 #import <SpriteKit/SpriteKit.h>
-
-@protocol KnowledgeOfPileDelegate <NSObject>
-
--(NSMutableArray *)returnPlayer1Rack;
-
-@end
+@class Pile;
 
 @interface MyScene : SKScene
 
-@property (weak, nonatomic) id<KnowledgeOfPileDelegate> delegate;
+@property (strong, nonatomic) Pile *pile;
 
 @end
