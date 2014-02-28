@@ -12,7 +12,7 @@
   BOOL _alreadyAddedChildren;
 }
 
--(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(NSString *)pcMode andRotationFrameArray:(NSArray *)rotationFrameArray andPC1LetterSprite:(SKSpriteNode *)pc1LetterSprite andPC2LetterSprite:(SKSpriteNode *)pc2LetterSprite andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite {
+-(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode andRotationFrameArray:(NSArray *)rotationFrameArray andPC1LetterSprite:(SKSpriteNode *)pc1LetterSprite andPC2LetterSprite:(SKSpriteNode *)pc2LetterSprite andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite {
   self = [super init];
   if (self) {
     self.pc1 = pc1;
@@ -32,7 +32,7 @@
 
 -(void)selectAndPositionSprites {
   
-  if ([self.pcMode isEqualToString:@"Letter"]) {
+  if (self.pcMode == kPCModeLetter) {
     if (!self.pc1Sprite || self.pc1Sprite == self.pc1NumberSprite) {
       _alreadyAddedChildren = YES;
       [self removeAllChildren];
@@ -41,7 +41,7 @@
       [self addChild:self.pc1Sprite];
       [self addChild:self.pc2Sprite];
     }
-  } else if ([self.pcMode isEqualToString:@"Number"]) {
+  } else if (self.pcMode == kPCModeNumber) {
     if (!self.pc1Sprite || self.pc1Sprite == self.pc1LetterSprite) {
       _alreadyAddedChildren = YES;
       [self removeAllChildren];
@@ -52,38 +52,38 @@
     }
   }
   
-  switch (self.rackOrientation) {
-    case 0:
+  switch (self.orientation) {
+    case kPC1atTwelveOClock:
       self.texture = self.rotationFrameArray[0];
       self.size = self.texture.size;
       self.pc1Sprite.position = CGPointMake(0, -self.size.height / 4);
       self.pc2Sprite.position = CGPointMake(0, self.size.height / 4);
       break;
-    case 1:
+    case kPC1atTwoOClock:
       self.texture = self.rotationFrameArray[1];
       self.size = self.texture.size;
       self.pc1Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, -self.size.height / 6);
       self.pc2Sprite.position = CGPointMake(self.size.width * 1.5f / 7, self.size.height / 6);
       break;
-    case 2:
+    case kPC1atFourOClock:
       self.texture = self.rotationFrameArray[2];
       self.size = self.texture.size;
       self.pc1Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, self.size.height / 6);
       self.pc2Sprite.position = CGPointMake(self.size.width * 1.5f / 7, -self.size.height / 6);
       break;
-    case 3:
+    case kPC1atSixOClock:
       self.texture = self.rotationFrameArray[0];
       self.size = self.texture.size;
       self.pc1Sprite.position = CGPointMake(0, self.size.height / 4);
       self.pc2Sprite.position = CGPointMake(0, -self.size.height / 4);
       break;
-    case 4:
+    case kPC1atEightOClock:
       self.texture = self.rotationFrameArray[1];
       self.size = self.texture.size;
       self.pc1Sprite.position = CGPointMake(self.size.width * 1.5f / 7, self.size.height / 6);
       self.pc2Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, -self.size.height / 6);
       break;
-    case 5:
+    case kPC1atTenOClock:
       self.texture = self.rotationFrameArray[2];
       self.size = self.texture.size;
       self.pc1Sprite.position = CGPointMake(self.size.width * 1.5f / 7, -self.size.height / 6);
@@ -94,19 +94,11 @@
 
 -(void)randomiseRackOrientation { // only gets called before sprite is reloaded
   NSUInteger zeroOrOne = [self randomValueUpTo:2]; // randomise rackOrientation
-  NSUInteger zeroOrThree = 0;
-  if (zeroOrOne == 1) {
-    zeroOrThree = 3;
+  if (zeroOrOne == 0) {
+    self.orientation = kPC1atTwelveOClock;
+  } else if (zeroOrOne == 1) {
+    self.orientation = kPC1atSixOClock;
   }
-  self.rackOrientation = zeroOrThree;
-}
-
-#pragma mark - helper methods
-
-  // duplicate code in myScene
--(NSUInteger)randomValueUpTo:(NSUInteger)high {
-  NSUInteger randInteger = ((int) arc4random() % high);
-  return randInteger;
 }
 
 @end

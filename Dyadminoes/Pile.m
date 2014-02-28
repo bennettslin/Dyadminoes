@@ -9,8 +9,6 @@
 #import "Pile.h"
 #import "Dyadmino.h"
 
-#define kNumDyadminoesInRack 6
-
 @implementation Pile
 
 -(id)init {
@@ -26,7 +24,7 @@
     NSArray *rotationFrameArray = [NSArray arrayWithArray:tempRotationArray];
     
     self.allDyadminoes = [[NSMutableSet alloc] initWithCapacity:66];
-    self.dyadminoesInPile = [[NSMutableSet alloc] initWithCapacity:66];
+    self.dyadminoesInCommonPile = [[NSMutableSet alloc] initWithCapacity:66];
     self.dyadminoesInPlayer1Rack = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
     
       // create dyadminoes
@@ -44,10 +42,10 @@
           SKSpriteNode *pc2LetterSprite = [SKSpriteNode spriteNodeWithTexture:[textureAtlas textureNamed:pc2LetterString]];
           SKSpriteNode *pc2NumberSprite = [SKSpriteNode spriteNodeWithTexture:[textureAtlas textureNamed:pc2NumberString]];
           
-          Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1 andPC2:pc2 andPCMode:@"Letter" andRotationFrameArray:rotationFrameArray andPC1LetterSprite:pc1LetterSprite andPC2LetterSprite:pc2LetterSprite andPC1NumberSprite:pc1NumberSprite andPC2NumberSprite:pc2NumberSprite];
+          Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1 andPC2:pc2 andPCMode:kPCModeLetter andRotationFrameArray:rotationFrameArray andPC1LetterSprite:pc1LetterSprite andPC2LetterSprite:pc2LetterSprite andPC1NumberSprite:pc1NumberSprite andPC2NumberSprite:pc2NumberSprite];
           
           [self.allDyadminoes addObject:dyadmino];
-          [self.dyadminoesInPile addObject:dyadmino];
+          [self.dyadminoesInCommonPile addObject:dyadmino];
         }
       }
     }
@@ -65,7 +63,7 @@
     }
       // remove current dyadminoes in rack, and put them back in pile
     for (Dyadmino *dyadmino in self.dyadminoesInPlayer1Rack) {
-      [self.dyadminoesInPile addObject:dyadmino];
+      [self.dyadminoesInCommonPile addObject:dyadmino];
     }
     [self.dyadminoesInPlayer1Rack removeAllObjects];
       // put dyadminoes in temp array into rack
@@ -80,19 +78,11 @@
 }
 
 -(Dyadmino *)takeSingleRandomDyadminoOutOfPile {
-  NSUInteger randIndex = [self randomValueUpTo:[self.dyadminoesInPile count]];
-  NSArray *tempArray = [self.dyadminoesInPile allObjects];
+  NSUInteger randIndex = [self randomValueUpTo:[self.dyadminoesInCommonPile count]];
+  NSArray *tempArray = [self.dyadminoesInCommonPile allObjects];
   Dyadmino *dyadmino = (Dyadmino *)tempArray[randIndex];
-  [self.dyadminoesInPile removeObject:dyadmino];
+  [self.dyadminoesInCommonPile removeObject:dyadmino];
   return dyadmino;
-}
-
-#pragma mark - helper methods
-
-  // duplicate code in myScene
--(NSUInteger)randomValueUpTo:(NSUInteger)high {
-  NSUInteger randInteger = ((int) arc4random() % high);
-  return randInteger;
 }
 
 @end

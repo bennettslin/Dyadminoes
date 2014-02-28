@@ -7,11 +7,12 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "NSObject+Helper.h"
 
 @interface Pile : NSObject
 
 @property (strong, nonatomic) NSMutableSet *allDyadminoes;
-@property (strong, nonatomic) NSMutableSet *dyadminoesInPile;
+@property (strong, nonatomic) NSMutableSet *dyadminoesInCommonPile;
 @property (strong, nonatomic) NSMutableSet *dyadminoesOnBoard;
 @property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer1Rack;
 @property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer2Rack;
