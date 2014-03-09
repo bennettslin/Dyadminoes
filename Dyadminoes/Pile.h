@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "NSObject+Helper.h"
+@class Dyadmino;
 
 @interface Pile : NSObject
 
@@ -18,5 +19,7 @@
 @property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer2Rack;
 
 -(NSMutableArray *)populateOrCompletelySwapOutPlayer1Rack;
+-(void)playFromPlayer1RackOntoBoard:(Dyadmino *)dyadmino;
+-(BOOL)putIntoPlayer1RackFromCommonPile;
 
 @end

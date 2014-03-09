@@ -18,7 +18,6 @@
 @property NSUInteger pc2;
 @property (nonatomic) PCMode pcMode;
 @property (nonatomic) DyadminoOrientation orientation;
-//@property (nonatomic) DyadminoOrientation boardOrientation;
 @property (strong, nonatomic) NSArray *rotationFrameArray;
 @property (strong, nonatomic) SKSpriteNode *pc1LetterSprite;
 @property (strong, nonatomic) SKSpriteNode *pc2LetterSprite;
@@ -29,9 +28,9 @@
 @property (strong, nonatomic) SnapNode *homeNode;
 @property (strong, nonatomic) SnapNode *tempReturnNode;
 @property DyadminoWithinSection withinSection;
-@property BOOL canRackRotateWithThisTouch;
-@property BOOL isHighlighted;
+@property BOOL canRotateWithThisTouch;
 @property BOOL isRotating;
+@property BOOL isHighlighted;
 
 /**
  initialises a dyadmino with pcs and orientation

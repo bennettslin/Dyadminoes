@@ -30,4 +30,18 @@
   return CGPointMake(point1.x - point2.x, point1.y - point2.y);
 }
 
+-(CGFloat)findAngleInDegreesFromThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2 {
+  CGFloat angleDegrees = atan2f(point2.y - point1.y, point2.x - point1.x) * 180 / M_PI;
+//  NSLog(@"angle is %f", angleDegrees);
+  return angleDegrees;
+}
+
+-(CGFloat)getSextantChangeFromThisAngle:(CGFloat)angle1 toThisAngle:(CGFloat)angle2 {
+  CGFloat angle = 0.5f - ((angle1 - angle2) / 60);
+  if (angle < 0.f) {
+    angle += 6.f;
+  }
+  return angle;
+}
+
 @end

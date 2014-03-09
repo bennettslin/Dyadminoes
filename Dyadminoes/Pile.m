@@ -24,7 +24,9 @@
     NSArray *rotationFrameArray = [NSArray arrayWithArray:tempRotationArray];
     
     self.allDyadminoes = [[NSMutableSet alloc] initWithCapacity:66];
+    self.dyadminoesOnBoard = [NSMutableSet new];
     self.dyadminoesInCommonPile = [[NSMutableSet alloc] initWithCapacity:66];
+    self.dyadminoesInPlayer1Rack = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
     self.dyadminoesInPlayer1Rack = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
     
       // create dyadminoes
@@ -59,7 +61,7 @@
       // first take random dyadminoes out of pile, and put them in temp array
     NSMutableArray *tempArray = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
     for (int i = 0; i < kNumDyadminoesInRack; i++) {
-      [tempArray addObject:[self takeSingleRandomDyadminoOutOfPile]];
+      [tempArray addObject:[self pickRandomDyadminoOutOfCommonPile]];
     }
       // remove current dyadminoes in rack, and put them back in pile
     for (Dyadmino *dyadmino in self.dyadminoesInPlayer1Rack) {
@@ -70,19 +72,44 @@
     self.dyadminoesInPlayer1Rack = tempArray;
   } else {
     for (int i = 0; i < kNumDyadminoesInRack; i++) {
-      Dyadmino *dyadmino = [self takeSingleRandomDyadminoOutOfPile];
+      Dyadmino *dyadmino = [self pickRandomDyadminoOutOfCommonPile];
       [self.dyadminoesInPlayer1Rack addObject:dyadmino];
     }
   }
   return self.dyadminoesInPlayer1Rack;
 }
 
--(Dyadmino *)takeSingleRandomDyadminoOutOfPile {
-  NSUInteger randIndex = [self randomValueUpTo:[self.dyadminoesInCommonPile count]];
-  NSArray *tempArray = [self.dyadminoesInCommonPile allObjects];
-  Dyadmino *dyadmino = (Dyadmino *)tempArray[randIndex];
-  [self.dyadminoesInCommonPile removeObject:dyadmino];
-  return dyadmino;
+-(Dyadmino *)pickRandomDyadminoOutOfCommonPile {
+  NSUInteger dyadminoesLeftInPile = self.dyadminoesInCommonPile.count;
+    // if dyadminoes left...
+  if (dyadminoesLeftInPile >= 1) {
+    NSUInteger randIndex = [self randomValueUpTo:dyadminoesLeftInPile];
+    NSArray *tempArray = [self.dyadminoesInCommonPile allObjects];
+    Dyadmino *dyadmino = (Dyadmino *)tempArray[randIndex];
+    [self.dyadminoesInCommonPile removeObject:dyadmino];
+    return dyadmino;
+    
+  } else {
+    return nil;
+  }
+}
+
+-(BOOL)putIntoPlayer1RackFromCommonPile {
+  Dyadmino *dyadmino = [self pickRandomDyadminoOutOfCommonPile];
+  if (dyadmino) {
+    [self.dyadminoesInPlayer1Rack addObject:dyadmino];
+    return YES;
+  } else {
+    return NO;
+  }
+}
+  
+
+-(void)playFromPlayer1RackOntoBoard:(Dyadmino *)dyadmino {
+  if ([self.dyadminoesInPlayer1Rack containsObject:dyadmino]) {
+    [self.dyadminoesOnBoard addObject:dyadmino];
+    [self.dyadminoesInPlayer1Rack removeObject:dyadmino];
+  }
 }
 
 @end
