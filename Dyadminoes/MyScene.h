@@ -11,6 +11,6 @@
 
 @interface MyScene : SKScene
 
-@property (strong, nonatomic) Pile *pile;
+@property (strong, nonatomic) Pile *myPile;
 
 @end

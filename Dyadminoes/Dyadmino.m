@@ -113,14 +113,16 @@
   }
 }
 
--(void)highlightDyadmino {
+-(void)highlightAndRepositionDyadmino {
   self.isHighlighted = YES;
   [self resizeDyadminoWithAnimation:NO];
+  [self selectAndPositionSprites];
 }
 
--(void)unhighlightDyadmino {
+-(void)unhighlightAndRepositionDyadmino {
   self.isHighlighted = NO;
   [self resizeDyadminoWithAnimation:NO];
+  [self selectAndPositionSprites];
 }
 
 @end

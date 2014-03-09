@@ -43,7 +43,7 @@
 
 -(void)selectAndPositionSprites;
 -(void)randomiseRackOrientation;
--(void)highlightDyadmino;
--(void)unhighlightDyadmino;
+-(void)highlightAndRepositionDyadmino;
+-(void)unhighlightAndRepositionDyadmino;
 
 @end

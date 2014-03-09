@@ -15,7 +15,6 @@
 @interface MyScene ()
 @end
 
-  // TODO: why are pc sprites not being centred properly when highlighted?
   // TODO: make swap possible only when no dyadminoes are on board (change them to buttons?)
   // TODO: make rack exchange not so sensitive on top and bottoms of rack
 
@@ -65,8 +64,8 @@
 
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
-    self.pile = [[Pile alloc] init];
-    _dyadminoesInPlayerRack = [self.pile populateOrCompletelySwapOutPlayer1Rack];
+    self.myPile = [[Pile alloc] init];
+    _dyadminoesInPlayerRack = [self.myPile populateOrCompletelySwapOutPlayer1Rack];
     _rackNodes = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
     _boardNodesTwelveAndSix = [NSMutableSet new];
     _boardNodesTwoAndEight = [NSMutableSet new];
@@ -190,7 +189,7 @@
 
 -(void)populateOrRepopulateRackWithDyadminoes {
   [_rackFieldSprite removeAllChildren];
-  _dyadminoesInPlayerRack = [self.pile populateOrCompletelySwapOutPlayer1Rack];
+  _dyadminoesInPlayerRack = [self.myPile populateOrCompletelySwapOutPlayer1Rack];
   
   for (int i = 0; i < [_dyadminoesInPlayerRack count]; i++) {
     Dyadmino *dyadmino = _dyadminoesInPlayerRack[i];
@@ -206,7 +205,7 @@
 }
 
 -(void)toggleBetweenLetterAndNumberMode {
-  for (Dyadmino *dyadmino in self.pile.allDyadminoes) {
+  for (Dyadmino *dyadmino in self.myPile.allDyadminoes) {
     if (dyadmino.pcMode == kPCModeLetter) {
       dyadmino.pcMode = kPCModeNumber;
     } else {
@@ -250,7 +249,7 @@
   Dyadmino *dyadmino = [self selectDyadminoFromTouchPosition:_currentTouchLocation];
   if (dyadmino) {
     _currentlyTouchedDyadmino = dyadmino;
-    [dyadmino highlightDyadmino];
+    [dyadmino highlightAndRepositionDyadmino];
     _currentlyTouchedDyadmino.withinSection = [self determineCurrentSectionOfDyadmino:_currentlyTouchedDyadmino];
 
       // current dyadmino is different than recent, so reset the recently touched dyadmino
@@ -356,9 +355,10 @@
       if (_recentlyTouchedDyadmino.canRackRotateWithThisTouch && !_recentlyTouchedDyadmino.isRotating) {
         [self animateRotateDyadmino:_recentlyTouchedDyadmino];
       } else { // ...otherwise, it did move, and now it must return to its temporary node
+        [self orientToRackThisDyadmino:_recentlyTouchedDyadmino];
         [self animateConstantTimeMoveDyadmino:_recentlyTouchedDyadmino
                                   toThisPoint:_recentlyTouchedDyadmino.tempReturnNode.position];
-        [_recentlyTouchedDyadmino unhighlightDyadmino];
+        [_recentlyTouchedDyadmino unhighlightAndRepositionDyadmino];
       }
       // no need to remember it if it's on the rack
       _recentlyTouchedDyadmino.zPosition = 100;
@@ -391,7 +391,7 @@
     [self animateSlowerConstantTimeMoveDyadmino:_recentlyTouchedDyadmino
                                     toThisPoint:_recentlyTouchedDyadmino.tempReturnNode.position];
     _recentlyTouchedDyadmino.canRackRotateWithThisTouch = NO;
-    [_recentlyTouchedDyadmino unhighlightDyadmino];
+    [_recentlyTouchedDyadmino unhighlightAndRepositionDyadmino];
   }
 }
 
@@ -403,7 +403,10 @@
 
 -(void)sendHomeThisDyadmino:(Dyadmino *)dyadmino {
   if (dyadmino) {
-    [dyadmino unhighlightDyadmino];
+    [dyadmino unhighlightAndRepositionDyadmino];
+    if (dyadmino.homeNode.snapNodeType == kSnapNodeRack) {
+      [self orientToRackThisDyadmino:dyadmino];
+    }
     [self resetAllAnimationsOnDyadmino:dyadmino];
     if (dyadmino.withinSection == kDyadminoWithinBoard) {
 //      NSLog(@"within board part called");
@@ -417,6 +420,8 @@
     dyadmino.zPosition = 100;
   }
 }
+
+
 
 #pragma mark - animation methods
 
@@ -454,8 +459,7 @@
     // rack rotation
   if (dyadmino.withinSection == kDyadminoWithinRack) {
     finishAction = [SKAction runBlock:^{
-      [dyadmino unhighlightDyadmino];
-      [dyadmino selectAndPositionSprites];
+      [dyadmino unhighlightAndRepositionDyadmino];
       dyadmino.isRotating = NO;
     }];
     completeAction = [SKAction sequence:@[nextFrame, waitTime, nextFrame, waitTime, nextFrame, finishAction]];
@@ -481,7 +485,7 @@
   SKAction *dyadminoFinishStatus = [SKAction runBlock:^{
     _recentlyTouchedDyadmino.zPosition = 100;
     _dyadminoHoveringStatus = kDyadminoFinishedHovering;
-    [_recentlyTouchedDyadmino unhighlightDyadmino];
+    [_recentlyTouchedDyadmino unhighlightAndRepositionDyadmino];
   }];
   SKAction *actionSequence = [SKAction sequence:@[dyadminoHover, dyadminoFinishStatus]];
   [_recentlyTouchedDyadmino runAction:actionSequence];
@@ -493,15 +497,6 @@
     _dyadminoHoveringStatus = kDyadminoFinishedHovering;
   }
   dyadmino.isRotating = NO;
-  if (dyadmino.withinSection == kDyadminoWithinRack) {
-    if (dyadmino.orientation <= 1 || dyadmino.orientation >= 5) {
-      dyadmino.orientation = 0;
-    } else {
-      dyadmino.orientation = 3;
-    }
-    [dyadmino unhighlightDyadmino];
-    [dyadmino selectAndPositionSprites];
-  }
 }
 
 #pragma mark - helper methods
@@ -526,34 +521,27 @@
   return CGPointMake(uiTouchLocation.x, self.frame.size.height - uiTouchLocation.y);
 }
 
-  // FIXME: will have to tweak with this once dyadminoes are on board
 -(Dyadmino *)selectDyadminoFromTouchPosition:(CGPoint)touchPoint {
   for (Dyadmino *dyadmino in _dyadminoesInPlayerRack) {
-      // not really sure about what I said below
-      // only important that touchNode actually intersects dyadmino if dyadmino is on board
-      // TODO: eventually change this so that there's more wiggle room if there's no ambiguity
-    
-    [self logThisDyadmino:dyadmino];
-    
       // dyadmino is on board
     if ([self determineCurrentSectionOfDyadmino:dyadmino] == kDyadminoWithinBoard) {
         // dyadmino is hovering, more wiggle room
       if (_dyadminoHoveringStatus == kDyadminoHovering && dyadmino == _recentlyTouchedDyadmino &&
           [self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
           kDistanceForTouchingHoveringDyadmino) {
-        NSLog(@"hovering dyadmino touched");
+//        NSLog(@"hovering dyadmino touched");
         return dyadmino;
           // dyadmino is locked in a node, so less wiggle room
       } else if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
           kDistanceForTouchingLockedDyadmino) {
-        NSLog(@"locked dyadmino touched");
+//        NSLog(@"locked dyadmino touched");
         return dyadmino;
       }
         // dyadmino is in rack
     } else if ([self determineCurrentSectionOfDyadmino:dyadmino] == kDyadminoWithinRack) {
       if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
           _xIncrementInRack) {
-        NSLog(@"rack dyadmino touched");
+//        NSLog(@"rack dyadmino touched");
         return dyadmino;
       }
     }
@@ -610,6 +598,15 @@
   } else {
     return @"dyadmino doesn't exist";
   }
+}
+
+-(void)orientToRackThisDyadmino:(Dyadmino *)dyadmino {
+  if (dyadmino.orientation <= 1 || dyadmino.orientation >= 5) {
+    dyadmino.orientation = 0;
+  } else {
+    dyadmino.orientation = 3;
+  }
+  [dyadmino selectAndPositionSprites];
 }
 
 @end
