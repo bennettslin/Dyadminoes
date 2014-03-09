@@ -17,14 +17,15 @@
 
   // TODO: next, make it so that when pressing done, dyadmino on board stays and new dyadmino is popped into rack.
 
-  // TODO: make swap possible only when no dyadminoes are on board (change them to buttons?)
-  // TODO: make swap board
+  // TODO: implement swap, and make possible only when no dyadminoes are on board (change them to buttons?)
+
+  // TODO: needs method to make sure after crazy stuff, all dyadminoes on rack are normal
 
   // low priority now: make rack exchange not so sensitive on top and bottoms of rack
 
   // put board cells on their own sprite nodes
   // TODO: board cells need coordinates
-  // TODO: needs method to make sure after crazy stuff, all dyadminoes on rack are normal
+
 
 @implementation MyScene {
   
@@ -630,7 +631,7 @@
 }
 
 -(void)orientDyadmino:(Dyadmino *)dyadmino basedOnSextantChange:(CGFloat)sextantChange {
-  for (NSUInteger i = 0; i < 6; i++) {
+  for (NSUInteger i = 0; i < 12; i++) {
     if (sextantChange >= 0.f + i && sextantChange < 1.f + i) {
       NSUInteger dyadminoOrientationShouldBe = (_prePivotDyadminoOrientation + i) % 6;
       if (dyadmino.orientation == dyadminoOrientationShouldBe) {
