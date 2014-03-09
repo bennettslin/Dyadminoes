@@ -141,11 +141,10 @@
 		3F87AAB2188DEE4B008C4A0D /* Dyadminoes */ = {
 			isa = PBXGroup;
 			children = (
+				3F8DC8EC18C151170004B063 /* Storyboards */,
 				3FFD6CA218B40A83000D2DA4 /* DyadminoImages.atlas */,
 				3F87AABB188DEE4B008C4A0D /* AppDelegate.h */,
 				3F87AABC188DEE4B008C4A0D /* AppDelegate.m */,
-				3F87AABE188DEE4B008C4A0D /* Main_iPhone.storyboard */,
-				3F87AAC1188DEE4B008C4A0D /* Main_iPad.storyboard */,
 				3F87AAC4188DEE4B008C4A0D /* ViewController.h */,
 				3F87AAC5188DEE4B008C4A0D /* ViewController.m */,
 				3F87AAC7188DEE4B008C4A0D /* MyScene.h */,
@@ -188,6 +187,15 @@
 				3F87AADC188DEE4C008C4A0D /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		3F8DC8EC18C151170004B063 /* Storyboards */ = {
+			isa = PBXGroup;
+			children = (
+				3F87AABE188DEE4B008C4A0D /* Main_iPhone.storyboard */,
+				3F87AAC1188DEE4B008C4A0D /* Main_iPad.storyboard */,
+			);
+			name = Storyboards;
 			sourceTree = "<group>";
 		};
 		3FFD6BE518B3CCE7000D2DA4 /* Objects */ = {

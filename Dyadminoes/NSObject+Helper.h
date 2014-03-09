@@ -8,6 +8,14 @@
 
 #import <Foundation/Foundation.h>
 
+  // animation constants
+#define kRotateWait 0.02f
+#define kConstantTime 0.15f
+#define kSlowerConstantTime 0.2f
+#define kConstantSpeed 0.002f
+#define kAnimateHoverTime 0.4f
+#define kHighlightedDyadminoSize 1.15f
+
   // math constants
 #define kBoardDiagonalX 15.75f
 #define kBoardDiagonalY 9.0932667f
@@ -22,8 +30,15 @@
   // distance constants
 #define kDistanceForSnapOut 10.f
 #define kDistanceForOtherRackDyadminoToMoveOver 22.f
-#define kDistanceForSnapIn 20.f
-#define kDistanceForTouchingDyadmino 22.f
+#define kDistanceForSnapIn 21.f // this is half the height of the cell space, plus wiggle room
+#define kDistanceForTouchingHoveringDyadmino 50.f
+#define kDistanceForTouchingLockedDyadmino 25.f
+
+typedef enum dyadminoHoveringStatus {
+  kDyadminoHovering,
+  kDyadminoFinishedHovering,
+  kDyadminoNoHoverStatus
+} DyadminoHoveringStatus;
 
 typedef enum dyadminoWithinSection {
   kDyadminoWithinRack,

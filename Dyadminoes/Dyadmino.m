@@ -10,6 +10,7 @@
 
 @implementation Dyadmino {
   BOOL _alreadyAddedChildren;
+  CGSize _highlightedSize;
 }
 
 -(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode andRotationFrameArray:(NSArray *)rotationFrameArray andPC1LetterSprite:(SKSpriteNode *)pc1LetterSprite andPC2LetterSprite:(SKSpriteNode *)pc2LetterSprite andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite {
@@ -31,7 +32,6 @@
 }
 
 -(void)selectAndPositionSprites {
-  
   if (self.pcMode == kPCModeLetter) {
     if (!self.pc1Sprite || self.pc1Sprite == self.pc1NumberSprite) {
       _alreadyAddedChildren = YES;
@@ -55,37 +55,37 @@
   switch (self.orientation) {
     case kPC1atTwelveOClock:
       self.texture = self.rotationFrameArray[0];
-      self.size = self.texture.size;
+      [self resizeDyadminoWithAnimation:NO];
       self.pc1Sprite.position = CGPointMake(0, -self.size.height / 4);
       self.pc2Sprite.position = CGPointMake(0, self.size.height / 4);
       break;
     case kPC1atTwoOClock:
       self.texture = self.rotationFrameArray[1];
-      self.size = self.texture.size;
+      [self resizeDyadminoWithAnimation:NO];
       self.pc1Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, -self.size.height / 6);
       self.pc2Sprite.position = CGPointMake(self.size.width * 1.5f / 7, self.size.height / 6);
       break;
     case kPC1atFourOClock:
       self.texture = self.rotationFrameArray[2];
-      self.size = self.texture.size;
+      [self resizeDyadminoWithAnimation:NO];
       self.pc1Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, self.size.height / 6);
       self.pc2Sprite.position = CGPointMake(self.size.width * 1.5f / 7, -self.size.height / 6);
       break;
     case kPC1atSixOClock:
       self.texture = self.rotationFrameArray[0];
-      self.size = self.texture.size;
+      [self resizeDyadminoWithAnimation:NO];
       self.pc1Sprite.position = CGPointMake(0, self.size.height / 4);
       self.pc2Sprite.position = CGPointMake(0, -self.size.height / 4);
       break;
     case kPC1atEightOClock:
       self.texture = self.rotationFrameArray[1];
-      self.size = self.texture.size;
+      [self resizeDyadminoWithAnimation:NO];
       self.pc1Sprite.position = CGPointMake(self.size.width * 1.5f / 7, self.size.height / 6);
       self.pc2Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, -self.size.height / 6);
       break;
     case kPC1atTenOClock:
       self.texture = self.rotationFrameArray[2];
-      self.size = self.texture.size;
+      [self resizeDyadminoWithAnimation:NO];      
       self.pc1Sprite.position = CGPointMake(self.size.width * 1.5f / 7, -self.size.height / 6);
       self.pc2Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, self.size.height / 6);
       break;
@@ -99,6 +99,28 @@
   } else if (zeroOrOne == 1) {
     self.orientation = kPC1atSixOClock;
   }
+}
+
+-(void)resizeDyadminoWithAnimation:(BOOL)animation {
+  if (self.isHighlighted) {
+    self.size = CGSizeMake(self.texture.size.width * kHighlightedDyadminoSize, self.texture.size.height * kHighlightedDyadminoSize);
+    self.pc1Sprite.size = CGSizeMake(self.pc1Sprite.texture.size.width * kHighlightedDyadminoSize, self.pc1Sprite.texture.size.height * kHighlightedDyadminoSize);
+    self.pc2Sprite.size = CGSizeMake(self.pc2Sprite.texture.size.width * kHighlightedDyadminoSize, self.pc2Sprite.texture.size.height * kHighlightedDyadminoSize);
+  } else {
+    self.size = self.texture.size;
+    self.pc1Sprite.size = self.pc1Sprite.texture.size;
+    self.pc2Sprite.size = self.pc2Sprite.texture.size;
+  }
+}
+
+-(void)highlightDyadmino {
+  self.isHighlighted = YES;
+  [self resizeDyadminoWithAnimation:NO];
+}
+
+-(void)unhighlightDyadmino {
+  self.isHighlighted = NO;
+  [self resizeDyadminoWithAnimation:NO];
 }
 
 @end

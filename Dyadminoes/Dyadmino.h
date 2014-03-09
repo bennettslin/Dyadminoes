@@ -13,12 +13,12 @@
 
 @interface Dyadmino : SKSpriteNode
 
-  /// pc1 does is the first pc
+  /// this is the first pc
 @property NSUInteger pc1;
 @property NSUInteger pc2;
 @property (nonatomic) PCMode pcMode;
 @property (nonatomic) DyadminoOrientation orientation;
-@property (nonatomic) DyadminoOrientation boardOrientation;
+//@property (nonatomic) DyadminoOrientation boardOrientation;
 @property (strong, nonatomic) NSArray *rotationFrameArray;
 @property (strong, nonatomic) SKSpriteNode *pc1LetterSprite;
 @property (strong, nonatomic) SKSpriteNode *pc2LetterSprite;
@@ -27,8 +27,11 @@
 @property (strong, nonatomic) SKSpriteNode *pc1Sprite;
 @property (strong, nonatomic) SKSpriteNode *pc2Sprite;
 @property (strong, nonatomic) SnapNode *homeNode;
-@property (strong, nonatomic) SnapNode *moveDefaultNode;
-@property (strong, nonatomic) SnapNode *currentNodeIfAny;
+@property (strong, nonatomic) SnapNode *tempReturnNode;
+@property DyadminoWithinSection withinSection;
+@property BOOL canRackRotateWithThisTouch;
+@property BOOL isHighlighted;
+@property BOOL isRotating;
 
 /**
  initialises a dyadmino with pcs and orientation
@@ -40,5 +43,7 @@
 
 -(void)selectAndPositionSprites;
 -(void)randomiseRackOrientation;
+-(void)highlightDyadmino;
+-(void)unhighlightDyadmino;
 
 @end
