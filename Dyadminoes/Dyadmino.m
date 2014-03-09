@@ -16,6 +16,7 @@
 -(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode andRotationFrameArray:(NSArray *)rotationFrameArray andPC1LetterSprite:(SKSpriteNode *)pc1LetterSprite andPC2LetterSprite:(SKSpriteNode *)pc2LetterSprite andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite {
   self = [super init];
   if (self) {
+    self.name = [NSString stringWithFormat:@"dyadmino %i-%i", pc1, pc2];
     self.pc1 = pc1;
     self.pc2 = pc2;
     self.pcMode = pcMode;

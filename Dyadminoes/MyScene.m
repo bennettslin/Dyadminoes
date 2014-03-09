@@ -127,6 +127,7 @@
   for (int i = 0; i < 6; i++) {
     for (int j = 0; j < 30; j++) {
       SKSpriteNode *blankCell = [SKSpriteNode spriteNodeWithImageNamed:@"blankSpace"];
+      blankCell.name = @"blankCell";
       CGFloat xOffset = 0; // for odd rows
       CGFloat xPadding = 5.f;
       CGFloat yPadding = 2.8f;
@@ -175,13 +176,12 @@
   [self addChild:_rackFieldSprite];
   
   CGFloat xEdgeMargin = 12.f;
-  _xIncrementInRack = (self.frame.size.width - (2 * xEdgeMargin)) / (kNumDyadminoesInRack * 2);
-  NSLog(@"x increment is %f", _xIncrementInRack);
+  _xIncrementInRack = (self.frame.size.width - (2 * xEdgeMargin)) / (kNumDyadminoesInRack * 2); // right now it's 24.666
   
   for (int i = 0; i < [_dyadminoesInPlayerRack count]; i++) {
     SnapNode *rackNode = [[SnapNode alloc] initWithSnapNodeType:kSnapNodeRack];
     rackNode.position = CGPointMake(xEdgeMargin + _xIncrementInRack + (2 * _xIncrementInRack * i), kPlayerRackHeight / 2);
-    rackNode.name = [NSString stringWithFormat:@"rackNode no. %i", i];
+    rackNode.name = [NSString stringWithFormat:@"rackNode %i", i];
     [_rackFieldSprite addChild:rackNode];
     [_rackNodes addObject:rackNode];
   }
@@ -224,20 +224,20 @@
     // technically this isn't needed right now because I'm calling the getDistance method
     // but it might help distinguish which dyadmino when they're all squished together on the board
     // test if this is the case
-  _touchNode = [self nodeAtPoint:_beganTouchLocation];
-
+  _touchNode = [self nodeAtPoint:_currentTouchLocation];
+  NSLog(@"touch node %@ is at position %f, %f", _touchNode, _touchNode.position.x, _touchNode.position.y);
     // button methods
-  if ([_touchNode intersectsNode:_swapButton]) {
+  if (_touchNode == _swapButton) {
     NSLog(@"swap");
     [self populateOrRepopulateRackWithDyadminoes];
     return;
   }
-  if ([_touchNode intersectsNode:_togglePCModeButton]) {
+  if (_touchNode == _togglePCModeButton) {
     NSLog(@"toggle");
     [self toggleBetweenLetterAndNumberMode];
     return;
   }
-  if ([_touchNode intersectsNode:_doneButton]) {
+  if (_touchNode == _doneButton) {
     NSLog(@"done");
     [self sendHomeThisDyadmino:_currentlyTouchedDyadmino];
     _currentlyTouchedDyadmino = nil;
@@ -246,7 +246,7 @@
     return;
   }
   
-  Dyadmino *dyadmino = [self selectDyadminoFromTouchPosition:_currentTouchLocation];
+  Dyadmino *dyadmino = [self selectDyadminoFromTouchNode:_touchNode andTouchPoint:_currentTouchLocation];
   if (dyadmino) {
     _currentlyTouchedDyadmino = dyadmino;
     [dyadmino highlightAndRepositionDyadmino];
@@ -521,32 +521,38 @@
   return CGPointMake(uiTouchLocation.x, self.frame.size.height - uiTouchLocation.y);
 }
 
--(Dyadmino *)selectDyadminoFromTouchPosition:(CGPoint)touchPoint {
-  for (Dyadmino *dyadmino in _dyadminoesInPlayerRack) {
-      // dyadmino is on board
-    if ([self determineCurrentSectionOfDyadmino:dyadmino] == kDyadminoWithinBoard) {
-        // dyadmino is hovering, more wiggle room
-      if (_dyadminoHoveringStatus == kDyadminoHovering && dyadmino == _recentlyTouchedDyadmino &&
-          [self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
-          kDistanceForTouchingHoveringDyadmino) {
-//        NSLog(@"hovering dyadmino touched");
-        return dyadmino;
-          // dyadmino is locked in a node, so less wiggle room
-      } else if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
-          kDistanceForTouchingLockedDyadmino) {
-//        NSLog(@"locked dyadmino touched");
-        return dyadmino;
-      }
-        // dyadmino is in rack
-    } else if ([self determineCurrentSectionOfDyadmino:dyadmino] == kDyadminoWithinRack) {
-      if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
-          _xIncrementInRack) {
-//        NSLog(@"rack dyadmino touched");
-        return dyadmino;
-      }
-    }
-
+-(Dyadmino *)selectDyadminoFromTouchNode:(SKNode *)touchNode andTouchPoint:(CGPoint)touchPoint {
+    // first restriction is that the node being touched is the dyadmino
+  Dyadmino *dyadmino;
+  if ([touchNode isKindOfClass:[Dyadmino class]]) {
+    dyadmino = (Dyadmino *)touchNode;
+  } else if ([touchNode.parent isKindOfClass:[Dyadmino class]]) {
+    dyadmino = (Dyadmino *)touchNode.parent;
+  } else {
+    return nil;
   }
+    // second restriction is that touch point is close enough based on following criteria:
+  
+    // if dyadmino is on board...
+  if ([self determineCurrentSectionOfDyadmino:dyadmino] == kDyadminoWithinBoard) {
+      // ...and is hovering, more wiggle room
+    if (_dyadminoHoveringStatus == kDyadminoHovering && dyadmino == _recentlyTouchedDyadmino &&
+        [self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
+        kDistanceForTouchingHoveringDyadmino) {
+      return dyadmino;
+      // ...and is locked in a node, less wiggle room
+    } else if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
+        kDistanceForTouchingLockedDyadmino) {
+      return dyadmino;
+    }
+      // if dyadmino is in rack...
+  } else if ([self determineCurrentSectionOfDyadmino:dyadmino] == kDyadminoWithinRack) {
+    if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
+        _xIncrementInRack) {
+      return dyadmino;
+    }
+  }
+    // otherwise, not close enough
   return nil;
 }
 

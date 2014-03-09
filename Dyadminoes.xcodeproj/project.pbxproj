@@ -107,6 +107,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3F4C06B318CC5F12003C4265 /* Logic and Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				3F8F045618BFB1B300853C4C /* NSObject+Helper.h */,
+				3F8F045718BFB1B300853C4C /* NSObject+Helper.m */,
+				3F9923071895ECCA00FC9392 /* SonorityLogic.h */,
+				3F9923081895ECCA00FC9392 /* SonorityLogic.m */,
+			);
+			name = "Logic and Helpers";
+			sourceTree = "<group>";
+		};
 		3F87AA9E188DEE4B008C4A0D = {
 			isa = PBXGroup;
 			children = (
@@ -149,11 +160,8 @@
 				3F87AAC5188DEE4B008C4A0D /* ViewController.m */,
 				3F87AAC7188DEE4B008C4A0D /* MyScene.h */,
 				3F87AAC8188DEE4B008C4A0D /* MyScene.m */,
-				3F8F045618BFB1B300853C4C /* NSObject+Helper.h */,
-				3F8F045718BFB1B300853C4C /* NSObject+Helper.m */,
-				3F9923071895ECCA00FC9392 /* SonorityLogic.h */,
-				3F9923081895ECCA00FC9392 /* SonorityLogic.m */,
 				3FFD6BE518B3CCE7000D2DA4 /* Objects */,
+				3F4C06B318CC5F12003C4265 /* Logic and Helpers */,
 				3F87AACC188DEE4B008C4A0D /* Images.xcassets */,
 				3F87AAB3188DEE4B008C4A0D /* Supporting Files */,
 			);
