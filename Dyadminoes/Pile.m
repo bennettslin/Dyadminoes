@@ -94,7 +94,9 @@
   }
 }
 
--(BOOL)putIntoPlayer1RackFromCommonPile {
+
+
+-(BOOL)putDyadminoIntoPlayer1RackFromCommonPile {
   Dyadmino *dyadmino = [self pickRandomDyadminoOutOfCommonPile];
   if (dyadmino) {
     [self.dyadminoesInPlayer1Rack addObject:dyadmino];
@@ -103,7 +105,6 @@
     return NO;
   }
 }
-  
 
 -(void)playFromPlayer1RackOntoBoard:(Dyadmino *)dyadmino {
   if ([self.dyadminoesInPlayer1Rack containsObject:dyadmino]) {

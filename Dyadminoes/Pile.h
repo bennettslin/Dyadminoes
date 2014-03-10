@@ -20,6 +20,6 @@
 
 -(NSMutableArray *)populateOrCompletelySwapOutPlayer1Rack;
 -(void)playFromPlayer1RackOntoBoard:(Dyadmino *)dyadmino;
--(BOOL)putIntoPlayer1RackFromCommonPile;
+-(BOOL)putDyadminoIntoPlayer1RackFromCommonPile;
 
 @end
