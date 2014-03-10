@@ -21,7 +21,7 @@
 -(Player *)getAssignedAsPlayer;
 -(NSUInteger)getCommonPileCount;
 
--(void)playOnBoardThisDyadmino:(Dyadmino *)dyadmino fromRackOfPlayer:(Player *)player;
+-(BOOL)playOnBoardThisDyadmino:(Dyadmino *)dyadmino fromRackOfPlayer:(Player *)player;
 -(BOOL)putDyadminoFromCommonPileIntoRackOfPlayer:(Player *)player;
 
 @end

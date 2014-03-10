@@ -70,6 +70,13 @@
       }
     }
   }
+  
+    // FIXME: temporary, eventually remove
+  for (int i = 0; i < 58; i++) {
+    Dyadmino *dyadmino = [self.allDyadminoes anyObject];
+    [self.allDyadminoes removeObject:dyadmino];
+    [self.dyadminoesInCommonPile removeObject:dyadmino];
+  }
 }
 
   // TODO: currently, will break if pile count is less than number being swapped
@@ -138,11 +145,13 @@
   }
 }
 
--(void)playOnBoardThisDyadmino:(Dyadmino *)dyadmino fromRackOfPlayer:(Player *)player {
+-(BOOL)playOnBoardThisDyadmino:(Dyadmino *)dyadmino fromRackOfPlayer:(Player *)player {
   if ([player.dyadminoesInRack containsObject:dyadmino]) {
     [self.dyadminoesOnBoard addObject:dyadmino];
     [player.dyadminoesInRack removeObject:dyadmino];
+    return YES;
   }
+  return NO;
 }
 
 #pragma mark - singleton method

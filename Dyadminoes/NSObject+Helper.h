@@ -35,9 +35,9 @@
 #define kDistanceForTouchingLockedDyadmino 25.f
 
 typedef enum dyadminoHoveringStatus {
+  kDyadminoNoHoverStatus,
   kDyadminoHovering,
-  kDyadminoFinishedHovering,
-  kDyadminoNoHoverStatus
+  kDyadminoFinishedHovering
 } DyadminoHoveringStatus;
 
 typedef enum dyadminoWithinSection {

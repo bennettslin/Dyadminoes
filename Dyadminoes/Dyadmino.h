@@ -17,7 +17,11 @@
 @property NSUInteger pc1;
 @property NSUInteger pc2;
 @property (nonatomic) PCMode pcMode;
+
+@property (strong, nonatomic) SnapNode *homeNode;
+@property (strong, nonatomic) SnapNode *tempReturnNode;
 @property (nonatomic) DyadminoOrientation orientation;
+@property (nonatomic) DyadminoOrientation tempReturnOrientation;
 @property (strong, nonatomic) NSArray *rotationFrameArray;
 @property (strong, nonatomic) SKSpriteNode *pc1LetterSprite;
 @property (strong, nonatomic) SKSpriteNode *pc2LetterSprite;
@@ -25,12 +29,12 @@
 @property (strong, nonatomic) SKSpriteNode *pc2NumberSprite;
 @property (strong, nonatomic) SKSpriteNode *pc1Sprite;
 @property (strong, nonatomic) SKSpriteNode *pc2Sprite;
-@property (strong, nonatomic) SnapNode *homeNode;
-@property (strong, nonatomic) SnapNode *tempReturnNode;
+
 @property DyadminoWithinSection withinSection;
 @property BOOL canRotateWithThisTouch;
 @property BOOL isRotating;
-@property BOOL isHighlighted;
+@property BOOL isHoverHighlighted;
+@property BOOL isInPlayHighlighted;
 
 /**
  initialises a dyadmino with pcs and orientation
@@ -42,7 +46,9 @@
 
 -(void)selectAndPositionSprites;
 -(void)randomiseRackOrientation;
--(void)highlightAndRepositionDyadmino;
--(void)unhighlightAndRepositionDyadmino;
+-(void)hoverHighlight;
+-(void)hoverUnhighlight;
+-(void)inPlayHighlight;
+-(void)inPlayUnhighlight;
 
 @end

@@ -16,7 +16,11 @@
 -(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode andRotationFrameArray:(NSArray *)rotationFrameArray andPC1LetterSprite:(SKSpriteNode *)pc1LetterSprite andPC2LetterSprite:(SKSpriteNode *)pc2LetterSprite andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite {
   self = [super init];
   if (self) {
+      // constants
+    self.color = [UIColor orangeColor]; // for color blend factor
+    self.zPosition = 100;
     self.name = [NSString stringWithFormat:@"dyadmino %i-%i", pc1, pc2];
+    
     self.pc1 = pc1;
     self.pc2 = pc2;
     self.pcMode = pcMode;
@@ -25,7 +29,6 @@
     self.pc2LetterSprite = pc2LetterSprite;
     self.pc1NumberSprite = pc1NumberSprite;
     self.pc2NumberSprite = pc2NumberSprite;
-    self.zPosition = 100;
     [self randomiseRackOrientation];
     [self selectAndPositionSprites];
   }
@@ -56,37 +59,37 @@
   switch (self.orientation) {
     case kPC1atTwelveOClock:
       self.texture = self.rotationFrameArray[0];
-      [self resizeDyadminoWithAnimation:NO];
+      [self resizeDyadmino];
       self.pc1Sprite.position = CGPointMake(0, -self.size.height / 4);
       self.pc2Sprite.position = CGPointMake(0, self.size.height / 4);
       break;
     case kPC1atTwoOClock:
       self.texture = self.rotationFrameArray[1];
-      [self resizeDyadminoWithAnimation:NO];
+      [self resizeDyadmino];
       self.pc1Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, -self.size.height / 6);
       self.pc2Sprite.position = CGPointMake(self.size.width * 1.5f / 7, self.size.height / 6);
       break;
     case kPC1atFourOClock:
       self.texture = self.rotationFrameArray[2];
-      [self resizeDyadminoWithAnimation:NO];
+      [self resizeDyadmino];
       self.pc1Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, self.size.height / 6);
       self.pc2Sprite.position = CGPointMake(self.size.width * 1.5f / 7, -self.size.height / 6);
       break;
     case kPC1atSixOClock:
       self.texture = self.rotationFrameArray[0];
-      [self resizeDyadminoWithAnimation:NO];
+      [self resizeDyadmino];
       self.pc1Sprite.position = CGPointMake(0, self.size.height / 4);
       self.pc2Sprite.position = CGPointMake(0, -self.size.height / 4);
       break;
     case kPC1atEightOClock:
       self.texture = self.rotationFrameArray[1];
-      [self resizeDyadminoWithAnimation:NO];
+      [self resizeDyadmino];
       self.pc1Sprite.position = CGPointMake(self.size.width * 1.5f / 7, self.size.height / 6);
       self.pc2Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, -self.size.height / 6);
       break;
     case kPC1atTenOClock:
       self.texture = self.rotationFrameArray[2];
-      [self resizeDyadminoWithAnimation:NO];      
+      [self resizeDyadmino];      
       self.pc1Sprite.position = CGPointMake(self.size.width * 1.5f / 7, -self.size.height / 6);
       self.pc2Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, self.size.height / 6);
       break;
@@ -100,10 +103,11 @@
   } else if (zeroOrOne == 1) {
     self.orientation = kPC1atSixOClock;
   }
+  self.tempReturnOrientation = self.orientation;
 }
 
--(void)resizeDyadminoWithAnimation:(BOOL)animation {
-  if (self.isHighlighted) {
+-(void)resizeDyadmino {
+  if (self.isHoverHighlighted) {
     self.size = CGSizeMake(self.texture.size.width * kHighlightedDyadminoSize, self.texture.size.height * kHighlightedDyadminoSize);
     self.pc1Sprite.size = CGSizeMake(self.pc1Sprite.texture.size.width * kHighlightedDyadminoSize, self.pc1Sprite.texture.size.height * kHighlightedDyadminoSize);
     self.pc2Sprite.size = CGSizeMake(self.pc2Sprite.texture.size.width * kHighlightedDyadminoSize, self.pc2Sprite.texture.size.height * kHighlightedDyadminoSize);
@@ -114,15 +118,29 @@
   }
 }
 
--(void)highlightAndRepositionDyadmino {
-  self.isHighlighted = YES;
-  [self resizeDyadminoWithAnimation:NO];
+-(void)hoverHighlight {
+  self.isHoverHighlighted = YES;
+    // for now, hovering just resizes
+  [self resizeDyadmino];
   [self selectAndPositionSprites];
 }
 
--(void)unhighlightAndRepositionDyadmino {
-  self.isHighlighted = NO;
-  [self resizeDyadminoWithAnimation:NO];
+-(void)hoverUnhighlight {
+  self.isHoverHighlighted = NO;
+    // for now, hovering just resizes
+  [self resizeDyadmino];
+  [self selectAndPositionSprites];
+}
+
+-(void)inPlayHighlight {
+  self.isInPlayHighlighted = YES;
+  self.colorBlendFactor = 0.2f;
+  [self selectAndPositionSprites];
+}
+
+-(void)inPlayUnhighlight {
+  self.isInPlayHighlighted = NO;
+  self.colorBlendFactor = 0.f;
   [self selectAndPositionSprites];
 }
 
