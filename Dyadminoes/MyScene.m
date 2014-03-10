@@ -7,24 +7,31 @@
 //
 
 #import "MyScene.h"
-#import "Pile.h"
+#import "GameEngine.h"
 #import "Dyadmino.h"
 #import "NSObject+Helper.h"
 #import "SnapNode.h"
+#import "Player.h"
 
 @interface MyScene ()
 @end
 
   // easy to do
+  // TODO: make so that dyadmino methods all take in number or letter depending on player preference
+  // TODO: dyadmino remembers its last orientation relative to recentNode
+  // TODO: change touch methods to distinguish between rack and board dyadminoes
+  // TODO: board dyadminoes cannot go on rack
   // TODO: make labelnode that shows number of dyadminoes in pile
-  // TODO: make it so that dyadmino reset works for dyadminos on board (make method to get correct orientation from node name)
   // TODO: implement swap, and make it reset dyadminoes on board, but only up until number in pile
+  // TODO: disable done button (for now, make red)
 
   // next step
   // TODO: put board cells on their own sprite nodes
   // TODO: board cells need coordinates
 
   // after do board coordinates
+  // TODO: put initial dyadmino on board
+  // TODO: board nodes expand outward, don't establish them at first
   // TODO: check rack nodes to ensure that dyadminoes do not conflict on board, do not finish hovering if there's a conflict
 
   // low priority
@@ -43,7 +50,6 @@
   SKSpriteNode *_rackFieldSprite;
   SKNode *_touchNode;
 
-  
     // arrays to keep track of sprites and nodes
   NSMutableArray *_rackNodes;
   NSMutableSet *_boardNodesToSearch;
@@ -63,7 +69,6 @@
   CGPoint _offsetTouchVector;
   
     // bools and modes
-//  UITouch *_onlyTouch; // ensures only one touch at a time
   SKSpriteNode *_buttonPressed; // pointer to button that was pressed
   BOOL _rackExchangeInProgress;
   BOOL _dyadminoSnappedIntoMovement;
@@ -81,9 +86,9 @@
 
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
-    self.myPile = [[Pile alloc] init];
-//    _dyadminoesOnBoard = [NSMutableArray new];
-    [self.myPile populateOrCompletelySwapOutPlayer1Rack];
+    self.ourGameEngine = [GameEngine new];
+    self.myPlayer = [self.ourGameEngine getAssignedAsPlayer];
+    
     _rackNodes = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
     _buttonNodes = [NSMutableSet new];
     _boardNodesTwelveAndSix = [NSMutableSet new];
@@ -98,16 +103,15 @@
 }
 
 -(void)didMoveToView:(SKView *)view {
-  
   [self layoutBoard];
-  [self layoutTopBar];
+  [self layoutTopBarAndButtons];
   [self layoutRackField];
   [self populateOrRepopulateRackWithDyadminoes];
 }
 
 #pragma mark - layout views
 
--(void)layoutTopBar {
+-(void)layoutTopBarAndButtons {
     // background
   SKSpriteNode *topBar = [SKSpriteNode spriteNodeWithColor:[SKColor blueColor]
                                                       size:CGSizeMake(self.frame.size.width, kTopBarHeight)];
@@ -121,28 +125,28 @@
   _togglePCModeButton = [[SKSpriteNode alloc] initWithColor:[UIColor greenColor] size:buttonSize];
   _togglePCModeButton.position = CGPointMake(50.f, buttonYPosition);
   [topBar addChild:_togglePCModeButton];
-  SKLabelNode *toggleLabel = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
-  toggleLabel.text = @"toggle pc";
-  toggleLabel.fontSize = 10.f;
-  [_togglePCModeButton addChild:toggleLabel];
+//  SKLabelNode *toggleLabel = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
+//  toggleLabel.text = @"toggle pc";
+//  toggleLabel.fontSize = 10.f;
+//  [_togglePCModeButton addChild:toggleLabel];
   [_buttonNodes addObject:_togglePCModeButton];
   
   _swapButton = [[SKSpriteNode alloc] initWithColor:[UIColor greenColor] size:buttonSize];
   _swapButton.position = CGPointMake(125.f, buttonYPosition);
   [topBar addChild:_swapButton];
-  SKLabelNode *swapLabel = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
-  swapLabel.text = @"swap";
-  swapLabel.fontSize = 10.f;
-  [_swapButton addChild:swapLabel];
+//  SKLabelNode *swapLabel = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
+//  swapLabel.text = @"swap";
+//  swapLabel.fontSize = 10.f;
+//  [_swapButton addChild:swapLabel];
   [_buttonNodes addObject:_swapButton];
   
   _doneButton = [[SKSpriteNode alloc] initWithColor:[UIColor greenColor] size:buttonSize];
   _doneButton.position = CGPointMake(200.f, buttonYPosition);
   [topBar addChild:_doneButton];
-  SKLabelNode *doneLabel = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
-  doneLabel.text = @"done";
-  doneLabel.fontSize = 10.f;
-  [_doneButton addChild:doneLabel];
+//  SKLabelNode *doneLabel = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
+//  doneLabel.text = @"done";
+//  doneLabel.fontSize = 10.f;
+//  [_doneButton addChild:doneLabel];
   [_buttonNodes addObject:_doneButton];
 }
 
@@ -206,7 +210,7 @@
   CGFloat xEdgeMargin = 12.f;
   _xIncrementInRack = (self.frame.size.width - (2 * xEdgeMargin)) / (kNumDyadminoesInRack * 2); // right now it's 24.666
   
-  for (int i = 0; i < [self.myPile.dyadminoesInPlayer1Rack count]; i++) {
+  for (int i = 0; i < [self.ourGameEngine getCommonPileCount]; i++) {
     SnapNode *rackNode = [[SnapNode alloc] initWithSnapNodeType:kSnapNodeRack];
     rackNode.position = CGPointMake(xEdgeMargin + _xIncrementInRack + (2 * _xIncrementInRack * i), kPlayerRackHeight / 2);
     rackNode.name = [NSString stringWithFormat:@"rackNode %i", i];
@@ -214,14 +218,15 @@
     [_rackNodes addObject:rackNode];
   }
     // calls this once, the first time
-  [self.myPile populateOrCompletelySwapOutPlayer1Rack];
+//  [self.ourGameEngine initiallyPopulateRackOfPlayer:self.myPlayer];
 }
 
   // pile already knows where its dyadminoes are,
   // this method just places them where they belong
+  // FIXME: doesn't currently take into account number of dyadminoes in pile
 -(void)populateOrRepopulateRackWithDyadminoes {
-  for (int i = 0; i < [self.myPile.dyadminoesInPlayer1Rack count]; i++) {
-    Dyadmino *dyadmino = self.myPile.dyadminoesInPlayer1Rack[i];
+  for (int i = 0; i < kNumDyadminoesInRack; i++) {
+    Dyadmino *dyadmino = self.myPlayer.dyadminoesInRack[i];
     SnapNode *rackNode = _rackNodes[i];
     
       // setup dyadmino and rackNode
@@ -245,7 +250,9 @@
 }
 
 -(void)toggleBetweenLetterAndNumberMode {
-  for (Dyadmino *dyadmino in self.myPile.allDyadminoes) {
+  
+    // FIXME: will this affect other player's view of dyadminoes?
+  for (Dyadmino *dyadmino in self.ourGameEngine.allDyadminoes) {
     if (dyadmino.pcMode == kPCModeLetter) {
       dyadmino.pcMode = kPCModeNumber;
     } else {
@@ -282,8 +289,8 @@
       if (_recentlyTouchedDyadmino.withinSection == kDyadminoWithinBoard) {
           // dyadmino's home node is currently the rack node; do cleanup
         _recentlyTouchedDyadmino.homeNode.currentDyadmino = nil;
-        [self.myPile playFromPlayer1RackOntoBoard:_recentlyTouchedDyadmino];
-        [self.myPile putDyadminoIntoPlayer1RackFromCommonPile];
+        [self.ourGameEngine playOnBoardThisDyadmino:_recentlyTouchedDyadmino fromRackOfPlayer:self.myPlayer];
+        [self.ourGameEngine putDyadminoFromCommonPileIntoRackOfPlayer:self.myPlayer];
         [self populateOrRepopulateRackWithDyadminoes];
         
           // dyadmino's home node is now the board node
@@ -402,11 +409,13 @@
           SnapNode *rackNode = [self findSnapNodeClosestToDyadmino:_currentlyTouchedDyadmino];
           if (rackNode) {
             if (rackNode.currentDyadmino != _currentlyTouchedDyadmino &&
-                [self.myPile.dyadminoesInPlayer1Rack containsObject:rackNode.currentDyadmino] &&
-                [self.myPile.dyadminoesInPlayer1Rack containsObject:_currentlyTouchedDyadmino]) { // exchanging two dyadminoes
-              NSUInteger touchedDyadminoIndex = [self.myPile.dyadminoesInPlayer1Rack indexOfObject:_currentlyTouchedDyadmino];
-              NSUInteger rackDyadminoIndex = [self.myPile.dyadminoesInPlayer1Rack indexOfObject:rackNode.currentDyadmino];
-              [self.myPile.dyadminoesInPlayer1Rack exchangeObjectAtIndex:touchedDyadminoIndex withObjectAtIndex:rackDyadminoIndex];
+                [self.myPlayer.dyadminoesInRack containsObject:rackNode.currentDyadmino] &&
+                [self.myPlayer.dyadminoesInRack containsObject:_currentlyTouchedDyadmino]) {
+              
+                // ensure that results of rack exchange are sent back to game engine
+              NSUInteger touchedDyadminoIndex = [self.myPlayer.dyadminoesInRack indexOfObject:_currentlyTouchedDyadmino];
+              NSUInteger rackDyadminoIndex = [self.myPlayer.dyadminoesInRack indexOfObject:rackNode.currentDyadmino];
+              [self.myPlayer.dyadminoesInRack exchangeObjectAtIndex:touchedDyadminoIndex withObjectAtIndex:rackDyadminoIndex];
               
               _currentlyTouchedDyadmino.homeNode.currentDyadmino = rackNode.currentDyadmino;
               rackNode.currentDyadmino.tempReturnNode = _currentlyTouchedDyadmino.homeNode;
@@ -458,7 +467,7 @@
         if (_recentlyTouchedDyadmino.canRotateWithThisTouch && !_recentlyTouchedDyadmino.isRotating) {
           [self animateRotateDyadmino:_recentlyTouchedDyadmino];
         } else { // ...otherwise, it did move, and now it must return to its temporary node
-          [self orientToRackThisDyadmino:_recentlyTouchedDyadmino];
+          [self orientBeforeSendingHomeThisDyadmino:_recentlyTouchedDyadmino];
           [self animateConstantTimeMoveDyadmino:_recentlyTouchedDyadmino
                                     toThisPoint:_recentlyTouchedDyadmino.tempReturnNode.position];
           _recentlyTouchedDyadmino.zPosition = 100;
@@ -515,9 +524,7 @@
 -(void)sendHomeThisDyadmino:(Dyadmino *)dyadmino {
   if (dyadmino) {
     [dyadmino unhighlightAndRepositionDyadmino];
-    if (dyadmino.homeNode.snapNodeType == kSnapNodeRack) {
-      [self orientToRackThisDyadmino:dyadmino];
-    }
+    [self orientBeforeSendingHomeThisDyadmino:dyadmino];
     [self resetAllAnimationsOnDyadmino:dyadmino];
     if (dyadmino.withinSection == kDyadminoWithinBoard) {
 //      NSLog(@"within board part called");
@@ -530,6 +537,14 @@
     dyadmino.homeNode.currentDyadmino = dyadmino;
     dyadmino.zPosition = 100;
   }
+}
+
+-(void)resetAllAnimationsOnDyadmino:(Dyadmino *)dyadmino {
+  [dyadmino removeAllActions];
+  if (_dyadminoHoveringStatus == kDyadminoHovering) {
+    _dyadminoHoveringStatus = kDyadminoFinishedHovering;
+  }
+  dyadmino.isRotating = NO;
 }
 
 #pragma mark - animation methods
@@ -600,14 +615,6 @@
   }];
   SKAction *actionSequence = [SKAction sequence:@[dyadminoHover, dyadminoFinishStatus]];
   [_recentlyTouchedDyadmino runAction:actionSequence];
-}
-
--(void)resetAllAnimationsOnDyadmino:(Dyadmino *)dyadmino {
-  [dyadmino removeAllActions];
-  if (_dyadminoHoveringStatus == kDyadminoHovering) {
-    _dyadminoHoveringStatus = kDyadminoFinishedHovering;
-  }
-  dyadmino.isRotating = NO;
 }
 
 #pragma mark - helper methods
@@ -709,11 +716,26 @@
   return closestSnapnode;
 }
 
--(void)orientToRackThisDyadmino:(Dyadmino *)dyadmino {
-  if (dyadmino.orientation <= 1 || dyadmino.orientation >= 5) {
-    dyadmino.orientation = 0;
-  } else {
-    dyadmino.orientation = 3;
+-(void)orientBeforeSendingHomeThisDyadmino:(Dyadmino *)dyadmino {
+    // FIXME: this isn't right; it has to know its original orientation
+    // will need a BOOLEAN
+  switch (dyadmino.homeNode.snapNodeType) {
+    case kSnapNodeBoardTwelveAndSix:
+      dyadmino.orientation = 0;
+      break;
+    case kSnapNodeBoardTwoAndEight:
+      dyadmino.orientation = 1;
+      break;
+    case kSnapNodeBoardFourAndTen:
+      dyadmino.orientation = 2;
+      break;
+    case kSnapNodeRack:
+      if (dyadmino.orientation <= 1 || dyadmino.orientation >= 5) {
+        dyadmino.orientation = 0;
+      } else {
+        dyadmino.orientation = 3;
+      }
+      break;
   }
   [dyadmino selectAndPositionSprites];
 }
@@ -756,6 +778,5 @@
     return @"dyadmino doesn't exist";
   }
 }
-
 
 @end

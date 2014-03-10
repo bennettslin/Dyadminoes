@@ -7,10 +7,12 @@
 //
 
 #import <SpriteKit/SpriteKit.h>
-@class Pile;
+@class GameEngine;
+@class Player;
 
 @interface MyScene : SKScene
 
-@property (strong, nonatomic) Pile *myPile;
+@property (strong, nonatomic) GameEngine *ourGameEngine;
+@property (strong, nonatomic) Player *myPlayer;
 
 @end

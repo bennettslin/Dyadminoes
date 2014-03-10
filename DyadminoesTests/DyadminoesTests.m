@@ -7,7 +7,7 @@
 //
 
 #import <XCTest/XCTest.h>
-#import "Pile.h"
+#import "GameEngine.h"
 
 @interface DyadminoesTests : XCTestCase
 
@@ -28,7 +28,7 @@
 }
 
 -(void)testPileCountAfterInstantiation {
-  Pile *pile = [[Pile alloc] init];
+  GameEngine *pile = [[GameEngine alloc] init];
   XCTAssertTrue([pile.allDyadminoes count] == 66, @"Pile count should be 66");
 }
 
