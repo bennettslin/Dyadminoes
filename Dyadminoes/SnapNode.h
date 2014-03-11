@@ -12,7 +12,6 @@
 
 @interface SnapNode : SKNode
 
-@property (strong, nonatomic) Dyadmino *currentDyadmino;
 @property (nonatomic) SnapNodeType snapNodeType;
 
 -(id)initWithSnapNodeType:(SnapNodeType)snapNodeType;

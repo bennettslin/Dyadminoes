@@ -263,7 +263,6 @@
 
   // pile already knows where its dyadminoes are,
   // this method just places them where they belong
-  // FIXME: doesn't currently take into account number of dyadminoes in pile
 -(void)populateOrRepopulateRackWithDyadminoes {
   for (int i = 0; i < self.myPlayer.dyadminoesInRack.count; i++) {
     Dyadmino *dyadmino = self.myPlayer.dyadminoesInRack[i];
@@ -273,7 +272,6 @@
     dyadmino.homeNode = rackNode;
     dyadmino.tempReturnNode = rackNode;
     dyadmino.withinSection = kDyadminoWithinRack;
-    rackNode.currentDyadmino = dyadmino;
     
     if ([_rackFieldSprite.children containsObject:dyadmino]) {
         // dyadmino is already on rack, just has to animate to new position if not already there
@@ -412,7 +410,6 @@
       [_currentlyTouchedDyadmino inPlayHighlight];
     }
   }
-  
     //--------------------------------------------------------------------------
   
   if (_dyadminoHoveringStatus == kDyadminoHovering) {
@@ -446,32 +443,30 @@
     if (_currentlyTouchedDyadmino.homeNode.snapNodeType == kSnapNodeRack &&
         _currentlyTouchedDyadmino.withinSection == kDyadminoWithinRack) {
       SnapNode *rackNode = [self findSnapNodeClosestToDyadmino:_currentlyTouchedDyadmino];
-      if (rackNode) {
-        if (rackNode.currentDyadmino != _currentlyTouchedDyadmino &&
-            [self.myPlayer.dyadminoesInRack containsObject:rackNode.currentDyadmino] &&
-            [self.myPlayer.dyadminoesInRack containsObject:_currentlyTouchedDyadmino]) {
-          
-            // ensure that results of rack exchange are reflected in array
-          NSUInteger touchedDyadminoIndex = [self.myPlayer.dyadminoesInRack indexOfObject:_currentlyTouchedDyadmino];
-          NSUInteger rackDyadminoIndex = [self.myPlayer.dyadminoesInRack indexOfObject:rackNode.currentDyadmino];
-          [self.myPlayer.dyadminoesInRack exchangeObjectAtIndex:touchedDyadminoIndex withObjectAtIndex:rackDyadminoIndex];
-          
-            // dyadminoes exchange rack nodes, and vice versa
-          _currentlyTouchedDyadmino.homeNode.currentDyadmino = rackNode.currentDyadmino; // 1
-          rackNode.currentDyadmino.tempReturnNode = _currentlyTouchedDyadmino.homeNode; // 2
-          rackNode.currentDyadmino.homeNode = _currentlyTouchedDyadmino.homeNode; // 3
-          
-            // animate movement of dyadmino being pushed under and over
-          rackNode.currentDyadmino.zPosition = 99;
-          [self animateConstantSpeedMoveDyadmino:rackNode.currentDyadmino
-                                     toThisPoint:_currentlyTouchedDyadmino.homeNode.position];
-          rackNode.currentDyadmino.zPosition = 100;
+        // just a precaution
+      if (rackNode != _currentlyTouchedDyadmino.homeNode) {
+        NSUInteger rackNodesIndex = [_rackNodes indexOfObject:rackNode];
+        NSUInteger touchedDyadminoIndex = [self.myPlayer.dyadminoesInRack indexOfObject:_currentlyTouchedDyadmino];
+        Dyadmino *exchangedDyadmino = [self.myPlayer.dyadminoesInRack objectAtIndex:rackNodesIndex];
+        
+          // just a precaution
+        if (_currentlyTouchedDyadmino != exchangedDyadmino) {
+          [self.myPlayer.dyadminoesInRack exchangeObjectAtIndex:touchedDyadminoIndex withObjectAtIndex:rackNodesIndex];
         }
-          // continues exchange, or if just returning back to its own rack node
-        rackNode.currentDyadmino = _currentlyTouchedDyadmino; // 4
-        _currentlyTouchedDyadmino.tempReturnNode = rackNode; // 5
-        _currentlyTouchedDyadmino.homeNode = rackNode; // all 6 done!
+        
+          // dyadminoes exchange rack nodes, and vice versa
+        exchangedDyadmino.tempReturnNode = _currentlyTouchedDyadmino.homeNode;
+        exchangedDyadmino.homeNode = _currentlyTouchedDyadmino.homeNode;
+        
+          // animate movement of dyadmino being pushed under and over
+        exchangedDyadmino.zPosition = 99;
+        [self animateConstantSpeedMoveDyadmino:exchangedDyadmino
+                                   toThisPoint:_currentlyTouchedDyadmino.homeNode.position];
+        exchangedDyadmino.zPosition = 100;
       }
+        // continues exchange, or if just returning back to its own rack node
+      _currentlyTouchedDyadmino.tempReturnNode = rackNode;
+      _currentlyTouchedDyadmino.homeNode = rackNode;
     }
   }
 }
@@ -504,7 +499,7 @@
   }
   _recentDyadmino = _currentlyTouchedDyadmino;
   
-  [self logRecentAndCurrentDyadmino];
+  [self logRecentAndCurrentDyadminoes];
   
     // cleanup
   _hoverPivotInProgress = NO;
@@ -525,7 +520,6 @@
     } else {
       _recentDyadmino.tempReturnNode = _recentDyadmino.homeNode;
       [self orientThisDyadmino:_recentDyadmino bySnapNode:_recentDyadmino.homeNode];
-      _recentDyadmino.homeNode.currentDyadmino = _recentDyadmino;
       [self animateConstantTimeMoveDyadmino:_recentDyadmino
                                 toThisPoint:_recentDyadmino.homeNode.position];
       _recentDyadmino.zPosition = 100;
@@ -547,7 +541,6 @@
         
           // FIXME: eventually move enable done button method to the one that validates that it scores points
         [self enableButton:_doneButton];
-        boardNode.currentDyadmino = _recentDyadmino;
         _recentDyadmino.tempReturnNode = boardNode;
         [self animateHoverAndFinishedStatusOfDyadmino:_recentDyadmino];
         
@@ -562,7 +555,6 @@
         // FIXME: C. check to see if this is a legal move
         // (doesn't conflict with other dyadminoes, *and* doesn't break musical rules)
       if (TRUE) {
-        boardNode.currentDyadmino = _recentDyadmino;
         _recentDyadmino.tempReturnNode = boardNode;
         _recentDyadmino.homeNode = boardNode;
         [self animateHoverAndFinishedStatusOfDyadmino:_recentDyadmino];
@@ -574,6 +566,7 @@
     }
   }
     //--------------------------------------------------------------------------
+  
     // end by making sure everything is in its proper place
   [self ensureEverythingInProperPlaceAfterTouchEnds];
 }
@@ -628,8 +621,6 @@
       if ([self.ourGameEngine playOnBoardThisDyadmino:_recentRackDyadmino fromRackOfPlayer:self.myPlayer]) {
         
           // interact with game engine
-        _recentRackDyadmino.homeNode.currentDyadmino = nil;
-        
           // no dyadmino placed in rack, need to recalibrate rack
         if (![self.ourGameEngine putDyadminoFromCommonPileIntoRackOfPlayer:self.myPlayer]) {
           [self layoutRackField];
@@ -698,7 +689,6 @@
 
 -(void)sendHomeThisDyadmino:(Dyadmino *)dyadmino {
   if (dyadmino) {
-//    [dyadmino hoverUnhighlight]; // lastThingIDid
     [dyadmino inPlayUnhighlight];
     [self orientThisDyadmino:dyadmino bySnapNode:dyadmino.homeNode];
     if (dyadmino.withinSection == kDyadminoWithinBoard) {
@@ -706,7 +696,6 @@
       [self animateConstantSpeedMoveDyadmino:dyadmino toThisPoint:dyadmino.homeNode.position];
     }
     dyadmino.tempReturnNode = dyadmino.homeNode;
-    dyadmino.homeNode.currentDyadmino = dyadmino;
     dyadmino.zPosition = 100;
   }
 }
@@ -742,7 +731,6 @@
       SnapNode *rackNode = _rackNodes[index];
       if (!CGPointEqualToPoint(dyadmino.position, rackNode.position)) {
         [self animateConstantSpeedMoveDyadmino:dyadmino toThisPoint:rackNode.position];
-        rackNode.currentDyadmino = dyadmino;
         dyadmino.tempReturnNode = rackNode;
         dyadmino.homeNode = rackNode;
         [self orientThisDyadmino:dyadmino bySnapNode:dyadmino.homeNode];
@@ -973,16 +961,12 @@
 
 #pragma mark - debugging methods
 
--(void)logRecentAndCurrentDyadmino {
+-(void)logRecentAndCurrentDyadminoes {
   NSString *recentBoardString = [NSString stringWithFormat:@"recent board %@", [self logThisDyadmino:_recentBoardDyadmino]];
   NSString *recentRackString = [NSString stringWithFormat:@"recent rack %@", [self logThisDyadmino:_recentRackDyadmino]];
   NSString *currentString = [NSString stringWithFormat:@"current %@", [self logThisDyadmino:_currentlyTouchedDyadmino]];
   NSString *recentString = [NSString stringWithFormat:@"recent %@", [self logThisDyadmino:_recentDyadmino]];
   NSLog(@"%@, %@, %@, %@", currentString, recentRackString, recentBoardString, recentString);
-  
-//  for (SnapNode *rackNode in _rackNodes) {
-//    NSLog(@"%@ contains %@", rackNode.name, [self logThisDyadmino:rackNode.currentDyadmino]);
-//  }
 }
 
 -(NSString *)logThisDyadmino:(Dyadmino *)dyadmino {
