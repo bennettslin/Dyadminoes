@@ -17,7 +17,7 @@
   self = [super init];
   if (self) {
       // constants
-    self.color = [UIColor orangeColor]; // for color blend factor
+    self.color = [UIColor purpleColor]; // for color blend factor
     self.zPosition = 100;
     self.name = [NSString stringWithFormat:@"dyadmino %i-%i", pc1, pc2];
     
@@ -29,6 +29,7 @@
     self.pc2LetterSprite = pc2LetterSprite;
     self.pc1NumberSprite = pc1NumberSprite;
     self.pc2NumberSprite = pc2NumberSprite;
+    self.withinSection = kDyadminoWithinRack;
     [self randomiseRackOrientation];
     [self selectAndPositionSprites];
   }
