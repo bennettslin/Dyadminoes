@@ -29,6 +29,7 @@
     self.pc1NumberSprite = pc1NumberSprite;
     self.pc2NumberSprite = pc2NumberSprite;
     self.withinSection = kDyadminoWithinRack;
+    self.hoveringStatus = kDyadminoNoHoverStatus;
     [self randomiseRackOrientation];
     [self selectAndPositionSprites];
   }
@@ -120,6 +121,7 @@
 
 -(void)hoverHighlight {
   self.isHoverHighlighted = YES;
+  self.hoveringStatus = kDyadminoHovering;
     // for now, hovering just resizes
   [self resizeDyadmino];
   [self selectAndPositionSprites];
@@ -127,6 +129,7 @@
 
 -(void)hoverUnhighlight {
   self.isHoverHighlighted = NO;
+  self.hoveringStatus = kDyadminoFinishedHovering;
     // for now, hovering just resizes
   [self resizeDyadmino];
   [self selectAndPositionSprites];

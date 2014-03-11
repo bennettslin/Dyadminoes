@@ -33,6 +33,7 @@
 @property DyadminoWithinSection withinSection;
 @property BOOL canRotateWithThisTouch;
 @property BOOL isRotating;
+@property DyadminoHoveringStatus hoveringStatus;
 @property BOOL isHoverHighlighted;
 @property BOOL isInPlayHighlighted;
 

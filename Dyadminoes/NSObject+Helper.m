@@ -69,7 +69,7 @@
 }
 
 -(void)animateRotateDyadmino:(Dyadmino *)dyadmino {
-  [dyadmino removeAllActions];
+ [dyadmino removeAllActions];
   dyadmino.isRotating = YES;
   
   SKAction *nextFrame = [SKAction runBlock:^{
@@ -78,7 +78,6 @@
   }];
   SKAction *waitTime = [SKAction waitForDuration:kRotateWait];
   SKAction *finishAction;
-  SKAction *completeAction;
   
     // rotation
   if (dyadmino.withinSection == kDyadminoWithinRack) {
@@ -87,8 +86,6 @@
       [dyadmino setToHomeZPosition];
       dyadmino.isRotating = NO;
     }];
-    completeAction = [SKAction sequence:@[nextFrame, waitTime, nextFrame, waitTime, nextFrame, finishAction]];
-    
       // just to ensure that dyadmino is back in its node position
     dyadmino.position = dyadmino.homeNode.position;
     
@@ -99,8 +96,9 @@
       dyadmino.isRotating = NO;
       dyadmino.tempReturnOrientation = dyadmino.orientation;
     }];
-    completeAction = [SKAction sequence:@[nextFrame, finishAction]];
   }
+  
+  SKAction *completeAction = [SKAction sequence:@[nextFrame, waitTime, nextFrame, waitTime, nextFrame, finishAction]];
   [dyadmino runAction:completeAction];
 }
 
