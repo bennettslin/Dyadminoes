@@ -304,10 +304,6 @@
   }
     //--------------------------------------------------------------------------
   
-  NSLog(@"touches began");
-  [self logRecentAndCurrentDyadmino];
-  NSLog(@"hovering status is %i", _dyadminoHoveringStatus);
-  
     // A. touched node is a dyadmino, or close enough to one, depending on certain criteria...
   Dyadmino *dyadmino = [self selectDyadminoFromTouchNode:_touchNode andTouchPoint:_currentTouchLocation];
   
@@ -327,13 +323,10 @@
     //--------------------------------------------------------------------------
 
       // B. if current dyadmino is not the most recent one
-    if (_currentlyTouchedDyadmino != _recentDyadmino) {
-      NSLog(@"current dyadmino is not recent dyadmino");
-      [self logRecentAndCurrentDyadmino];
-      NSLog(@"recent dyadmino in section %i", _recentDyadmino.withinSection);
+    if (_currentlyTouchedDyadmino != _recentBoardDyadmino &&
+        _currentlyTouchedDyadmino != _recentRackDyadmino &&
+        _currentlyTouchedDyadmino != _recentBoardDyadmino) {
       if (_recentDyadmino.withinSection == kDyadminoWithinBoard) {
-
-        NSLog(@"recent dyadmino is on board");
           // if it's hovering, finish hovering
         if (_dyadminoHoveringStatus == kDyadminoHovering) {
           _dyadminoHoveringStatus = kDyadminoFinishedHovering;
@@ -344,7 +337,6 @@
         
           // and reset the recent rack dyadmino
         if (_currentlyTouchedDyadmino.homeNode.snapNodeType == kSnapNodeRack) {
-          NSLog(@"is this being called?");
           [self sendHomeThisDyadmino:_recentRackDyadmino];
         } else if (_currentlyTouchedDyadmino.homeNode.snapNodeType != kSnapNodeRack) {
           [self sendTempReturnThisDyadmino:_recentRackDyadmino];
@@ -353,10 +345,13 @@
 
     //--------------------------------------------------------------------------
       
+    }
+    
         // B. else if current dyadmino is the same as recently touched one
-    } else if (_currentlyTouchedDyadmino == _recentDyadmino ||
+    if (_currentlyTouchedDyadmino == _recentDyadmino ||
                _currentlyTouchedDyadmino == _recentBoardDyadmino ||
                _currentlyTouchedDyadmino == _recentRackDyadmino) {
+      
           // C. if it's now about to pivot
       if (_hoverPivotInProgress) {
           // calculate degrees between touch point and dyadmino position
@@ -500,7 +495,6 @@
     //--------------------------------------------------------------------------
   
   _currentlyTouchedDyadmino.withinSection = [self determineCurrentSectionOfDyadmino:_currentlyTouchedDyadmino];
-  NSLog(@"current dyadmino within section %i", _currentlyTouchedDyadmino.withinSection);
   
     // assign current dyadmino to correct recent dyadmino pointer
   if (_currentlyTouchedDyadmino.homeNode.snapNodeType != kSnapNodeRack) {
@@ -509,41 +503,43 @@
     _recentRackDyadmino = _currentlyTouchedDyadmino;
   }
   _recentDyadmino = _currentlyTouchedDyadmino;
+  
   [self logRecentAndCurrentDyadmino];
   
     // cleanup
   _hoverPivotInProgress = NO;
   _offsetTouchVector = CGPointMake(0, 0);
   _dyadminoSnappedIntoMovement = NO;
+  _currentlyTouchedDyadmino = nil;
     //--------------------------------------------------------------------------
 
       // A. if it's in the top bar or the rack (doesn't matter whether it's a board or rack dyadmino)
-  if (_currentlyTouchedDyadmino.withinSection == kDyadminoWithinRack ||
-      _currentlyTouchedDyadmino.withinSection == kDyadminoWithinTopBar) {
+  if (_recentDyadmino.withinSection == kDyadminoWithinRack ||
+      _recentDyadmino.withinSection == kDyadminoWithinTopBar) {
     
         // B. first, if it can still rotate, do so
-    if (_currentlyTouchedDyadmino.canRotateWithThisTouch && !_currentlyTouchedDyadmino.isRotating) {
-      [self animateRotateDyadmino:_currentlyTouchedDyadmino];
+    if (_recentDyadmino.canRotateWithThisTouch && !_recentDyadmino.isRotating) {
+      [self animateRotateDyadmino:_recentDyadmino];
       
         // B. otherwise, it did move, so return it to its homeNode
     } else {
-      _currentlyTouchedDyadmino.tempReturnNode = _currentlyTouchedDyadmino.homeNode;
-      [self orientThisDyadmino:_currentlyTouchedDyadmino bySnapNode:_currentlyTouchedDyadmino.homeNode];
-      _currentlyTouchedDyadmino.homeNode.currentDyadmino = _currentlyTouchedDyadmino;
-      [self animateConstantTimeMoveDyadmino:_currentlyTouchedDyadmino
-                                toThisPoint:_currentlyTouchedDyadmino.homeNode.position];
-      _currentlyTouchedDyadmino.zPosition = 100;
+      _recentDyadmino.tempReturnNode = _recentDyadmino.homeNode;
+      [self orientThisDyadmino:_recentDyadmino bySnapNode:_recentDyadmino.homeNode];
+      _recentDyadmino.homeNode.currentDyadmino = _recentDyadmino;
+      [self animateConstantTimeMoveDyadmino:_recentDyadmino
+                                toThisPoint:_recentDyadmino.homeNode.position];
+      _recentDyadmino.zPosition = 100;
     }
-    [_currentlyTouchedDyadmino inPlayUnhighlight];
+    [_recentDyadmino inPlayUnhighlight];
     //--------------------------------------------------------------------------
     
       // A. else if dyadmino is on the board
   } else {
       // establish the closest board node, without snapping just yet
-    SnapNode *boardNode = [self findSnapNodeClosestToDyadmino:_currentlyTouchedDyadmino];
+    SnapNode *boardNode = [self findSnapNodeClosestToDyadmino:_recentDyadmino];
     
       // B. if dyadmino is a rack dyadmino
-    if (_currentlyTouchedDyadmino.homeNode.snapNodeType == kSnapNodeRack) {
+    if (_recentDyadmino.homeNode.snapNodeType == kSnapNodeRack) {
       
         // FIXME: C. check to see if this is a legal move
         // (as long as it doesn't conflict with other dyadminoes, not important if it scores points)
@@ -551,9 +547,9 @@
         
           // FIXME: eventually move enable done button method to the one that validates that it scores points
         [self enableButton:_doneButton];
-        boardNode.currentDyadmino = _currentlyTouchedDyadmino;
-        _currentlyTouchedDyadmino.tempReturnNode = boardNode;
-        [self animateHoverAndFinishedStatusOfDyadmino:_currentlyTouchedDyadmino];
+        boardNode.currentDyadmino = _recentDyadmino;
+        _recentDyadmino.tempReturnNode = boardNode;
+        [self animateHoverAndFinishedStatusOfDyadmino:_recentDyadmino];
         
           // C. otherwise it's not a legal move, keep hovering in place
       } else {
@@ -566,10 +562,10 @@
         // FIXME: C. check to see if this is a legal move
         // (doesn't conflict with other dyadminoes, *and* doesn't break musical rules)
       if (TRUE) {
-        boardNode.currentDyadmino = _currentlyTouchedDyadmino;
-        _currentlyTouchedDyadmino.tempReturnNode = boardNode;
-        _currentlyTouchedDyadmino.homeNode = boardNode;
-        [self animateHoverAndFinishedStatusOfDyadmino:_currentlyTouchedDyadmino];
+        boardNode.currentDyadmino = _recentDyadmino;
+        _recentDyadmino.tempReturnNode = boardNode;
+        _recentDyadmino.homeNode = boardNode;
+        [self animateHoverAndFinishedStatusOfDyadmino:_recentDyadmino];
         
         // C. not a legal move, so keep hovering in place
       } else {
@@ -578,7 +574,6 @@
     }
   }
     //--------------------------------------------------------------------------
-  _currentlyTouchedDyadmino = nil;
     // end by making sure everything is in its proper place
   [self ensureEverythingInProperPlaceAfterTouchEnds];
 }
@@ -753,13 +748,6 @@
         [self orientThisDyadmino:dyadmino bySnapNode:dyadmino.homeNode];
         [dyadmino hoverUnhighlight];
       }
-        // else if dyadmino is on board
-//    } else {
-//      if (!CGPointEqualToPoint(dyadmino.position, dyadmino.tempReturnNode.position)) {
-//        [self animateConstantSpeedMoveDyadmino:dyadmino toThisPoint:dyadmino.tempReturnNode.position];
-//        dyadmino.tempReturnNode.currentDyadmino = dyadmino;
-//      }
-//    }
     }
   }
 }
@@ -1002,10 +990,10 @@
     DyadminoWithinSection thisSection = [self determineCurrentSectionOfDyadmino:dyadmino];
     NSString *tempString = [NSString stringWithFormat:@"dmno %i, %i in sec. %i",
             dyadmino.pc1, dyadmino.pc2, thisSection];
-    NSString *tempString2 = [NSString stringWithFormat:@"homeNode is %i type, tempReturnNode is %i type, tempReturnOrientation is %i",
-                             dyadmino.homeNode.snapNodeType, dyadmino.tempReturnNode.snapNodeType, dyadmino.tempReturnOrientation];
-    NSLog(@"%@", tempString);
-    NSLog(@"%@", tempString2);
+//    NSString *tempString2 = [NSString stringWithFormat:@"homeNode is %i type, tempReturnNode is %i type, tempReturnOrientation is %i",
+//                             dyadmino.homeNode.snapNodeType, dyadmino.tempReturnNode.snapNodeType, dyadmino.tempReturnOrientation];
+//    NSLog(@"%@", tempString);
+//    NSLog(@"%@", tempString2);
     return tempString;
   } else {
     return @"dyadmino doesn't exist";
