@@ -104,4 +104,16 @@
   [dyadmino runAction:completeAction];
 }
 
+-(void)animateHoverAndFinishedStatusOfDyadmino:(Dyadmino *)dyadmino {
+  [dyadmino removeAllActions];
+  SKAction *dyadminoHover = [SKAction waitForDuration:kAnimateHoverTime];
+  SKAction *dyadminoFinishStatus = [SKAction runBlock:^{
+    dyadmino.zPosition = 100;
+    [dyadmino hoverUnhighlight];
+    dyadmino.tempReturnOrientation = dyadmino.orientation;
+  }];
+  SKAction *actionSequence = [SKAction sequence:@[dyadminoHover, dyadminoFinishStatus]];
+  [dyadmino runAction:actionSequence];
+}
+
 @end

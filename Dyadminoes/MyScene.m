@@ -85,10 +85,9 @@
   
     // hover and pivot properties
   DyadminoHoveringStatus _dyadminoHoveringStatus;
-  Dyadmino *_currentlyHoveringDyadmino;
+  Dyadmino *_currentlyHoveringDyadmino; // this just allows dyadmino to set hovering status with its hoverHighlighted property
   CGPoint _preHoverDyadminoPosition;
   BOOL _hoverPivotInProgress;
-//  BOOL _moveBoardDyadminoWhileRackDyadminoInPlay;
   CGFloat _initialPivotAngle;
   NSUInteger _prePivotDyadminoOrientation;
   
@@ -338,6 +337,7 @@
               // E. it's not hovering, so make it hover
           } else {
             _dyadminoHoveringStatus = kDyadminoHovering;
+            _currentlyHoveringDyadmino = _currentlyTouchedDyadmino;
             _currentlyTouchedDyadmino.canRotateWithThisTouch = YES;
           }
         }
@@ -510,13 +510,8 @@
         // FIXME: C. check to see if this is a legal move
         // (as long as it doesn't conflict with other dyadminoes, not important if it scores points)
       if (TRUE) {
-        
           // FIXME: eventually move enable done button method to the one that validates that it scores points
-        [self enableButton:_doneButton];
-        _recentDyadmino.tempReturnNode = boardNode;
-        [self resetModesAndStatesForDyadmino:_recentDyadmino];
-        [self animateHoverAndFinishedStatusOfDyadmino:_recentDyadmino];
-        
+        [self prepareToHoverThisDyadmino:_recentDyadmino withBoardNode:boardNode];
           // C. otherwise it's not a legal move, keep hovering in place
       } else {
           // do this
@@ -528,11 +523,7 @@
         // FIXME: C. check to see if this is a legal move
         // (doesn't conflict with other dyadminoes, *and* doesn't break musical rules)
       if (TRUE) {
-        _recentDyadmino.tempReturnNode = boardNode;
-        _recentDyadmino.homeNode = boardNode;
-        [self resetModesAndStatesForDyadmino:_recentDyadmino];
-        [self animateHoverAndFinishedStatusOfDyadmino:_recentDyadmino];
-        
+        [self prepareToHoverThisDyadmino:_recentDyadmino withBoardNode:boardNode];
         // C. not a legal move, so keep hovering in place
       } else {
           // do this
@@ -627,7 +618,13 @@
 #pragma mark - update
 
 -(void)update:(CFTimeInterval)currentTime {
-    // always check to see if hovering dyadmino finishes hovering
+    // check to see if hovering dyadmino finishes hovering
+  if (!_currentlyHoveringDyadmino.isHoverHighlighted &&
+      _dyadminoHoveringStatus == kDyadminoHovering) {
+    _dyadminoHoveringStatus = kDyadminoFinishedHovering;
+    _currentlyHoveringDyadmino = nil;
+  }
+  
   if (_dyadminoHoveringStatus == kDyadminoFinishedHovering &&
       _currentlyTouchedDyadmino != _recentDyadmino) {
     [self resetModesAndStatesForDyadmino:_recentDyadmino];
@@ -688,6 +685,19 @@
   dyadmino.isRotating = NO;
 }
 
+-(void)prepareToHoverThisDyadmino:(Dyadmino *)dyadmino withBoardNode:(SnapNode *)boardNode {
+  if (dyadmino.homeNode.snapNodeType == kSnapNodeRack) {
+    [self enableButton:_doneButton];
+  } else {
+    dyadmino.homeNode = boardNode;
+  }
+  dyadmino.tempReturnNode = boardNode;
+  [self resetModesAndStatesForDyadmino:dyadmino];
+  _dyadminoHoveringStatus = kDyadminoHovering;
+  _currentlyHoveringDyadmino = dyadmino;
+  [self animateHoverAndFinishedStatusOfDyadmino:dyadmino];
+}
+
 -(void)ensureEverythingInProperPlaceAfterTouchEnds {
   for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
       // if dyadmino is in rack
@@ -706,22 +716,6 @@
       }
     }
   }
-}
-
-#pragma mark - animation methods
-
--(void)animateHoverAndFinishedStatusOfDyadmino:(Dyadmino *)dyadmino {
-  [dyadmino removeAllActions];
-  _dyadminoHoveringStatus = kDyadminoHovering;
-  SKAction *dyadminoHover = [SKAction waitForDuration:kAnimateHoverTime];
-  SKAction *dyadminoFinishStatus = [SKAction runBlock:^{
-    dyadmino.zPosition = 100;
-    [dyadmino hoverUnhighlight];
-    dyadmino.tempReturnOrientation = dyadmino.orientation;
-    _dyadminoHoveringStatus = kDyadminoFinishedHovering;
-  }];
-  SKAction *actionSequence = [SKAction sequence:@[dyadminoHover, dyadminoFinishStatus]];
-  [dyadmino runAction:actionSequence];
 }
 
 #pragma mark - helper methods

@@ -84,5 +84,6 @@ typedef enum dyadminoOrientation {
 -(void)animateSlowerConstantTimeMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point;
 -(void)animateConstantSpeedMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point;
 -(void)animateRotateDyadmino:(Dyadmino *)dyadmino;
+-(void)animateHoverAndFinishedStatusOfDyadmino:(Dyadmino *)dyadmino;
 
 @end
