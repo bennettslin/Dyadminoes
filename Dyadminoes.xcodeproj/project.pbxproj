@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3F18924718CDB43300BEE276 /* Player.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F18924618CDB43300BEE276 /* Player.m */; };
+		3F3116CE18CEFC5D0015CC2A /* FieldNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3116CD18CEFC5D0015CC2A /* FieldNode.m */; };
 		3F87AAAB188DEE4B008C4A0D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAA188DEE4B008C4A0D /* Foundation.framework */; };
 		3F87AAAD188DEE4B008C4A0D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAC188DEE4B008C4A0D /* CoreGraphics.framework */; };
 		3F87AAAF188DEE4B008C4A0D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAE188DEE4B008C4A0D /* UIKit.framework */; };
@@ -46,6 +47,8 @@
 /* Begin PBXFileReference section */
 		3F18924518CDB43300BEE276 /* Player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Player.h; sourceTree = "<group>"; };
 		3F18924618CDB43300BEE276 /* Player.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Player.m; sourceTree = "<group>"; };
+		3F3116CC18CEFC5D0015CC2A /* FieldNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FieldNode.h; sourceTree = "<group>"; };
+		3F3116CD18CEFC5D0015CC2A /* FieldNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FieldNode.m; sourceTree = "<group>"; };
 		3F87AAA7188DEE4B008C4A0D /* Dyadminoes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dyadminoes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F87AAAA188DEE4B008C4A0D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		3F87AAAC188DEE4B008C4A0D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -211,6 +214,8 @@
 		3FFD6BE518B3CCE7000D2DA4 /* Objects */ = {
 			isa = PBXGroup;
 			children = (
+				3F3116CC18CEFC5D0015CC2A /* FieldNode.h */,
+				3F3116CD18CEFC5D0015CC2A /* FieldNode.m */,
 				3F8F045918BFEF3300853C4C /* SnapNode.h */,
 				3F8F045A18BFEF3300853C4C /* SnapNode.m */,
 				3FCCA71918948AF200E0E4B5 /* Dyadmino.h */,
@@ -326,6 +331,7 @@
 				3FCCA71B18948AF200E0E4B5 /* Dyadmino.m in Sources */,
 				3F8F045B18BFEF3300853C4C /* SnapNode.m in Sources */,
 				3F8F045818BFB1B300853C4C /* NSObject+Helper.m in Sources */,
+				3F3116CE18CEFC5D0015CC2A /* FieldNode.m in Sources */,
 				3F87AAC9188DEE4B008C4A0D /* MyScene.m in Sources */,
 				3F87AAC6188DEE4B008C4A0D /* ViewController.m in Sources */,
 				3F18924718CDB43300BEE276 /* Player.m in Sources */,

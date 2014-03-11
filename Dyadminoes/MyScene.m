@@ -12,16 +12,18 @@
 #import "NSObject+Helper.h"
 #import "SnapNode.h"
 #import "Player.h"
+#import "FieldNode.h"
 
-@interface MyScene ()
+@interface MyScene () <FieldNodeDelegate>
 @end
 
   // FIXME: bug where after drag one dyadmino,
   // last dyadmino doesn't return to node, just rests right there
-  // maybe just in simulator?
+  // maybe this just happens in simulator? So far on phone it doesn't happen
 
   // easy to do
   // TODO: implement swap, and make it reset dyadminoes on board, but only up until number in pile
+  // TODO: enum for zPosition
 
   // next step
   // TODO: put board cells on their own sprite nodes
@@ -36,6 +38,7 @@
   // TODO: make rack exchange not so sensitive on top and bottoms of rack
   // TODO: still problem with some dyadminoes staying highlighted after going nuts
   // TODO: have animation between rotation frames
+  // TODO: make bouncier animations
   // TODO: have reset dyadmino rotate animation back to rack
 
   // leave alone for now until better information about how Game Center works
@@ -45,14 +48,15 @@
 @implementation MyScene {
   
     // constants
-  CGFloat _xIncrementInRack;
+//  CGFloat _xIncrementInRack;
   
     // sprites and nodes
-  SKSpriteNode *_rackFieldSprite;
+  FieldNode *_rackFieldSprite;
+  FieldNode *_swapFieldSprite;
   SKNode *_touchNode;
 
     // arrays to keep track of sprites and nodes
-  NSMutableArray *_rackNodes;
+//  NSMutableArray *_rackNodes;
   NSMutableSet *_boardNodesToSearch;
   NSMutableSet *_boardNodesTwelveAndSix;
   NSMutableSet *_boardNodesTwoAndEight;
@@ -70,6 +74,7 @@
   CGPoint _offsetTouchVector;
   
     // bools and modes
+  BOOL _swapMode;
   SKSpriteNode *_buttonPressed; // pointer to button that was pressed
   BOOL _rackExchangeInProgress;
   BOOL _dyadminoSnappedIntoMovement;
@@ -80,6 +85,7 @@
   
     // hover and pivot properties
   DyadminoHoveringStatus _dyadminoHoveringStatus;
+  Dyadmino *_currentlyHoveringDyadmino;
   CGPoint _preHoverDyadminoPosition;
   BOOL _hoverPivotInProgress;
 //  BOOL _moveBoardDyadminoWhileRackDyadminoInPlay;
@@ -96,7 +102,7 @@
     self.ourGameEngine = [GameEngine new];
     self.myPlayer = [self.ourGameEngine getAssignedAsPlayer];
     
-    _rackNodes = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
+//    _rackNodes = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
     _buttonNodes = [NSMutableSet new];
     _boardNodesTwelveAndSix = [NSMutableSet new];
     _boardNodesTwoAndEight = [NSMutableSet new];
@@ -110,12 +116,38 @@
 
 -(void)didMoveToView:(SKView *)view {
   [self layoutBoard];
+  [self layoutOrToggleSwapField];
   [self layoutTopBarAndButtons];
-  [self layoutRackField];
-  [self populateOrRepopulateRackWithDyadminoes];
+  [self layoutOrRefreshRackField];
+  [self populateOrRefreshRackWithDyadminoes];
 }
 
 #pragma mark - layout views
+
+-(void)layoutOrToggleSwapField {
+    // initial instantiation of swap field sprite
+  if (!_swapFieldSprite) {
+    _swapFieldSprite = [[FieldNode alloc] initWithWidth:self.frame.size.width andSnapNodeType:kSnapNodeSwap];
+    _swapFieldSprite.delegate = self;
+    _swapFieldSprite.color = [SKColor lightGrayColor];
+    _swapFieldSprite.size = CGSizeMake(self.frame.size.width, kPlayerRackHeight);
+    _swapFieldSprite.anchorPoint = CGPointZero;
+    _swapFieldSprite.position = CGPointMake(0, kPlayerRackHeight);
+    [self addChild:_swapFieldSprite];
+    [_swapFieldSprite layoutOrRefreshFieldWithCount:1];
+    _swapMode = YES;
+  }
+  
+    // FIXME: make better animation
+    // otherwise toggle
+  if (_swapMode) {
+    _swapFieldSprite.hidden = YES;
+    _swapMode = NO;
+  } else {
+    _swapFieldSprite.hidden = NO;
+    _swapMode = YES;
+  }
+}
 
 -(void)layoutTopBarAndButtons {
     // background
@@ -128,31 +160,19 @@
   CGSize buttonSize = CGSizeMake(50.f, 50.f);
   CGFloat buttonYPosition = 30.f;
   
-  _togglePCModeButton = [[SKSpriteNode alloc] initWithColor:[UIColor greenColor] size:buttonSize];
+  _togglePCModeButton = [[SKSpriteNode alloc] initWithColor:[UIColor orangeColor] size:buttonSize];
   _togglePCModeButton.position = CGPointMake(50.f, buttonYPosition);
   [topBar addChild:_togglePCModeButton];
-//  SKLabelNode *toggleLabel = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
-//  toggleLabel.text = @"toggle pc";
-//  toggleLabel.fontSize = 10.f;
-//  [_togglePCModeButton addChild:toggleLabel];
   [_buttonNodes addObject:_togglePCModeButton];
   
-  _swapButton = [[SKSpriteNode alloc] initWithColor:[UIColor greenColor] size:buttonSize];
+  _swapButton = [[SKSpriteNode alloc] initWithColor:[UIColor yellowColor] size:buttonSize];
   _swapButton.position = CGPointMake(125.f, buttonYPosition);
   [topBar addChild:_swapButton];
-//  SKLabelNode *swapLabel = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
-//  swapLabel.text = @"swap";
-//  swapLabel.fontSize = 10.f;
-//  [_swapButton addChild:swapLabel];
   [_buttonNodes addObject:_swapButton];
   
   _doneButton = [[SKSpriteNode alloc] initWithColor:[UIColor greenColor] size:buttonSize];
   _doneButton.position = CGPointMake(200.f, buttonYPosition);
   [topBar addChild:_doneButton];
-//  SKLabelNode *doneLabel = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
-//  doneLabel.text = @"done";
-//  doneLabel.fontSize = 10.f;
-//  [_doneButton addChild:doneLabel];
   [_buttonNodes addObject:_doneButton];
   [self disableButton:_doneButton];
   
@@ -179,8 +199,8 @@
       CGFloat xOffset = 0; // for odd rows
       
         // TODO: continue to tweak these numbers
-      CGFloat xPadding = 5.4f;
-      CGFloat yPadding = xPadding * 0.48f;
+      CGFloat xPadding = 5.35f;
+      CGFloat yPadding = xPadding * 0.485f;
       CGFloat nodePadding = 0.4f * xPadding;
       
       if (j % 2 == 0) {
@@ -219,72 +239,21 @@
   }
 }
 
--(void)layoutRackField {
-    // initial instantiation of rack field sprite
+-(void)layoutOrRefreshRackField {
   if (!_rackFieldSprite) {
-    _rackFieldSprite = [SKSpriteNode spriteNodeWithColor:[SKColor purpleColor]
-                                                        size:CGSizeMake(self.frame.size.width, kPlayerRackHeight)];
+    _rackFieldSprite = [[FieldNode alloc] initWithWidth:self.frame.size.width andSnapNodeType:kSnapNodeRack];
+    _rackFieldSprite.delegate = self;
+    _rackFieldSprite.color = [SKColor purpleColor];
+    _rackFieldSprite.size = CGSizeMake(self.frame.size.width, kPlayerRackHeight);
     _rackFieldSprite.anchorPoint = CGPointZero;
     _rackFieldSprite.position = CGPointMake(0, 0);
     [self addChild:_rackFieldSprite];
   }
-    //--------------------------------------------------------------------------
-  
-    // margins will vary based on number of dyadminoes in rack
-  CGFloat xEdgeMargin = 12.f + (16.f * (6 - self.myPlayer.dyadminoesInRack.count));
-  _xIncrementInRack = (self.frame.size.width - (2 * xEdgeMargin)) / (self.myPlayer.dyadminoesInRack.count * 2); // right now it's 24.666
-  
-    // initial layout of rack nodes
-  if (_rackNodes.count == 0) {
-    for (int i = 0; i < self.myPlayer.dyadminoesInRack.count; i++) {
-      SnapNode *rackNode = [[SnapNode alloc] initWithSnapNodeType:kSnapNodeRack];
-      rackNode.position = CGPointMake(xEdgeMargin + _xIncrementInRack + (2 * _xIncrementInRack * i), kPlayerRackHeight / 2);
-      rackNode.name = [NSString stringWithFormat:@"rackNode %i", i];
-      [_rackFieldSprite addChild:rackNode];
-      [_rackNodes addObject:rackNode];
-    }
-    //--------------------------------------------------------------------------
-    
-      //layout after pile depletion
-  } else {
-      // ensure rackNode count matches dyadminoesInRack count
-    while (_rackNodes.count > self.myPlayer.dyadminoesInRack.count) {
-      [_rackNodes removeObject:[_rackNodes lastObject]];
-    }
-      // then reposition
-    for (SnapNode *rackNode in _rackNodes) {
-      NSUInteger index = [_rackNodes indexOfObject:rackNode];
-      CGPoint newPosition = CGPointMake(xEdgeMargin + _xIncrementInRack + (2 * _xIncrementInRack * index), kPlayerRackHeight / 2);
-      rackNode.position = newPosition;
-      rackNode.name = [NSString stringWithFormat:@"rackNode %i", index];
-    }
-  }
+  [_rackFieldSprite layoutOrRefreshFieldWithCount:self.myPlayer.dyadminoesInRack.count];
 }
 
-  // pile already knows where its dyadminoes are,
-  // this method just places them where they belong
--(void)populateOrRepopulateRackWithDyadminoes {
-  for (int i = 0; i < self.myPlayer.dyadminoesInRack.count; i++) {
-    Dyadmino *dyadmino = self.myPlayer.dyadminoesInRack[i];
-    SnapNode *rackNode = _rackNodes[i];
-    
-      // setup dyadmino and rackNode
-    dyadmino.homeNode = rackNode;
-    dyadmino.tempReturnNode = rackNode;
-    dyadmino.withinSection = kDyadminoWithinRack;
-    
-    if ([_rackFieldSprite.children containsObject:dyadmino]) {
-        // dyadmino is already on rack, just has to animate to new position if not already there
-      if (!CGPointEqualToPoint(dyadmino.position, dyadmino.homeNode.position)) {
-        [self animateConstantSpeedMoveDyadmino:dyadmino toThisPoint:dyadmino.homeNode.position];
-      }
-    } else {
-        // dyadmino is *not* already on rack, must add offscreen first, then animate
-      dyadmino.position = CGPointMake(self.frame.size.width + _xIncrementInRack, dyadmino.homeNode.position.y);
-      [_rackFieldSprite addChild:dyadmino];
-      [self animateConstantSpeedMoveDyadmino:dyadmino toThisPoint:dyadmino.homeNode.position];
-    }
-  }
+-(void)populateOrRefreshRackWithDyadminoes {
+  [_rackFieldSprite populateOrRefreshWithDyadminoes:self.myPlayer.dyadminoesInRack];
 }
 
 #pragma mark - touch methods
@@ -309,7 +278,8 @@
       // establish it as our currently touched dyadmino
     _currentlyTouchedDyadmino = dyadmino;
     _currentlyTouchedDyadmino.withinSection = [self determineCurrentSectionOfDyadmino:_currentlyTouchedDyadmino];
-    [self resetAllAnimationsOnDyadmino:_currentlyTouchedDyadmino];
+    [_currentlyTouchedDyadmino removeAllActions];
+    [self resetModesAndStatesForDyadmino:_currentlyTouchedDyadmino];
     
       // actively disable done button only when rack dyadmino is in play, not board dyadmino
     if (_currentlyTouchedDyadmino.homeNode.snapNodeType == kSnapNodeRack) {
@@ -363,6 +333,7 @@
             // E. it's either hovering, in which case make it rotate, if possible
           if (_dyadminoHoveringStatus == kDyadminoHovering &&
               _currentlyTouchedDyadmino.canRotateWithThisTouch == YES) {
+            [self resetModesAndStatesForDyadmino:_currentlyTouchedDyadmino];
             [self animateRotateDyadmino:_currentlyTouchedDyadmino];
               // E. it's not hovering, so make it hover
           } else {
@@ -445,7 +416,7 @@
       SnapNode *rackNode = [self findSnapNodeClosestToDyadmino:_currentlyTouchedDyadmino];
         // just a precaution
       if (rackNode != _currentlyTouchedDyadmino.homeNode) {
-        NSUInteger rackNodesIndex = [_rackNodes indexOfObject:rackNode];
+        NSUInteger rackNodesIndex = [_rackFieldSprite.rackNodes indexOfObject:rackNode];
         NSUInteger touchedDyadminoIndex = [self.myPlayer.dyadminoesInRack indexOfObject:_currentlyTouchedDyadmino];
         Dyadmino *exchangedDyadmino = [self.myPlayer.dyadminoesInRack objectAtIndex:rackNodesIndex];
         
@@ -460,6 +431,7 @@
         
           // animate movement of dyadmino being pushed under and over
         exchangedDyadmino.zPosition = 99;
+        [self resetModesAndStatesForDyadmino:exchangedDyadmino];
         [self animateConstantSpeedMoveDyadmino:exchangedDyadmino
                                    toThisPoint:_currentlyTouchedDyadmino.homeNode.position];
         exchangedDyadmino.zPosition = 100;
@@ -499,8 +471,6 @@
   }
   _recentDyadmino = _currentlyTouchedDyadmino;
   
-  [self logRecentAndCurrentDyadminoes];
-  
     // cleanup
   _hoverPivotInProgress = NO;
   _offsetTouchVector = CGPointMake(0, 0);
@@ -514,12 +484,14 @@
     
         // B. first, if it can still rotate, do so
     if (_recentDyadmino.canRotateWithThisTouch && !_recentDyadmino.isRotating) {
+      [self resetModesAndStatesForDyadmino:_recentDyadmino];
       [self animateRotateDyadmino:_recentDyadmino];
       
         // B. otherwise, it did move, so return it to its homeNode
     } else {
       _recentDyadmino.tempReturnNode = _recentDyadmino.homeNode;
       [self orientThisDyadmino:_recentDyadmino bySnapNode:_recentDyadmino.homeNode];
+      [self resetModesAndStatesForDyadmino:_recentDyadmino];
       [self animateConstantTimeMoveDyadmino:_recentDyadmino
                                 toThisPoint:_recentDyadmino.homeNode.position];
       _recentDyadmino.zPosition = 100;
@@ -542,6 +514,7 @@
           // FIXME: eventually move enable done button method to the one that validates that it scores points
         [self enableButton:_doneButton];
         _recentDyadmino.tempReturnNode = boardNode;
+        [self resetModesAndStatesForDyadmino:_recentDyadmino];
         [self animateHoverAndFinishedStatusOfDyadmino:_recentDyadmino];
         
           // C. otherwise it's not a legal move, keep hovering in place
@@ -557,6 +530,7 @@
       if (TRUE) {
         _recentDyadmino.tempReturnNode = boardNode;
         _recentDyadmino.homeNode = boardNode;
+        [self resetModesAndStatesForDyadmino:_recentDyadmino];
         [self animateHoverAndFinishedStatusOfDyadmino:_recentDyadmino];
         
         // C. not a legal move, so keep hovering in place
@@ -576,9 +550,7 @@
 -(void)handleButtonPressed {
     // swap dyadminoes
   if (_buttonPressed == _swapButton) {
-    NSLog(@"swap");
-      // FIXME: swap functionality is now broken because previous dyadminoes are not removed from rackFieldSprite
-      //    [self populateOrRepopulateRackWithDyadminoes];
+    [self layoutOrToggleSwapField];
     return;
   }
   
@@ -623,10 +595,10 @@
           // interact with game engine
           // no dyadmino placed in rack, need to recalibrate rack
         if (![self.ourGameEngine putDyadminoFromCommonPileIntoRackOfPlayer:self.myPlayer]) {
-          [self layoutRackField];
+          [self layoutOrRefreshRackField];
         }
         
-        [self populateOrRepopulateRackWithDyadminoes];
+        [self populateOrRefreshRackWithDyadminoes];
         
           // update views
         [self updatePileCountLabel];
@@ -658,17 +630,12 @@
     // always check to see if hovering dyadmino finishes hovering
   if (_dyadminoHoveringStatus == kDyadminoFinishedHovering &&
       _currentlyTouchedDyadmino != _recentDyadmino) {
+    [self resetModesAndStatesForDyadmino:_recentDyadmino];
     [self animateSlowerConstantTimeMoveDyadmino:_recentDyadmino
                                     toThisPoint:_recentDyadmino.tempReturnNode.position];
     _recentDyadmino.canRotateWithThisTouch = NO;
     _dyadminoHoveringStatus = kDyadminoNoHoverStatus;
   }
-}
-
--(void)updateRack {
-}
-
--(void)updateBoard {
 }
 
 -(void)updatePileCountLabel {
@@ -693,6 +660,7 @@
     [self orientThisDyadmino:dyadmino bySnapNode:dyadmino.homeNode];
     if (dyadmino.withinSection == kDyadminoWithinBoard) {
       dyadmino.zPosition = 99;
+      [self resetModesAndStatesForDyadmino:dyadmino];
       [self animateConstantSpeedMoveDyadmino:dyadmino toThisPoint:dyadmino.homeNode.position];
     }
     dyadmino.tempReturnNode = dyadmino.homeNode;
@@ -706,15 +674,14 @@
     [self orientThisDyadmino:dyadmino bySnapNode:dyadmino.tempReturnNode];
     if (dyadmino.withinSection == kDyadminoWithinBoard) {
       dyadmino.zPosition = 99;
+      [self resetModesAndStatesForDyadmino:dyadmino];
       [self animateConstantSpeedMoveDyadmino:dyadmino toThisPoint:dyadmino.tempReturnNode.position];
     }
     dyadmino.zPosition = 100;
   }
 }
 
--(void)resetAllAnimationsOnDyadmino:(Dyadmino *)dyadmino {
-//  NSLog(@"reset animation!");
-  [dyadmino removeAllActions];
+-(void)resetModesAndStatesForDyadmino:(Dyadmino *)dyadmino {
   if (_dyadminoHoveringStatus == kDyadminoHovering) {
     _dyadminoHoveringStatus = kDyadminoFinishedHovering;
   }
@@ -728,8 +695,9 @@
         // get index of dyadmino based on position in array
       NSUInteger index = [self.myPlayer.dyadminoesInRack indexOfObject:dyadmino];
         // get proper rackNode based on this index
-      SnapNode *rackNode = _rackNodes[index];
+      SnapNode *rackNode = _rackFieldSprite.rackNodes[index];
       if (!CGPointEqualToPoint(dyadmino.position, rackNode.position)) {
+        [self resetModesAndStatesForDyadmino:dyadmino];
         [self animateConstantSpeedMoveDyadmino:dyadmino toThisPoint:rackNode.position];
         dyadmino.tempReturnNode = rackNode;
         dyadmino.homeNode = rackNode;
@@ -742,64 +710,8 @@
 
 #pragma mark - animation methods
 
--(void)animateConstantTimeMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point {
-  [self resetAllAnimationsOnDyadmino:dyadmino];
-  SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime];
-  [dyadmino runAction:moveAction];
-}
-
--(void)animateSlowerConstantTimeMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point {
-  [self resetAllAnimationsOnDyadmino:dyadmino];
-  SKAction *snapAction = [SKAction moveTo:point duration:kSlowerConstantTime];
-  [dyadmino runAction:snapAction];
-}
-
--(void)animateConstantSpeedMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point {
-  [self resetAllAnimationsOnDyadmino:dyadmino];
-  CGFloat distance = [self getDistanceFromThisPoint:dyadmino.position toThisPoint:point];
-  SKAction *snapAction = [SKAction moveTo:point duration:kConstantSpeed * distance];
-  [dyadmino runAction:snapAction];
-}
-
--(void)animateRotateDyadmino:(Dyadmino *)dyadmino {
-  [self resetAllAnimationsOnDyadmino:dyadmino];
-  dyadmino.isRotating = YES;
-  
-  SKAction *nextFrame = [SKAction runBlock:^{
-    dyadmino.orientation = (dyadmino.orientation + 1) % 6;
-    [dyadmino selectAndPositionSprites];
-  }];
-  SKAction *waitTime = [SKAction waitForDuration:kRotateWait];
-  SKAction *finishAction;
-  SKAction *completeAction;
-  
-    // rack rotation
-  if (dyadmino.withinSection == kDyadminoWithinRack) {
-    finishAction = [SKAction runBlock:^{
-      [dyadmino hoverUnhighlight];
-      dyadmino.zPosition = 100;
-      dyadmino.isRotating = NO;
-    }];
-    completeAction = [SKAction sequence:@[nextFrame, waitTime, nextFrame, waitTime, nextFrame, finishAction]];
-    
-      // just to ensure that dyadmino is back in its rack position
-    dyadmino.position = dyadmino.homeNode.position;
-    
-  } else if (dyadmino.withinSection == kDyadminoWithinBoard) {
-    finishAction = [SKAction runBlock:^{
-      [dyadmino selectAndPositionSprites];
-      dyadmino.zPosition = 100;
-      dyadmino.isRotating = NO;
-      dyadmino.tempReturnOrientation = dyadmino.orientation;
-    }];
-    completeAction = [SKAction sequence:@[nextFrame, finishAction]];
-  }
-  
-  [dyadmino runAction:completeAction];
-}
-
 -(void)animateHoverAndFinishedStatusOfDyadmino:(Dyadmino *)dyadmino {
-  [self resetAllAnimationsOnDyadmino:dyadmino];
+  [dyadmino removeAllActions];
   _dyadminoHoveringStatus = kDyadminoHovering;
   SKAction *dyadminoHover = [SKAction waitForDuration:kAnimateHoverTime];
   SKAction *dyadminoFinishStatus = [SKAction runBlock:^{
@@ -854,10 +766,13 @@
     } else {
       _hoverPivotInProgress = YES;
       _prePivotDyadminoOrientation = _recentDyadmino.orientation;
-      [self resetAllAnimationsOnDyadmino:_recentDyadmino];
+      [_recentDyadmino removeAllActions];
+      [self resetModesAndStatesForDyadmino:_recentDyadmino];
       return _recentDyadmino;
     }
   }
+  
+    //--------------------------------------------------------------------------
   
     // otherwise, first restriction is that the node being touched is the dyadmino
   Dyadmino *dyadmino;
@@ -880,7 +795,7 @@
       // if dyadmino is in rack...
   } else if (thisSection == kDyadminoWithinRack) {
     if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
-        _xIncrementInRack) {
+        _rackFieldSprite.xIncrementInRack) {
       return dyadmino;
     }
   }
@@ -893,7 +808,7 @@
   
     // figure out which array of nodes to search
   if (dyadmino.withinSection == kDyadminoWithinRack) {
-    arrayOrSetToSearch = _rackNodes;
+    arrayOrSetToSearch = _rackFieldSprite.rackNodes;
   } else if (dyadmino.withinSection == kDyadminoWithinBoard) {
     if (dyadmino.orientation == kPC1atTwelveOClock || dyadmino.orientation == kPC1atSixOClock) {
       arrayOrSetToSearch = _boardNodesTwelveAndSix;

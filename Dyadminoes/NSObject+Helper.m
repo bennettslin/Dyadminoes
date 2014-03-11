@@ -7,8 +7,11 @@
 //
 
 #import "NSObject+Helper.h"
+#import "Dyadmino.h"
 
 @implementation NSObject (Helper)
+
+#pragma mark - math methods
 
 -(NSUInteger)randomValueUpTo:(NSUInteger)high {
   NSUInteger randInteger = ((int) arc4random() % high);
@@ -42,6 +45,63 @@
     angle += 12.f;
   }
   return angle;
+}
+
+#pragma mark - animation methods
+
+-(void)animateConstantTimeMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point {
+  [dyadmino removeAllActions];
+  SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime];
+  [dyadmino runAction:moveAction];
+}
+
+-(void)animateSlowerConstantTimeMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point {
+  [dyadmino removeAllActions];
+  SKAction *snapAction = [SKAction moveTo:point duration:kSlowerConstantTime];
+  [dyadmino runAction:snapAction];
+}
+
+-(void)animateConstantSpeedMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point {
+  [dyadmino removeAllActions];
+  CGFloat distance = [self getDistanceFromThisPoint:dyadmino.position toThisPoint:point];
+  SKAction *snapAction = [SKAction moveTo:point duration:kConstantSpeed * distance];
+  [dyadmino runAction:snapAction];
+}
+
+-(void)animateRotateDyadmino:(Dyadmino *)dyadmino {
+  [dyadmino removeAllActions];
+  dyadmino.isRotating = YES;
+  
+  SKAction *nextFrame = [SKAction runBlock:^{
+    dyadmino.orientation = (dyadmino.orientation + 1) % 6;
+    [dyadmino selectAndPositionSprites];
+  }];
+  SKAction *waitTime = [SKAction waitForDuration:kRotateWait];
+  SKAction *finishAction;
+  SKAction *completeAction;
+  
+    // rotation
+  if (dyadmino.withinSection == kDyadminoWithinRack) {
+    finishAction = [SKAction runBlock:^{
+      [dyadmino hoverUnhighlight];
+      dyadmino.zPosition = 100;
+      dyadmino.isRotating = NO;
+    }];
+    completeAction = [SKAction sequence:@[nextFrame, waitTime, nextFrame, waitTime, nextFrame, finishAction]];
+    
+      // just to ensure that dyadmino is back in its node position
+    dyadmino.position = dyadmino.homeNode.position;
+    
+  } else if (dyadmino.withinSection == kDyadminoWithinBoard) {
+    finishAction = [SKAction runBlock:^{
+      [dyadmino selectAndPositionSprites];
+      dyadmino.zPosition = 100;
+      dyadmino.isRotating = NO;
+      dyadmino.tempReturnOrientation = dyadmino.orientation;
+    }];
+    completeAction = [SKAction sequence:@[nextFrame, finishAction]];
+  }
+  [dyadmino runAction:completeAction];
 }
 
 @end

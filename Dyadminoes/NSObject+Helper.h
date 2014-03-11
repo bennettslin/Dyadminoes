@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+@class Dyadmino;
 
   // animation constants
 #define kRotateWait 0.05f
@@ -53,6 +54,7 @@ typedef enum pcMode {
 
 typedef enum snapNodeType {
   kSnapNodeRack,
+  kSnapNodeSwap,
   kSnapNodeBoardTwelveAndSix,
   kSnapNodeBoardTwoAndEight,
   kSnapNodeBoardFourAndTen
@@ -69,14 +71,18 @@ typedef enum dyadminoOrientation {
 
 @interface NSObject (Helper)
 
+  // math stuff
 -(NSUInteger)randomValueUpTo:(NSUInteger)high;
-
 -(CGFloat)getDistanceFromThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
-
 -(CGPoint)addThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
 -(CGPoint)fromThisPoint:(CGPoint)point1 subtractThisPoint:(CGPoint)point2;
-
 -(CGFloat)findAngleInDegreesFromThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
 -(CGFloat)getSextantChangeFromThisAngle:(CGFloat)angle1 toThisAngle:(CGFloat)angle2;
+
+  // animation stuff
+-(void)animateConstantTimeMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point;
+-(void)animateSlowerConstantTimeMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point;
+-(void)animateConstantSpeedMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point;
+-(void)animateRotateDyadmino:(Dyadmino *)dyadmino;
 
 @end
