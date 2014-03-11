@@ -14,7 +14,7 @@
 #define kConstantTime 0.15f
 #define kSlowerConstantTime 0.2f
 #define kConstantSpeed 0.002f
-#define kAnimateHoverTime 0.4f
+#define kAnimateHoverTime 0.35f
 #define kHighlightedDyadminoSize 1.15f
 
   // math constants
@@ -34,6 +34,24 @@
 #define kDistanceForSnapIn 21.f // this is half the height of the cell space, plus wiggle room
 #define kDistanceForTouchingHoveringDyadmino 37.5f
 #define kDistanceForTouchingLockedDyadmino 25.f
+
+  // z positions
+
+#define kZPositionBoard 10.f
+#define kZPositionBoardCell 20.f
+#define kZPositionBoardNode 30.f
+#define kZPositionBoardRestingDyadmino 40.f
+#define kZPositionTopBar 100.f
+#define kZPositionTopBarButton 110.f
+#define kZPositionTopBarLabel 120.f
+#define kZPositionSwapField 200.f
+#define kZPositionSwapNode 210.f
+#define kZPositionRackField 300.f
+#define kZPositionRackNode 310.f
+#define kZPositionRackMovedDyadmino 320.f
+#define kZPositionRackRestingDyadmino 330.f
+#define kZPositionHoveredDyadmino 400.f
+#define kZPositionMessage 500.f
 
 typedef enum dyadminoHoveringStatus {
   kDyadminoNoHoverStatus,

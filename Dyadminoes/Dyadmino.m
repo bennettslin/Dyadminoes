@@ -18,9 +18,8 @@
   if (self) {
       // constants
     self.color = [UIColor purpleColor]; // for color blend factor
-    self.zPosition = 100;
+    self.zPosition = kZPositionRackRestingDyadmino;
     self.name = [NSString stringWithFormat:@"dyadmino %i-%i", pc1, pc2];
-    
     self.pc1 = pc1;
     self.pc2 = pc2;
     self.pcMode = pcMode;
@@ -143,6 +142,22 @@
   self.isInPlayHighlighted = NO;
   self.colorBlendFactor = 0.f;
   [self selectAndPositionSprites];
+}
+
+-(void)setToHomeZPosition {
+  if (self.homeNode.snapNodeType == kSnapNodeRack) {
+    self.zPosition = kZPositionRackRestingDyadmino;
+  } else {
+    self.zPosition = kZPositionBoardRestingDyadmino;
+  }
+}
+
+-(void)setToTempZPosition {
+  if (self.tempReturnNode.snapNodeType == kSnapNodeRack) {
+    self.zPosition = kZPositionRackRestingDyadmino;
+  } else {
+    self.zPosition = kZPositionBoardRestingDyadmino;
+  }
 }
 
 @end

@@ -84,7 +84,7 @@
   if (dyadmino.withinSection == kDyadminoWithinRack) {
     finishAction = [SKAction runBlock:^{
       [dyadmino hoverUnhighlight];
-      dyadmino.zPosition = 100;
+      [dyadmino setToHomeZPosition];
       dyadmino.isRotating = NO;
     }];
     completeAction = [SKAction sequence:@[nextFrame, waitTime, nextFrame, waitTime, nextFrame, finishAction]];
@@ -95,7 +95,7 @@
   } else if (dyadmino.withinSection == kDyadminoWithinBoard) {
     finishAction = [SKAction runBlock:^{
       [dyadmino selectAndPositionSprites];
-      dyadmino.zPosition = 100;
+      [dyadmino setToHomeZPosition];
       dyadmino.isRotating = NO;
       dyadmino.tempReturnOrientation = dyadmino.orientation;
     }];
@@ -108,7 +108,7 @@
   [dyadmino removeAllActions];
   SKAction *dyadminoHover = [SKAction waitForDuration:kAnimateHoverTime];
   SKAction *dyadminoFinishStatus = [SKAction runBlock:^{
-    dyadmino.zPosition = 100;
+    [dyadmino setToHomeZPosition];
     [dyadmino hoverUnhighlight];
     dyadmino.tempReturnOrientation = dyadmino.orientation;
   }];

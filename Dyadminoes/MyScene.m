@@ -23,7 +23,7 @@
 
   // easy to do
   // TODO: implement swap, and make it reset dyadminoes on board, but only up until number in pile
-  // TODO: enum for zPosition
+  // FIXME: zPosition is based on parent node, so will have to change parent nodes when dyadmino moves from rack to board
 
   // next step
   // TODO: put board cells on their own sprite nodes
@@ -132,6 +132,7 @@
     _swapFieldSprite.size = CGSizeMake(self.frame.size.width, kPlayerRackHeight);
     _swapFieldSprite.anchorPoint = CGPointZero;
     _swapFieldSprite.position = CGPointMake(0, kPlayerRackHeight);
+    _swapFieldSprite.zPosition = kZPositionSwapField;
     [self addChild:_swapFieldSprite];
     [_swapFieldSprite layoutOrRefreshFieldWithCount:1];
     _swapMode = YES;
@@ -154,6 +155,7 @@
                                                       size:CGSizeMake(self.frame.size.width, kTopBarHeight)];
   topBar.anchorPoint = CGPointZero;
   topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
+  topBar.zPosition = kZPositionTopBar;
   [self addChild:topBar];
   
   CGSize buttonSize = CGSizeMake(50.f, 50.f);
@@ -161,16 +163,19 @@
   
   _togglePCModeButton = [[SKSpriteNode alloc] initWithColor:[UIColor orangeColor] size:buttonSize];
   _togglePCModeButton.position = CGPointMake(50.f, buttonYPosition);
+  _togglePCModeButton.zPosition = kZPositionTopBarButton;
   [topBar addChild:_togglePCModeButton];
   [_buttonNodes addObject:_togglePCModeButton];
   
   _swapButton = [[SKSpriteNode alloc] initWithColor:[UIColor yellowColor] size:buttonSize];
   _swapButton.position = CGPointMake(125.f, buttonYPosition);
+  _swapButton.zPosition = kZPositionTopBarButton;
   [topBar addChild:_swapButton];
   [_buttonNodes addObject:_swapButton];
   
   _doneButton = [[SKSpriteNode alloc] initWithColor:[UIColor greenColor] size:buttonSize];
   _doneButton.position = CGPointMake(200.f, buttonYPosition);
+  _doneButton.zPosition = kZPositionTopBarButton;
   [topBar addChild:_doneButton];
   [_buttonNodes addObject:_doneButton];
   [self disableButton:_doneButton];
@@ -179,12 +184,14 @@
   _pileCountLabel.text = [NSString stringWithFormat:@"pile %lu", (unsigned long)[self.ourGameEngine getCommonPileCount]];
   _pileCountLabel.fontSize = 14.f;
   _pileCountLabel.position = CGPointMake(275, buttonYPosition);
+  _pileCountLabel.zPosition = kZPositionTopBarLabel;
   [topBar addChild:_pileCountLabel];
   
   _messageLabel = [SKLabelNode labelNodeWithFontNamed:@"Helvetica-Neue"];
   _messageLabel.fontSize = 14.f;
   _messageLabel.color = [UIColor whiteColor];
   _messageLabel.position = CGPointMake(50, -buttonYPosition);
+  _messageLabel.zPosition = kZPositionMessage;
   [topBar addChild:_messageLabel];
 }
 
@@ -195,6 +202,7 @@
     for (int j = 0; j < 30; j++) {
       SKSpriteNode *blankCell = [SKSpriteNode spriteNodeWithImageNamed:@"blankSpace"];
       blankCell.name = @"blankCell";
+      blankCell.zPosition = kZPositionBoardCell;
       CGFloat xOffset = 0; // for odd rows
       
         // TODO: continue to tweak these numbers
@@ -218,6 +226,10 @@
       boardNodeTwelveAndSix.position = [self addThisPoint:blankCell.position toThisPoint:CGPointMake(0.f, 19.5f)];
       boardNodeTwoAndEight.position = [self addThisPoint:blankCell.position toThisPoint:CGPointMake(kBoardDiagonalX + nodePadding, kBoardDiagonalY)];
       boardNodeFourAndTen.position = [self addThisPoint:blankCell.position toThisPoint:CGPointMake(-kBoardDiagonalX - nodePadding, kBoardDiagonalY)];
+      boardNodeTwelveAndSix.zPosition = kZPositionBoardNode;
+      boardNodeTwoAndEight.zPosition = kZPositionBoardNode;
+      boardNodeFourAndTen.zPosition = kZPositionBoardNode;
+      
       [self addChild:boardNodeTwelveAndSix];
       [self addChild:boardNodeTwoAndEight];
       [self addChild:boardNodeFourAndTen];
@@ -246,6 +258,7 @@
     _rackFieldSprite.size = CGSizeMake(self.frame.size.width, kPlayerRackHeight);
     _rackFieldSprite.anchorPoint = CGPointZero;
     _rackFieldSprite.position = CGPointMake(0, 0);
+    _rackFieldSprite.zPosition = kZPositionRackField;
     [self addChild:_rackFieldSprite];
   }
   [_rackFieldSprite layoutOrRefreshFieldWithCount:self.myPlayer.dyadminoesInRack.count];
@@ -350,7 +363,7 @@
       _currentlyTouchedDyadmino.canRotateWithThisTouch = YES;
     }
     _offsetTouchVector = [self fromThisPoint:_beganTouchLocation subtractThisPoint:_currentlyTouchedDyadmino.position];
-    _currentlyTouchedDyadmino.zPosition = 101;
+    _currentlyTouchedDyadmino.zPosition = kZPositionHoveredDyadmino;
   }
 }
 
@@ -430,11 +443,11 @@
         exchangedDyadmino.homeNode = _currentlyTouchedDyadmino.homeNode;
         
           // animate movement of dyadmino being pushed under and over
-        exchangedDyadmino.zPosition = 99;
+        exchangedDyadmino.zPosition = kZPositionRackMovedDyadmino;
         [self resetModesAndStatesForDyadmino:exchangedDyadmino];
         [self animateConstantSpeedMoveDyadmino:exchangedDyadmino
                                    toThisPoint:_currentlyTouchedDyadmino.homeNode.position];
-        exchangedDyadmino.zPosition = 100;
+        exchangedDyadmino.zPosition = kZPositionRackRestingDyadmino;
       }
         // continues exchange, or if just returning back to its own rack node
       _currentlyTouchedDyadmino.tempReturnNode = rackNode;
@@ -494,7 +507,7 @@
       [self resetModesAndStatesForDyadmino:_recentDyadmino];
       [self animateConstantTimeMoveDyadmino:_recentDyadmino
                                 toThisPoint:_recentDyadmino.homeNode.position];
-      _recentDyadmino.zPosition = 100;
+      [_recentDyadmino setToHomeZPosition];
     }
     [_recentDyadmino inPlayUnhighlight];
     //--------------------------------------------------------------------------
@@ -656,12 +669,12 @@
     [dyadmino inPlayUnhighlight];
     [self orientThisDyadmino:dyadmino bySnapNode:dyadmino.homeNode];
     if (dyadmino.withinSection == kDyadminoWithinBoard) {
-      dyadmino.zPosition = 99;
+      dyadmino.zPosition = kZPositionRackMovedDyadmino;
       [self resetModesAndStatesForDyadmino:dyadmino];
       [self animateConstantSpeedMoveDyadmino:dyadmino toThisPoint:dyadmino.homeNode.position];
     }
     dyadmino.tempReturnNode = dyadmino.homeNode;
-    dyadmino.zPosition = 100;
+    [dyadmino setToHomeZPosition];
   }
 }
 
@@ -670,11 +683,11 @@
 //    [dyadmino inPlayUnhighlight];
     [self orientThisDyadmino:dyadmino bySnapNode:dyadmino.tempReturnNode];
     if (dyadmino.withinSection == kDyadminoWithinBoard) {
-      dyadmino.zPosition = 99;
+      dyadmino.zPosition = kZPositionRackMovedDyadmino;
       [self resetModesAndStatesForDyadmino:dyadmino];
       [self animateConstantSpeedMoveDyadmino:dyadmino toThisPoint:dyadmino.tempReturnNode.position];
     }
-    dyadmino.zPosition = 100;
+    [dyadmino setToTempZPosition];
   }
 }
 

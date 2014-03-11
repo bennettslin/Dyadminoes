@@ -20,7 +20,7 @@
   if (self) {
     self.rackNodes = [NSMutableArray new];
     _width = width;
-    _snapNodeType = snapNodeType;
+    _snapNodeType = snapNodeType;    
   }
   return self;
 }
@@ -36,6 +36,13 @@
     for (NSUInteger index = 0; index < countNumber; index++) {
       SnapNode *rackNode = [[SnapNode alloc] initWithSnapNodeType:_snapNodeType];
       rackNode.position = CGPointMake(xEdgeMargin + self.xIncrementInRack + (2 * _xIncrementInRack * index), kPlayerRackHeight / 2);
+      
+      if (_snapNodeType == kSnapNodeRack) {
+        rackNode.zPosition = kZPositionRackNode;
+      } else {
+        rackNode.zPosition = kZPositionSwapNode;
+      }
+      
       rackNode.name = [NSString stringWithFormat:@"rackNode %i", index];
       [self addChild:rackNode];
       [self.rackNodes addObject:rackNode];

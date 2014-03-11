@@ -51,4 +51,7 @@
 -(void)inPlayHighlight;
 -(void)inPlayUnhighlight;
 
+-(void)setToHomeZPosition;
+-(void)setToTempZPosition;
+
 @end
