@@ -17,7 +17,7 @@
   self = [super init];
   if (self) {
       // constants
-    self.color = [UIColor purpleColor]; // for color blend factor
+    self.color = [UIColor yellowColor]; // for color blend factor
     self.zPosition = kZPositionRackRestingDyadmino;
     self.name = [NSString stringWithFormat:@"dyadmino %i-%i", pc1, pc2];
     self.pc1 = pc1;
@@ -179,12 +179,14 @@
 }
 
 -(void)highlightIntoPlay {
-  self.isInPlayHighlighted = YES;
-  self.colorBlendFactor = 0.2f;
+//  self.isInPlayHighlighted = YES;
+//  self.colorBlendFactor = 0.2f;
 }
 
 -(void)unhighlightOutOfPlay {
-  self.isInPlayHighlighted = NO;
+//  self.isInPlayHighlighted = NO;
+  
+// TODO: some animation here
   self.colorBlendFactor = 0.f;
 }
 

@@ -39,7 +39,7 @@
 
 @property DyadminoHoveringStatus hoveringStatus;
 @property BOOL isTouchThenHoverResized;
-@property BOOL isInPlayHighlighted;
+//@property BOOL isInPlayHighlighted;
 
 /**
  initialises a dyadmino with pcs and orientation

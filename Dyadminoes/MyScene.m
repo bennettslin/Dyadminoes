@@ -17,9 +17,6 @@
 @interface MyScene () <FieldNodeDelegate>
 @end
 
-  // tie dyadmino to settle to update method
-  // tie upkeep to update
-
   // next step
   // TODO: implement swap, and make it so that adding dyadminoes in board automatically adds rack nodes
 
@@ -29,13 +26,11 @@
   // after do board coordinates
   // TODO: put initial dyadmino on board
   // TODO: board nodes expand outward, don't establish them at first
-  // TODO: check rack nodes to ensure that dyadminoes do not conflict on board, do not finish hovering if there's a conflict
+  // TODO: check nodes to ensure that dyadminoes do not conflict on board, do not finish hovering if there's a conflict
 
   // FIXME: zPosition is based on parent node, so will have to change parent nodes when dyadmino moves from rack to board
 
   // low priority
-  // TODO: make rack exchange not so sensitive on top and bottoms of rack
-  // TODO: still problem with some dyadminoes staying highlighted after going nuts
   // TODO: have animation between rotation frames
   // TODO: make bouncier animations
   // TODO: make dyadmino sent home shrink then reappear in rack
@@ -125,9 +120,9 @@
     _swapFieldSprite = [[FieldNode alloc] initWithWidth:self.frame.size.width andSnapNodeType:kSnapNodeSwap];
     _swapFieldSprite.delegate = self;
     _swapFieldSprite.color = [SKColor lightGrayColor];
-    _swapFieldSprite.size = CGSizeMake(self.frame.size.width, kPlayerRackHeight);
+    _swapFieldSprite.size = CGSizeMake(self.frame.size.width, kRackHeight);
     _swapFieldSprite.anchorPoint = CGPointZero;
-    _swapFieldSprite.position = CGPointMake(0, kPlayerRackHeight);
+    _swapFieldSprite.position = CGPointMake(0, kRackHeight);
     _swapFieldSprite.zPosition = kZPositionSwapField;
     [self addChild:_swapFieldSprite];
     [_swapFieldSprite layoutOrRefreshFieldWithCount:1];
@@ -268,7 +263,7 @@
     _rackFieldSprite = [[FieldNode alloc] initWithWidth:self.frame.size.width andSnapNodeType:kSnapNodeRack];
     _rackFieldSprite.delegate = self;
     _rackFieldSprite.color = [SKColor purpleColor];
-    _rackFieldSprite.size = CGSizeMake(self.frame.size.width, kPlayerRackHeight);
+    _rackFieldSprite.size = CGSizeMake(self.frame.size.width, kRackHeight);
     _rackFieldSprite.anchorPoint = CGPointZero;
     _rackFieldSprite.position = CGPointMake(0, 0);
     _rackFieldSprite.zPosition = kZPositionRackField;
@@ -384,6 +379,18 @@
   if ([_currentlyTouchedDyadmino isHovering]) {
     [_currentlyTouchedDyadmino keepHovering];
   }
+  
+    // this is the only place that sets dyadmino highlight
+    // dyadmino highlight is reset when sent home or finalised
+  if ([_currentlyTouchedDyadmino belongsInRack] &&
+      _currentlyTouchedDyadmino.position.y < kRackHeight &&
+      _currentlyTouchedDyadmino.position.y >= kRackHeight - kHeightGapToHighlightIntoPlay) {
+    if (_currentlyTouchedDyadmino.position.y > kRackHeight - kHeightGapToHighlightIntoPlay) {
+      _currentlyTouchedDyadmino.colorBlendFactor =
+      (_currentlyTouchedDyadmino.position.y + kHeightGapToHighlightIntoPlay - kRackHeight) *
+      kDyadminoColorBlendFactor / kHeightGapToHighlightIntoPlay;
+    }
+  }
     //--------------------------------------------------------------------------
   
     // get touch location and update currently touched dyadmino's section
@@ -396,11 +403,10 @@
   if ([_currentlyTouchedDyadmino belongsInRack]) {
     
     if ([_currentlyTouchedDyadmino isInRack]) {
-      [_currentlyTouchedDyadmino unhighlightOutOfPlay];
+//      [_currentlyTouchedDyadmino unhighlightOutOfPlay];
     } else {
-      
         // it's now in play
-      [_currentlyTouchedDyadmino highlightIntoPlay];
+//      [_currentlyTouchedDyadmino highlightIntoPlay];
       
         // reset previous dyadminoes
       if (_currentlyTouchedDyadmino != _recentRackDyadmino) {
@@ -520,9 +526,7 @@
       } else {
         [self sendDyadminoHome:dyadmino];
       }
-        // TODO: at some point, test if this is even effective
-//      [self putEverythingInItsRightPlace];
-      
+
         // else prepare it for hover
     } else {
       _hoveringButNotTouchedDyadmino = dyadmino;
@@ -747,30 +751,6 @@
   [_messageLabel runAction:sequence];
 }
 
--(BOOL)putEverythingInItsRightPlace {
-  BOOL allRackDyadminoesInRack = YES;
-  for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
-      // if dyadmino is in rack
-    if ([dyadmino isInRack]) {
-        // get index of dyadmino based on position in array
-      NSUInteger index = [self.myPlayer.dyadminoesInRack indexOfObject:dyadmino];
-        // get proper rackNode based on this index
-      SnapNode *rackNode = _rackFieldSprite.rackNodes[index];
-      if (!CGPointEqualToPoint(dyadmino.position, rackNode.position)) {
-        [dyadmino animateConstantSpeedMoveDyadminoToPoint:rackNode.position];
-        dyadmino.tempBoardNode = nil;
-        dyadmino.homeNode = rackNode;
-      }
-      [dyadmino endTouchThenHoverResize];
-      [dyadmino orientBySnapNode:dyadmino.homeNode];
-    } else {
-      allRackDyadminoesInRack = NO;
-    }
-//    [self nillifyIfRecentRackDyadmino:dyadmino];
-  }
-  return YES;
-}
-
 #pragma mark - helper methods
 
 -(void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -781,10 +761,10 @@
     // TODO: this method should probably be a little more sophisticated than this...
   
   DyadminoWithinSection withinSection;
-  if (dyadmino.position.y < kPlayerRackHeight) {
+  if (dyadmino.position.y < kRackHeight) {
     dyadmino.withinSection = kDyadminoWithinRack;
     withinSection = kDyadminoWithinRack;
-  } else if (dyadmino.position.y >= kPlayerRackHeight &&
+  } else if (dyadmino.position.y >= kRackHeight &&
              dyadmino.position.y < self.frame.size.height - kTopBarHeight) {
     dyadmino.withinSection = kDyadminoWithinBoard;
     withinSection = kDyadminoWithinBoard;
@@ -810,6 +790,7 @@
       // if touch point is close enough, just rotate
     if ([self getDistanceFromThisPoint:touchPoint toThisPoint:_hoveringButNotTouchedDyadmino.position] <
         kDistanceForTouchingHoveringDyadmino) {
+//      _hoveringButNotTouchedDyadmino.canFlip = YES;
       return _hoveringButNotTouchedDyadmino;
       
         // otherwise, we're pivoting

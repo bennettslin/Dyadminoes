@@ -16,7 +16,9 @@
 #define kConstantSpeed 0.002f
 #define kAnimateHoverTime 0.35f
 
+  // dyadmino state constants
 #define kTouchedDyadminoSize 1.15f
+#define kDyadminoColorBlendFactor 0.3f
 
   // math constants
 #define kBoardDiagonalX 15.75f
@@ -24,9 +26,9 @@
 
   // view constants
 #define kTopBarHeight 72.f
-#define kPlayerRackHeight 108.f
+#define kRackHeight 108.f
 
-  // logic constants
+  // game logic constants
 #define kNumDyadminoesInRack 6
 
   // distance constants
@@ -35,6 +37,7 @@
 #define kDistanceForSnapIn 21.f // this is half the height of the cell space, plus wiggle room
 #define kDistanceForTouchingHoveringDyadmino 37.5f
 #define kDistanceForTouchingLockedDyadmino 25.f
+#define kHeightGapToHighlightIntoPlay 40.f
 
   // z positions
 #define kZPositionBoard 10.f
