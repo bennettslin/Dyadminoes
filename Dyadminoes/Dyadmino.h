@@ -36,7 +36,7 @@
 @property (nonatomic) DyadminoOrientation prePivotDyadminoOrientation;
 
 @property DyadminoHoveringStatus hoveringStatus;
-@property BOOL isHoverHighlighted;
+@property BOOL isTouchThenHoverResized;
 @property BOOL isInPlayHighlighted;
 
 /**
@@ -51,20 +51,27 @@
 -(void)randomiseRackOrientation;
 -(void)orientBySnapNode:(SnapNode *)snapNode;
 -(void)orientBasedOnSextantChange:(CGFloat)sextantChange;
+
+-(void)startTouchThenHoverResize;
+-(void)endTouchThenHoverResize;
+
 -(void)startHovering;
+-(void)keepHovering;
 -(void)finishHovering;
--(void)highlightInPlay;
+
+-(void)highlightIntoPlay;
 -(void)unhighlightOutOfPlay;
 
 -(void)setToHomeZPosition;
 -(void)setToTempZPosition;
 
 -(void)goHome;
+-(void)removeActionsAndEstablishNotRotating;
 
--(void)setFinishedHoveringAndNotRotating;
--(void)prepareStateForHoverWithBoardNode:(SnapNode *)boardNode;
+//-(void)setFinishedHoveringAndNotRotating;
+//-(void)prepareStateForHoverWithBoardNode:(SnapNode *)boardNode;
 
--(void)handleFinishHovering;
+-(void)animateEaseIntoNodeAfterHover;
 
 #pragma mark - bool methods
 -(BOOL)belongsInRack;
@@ -72,6 +79,8 @@
 -(BOOL)isInRack;
 -(BOOL)isOnBoard;
 -(BOOL)isHovering;
+-(BOOL)continuesToHover;
+-(BOOL)isFinishedHovering;
 
 #pragma mark - animation methods
 
@@ -79,7 +88,7 @@
 -(void)animateSlowerConstantTimeMoveToPoint:(CGPoint)point;
 -(void)animateConstantSpeedMoveDyadminoToPoint:(CGPoint)point;
 -(void)animateFlip;
--(void)animateHoverAndFinishedStatus;
+//-(void)animateHoverAndFinishedStatus;
 
 #pragma mark - debugging methods
 

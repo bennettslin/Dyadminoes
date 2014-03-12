@@ -14,8 +14,9 @@
 #define kConstantTime 0.15f
 #define kSlowerConstantTime 0.2f
 #define kConstantSpeed 0.002f
-#define kAnimateHoverTime 0.35f
-#define kHighlightedDyadminoSize 1.15f
+#define kAnimateHoverTime 1.f // put back at 0.35f
+
+#define kTouchedDyadminoSize 1.15f
 
   // math constants
 #define kBoardDiagonalX 15.75f
@@ -55,6 +56,7 @@
 typedef enum dyadminoHoveringStatus {
   kDyadminoNoHoverStatus,
   kDyadminoHovering,
+  kDyadminoContinuesHovering,
   kDyadminoFinishedHovering
 } DyadminoHoveringStatus;
 

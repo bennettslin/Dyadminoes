@@ -17,9 +17,13 @@
 @interface MyScene () <FieldNodeDelegate>
 @end
 
+  // tie dyadmino to settle to update method
+  // tie upkeep to update
+
   // FIXME: quick double tap on rack on board does not result in settling back into slot
   // if second tap lingers, then it does
-  // make the settling part more clear
+  // FIXME: hover, then double tap, does not keep dyadmino held
+
 
   // next step
   // TODO: implement swap, and make it so that adding dyadminoes in board automatically adds rack nodes
@@ -74,20 +78,18 @@
   
     // bools and modes
   BOOL _swapMode;
-  SKSpriteNode *_buttonPressed; // pointer to button that was pressed
   BOOL _rackExchangeInProgress;
   BOOL _dyadminoSnappedIntoMovement;
   
+    // pointers
   Dyadmino *_currentlyTouchedDyadmino;
   Dyadmino *_recentRackDyadmino;
-//  Dyadmino *_inBoardPlayDyadmino;
-  
-//  BOOL _everythingInItsRightPlace;
-  
-    // hover and pivot properties
   Dyadmino *_hoveringButNotTouchedDyadmino;
+  SKSpriteNode *_buttonPressed;
+
+    // hover and pivot properties
   CGPoint _preHoverDyadminoPosition;
-  BOOL _hoverPivotInProgress;
+  BOOL pivotInProgress;
   CGFloat _initialPivotAngle;
   NSUInteger _prePivotDyadminoOrientation;
   CFTimeInterval _hoverTime;
@@ -96,6 +98,7 @@
   SKLabelNode *_pileCountLabel;
   SKLabelNode *_messageLabel;
   SKSpriteNode *_logButton;
+  SKLabelNode *_logLabel;
 }
 
 -(id)initWithSize:(CGSize)size {
@@ -200,6 +203,13 @@
   _messageLabel.position = CGPointMake(50, -buttonYPosition);
   _messageLabel.zPosition = kZPositionMessage;
   [topBar addChild:_messageLabel];
+  
+  _logLabel = [SKLabelNode labelNodeWithFontNamed:@"Helvetica-Neue"];
+  _logLabel.fontSize = 14.f;
+  _logLabel.color = [UIColor whiteColor];
+  _logLabel.position = CGPointMake(50, -buttonYPosition * 2);
+  _logLabel.zPosition = kZPositionMessage;
+  [topBar addChild:_logLabel];
 }
 
 -(void)layoutBoard {
@@ -282,7 +292,7 @@
 #pragma mark - touch methods
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-  NSLog(@"touches began");
+//  NSLog(@"touches began");
   
     // get touch location and touched node
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
@@ -299,25 +309,33 @@
     // if it's a dyadmino...
   Dyadmino *dyadmino = [self selectDyadminoFromTouchNode:_touchNode
                                            andTouchPoint:_currentTouchLocation];
-  if (dyadmino) {
+  if (dyadmino && !dyadmino.isRotating) {
+    [dyadmino startTouchThenHoverResize];
     [self handleBeginTouchOfDyadmino:dyadmino];
   }
 }
 
 -(void)handleBeginTouchOfDyadmino:(Dyadmino *)dyadmino {
-  
   _currentlyTouchedDyadmino = dyadmino;
   [self determineCurrentSectionOfDyadmino:_currentlyTouchedDyadmino];
   _offsetTouchVector = [self fromThisPoint:_beganTouchLocation
                          subtractThisPoint:_currentlyTouchedDyadmino.position];
   
     // get a clean start, but keep it hoverResized and inPlayHighlighted
-  [_currentlyTouchedDyadmino removeAllActions];
-  [_currentlyTouchedDyadmino setFinishedHoveringAndNotRotating];
   
+    // reset hover count
+  if ([_currentlyTouchedDyadmino isHovering]) {
+    [_currentlyTouchedDyadmino keepHovering];
+  }
+//  else {
+  
+//    [_currentlyTouchedDyadmino setFinishedHoveringAndNotRotating];
+//    [_currentlyTouchedDyadmino startHovering];
+//  }
     // now start hovering
-  [_currentlyTouchedDyadmino startHovering];
-  
+
+  [_currentlyTouchedDyadmino removeActionsAndEstablishNotRotating];
+
     //--------------------------------------------------------------------------
   
     // FIXME: this is kind of buggy
@@ -337,7 +355,7 @@
     //--------------------------------------------------------------------------
   
     // if it's now about to pivot, just get pivot angle
-  if (_hoverPivotInProgress) {
+  if (pivotInProgress) {
     _initialPivotAngle = [self findAngleInDegreesFromThisPoint:_currentTouchLocation
                                                    toThisPoint:_currentlyTouchedDyadmino.position];
     return;
@@ -369,6 +387,11 @@
   if (!_currentlyTouchedDyadmino) {
     return;
   }
+  
+    // continue to reset hover count
+  if ([_currentlyTouchedDyadmino isHovering]) {
+    [_currentlyTouchedDyadmino keepHovering];
+  }
     //--------------------------------------------------------------------------
   
     // get touch location and update currently touched dyadmino's section
@@ -385,19 +408,12 @@
     } else {
       
         // it's now in play
-      [_currentlyTouchedDyadmino highlightInPlay];
+      [_currentlyTouchedDyadmino highlightIntoPlay];
       
         // reset previous dyadminoes
       if (_currentlyTouchedDyadmino != _recentRackDyadmino) {
         [self sendDyadminoHome:_recentRackDyadmino];
       }
-      
-//      if (_currentlyTouchedDyadmino != _inBoardPlayDyadmino) {
-//        [self sendDyadminoHome:_inBoardPlayDyadmino];
-//      }
-//      
-        // this dyadmino is now the inBoardPlay dyadmino
-//      _inBoardPlayDyadmino = _currentlyTouchedDyadmino;
     }
   }
     //--------------------------------------------------------------------------
@@ -406,7 +422,7 @@
   _currentlyTouchedDyadmino.canFlip = NO;
 
     // now, if we're currently pivoting, just rotate and return
-  if (_hoverPivotInProgress) {
+  if (pivotInProgress) {
     CGFloat thisAngle = [self findAngleInDegreesFromThisPoint:_currentTouchLocation
                                                   toThisPoint:_currentlyTouchedDyadmino.position];
     CGFloat sextantChange = [self getSextantChangeFromThisAngle:thisAngle toThisAngle:_initialPivotAngle];
@@ -461,7 +477,7 @@
       // take care of state change and animation of exchanged dyadmino, as long as it's not on the board
     if (!exchangedDyadmino.tempBoardNode) {
       exchangedDyadmino.zPosition = kZPositionRackMovedDyadmino;
-      [exchangedDyadmino setFinishedHoveringAndNotRotating];
+//      [exchangedDyadmino setFinishedHoveringAndNotRotating];
       [exchangedDyadmino animateConstantSpeedMoveDyadminoToPoint:exchangedDyadmino.homeNode.position];
       exchangedDyadmino.zPosition = kZPositionRackRestingDyadmino;
     }
@@ -471,7 +487,7 @@
 }
 
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-  NSLog(@"touches Ended");
+//  NSLog(@"touches Ended");
     // handle button that was pressed
   if (_buttonPressed) {
       // FIXME: this should ensure that the touch is still on the button when it's released
@@ -492,7 +508,7 @@
   Dyadmino *dyadmino = [self assignCurrentDyadminoToPointer];
   
     // cleanup
-  _hoverPivotInProgress = NO;
+  pivotInProgress = NO;
   _offsetTouchVector = CGPointMake(0, 0);
   _dyadminoSnappedIntoMovement = NO;
 
@@ -513,6 +529,8 @@
       
         // else prepare it for hover
     } else {
+      _hoveringButNotTouchedDyadmino = dyadmino;
+      [_hoveringButNotTouchedDyadmino startHovering];
       [self prepareTouchEndedDyadminoForHover];
     }
   }
@@ -520,6 +538,7 @@
 
 -(void)sendDyadminoHome:(Dyadmino *)dyadmino {
   [dyadmino goHome];
+  [dyadmino endTouchThenHoverResize];
   dyadmino.withinSection = kDyadminoWithinRack;
   [self nillifyIfRecentRackDyadmino:dyadmino];
 }
@@ -557,7 +576,9 @@
         _hoveringButNotTouchedDyadmino.homeNode = boardNode;
       }
       
-      [_hoveringButNotTouchedDyadmino prepareStateForHoverWithBoardNode:boardNode];
+//      [_hoveringButNotTouchedDyadmino prepareStateForHoverWithBoardNode:boardNode];
+      [_hoveringButNotTouchedDyadmino removeActionsAndEstablishNotRotating];
+      [_hoveringButNotTouchedDyadmino startHovering];
       
     } else {
         // method to return to original place
@@ -677,31 +698,62 @@
 #pragma mark - update
 
 -(void)update:(CFTimeInterval)currentTime {
+
+    // temporary
+  if (_hoverTime != 0.f) {
+    [self updateLogLabelWithString:[NSString stringWithFormat:@"%.2f", kAnimateHoverTime - (currentTime - _hoverTime)]];
+  } else {
+    [self updateLogLabelWithString:@""];
+  }
+  if (_currentlyTouchedDyadmino) {
+    [self updateLogLabelWithString:_currentlyTouchedDyadmino.name];
+  }
   
-  if ([_currentlyTouchedDyadmino isHovering]) {
-    _hoveringButNotTouchedDyadmino = _currentlyTouchedDyadmino;
+  if ([_hoveringButNotTouchedDyadmino isHovering]) {
+//    _hoveringButNotTouchedDyadmino = _currentlyTouchedDyadmino;
     if (_hoverTime == 0.f) {
       _hoverTime = currentTime;
-      NSLog(@"hover time start is %.2f", currentTime);
+//      NSLog(@"hover time start is %.2f", currentTime);
     }
   }
   
-  if (_hoverTime != 0.f && currentTime > _hoverTime + kAnimateHoverTime) {
-    NSLog(@"hover time end is %.2f", currentTime);
-    _hoverTime = 0.f;
+    // reset hover time if continues to hover
+  if ([_hoveringButNotTouchedDyadmino continuesToHover]) {
+    _hoverTime = currentTime;
+    _hoveringButNotTouchedDyadmino.hoveringStatus = kDyadminoHovering;
   }
   
-    // finish hovering
-  if (_hoveringButNotTouchedDyadmino.withinSection != kDyadminoWithinRack &&
-      _hoveringButNotTouchedDyadmino.hoveringStatus == kDyadminoFinishedHovering &&
-      _currentlyTouchedDyadmino != _hoveringButNotTouchedDyadmino) {
+  if (_hoverTime != 0.f && currentTime > _hoverTime + kAnimateHoverTime) {
+//    NSLog(@"hover time end is %.2f", currentTime);
+    _hoverTime = 0.f;
+    
+      // finish status
+    [_hoveringButNotTouchedDyadmino setToHomeZPosition];
+    [_hoveringButNotTouchedDyadmino finishHovering];
+    _hoveringButNotTouchedDyadmino.tempReturnOrientation = _hoveringButNotTouchedDyadmino.orientation;
+    _hoveringButNotTouchedDyadmino.canFlip = NO;
+    
 
-    [_hoveringButNotTouchedDyadmino handleFinishHovering];
+    
   }
+  
+
+    // ease into node after hovering
+  if ([_hoveringButNotTouchedDyadmino isOnBoard] &&
+      [_hoveringButNotTouchedDyadmino isFinishedHovering] &&
+      _currentlyTouchedDyadmino != _hoveringButNotTouchedDyadmino) {
+//    NSLog(@"dyadmino animateEaseIntoNode called in update");
+    [_hoveringButNotTouchedDyadmino animateEaseIntoNodeAfterHover];
+  }
+  
 }
 
 -(void)updatePileCountLabel {
   _pileCountLabel.text = [NSString stringWithFormat:@"pile %i", [self.ourGameEngine getCommonPileCount]];
+}
+
+-(void)updateLogLabelWithString:(NSString *)string {
+  _logLabel.text = string;
 }
 
 -(void)updateMessageLabelWithString:(NSString *)string {
@@ -726,12 +778,12 @@
         // get proper rackNode based on this index
       SnapNode *rackNode = _rackFieldSprite.rackNodes[index];
       if (!CGPointEqualToPoint(dyadmino.position, rackNode.position)) {
-        [dyadmino setFinishedHoveringAndNotRotating];
+//        [dyadmino setFinishedHoveringAndNotRotating];
         [dyadmino animateConstantSpeedMoveDyadminoToPoint:rackNode.position];
         dyadmino.tempBoardNode = nil;
         dyadmino.homeNode = rackNode;
       }
-      [dyadmino finishHovering];
+      [dyadmino endTouchThenHoverResize];
       [dyadmino orientBySnapNode:dyadmino.homeNode];
     } else {
       allRackDyadminoesInRack = NO;
@@ -786,10 +838,10 @@
       
         // otherwise, we're pivoting
     } else {
-      _hoverPivotInProgress = YES;
+      pivotInProgress = YES;
       _hoveringButNotTouchedDyadmino.prePivotDyadminoOrientation = _hoveringButNotTouchedDyadmino.orientation;
-      [_hoveringButNotTouchedDyadmino removeAllActions];
-      [_hoveringButNotTouchedDyadmino setFinishedHoveringAndNotRotating];
+      [_hoveringButNotTouchedDyadmino removeActionsAndEstablishNotRotating];
+//      [_hoveringButNotTouchedDyadmino setFinishedHoveringAndNotRotating];
       return _hoveringButNotTouchedDyadmino;
     }
   }

@@ -10,7 +10,7 @@
 
 @implementation Dyadmino {
   BOOL _alreadyAddedChildren;
-  CGSize _highlightedSize;
+  CGSize _touchSize;
 }
 
 -(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode andRotationFrameArray:(NSArray *)rotationFrameArray andPC1LetterSprite:(SKSpriteNode *)pc1LetterSprite andPC2LetterSprite:(SKSpriteNode *)pc2LetterSprite andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite {
@@ -108,10 +108,10 @@
 }
 
 -(void)resizeDyadmino {
-  if (self.isHoverHighlighted) {
-    self.size = CGSizeMake(self.texture.size.width * kHighlightedDyadminoSize, self.texture.size.height * kHighlightedDyadminoSize);
-    self.pc1Sprite.size = CGSizeMake(self.pc1Sprite.texture.size.width * kHighlightedDyadminoSize, self.pc1Sprite.texture.size.height * kHighlightedDyadminoSize);
-    self.pc2Sprite.size = CGSizeMake(self.pc2Sprite.texture.size.width * kHighlightedDyadminoSize, self.pc2Sprite.texture.size.height * kHighlightedDyadminoSize);
+  if (self.isTouchThenHoverResized) {
+    self.size = CGSizeMake(self.texture.size.width * kTouchedDyadminoSize, self.texture.size.height * kTouchedDyadminoSize);
+    self.pc1Sprite.size = CGSizeMake(self.pc1Sprite.texture.size.width * kTouchedDyadminoSize, self.pc1Sprite.texture.size.height * kTouchedDyadminoSize);
+    self.pc2Sprite.size = CGSizeMake(self.pc2Sprite.texture.size.width * kTouchedDyadminoSize, self.pc2Sprite.texture.size.height * kTouchedDyadminoSize);
   } else {
     self.size = self.texture.size;
     self.pc1Sprite.size = self.pc1Sprite.texture.size;
@@ -128,7 +128,6 @@
         self.orientation = 3;
       }
       break;
-      
     default: // snapNode is on board
       self.orientation = self.tempReturnOrientation;
       break;
@@ -153,33 +152,43 @@
   }
 }
 
--(void)startHovering {
-  self.isHoverHighlighted = YES;
-  self.hoveringStatus = kDyadminoHovering;
-    // for now, hovering just resizes
+#pragma mark - change status methods
+
+-(void)startTouchThenHoverResize {
+  self.isTouchThenHoverResized = YES;
   [self resizeDyadmino];
   [self selectAndPositionSprites];
+}
+
+-(void)endTouchThenHoverResize {
+  self.isTouchThenHoverResized = NO;
+  [self resizeDyadmino];
+  [self selectAndPositionSprites];
+}
+
+-(void)startHovering {
+  self.hoveringStatus = kDyadminoHovering;
+}
+
+-(void)keepHovering {
+  self.hoveringStatus = kDyadminoContinuesHovering;
 }
 
 -(void)finishHovering {
-  self.isHoverHighlighted = NO;
   self.hoveringStatus = kDyadminoFinishedHovering;
-    // for now, hovering just resizes
-  [self resizeDyadmino];
-  [self selectAndPositionSprites];
 }
 
--(void)highlightInPlay {
+-(void)highlightIntoPlay {
   self.isInPlayHighlighted = YES;
   self.colorBlendFactor = 0.2f;
-//  [self selectAndPositionSprites];
 }
 
 -(void)unhighlightOutOfPlay {
   self.isInPlayHighlighted = NO;
   self.colorBlendFactor = 0.f;
-//  [self selectAndPositionSprites];
 }
+
+#pragma mark - change state methods
 
 -(void)setToHomeZPosition {
   if (self.homeNode.snapNodeType == kSnapNodeRack) {
@@ -197,25 +206,25 @@
 //  }
 }
 
--(void)setFinishedHoveringAndNotRotating {
-  if (self.hoveringStatus == kDyadminoHovering) {
-    self.hoveringStatus = kDyadminoFinishedHovering;
-  }
-  self.isRotating = NO;
-}
+//-(void)setFinishedHoveringAndNotRotating {
+//  if (self.hoveringStatus == kDyadminoHovering) {
+//    self.hoveringStatus = kDyadminoFinishedHovering;
+//  }
+//  self.isRotating = NO;
+//}
 
--(void)prepareStateForHoverWithBoardNode:(SnapNode *)boardNode {
-  self.tempBoardNode = boardNode;
-  [self setFinishedHoveringAndNotRotating];
-  self.hoveringStatus = kDyadminoHovering;
-  [self animateHoverAndFinishedStatus];
-}
+//-(void)prepareStateForHoverWithBoardNode:(SnapNode *)boardNode {
+//  self.tempBoardNode = boardNode;
+////  [self setFinishedHoveringAndNotRotating];
+//  self.hoveringStatus = kDyadminoHovering;
+////  [self animateHoverAndFinishedStatus];
+//}
 
 -(void)goHome {
   [self unhighlightOutOfPlay];
   [self orientBySnapNode:self.homeNode];
   self.zPosition = kZPositionRackMovedDyadmino;
-  [self setFinishedHoveringAndNotRotating];
+//  [self setFinishedHoveringAndNotRotating];
   [self animateConstantSpeedMoveDyadminoToPoint:self.homeNode.position];
   self.tempBoardNode = nil;
   [self setToHomeZPosition];
@@ -225,26 +234,31 @@
 #pragma mark - animation methods
 
 -(void)animateConstantTimeMoveToPoint:(CGPoint)point {
-  [self removeAllActions];
+  [self removeActionsAndEstablishNotRotating];
   SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime];
   [self runAction:moveAction];
 }
 
 -(void)animateSlowerConstantTimeMoveToPoint:(CGPoint)point {
-  [self removeAllActions];
+  [self removeActionsAndEstablishNotRotating];
   SKAction *snapAction = [SKAction moveTo:point duration:kSlowerConstantTime];
   [self runAction:snapAction];
 }
 
 -(void)animateConstantSpeedMoveDyadminoToPoint:(CGPoint)point{
-  [self removeAllActions];
+  [self removeActionsAndEstablishNotRotating];
   CGFloat distance = [self getDistanceFromThisPoint:self.position toThisPoint:point];
   SKAction *snapAction = [SKAction moveTo:point duration:kConstantSpeed * distance];
   [self runAction:snapAction];
 }
 
--(void)animateFlip {
+-(void)removeActionsAndEstablishNotRotating {
   [self removeAllActions];
+  self.isRotating = NO;
+}
+
+-(void)animateFlip {
+  [self removeActionsAndEstablishNotRotating];
   self.isRotating = YES;
   
   SKAction *nextFrame = [SKAction runBlock:^{
@@ -255,24 +269,27 @@
   SKAction *finishAction;
   
     // rotation
-  if (self.withinSection == kDyadminoWithinRack) {
+  if ([self isInRack]) {
     finishAction = [SKAction runBlock:^{
       [self finishHovering];
       [self setToHomeZPosition];
+      [self endTouchThenHoverResize];
       self.isRotating = NO;
     }];
       // just to ensure that dyadmino is back in its node position
     self.position = self.homeNode.position;
     
-  } else if (self.withinSection == kDyadminoWithinBoard) {
+  } else if ([self isOnBoard]) {
     finishAction = [SKAction runBlock:^{
       [self setToHomeZPosition];
       self.isRotating = NO;
       self.tempReturnOrientation = self.orientation;
-      [self handleFinishHovering];
-//      self.hoveringStatus = kDyadminoHovering;
+      
+        // not sure which of these will allow it to settle after double tap
+      
+//      [self handleFinishHovering];
+      self.hoveringStatus = kDyadminoHovering;
 //      [self animateHoverAndFinishedStatus];
-//      [self removeAllActions];
 //      [self setToHomeZPosition];
 //      [self finishHovering];
 //      self.tempReturnOrientation = self.orientation;
@@ -286,33 +303,50 @@
   [self runAction:completeAction];
 }
 
--(void)handleFinishHovering {
-  NSLog(@"handleFinish hovering called");
-  [self setFinishedHoveringAndNotRotating];
+-(void)animateEaseIntoNodeAfterHover {
+//  NSLog(@"handleFinish hovering called");
+//  [self setFinishedHoveringAndNotRotating];
   
     // animate to temp boardNode if a rack dyadmino, to homeNode if a board dyadmino
+  
+  CGPoint settledPosition = self.homeNode.position;
   if ([self belongsInRack] && [self isOnBoard]) {
-    [self animateSlowerConstantTimeMoveToPoint:self.tempBoardNode.position];
+    settledPosition = self.tempBoardNode.position;
+//    [self animateSlowerConstantTimeMoveToPoint:self.tempBoardNode.position];
   } else {
-    [self animateSlowerConstantTimeMoveToPoint:self.homeNode.position];
+    settledPosition = self.homeNode.position;
+//    [self animateSlowerConstantTimeMoveToPoint:self.homeNode.position];
   }
   
-  self.canFlip = NO;
-  self.hoveringStatus = kDyadminoNoHoverStatus;
+
+  SKAction *moveAction = [SKAction moveTo:settledPosition duration:kConstantTime];
+  SKAction *finishAction = [SKAction runBlock:^{
+    [self endTouchThenHoverResize];
+    self.canFlip = NO;
+    self.hoveringStatus = kDyadminoNoHoverStatus;
+//    NSLog(@"done and done");
+  }];
+  SKAction *sequence = [SKAction sequence:@[moveAction, finishAction]];
+  [self runAction:sequence];
 }
 
--(void)animateHoverAndFinishedStatus {
-  [self removeAllActions];
-  SKAction *dyadminoHover = [SKAction waitForDuration:kAnimateHoverTime];
-  SKAction *dyadminoFinishStatus = [SKAction runBlock:^{
-    [self setToHomeZPosition];
-    [self finishHovering];
-    self.tempReturnOrientation = self.orientation;
-    self.canFlip = NO;
-  }];
-  SKAction *actionSequence = [SKAction sequence:@[dyadminoHover, dyadminoFinishStatus]];
-  [self runAction:actionSequence];
-}
+  // get rid of this method
+//-(void)animateHoverAndFinishedStatus {
+//  [self removeActionsAndEstablishNotRotating];
+//  return;
+//  
+//  
+//  
+//  SKAction *dyadminoHover = [SKAction waitForDuration:kAnimateHoverTime];
+//  SKAction *dyadminoFinishStatus = [SKAction runBlock:^{
+//    [self setToHomeZPosition];
+//    [self finishHovering];
+//    self.tempReturnOrientation = self.orientation;
+//    self.canFlip = NO;
+//  }];
+//  SKAction *actionSequence = [SKAction sequence:@[dyadminoHover, dyadminoFinishStatus]];
+//  [self runAction:actionSequence];
+//}
 
 #pragma mark - bool methods
 
@@ -336,6 +370,22 @@
 
 -(BOOL)isHovering {
   if (self.hoveringStatus == kDyadminoHovering) {
+    return YES;
+  } else {
+    return NO;
+  }
+}
+
+-(BOOL)continuesToHover {
+  if (self.hoveringStatus == kDyadminoContinuesHovering) {
+    return YES;
+  } else {
+    return NO;
+  }
+}
+
+-(BOOL)isFinishedHovering {
+  if (self.hoveringStatus == kDyadminoFinishedHovering) {
     return YES;
   } else {
     return NO;
