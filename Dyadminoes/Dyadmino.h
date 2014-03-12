@@ -19,7 +19,7 @@
 @property (nonatomic) PCMode pcMode;
 
 @property (strong, nonatomic) SnapNode *homeNode;
-@property (strong, nonatomic) SnapNode *tempReturnNode;
+@property (strong, nonatomic) SnapNode *tempBoardNode;
 @property (nonatomic) DyadminoOrientation orientation;
 @property (nonatomic) DyadminoOrientation tempReturnOrientation;
 @property (strong, nonatomic) NSArray *rotationFrameArray;
@@ -78,5 +78,9 @@
 -(void)animateConstantSpeedMoveDyadminoToPoint:(CGPoint)point;
 -(void)animateFlip;
 -(void)animateHoverAndFinishedStatus;
+
+#pragma mark - debugging methods
+
+-(NSString *)logThisDyadmino;
 
 @end

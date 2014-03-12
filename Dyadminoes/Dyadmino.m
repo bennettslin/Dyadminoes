@@ -172,13 +172,13 @@
 -(void)highlightInPlay {
   self.isInPlayHighlighted = YES;
   self.colorBlendFactor = 0.2f;
-  [self selectAndPositionSprites];
+//  [self selectAndPositionSprites];
 }
 
 -(void)unhighlightOutOfPlay {
   self.isInPlayHighlighted = NO;
   self.colorBlendFactor = 0.f;
-  [self selectAndPositionSprites];
+//  [self selectAndPositionSprites];
 }
 
 -(void)setToHomeZPosition {
@@ -190,11 +190,11 @@
 }
 
 -(void)setToTempZPosition {
-  if (self.tempReturnNode.snapNodeType == kSnapNodeRack) {
-    self.zPosition = kZPositionRackRestingDyadmino;
-  } else {
+//  if (self.tempBoardNod.snapNodeType == kSnapNodeRack) {
+//    self.zPosition = kZPositionRackRestingDyadmino;
+//  } else {
     self.zPosition = kZPositionBoardRestingDyadmino;
-  }
+//  }
 }
 
 -(void)setFinishedHoveringAndNotRotating {
@@ -205,7 +205,7 @@
 }
 
 -(void)prepareStateForHoverWithBoardNode:(SnapNode *)boardNode {
-  self.tempReturnNode = boardNode;
+  self.tempBoardNode = boardNode;
   [self setFinishedHoveringAndNotRotating];
   self.hoveringStatus = kDyadminoHovering;
   [self animateHoverAndFinishedStatus];
@@ -217,7 +217,7 @@
   self.zPosition = kZPositionRackMovedDyadmino;
   [self setFinishedHoveringAndNotRotating];
   [self animateConstantSpeedMoveDyadminoToPoint:self.homeNode.position];
-  self.tempReturnNode = self.homeNode;
+  self.tempBoardNode = nil;
   [self setToHomeZPosition];
   [self finishHovering];
 }
@@ -270,7 +270,7 @@
       [self setToHomeZPosition];
       self.isRotating = NO;
       self.tempReturnOrientation = self.orientation;
-      [self prepareStateForHoverWithBoardNode:self.tempReturnNode];
+      [self prepareStateForHoverWithBoardNode:self.tempBoardNode]; // weird
     }];
   }
   
@@ -316,6 +316,17 @@
     return YES;
   } else {
     return NO;
+  }
+}
+
+#pragma mark - debugging methods
+
+-(NSString *)logThisDyadmino {
+  if (self) {
+    NSString *tempString = [NSString stringWithFormat:@"%@", self.name];
+    return tempString;
+  } else {
+    return @"dyadmino doesn't exist";
   }
 }
 

@@ -73,7 +73,7 @@
     
       // setup dyadmino and rackNode
     dyadmino.homeNode = rackNode;
-    dyadmino.tempReturnNode = rackNode;
+    dyadmino.tempBoardNode = nil;
     dyadmino.withinSection = kDyadminoWithinRack;
     
     if (dyadmino.parent == self) {
