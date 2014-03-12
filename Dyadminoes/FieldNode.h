@@ -11,8 +11,6 @@
 
 @protocol FieldNodeDelegate <NSObject>
 
--(void)animateConstantSpeedMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point;
-
 @end
 
 @interface FieldNode : SKSpriteNode

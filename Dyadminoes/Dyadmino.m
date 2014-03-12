@@ -163,4 +163,71 @@
   }
 }
 
+#pragma mark - animation methods
+
+-(void)animateConstantTimeMoveToPoint:(CGPoint)point {
+  [self removeAllActions];
+  SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime];
+  [self runAction:moveAction];
+}
+
+-(void)animateSlowerConstantTimeMoveToPoint:(CGPoint)point {
+  [self removeAllActions];
+  SKAction *snapAction = [SKAction moveTo:point duration:kSlowerConstantTime];
+  [self runAction:snapAction];
+}
+
+-(void)animateConstantSpeedMoveDyadminoToPoint:(CGPoint)point{
+  [self removeAllActions];
+  CGFloat distance = [self getDistanceFromThisPoint:self.position toThisPoint:point];
+  SKAction *snapAction = [SKAction moveTo:point duration:kConstantSpeed * distance];
+  [self runAction:snapAction];
+}
+
+-(void)animateRotate {
+  [self removeAllActions];
+  self.isRotating = YES;
+  
+  SKAction *nextFrame = [SKAction runBlock:^{
+    self.orientation = (self.orientation + 1) % 6;
+    [self selectAndPositionSprites];
+  }];
+  SKAction *waitTime = [SKAction waitForDuration:kRotateWait];
+  SKAction *finishAction;
+  
+    // rotation
+  if (self.withinSection == kDyadminoWithinRack) {
+    finishAction = [SKAction runBlock:^{
+      [self hoverUnhighlight];
+      [self setToHomeZPosition];
+      self.isRotating = NO;
+    }];
+      // just to ensure that dyadmino is back in its node position
+    self.position = self.homeNode.position;
+    
+  } else if (self.withinSection == kDyadminoWithinBoard) {
+    finishAction = [SKAction runBlock:^{
+      [self selectAndPositionSprites];
+      [self setToHomeZPosition];
+      self.isRotating = NO;
+      self.tempReturnOrientation = self.orientation;
+    }];
+  }
+  
+  SKAction *completeAction = [SKAction sequence:@[nextFrame, waitTime, nextFrame, waitTime, nextFrame, finishAction]];
+  [self runAction:completeAction];
+}
+
+-(void)animateHoverAndFinishedStatus {
+  [self removeAllActions];
+  SKAction *dyadminoHover = [SKAction waitForDuration:kAnimateHoverTime];
+  SKAction *dyadminoFinishStatus = [SKAction runBlock:^{
+    [self setToHomeZPosition];
+    [self hoverUnhighlight];
+    self.tempReturnOrientation = self.orientation;
+  }];
+  SKAction *actionSequence = [SKAction sequence:@[dyadminoHover, dyadminoFinishStatus]];
+  [self runAction:actionSequence];
+}
+
 @end

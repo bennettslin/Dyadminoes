@@ -79,13 +79,13 @@
     if (dyadmino.parent == self) {
         // dyadmino is already on rack, just has to animate to new position if not already there
       if (!CGPointEqualToPoint(dyadmino.position, dyadmino.homeNode.position)) {
-        [self.delegate animateConstantSpeedMoveDyadmino:dyadmino toThisPoint:dyadmino.homeNode.position];
+        [dyadmino animateConstantSpeedMoveDyadminoToPoint:dyadmino.homeNode.position];
       }
     } else {
         // dyadmino is *not* already on rack, must add offscreen first, then animate
       dyadmino.position = CGPointMake(_width + self.xIncrementInRack, dyadmino.homeNode.position.y);
       [self addChild:dyadmino];
-      [self.delegate animateConstantSpeedMoveDyadmino:dyadmino toThisPoint:dyadmino.homeNode.position];
+      [dyadmino animateConstantSpeedMoveDyadminoToPoint:dyadmino.homeNode.position];
     }
   }
 }

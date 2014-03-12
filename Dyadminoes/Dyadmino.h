@@ -55,4 +55,12 @@
 -(void)setToHomeZPosition;
 -(void)setToTempZPosition;
 
+#pragma mark - animation methods
+
+-(void)animateConstantTimeMoveToPoint:(CGPoint)point;
+-(void)animateSlowerConstantTimeMoveToPoint:(CGPoint)point;
+-(void)animateConstantSpeedMoveDyadminoToPoint:(CGPoint)point;
+-(void)animateRotate;
+-(void)animateHoverAndFinishedStatus;
+
 @end

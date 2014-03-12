@@ -36,7 +36,6 @@
 #define kDistanceForTouchingLockedDyadmino 25.f
 
   // z positions
-
 #define kZPositionBoard 10.f
 #define kZPositionBoardCell 20.f
 #define kZPositionBoardNode 30.f
@@ -96,12 +95,5 @@ typedef enum dyadminoOrientation {
 -(CGPoint)fromThisPoint:(CGPoint)point1 subtractThisPoint:(CGPoint)point2;
 -(CGFloat)findAngleInDegreesFromThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
 -(CGFloat)getSextantChangeFromThisAngle:(CGFloat)angle1 toThisAngle:(CGFloat)angle2;
-
-  // animation stuff
--(void)animateConstantTimeMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point;
--(void)animateSlowerConstantTimeMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point;
--(void)animateConstantSpeedMoveDyadmino:(Dyadmino *)dyadmino toThisPoint:(CGPoint)point;
--(void)animateRotateDyadmino:(Dyadmino *)dyadmino;
--(void)animateHoverAndFinishedStatusOfDyadmino:(Dyadmino *)dyadmino;
 
 @end
