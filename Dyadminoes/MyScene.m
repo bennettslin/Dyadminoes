@@ -20,10 +20,8 @@
   // tie dyadmino to settle to update method
   // tie upkeep to update
 
-  // FIXME: quick double tap on rack on board does not result in settling back into slot
-  // if second tap lingers, then it does
-  // FIXME: hover, then double tap, does not keep dyadmino held
-
+  // FIXME: if wait too long after double tap, does not rotate; make so that it can always flip
+  // after being stationary or pivoting, as long as it didn't move
 
   // next step
   // TODO: implement swap, and make it so that adding dyadminoes in board automatically adds rack nodes
@@ -49,8 +47,6 @@
   // leave alone for now until better information about how Game Center works
   // TODO: make so that player, not dyadmino, knows about pcMode
 
-  // FIXME: bug where after drag one dyadmino, last dyadmino doesn't return to node, just rests right there
-
 @implementation MyScene {
 
     // sprites and nodes
@@ -59,7 +55,6 @@
   SKNode *_touchNode;
 
     // arrays to keep track of sprites and nodes
-//  NSMutableArray *_rackNodes;
   NSMutableSet *_boardNodesToSearch;
   NSMutableSet *_boardNodesTwelveAndSix;
   NSMutableSet *_boardNodesTwoAndEight;
@@ -309,8 +304,11 @@
     // if it's a dyadmino...
   Dyadmino *dyadmino = [self selectDyadminoFromTouchNode:_touchNode
                                            andTouchPoint:_currentTouchLocation];
-  if (dyadmino && !dyadmino.isRotating) {
+  if (dyadmino && !dyadmino.isRotating && !_currentlyTouchedDyadmino) {
     [dyadmino startTouchThenHoverResize];
+    
+    // safeguard against nuttiness
+    dyadmino.myTouch = [touches anyObject];
     [self handleBeginTouchOfDyadmino:dyadmino];
   }
 }
@@ -320,19 +318,11 @@
   [self determineCurrentSectionOfDyadmino:_currentlyTouchedDyadmino];
   _offsetTouchVector = [self fromThisPoint:_beganTouchLocation
                          subtractThisPoint:_currentlyTouchedDyadmino.position];
-  
-    // get a clean start, but keep it hoverResized and inPlayHighlighted
-  
+
     // reset hover count
   if ([_currentlyTouchedDyadmino isHovering]) {
     [_currentlyTouchedDyadmino keepHovering];
   }
-//  else {
-  
-//    [_currentlyTouchedDyadmino setFinishedHoveringAndNotRotating];
-//    [_currentlyTouchedDyadmino startHovering];
-//  }
-    // now start hovering
 
   [_currentlyTouchedDyadmino removeActionsAndEstablishNotRotating];
 
@@ -377,6 +367,11 @@
 
 -(void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
   
+    // safeguard against nuttiness
+  if (_currentlyTouchedDyadmino.myTouch != [touches anyObject]) {
+    return;
+  }
+
     // if the touch started on a button, do nothing and return
   if (_buttonPressed) {
       // TODO: make button highlighted if still pressed
@@ -477,7 +472,6 @@
       // take care of state change and animation of exchanged dyadmino, as long as it's not on the board
     if (!exchangedDyadmino.tempBoardNode) {
       exchangedDyadmino.zPosition = kZPositionRackMovedDyadmino;
-//      [exchangedDyadmino setFinishedHoveringAndNotRotating];
       [exchangedDyadmino animateConstantSpeedMoveDyadminoToPoint:exchangedDyadmino.homeNode.position];
       exchangedDyadmino.zPosition = kZPositionRackRestingDyadmino;
     }
@@ -487,7 +481,12 @@
 }
 
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-//  NSLog(@"touches Ended");
+  
+    // safeguard against nuttiness
+  if (_currentlyTouchedDyadmino.myTouch != [touches anyObject]) {
+    return;
+  }
+  
     // handle button that was pressed
   if (_buttonPressed) {
       // FIXME: this should ensure that the touch is still on the button when it's released
@@ -524,8 +523,8 @@
       } else {
         [self sendDyadminoHome:dyadmino];
       }
-        // at some point, test if this is even effective
-      [self putEverythingInItsRightPlace];
+        // TODO: at some point, test if this is even effective
+//      [self putEverythingInItsRightPlace];
       
         // else prepare it for hover
     } else {
@@ -547,7 +546,6 @@
     // rack dyadmino only needs pointer if it's still on board
   if ([_currentlyTouchedDyadmino belongsInRack] && [_currentlyTouchedDyadmino isOnBoard]) {
     _recentRackDyadmino = _currentlyTouchedDyadmino;
-//    _inBoardPlayDyadmino = _currentlyTouchedDyadmino;
   }
   
   Dyadmino *dyadmino = _currentlyTouchedDyadmino;
@@ -687,9 +685,6 @@
 }
 
 -(void)nillifyIfRecentRackDyadmino:(Dyadmino *)dyadmino {
-//  if (_recentDyadmino == _recentRackDyadmino) {
-//    _recentDyadmino = nil;
-//  }
   if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
     _recentRackDyadmino = nil;
   }
@@ -710,10 +705,8 @@
   }
   
   if ([_hoveringButNotTouchedDyadmino isHovering]) {
-//    _hoveringButNotTouchedDyadmino = _currentlyTouchedDyadmino;
     if (_hoverTime == 0.f) {
       _hoverTime = currentTime;
-//      NSLog(@"hover time start is %.2f", currentTime);
     }
   }
   
@@ -724,7 +717,6 @@
   }
   
   if (_hoverTime != 0.f && currentTime > _hoverTime + kAnimateHoverTime) {
-//    NSLog(@"hover time end is %.2f", currentTime);
     _hoverTime = 0.f;
     
       // finish status
@@ -742,7 +734,6 @@
   if ([_hoveringButNotTouchedDyadmino isOnBoard] &&
       [_hoveringButNotTouchedDyadmino isFinishedHovering] &&
       _currentlyTouchedDyadmino != _hoveringButNotTouchedDyadmino) {
-//    NSLog(@"dyadmino animateEaseIntoNode called in update");
     [_hoveringButNotTouchedDyadmino animateEaseIntoNodeAfterHover];
   }
   
@@ -778,7 +769,6 @@
         // get proper rackNode based on this index
       SnapNode *rackNode = _rackFieldSprite.rackNodes[index];
       if (!CGPointEqualToPoint(dyadmino.position, rackNode.position)) {
-//        [dyadmino setFinishedHoveringAndNotRotating];
         [dyadmino animateConstantSpeedMoveDyadminoToPoint:rackNode.position];
         dyadmino.tempBoardNode = nil;
         dyadmino.homeNode = rackNode;
@@ -814,7 +804,6 @@
     dyadmino.withinSection = kDyadminoWithinTopBar;
     withinSection = kDyadminoWithinTopBar;
   }
-//  NSLog(@"dyadmino within section %i", dyadmino.withinSection);
   return withinSection;
 }
 
@@ -826,7 +815,6 @@
 -(Dyadmino *)selectDyadminoFromTouchNode:(SKNode *)touchNode andTouchPoint:(CGPoint)touchPoint {
     // pointer to determine last dyadmino, depending on
     // whether moving board dyadmino while rack dyadmino is in play
-//  Dyadmino *lastDyadmino = [self lastDyadminoBasedOnMoveBoardWhileRackInPlay];
 
     // if we're in hovering mode...
   if ([_hoveringButNotTouchedDyadmino isHovering]) {
@@ -841,7 +829,6 @@
       pivotInProgress = YES;
       _hoveringButNotTouchedDyadmino.prePivotDyadminoOrientation = _hoveringButNotTouchedDyadmino.orientation;
       [_hoveringButNotTouchedDyadmino removeActionsAndEstablishNotRotating];
-//      [_hoveringButNotTouchedDyadmino setFinishedHoveringAndNotRotating];
       return _hoveringButNotTouchedDyadmino;
     }
   }

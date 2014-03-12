@@ -199,32 +199,13 @@
 }
 
 -(void)setToTempZPosition {
-//  if (self.tempBoardNod.snapNodeType == kSnapNodeRack) {
-//    self.zPosition = kZPositionRackRestingDyadmino;
-//  } else {
     self.zPosition = kZPositionBoardRestingDyadmino;
-//  }
 }
-
-//-(void)setFinishedHoveringAndNotRotating {
-//  if (self.hoveringStatus == kDyadminoHovering) {
-//    self.hoveringStatus = kDyadminoFinishedHovering;
-//  }
-//  self.isRotating = NO;
-//}
-
-//-(void)prepareStateForHoverWithBoardNode:(SnapNode *)boardNode {
-//  self.tempBoardNode = boardNode;
-////  [self setFinishedHoveringAndNotRotating];
-//  self.hoveringStatus = kDyadminoHovering;
-////  [self animateHoverAndFinishedStatus];
-//}
 
 -(void)goHome {
   [self unhighlightOutOfPlay];
   [self orientBySnapNode:self.homeNode];
   self.zPosition = kZPositionRackMovedDyadmino;
-//  [self setFinishedHoveringAndNotRotating];
   [self animateConstantSpeedMoveDyadminoToPoint:self.homeNode.position];
   self.tempBoardNode = nil;
   [self setToHomeZPosition];
@@ -281,21 +262,9 @@
     
   } else if ([self isOnBoard]) {
     finishAction = [SKAction runBlock:^{
-      [self setToHomeZPosition];
       self.isRotating = NO;
       self.tempReturnOrientation = self.orientation;
-      
-        // not sure which of these will allow it to settle after double tap
-      
-//      [self handleFinishHovering];
       self.hoveringStatus = kDyadminoHovering;
-//      [self animateHoverAndFinishedStatus];
-//      [self setToHomeZPosition];
-//      [self finishHovering];
-//      self.tempReturnOrientation = self.orientation;
-//      self.canFlip = NO;
-      
-      
     }];
   }
   
@@ -304,49 +273,22 @@
 }
 
 -(void)animateEaseIntoNodeAfterHover {
-//  NSLog(@"handleFinish hovering called");
-//  [self setFinishedHoveringAndNotRotating];
-  
-    // animate to temp boardNode if a rack dyadmino, to homeNode if a board dyadmino
-  
+    // animate to homeNode as default, to tempBoardNode if it's a rack dyadmino
   CGPoint settledPosition = self.homeNode.position;
   if ([self belongsInRack] && [self isOnBoard]) {
     settledPosition = self.tempBoardNode.position;
-//    [self animateSlowerConstantTimeMoveToPoint:self.tempBoardNode.position];
-  } else {
-    settledPosition = self.homeNode.position;
-//    [self animateSlowerConstantTimeMoveToPoint:self.homeNode.position];
   }
   
-
   SKAction *moveAction = [SKAction moveTo:settledPosition duration:kConstantTime];
   SKAction *finishAction = [SKAction runBlock:^{
     [self endTouchThenHoverResize];
+    [self setToHomeZPosition];
     self.canFlip = NO;
     self.hoveringStatus = kDyadminoNoHoverStatus;
-//    NSLog(@"done and done");
   }];
   SKAction *sequence = [SKAction sequence:@[moveAction, finishAction]];
   [self runAction:sequence];
 }
-
-  // get rid of this method
-//-(void)animateHoverAndFinishedStatus {
-//  [self removeActionsAndEstablishNotRotating];
-//  return;
-//  
-//  
-//  
-//  SKAction *dyadminoHover = [SKAction waitForDuration:kAnimateHoverTime];
-//  SKAction *dyadminoFinishStatus = [SKAction runBlock:^{
-//    [self setToHomeZPosition];
-//    [self finishHovering];
-//    self.tempReturnOrientation = self.orientation;
-//    self.canFlip = NO;
-//  }];
-//  SKAction *actionSequence = [SKAction sequence:@[dyadminoHover, dyadminoFinishStatus]];
-//  [self runAction:actionSequence];
-//}
 
 #pragma mark - bool methods
 

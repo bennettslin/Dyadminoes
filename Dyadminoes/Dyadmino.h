@@ -20,6 +20,8 @@
 
 @property (strong, nonatomic) SnapNode *homeNode;
 @property (strong, nonatomic) SnapNode *tempBoardNode;
+@property (strong, nonatomic) UITouch *myTouch;
+
 @property (nonatomic) DyadminoOrientation orientation;
 @property (nonatomic) DyadminoOrientation tempReturnOrientation;
 @property (strong, nonatomic) NSArray *rotationFrameArray;
