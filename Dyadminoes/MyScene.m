@@ -20,9 +20,6 @@
   // tie dyadmino to settle to update method
   // tie upkeep to update
 
-  // FIXME: if wait too long after double tap, does not rotate; make so that it can always flip
-  // after being stationary or pivoting, as long as it didn't move
-
   // next step
   // TODO: implement swap, and make it so that adding dyadminoes in board automatically adds rack nodes
 
@@ -368,7 +365,7 @@
 -(void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
   
     // safeguard against nuttiness
-  if (_currentlyTouchedDyadmino.myTouch != [touches anyObject]) {
+  if (_currentlyTouchedDyadmino && _currentlyTouchedDyadmino.myTouch != [touches anyObject]) {
     return;
   }
 
@@ -483,7 +480,7 @@
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
   
     // safeguard against nuttiness
-  if (_currentlyTouchedDyadmino.myTouch != [touches anyObject]) {
+  if (_currentlyTouchedDyadmino && _currentlyTouchedDyadmino.myTouch != [touches anyObject]) {
     return;
   }
   
@@ -539,7 +536,9 @@
   [dyadmino goHome];
   [dyadmino endTouchThenHoverResize];
   dyadmino.withinSection = kDyadminoWithinRack;
-  [self nillifyIfRecentRackDyadmino:dyadmino];
+  if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
+    _recentRackDyadmino = nil;
+  }
 }
 
 -(Dyadmino *)assignCurrentDyadminoToPointer {
@@ -642,12 +641,12 @@
 
 -(void)finaliseThisTurn {
     // FIXME: this one won't be necessary once disable button is enabled and disabled
+  
   if (!_currentlyTouchedDyadmino &&
       _hoveringButNotTouchedDyadmino.hoveringStatus != kDyadminoHovering) {
     
       // establish that dyadmino is indeed a rack dyadmino, placed on the board
-    if ([_recentRackDyadmino belongsInRack] &&
-        [_recentRackDyadmino isOnBoard]) {
+    if ([_recentRackDyadmino belongsInRack] && [_recentRackDyadmino isOnBoard]) {
       
         // this if statement just confirms that the dyadmino was successfully played
         // before proceeding with anything else
@@ -684,12 +683,6 @@
   button.color = [UIColor redColor];
 }
 
--(void)nillifyIfRecentRackDyadmino:(Dyadmino *)dyadmino {
-  if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
-    _recentRackDyadmino = nil;
-  }
-}
-
 #pragma mark - update
 
 -(void)update:(CFTimeInterval)currentTime {
@@ -723,10 +716,6 @@
     [_hoveringButNotTouchedDyadmino setToHomeZPosition];
     [_hoveringButNotTouchedDyadmino finishHovering];
     _hoveringButNotTouchedDyadmino.tempReturnOrientation = _hoveringButNotTouchedDyadmino.orientation;
-    _hoveringButNotTouchedDyadmino.canFlip = NO;
-    
-
-    
   }
   
 
@@ -736,7 +725,6 @@
       _currentlyTouchedDyadmino != _hoveringButNotTouchedDyadmino) {
     [_hoveringButNotTouchedDyadmino animateEaseIntoNodeAfterHover];
   }
-  
 }
 
 -(void)updatePileCountLabel {
@@ -778,7 +766,7 @@
     } else {
       allRackDyadminoesInRack = NO;
     }
-    [self nillifyIfRecentRackDyadmino:dyadmino];
+//    [self nillifyIfRecentRackDyadmino:dyadmino];
   }
   return YES;
 }
