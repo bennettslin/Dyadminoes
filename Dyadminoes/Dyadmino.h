@@ -64,6 +64,8 @@
 -(void)setFinishedHoveringAndNotRotating;
 -(void)prepareStateForHoverWithBoardNode:(SnapNode *)boardNode;
 
+-(void)handleFinishHovering;
+
 #pragma mark - bool methods
 -(BOOL)belongsInRack;
 -(BOOL)belongsOnBoard;

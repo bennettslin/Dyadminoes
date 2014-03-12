@@ -266,16 +266,39 @@
     
   } else if (self.withinSection == kDyadminoWithinBoard) {
     finishAction = [SKAction runBlock:^{
-//      [self selectAndPositionSprites];
       [self setToHomeZPosition];
       self.isRotating = NO;
       self.tempReturnOrientation = self.orientation;
-      [self prepareStateForHoverWithBoardNode:self.tempBoardNode]; // weird
+      [self handleFinishHovering];
+//      self.hoveringStatus = kDyadminoHovering;
+//      [self animateHoverAndFinishedStatus];
+//      [self removeAllActions];
+//      [self setToHomeZPosition];
+//      [self finishHovering];
+//      self.tempReturnOrientation = self.orientation;
+//      self.canFlip = NO;
+      
+      
     }];
   }
   
   SKAction *completeAction = [SKAction sequence:@[nextFrame, waitTime, nextFrame, waitTime, nextFrame, finishAction]];
   [self runAction:completeAction];
+}
+
+-(void)handleFinishHovering {
+  NSLog(@"handleFinish hovering called");
+  [self setFinishedHoveringAndNotRotating];
+  
+    // animate to temp boardNode if a rack dyadmino, to homeNode if a board dyadmino
+  if ([self belongsInRack] && [self isOnBoard]) {
+    [self animateSlowerConstantTimeMoveToPoint:self.tempBoardNode.position];
+  } else {
+    [self animateSlowerConstantTimeMoveToPoint:self.homeNode.position];
+  }
+  
+  self.canFlip = NO;
+  self.hoveringStatus = kDyadminoNoHoverStatus;
 }
 
 -(void)animateHoverAndFinishedStatus {

@@ -17,12 +17,13 @@
 @interface MyScene () <FieldNodeDelegate>
 @end
 
-  // easy to do
-  // TODO: implement swap, and make it reset dyadminoes on board, but only up until number in pile
-
-  // FIXME: make tap on hover dyadmino rotate three ways
+  // FIXME: quick double tap on rack on board does not result in settling back into slot
+  // if second tap lingers, then it does
+  // make the settling part more clear
 
   // next step
+  // TODO: implement swap, and make it so that adding dyadminoes in board automatically adds rack nodes
+
   // TODO: put board cells on their own sprite nodes
   // TODO: board cells need coordinates
 
@@ -38,6 +39,7 @@
   // TODO: still problem with some dyadminoes staying highlighted after going nuts
   // TODO: have animation between rotation frames
   // TODO: make bouncier animations
+  // TODO: make dyadmino sent home shrink then reappear in rack
   // TODO: have reset dyadmino rotate animation back to rack
 
   // leave alone for now until better information about how Game Center works
@@ -88,6 +90,7 @@
   BOOL _hoverPivotInProgress;
   CGFloat _initialPivotAngle;
   NSUInteger _prePivotDyadminoOrientation;
+  CFTimeInterval _hoverTime;
   
     // temporary
   SKLabelNode *_pileCountLabel;
@@ -279,6 +282,7 @@
 #pragma mark - touch methods
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+  NSLog(@"touches began");
   
     // get touch location and touched node
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
@@ -316,11 +320,11 @@
   
     //--------------------------------------------------------------------------
   
-    // FIXME: disabling this for now
-//    // actively disable done button only when rack dyadmino is in play, not board dyadmino
-//  if ([_currentlyTouchedDyadmino belongsInRack]) {
-//    [self disableButton:_doneButton];
-//  }
+    // FIXME: this is kind of buggy
+    // actively disable done button only when rack dyadmino is in play, not board dyadmino
+  if ([_currentlyTouchedDyadmino belongsInRack]) {
+    [self disableButton:_doneButton];
+  }
   
     // if it's still in the rack, it can still rotate
   if ([_currentlyTouchedDyadmino isInRack]) {
@@ -341,9 +345,7 @@
   
     // if it's on the board and not already rotating, two possibilities
   if ([_currentlyTouchedDyadmino isOnBoard] && !_currentlyTouchedDyadmino.isRotating) {
-    
-//    _inBoardPlayDyadmino = _currentlyTouchedDyadmino;
-    
+
       // 1. it's not hovering, so make it hover
     if (!_currentlyTouchedDyadmino.canFlip) {
       _currentlyTouchedDyadmino.canFlip = YES;
@@ -351,13 +353,7 @@
         // 2. it's already hovering, so tap inside to flip
     } else {
       [_currentlyTouchedDyadmino animateFlip];
-      [_currentlyTouchedDyadmino setFinishedHoveringAndNotRotating];
     }
-    
-      // if it's a rack dyadmino, then it's in play
-//    if ([_currentlyTouchedDyadmino belongsInRack]) {
-//      _inBoardPlayDyadmino = _currentlyTouchedDyadmino;
-//    }
   }
 }
 
@@ -475,7 +471,7 @@
 }
 
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-  
+  NSLog(@"touches Ended");
     // handle button that was pressed
   if (_buttonPressed) {
       // FIXME: this should ensure that the touch is still on the button when it's released
@@ -541,7 +537,7 @@
 }
 
 -(void)prepareTouchEndedDyadminoForHover {
-
+  
   if ([_hoveringButNotTouchedDyadmino isOnBoard]) {
     
       // establish the closest board node, without snapping just yet
@@ -681,38 +677,27 @@
 #pragma mark - update
 
 -(void)update:(CFTimeInterval)currentTime {
+  
   if ([_currentlyTouchedDyadmino isHovering]) {
     _hoveringButNotTouchedDyadmino = _currentlyTouchedDyadmino;
+    if (_hoverTime == 0.f) {
+      _hoverTime = currentTime;
+      NSLog(@"hover time start is %.2f", currentTime);
+    }
   }
   
-    // send recent rack dyadmino home if another rack dyadmino is taken out of rack
-//  if ([_currentlyTouchedDyadmino belongsInRack] &&
-//      _currentlyTouchedDyadmino != _recentRackDyadmino &&
-//      [_currentlyTouchedDyadmino isOnBoard] &&
-//      _recentRackDyadmino.tempReturnNode.snapNodeType != kSnapNodeRack) {
-//    [self nillifyRecentRackDyadminoPointers];
-//  }
+  if (_hoverTime != 0.f && currentTime > _hoverTime + kAnimateHoverTime) {
+    NSLog(@"hover time end is %.2f", currentTime);
+    _hoverTime = 0.f;
+  }
   
     // finish hovering
   if (_hoveringButNotTouchedDyadmino.withinSection != kDyadminoWithinRack &&
       _hoveringButNotTouchedDyadmino.hoveringStatus == kDyadminoFinishedHovering &&
       _currentlyTouchedDyadmino != _hoveringButNotTouchedDyadmino) {
 
-    [self handleFinishHovering];
+    [_hoveringButNotTouchedDyadmino handleFinishHovering];
   }
-}
-
--(void)handleFinishHovering {
-  [_hoveringButNotTouchedDyadmino setFinishedHoveringAndNotRotating];
-  
-    // animate to temp boardNode if a rack dyadmino, to homeNode if a board dyadmino
-  if ([_hoveringButNotTouchedDyadmino belongsInRack] && [_hoveringButNotTouchedDyadmino isOnBoard]) {
-    [_hoveringButNotTouchedDyadmino animateSlowerConstantTimeMoveToPoint:_hoveringButNotTouchedDyadmino.tempBoardNode.position];
-  } else {
-    [_hoveringButNotTouchedDyadmino animateSlowerConstantTimeMoveToPoint:_hoveringButNotTouchedDyadmino.homeNode.position];
-  }
-  _hoveringButNotTouchedDyadmino.canFlip = NO;
-  _hoveringButNotTouchedDyadmino.hoveringStatus = kDyadminoNoHoverStatus;
 }
 
 -(void)updatePileCountLabel {
@@ -872,11 +857,11 @@
 #pragma mark - debugging methods
 
 -(void)logRecentAndCurrentDyadminoes {
-//  NSString *inBoardString = [NSString stringWithFormat:@"in board play %@", [_inBoardPlayDyadmino logThisDyadmino]];
+  NSString *hoveringString = [NSString stringWithFormat:@"hovering not touched %@", [_hoveringButNotTouchedDyadmino logThisDyadmino]];
   NSString *recentRackString = [NSString stringWithFormat:@"recent rack %@", [_recentRackDyadmino logThisDyadmino]];
   NSString *currentString = [NSString stringWithFormat:@"current %@", [_currentlyTouchedDyadmino logThisDyadmino]];
 //  NSString *recentString = [NSString stringWithFormat:@"recent %@", [self logThisDyadmino:_recentDyadmino]];
-  NSLog(@"%@, %@", currentString, recentRackString);
+  NSLog(@"%@, %@, %@", hoveringString, currentString, recentRackString);
   
   for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
     NSLog(@"%@ is in homeNode %@, tempReturn %@", dyadmino.name, dyadmino.homeNode.name, dyadmino.tempBoardNode.name);
