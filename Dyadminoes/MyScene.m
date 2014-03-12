@@ -78,10 +78,11 @@
   SKSpriteNode *_buttonPressed; // pointer to button that was pressed
   BOOL _rackExchangeInProgress;
   BOOL _dyadminoSnappedIntoMovement;
+  
   Dyadmino *_currentlyTouchedDyadmino;
   Dyadmino *_recentRackDyadmino;
-  Dyadmino *_recentBoardDyadmino;
-  Dyadmino *_recentDyadmino;
+  Dyadmino *_inBoardPlayDyadmino;
+  
   BOOL _everythingInItsRightPlace;
   
     // hover and pivot properties
@@ -505,6 +506,7 @@
     [_currentlyTouchedDyadmino goHome];
   }
     // pointers are no longer needed
+  _currentlyTouchedDyadmino = nil;
 //  [self nillifyRecentRackDyadminoPointers];
   
     // end by making sure everything is in its proper place
@@ -515,14 +517,13 @@
   
     // board dyadmino needs pointers
   if ([_currentlyTouchedDyadmino belongsOnBoard]) {
-    _recentBoardDyadmino = _currentlyTouchedDyadmino;
-    _recentDyadmino = _currentlyTouchedDyadmino;
+//    _recentDyadmino = _currentlyTouchedDyadmino;
   }
   
     // rack dyadmino only needs pointer if it's still on board
   if ([_currentlyTouchedDyadmino belongsInRack] && [_currentlyTouchedDyadmino isOnBoard]) {
     _recentRackDyadmino = _currentlyTouchedDyadmino;
-    _recentDyadmino = _currentlyTouchedDyadmino;
+//    _recentDyadmino = _currentlyTouchedDyadmino;
   }
   
   _hoveringButNotTouchedDyadmino = _currentlyTouchedDyadmino;
@@ -659,9 +660,9 @@
 }
 
 -(void)nillifyRecentRackDyadminoPointers {
-  if (_recentDyadmino == _recentRackDyadmino) {
-    _recentDyadmino = nil;
-  }
+//  if (_recentDyadmino == _recentRackDyadmino) {
+//    _recentDyadmino = nil;
+//  }
   _recentRackDyadmino = nil;
 }
 
@@ -673,13 +674,13 @@
   }
   
     // send recent rack dyadmino home if another rack dyadmino is taken out of rack
-  if ([_currentlyTouchedDyadmino belongsInRack] &&
-      _currentlyTouchedDyadmino != _recentRackDyadmino &&
-      [_currentlyTouchedDyadmino isOnBoard] &&
-      _recentRackDyadmino.tempReturnNode.snapNodeType != kSnapNodeRack) {
-    [_recentRackDyadmino goHome];
+//  if ([_currentlyTouchedDyadmino belongsInRack] &&
+//      _currentlyTouchedDyadmino != _recentRackDyadmino &&
+//      [_currentlyTouchedDyadmino isOnBoard] &&
+//      _recentRackDyadmino.tempReturnNode.snapNodeType != kSnapNodeRack) {
+//      [_recentRackDyadmino goHome];
 //    [self nillifyRecentRackDyadminoPointers];
-  }
+//  }
   
     // finish hovering
   if (_hoveringButNotTouchedDyadmino.withinSection != kDyadminoWithinRack &&
@@ -714,6 +715,7 @@
 }
 
 -(BOOL)putEverythingInItsRightPlace {
+  BOOL allRackDyadminoesInRack = YES;
   for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
       // if dyadmino is in rack
     if ([dyadmino isInRack]) {
@@ -729,7 +731,10 @@
       }
       [dyadmino finishHovering];
       [dyadmino orientBySnapNode:dyadmino.homeNode];
+    } else {
+      allRackDyadminoesInRack = NO;
     }
+    [self nillifyRecentRackDyadminoPointers];
   }
   return YES;
 }
@@ -771,17 +776,17 @@
   if ([_hoveringButNotTouchedDyadmino isHovering]) {
     
       // if touch point is close enough, just rotate
-    if ([self getDistanceFromThisPoint:touchPoint toThisPoint:_recentDyadmino.position] <
+    if ([self getDistanceFromThisPoint:touchPoint toThisPoint:_hoveringButNotTouchedDyadmino.position] <
         kDistanceForTouchingHoveringDyadmino) {
-      return _recentDyadmino;
+      return _hoveringButNotTouchedDyadmino;
       
         // otherwise, we're pivoting
     } else {
       _hoverPivotInProgress = YES;
-      _prePivotDyadminoOrientation = _recentDyadmino.orientation;
-      [_recentDyadmino removeAllActions];
-      [_recentDyadmino setFinishedHoveringAndNotRotating];
-      return _recentDyadmino;
+      _prePivotDyadminoOrientation = _hoveringButNotTouchedDyadmino.orientation;
+      [_hoveringButNotTouchedDyadmino removeAllActions];
+      [_hoveringButNotTouchedDyadmino setFinishedHoveringAndNotRotating];
+      return _hoveringButNotTouchedDyadmino;
     }
   }
     //--------------------------------------------------------------------------
@@ -848,11 +853,11 @@
 #pragma mark - debugging methods
 
 -(void)logRecentAndCurrentDyadminoes {
-  NSString *recentBoardString = [NSString stringWithFormat:@"recent board %@", [self logThisDyadmino:_recentBoardDyadmino]];
+//  NSString *recentBoardString = [NSString stringWithFormat:@"recent board %@", [self logThisDyadmino:_recentBoardDyadmino]];
   NSString *recentRackString = [NSString stringWithFormat:@"recent rack %@", [self logThisDyadmino:_recentRackDyadmino]];
   NSString *currentString = [NSString stringWithFormat:@"current %@", [self logThisDyadmino:_currentlyTouchedDyadmino]];
-  NSString *recentString = [NSString stringWithFormat:@"recent %@", [self logThisDyadmino:_recentDyadmino]];
-  NSLog(@"%@, %@, %@, %@", currentString, recentRackString, recentBoardString, recentString);
+//  NSString *recentString = [NSString stringWithFormat:@"recent %@", [self logThisDyadmino:_recentDyadmino]];
+  NSLog(@"%@, %@", currentString, recentRackString);
   
   for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
     NSLog(@"%@ is in homeNode %@, tempReturn %@", dyadmino.name, dyadmino.homeNode.name, dyadmino.tempReturnNode.name);

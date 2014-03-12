@@ -205,6 +205,7 @@
 }
 
 -(void)prepareStateForHoverWithBoardNode:(SnapNode *)boardNode {
+  self.tempReturnNode = boardNode;
   [self setFinishedHoveringAndNotRotating];
   self.hoveringStatus = kDyadminoHovering;
   [self animateHoverAndFinishedStatus];
