@@ -21,7 +21,6 @@
   // TODO: implement swap, and make it reset dyadminoes on board, but only up until number in pile
 
   // FIXME: make tap on hover dyadmino rotate three ways
-  // FIXME: something weird with dyadmino pivoting and orientation
 
   // next step
   // TODO: put board cells on their own sprite nodes
@@ -44,9 +43,7 @@
   // leave alone for now until better information about how Game Center works
   // TODO: make so that player, not dyadmino, knows about pcMode
 
-  // FIXME: bug where after drag one dyadmino,
-  // last dyadmino doesn't return to node, just rests right there
-  // maybe this just happens in simulator? So far on phone it doesn't happen
+  // FIXME: bug where after drag one dyadmino, last dyadmino doesn't return to node, just rests right there
 
 @implementation MyScene {
 
@@ -417,8 +414,6 @@
     CGFloat thisAngle = [self findAngleInDegreesFromThisPoint:_currentTouchLocation
                                                   toThisPoint:_currentlyTouchedDyadmino.position];
     CGFloat sextantChange = [self getSextantChangeFromThisAngle:thisAngle toThisAngle:_initialPivotAngle];
-    
-    NSLog(@"initial angle %.2f, this angle %.2f, sextant change %.2f, orient %i, prepiv %i", _initialPivotAngle, thisAngle, sextantChange, _currentlyTouchedDyadmino.orientation, _currentlyTouchedDyadmino.prePivotDyadminoOrientation);
     [_currentlyTouchedDyadmino orientBasedOnSextantChange:sextantChange];
     return;
   }
@@ -476,7 +471,6 @@
     }
   }
     // continues exchange, or if just returning back to its own rack node
-//  _currentlyTouchedDyadmino.tempReturnNode = rackNode;
   _currentlyTouchedDyadmino.homeNode = rackNode;
 }
 
@@ -679,7 +673,7 @@
 //  if (_recentDyadmino == _recentRackDyadmino) {
 //    _recentDyadmino = nil;
 //  }
-  if (dyadmino == _recentRackDyadmino) {
+  if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
     _recentRackDyadmino = nil;
   }
 }
@@ -769,6 +763,8 @@
 }
 
 -(DyadminoWithinSection)determineCurrentSectionOfDyadmino:(Dyadmino *)dyadmino {
+    // TODO: this method should probably be a little more sophisticated than this...
+  
   DyadminoWithinSection withinSection;
   if (dyadmino.position.y < kPlayerRackHeight) {
     dyadmino.withinSection = kDyadminoWithinRack;
