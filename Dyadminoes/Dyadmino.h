@@ -33,6 +33,8 @@
 @property DyadminoWithinSection withinSection;
 @property BOOL canRotateWithThisTouch;
 @property BOOL isRotating;
+@property (nonatomic) DyadminoOrientation prePivotDyadminoOrientation;
+
 @property DyadminoHoveringStatus hoveringStatus;
 @property BOOL isHoverHighlighted;
 @property BOOL isInPlayHighlighted;
@@ -47,6 +49,8 @@
 
 -(void)selectAndPositionSprites;
 -(void)randomiseRackOrientation;
+-(void)orientBySnapNode:(SnapNode *)snapNode;
+-(void)orientBasedOnSextantChange:(CGFloat)sextantChange;
 -(void)hoverHighlight;
 -(void)hoverUnhighlight;
 -(void)inPlayHighlight;
@@ -54,6 +58,11 @@
 
 -(void)setToHomeZPosition;
 -(void)setToTempZPosition;
+
+-(void)goHome;
+
+-(void)resetModesAndStates;
+-(void)prepareStateForHoverWithBoardNode:(SnapNode *)boardNode;
 
 #pragma mark - animation methods
 

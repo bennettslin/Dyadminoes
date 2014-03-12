@@ -61,38 +61,38 @@
     case kPC1atTwelveOClock:
       self.texture = self.rotationFrameArray[0];
       [self resizeDyadmino];
-      self.pc1Sprite.position = CGPointMake(0, -self.size.height / 4);
-      self.pc2Sprite.position = CGPointMake(0, self.size.height / 4);
-      break;
-    case kPC1atTwoOClock:
-      self.texture = self.rotationFrameArray[1];
-      [self resizeDyadmino];
-      self.pc1Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, -self.size.height / 6);
-      self.pc2Sprite.position = CGPointMake(self.size.width * 1.5f / 7, self.size.height / 6);
-      break;
-    case kPC1atFourOClock:
-      self.texture = self.rotationFrameArray[2];
-      [self resizeDyadmino];
-      self.pc1Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, self.size.height / 6);
-      self.pc2Sprite.position = CGPointMake(self.size.width * 1.5f / 7, -self.size.height / 6);
-      break;
-    case kPC1atSixOClock:
-      self.texture = self.rotationFrameArray[0];
-      [self resizeDyadmino];
       self.pc1Sprite.position = CGPointMake(0, self.size.height / 4);
       self.pc2Sprite.position = CGPointMake(0, -self.size.height / 4);
       break;
-    case kPC1atEightOClock:
+    case kPC1atTwoOClock:
       self.texture = self.rotationFrameArray[1];
       [self resizeDyadmino];
       self.pc1Sprite.position = CGPointMake(self.size.width * 1.5f / 7, self.size.height / 6);
       self.pc2Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, -self.size.height / 6);
       break;
-    case kPC1atTenOClock:
+    case kPC1atFourOClock:
       self.texture = self.rotationFrameArray[2];
-      [self resizeDyadmino];      
+      [self resizeDyadmino];
       self.pc1Sprite.position = CGPointMake(self.size.width * 1.5f / 7, -self.size.height / 6);
       self.pc2Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, self.size.height / 6);
+      break;
+    case kPC1atSixOClock:
+      self.texture = self.rotationFrameArray[0];
+      [self resizeDyadmino];
+      self.pc1Sprite.position = CGPointMake(0, -self.size.height / 4);
+      self.pc2Sprite.position = CGPointMake(0, self.size.height / 4);
+      break;
+    case kPC1atEightOClock:
+      self.texture = self.rotationFrameArray[1];
+      [self resizeDyadmino];
+      self.pc1Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, -self.size.height / 6);
+      self.pc2Sprite.position = CGPointMake(self.size.width * 1.5f / 7, self.size.height / 6);
+      break;
+    case kPC1atTenOClock:
+      self.texture = self.rotationFrameArray[2];
+      [self resizeDyadmino];
+      self.pc1Sprite.position = CGPointMake(-self.size.width * 1.5f / 7, self.size.height / 6);
+      self.pc2Sprite.position = CGPointMake(self.size.width * 1.5f / 7, -self.size.height / 6);
       break;
   }
 }
@@ -116,6 +116,38 @@
     self.size = self.texture.size;
     self.pc1Sprite.size = self.pc1Sprite.texture.size;
     self.pc2Sprite.size = self.pc2Sprite.texture.size;
+  }
+}
+
+-(void)orientBySnapNode:(SnapNode *)snapNode {
+  switch (snapNode.snapNodeType) {
+    case kSnapNodeRack:
+      if (self.orientation <= 1 || self.orientation >= 5) {
+        self.orientation = 0;
+      } else {
+        self.orientation = 3;
+      }
+      break;
+    default: // snapNode is on board
+      self.orientation = self.tempReturnOrientation;
+  }
+  [self selectAndPositionSprites];
+}
+
+-(void)orientBasedOnSextantChange:(CGFloat)sextantChange {
+  for (NSUInteger i = 0; i < 12; i++) {
+    if (sextantChange >= 0.f + i && sextantChange < 1.f + i) {
+      NSUInteger dyadminoOrientationShouldBe = (self.prePivotDyadminoOrientation + i) % 6;
+      if (self.orientation == dyadminoOrientationShouldBe) {
+        return;
+      } else {
+        self.orientation = dyadminoOrientationShouldBe;
+        
+          // or else put this in an animation
+        [self selectAndPositionSprites];
+        return;
+      }
+    }
   }
 }
 
@@ -163,6 +195,30 @@
   }
 }
 
+-(void)resetModesAndStates {
+  if (self.hoveringStatus == kDyadminoHovering) {
+    self.hoveringStatus = kDyadminoFinishedHovering;
+  }
+  self.isRotating = NO;
+}
+
+-(void)prepareStateForHoverWithBoardNode:(SnapNode *)boardNode {
+  self.tempReturnNode = boardNode;
+  [self resetModesAndStates];
+  self.hoveringStatus = kDyadminoHovering;
+  [self animateHoverAndFinishedStatus];
+}
+
+-(void)goHome {
+  [self inPlayUnhighlight];
+  [self orientBySnapNode:self.homeNode];
+  self.zPosition = kZPositionRackMovedDyadmino;
+  [self resetModesAndStates];
+  [self animateConstantSpeedMoveDyadminoToPoint:self.homeNode.position];
+  self.tempReturnNode = self.homeNode;
+  [self setToHomeZPosition];
+}
+
 #pragma mark - animation methods
 
 -(void)animateConstantTimeMoveToPoint:(CGPoint)point {
@@ -207,10 +263,11 @@
     
   } else if (self.withinSection == kDyadminoWithinBoard) {
     finishAction = [SKAction runBlock:^{
-      [self selectAndPositionSprites];
+//      [self selectAndPositionSprites];
       [self setToHomeZPosition];
       self.isRotating = NO;
       self.tempReturnOrientation = self.orientation;
+      [self prepareStateForHoverWithBoardNode:self.tempReturnNode];
     }];
   }
   
