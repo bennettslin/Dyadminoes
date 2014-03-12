@@ -81,7 +81,7 @@
   
   Dyadmino *_currentlyTouchedDyadmino;
   Dyadmino *_recentRackDyadmino;
-  Dyadmino *_inBoardPlayDyadmino;
+//  Dyadmino *_inBoardPlayDyadmino;
   
 //  BOOL _everythingInItsRightPlace;
   
@@ -345,7 +345,7 @@
     // if it's on the board and not already rotating, two possibilities
   if ([_currentlyTouchedDyadmino isOnBoard] && !_currentlyTouchedDyadmino.isRotating) {
     
-    _inBoardPlayDyadmino = _currentlyTouchedDyadmino;
+//    _inBoardPlayDyadmino = _currentlyTouchedDyadmino;
     
       // 1. it's not hovering, so make it hover
     if (!_currentlyTouchedDyadmino.canFlip) {
@@ -358,9 +358,9 @@
     }
     
       // if it's a rack dyadmino, then it's in play
-    if ([_currentlyTouchedDyadmino belongsInRack]) {
-      _inBoardPlayDyadmino = _currentlyTouchedDyadmino;
-    }
+//    if ([_currentlyTouchedDyadmino belongsInRack]) {
+//      _inBoardPlayDyadmino = _currentlyTouchedDyadmino;
+//    }
   }
 }
 
@@ -399,12 +399,12 @@
         [self sendDyadminoHome:_recentRackDyadmino];
       }
       
-      if (_currentlyTouchedDyadmino != _inBoardPlayDyadmino) {
-        [self sendDyadminoHome:_inBoardPlayDyadmino];
-      }
-      
+//      if (_currentlyTouchedDyadmino != _inBoardPlayDyadmino) {
+//        [self sendDyadminoHome:_inBoardPlayDyadmino];
+//      }
+//      
         // this dyadmino is now the inBoardPlay dyadmino
-      _inBoardPlayDyadmino = _currentlyTouchedDyadmino;
+//      _inBoardPlayDyadmino = _currentlyTouchedDyadmino;
     }
   }
     //--------------------------------------------------------------------------
@@ -418,7 +418,7 @@
                                                   toThisPoint:_currentlyTouchedDyadmino.position];
     CGFloat sextantChange = [self getSextantChangeFromThisAngle:thisAngle toThisAngle:_initialPivotAngle];
     
-//    NSLog(@"initial angle %.2f, this angle %.2f, sextant change %.2f, orient %i", _initialPivotAngle, thisAngle, sextantChange, _currentlyTouchedDyadmino.orientation);
+    NSLog(@"initial angle %.2f, this angle %.2f, sextant change %.2f, orient %i, prepiv %i", _initialPivotAngle, thisAngle, sextantChange, _currentlyTouchedDyadmino.orientation, _currentlyTouchedDyadmino.prePivotDyadminoOrientation);
     [_currentlyTouchedDyadmino orientBasedOnSextantChange:sextantChange];
     return;
   }
@@ -538,7 +538,7 @@
     // rack dyadmino only needs pointer if it's still on board
   if ([_currentlyTouchedDyadmino belongsInRack] && [_currentlyTouchedDyadmino isOnBoard]) {
     _recentRackDyadmino = _currentlyTouchedDyadmino;
-    _inBoardPlayDyadmino = _currentlyTouchedDyadmino;
+//    _inBoardPlayDyadmino = _currentlyTouchedDyadmino;
   }
   
   Dyadmino *dyadmino = _currentlyTouchedDyadmino;
@@ -806,7 +806,7 @@
         // otherwise, we're pivoting
     } else {
       _hoverPivotInProgress = YES;
-      _prePivotDyadminoOrientation = _hoveringButNotTouchedDyadmino.orientation;
+      _hoveringButNotTouchedDyadmino.prePivotDyadminoOrientation = _hoveringButNotTouchedDyadmino.orientation;
       [_hoveringButNotTouchedDyadmino removeAllActions];
       [_hoveringButNotTouchedDyadmino setFinishedHoveringAndNotRotating];
       return _hoveringButNotTouchedDyadmino;
@@ -876,11 +876,11 @@
 #pragma mark - debugging methods
 
 -(void)logRecentAndCurrentDyadminoes {
-  NSString *inBoardString = [NSString stringWithFormat:@"in board play %@", [_inBoardPlayDyadmino logThisDyadmino]];
+//  NSString *inBoardString = [NSString stringWithFormat:@"in board play %@", [_inBoardPlayDyadmino logThisDyadmino]];
   NSString *recentRackString = [NSString stringWithFormat:@"recent rack %@", [_recentRackDyadmino logThisDyadmino]];
   NSString *currentString = [NSString stringWithFormat:@"current %@", [_currentlyTouchedDyadmino logThisDyadmino]];
 //  NSString *recentString = [NSString stringWithFormat:@"recent %@", [self logThisDyadmino:_recentDyadmino]];
-  NSLog(@"%@, %@, %@", inBoardString, currentString, recentRackString);
+  NSLog(@"%@, %@", currentString, recentRackString);
   
   for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
     NSLog(@"%@ is in homeNode %@, tempReturn %@", dyadmino.name, dyadmino.homeNode.name, dyadmino.tempBoardNode.name);
