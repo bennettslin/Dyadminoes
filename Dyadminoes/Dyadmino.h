@@ -31,7 +31,7 @@
 @property (strong, nonatomic) SKSpriteNode *pc2Sprite;
 
 @property DyadminoWithinSection withinSection;
-@property BOOL canRotateWithThisTouch;
+@property BOOL canFlip;
 @property BOOL isRotating;
 @property (nonatomic) DyadminoOrientation prePivotDyadminoOrientation;
 
@@ -51,25 +51,32 @@
 -(void)randomiseRackOrientation;
 -(void)orientBySnapNode:(SnapNode *)snapNode;
 -(void)orientBasedOnSextantChange:(CGFloat)sextantChange;
--(void)hoverHighlight;
--(void)hoverUnhighlight;
--(void)inPlayHighlight;
--(void)inPlayUnhighlight;
+-(void)startHovering;
+-(void)finishHovering;
+-(void)highlightInPlay;
+-(void)unhighlightOutOfPlay;
 
 -(void)setToHomeZPosition;
 -(void)setToTempZPosition;
 
 -(void)goHome;
 
--(void)resetModesAndStates;
+-(void)setFinishedHoveringAndNotRotating;
 -(void)prepareStateForHoverWithBoardNode:(SnapNode *)boardNode;
+
+#pragma mark - bool methods
+-(BOOL)belongsInRack;
+-(BOOL)belongsOnBoard;
+-(BOOL)isInRack;
+-(BOOL)isOnBoard;
+-(BOOL)isHovering;
 
 #pragma mark - animation methods
 
 -(void)animateConstantTimeMoveToPoint:(CGPoint)point;
 -(void)animateSlowerConstantTimeMoveToPoint:(CGPoint)point;
 -(void)animateConstantSpeedMoveDyadminoToPoint:(CGPoint)point;
--(void)animateRotate;
+-(void)animateFlip;
 -(void)animateHoverAndFinishedStatus;
 
 @end

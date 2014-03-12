@@ -128,8 +128,10 @@
         self.orientation = 3;
       }
       break;
+      
     default: // snapNode is on board
       self.orientation = self.tempReturnOrientation;
+      break;
   }
   [self selectAndPositionSprites];
 }
@@ -151,7 +153,7 @@
   }
 }
 
--(void)hoverHighlight {
+-(void)startHovering {
   self.isHoverHighlighted = YES;
   self.hoveringStatus = kDyadminoHovering;
     // for now, hovering just resizes
@@ -159,7 +161,7 @@
   [self selectAndPositionSprites];
 }
 
--(void)hoverUnhighlight {
+-(void)finishHovering {
   self.isHoverHighlighted = NO;
   self.hoveringStatus = kDyadminoFinishedHovering;
     // for now, hovering just resizes
@@ -167,13 +169,13 @@
   [self selectAndPositionSprites];
 }
 
--(void)inPlayHighlight {
+-(void)highlightInPlay {
   self.isInPlayHighlighted = YES;
   self.colorBlendFactor = 0.2f;
   [self selectAndPositionSprites];
 }
 
--(void)inPlayUnhighlight {
+-(void)unhighlightOutOfPlay {
   self.isInPlayHighlighted = NO;
   self.colorBlendFactor = 0.f;
   [self selectAndPositionSprites];
@@ -195,7 +197,7 @@
   }
 }
 
--(void)resetModesAndStates {
+-(void)setFinishedHoveringAndNotRotating {
   if (self.hoveringStatus == kDyadminoHovering) {
     self.hoveringStatus = kDyadminoFinishedHovering;
   }
@@ -203,20 +205,20 @@
 }
 
 -(void)prepareStateForHoverWithBoardNode:(SnapNode *)boardNode {
-  self.tempReturnNode = boardNode;
-  [self resetModesAndStates];
+  [self setFinishedHoveringAndNotRotating];
   self.hoveringStatus = kDyadminoHovering;
   [self animateHoverAndFinishedStatus];
 }
 
 -(void)goHome {
-  [self inPlayUnhighlight];
+  [self unhighlightOutOfPlay];
   [self orientBySnapNode:self.homeNode];
   self.zPosition = kZPositionRackMovedDyadmino;
-  [self resetModesAndStates];
+  [self setFinishedHoveringAndNotRotating];
   [self animateConstantSpeedMoveDyadminoToPoint:self.homeNode.position];
   self.tempReturnNode = self.homeNode;
   [self setToHomeZPosition];
+  [self finishHovering];
 }
 
 #pragma mark - animation methods
@@ -240,7 +242,7 @@
   [self runAction:snapAction];
 }
 
--(void)animateRotate {
+-(void)animateFlip {
   [self removeAllActions];
   self.isRotating = YES;
   
@@ -254,7 +256,7 @@
     // rotation
   if (self.withinSection == kDyadminoWithinRack) {
     finishAction = [SKAction runBlock:^{
-      [self hoverUnhighlight];
+      [self finishHovering];
       [self setToHomeZPosition];
       self.isRotating = NO;
     }];
@@ -280,11 +282,40 @@
   SKAction *dyadminoHover = [SKAction waitForDuration:kAnimateHoverTime];
   SKAction *dyadminoFinishStatus = [SKAction runBlock:^{
     [self setToHomeZPosition];
-    [self hoverUnhighlight];
+    [self finishHovering];
     self.tempReturnOrientation = self.orientation;
+    self.canFlip = NO;
   }];
   SKAction *actionSequence = [SKAction sequence:@[dyadminoHover, dyadminoFinishStatus]];
   [self runAction:actionSequence];
+}
+
+#pragma mark - bool methods
+
+-(BOOL)belongsInRack {
+  return (self.homeNode.snapNodeType == kSnapNodeRack);
+}
+
+-(BOOL)belongsOnBoard {
+  return (self.homeNode.snapNodeType == kSnapNodeBoardTwelveAndSix ||
+          self.homeNode.snapNodeType == kSnapNodeBoardTwoAndEight ||
+          self.homeNode.snapNodeType == kSnapNodeBoardFourAndTen);
+}
+
+-(BOOL)isInRack {
+  return (self.withinSection == kDyadminoWithinRack);
+}
+
+-(BOOL)isOnBoard {
+  return (self.withinSection == kDyadminoWithinBoard);
+}
+
+-(BOOL)isHovering {
+  if (self.hoveringStatus == kDyadminoHovering) {
+    return YES;
+  } else {
+    return NO;
+  }
 }
 
 @end
