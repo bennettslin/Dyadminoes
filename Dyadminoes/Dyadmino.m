@@ -408,6 +408,7 @@
       self.isRotating = NO;
       self.tempReturnOrientation = self.orientation;
       self.hoveringStatus = kDyadminoHovering;
+      self.canFlip = NO;
     }];
   }
   

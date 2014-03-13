@@ -37,11 +37,9 @@
   // (otherwise, a hovering board dyadmino might still be below a resting rack dyadmino)
 
   // leisurely TODOs
-  // TODO: snapNodes don't have to inherit from SKNode
   // TODO: have animation between rotation frames
   // TODO: make bouncier animations
   // TODO: make dyadmino sent home shrink then reappear in rack
-  // TODO: have reset dyadmino rotate animation back to rack
 
   // leave alone for now until better information about how Game Center works
   // TODO: make so that player, not dyadmino, knows about pcMode
@@ -737,16 +735,15 @@
   if ([_recentRackDyadmino belongsInRack] &&
       [_recentRackDyadmino isOnBoard] &&
       ![_hoveringButNotTouchedDyadmino isHovering] &&
-      _currentlyTouchedDyadmino == nil) {
+      (_currentlyTouchedDyadmino == nil || [_currentlyTouchedDyadmino isInRack])) {
     [self enableButton:_doneButton];
   } else {
     [self disableButton:_doneButton];
   }
-  
 }
 
 -(void)updatePileCountLabel {
-  _pileCountLabel.text = [NSString stringWithFormat:@"pile %i", [self.ourGameEngine getCommonPileCount]];
+  _pileCountLabel.text = [NSString stringWithFormat:@"pile %lu", (unsigned long)[self.ourGameEngine getCommonPileCount]];
 }
 
 -(void)sendDyadminoHome:(Dyadmino *)dyadmino {
@@ -813,13 +810,8 @@
       // if touch point is close enough, just rotate
     if ([self getDistanceFromThisPoint:touchPoint toThisPoint:_hoveringButNotTouchedDyadmino.position] <
         kDistanceForTouchingHoveringDyadmino) {
-//      _hoveringButNotTouchedDyadmino.canFlip = YES;
-      
-//      NSLog(@"hovering dyadmino is at %.2f, %.2f, its prePivot position is at %.2f, %.2f",
-//            _hoveringButNotTouchedDyadmino.position.x, _hoveringButNotTouchedDyadmino.position.y,
-//            _hoveringButNotTouchedDyadmino.prePivotPosition.x, _hoveringButNotTouchedDyadmino.prePivotPosition.y);
       return _hoveringButNotTouchedDyadmino;
-      
+ 
         // otherwise, we're pivoting
     } else {
       pivotInProgress = YES;
