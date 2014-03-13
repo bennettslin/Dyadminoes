@@ -76,6 +76,11 @@ typedef enum pcMode {
   kPCModeNumber
 } PCMode;
 
+typedef enum fieldNodeType {
+  kFieldNodeRack,
+  kFieldNodeSwap
+} FieldNodeType;
+
 typedef enum snapNodeType {
   kSnapNodeRack,
   kSnapNodeSwap,

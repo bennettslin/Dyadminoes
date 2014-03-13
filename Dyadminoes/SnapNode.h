@@ -10,10 +10,13 @@
 #import "NSObject+Helper.h"
 @class Dyadmino;
 
-@interface SnapNode : SKNode
+@interface SnapNode : NSObject
 
 @property (nonatomic) SnapNodeType snapNodeType;
-
+@property (nonatomic) CGPoint position;
+@property (strong, nonatomic) NSString *name;
 -(id)initWithSnapNodeType:(SnapNodeType)snapNodeType;
+
+-(SnapNodeType)isType;
 
 @end

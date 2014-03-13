@@ -13,16 +13,21 @@
 
 @interface Dyadmino : SKSpriteNode
 
+  // pcs
 @property NSUInteger pc1;
 @property NSUInteger pc2;
 @property (nonatomic) PCMode pcMode;
 
+  // nodes and touches
 @property (strong, nonatomic) SnapNode *homeNode;
 @property (strong, nonatomic) SnapNode *tempBoardNode;
 @property (strong, nonatomic) UITouch *myTouch;
 
+  // orientations
 @property (nonatomic) DyadminoOrientation orientation;
 @property (nonatomic) DyadminoOrientation tempReturnOrientation;
+
+  // sprites
 @property (strong, nonatomic) NSArray *rotationFrameArray;
 @property (strong, nonatomic) SKSpriteNode *pc1LetterSprite;
 @property (strong, nonatomic) SKSpriteNode *pc2LetterSprite;
@@ -31,46 +36,59 @@
 @property (strong, nonatomic) SKSpriteNode *pc1Sprite;
 @property (strong, nonatomic) SKSpriteNode *pc2Sprite;
 
+  // bools and states
 @property DyadminoWithinSection withinSection;
 @property BOOL canFlip;
 @property BOOL isRotating;
+@property BOOL isTouchThenHoverResized;
+@property DyadminoHoveringStatus hoveringStatus;
+
+  // pivot properties
+@property (nonatomic) CGFloat initialPivotAngle;
 @property (nonatomic) DyadminoOrientation prePivotDyadminoOrientation;
 @property (nonatomic) CGPoint prePivotPosition;
 
-@property DyadminoHoveringStatus hoveringStatus;
-@property BOOL isTouchThenHoverResized;
+  //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
 
--(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode andRotationFrameArray:(NSArray *)rotationFrameArray andPC1LetterSprite:(SKSpriteNode *)pc1LetterSprite andPC2LetterSprite:(SKSpriteNode *)pc2LetterSprite andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite;
+#pragma mark - init and layout methods
+
+-(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode
+                  andRotationFrameArray:(NSArray *)rotationFrameArray
+                     andPC1LetterSprite:(SKSpriteNode *)pc1LetterSprite
+                     andPC2LetterSprite:(SKSpriteNode *)pc2LetterSprite
+                     andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite
+                     andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite;
+
+-(void)randomiseRackOrientation;
+
+#pragma mark - orient and position methods
 
 -(void)selectAndPositionSprites;
--(void)randomiseRackOrientation;
 -(void)orientBySnapNode:(SnapNode *)snapNode;
 -(void)orientBasedOnSextantChange:(CGFloat)sextantChange;
 
+#pragma mark - change status methods
+
 -(void)startTouchThenHoverResize;
 -(void)endTouchThenHoverResize;
-
 -(void)startHovering;
 -(void)keepHovering;
 -(void)finishHovering;
-
 -(void)adjustHighlightIntoPlay;
 -(void)unhighlightOutOfPlay;
 
+#pragma mark - change state methods
+
 -(void)setToHomeZPosition;
 -(void)setToTempZPosition;
-
 -(void)goHome;
 -(void)removeActionsAndEstablishNotRotating;
 
-#pragma mark - bool methods
--(BOOL)belongsInRack;
--(BOOL)belongsOnBoard;
--(BOOL)isInRack;
--(BOOL)isOnBoard;
--(BOOL)isHovering;
--(BOOL)continuesToHover;
--(BOOL)isFinishedHovering;
+#pragma mark - pivot methods
+
+-(void)determinePivotOnPC;
+-(void)pivotBasedOnLocation:(CGPoint)location;
 
 #pragma mark - animation methods
 
@@ -80,8 +98,19 @@
 -(void)animateFlip;
 -(void)animateEaseIntoNodeAfterHover;
 
+#pragma mark - bool methods
+
+-(BOOL)belongsInRack;
+-(BOOL)belongsOnBoard;
+-(BOOL)isInRack;
+-(BOOL)isOnBoard;
+-(BOOL)isHovering;
+-(BOOL)continuesToHover;
+-(BOOL)isFinishedHovering;
+
 #pragma mark - debugging methods
 
+-(NSString *)logThisDyadmino;
 
   /// this is the first pc
 
@@ -91,6 +120,5 @@
  @param pc1, pc2, orientation
  @return itself
  **/
--(NSString *)logThisDyadmino;
 
 @end

@@ -19,7 +19,7 @@
 @property (strong, nonatomic) NSMutableArray *rackNodes;
 @property (weak, nonatomic) id <FieldNodeDelegate> delegate;
 
--(id)initWithWidth:(CGFloat)width andSnapNodeType:(NSUInteger)snapNodeType;
+-(id)initWithWidth:(CGFloat)width andFieldNodeType:(NSUInteger)fieldNodeType;
 -(void)layoutOrRefreshFieldWithCount:(NSUInteger)countNumber;
 -(void)populateOrRefreshWithDyadminoes:(NSMutableArray *)dyadminoesInArray;
 

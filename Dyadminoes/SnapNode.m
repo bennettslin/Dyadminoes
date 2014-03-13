@@ -19,4 +19,8 @@
   return self;
 }
 
+-(SnapNodeType)isType {
+  return self.snapNodeType;
+}
+
 @end

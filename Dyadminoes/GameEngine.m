@@ -14,7 +14,6 @@
 @interface GameEngine ()
 
 @property (strong, nonatomic) Player *player1;
-
 @property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer1Rack;
 @property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer2Rack;
 @property (strong, nonatomic) NSMutableSet *dyadminoesInCommonPile;
@@ -72,7 +71,10 @@
   }
   
     // FIXME: temporary, eventually remove
-  for (int i = 0; i < 58; i++) {
+    // 58 is good
+  NSUInteger getRidOfNumber = 50;
+  
+  for (int i = 0; i < getRidOfNumber; i++) {
     Dyadmino *dyadmino = [self.allDyadminoes anyObject];
     [self.allDyadminoes removeObject:dyadmino];
     [self.dyadminoesInCommonPile removeObject:dyadmino];

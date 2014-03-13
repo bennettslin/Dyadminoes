@@ -11,9 +11,17 @@
 @implementation Dyadmino {
   BOOL _alreadyAddedChildren;
   CGSize _touchSize;
+  PivotOnPC _pivotOnPC;
 }
 
--(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode andRotationFrameArray:(NSArray *)rotationFrameArray andPC1LetterSprite:(SKSpriteNode *)pc1LetterSprite andPC2LetterSprite:(SKSpriteNode *)pc2LetterSprite andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite {
+#pragma mark - init and layout methods
+
+-(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode
+  andRotationFrameArray:(NSArray *)rotationFrameArray
+  andPC1LetterSprite:(SKSpriteNode *)pc1LetterSprite
+  andPC2LetterSprite:(SKSpriteNode *)pc2LetterSprite
+  andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite
+  andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite {
   self = [super init];
   if (self) {
       // constants
@@ -35,6 +43,18 @@
   }
   return self;
 }
+
+-(void)randomiseRackOrientation { // only gets called before sprite is reloaded
+  NSUInteger zeroOrOne = [self randomValueUpTo:2]; // randomise rackOrientation
+  if (zeroOrOne == 0) {
+    self.orientation = kPC1atTwelveOClock;
+  } else if (zeroOrOne == 1) {
+    self.orientation = kPC1atSixOClock;
+  }
+  self.tempReturnOrientation = self.orientation;
+}
+
+#pragma mark - orient and position methods
 
 -(void)selectAndPositionSprites {
   if (self.pcMode == kPCModeLetter) {
@@ -97,28 +117,6 @@
   }
 }
 
--(void)randomiseRackOrientation { // only gets called before sprite is reloaded
-  NSUInteger zeroOrOne = [self randomValueUpTo:2]; // randomise rackOrientation
-  if (zeroOrOne == 0) {
-    self.orientation = kPC1atTwelveOClock;
-  } else if (zeroOrOne == 1) {
-    self.orientation = kPC1atSixOClock;
-  }
-  self.tempReturnOrientation = self.orientation;
-}
-
--(void)resizeDyadmino {
-  if (self.isTouchThenHoverResized) {
-    self.size = CGSizeMake(self.texture.size.width * kTouchedDyadminoSize, self.texture.size.height * kTouchedDyadminoSize);
-    self.pc1Sprite.size = CGSizeMake(self.pc1Sprite.texture.size.width * kTouchedDyadminoSize, self.pc1Sprite.texture.size.height * kTouchedDyadminoSize);
-    self.pc2Sprite.size = CGSizeMake(self.pc2Sprite.texture.size.width * kTouchedDyadminoSize, self.pc2Sprite.texture.size.height * kTouchedDyadminoSize);
-  } else {
-    self.size = self.texture.size;
-    self.pc1Sprite.size = self.pc1Sprite.texture.size;
-    self.pc2Sprite.size = self.pc2Sprite.texture.size;
-  }
-}
-
 -(void)orientBySnapNode:(SnapNode *)snapNode {
   switch (snapNode.snapNodeType) {
     case kSnapNodeRack:
@@ -149,6 +147,18 @@
         return;
       }
     }
+  }
+}
+
+-(void)resizeDyadmino {
+  if (self.isTouchThenHoverResized) {
+    self.size = CGSizeMake(self.texture.size.width * kTouchedDyadminoSize, self.texture.size.height * kTouchedDyadminoSize);
+    self.pc1Sprite.size = CGSizeMake(self.pc1Sprite.texture.size.width * kTouchedDyadminoSize, self.pc1Sprite.texture.size.height * kTouchedDyadminoSize);
+    self.pc2Sprite.size = CGSizeMake(self.pc2Sprite.texture.size.width * kTouchedDyadminoSize, self.pc2Sprite.texture.size.height * kTouchedDyadminoSize);
+  } else {
+    self.size = self.texture.size;
+    self.pc1Sprite.size = self.pc1Sprite.texture.size;
+    self.pc2Sprite.size = self.pc2Sprite.texture.size;
   }
 }
 
@@ -218,6 +228,138 @@
   [self finishHovering];
 }
 
+-(void)removeActionsAndEstablishNotRotating {
+  [self removeAllActions];
+  self.isRotating = NO;
+}
+
+#pragma mark - pivot methods
+
+-(void)determinePivotOnPC {
+  CGFloat originOffset;
+  switch (self.orientation) {
+    case kPC1atTwelveOClock:
+      originOffset = 0.f;
+      break;
+    case kPC1atTwoOClock:
+      originOffset = 60.f;
+      break;
+    case kPC1atFourOClock:
+      originOffset = 120.f;
+      break;
+    case kPC1atSixOClock:
+      originOffset = 180.f;
+      break;
+    case kPC1atEightOClock:
+      originOffset = 240.f;
+      break;
+    case kPC1atTenOClock:
+      originOffset = 300.f;
+      break;
+  }
+  CGFloat offsetAngle = _initialPivotAngle + originOffset;
+  if (offsetAngle > 360.f) {
+    offsetAngle -= 360.f;
+  }
+  
+  if (offsetAngle > 210.f && offsetAngle <= 330.f) {
+    _pivotOnPC = kPivotOnPC1;
+  } else if (offsetAngle >= 30.f && offsetAngle <= 150.f) {
+    _pivotOnPC = kPivotOnPC2;
+  } else {
+    _pivotOnPC = kPivotCentre;
+  }
+}
+
+-(void)pivotBasedOnLocation:(CGPoint)location {
+  CGFloat thisAngle = [self findAngleInDegreesFromThisPoint:location
+                                                toThisPoint:self.position];
+  CGFloat sextantChange = [self getSextantChangeFromThisAngle:thisAngle toThisAngle:self.initialPivotAngle];
+  
+  for (NSUInteger i = 0; i < 12; i++) {
+    if (sextantChange >= 0.f + i + kAngleForSnapToPivot && sextantChange < 1.f + i - kAngleForSnapToPivot) {
+      NSUInteger dyadminoOrientationShouldBe = (self.prePivotDyadminoOrientation + i) % 6;
+      if (self.orientation == dyadminoOrientationShouldBe) {
+        return;
+      } else {
+        self.orientation = dyadminoOrientationShouldBe;
+        
+          // if it pivots on center, just go straight to positioning sprites
+        if (_pivotOnPC != kPivotCentre) {
+          
+            // eventually get these numbers from board nodes
+          CGFloat xIncrement = 18.43f * kTouchedDyadminoSize;
+          CGFloat yIncrement = 10.55f * kTouchedDyadminoSize;
+          
+          DyadminoOrientation pivotOrientation = dyadminoOrientationShouldBe;
+          
+          NSUInteger pivotOnPC2Offset = 0;
+          if (_pivotOnPC == kPivotOnPC2) {
+            pivotOrientation = 3 + pivotOrientation;
+            pivotOnPC2Offset = 3;
+          }
+          
+          pivotOrientation = pivotOrientation % 6;
+          
+          CGPoint tempPosition;
+          
+          switch ((self.prePivotDyadminoOrientation + pivotOnPC2Offset) % 6) {
+            case 0:
+              tempPosition = self.prePivotPosition;
+              break;
+            case 1:
+              tempPosition = [self addThisPoint:self.prePivotPosition toThisPoint:CGPointMake(xIncrement, -yIncrement)];
+              break;
+            case 2:
+              tempPosition = [self addThisPoint:self.prePivotPosition toThisPoint:CGPointMake(xIncrement, -yIncrement * 3.f)];
+              break;
+            case 3:
+              tempPosition = [self addThisPoint:self.prePivotPosition toThisPoint:CGPointMake(0.f, -yIncrement * 4.f)];
+              break;
+            case 4:
+              tempPosition = [self addThisPoint:self.prePivotPosition toThisPoint:CGPointMake(-xIncrement, -yIncrement * 3.f)];
+              break;
+            case 5:
+              tempPosition = [self addThisPoint:self.prePivotPosition toThisPoint:CGPointMake(-xIncrement, -yIncrement)];
+              break;
+          }
+          
+          CGPoint position8oclock = [self addThisPoint:tempPosition toThisPoint:CGPointMake(-xIncrement, yIncrement)];
+          CGPoint position10oclock = [self addThisPoint:tempPosition toThisPoint:CGPointMake(-xIncrement, yIncrement * 3.f)];
+          CGPoint position12oclock = [self addThisPoint:tempPosition toThisPoint:CGPointMake(0.f, yIncrement * 4.f)];
+          CGPoint position2oclock = [self addThisPoint:tempPosition toThisPoint:CGPointMake(xIncrement, yIncrement * 3.f)];
+          CGPoint position4oclock = [self addThisPoint:tempPosition toThisPoint:CGPointMake(xIncrement, yIncrement)];
+          CGPoint position6oclock = tempPosition;
+          
+          switch (pivotOrientation) {
+            case 0:
+              self.position = position6oclock;
+              break;
+            case 1:
+              self.position = position8oclock;
+              break;
+            case 2:
+              self.position = position10oclock;
+              break;
+            case 3:
+              self.position = position12oclock;
+              break;
+            case 4:
+              self.position = position2oclock;
+              break;
+            case 5:
+              self.position = position4oclock;
+              break;
+          }
+        }
+        
+          // or else put this in an animation
+        [self selectAndPositionSprites];
+      }
+    }
+  }
+}
+
 #pragma mark - animation methods
 
 -(void)animateConstantTimeMoveToPoint:(CGPoint)point {
@@ -237,11 +379,6 @@
   CGFloat distance = [self getDistanceFromThisPoint:self.position toThisPoint:point];
   SKAction *snapAction = [SKAction moveTo:point duration:kConstantSpeed * distance];
   [self runAction:snapAction];
-}
-
--(void)removeActionsAndEstablishNotRotating {
-  [self removeAllActions];
-  self.isRotating = NO;
 }
 
 -(void)animateFlip {

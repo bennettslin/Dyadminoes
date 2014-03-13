@@ -15,12 +15,12 @@
   SnapNodeType _snapNodeType;
 }
 
--(id)initWithWidth:(CGFloat)width andSnapNodeType:(NSUInteger)snapNodeType {
+-(id)initWithWidth:(CGFloat)width andFieldNodeType:(NSUInteger)fieldNodeType {
   self = [super init];
   if (self) {
     self.rackNodes = [NSMutableArray new];
     _width = width;
-    _snapNodeType = snapNodeType;    
+    _snapNodeType = fieldNodeType;    
   }
   return self;
 }
@@ -37,14 +37,7 @@
       SnapNode *rackNode = [[SnapNode alloc] initWithSnapNodeType:_snapNodeType];
       rackNode.position = CGPointMake(xEdgeMargin + self.xIncrementInRack + (2 * _xIncrementInRack * index), kRackHeight / 2);
       
-      if (_snapNodeType == kSnapNodeRack) {
-        rackNode.zPosition = kZPositionRackNode;
-      } else {
-        rackNode.zPosition = kZPositionSwapNode;
-      }
-      
       rackNode.name = [NSString stringWithFormat:@"rackNode %i", index];
-      [self addChild:rackNode];
       [self.rackNodes addObject:rackNode];
     }
       //--------------------------------------------------------------------------
