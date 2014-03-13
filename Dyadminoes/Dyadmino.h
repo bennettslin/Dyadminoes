@@ -13,7 +13,6 @@
 
 @interface Dyadmino : SKSpriteNode
 
-  /// this is the first pc
 @property NSUInteger pc1;
 @property NSUInteger pc2;
 @property (nonatomic) PCMode pcMode;
@@ -36,17 +35,11 @@
 @property BOOL canFlip;
 @property BOOL isRotating;
 @property (nonatomic) DyadminoOrientation prePivotDyadminoOrientation;
+@property (nonatomic) CGPoint prePivotPosition;
 
 @property DyadminoHoveringStatus hoveringStatus;
 @property BOOL isTouchThenHoverResized;
-//@property BOOL isInPlayHighlighted;
 
-/**
- initialises a dyadmino with pcs and orientation
- @see hello
- @param pc1, pc2, orientation
- @return itself
- **/
 -(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode andRotationFrameArray:(NSArray *)rotationFrameArray andPC1LetterSprite:(SKSpriteNode *)pc1LetterSprite andPC2LetterSprite:(SKSpriteNode *)pc2LetterSprite andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite;
 
 -(void)selectAndPositionSprites;
@@ -61,7 +54,7 @@
 -(void)keepHovering;
 -(void)finishHovering;
 
--(void)highlightIntoPlay;
+-(void)adjustHighlightIntoPlay;
 -(void)unhighlightOutOfPlay;
 
 -(void)setToHomeZPosition;
@@ -69,11 +62,6 @@
 
 -(void)goHome;
 -(void)removeActionsAndEstablishNotRotating;
-
-//-(void)setFinishedHoveringAndNotRotating;
-//-(void)prepareStateForHoverWithBoardNode:(SnapNode *)boardNode;
-
--(void)animateEaseIntoNodeAfterHover;
 
 #pragma mark - bool methods
 -(BOOL)belongsInRack;
@@ -90,10 +78,19 @@
 -(void)animateSlowerConstantTimeMoveToPoint:(CGPoint)point;
 -(void)animateConstantSpeedMoveDyadminoToPoint:(CGPoint)point;
 -(void)animateFlip;
-//-(void)animateHoverAndFinishedStatus;
+-(void)animateEaseIntoNodeAfterHover;
 
 #pragma mark - debugging methods
 
+
+  /// this is the first pc
+
+/**
+ initialises a dyadmino with pcs and orientation
+ @see hello
+ @param pc1, pc2, orientation
+ @return itself
+ **/
 -(NSString *)logThisDyadmino;
 
 @end

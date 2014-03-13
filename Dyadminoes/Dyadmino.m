@@ -178,15 +178,19 @@
   self.hoveringStatus = kDyadminoFinishedHovering;
 }
 
--(void)highlightIntoPlay {
-//  self.isInPlayHighlighted = YES;
-//  self.colorBlendFactor = 0.2f;
+-(void)adjustHighlightIntoPlay {
+  if (self.position.y < kRackHeight + (kHeightGapToHighlightIntoPlay / 2) &&
+      self.position.y >= kRackHeight - (kHeightGapToHighlightIntoPlay / 2)) {
+    self.colorBlendFactor = (self.position.y + (kHeightGapToHighlightIntoPlay / 2) - kRackHeight) *
+    kDyadminoColorBlendFactor / kHeightGapToHighlightIntoPlay;
+  }
+  if (self.position.y > kRackHeight + (kHeightGapToHighlightIntoPlay / 2)) {
+    self.colorBlendFactor = kDyadminoColorBlendFactor;
+  }
 }
 
 -(void)unhighlightOutOfPlay {
-//  self.isInPlayHighlighted = NO;
-  
-// TODO: some animation here
+// TODO: possibly some animation here
   self.colorBlendFactor = 0.f;
 }
 
@@ -287,6 +291,7 @@
     [self setToHomeZPosition];
     self.canFlip = NO;
     self.hoveringStatus = kDyadminoNoHoverStatus;
+    self.prePivotPosition = CGPointZero;
   }];
   SKAction *sequence = [SKAction sequence:@[moveAction, finishAction]];
   [self runAction:sequence];

@@ -28,9 +28,16 @@
   // TODO: board nodes expand outward, don't establish them at first
   // TODO: check nodes to ensure that dyadminoes do not conflict on board, do not finish hovering if there's a conflict
 
-  // FIXME: zPosition is based on parent node, so will have to change parent nodes when dyadmino moves from rack to board
+  // easy fixes
+  // FIXME: pivot touch should be measured against pc face, not dyadmino center;
+  // establish this in selectDyadmino method, and then calculate distance in touchesMoved
+  // to decide whether to pivot on that move; distance between pc face and dyadmino center is 21.1
+  // (can probably calculate this from texture image)
+  // FIXME: zPosition is based on parent node, add sprites to board when in play.
+  // (otherwise, a hovering board dyadmino might still be below a resting rack dyadmino)
 
-  // low priority
+  // leisurely TODOs
+  // TODO: snapNodes don't have to inherit from SKNode
   // TODO: have animation between rotation frames
   // TODO: make bouncier animations
   // TODO: make dyadmino sent home shrink then reappear in rack
@@ -79,6 +86,7 @@
   BOOL pivotInProgress;
   CGFloat _initialPivotAngle;
   NSUInteger _prePivotDyadminoOrientation;
+  PivotOnPC _pivotOnPC;
   CFTimeInterval _hoverTime;
   
     // temporary
@@ -142,7 +150,7 @@
 
 -(void)layoutTopBarAndButtons {
     // background
-  SKSpriteNode *topBar = [SKSpriteNode spriteNodeWithColor:[SKColor blueColor]
+  SKSpriteNode *topBar = [SKSpriteNode spriteNodeWithColor:[SKColor darkGrayColor]
                                                       size:CGSizeMake(self.frame.size.width, kTopBarHeight)];
   topBar.anchorPoint = CGPointZero;
   topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
@@ -171,7 +179,7 @@
   [_buttonNodes addObject:_doneButton];
   [self disableButton:_doneButton];
   
-  _logButton = [[SKSpriteNode alloc] initWithColor:[UIColor purpleColor] size:buttonSize];
+  _logButton = [[SKSpriteNode alloc] initWithColor:[UIColor blueColor] size:buttonSize];
   _logButton.position = CGPointMake(200.f, buttonYPosition);
   _logButton.zPosition = kZPositionTopBarButton;
   [topBar addChild:_logButton];
@@ -211,8 +219,8 @@
       
         // TODO: continue to tweak these numbers
       CGFloat xPadding = 5.35f;
-      CGFloat yPadding = xPadding * 0.485f;
-      CGFloat nodePadding = 0.4f * xPadding;
+      CGFloat yPadding = xPadding * .5f; // this is 2.59
+      CGFloat nodePadding = 0.5f * xPadding; // 0.5f is definitely correct
       
       if (j % 2 == 0) {
         xOffset = blankCell.size.width * 0.75f + xPadding;
@@ -276,10 +284,9 @@
   [_rackFieldSprite populateOrRefreshWithDyadminoes:self.myPlayer.dyadminoesInRack];
 }
 
-#pragma mark - touch methods
+#pragma mark - touch procedure methods
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-//  NSLog(@"touches began");
   
     // get touch location and touched node
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
@@ -289,6 +296,8 @@
     // if it's a button, take care of it when touch ended
   if ([_buttonNodes containsObject:_touchNode]) {
     _buttonPressed = (SKSpriteNode *)_touchNode;
+      // TODO: make distinction of button pressed better, of course
+    _buttonPressed.alpha = 0.5f;
     return;
   }
     //--------------------------------------------------------------------------
@@ -320,12 +329,6 @@
 
     //--------------------------------------------------------------------------
   
-    // FIXME: this is kind of buggy
-    // actively disable done button only when rack dyadmino is in play, not board dyadmino
-  if ([_currentlyTouchedDyadmino belongsInRack]) {
-    [self disableButton:_doneButton];
-  }
-  
     // if it's still in the rack, it can still rotate
   if ([_currentlyTouchedDyadmino isInRack]) {
     _currentlyTouchedDyadmino.canFlip = YES;
@@ -340,6 +343,8 @@
   if (pivotInProgress) {
     _initialPivotAngle = [self findAngleInDegreesFromThisPoint:_currentTouchLocation
                                                    toThisPoint:_currentlyTouchedDyadmino.position];
+    [self determinePivotOnPC];
+//    NSLog(@"initial pivot angle is %f, pivot on pc %i", _initialPivotAngle, _pivotOnPC);
     return;
   }
   
@@ -366,14 +371,22 @@
 
     // if the touch started on a button, do nothing and return
   if (_buttonPressed) {
-      // TODO: make button highlighted if still pressed
-    return;
+    SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
+
+    if (node == _buttonPressed) {
+      _buttonPressed.alpha = 0.5f;
+      return;
+    } else {
+      _buttonPressed.alpha = 1.f;
+      return;
+    }
   }
-  
+
     // nothing happens if there is no current dyadmino
   if (!_currentlyTouchedDyadmino) {
     return;
   }
+    //--------------------------------------------------------------------------
   
     // continue to reset hover count
   if ([_currentlyTouchedDyadmino isHovering]) {
@@ -382,14 +395,8 @@
   
     // this is the only place that sets dyadmino highlight
     // dyadmino highlight is reset when sent home or finalised
-  if ([_currentlyTouchedDyadmino belongsInRack] &&
-      _currentlyTouchedDyadmino.position.y < kRackHeight &&
-      _currentlyTouchedDyadmino.position.y >= kRackHeight - kHeightGapToHighlightIntoPlay) {
-    if (_currentlyTouchedDyadmino.position.y > kRackHeight - kHeightGapToHighlightIntoPlay) {
-      _currentlyTouchedDyadmino.colorBlendFactor =
-      (_currentlyTouchedDyadmino.position.y + kHeightGapToHighlightIntoPlay - kRackHeight) *
-      kDyadminoColorBlendFactor / kHeightGapToHighlightIntoPlay;
-    }
+  if ([_currentlyTouchedDyadmino belongsInRack]) {
+    [_currentlyTouchedDyadmino adjustHighlightIntoPlay];
   }
     //--------------------------------------------------------------------------
   
@@ -421,10 +428,7 @@
 
     // now, if we're currently pivoting, just rotate and return
   if (pivotInProgress) {
-    CGFloat thisAngle = [self findAngleInDegreesFromThisPoint:_currentTouchLocation
-                                                  toThisPoint:_currentlyTouchedDyadmino.position];
-    CGFloat sextantChange = [self getSextantChangeFromThisAngle:thisAngle toThisAngle:_initialPivotAngle];
-    [_currentlyTouchedDyadmino orientBasedOnSextantChange:sextantChange];
+    [self pivotDyadmino:_currentlyTouchedDyadmino];
     return;
   }
     //--------------------------------------------------------------------------
@@ -490,12 +494,13 @@
     return;
   }
   
-    // handle button that was pressed
+    // handle button that was pressed, ensure that touch is still on button when it ends
   if (_buttonPressed) {
-      // FIXME: this should ensure that the touch is still on the button when it's released
-    if (TRUE) {
+    SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
+    if (node == _buttonPressed) {
       [self handleButtonPressed];
     }
+    _buttonPressed.alpha = 1.f;
     _buttonPressed = nil;
     return;
   }
@@ -536,15 +541,6 @@
   }
 }
 
--(void)sendDyadminoHome:(Dyadmino *)dyadmino {
-  [dyadmino goHome];
-  [dyadmino endTouchThenHoverResize];
-  dyadmino.withinSection = kDyadminoWithinRack;
-  if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
-    _recentRackDyadmino = nil;
-  }
-}
-
 -(Dyadmino *)assignCurrentDyadminoToPointer {
     // rack dyadmino only needs pointer if it's still on board
   if ([_currentlyTouchedDyadmino belongsInRack] && [_currentlyTouchedDyadmino isOnBoard]) {
@@ -567,11 +563,6 @@
     if ([self validateLegalityOfPlacementOfDyadmino:_hoveringButNotTouchedDyadmino onBoardNode:boardNode]) {
       _hoveringButNotTouchedDyadmino.tempBoardNode = boardNode;
       
-        // enable done button if it's a rack dyadmino
-      if ([_hoveringButNotTouchedDyadmino belongsInRack]) {
-        [self enableButton:_doneButton];
-      }
-      
         // change to new board node if it's a board dyadmino
       if ([_hoveringButNotTouchedDyadmino belongsOnBoard]) {
         _hoveringButNotTouchedDyadmino.homeNode = boardNode;
@@ -593,6 +584,8 @@
     [self sendDyadminoHome:_hoveringButNotTouchedDyadmino];
   }
 }
+
+#pragma mark - game logic methods
 
   // FIXME: obviously, this must work
 -(BOOL)validateLegalityOfPlacementOfDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapNode *)boardNode {
@@ -680,14 +673,16 @@
 
   // FIXME: make this better
 -(void)enableButton:(SKSpriteNode *)button {
-  button.color = [UIColor greenColor];
+//  button.color = [UIColor greenColor];
+  button.hidden = NO;
 }
 
 -(void)disableButton:(SKSpriteNode *)button {
-  button.color = [UIColor redColor];
+//  button.color = [UIColor redColor];
+  button.hidden = YES;
 }
 
-#pragma mark - update
+#pragma mark - update and reset methods
 
 -(void)update:(CFTimeInterval)currentTime {
 
@@ -729,10 +724,32 @@
       _currentlyTouchedDyadmino != _hoveringButNotTouchedDyadmino) {
     [_hoveringButNotTouchedDyadmino animateEaseIntoNodeAfterHover];
   }
+    //--------------------------------------------------------------------------
+
+    // handle buttons
+    // TODO: if button enabling and disabling are animated, change this
+  if ([_recentRackDyadmino belongsInRack] &&
+      [_recentRackDyadmino isOnBoard] &&
+      ![_hoveringButNotTouchedDyadmino isHovering] &&
+      _currentlyTouchedDyadmino == nil) {
+    [self enableButton:_doneButton];
+  } else {
+    [self disableButton:_doneButton];
+  }
+  
 }
 
 -(void)updatePileCountLabel {
   _pileCountLabel.text = [NSString stringWithFormat:@"pile %i", [self.ourGameEngine getCommonPileCount]];
+}
+
+-(void)sendDyadminoHome:(Dyadmino *)dyadmino {
+  [dyadmino goHome];
+  [dyadmino endTouchThenHoverResize];
+  dyadmino.withinSection = kDyadminoWithinRack;
+  if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
+    _recentRackDyadmino = nil;
+  }
 }
 
 -(void)updateLogLabelWithString:(NSString *)string {
@@ -791,12 +808,21 @@
     if ([self getDistanceFromThisPoint:touchPoint toThisPoint:_hoveringButNotTouchedDyadmino.position] <
         kDistanceForTouchingHoveringDyadmino) {
 //      _hoveringButNotTouchedDyadmino.canFlip = YES;
+      
+//      NSLog(@"hovering dyadmino is at %.2f, %.2f, its prePivot position is at %.2f, %.2f",
+//            _hoveringButNotTouchedDyadmino.position.x, _hoveringButNotTouchedDyadmino.position.y,
+//            _hoveringButNotTouchedDyadmino.prePivotPosition.x, _hoveringButNotTouchedDyadmino.prePivotPosition.y);
       return _hoveringButNotTouchedDyadmino;
       
         // otherwise, we're pivoting
     } else {
       pivotInProgress = YES;
       _hoveringButNotTouchedDyadmino.prePivotDyadminoOrientation = _hoveringButNotTouchedDyadmino.orientation;
+        // this is reset to zero only after eased into place
+      if (CGPointEqualToPoint(_hoveringButNotTouchedDyadmino.prePivotPosition, CGPointZero)) {
+        _hoveringButNotTouchedDyadmino.prePivotPosition = _hoveringButNotTouchedDyadmino.position;
+      }
+      
       [_hoveringButNotTouchedDyadmino removeActionsAndEstablishNotRotating];
       return _hoveringButNotTouchedDyadmino;
     }
@@ -862,6 +888,139 @@
   return closestSnapnode;
 }
 
+  // move to Dyadmino class
+-(void)determinePivotOnPC {
+  CGFloat originOffset;
+  switch (_currentlyTouchedDyadmino.orientation) {
+    case kPC1atTwelveOClock:
+      originOffset = 0.f;
+      break;
+    case kPC1atTwoOClock:
+      originOffset = 60.f;
+      break;
+    case kPC1atFourOClock:
+      originOffset = 120.f;
+      break;
+    case kPC1atSixOClock:
+      originOffset = 180.f;
+      break;
+    case kPC1atEightOClock:
+      originOffset = 240.f;
+      break;
+    case kPC1atTenOClock:
+      originOffset = 300.f;
+      break;
+  }
+  CGFloat offsetAngle = _initialPivotAngle + originOffset;
+  if (offsetAngle > 360.f) {
+    offsetAngle -= 360.f;
+  }
+  
+  if (offsetAngle > 210.f && offsetAngle <= 330.f) {
+    _pivotOnPC = kPivotOnPC1;
+  } else if (offsetAngle >= 30.f && offsetAngle <= 150.f) {
+    _pivotOnPC = kPivotOnPC2;
+  } else {
+    _pivotOnPC = kPivotCentre;
+  }
+}
+
+  // move to Dyadmino class
+-(void)pivotDyadmino:(Dyadmino *)dyadmino {
+  CGFloat thisAngle = [self findAngleInDegreesFromThisPoint:_currentTouchLocation
+                                                toThisPoint:dyadmino.position];
+  CGFloat sextantChange = [self getSextantChangeFromThisAngle:thisAngle toThisAngle:_initialPivotAngle];
+  
+  for (NSUInteger i = 0; i < 12; i++) {
+    if (sextantChange >= 0.f + i + kAngleForSnapToPivot && sextantChange < 1.f + i - kAngleForSnapToPivot) {
+      NSUInteger dyadminoOrientationShouldBe = (dyadmino.prePivotDyadminoOrientation + i) % 6;
+      if (dyadmino.orientation == dyadminoOrientationShouldBe) {
+        return;
+      } else {
+        dyadmino.orientation = dyadminoOrientationShouldBe;
+        
+          // if it pivots on center, just go straight to positioning sprites
+        if (_pivotOnPC != kPivotCentre) {
+        
+            // eventually get these numbers from board nodes
+          CGFloat xIncrement = 18.43f * kTouchedDyadminoSize;
+          CGFloat yIncrement = 10.55f * kTouchedDyadminoSize;
+          
+          DyadminoOrientation pivotOrientation = dyadminoOrientationShouldBe;
+          
+          NSUInteger pivotOnPC2Offset = 0;
+          if (_pivotOnPC == kPivotOnPC2) {
+            pivotOrientation = 3 + pivotOrientation;
+            pivotOnPC2Offset = 3;
+          }
+          
+          pivotOrientation = pivotOrientation % 6;
+          
+  //        NSLog(@"sextant change is %f, new orientation is %i, pivot orientation is %i", sextantChange, dyadminoOrientationShouldBe, pivotOrientation);
+  //        NSLog(@"pivoting dyadmino is at %.2f, %.2f, its prePivot position is at %.2f, %.2f", dyadmino.position.x, dyadmino.position.y,
+  //              dyadmino.prePivotPosition.x, dyadmino.prePivotPosition.y);
+          
+          CGPoint tempPosition;
+          
+          switch ((dyadmino.prePivotDyadminoOrientation + pivotOnPC2Offset) % 6) {
+            case 0:
+              tempPosition = dyadmino.prePivotPosition;
+              break;
+            case 1:
+              tempPosition = [self addThisPoint:dyadmino.prePivotPosition toThisPoint:CGPointMake(xIncrement, -yIncrement)];
+              break;
+            case 2:
+              tempPosition = [self addThisPoint:dyadmino.prePivotPosition toThisPoint:CGPointMake(xIncrement, -yIncrement * 3.f)];
+              break;
+            case 3:
+              tempPosition = [self addThisPoint:dyadmino.prePivotPosition toThisPoint:CGPointMake(0.f, -yIncrement * 4.f)];
+              break;
+            case 4:
+              tempPosition = [self addThisPoint:dyadmino.prePivotPosition toThisPoint:CGPointMake(-xIncrement, -yIncrement * 3.f)];
+              break;
+            case 5:
+              tempPosition = [self addThisPoint:dyadmino.prePivotPosition toThisPoint:CGPointMake(-xIncrement, -yIncrement)];
+              break;
+          }
+
+  //        NSLog(@"temp position is %.2f, %.2f", tempPosition.x, tempPosition.y);
+          
+          CGPoint position8oclock = [self addThisPoint:tempPosition toThisPoint:CGPointMake(-xIncrement, yIncrement)];
+          CGPoint position10oclock = [self addThisPoint:tempPosition toThisPoint:CGPointMake(-xIncrement, yIncrement * 3.f)];
+          CGPoint position12oclock = [self addThisPoint:tempPosition toThisPoint:CGPointMake(0.f, yIncrement * 4.f)];
+          CGPoint position2oclock = [self addThisPoint:tempPosition toThisPoint:CGPointMake(xIncrement, yIncrement * 3.f)];
+          CGPoint position4oclock = [self addThisPoint:tempPosition toThisPoint:CGPointMake(xIncrement, yIncrement)];
+          CGPoint position6oclock = tempPosition;
+
+          switch (pivotOrientation) {
+            case 0:
+              dyadmino.position = position6oclock;
+              break;
+            case 1:
+              dyadmino.position = position8oclock;
+              break;
+            case 2:
+              dyadmino.position = position10oclock;
+              break;
+            case 3:
+              dyadmino.position = position12oclock;
+              break;
+            case 4:
+              dyadmino.position = position2oclock;
+              break;
+            case 5:
+              dyadmino.position = position4oclock;
+              break;
+          }
+        }
+        
+          // or else put this in an animation
+        [dyadmino selectAndPositionSprites];
+      }
+    }
+  }
+}
+
 #pragma mark - debugging methods
 
 -(void)logRecentAndCurrentDyadminoes {
@@ -875,9 +1034,11 @@
     NSLog(@"%@ is in homeNode %@, tempReturn %@", dyadmino.name, dyadmino.homeNode.name, dyadmino.tempBoardNode.name);
   }
   
-  for (SnapNode *rackNode in _rackFieldSprite.rackNodes) {
-    NSLog(@"%@ is in %.1f, %.1f", rackNode.name, rackNode.position.x, rackNode.position.y);
-  }
+  NSLog(@"current dyadmino is at %.2f, %.2f", _recentRackDyadmino.position.x, _recentRackDyadmino.position.y);
+//  for (SnapNode *rackNode in _rackFieldSprite.rackNodes) {
+//    NSLog(@"%@ is in %.1f, %.1f", rackNode.name, rackNode.position.x, rackNode.position.y);
+//  }
+
   
 //  NSLog(@"rack array knows %@", self.myPlayer.dyadminoesInRack);
 }

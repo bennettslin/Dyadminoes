@@ -34,7 +34,7 @@
 }
 
 -(CGFloat)findAngleInDegreesFromThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2 {
-  CGFloat angleDegrees = atan2f(point2.y - point1.y, point2.x - point1.x) * 180 / M_PI;
+  CGFloat angleDegrees = atan2f(point2.y - point1.y, point2.x - point1.x) * 180.f / M_PI + 180.f;
 //  NSLog(@"angle is %f", angleDegrees);
   return angleDegrees;
 }

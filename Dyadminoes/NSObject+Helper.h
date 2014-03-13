@@ -17,12 +17,12 @@
 #define kAnimateHoverTime 0.35f
 
   // dyadmino state constants
-#define kTouchedDyadminoSize 1.15f
-#define kDyadminoColorBlendFactor 0.3f
+#define kTouchedDyadminoSize 1.16f
+#define kDyadminoColorBlendFactor 0.2f
 
   // math constants
 #define kBoardDiagonalX 15.75f
-#define kBoardDiagonalY 9.0932667f
+#define kBoardDiagonalY 8.95f
 
   // view constants
 #define kTopBarHeight 72.f
@@ -33,6 +33,8 @@
 
   // distance constants
 #define kDistanceForSnapOut 10.f
+#define kAngleForSnapToPivot 0.2f
+
 #define kDistanceForOtherRackDyadminoToMoveOver 22.f
 #define kDistanceForSnapIn 21.f // this is half the height of the cell space, plus wiggle room
 #define kDistanceForTouchingHoveringDyadmino 37.5f
@@ -90,6 +92,12 @@ typedef enum dyadminoOrientation {
   kPC1atEightOClock,
   kPC1atTenOClock
 } DyadminoOrientation;
+
+typedef enum pivotOnPC {
+  kPivotCentre,
+  kPivotOnPC1,
+  kPivotOnPC2
+} PivotOnPC;
 
 @interface NSObject (Helper)
 
