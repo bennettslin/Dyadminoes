@@ -658,6 +658,7 @@
         _recentRackDyadmino.homeNode = _recentRackDyadmino.tempBoardNode;
         [_recentRackDyadmino unhighlightOutOfPlay];
         _recentRackDyadmino = nil;
+        _hoveringButNotTouchedDyadmino = nil;
       }
     }
   }

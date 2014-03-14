@@ -27,8 +27,8 @@
 -(void)layoutOrRefreshNodesWithCount:(NSUInteger)countNumber;
 
 #pragma mark - reposition methods
--(void)repositionNodesGivenDyadminoes:(NSMutableArray *)dyadminoesInArray
-                    uponStrayDyadmino:(Dyadmino *)dyadmino;
+//-(void)repositionNodesGivenDyadminoes:(NSMutableArray *)dyadminoesInArray
+//                    uponStrayDyadmino:(Dyadmino *)dyadmino;
 
 -(void)repositionOrShiftDyadminoes:(NSMutableArray *)dyadminoesInArray
                     givenTouchedDyadmino:(Dyadmino *)touchedDyadmino;

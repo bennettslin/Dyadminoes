@@ -75,30 +75,33 @@
 -(void)repositionOrShiftDyadminoes:(NSMutableArray *)dyadminoesInArray givenTouchedDyadmino:(Dyadmino *)touchedDyadmino {
     // dyadminoes are already in array, this method manages the sprite views
   
-  for (Dyadmino *dyadmino in dyadminoesInArray) {
+  for (NSUInteger index = 0; index < self.rackNodes.count; index++) {
     
+    Dyadmino *dyadmino = [dyadminoesInArray objectAtIndex:index];
       // assign pointers
-    NSUInteger index = [dyadminoesInArray indexOfObject:dyadmino];
+//    NSUInteger index = [dyadminoesInArray indexOfObject:dyadmino];
     
       // just in case dyadmino has no homeNode, such as in the beginning
-    if (!dyadmino.homeNode) {
+//    if (!dyadmino.homeNode) {
+    
+      // this has to be reset after turn
       dyadmino.homeNode = self.rackNodes[index];
       dyadmino.tempBoardNode = nil;
       dyadmino.withinSection = kDyadminoWithinRack;
-    }
+//    }
     
     //--------------------------------------------------------------------------
     
       // this if statement means that we're shifting
       // if there's a touched dyadmino, reposition others that are in rack without animation...
-    if (touchedDyadmino && dyadmino != touchedDyadmino && [dyadmino isInRack]) {
-      dyadmino.position = dyadmino.homeNode.position;
-      
+//    if (touchedDyadmino && dyadmino != touchedDyadmino && [dyadmino isInRack]) {
+//      dyadmino.position = dyadmino.homeNode.position;
+    
     //--------------------------------------------------------------------------
       
         // otherwise animate all
-    } else if (!touchedDyadmino) {
-      
+//    } else if (!touchedDyadmino) {
+    
         // dyadmino is already on rack, just has to animate to new position if not already there
       if (dyadmino.parent == self) {
         if (!CGPointEqualToPoint(dyadmino.position, dyadmino.homeNode.position)) {
@@ -110,36 +113,36 @@
         [self addChild:dyadmino];
         [dyadmino animateConstantSpeedMoveDyadminoToPoint:dyadmino.homeNode.position];
       }
-    }
+//    }
   }
 }
 
--(void)repositionNodesGivenDyadminoes:(NSMutableArray *)dyadminoesInArray uponStrayDyadmino:(Dyadmino *)dyadmino {
-  
-    // do not shift if exchange in progress
-  if (!_exchangeInProgress) {
-    self.dyadminoShiftInProgress = YES;
-    
-      // just to ensure that stray dyadmino is in this array
-    if ([dyadminoesInArray containsObject:dyadmino]) {
-      
-        // get stray numbers
-      CGFloat strayFloat = [dyadmino getHeightFloatGivenGap:kGapForShiftingDyadminoes];
-      NSUInteger strayIndex = [dyadminoesInArray indexOfObject:dyadmino];
-      
-      
-      
-      for (SnapNode *rackNode in self.rackNodes) {
-        NSUInteger nodeIndex = [self.rackNodes indexOfObject:rackNode];
-        
-        rackNode.position = [self getNodePositionAtIndex:nodeIndex
-                                         withCountNumber:self.rackNodes.count
-                                          withStrayFloat:strayFloat andStrayIndex:strayIndex];
-      }
-    }
-  }
-  self.dyadminoShiftInProgress = NO;
-}
+//-(void)repositionNodesGivenDyadminoes:(NSMutableArray *)dyadminoesInArray uponStrayDyadmino:(Dyadmino *)dyadmino {
+//  
+//    // do not shift if exchange in progress
+//  if (!_exchangeInProgress) {
+//    self.dyadminoShiftInProgress = YES;
+//    
+//      // just to ensure that stray dyadmino is in this array
+//    if ([dyadminoesInArray containsObject:dyadmino]) {
+//      
+//        // get stray numbers
+//      CGFloat strayFloat = [dyadmino getHeightFloatGivenGap:kGapForShiftingDyadminoes];
+//      NSUInteger strayIndex = [dyadminoesInArray indexOfObject:dyadmino];
+//      
+//      
+//      
+//      for (SnapNode *rackNode in self.rackNodes) {
+//        NSUInteger nodeIndex = [self.rackNodes indexOfObject:rackNode];
+//        
+//        rackNode.position = [self getNodePositionAtIndex:nodeIndex
+//                                         withCountNumber:self.rackNodes.count
+//                                          withStrayFloat:strayFloat andStrayIndex:strayIndex];
+//      }
+//    }
+//  }
+//  self.dyadminoShiftInProgress = NO;
+//}
 
 -(void)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
                             withDyadminoes:(NSMutableArray *)dyadminoesInArray
@@ -147,7 +150,7 @@
   
     // do not exchange if shift in progress
   if (touchedDyadmino.position.y < kRackHeight - (kGapForShiftingDyadminoes / 2) - kBufferUnderShiftingGapForExchangingDyadminoes) {
-    _exchangeInProgress = YES;
+//    _exchangeInProgress = YES;
       // just a precaution
     if (rackNode != touchedDyadmino.homeNode) {
       NSUInteger rackNodesIndex = [self.rackNodes indexOfObject:rackNode];
@@ -180,7 +183,7 @@
       // continues exchange, or if just returning to its own rack node
     touchedDyadmino.homeNode = rackNode;
   }
-  _exchangeInProgress = NO;
+//  _exchangeInProgress = NO;
 }
 
 #pragma mark - helper methods
@@ -195,46 +198,46 @@
   CGPoint nodePosition = CGPointMake(xEdgeMargin + self.xIncrementInRack + (2 * self.xIncrementInRack * nodeIndex), kRackHeight / 2);
   
     // if there is no stray dyadmino, then node position is straightforward
-  if (strayFloat == 0.f) {
+//  if (strayFloat == 0.f) {
     return nodePosition;
     
       // otherwise there is a stray index, so...
-  } else {
-
-      // margins for countNumber less one
-    NSUInteger destinationCount = countNumber - 1;
-    CGFloat destinationXEdgeMargin = 12.f + (16.f * (kNumDyadminoesInRack - destinationCount));
-    CGFloat destinationXIncrementInRack = (_width - (2 * destinationXEdgeMargin)) / (destinationCount * 2);
-    CGPoint destinationPosition;
-    
-      // this node is to the left of stray dyadmino
-    if (nodeIndex < strayIndex) {
-      destinationPosition = CGPointMake(destinationXEdgeMargin + destinationXIncrementInRack + (2 * destinationXIncrementInRack * nodeIndex), kRackHeight / 2);
-      
-        // this node is to the right of stray dyadmino
-    } else if (nodeIndex > strayIndex) {
-      destinationPosition = CGPointMake(destinationXEdgeMargin + destinationXIncrementInRack + (2 * destinationXIncrementInRack * (nodeIndex - 1)), kRackHeight / 2);
-    }
-    
-    CGFloat transitionalXPosition = nodePosition.x + (destinationPosition.x - nodePosition.x) * strayFloat;
-    return CGPointMake(transitionalXPosition, kRackHeight / 2);
-  }
+//  } else {
+//
+//      // margins for countNumber less one
+//    NSUInteger destinationCount = countNumber - 1;
+//    CGFloat destinationXEdgeMargin = 12.f + (16.f * (kNumDyadminoesInRack - destinationCount));
+//    CGFloat destinationXIncrementInRack = (_width - (2 * destinationXEdgeMargin)) / (destinationCount * 2);
+//    CGPoint destinationPosition;
+//    
+//      // this node is to the left of stray dyadmino
+//    if (nodeIndex < strayIndex) {
+//      destinationPosition = CGPointMake(destinationXEdgeMargin + destinationXIncrementInRack + (2 * destinationXIncrementInRack * nodeIndex), kRackHeight / 2);
+//      
+//        // this node is to the right of stray dyadmino
+//    } else if (nodeIndex > strayIndex) {
+//      destinationPosition = CGPointMake(destinationXEdgeMargin + destinationXIncrementInRack + (2 * destinationXIncrementInRack * (nodeIndex - 1)), kRackHeight / 2);
+//    }
+//    
+//    CGFloat transitionalXPosition = nodePosition.x + (destinationPosition.x - nodePosition.x) * strayFloat;
+//    return CGPointMake(transitionalXPosition, kRackHeight / 2);
+//  }
 }
 
--(NSUInteger)getTempNodeCountGivenDyadminoes:(NSMutableArray *)dyadminoesInArray {
-  NSUInteger tempNodeCount = 0;
-  for (Dyadmino *dyadmino in dyadminoesInArray) {
-    
-      // do not add to count if dyadmino is on board
-    if (dyadmino.tempBoardNode) {
-        // do not add to count if dyadmino is touched
-    } else if (dyadmino.myTouch) {
-        //
-    } else {
-      tempNodeCount += 1;
-    }
-  }
-  return tempNodeCount;
-}
+//-(NSUInteger)getTempNodeCountGivenDyadminoes:(NSMutableArray *)dyadminoesInArray {
+//  NSUInteger tempNodeCount = 0;
+//  for (Dyadmino *dyadmino in dyadminoesInArray) {
+//    
+//      // do not add to count if dyadmino is on board
+//    if (dyadmino.tempBoardNode) {
+//        // do not add to count if dyadmino is touched
+//    } else if (dyadmino.myTouch) {
+//        //
+//    } else {
+//      tempNodeCount += 1;
+//    }
+//  }
+//  return tempNodeCount;
+//}
 
 @end

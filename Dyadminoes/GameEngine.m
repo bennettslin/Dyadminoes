@@ -72,7 +72,7 @@
   
     // FIXME: temporary, eventually remove
     // 58 is good
-  NSUInteger getRidOfNumber = 59;
+  NSUInteger getRidOfNumber = 50;
   
   for (int i = 0; i < getRidOfNumber; i++) {
     Dyadmino *dyadmino = [self.allDyadminoes anyObject];
