@@ -36,11 +36,16 @@
   // FIXME: zPosition is based on parent node, add sprites to board when in play.
   // (otherwise, a hovering board dyadmino might still be below a resting rack dyadmino)
 
+  // FIXME: make sure board dyadmino returns to its original spot and orientation if ended in rack;
+  // this might only happen right now because legality isn't being checked
+  // FIXME: make second tap of double tap to rotate hovering dyadmino times out after certain amount of time
+
   // leisurely TODOs
   // TODO: have animation between rotation frames
   // TODO: make bouncier animations
   // TODO: make dyadmino sent home shrink then reappear in rack
   // TODO: pivot guides
+  // TODO: background cells more colourful
 
   // leave alone for now until better information about how Game Center works
   // TODO: make so that player, not dyadmino, knows about pcMode
@@ -282,7 +287,7 @@
 }
 
 -(void)populateOrRefreshRackWithDyadminoes {
-  [_rackFieldSprite repositionOrShiftDyadminoes:self.myPlayer.dyadminoesInRack givenTouchedDyadmino:nil];
+  [_rackFieldSprite repositionDyadminoes:self.myPlayer.dyadminoesInRack];
 }
 
 #pragma mark - touch methods
@@ -351,18 +356,6 @@
   if ([_currentlyTouchedDyadmino belongsInRack]) {
     [_currentlyTouchedDyadmino adjustHighlightIntoPlay];
   }
-  
-//    // establish that dyadmino shift is in progress
-//  if ([_currentlyTouchedDyadmino isInPlay]) {
-//      // this is only cancelled after dyadmino is sent home
-//    _rackFieldSprite.dyadminoShiftInProgress = YES;
-//  }
-//  
-//    // take care of this while shift is in progress
-//  if (_rackFieldSprite.dyadminoShiftInProgress == YES) {
-//    [_rackFieldSprite repositionNodesGivenDyadminoes:self.myPlayer.dyadminoesInRack uponStrayDyadmino:_currentlyTouchedDyadmino];
-//    [_rackFieldSprite repositionOrShiftDyadminoes:self.myPlayer.dyadminoesInRack givenTouchedDyadmino:_currentlyTouchedDyadmino];
-//  }
   
     //--------------------------------------------------------------------------
   
@@ -460,17 +453,10 @@
     
       // if dyadmino belongs in rack and *isn't* on board...
       // ...flip if possible, or send it home
-      // and end by making sure everything is in its proper place
     if ([dyadmino belongsInRack] && ![dyadmino isOnBoard]) {
       if (dyadmino.canFlip) {
         [dyadmino animateFlip];
       } else {
-        NSLog(@"here's where we are, and should be");
-        
-          // this is when dyadmino is still in rack, nodes have already started to shift,
-          // but then player cancels move
-//        [_rackFieldSprite repositionNodesGivenDyadminoes:self.myPlayer.dyadminoesInRack uponStrayDyadmino:nil];
-//        [_rackFieldSprite repositionOrShiftDyadminoes:self.myPlayer.dyadminoesInRack givenTouchedDyadmino:nil];
         [self sendDyadminoHome:dyadmino];
       }
 

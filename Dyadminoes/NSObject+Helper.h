@@ -17,7 +17,7 @@
 #define kAnimateHoverTime 0.35f
 
   // dyadmino state constants
-#define kTouchedDyadminoSize 1.16f
+#define kTouchedDyadminoSize 1.17f
 #define kDyadminoColorBlendFactor 0.2f
 
   // math constants

@@ -23,15 +23,13 @@
 @property (nonatomic) BOOL dyadminoShiftInProgress;
 
 #pragma mark - init and layout methods
+
 -(id)initWithWidth:(CGFloat)width andFieldNodeType:(NSUInteger)fieldNodeType;
 -(void)layoutOrRefreshNodesWithCount:(NSUInteger)countNumber;
 
 #pragma mark - reposition methods
-//-(void)repositionNodesGivenDyadminoes:(NSMutableArray *)dyadminoesInArray
-//                    uponStrayDyadmino:(Dyadmino *)dyadmino;
 
--(void)repositionOrShiftDyadminoes:(NSMutableArray *)dyadminoesInArray
-                    givenTouchedDyadmino:(Dyadmino *)touchedDyadmino;
+-(void)repositionDyadminoes:(NSMutableArray *)dyadminoesInArray;
 
 -(void)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
                             withDyadminoes:(NSMutableArray *)dyadminoesInArray
