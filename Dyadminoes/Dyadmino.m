@@ -12,6 +12,8 @@
   BOOL _alreadyAddedChildren;
   CGSize _touchSize;
   PivotOnPC _pivotOnPC;
+  
+    // this might not be needed
   BOOL _isInPlay;
 }
 
@@ -37,7 +39,7 @@
     self.pc2LetterSprite = pc2LetterSprite;
     self.pc1NumberSprite = pc1NumberSprite;
     self.pc2NumberSprite = pc2NumberSprite;
-    self.withinSection = kDyadminoWithinRack;
+    self.withinSection = kWithinRack;
     self.hoveringStatus = kDyadminoNoHoverStatus;
     [self randomiseRackOrientation];
     [self selectAndPositionSprites];
@@ -163,6 +165,15 @@
   }
 }
 
+-(CGPoint)getHomeNodePosition {
+  if (self.belongsInSwap) {
+    return [self addThisPoint:self.homeNode.position
+                  toThisPoint:CGPointMake(0.f, self.homeNode.position.y + (kRackHeight / 2))];
+  } else {
+    return self.homeNode.position;
+  }
+}
+
 #pragma mark - change status methods
 
 -(void)startTouchThenHoverResize {
@@ -219,7 +230,7 @@
   [self unhighlightOutOfPlay];
   [self orientBySnapNode:self.homeNode];
   self.zPosition = kZPositionRackMovedDyadmino;
-  [self animateConstantSpeedMoveDyadminoToPoint:self.homeNode.position];
+  [self animateConstantSpeedMoveDyadminoToPoint:[self getHomeNodePosition]];
   self.tempBoardNode = nil;
   [self setToHomeZPosition];
   [self finishHovering];
@@ -368,15 +379,15 @@
 
 -(void)animateSlowerConstantTimeMoveToPoint:(CGPoint)point {
   [self removeActionsAndEstablishNotRotating];
-  SKAction *snapAction = [SKAction moveTo:point duration:kSlowerConstantTime];
-  [self runAction:snapAction];
+  SKAction *moveAction = [SKAction moveTo:point duration:kSlowerConstantTime];
+  [self runAction:moveAction];
 }
 
 -(void)animateConstantSpeedMoveDyadminoToPoint:(CGPoint)point{
   [self removeActionsAndEstablishNotRotating];
   CGFloat distance = [self getDistanceFromThisPoint:self.position toThisPoint:point];
-  SKAction *snapAction = [SKAction moveTo:point duration:kConstantSpeed * distance];
-  [self runAction:snapAction];
+  SKAction *moveAction = [SKAction moveTo:point duration:kConstantSpeed * distance];
+  [self runAction:moveAction];
 }
 
 -(void)animateFlip {
@@ -391,7 +402,7 @@
   SKAction *finishAction;
   
     // rotation
-  if ([self isInRack]) {
+  if ([self isInRack] || [self isInSwap]) {
     finishAction = [SKAction runBlock:^{
       [self finishHovering];
       [self setToHomeZPosition];
@@ -399,7 +410,7 @@
       self.isRotating = NO;
     }];
       // just to ensure that dyadmino is back in its node position
-    self.position = self.homeNode.position;
+    self.position = [self getHomeNodePosition];
     
   } else if ([self isOnBoard]) {
     finishAction = [SKAction runBlock:^{
@@ -416,7 +427,7 @@
 
 -(void)animateEaseIntoNodeAfterHover {
     // animate to homeNode as default, to tempBoardNode if it's a rack dyadmino
-  CGPoint settledPosition = self.homeNode.position;
+  CGPoint settledPosition = [self getHomeNodePosition];
   if ([self belongsInRack] && [self isOnBoard]) {
     settledPosition = self.tempBoardNode.position;
   }
@@ -446,11 +457,15 @@
 }
 
 -(BOOL)isInRack {
-  return (self.withinSection == kDyadminoWithinRack);
+  return (self.withinSection == kWithinRack);
 }
 
 -(BOOL)isOnBoard {
-  return (self.withinSection == kDyadminoWithinBoard);
+  return (self.withinSection == kWithinBoard);
+}
+
+-(BOOL)isInSwap {
+  return (self.withinSection == kWithinSwap);
 }
 
 -(BOOL)isHovering {
@@ -501,7 +516,7 @@
 
 -(NSString *)logThisDyadmino {
   if (self) {
-    NSString *tempString = [NSString stringWithFormat:@"%@", self.name];
+    NSString *tempString = [NSString stringWithFormat:@"%@ is in swap mode %i", self.name, self.belongsInSwap];
     return tempString;
   } else {
     return @"dyadmino doesn't exist";

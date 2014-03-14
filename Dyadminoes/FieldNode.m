@@ -11,6 +11,9 @@
 #import "Dyadmino.h"
 
 @implementation FieldNode {
+  CGFloat _nodeYPosition;
+  CGFloat _height;
+  
   CGFloat _width;
   SnapNodeType _snapNodeType;
   
@@ -24,7 +27,17 @@
   if (self) {
     self.rackNodes = [NSMutableArray new];
     _width = width;
-    _snapNodeType = fieldNodeType;    
+    _height = kRackHeight;
+    _snapNodeType = fieldNodeType;
+    
+    if (_snapNodeType == kFieldNodeRack) {
+      self.name = @"rack";
+      _nodeYPosition = 0.f;
+    } else if (_snapNodeType == kFieldNodeSwap) {
+      self.name = @"swap";
+      _nodeYPosition = kRackHeight;
+    }
+
   }
   return self;
 }
@@ -44,15 +57,13 @@
     
       // if rack depleted, ensure rackNode count matches dyadminoesInRack count
     while (self.rackNodes.count > countNumber) {
-      [_rackNodes removeObject:[_rackNodes lastObject]];
+      [self.rackNodes removeObject:[self.rackNodes lastObject]];
     }
     
       // then reposition the rackNodes
     for (SnapNode *rackNode in self.rackNodes) {
       NSUInteger index = [self.rackNodes indexOfObject:rackNode];
-      
       rackNode.position = [self getNodePositionAtIndex:index withCountNumber:countNumber];
-      rackNode.name = [NSString stringWithFormat:@"rackNode %lu", (unsigned long)index];
     }
   }
 }
@@ -61,7 +72,7 @@
   SnapNode *rackNode = [[SnapNode alloc] initWithSnapNodeType:_snapNodeType];
   rackNode.position = [self getNodePositionAtIndex:nodeIndex withCountNumber:countNumber];
   
-  rackNode.name = [NSString stringWithFormat:@"rackNode %lu", (unsigned long)nodeIndex];
+  rackNode.name = [NSString stringWithFormat:@"%@ node %lu", self.name, (unsigned long)nodeIndex];
   [self.rackNodes addObject:rackNode];
 }
 
@@ -78,21 +89,24 @@
     // this has to be reset after turn
     dyadmino.homeNode = self.rackNodes[index];
     dyadmino.tempBoardNode = nil;
-    dyadmino.withinSection = kDyadminoWithinRack;
+    dyadmino.withinSection = kWithinRack;
 
     //--------------------------------------------------------------------------
   
+      // to ensure position if swapped
+    CGPoint shouldBePosition = [dyadmino getHomeNodePosition];
+    
       // dyadmino is already on rack, just has to animate to new position if not already there
     if (dyadmino.parent == self) {
-      if (!CGPointEqualToPoint(dyadmino.position, dyadmino.homeNode.position)) {
-        [dyadmino animateConstantSpeedMoveDyadminoToPoint:dyadmino.homeNode.position];
+      if (!CGPointEqualToPoint(dyadmino.position, shouldBePosition)) {
+        [dyadmino animateConstantSpeedMoveDyadminoToPoint:shouldBePosition];
       }
       
         // dyadmino is *not* already on rack, so add offscreen first and then animate
     } else {
-      dyadmino.position = CGPointMake(_width + self.xIncrementInRack, dyadmino.homeNode.position.y);
+      dyadmino.position = CGPointMake(_width + self.xIncrementInRack, shouldBePosition.y);
       [self addChild:dyadmino];
-      [dyadmino animateConstantSpeedMoveDyadminoToPoint:dyadmino.homeNode.position];
+      [dyadmino animateConstantSpeedMoveDyadminoToPoint:shouldBePosition];
     }
   }
 }
@@ -102,7 +116,7 @@
                         andClosestRackNode:(SnapNode *)touchedDyadminoNewRackNode {
   
     // touchedDyadmino is in the rack, eligible for exchange
-  if (touchedDyadmino.position.y < kRackHeight) {
+  if ([touchedDyadmino isInRack] || [touchedDyadmino isInSwap]) {
 
       // touchedDyadmino is closer to another dyadmino's rackNode
     if (touchedDyadminoNewRackNode != touchedDyadmino.homeNode) {
@@ -134,7 +148,7 @@
           // take care of state change and animation of exchanged dyadmino, as long as it's not on the board
         if (!scootedDyadmino.tempBoardNode) {
           scootedDyadmino.zPosition = kZPositionRackMovedDyadmino;
-          [scootedDyadmino animateConstantSpeedMoveDyadminoToPoint:scootedDyadmino.homeNode.position];
+          [scootedDyadmino animateConstantSpeedMoveDyadminoToPoint:[scootedDyadmino getHomeNodePosition]];
           scootedDyadmino.zPosition = kZPositionRackRestingDyadmino;
         }
           // make the displacedDyadmino the new scootedDyadmino
@@ -158,7 +172,7 @@
   CGFloat xEdgeMargin = 12.f + (16.f * (kNumDyadminoesInRack - countNumber));
   self.xIncrementInRack = (_width - (2 * xEdgeMargin)) / (countNumber * 2); // right now it's 24.666
   
-  return CGPointMake(xEdgeMargin + self.xIncrementInRack + (2 * self.xIncrementInRack * nodeIndex), kRackHeight / 2);
+  return CGPointMake(xEdgeMargin + self.xIncrementInRack + (2 * self.xIncrementInRack * nodeIndex), _nodeYPosition + (_height / 2));
 }
 
 @end

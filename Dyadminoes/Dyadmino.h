@@ -42,6 +42,7 @@
 @property BOOL isRotating;
 @property BOOL isTouchThenHoverResized;
 @property DyadminoHoveringStatus hoveringStatus;
+@property BOOL belongsInSwap;
 
   // pivot properties
 @property (nonatomic) CGFloat initialPivotAngle;
@@ -67,6 +68,7 @@
 -(void)selectAndPositionSprites;
 -(void)orientBySnapNode:(SnapNode *)snapNode;
 -(void)orientBasedOnSextantChange:(CGFloat)sextantChange;
+-(CGPoint)getHomeNodePosition;
 
 #pragma mark - change status methods
 
@@ -101,8 +103,10 @@
 
 -(BOOL)belongsInRack;
 -(BOOL)belongsOnBoard;
+
 -(BOOL)isInRack;
 -(BOOL)isOnBoard;
+-(BOOL)isInSwap;
 -(BOOL)isHovering;
 -(BOOL)continuesToHover;
 -(BOOL)isFinishedHovering;

@@ -20,8 +20,6 @@
 @property (strong, nonatomic) NSMutableArray *rackNodes;
 @property (weak, nonatomic) id <FieldNodeDelegate> delegate;
 
-@property (nonatomic) BOOL dyadminoShiftInProgress;
-
 #pragma mark - init and layout methods
 
 -(id)initWithWidth:(CGFloat)width andFieldNodeType:(NSUInteger)fieldNodeType;

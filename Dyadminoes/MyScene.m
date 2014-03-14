@@ -78,6 +78,7 @@
   BOOL _swapMode;
   BOOL _rackExchangeInProgress;
   BOOL _dyadminoSnappedIntoMovement;
+  BOOL _swapFieldActionInProgress;
   
     // pointers
   Dyadmino *_currentlyTouchedDyadmino;
@@ -130,21 +131,38 @@
     _swapFieldSprite.color = [SKColor lightGrayColor];
     _swapFieldSprite.size = CGSizeMake(self.frame.size.width, kRackHeight);
     _swapFieldSprite.anchorPoint = CGPointZero;
-    _swapFieldSprite.position = CGPointMake(0, kRackHeight);
+    _swapFieldSprite.position = CGPointMake(0.f, kRackHeight);
     _swapFieldSprite.zPosition = kZPositionSwapField;
     [self addChild:_swapFieldSprite];
-    [_swapFieldSprite layoutOrRefreshNodesWithCount:1];
+    [_swapFieldSprite layoutOrRefreshNodesWithCount:0.f];
     _swapMode = YES;
   }
   
     // FIXME: make better animation
     // otherwise toggle
-  if (_swapMode) {
-    _swapFieldSprite.hidden = YES;
-    _swapMode = NO;
-  } else {
+  if (_swapMode) { // swap mode on, so turn off
+    _swapFieldActionInProgress = YES;
+    
+    SKAction *moveAction = [SKAction moveTo:CGPointMake(0.f, 0.f) duration:kConstantTime];
+    SKAction *completionAction = [SKAction runBlock:^{
+      _swapFieldActionInProgress = NO;
+      _swapFieldSprite.hidden = YES;
+      _swapMode = NO;
+    }];
+    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
+    [_swapFieldSprite runAction:sequenceAction];
+    
+  } else { // swap mode off, turn on
+    _swapFieldActionInProgress = YES;
+    
     _swapFieldSprite.hidden = NO;
-    _swapMode = YES;
+    SKAction *moveAction = [SKAction moveTo:CGPointMake(0.f, kRackHeight) duration:kConstantTime];
+    SKAction *completionAction = [SKAction runBlock:^{
+      _swapFieldActionInProgress = NO;
+      _swapMode = YES;
+    }];
+    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
+    [_swapFieldSprite runAction:sequenceAction];
   }
 }
 
@@ -294,6 +312,10 @@
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
   
+  if (_swapFieldActionInProgress) {
+    return;
+  }
+  
     // get touch location and touched node
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
   _currentTouchLocation = _beganTouchLocation;
@@ -344,6 +366,11 @@
   if (!_currentlyTouchedDyadmino) {
     return;
   }
+  
+  if (_swapFieldActionInProgress) {
+    return;
+  }
+  
     //--------------------------------------------------------------------------
   
     // continue to reset hover count
@@ -353,7 +380,7 @@
   
     // this is the only place that sets dyadmino highlight
     // dyadmino highlight is reset when sent home or finalised
-  if ([_currentlyTouchedDyadmino belongsInRack]) {
+  if ([_currentlyTouchedDyadmino belongsInRack] && !_swapMode) {
     [_currentlyTouchedDyadmino adjustHighlightIntoPlay];
   }
   
@@ -387,7 +414,7 @@
     // A. determine whether to snap out, or keep moving if already snapped out
     // refer to proper snap node
   SnapNode *snapNode;
-  if ([_currentlyTouchedDyadmino belongsInRack]) {
+  if ([_currentlyTouchedDyadmino belongsInRack] || [_currentlyTouchedDyadmino belongsInSwap]) {
     snapNode = _currentlyTouchedDyadmino.tempBoardNode;
   } else {
     snapNode = _currentlyTouchedDyadmino.homeNode;
@@ -406,7 +433,8 @@
     //--------------------------------------------------------------------------
     
       // if it's a rack dyadmino, then while movement is within rack, rearrange dyadminoes
-    if ([_currentlyTouchedDyadmino belongsInRack] && [_currentlyTouchedDyadmino isInRack]) {
+    if (([_currentlyTouchedDyadmino belongsInRack] || [_currentlyTouchedDyadmino belongsInSwap]) &&
+        ([_currentlyTouchedDyadmino isInRack] || [_currentlyTouchedDyadmino isInSwap])) {
       SnapNode *rackNode = [self findSnapNodeClosestToDyadmino:_currentlyTouchedDyadmino];
       
       [_rackFieldSprite handleRackExchangeOfTouchedDyadmino:_currentlyTouchedDyadmino
@@ -417,6 +445,10 @@
 }
 
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+  
+  if (_swapFieldActionInProgress) {
+    return;
+  }
   
     // safeguard against nuttiness
   if (_currentlyTouchedDyadmino && _currentlyTouchedDyadmino.myTouch != [touches anyObject]) {
@@ -452,11 +484,27 @@
   if (!dyadmino.isRotating) {
     
       // if dyadmino belongs in rack and *isn't* on board...
-      // ...flip if possible, or send it home
-    if ([dyadmino belongsInRack] && ![dyadmino isOnBoard]) {
+    if (([dyadmino belongsInRack] || [dyadmino belongsInSwap]) && ![dyadmino isOnBoard]) {
+      
+        // if it's in swap field...
+        // this doesn't change the dyadmino's home node, it just changes
+        // its status; rack will recognise this status and position dyadmino
+        // in same x position, but with heightened yPosition as if it's on rack
+      
+        // this is the only place that belongsInSwap is set
+        // as long as it's not in the rack, it's in the swap
+      if (_swapMode && ![dyadmino isInRack]) {
+        dyadmino.belongsInSwap = YES;
+      } else {
+        dyadmino.belongsInSwap = NO;
+      }
+      
+          // ...flip if possible, or send it home
       if (dyadmino.canFlip) {
+//        NSLog(@"about to flip");
         [dyadmino animateFlip];
       } else {
+        NSLog(@"being sent home");
         [self sendDyadminoHome:dyadmino];
       }
 
@@ -487,7 +535,8 @@
     //--------------------------------------------------------------------------
   
     // if it's still in the rack, it can still rotate
-  if ([_currentlyTouchedDyadmino isInRack]) {
+  if ([_currentlyTouchedDyadmino isInRack] || [_currentlyTouchedDyadmino isInSwap]) {
+    NSLog(@"can flip");
     _currentlyTouchedDyadmino.canFlip = YES;
   }
   
@@ -713,6 +762,13 @@
   } else {
     [self disableButton:_doneButton];
   }
+  
+  if (_currentlyTouchedDyadmino || _recentRackDyadmino) {
+    [self disableButton:_swapButton];
+  } else {
+    [self enableButton:_swapButton];
+  }
+  
 }
 
 -(void)updatePileCountLabel {
@@ -722,11 +778,16 @@
 -(void)sendDyadminoHome:(Dyadmino *)dyadmino {
   [dyadmino goHome];
   [dyadmino endTouchThenHoverResize];
-  dyadmino.withinSection = kDyadminoWithinRack;
+  
+  if (dyadmino.belongsInSwap) {
+    dyadmino.withinSection = kWithinSwap;
+  } else {
+    dyadmino.withinSection = kWithinRack;
+  }
+  
   if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
     _recentRackDyadmino = nil;
   }
-  _rackFieldSprite.dyadminoShiftInProgress = NO;
 }
 
 -(void)updateLogLabelWithString:(NSString *)string {
@@ -760,17 +821,25 @@
     // TODO: this method should probably be a little more sophisticated than this...
   
   DyadminoWithinSection withinSection;
-  if (dyadmino.position.y < kRackHeight) {
-    dyadmino.withinSection = kDyadminoWithinRack;
-    withinSection = kDyadminoWithinRack;
-  } else if (dyadmino.position.y >= kRackHeight &&
+  
+  if (_swapMode && dyadmino.position.y >= kRackHeight && dyadmino.position.y < kRackHeight * 2) {
+    dyadmino.withinSection = kWithinSwap;
+    withinSection = kWithinSwap;
+
+  } else if (dyadmino.position.y < kRackHeight) {
+    dyadmino.withinSection = kWithinRack;
+    withinSection = kWithinRack;
+    
+  } else if (!_swapMode && dyadmino.position.y >= kRackHeight &&
              dyadmino.position.y < self.frame.size.height - kTopBarHeight) {
-    dyadmino.withinSection = kDyadminoWithinBoard;
-    withinSection = kDyadminoWithinBoard;
-  } else { // if (_dyadminoBeingTouched.position.y >= self.frame.size.height - kTopBarHeight)
-    dyadmino.withinSection = kDyadminoWithinTopBar;
-    withinSection = kDyadminoWithinTopBar;
+    dyadmino.withinSection = kWithinBoard;
+    withinSection = kWithinBoard;
+    
+  } else {
+    dyadmino.withinSection = kWithinNowhereLegal;
+    withinSection = kWithinNowhereLegal;
   }
+  
   return withinSection;
 }
 
@@ -820,12 +889,15 @@
       return dyadmino;
     }
       // if dyadmino is in rack...
-  } else if ([dyadmino isInRack]) {
+  } else if ([dyadmino isInRack] || [dyadmino isInSwap]) {
     if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
         _rackFieldSprite.xIncrementInRack) {
       return dyadmino;
     }
   }
+  
+  
+  
     // otherwise, not close enough
   return nil;
 }
@@ -833,10 +905,7 @@
 -(SnapNode *)findSnapNodeClosestToDyadmino:(Dyadmino *)dyadmino {
   id arrayOrSetToSearch;
   
-    // figure out which array of nodes to search
-  if ([dyadmino isInRack]) {
-    arrayOrSetToSearch = _rackFieldSprite.rackNodes;
-  } else if ([dyadmino isOnBoard]) {
+if (!_swapMode && [dyadmino isOnBoard]) {
     if (dyadmino.orientation == kPC1atTwelveOClock || dyadmino.orientation == kPC1atSixOClock) {
       arrayOrSetToSearch = _boardNodesTwelveAndSix;
     } else if (dyadmino.orientation == kPC1atTwoOClock || dyadmino.orientation == kPC1atEightOClock) {
@@ -844,6 +913,9 @@
     } else if (dyadmino.orientation == kPC1atFourOClock || dyadmino.orientation == kPC1atTenOClock) {
       arrayOrSetToSearch = _boardNodesFourAndTen;
     }
+    
+  } else if ([dyadmino isInRack] || [dyadmino isInSwap]) {
+    arrayOrSetToSearch = _rackFieldSprite.rackNodes;
   }
   
     // get the closest snapNode
@@ -869,9 +941,14 @@
   NSLog(@"%@, %@, %@", hoveringString, currentString, recentRackString);
   
   for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
-    NSLog(@"%@ is in homeNode %@, tempReturn %@", dyadmino.name, dyadmino.homeNode.name, dyadmino.tempBoardNode.name);
+    NSLog(@"%@ is in homeNode %@, tempReturn %@, belongs in swap %i", dyadmino.name, dyadmino.homeNode.name, dyadmino.tempBoardNode.name, dyadmino.belongsInSwap);
   }
   NSLog(@"current dyadmino is at %.2f, %.2f", _recentRackDyadmino.position.x, _recentRackDyadmino.position.y);
+  
+  for (SnapNode *snapNode in _swapFieldSprite.rackNodes) {
+    NSLog(@"%@ is in position %.1f, %.1f", snapNode.name, snapNode.position.x, snapNode.position.y);
+  }
+  
 }
 
 @end

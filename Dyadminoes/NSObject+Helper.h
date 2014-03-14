@@ -69,9 +69,10 @@ typedef enum dyadminoHoveringStatus {
 } DyadminoHoveringStatus;
 
 typedef enum dyadminoWithinSection {
-  kDyadminoWithinRack,
-  kDyadminoWithinBoard,
-  kDyadminoWithinTopBar
+  kWithinRack,
+  kWithinBoard,
+  kWithinNowhereLegal,
+  kWithinSwap,
 } DyadminoWithinSection;
 
 typedef enum pcMode {
