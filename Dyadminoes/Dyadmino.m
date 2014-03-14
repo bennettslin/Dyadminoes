@@ -12,6 +12,7 @@
   BOOL _alreadyAddedChildren;
   CGSize _touchSize;
   PivotOnPC _pivotOnPC;
+  BOOL _isInPlay;
 }
 
 #pragma mark - init and layout methods
@@ -189,19 +190,19 @@
 }
 
 -(void)adjustHighlightIntoPlay {
-  if (self.position.y < kRackHeight + (kHeightGapToHighlightIntoPlay / 2) &&
-      self.position.y >= kRackHeight - (kHeightGapToHighlightIntoPlay / 2)) {
-    self.colorBlendFactor = (self.position.y + (kHeightGapToHighlightIntoPlay / 2) - kRackHeight) *
-    kDyadminoColorBlendFactor / kHeightGapToHighlightIntoPlay;
-  }
-  if (self.position.y > kRackHeight + (kHeightGapToHighlightIntoPlay / 2)) {
-    self.colorBlendFactor = kDyadminoColorBlendFactor;
+  CGFloat inPlayFloat = [self getHeightFloatGivenGap:kGapForHighlight];
+    self.colorBlendFactor = kDyadminoColorBlendFactor * inPlayFloat;
+  
+  if (inPlayFloat > 0.f) {
+      // once in play, must be reset by other means than movement
+    _isInPlay = YES;
   }
 }
 
 -(void)unhighlightOutOfPlay {
 // TODO: possibly some animation here
   self.colorBlendFactor = 0.f;
+  _isInPlay = NO;
 }
 
 #pragma mark - change state methods
@@ -214,10 +215,6 @@
   }
 }
 
--(void)setToTempZPosition {
-    self.zPosition = kZPositionBoardRestingDyadmino;
-}
-
 -(void)goHome {
   [self unhighlightOutOfPlay];
   [self orientBySnapNode:self.homeNode];
@@ -226,6 +223,7 @@
   self.tempBoardNode = nil;
   [self setToHomeZPosition];
   [self finishHovering];
+  _isInPlay = NO;
 }
 
 -(void)removeActionsAndEstablishNotRotating {
@@ -476,6 +474,26 @@
     return YES;
   } else {
     return NO;
+  }
+}
+
+-(BOOL)isInPlay {
+  return _isInPlay;
+}
+
+#pragma mark - helper methods
+
+-(CGFloat)getHeightFloatGivenGap:(CGFloat)gap {
+    // returns 0 at bottom, gradually reaches 1 at peak...
+  if (self.position.y < kRackHeight + (gap / 2) &&
+      self.position.y >= kRackHeight - (gap / 2)) {
+    return (self.position.y + (gap / 2) - kRackHeight) / gap;
+    
+      // then returns 1 thereafter
+  } else if (self.position.y > kRackHeight + (gap / 2)) {
+    return 1.f;
+  } else {
+    return 0.f;
   }
 }
 

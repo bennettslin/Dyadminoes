@@ -39,7 +39,10 @@
 #define kDistanceForSnapIn 21.f // this is half the height of the cell space, plus wiggle room
 #define kDistanceForTouchingHoveringDyadmino 37.5f
 #define kDistanceForTouchingLockedDyadmino 25.f
-#define kHeightGapToHighlightIntoPlay 40.f
+
+#define kGapForHighlight 30.f
+#define kGapForShiftingDyadminoes 40.f
+#define kBufferUnderShiftingGapForExchangingDyadminoes 10.f
 
   // z positions
 #define kZPositionBoard 10.f

@@ -81,7 +81,6 @@
 #pragma mark - change state methods
 
 -(void)setToHomeZPosition;
--(void)setToTempZPosition;
 -(void)goHome;
 -(void)removeActionsAndEstablishNotRotating;
 
@@ -107,6 +106,11 @@
 -(BOOL)isHovering;
 -(BOOL)continuesToHover;
 -(BOOL)isFinishedHovering;
+-(BOOL)isInPlay;
+
+#pragma mark - helper methods
+
+-(CGFloat)getHeightFloatGivenGap:(CGFloat)gap;
 
 #pragma mark - debugging methods
 

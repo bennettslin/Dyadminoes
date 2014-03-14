@@ -8,6 +8,7 @@
 
 #import <SpriteKit/SpriteKit.h>
 @class Dyadmino;
+@class SnapNode;
 
 @protocol FieldNodeDelegate <NSObject>
 
@@ -19,9 +20,22 @@
 @property (strong, nonatomic) NSMutableArray *rackNodes;
 @property (weak, nonatomic) id <FieldNodeDelegate> delegate;
 
+@property (nonatomic) BOOL dyadminoShiftInProgress;
+
+#pragma mark - init and layout methods
 -(id)initWithWidth:(CGFloat)width andFieldNodeType:(NSUInteger)fieldNodeType;
--(void)layoutOrRefreshFieldWithCount:(NSUInteger)countNumber;
--(void)populateOrRefreshWithDyadminoes:(NSMutableArray *)dyadminoesInArray;
+-(void)layoutOrRefreshNodesWithCount:(NSUInteger)countNumber;
+
+#pragma mark - reposition methods
+-(void)repositionNodesGivenDyadminoes:(NSMutableArray *)dyadminoesInArray
+                    uponStrayDyadmino:(Dyadmino *)dyadmino;
+
+-(void)repositionOrShiftDyadminoes:(NSMutableArray *)dyadminoesInArray
+                    givenTouchedDyadmino:(Dyadmino *)touchedDyadmino;
+
+-(void)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
+                            withDyadminoes:(NSMutableArray *)dyadminoesInArray
+                        andClosestRackNode:(SnapNode *)rackNode;
 
 @end
 

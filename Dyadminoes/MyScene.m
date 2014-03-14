@@ -40,6 +40,7 @@
   // TODO: have animation between rotation frames
   // TODO: make bouncier animations
   // TODO: make dyadmino sent home shrink then reappear in rack
+  // TODO: pivot guides
 
   // leave alone for now until better information about how Game Center works
   // TODO: make so that player, not dyadmino, knows about pcMode
@@ -96,8 +97,6 @@
   if (self = [super initWithSize:size]) {
     self.ourGameEngine = [GameEngine new];
     self.myPlayer = [self.ourGameEngine getAssignedAsPlayer];
-    
-//    _rackNodes = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
     _buttonNodes = [NSMutableSet new];
     _boardNodesTwelveAndSix = [NSMutableSet new];
     _boardNodesTwoAndEight = [NSMutableSet new];
@@ -129,7 +128,7 @@
     _swapFieldSprite.position = CGPointMake(0, kRackHeight);
     _swapFieldSprite.zPosition = kZPositionSwapField;
     [self addChild:_swapFieldSprite];
-    [_swapFieldSprite layoutOrRefreshFieldWithCount:1];
+    [_swapFieldSprite layoutOrRefreshNodesWithCount:1];
     _swapMode = YES;
   }
   
@@ -279,11 +278,11 @@
     _rackFieldSprite.zPosition = kZPositionRackField;
     [self addChild:_rackFieldSprite];
   }
-  [_rackFieldSprite layoutOrRefreshFieldWithCount:self.myPlayer.dyadminoesInRack.count];
+  [_rackFieldSprite layoutOrRefreshNodesWithCount:self.myPlayer.dyadminoesInRack.count];
 }
 
 -(void)populateOrRefreshRackWithDyadminoes {
-  [_rackFieldSprite populateOrRefreshWithDyadminoes:self.myPlayer.dyadminoesInRack];
+  [_rackFieldSprite repositionOrShiftDyadminoes:self.myPlayer.dyadminoesInRack givenTouchedDyadmino:nil];
 }
 
 #pragma mark - touch methods
@@ -352,6 +351,19 @@
   if ([_currentlyTouchedDyadmino belongsInRack]) {
     [_currentlyTouchedDyadmino adjustHighlightIntoPlay];
   }
+  
+//    // establish that dyadmino shift is in progress
+//  if ([_currentlyTouchedDyadmino isInPlay]) {
+//      // this is only cancelled after dyadmino is sent home
+//    _rackFieldSprite.dyadminoShiftInProgress = YES;
+//  }
+//  
+//    // take care of this while shift is in progress
+//  if (_rackFieldSprite.dyadminoShiftInProgress == YES) {
+//    [_rackFieldSprite repositionNodesGivenDyadminoes:self.myPlayer.dyadminoesInRack uponStrayDyadmino:_currentlyTouchedDyadmino];
+//    [_rackFieldSprite repositionOrShiftDyadminoes:self.myPlayer.dyadminoesInRack givenTouchedDyadmino:_currentlyTouchedDyadmino];
+//  }
+  
     //--------------------------------------------------------------------------
   
     // get touch location and update currently touched dyadmino's section
@@ -360,31 +372,23 @@
   CGPoint reverseOffsetPoint = [self fromThisPoint:_currentTouchLocation subtractThisPoint:_offsetTouchVector];
   [self determineCurrentSectionOfDyadmino:_currentlyTouchedDyadmino];
 
-    // if it's a rack dyadmino, highlight when it's in board
-  if ([_currentlyTouchedDyadmino belongsInRack]) {
-    
-    if ([_currentlyTouchedDyadmino isInRack]) {
-//      [_currentlyTouchedDyadmino unhighlightOutOfPlay];
-    } else {
-        // it's now in play
-//      [_currentlyTouchedDyadmino highlightIntoPlay];
-      
-        // reset previous dyadminoes
-      if (_currentlyTouchedDyadmino != _recentRackDyadmino) {
-        [self sendDyadminoHome:_recentRackDyadmino];
-      }
-    }
-  }
-    //--------------------------------------------------------------------------
-  
-    // if it moved at all, it can no longer flip
-  _currentlyTouchedDyadmino.canFlip = NO;
-
-    // now, if we're currently pivoting, just rotate and return
+    // if we're currently pivoting, just rotate and return
   if (pivotInProgress) {
     [_currentlyTouchedDyadmino pivotBasedOnLocation:_currentTouchLocation];
     return;
   }
+  
+  
+    // if it moved at all, it can no longer flip
+  _currentlyTouchedDyadmino.canFlip = NO;
+  
+    // if rack dyadmino is moved to board, send home recentRack dyadmino
+  if ([_currentlyTouchedDyadmino belongsInRack] &&
+      [_currentlyTouchedDyadmino isOnBoard] &&
+      _currentlyTouchedDyadmino != _recentRackDyadmino) {
+    [self sendDyadminoHome:_recentRackDyadmino];
+  }
+  
     //--------------------------------------------------------------------------
   
     // A. determine whether to snap out, or keep moving if already snapped out
@@ -410,7 +414,11 @@
     
       // if it's a rack dyadmino, then while movement is within rack, rearrange dyadminoes
     if ([_currentlyTouchedDyadmino belongsInRack] && [_currentlyTouchedDyadmino isInRack]) {
-      [self handleRackExchangeOfCurrentDyadmino];
+      SnapNode *rackNode = [self findSnapNodeClosestToDyadmino:_currentlyTouchedDyadmino];
+      
+      [_rackFieldSprite handleRackExchangeOfTouchedDyadmino:_currentlyTouchedDyadmino
+                                             withDyadminoes:(NSMutableArray *)self.myPlayer.dyadminoesInRack
+                                         andClosestRackNode:rackNode];
     }
   }
 }
@@ -457,6 +465,12 @@
       if (dyadmino.canFlip) {
         [dyadmino animateFlip];
       } else {
+        NSLog(@"here's where we are, and should be");
+        
+          // this is when dyadmino is still in rack, nodes have already started to shift,
+          // but then player cancels move
+//        [_rackFieldSprite repositionNodesGivenDyadminoes:self.myPlayer.dyadminoesInRack uponStrayDyadmino:nil];
+//        [_rackFieldSprite repositionOrShiftDyadminoes:self.myPlayer.dyadminoesInRack givenTouchedDyadmino:nil];
         [self sendDyadminoHome:dyadmino];
       }
 
@@ -517,32 +531,6 @@
       [_currentlyTouchedDyadmino animateFlip];
     }
   }
-}
-
--(void)handleRackExchangeOfCurrentDyadmino {
-  SnapNode *rackNode = [self findSnapNodeClosestToDyadmino:_currentlyTouchedDyadmino];
-    // just a precaution
-  if (rackNode != _currentlyTouchedDyadmino.homeNode) {
-    NSUInteger rackNodesIndex = [_rackFieldSprite.rackNodes indexOfObject:rackNode];
-    NSUInteger touchedDyadminoIndex = [self.myPlayer.dyadminoesInRack indexOfObject:_currentlyTouchedDyadmino];
-    Dyadmino *exchangedDyadmino = [self.myPlayer.dyadminoesInRack objectAtIndex:rackNodesIndex];
-    
-      // just a precaution
-    if (_currentlyTouchedDyadmino != exchangedDyadmino) {
-      [self.myPlayer.dyadminoesInRack exchangeObjectAtIndex:touchedDyadminoIndex withObjectAtIndex:rackNodesIndex];
-    }
-      // dyadminoes exchange rack nodes, and vice versa
-    exchangedDyadmino.homeNode = _currentlyTouchedDyadmino.homeNode;
-    
-      // take care of state change and animation of exchanged dyadmino, as long as it's not on the board
-    if (!exchangedDyadmino.tempBoardNode) {
-      exchangedDyadmino.zPosition = kZPositionRackMovedDyadmino;
-      [exchangedDyadmino animateConstantSpeedMoveDyadminoToPoint:exchangedDyadmino.homeNode.position];
-      exchangedDyadmino.zPosition = kZPositionRackRestingDyadmino;
-    }
-  }
-    // continues exchange, or if just returning back to its own rack node
-  _currentlyTouchedDyadmino.homeNode = rackNode;
 }
 
 -(Dyadmino *)assignCurrentDyadminoToPointer {
@@ -753,6 +741,7 @@
   if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
     _recentRackDyadmino = nil;
   }
+  _rackFieldSprite.dyadminoShiftInProgress = NO;
 }
 
 -(void)updateLogLabelWithString:(NSString *)string {
@@ -892,20 +881,12 @@
   NSString *hoveringString = [NSString stringWithFormat:@"hovering not touched %@", [_hoveringButNotTouchedDyadmino logThisDyadmino]];
   NSString *recentRackString = [NSString stringWithFormat:@"recent rack %@", [_recentRackDyadmino logThisDyadmino]];
   NSString *currentString = [NSString stringWithFormat:@"current %@", [_currentlyTouchedDyadmino logThisDyadmino]];
-//  NSString *recentString = [NSString stringWithFormat:@"recent %@", [self logThisDyadmino:_recentDyadmino]];
   NSLog(@"%@, %@, %@", hoveringString, currentString, recentRackString);
   
   for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
     NSLog(@"%@ is in homeNode %@, tempReturn %@", dyadmino.name, dyadmino.homeNode.name, dyadmino.tempBoardNode.name);
   }
-  
   NSLog(@"current dyadmino is at %.2f, %.2f", _recentRackDyadmino.position.x, _recentRackDyadmino.position.y);
-//  for (SnapNode *rackNode in _rackFieldSprite.rackNodes) {
-//    NSLog(@"%@ is in %.1f, %.1f", rackNode.name, rackNode.position.x, rackNode.position.y);
-//  }
-
-  
-//  NSLog(@"rack array knows %@", self.myPlayer.dyadminoesInRack);
 }
 
 @end
