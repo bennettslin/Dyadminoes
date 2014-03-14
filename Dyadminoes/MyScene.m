@@ -652,12 +652,10 @@
 
   // FIXME: make this better
 -(void)enableButton:(SKSpriteNode *)button {
-//  button.color = [UIColor greenColor];
   button.hidden = NO;
 }
 
 -(void)disableButton:(SKSpriteNode *)button {
-//  button.color = [UIColor redColor];
   button.hidden = YES;
 }
 

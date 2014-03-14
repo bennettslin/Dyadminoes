@@ -33,7 +33,7 @@
 
 -(void)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
                             withDyadminoes:(NSMutableArray *)dyadminoesInArray
-                        andClosestRackNode:(SnapNode *)rackNode;
+                        andClosestRackNode:(SnapNode *)touchedDyadminoNewRackNode;
 
 @end
 

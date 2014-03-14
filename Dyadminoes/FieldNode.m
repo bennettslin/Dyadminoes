@@ -52,7 +52,7 @@
       NSUInteger index = [self.rackNodes indexOfObject:rackNode];
       
       rackNode.position = [self getNodePositionAtIndex:index withCountNumber:countNumber];
-      rackNode.name = [NSString stringWithFormat:@"rackNode %i", index];
+      rackNode.name = [NSString stringWithFormat:@"rackNode %lu", (unsigned long)index];
     }
   }
 }
@@ -61,7 +61,7 @@
   SnapNode *rackNode = [[SnapNode alloc] initWithSnapNodeType:_snapNodeType];
   rackNode.position = [self getNodePositionAtIndex:nodeIndex withCountNumber:countNumber];
   
-  rackNode.name = [NSString stringWithFormat:@"rackNode %i", nodeIndex];
+  rackNode.name = [NSString stringWithFormat:@"rackNode %lu", (unsigned long)nodeIndex];
   [self.rackNodes addObject:rackNode];
 }
 
@@ -99,32 +99,54 @@
 
 -(void)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
                             withDyadminoes:(NSMutableArray *)dyadminoesInArray
-                        andClosestRackNode:(SnapNode *)rackNode {
+                        andClosestRackNode:(SnapNode *)touchedDyadminoNewRackNode {
   
+    // touchedDyadmino is in the rack, eligible for exchange
   if (touchedDyadmino.position.y < kRackHeight) {
 
-      // just a precaution
-    if (rackNode != touchedDyadmino.homeNode) {
-      NSUInteger rackNodesIndex = [self.rackNodes indexOfObject:rackNode];
+      // touchedDyadmino is closer to another dyadmino's rackNode
+    if (touchedDyadminoNewRackNode != touchedDyadmino.homeNode) {
+      
+        // assign pointers
+      NSUInteger newRackNodeIndex = [self.rackNodes indexOfObject:touchedDyadminoNewRackNode];
       NSUInteger touchedDyadminoIndex = [dyadminoesInArray indexOfObject:touchedDyadmino];
-      Dyadmino *exchangedDyadmino = [dyadminoesInArray objectAtIndex:rackNodesIndex];
+      NSUInteger iterator;
       
-        // just a precaution
-      if (touchedDyadmino != exchangedDyadmino) {
-        [dyadminoesInArray exchangeObjectAtIndex:touchedDyadminoIndex withObjectAtIndex:rackNodesIndex];
+        // decide which direction to scoot dyadminoes
+      if (touchedDyadminoIndex > newRackNodeIndex) {
+        iterator = 1; // scoot right
+      } else if (touchedDyadminoIndex < newRackNodeIndex) {
+        iterator = -1; // scoot left
       }
-        // dyadminoes exchange rack nodes, and vice versa
-      exchangedDyadmino.homeNode = touchedDyadmino.homeNode;
       
-        // take care of state change and animation of exchanged dyadmino, as long as it's not on the board
-      if (!exchangedDyadmino.tempBoardNode) {
-        exchangedDyadmino.zPosition = kZPositionRackMovedDyadmino;
-        [exchangedDyadmino animateConstantSpeedMoveDyadminoToPoint:exchangedDyadmino.homeNode.position];
-        exchangedDyadmino.zPosition = kZPositionRackRestingDyadmino;
+      Dyadmino *scootedDyadmino = [dyadminoesInArray objectAtIndex:newRackNodeIndex];
+
+      while (scootedDyadmino.homeNode != touchedDyadmino.homeNode) {
+        
+        NSUInteger scootedIndex = [dyadminoesInArray indexOfObject:scootedDyadmino];
+        NSUInteger displacedIndex = (scootedIndex + iterator) % 6;
+    
+        Dyadmino *displacedDyadmino = [dyadminoesInArray objectAtIndex:displacedIndex];
+        
+          // dyadminoes exchange rack nodes, and vice versa
+        scootedDyadmino.homeNode = displacedDyadmino.homeNode;
+        
+          // take care of state change and animation of exchanged dyadmino, as long as it's not on the board
+        if (!scootedDyadmino.tempBoardNode) {
+          scootedDyadmino.zPosition = kZPositionRackMovedDyadmino;
+          [scootedDyadmino animateConstantSpeedMoveDyadminoToPoint:scootedDyadmino.homeNode.position];
+          scootedDyadmino.zPosition = kZPositionRackRestingDyadmino;
+        }
+          // make the displacedDyadmino the new scootedDyadmino
+        displacedDyadmino.homeNode = scootedDyadmino.homeNode;
+        scootedDyadmino = displacedDyadmino;
       }
+      
+        // everything scooted, now do it for the touched dyadmino
+      touchedDyadmino.homeNode = touchedDyadminoNewRackNode;
+      [dyadminoesInArray removeObject:touchedDyadmino];
+      [dyadminoesInArray insertObject:touchedDyadmino atIndex:newRackNodeIndex];
     }
-      // continues exchange, or if just returning to its own rack node
-    touchedDyadmino.homeNode = rackNode;
   }
 }
 

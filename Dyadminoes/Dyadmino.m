@@ -28,7 +28,7 @@
       // constants
     self.color = [UIColor yellowColor]; // for color blend factor
     self.zPosition = kZPositionRackRestingDyadmino;
-    self.name = [NSString stringWithFormat:@"dyadmino %i-%i", pc1, pc2];
+    self.name = [NSString stringWithFormat:@"dyadmino %lu-%lu", (unsigned long)pc1, (unsigned long)pc2];
     self.pc1 = pc1;
     self.pc2 = pc2;
     self.pcMode = pcMode;
