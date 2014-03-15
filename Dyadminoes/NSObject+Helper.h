@@ -46,6 +46,7 @@
 #define kBufferUnderShiftingGapForExchangingDyadminoes 10.f
 
   // z positions
+#define kZPositionBoardCoverHidden 5.f
 #define kZPositionBoard 10.f
 #define kZPositionBoardCell 20.f
 #define kZPositionBoardCover 25.f
@@ -62,6 +63,10 @@
 #define kZPositionRackRestingDyadmino 330.f
 #define kZPositionHoveredDyadmino 400.f
 #define kZPositionMessage 500.f
+
+  // colours
+#define kDarkBlue [SKColor colorWithRed:.29f green:.4f blue:.63f alpha:1.f]
+#define kSkyBlue [SKColor colorWithRed:.7f green:.8f blue:.9f alpha:1.f]
 
 typedef enum dyadminoHoveringStatus {
   kDyadminoNoHoverStatus,

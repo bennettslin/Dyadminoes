@@ -48,7 +48,7 @@
   // TODO: make so that player, not dyadmino, knows about pcMode
 
 @implementation MyScene {
-
+  
     // sprites and nodes
   FieldNode *_rackField;
   FieldNode *_swapField;
@@ -80,6 +80,7 @@
   BOOL _rackExchangeInProgress;
   BOOL _dyadminoSnappedIntoMovement;
   BOOL _swapFieldActionInProgress;
+  BOOL _boardBeingMoved;
   
     // pointers
   Dyadmino *_currentlyTouchedDyadmino;
@@ -96,6 +97,7 @@
   SKLabelNode *_messageLabel;
   SKSpriteNode *_logButton;
   SKLabelNode *_logLabel;
+  SKLabelNode *_testLabelNode;
 }
 
 #pragma mark - init methods
@@ -141,7 +143,7 @@
 
 -(void)layoutTopBar {
     // background
-  SKSpriteNode *topBar = [SKSpriteNode spriteNodeWithColor:[SKColor darkGrayColor]
+  SKSpriteNode *topBar = [SKSpriteNode spriteNodeWithColor:kDarkBlue
                                                       size:CGSizeMake(self.frame.size.width, kTopBarHeight)];
   topBar.anchorPoint = CGPointZero;
   topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
@@ -226,8 +228,9 @@
 -(void)layoutBoardAndCover {
   self.backgroundColor = [SKColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1.0];
 
-  _board = [[SKSpriteNode alloc] initWithColor:[SKColor lightGrayColor]
+  _board = [[SKSpriteNode alloc] initWithColor:kSkyBlue
                                                size:CGSizeMake(self.frame.size.width, self.frame.size.height)];
+  _board.name = @"board";
   _board.position = CGPointZero;
   _board.anchorPoint = CGPointZero;
 //  _board.position = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
@@ -236,15 +239,16 @@
   
   _boardCover = [[SKSpriteNode alloc] initWithColor:[SKColor blackColor]
                                                size:CGSizeMake(self.frame.size.width, self.frame.size.height)];
+  _boardCover.name = @"boardCover";
   _boardCover.position = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
-  _boardCover.zPosition = kZPositionBoardCover;
+  _boardCover.zPosition = kZPositionBoardCoverHidden;
   _boardCover.alpha = kBoardCoverAlpha;
   [_board addChild:_boardCover];
   _boardCover.hidden = YES;
   
     // layout cells for now
   for (int i = 0; i < 6; i++) {
-    for (int j = 0; j < 30; j++) {
+    for (int j = 0; j < 6; j++) {
       SKSpriteNode *blankCell = [SKSpriteNode spriteNodeWithImageNamed:@"blankSpace"];
       blankCell.name = @"blankCell";
       blankCell.zPosition = kZPositionBoardCell;
@@ -258,10 +262,9 @@
       if (j % 2 == 0) {
         xOffset = blankCell.size.width * 0.75f + xPadding;
       }
-      
-        // add blank cell
-//      blankCell.anchorPoint = CGPointZero;
+
       blankCell.position = CGPointMake(i * (blankCell.size.width * 1.5f + 2.f * xPadding) + xOffset, j * (blankCell.size.height / 2.f + yPadding));
+      blankCell.alpha = 0.1f;
       [_board addChild:blankCell];
       
         // add board nodes
@@ -283,14 +286,19 @@
       [_boardNodesTwelveAndSix addObject:boardNodeTwelveAndSix];
       [_boardNodesTwoAndEight addObject:boardNodeTwoAndEight];
       [_boardNodesFourAndTen addObject:boardNodeFourAndTen];
+      [_board addChild:boardNodeTwelveAndSix];
+      [_board addChild:boardNodeTwoAndEight];
+      [_board addChild:boardNodeFourAndTen];
       
         // for testing purposes only
-      if (i == 2 && j == 15) {
-        SKLabelNode *testLabelNode = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
-        testLabelNode.position = blankCell.position;
-        testLabelNode.text = @"C";
-        testLabelNode.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
-        [self addChild:testLabelNode];
+      if (i == 2 && j == 2) {
+        _testLabelNode = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
+        _testLabelNode.position = blankCell.position;
+        _testLabelNode.zPosition = kZPositionMessage;
+        _testLabelNode.text = @"C";
+        _testLabelNode.name = @"testLabel";
+        _testLabelNode.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
+        [_board addChild:_testLabelNode];
       }
     }
   }
@@ -326,7 +334,18 @@
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
+  NSLog(@"touchNode is %@", _touchNode.name);
+  
+    //--------------------------------------------------------------------------
 
+    // board touched
+  if ([_touchNode.name isEqualToString:@"blankCell"] || _touchNode == _boardCover) {
+    _boardBeingMoved = YES;
+    _offsetTouchVector = [self fromThisPoint:_beganTouchLocation
+                           subtractThisPoint:_board.position];
+    return;
+  }
+  
     // if it's a button, take care of it when touch ended
   if ([_buttonNodes containsObject:_touchNode]) {
     _buttonPressed = (SKSpriteNode *)_touchNode;
@@ -349,6 +368,8 @@
 }
 
 -(void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+  NSLog(@"test label now at %.1f, %.1f", _testLabelNode.position.x, _testLabelNode.position.y);
+  NSLog(@"board node is now at %.1f, %.1f", _board.position.x, _board.position.y);
   
     // safeguard against nuttiness
   if (_currentlyTouchedDyadmino && _currentlyTouchedDyadmino.myTouch != [touches anyObject]) {
@@ -366,6 +387,17 @@
       _buttonPressed.alpha = 1.f;
       return;
     }
+  }
+  
+    // for both board and dyadmino movement
+  _currentTouchLocation = [self findTouchLocationFromTouches:touches];
+  CGPoint reverseOffsetPoint = [self fromThisPoint:_currentTouchLocation subtractThisPoint:_offsetTouchVector];
+  
+    // if board being moved, handle and return
+  if (_boardBeingMoved) {
+    _board.position = [self fromThisPoint:_currentTouchLocation
+                        subtractThisPoint:_offsetTouchVector];
+    return;
   }
 
     // nothing happens if there is no current dyadmino
@@ -392,10 +424,7 @@
   
     //--------------------------------------------------------------------------
   
-    // get touch location and update currently touched dyadmino's section
-    // if hovering, currently touched dyadmino is also being moved, so it can no longer rotate
-  _currentTouchLocation = [self findTouchLocationFromTouches:touches];
-  CGPoint reverseOffsetPoint = [self fromThisPoint:_currentTouchLocation subtractThisPoint:_offsetTouchVector];
+    // update currently touched dyadmino's section
   [self determineCurrentSectionOfDyadmino:_currentlyTouchedDyadmino];
 
     // if we're currently pivoting, just rotate and return
@@ -470,6 +499,11 @@
     _buttonPressed.alpha = 1.f;
     _buttonPressed = nil;
     return;
+  }
+  
+    // board no longer being moved
+  if (_boardBeingMoved) {
+    _boardBeingMoved = NO;
   }
   
     // nothing happens if there is no current dyadmino
@@ -700,10 +734,12 @@
 -(void)revealBoardCover {
     // TODO: make this animated
   _boardCover.hidden = NO;
+  _boardCover.zPosition = kZPositionBoardCover;
 }
 
 -(void)hideBoardCover {
   _boardCover.hidden = YES;
+  _boardCover.zPosition = kZPositionBoardCoverHidden;
 }
 
 #pragma mark - engine methods

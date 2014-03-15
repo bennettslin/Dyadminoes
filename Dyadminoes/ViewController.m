@@ -9,10 +9,36 @@
 #import "ViewController.h"
 #import "MyScene.h"
 
-@implementation ViewController
+@implementation ViewController {
+  UIDeviceOrientation _deviceOrientation;
+}
 
 -(void)viewDidLoad {
   [super viewDidLoad];
+
+    // log device orientation for now
+  [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:[UIDevice currentDevice]];
+}
+
+-(void)orientationChanged:(NSNotification *)note {
+  UIDevice *device = note.object;
+  switch (device.orientation) {
+    case UIDeviceOrientationPortrait:
+      break;
+    case UIDeviceOrientationLandscapeLeft:
+      break;
+    case UIDeviceOrientationLandscapeRight:
+      break;
+    case UIDeviceOrientationPortraitUpsideDown:
+      break;
+    case UIDeviceOrientationFaceDown:
+      break;
+    case UIDeviceOrientationFaceUp:
+      break;
+    case UIDeviceOrientationUnknown:
+      break;
+  }
 }
 
 -(BOOL)shouldAutorotate {
