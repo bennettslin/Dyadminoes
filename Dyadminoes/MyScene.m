@@ -67,7 +67,8 @@
     // buttons
   SKSpriteNode *_togglePCModeButton;
   SKSpriteNode *_swapButton;
-  SKSpriteNode *_doneButton;
+  SKSpriteNode *_playDyadminoButton;
+  SKSpriteNode *_doneTurnButton;
 
     // touches
   CGPoint _beganTouchLocation;
@@ -115,7 +116,7 @@
 
 -(void)didMoveToView:(SKView *)view {
   [self layoutBoard];
-  [self layoutOrToggleSwapField];
+  [self layoutSwapField];
   [self layoutTopBar];
   [self layoutOrRefreshRackField];
   [self populateOrRefreshRackWithDyadminoes];
@@ -123,47 +124,21 @@
 
 #pragma mark - layout methods
 
--(void)layoutOrToggleSwapField {
-    // initial instantiation of swap field sprite
-  if (!_swapFieldSprite) {
-    _swapFieldSprite = [[FieldNode alloc] initWithWidth:self.frame.size.width andFieldNodeType:kFieldNodeSwap];
-    _swapFieldSprite.delegate = self;
-    _swapFieldSprite.color = [SKColor lightGrayColor];
-    _swapFieldSprite.size = CGSizeMake(self.frame.size.width, kRackHeight);
-    _swapFieldSprite.anchorPoint = CGPointZero;
-    _swapFieldSprite.position = CGPointMake(0.f, kRackHeight);
-    _swapFieldSprite.zPosition = kZPositionSwapField;
-    [self addChild:_swapFieldSprite];
-    [_swapFieldSprite layoutOrRefreshNodesWithCount:0.f];
-    _swapMode = YES;
-  }
+-(void)layoutSwapField {
+  // initial instantiation of swap field sprite
+  _swapFieldSprite = [[FieldNode alloc] initWithWidth:self.frame.size.width andFieldNodeType:kFieldNodeSwap];
+  _swapFieldSprite.delegate = self;
+  _swapFieldSprite.color = [SKColor lightGrayColor];
+  _swapFieldSprite.size = CGSizeMake(self.frame.size.width, kRackHeight);
+  _swapFieldSprite.anchorPoint = CGPointZero;
+//  _swapFieldSprite.position = CGPointMake(0.f, 0.f);
+  _swapFieldSprite.zPosition = kZPositionSwapField;
+  [self addChild:_swapFieldSprite];
+//  [_swapFieldSprite layoutOrRefreshNodesWithCount:0.f];
   
-    // FIXME: make better animation
-    // otherwise toggle
-  if (_swapMode) { // swap mode on, so turn off
-    _swapFieldActionInProgress = YES;
-    
-    SKAction *moveAction = [SKAction moveTo:CGPointMake(0.f, 0.f) duration:kConstantTime];
-    SKAction *completionAction = [SKAction runBlock:^{
-      _swapFieldActionInProgress = NO;
-      _swapFieldSprite.hidden = YES;
-      _swapMode = NO;
-    }];
-    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
-    [_swapFieldSprite runAction:sequenceAction];
-    
-  } else { // swap mode off, turn on
-    _swapFieldActionInProgress = YES;
-    
-    _swapFieldSprite.hidden = NO;
-    SKAction *moveAction = [SKAction moveTo:CGPointMake(0.f, kRackHeight) duration:kConstantTime];
-    SKAction *completionAction = [SKAction runBlock:^{
-      _swapFieldActionInProgress = NO;
-      _swapMode = YES;
-    }];
-    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
-    [_swapFieldSprite runAction:sequenceAction];
-  }
+    // initially sets swap mode
+  _swapMode = NO;
+  _swapFieldSprite.hidden = YES;
 }
 
 -(void)layoutTopBar {
@@ -180,30 +155,38 @@
 }
 
 -(void)populateTopBarWithButtons:(SKSpriteNode *)topBar {
-  CGSize buttonSize = CGSizeMake(50.f, 50.f);
+  CGFloat buttonWidth = 45.f;
+  CGSize buttonSize = CGSizeMake(buttonWidth, 50.f);
   CGFloat buttonYPosition = 30.f;
   
   _togglePCModeButton = [[SKSpriteNode alloc] initWithColor:[UIColor orangeColor] size:buttonSize];
-  _togglePCModeButton.position = CGPointMake(50.f, buttonYPosition);
+  _togglePCModeButton.position = CGPointMake(buttonWidth, buttonYPosition);
   _togglePCModeButton.zPosition = kZPositionTopBarButton;
   [topBar addChild:_togglePCModeButton];
   [_buttonNodes addObject:_togglePCModeButton];
   
   _swapButton = [[SKSpriteNode alloc] initWithColor:[UIColor yellowColor] size:buttonSize];
-  _swapButton.position = CGPointMake(100.f, buttonYPosition);
+  _swapButton.position = CGPointMake(buttonWidth * 2, buttonYPosition);
   _swapButton.zPosition = kZPositionTopBarButton;
   [topBar addChild:_swapButton];
   [_buttonNodes addObject:_swapButton];
   
-  _doneButton = [[SKSpriteNode alloc] initWithColor:[UIColor greenColor] size:buttonSize];
-  _doneButton.position = CGPointMake(150.f, buttonYPosition);
-  _doneButton.zPosition = kZPositionTopBarButton;
-  [topBar addChild:_doneButton];
-  [_buttonNodes addObject:_doneButton];
-  [self disableButton:_doneButton];
+  _playDyadminoButton = [[SKSpriteNode alloc] initWithColor:[UIColor greenColor] size:buttonSize];
+  _playDyadminoButton.position = CGPointMake(buttonWidth * 3, buttonYPosition);
+  _playDyadminoButton.zPosition = kZPositionTopBarButton;
+  [topBar addChild:_playDyadminoButton];
+  [_buttonNodes addObject:_playDyadminoButton];
+  [self disableButton:_playDyadminoButton];
   
-  _logButton = [[SKSpriteNode alloc] initWithColor:[UIColor blueColor] size:buttonSize];
-  _logButton.position = CGPointMake(200.f, buttonYPosition);
+  _doneTurnButton = [[SKSpriteNode alloc] initWithColor:[UIColor blueColor] size:buttonSize];
+  _doneTurnButton.position = CGPointMake(buttonWidth * 4, buttonYPosition);
+  _doneTurnButton.zPosition = kZPositionTopBarButton;
+  [topBar addChild:_doneTurnButton];
+  [_buttonNodes addObject:_doneTurnButton];
+  [self disableButton:_doneTurnButton];
+  
+  _logButton = [[SKSpriteNode alloc] initWithColor:[UIColor purpleColor] size:buttonSize];
+  _logButton.position = CGPointMake(buttonWidth * 5, buttonYPosition);
   _logButton.zPosition = kZPositionTopBarButton;
   [topBar addChild:_logButton];
   [_buttonNodes addObject:_logButton];
@@ -215,7 +198,7 @@
   _pileCountLabel = [SKLabelNode labelNodeWithFontNamed:@"Helvetica-Neue"];
   _pileCountLabel.text = [NSString stringWithFormat:@"pile %lu", (unsigned long)[self.ourGameEngine getCommonPileCount]];
   _pileCountLabel.fontSize = 14.f;
-  _pileCountLabel.position = CGPointMake(275, labelYPosition);
+  _pileCountLabel.position = CGPointMake(275, -labelYPosition);
   _pileCountLabel.zPosition = kZPositionTopBarLabel;
   [topBar addChild:_pileCountLabel];
   
@@ -325,7 +308,7 @@
   if ([_buttonNodes containsObject:_touchNode]) {
     _buttonPressed = (SKSpriteNode *)_touchNode;
       // TODO: make distinction of button pressed better, of course
-    _buttonPressed.alpha = 0.5f;
+    _buttonPressed.alpha = 0.3f;
     return;
   }
     //--------------------------------------------------------------------------
@@ -354,7 +337,7 @@
     SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
 
     if (node == _buttonPressed) {
-      _buttonPressed.alpha = 0.5f;
+      _buttonPressed.alpha = 0.3f;
       return;
     } else {
       _buttonPressed.alpha = 1.f;
@@ -504,7 +487,6 @@
 //        NSLog(@"about to flip");
         [dyadmino animateFlip];
       } else {
-        NSLog(@"being sent home");
         [self sendDyadminoHome:dyadmino];
       }
 
@@ -536,7 +518,6 @@
   
     // if it's still in the rack, it can still rotate
   if ([_currentlyTouchedDyadmino isInRack] || [_currentlyTouchedDyadmino isInSwap]) {
-    NSLog(@"can flip");
     _currentlyTouchedDyadmino.canFlip = YES;
   }
   
@@ -629,7 +610,7 @@
 -(void)handleButtonPressed {
     // swap dyadminoes
   if (_buttonPressed == _swapButton) {
-    [self layoutOrToggleSwapField];
+    [self toggleSwapField];
     return;
   }
   
@@ -639,9 +620,14 @@
     return;
   }
   
-    // submits move
-  if (_buttonPressed == _doneButton) {
-    [self playerDoneSoFinaliseThisTurn];
+    // submits play
+  if (_buttonPressed == _playDyadminoButton) {
+    [self playDyadmino];
+  }
+  
+    // submits turn
+  if (_buttonPressed == _doneTurnButton) {
+    [self finalisePlayerTurn];
   }
   
     // logs
@@ -663,40 +649,74 @@
   }
 }
 
--(void)playerDoneSoFinaliseThisTurn {
-    // FIXME: this one won't be necessary once disable button is enabled and disabled
+-(void)toggleSwapField {
   
-  if (!_currentlyTouchedDyadmino &&
-      _hoveringButNotTouchedDyadmino.hoveringStatus != kDyadminoHovering) {
+    // FIXME: make better animation
+    // otherwise toggle
+  if (_swapMode) { // swap mode on, so turn off
+    _swapFieldActionInProgress = YES;
     
-      // establish that dyadmino is indeed a rack dyadmino, placed on the board
-    if ([_recentRackDyadmino belongsInRack] && [_recentRackDyadmino isOnBoard]) {
+    SKAction *moveAction = [SKAction moveTo:CGPointMake(0.f, 0.f) duration:kConstantTime];
+    SKAction *completionAction = [SKAction runBlock:^{
+      _swapFieldActionInProgress = NO;
+      _swapFieldSprite.hidden = YES;
+      _swapMode = NO;
+    }];
+    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
+    [_swapFieldSprite runAction:sequenceAction];
+    
+  } else { // swap mode off, turn on
+    _swapFieldActionInProgress = YES;
+    
+    _swapFieldSprite.hidden = NO;
+    SKAction *moveAction = [SKAction moveTo:CGPointMake(0.f, kRackHeight) duration:kConstantTime];
+    SKAction *completionAction = [SKAction runBlock:^{
+      _swapFieldActionInProgress = NO;
+      _swapMode = YES;
+    }];
+    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
+    [_swapFieldSprite runAction:sequenceAction];
+  }
+}
+
+-(void)cancelSwap {
+  
+}
+
+-(void)finaliseSwap {
+  
+}
+
+-(void)playDyadmino {
+    // establish that dyadmino is indeed a rack dyadmino placed on the board
+  if ([_recentRackDyadmino belongsInRack] && [_recentRackDyadmino isOnBoard]) {
+    
+      // confirm that the dyadmino was successfully played before proceeding with anything else
+    if ([self.ourGameEngine playOnBoardThisDyadmino:_recentRackDyadmino fromRackOfPlayer:self.myPlayer]) {
       
-        // this if statement just confirms that the dyadmino was successfully played
-        // before proceeding with anything else
-      if ([self.ourGameEngine playOnBoardThisDyadmino:_recentRackDyadmino fromRackOfPlayer:self.myPlayer]) {
-        
-          // interact with game engine
-          // no dyadmino placed in rack, need to recalibrate rack
-        if (![self.ourGameEngine putDyadminoFromCommonPileIntoRackOfPlayer:self.myPlayer]) {
-          [self layoutOrRefreshRackField];
-        }
-        
-        [self populateOrRefreshRackWithDyadminoes];
-        
-          // update views
-        [self updatePileCountLabel];
-        [self updateMessageLabelWithString:@"done"];
-        [self disableButton:_doneButton];
-        
-          // do cleanup, dyadmino's home node is now the board node
-        _recentRackDyadmino.homeNode = _recentRackDyadmino.tempBoardNode;
-        [_recentRackDyadmino unhighlightOutOfPlay];
-        _recentRackDyadmino = nil;
-        _hoveringButNotTouchedDyadmino = nil;
-      }
+        // do cleanup, dyadmino's home node is now the board node
+      _recentRackDyadmino.homeNode = _recentRackDyadmino.tempBoardNode;
+      [_recentRackDyadmino unhighlightOutOfPlay];
+      _recentRackDyadmino = nil;
+      _hoveringButNotTouchedDyadmino = nil;
     }
   }
+  [self layoutOrRefreshRackField];
+  [self populateOrRefreshRackWithDyadminoes];
+}
+
+-(void)finalisePlayerTurn {
+    // no recent rack dyadmino on board
+  while ([self.ourGameEngine getCommonPileCount] >= 1 && self.myPlayer.dyadminoesInRack.count < 6) {
+    [self.ourGameEngine putDyadminoFromCommonPileIntoRackOfPlayer:self.myPlayer];
+  }
+
+  [self layoutOrRefreshRackField];
+  [self populateOrRefreshRackWithDyadminoes];
+  
+    // update views
+  [self updatePileCountLabel];
+  [self updateMessageLabelWithString:@"done"];
 }
 
   // FIXME: make this better
@@ -754,21 +774,34 @@
 
     // handle buttons
     // TODO: if button enabling and disabling are animated, change this
-  if ([_recentRackDyadmino belongsInRack] &&
-      [_recentRackDyadmino isOnBoard] &&
-      ![_hoveringButNotTouchedDyadmino isHovering] &&
-      (_currentlyTouchedDyadmino == nil || [_currentlyTouchedDyadmino isInRack])) {
-    [self enableButton:_doneButton];
-  } else {
-    [self disableButton:_doneButton];
-  }
   
-  if (_currentlyTouchedDyadmino || _recentRackDyadmino) {
-    [self disableButton:_swapButton];
+    // while *not* in swap mode...
+  if (!_swapMode) {
+    
+        // these are the criteria by which play and done button is enabled
+    if ([_recentRackDyadmino belongsInRack] && [_recentRackDyadmino isOnBoard] &&
+        ![_hoveringButNotTouchedDyadmino isHovering] &&
+        (_currentlyTouchedDyadmino == nil || [_currentlyTouchedDyadmino isInRack])) {
+      [self enableButton:_playDyadminoButton];
+      [self disableButton:_doneTurnButton];
+    } else {
+      [self disableButton:_playDyadminoButton];
+      [self enableButton:_doneTurnButton];
+    }
+    
+      // ...these are the criteria by which swap button is enabled
+      // swap button cannot have any rack dyadminoes on board
+    if (_currentlyTouchedDyadmino || _recentRackDyadmino) {
+      [self disableButton:_swapButton];
+    } else {
+      [self enableButton:_swapButton];
+    }
+    
+      // if in swap mode, swap button cancels swap, done button finalises swap
   } else {
     [self enableButton:_swapButton];
+    [self enableButton:_doneTurnButton];
   }
-  
 }
 
 -(void)updatePileCountLabel {
@@ -881,9 +914,9 @@
   }
     
     // second restriction is that touch point is close enough based on following criteria:
-    // if dyadmino is on board, not hovering and thus locked in a node...
+    // if dyadmino is on board, not hovering and thus locked in a node, and we're not in swap mode...
   [self determineCurrentSectionOfDyadmino:dyadmino];
-  if ([dyadmino isOnBoard]) {
+  if ([dyadmino isOnBoard] && !_swapMode) {
     if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
         kDistanceForTouchingLockedDyadmino) {
       return dyadmino;
@@ -945,7 +978,7 @@ if (!_swapMode && [dyadmino isOnBoard]) {
   }
   NSLog(@"current dyadmino is at %.2f, %.2f", _recentRackDyadmino.position.x, _recentRackDyadmino.position.y);
   
-  for (SnapNode *snapNode in _swapFieldSprite.rackNodes) {
+  for (SnapNode *snapNode in _rackFieldSprite.rackNodes) {
     NSLog(@"%@ is in position %.1f, %.1f", snapNode.name, snapNode.position.x, snapNode.position.y);
   }
   

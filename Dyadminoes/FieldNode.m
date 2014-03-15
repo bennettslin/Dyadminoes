@@ -55,9 +55,13 @@
       // or else refreshing dyadminoes
   } else {
     
-      // if rack depleted, ensure rackNode count matches dyadminoesInRack count
-    while (self.rackNodes.count > countNumber) {
-      [self.rackNodes removeObject:[self.rackNodes lastObject]];
+      // ensure rackNode count matches dyadminoesInRack count
+    while (self.rackNodes.count != countNumber) {
+      if (self.rackNodes.count > countNumber) {
+        [self.rackNodes removeObject:[self.rackNodes lastObject]];
+      } else if (self.rackNodes.count < countNumber) {
+        [self addRackNodeAtIndex:self.rackNodes.count withCountNumber:countNumber];
+      }
     }
     
       // then reposition the rackNodes
@@ -68,20 +72,14 @@
   }
 }
 
--(void)addRackNodeAtIndex:(NSUInteger)nodeIndex withCountNumber:(NSUInteger)countNumber {
-  SnapNode *rackNode = [[SnapNode alloc] initWithSnapNodeType:_snapNodeType];
-  rackNode.position = [self getNodePositionAtIndex:nodeIndex withCountNumber:countNumber];
-  
-  rackNode.name = [NSString stringWithFormat:@"%@ node %lu", self.name, (unsigned long)nodeIndex];
-  [self.rackNodes addObject:rackNode];
-}
-
 #pragma mark - reposition methods
 
 -(void)repositionDyadminoes:(NSMutableArray *)dyadminoesInArray {
     // dyadminoes are already in array, this method manages the sprite views
   
-  for (NSUInteger index = 0; index < self.rackNodes.count; index++) {
+  NSLog(@"rackNodes count is %i, dyadminoes count is %i", self.rackNodes.count, dyadminoesInArray.count);
+  
+  for (NSUInteger index = 0; index < dyadminoesInArray.count; index++) {
     
     // assign pointers
     Dyadmino *dyadmino = [dyadminoesInArray objectAtIndex:index];
@@ -162,6 +160,14 @@
       [dyadminoesInArray insertObject:touchedDyadmino atIndex:newRackNodeIndex];
     }
   }
+}
+
+-(void)addRackNodeAtIndex:(NSUInteger)nodeIndex withCountNumber:(NSUInteger)countNumber {
+  SnapNode *rackNode = [[SnapNode alloc] initWithSnapNodeType:_snapNodeType];
+  rackNode.position = [self getNodePositionAtIndex:nodeIndex withCountNumber:countNumber];
+  
+  rackNode.name = [NSString stringWithFormat:@"%@ node %lu", self.name, (unsigned long)nodeIndex];
+  [self.rackNodes addObject:rackNode];
 }
 
 #pragma mark - helper methods
