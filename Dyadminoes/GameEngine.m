@@ -16,6 +16,7 @@
 @property (strong, nonatomic) Player *player1;
 @property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer1Rack;
 @property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer2Rack;
+@property (strong, nonatomic) NSMutableSet *dyadminoesOnBoard;
 @property (strong, nonatomic) NSMutableSet *dyadminoesInCommonPile;
 
 @end
@@ -70,10 +71,9 @@
     }
   }
   
-    // FIXME: temporary, eventually remove
+    // FIXME: temporary, for testing purposes, eventually remove
     // 58 is good
   NSUInteger getRidOfNumber = 50;
-  
   for (int i = 0; i < getRidOfNumber; i++) {
     Dyadmino *dyadmino = [self.allDyadminoes anyObject];
     [self.allDyadminoes removeObject:dyadmino];
@@ -81,35 +81,15 @@
   }
 }
 
-  // TODO: currently, will break if pile count is less than number being swapped
-  // TODO: make this a standalone method for populating only, NOT repopulating after swap
 -(NSMutableArray *)getInitiallyPopulatedRack {
-    // move this part over to the swap method
-    //  if (thisRack || [thisRack count] != 0) {
-    //      // first take random dyadminoes out of pile, and put them in temp array
-    //    NSMutableArray *tempArray = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
-    //    for (int i = 0; i < kNumDyadminoesInRack; i++) {
-    //      [tempArray addObject:[self pickRandomDyadminoOutOfCommonPile]];
-    //    }
-    //      // remove current dyadminoes in rack, and put them back in pile
-    //    for (Dyadmino *dyadmino in thisRack) {
-    //      [self.dyadminoesInCommonPile addObject:dyadmino];
-    //    }
-    //    [thisRack removeAllObjects];
-    //      // put dyadminoes in temp array into rack
-    //    thisRack = tempArray;
-    //
-    //      // populating player's rack
-    //  } else {
-  NSMutableArray *tempArray = [NSMutableArray new];
+  NSMutableArray *playerRack = [NSMutableArray new];
   for (int i = 0; i < kNumDyadminoesInRack; i++) {
     Dyadmino *dyadmino = [self removeRandomDyadminoFromPile];
     if (dyadmino) {
-      [tempArray addObject:dyadmino];
+      [playerRack addObject:dyadmino];
     }
   }
-    //  }
-  return tempArray;
+  return playerRack;
 }
 
 -(NSUInteger)getCommonPileCount {

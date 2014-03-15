@@ -13,6 +13,7 @@
 #import "SnapNode.h"
 #import "Player.h"
 #import "FieldNode.h"
+#import "BoardNode.h"
 
 @interface MyScene () <FieldNodeDelegate>
 @end
@@ -52,18 +53,11 @@
     // sprites and nodes
   FieldNode *_rackField;
   FieldNode *_swapField;
-  SKSpriteNode *_board;
-  SKSpriteNode *_boardCover;
+  BoardNode *_boardField;
   SKNode *_touchNode;
 
-    // arrays to keep track of sprites and nodes
-  NSMutableSet *_boardNodesToSearch;
-  NSMutableSet *_boardNodesTwelveAndSix;
-  NSMutableSet *_boardNodesTwoAndEight;
-  NSMutableSet *_boardNodesFourAndTen;
-  NSMutableSet *_buttonNodes;
-
     // buttons
+  NSMutableSet *_buttonNodes;
   SKSpriteNode *_togglePCModeButton;
   SKSpriteNode *_swapButton;
   SKSpriteNode *_cancelButton;
@@ -107,9 +101,6 @@
     self.ourGameEngine = [GameEngine new];
     self.myPlayer = [self.ourGameEngine getAssignedAsPlayer];
     _buttonNodes = [NSMutableSet new];
-    _boardNodesTwelveAndSix = [NSMutableSet new];
-    _boardNodesTwoAndEight = [NSMutableSet new];
-    _boardNodesFourAndTen = [NSMutableSet new];
     _rackExchangeInProgress = NO;
     _buttonPressed = nil;
   }
@@ -117,23 +108,35 @@
 }
 
 -(void)didMoveToView:(SKView *)view {
-  [self layoutBoardAndCover];
+  [self layoutBoard];
   [self layoutSwapField];
   [self layoutTopBar];
-  [self layoutOrRefreshRackField];
-  [self populateOrRefreshRackWithDyadminoes];
+  [self layoutOrRefreshRackFieldAndDyadminoes];
 }
 
 #pragma mark - layout methods
 
+-(void)layoutBoard {
+  self.backgroundColor = [SKColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1.0];
+
+  _boardField = [[BoardNode alloc] initWithColor:kSkyBlue
+                                        andSize:CGSizeMake(self.frame.size.width, self.frame.size.height)
+                                 andAnchorPoint:CGPointZero
+                                    andPosition:CGPointZero
+                                   andZPosition:kZPositionBoard];
+  [self addChild:_boardField];
+  [_boardField layoutBoardCellsAndNodes];
+}
+
 -(void)layoutSwapField {
-  // initial instantiation of swap field sprite
-  _swapField = [[FieldNode alloc] initWithWidth:self.frame.size.width andFieldNodeType:kFieldNodeSwap];
+    // initial instantiation of swap field sprite
+  _swapField = [[FieldNode alloc] initWithFieldNodeType:kFieldNodeSwap
+                                              andColour:[SKColor lightGrayColor]
+                                                andSize:CGSizeMake(self.frame.size.width, kRackHeight)
+                                         andAnchorPoint:CGPointZero
+                                            andPosition:CGPointZero
+                                           andZPosition:kZPositionSwapField];
   _swapField.delegate = self;
-  _swapField.color = [SKColor lightGrayColor];
-  _swapField.size = CGSizeMake(self.frame.size.width, kRackHeight);
-  _swapField.anchorPoint = CGPointZero;
-  _swapField.zPosition = kZPositionSwapField;
   [self addChild:_swapField];
   
     // initially sets swap mode
@@ -225,100 +228,18 @@
   [topBar addChild:_logLabel];
 }
 
--(void)layoutBoardAndCover {
-  self.backgroundColor = [SKColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1.0];
-
-  _board = [[SKSpriteNode alloc] initWithColor:kSkyBlue
-                                               size:CGSizeMake(self.frame.size.width, self.frame.size.height)];
-  _board.name = @"board";
-  _board.position = CGPointZero;
-  _board.anchorPoint = CGPointZero;
-//  _board.position = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
-  _board.zPosition = kZPositionBoard;
-  [self addChild:_board];
-  
-  _boardCover = [[SKSpriteNode alloc] initWithColor:[SKColor blackColor]
-                                               size:CGSizeMake(self.frame.size.width, self.frame.size.height)];
-  _boardCover.name = @"boardCover";
-  _boardCover.position = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
-  _boardCover.zPosition = kZPositionBoardCoverHidden;
-  _boardCover.alpha = kBoardCoverAlpha;
-  [_board addChild:_boardCover];
-  _boardCover.hidden = YES;
-  
-    // layout cells for now
-  for (int i = 0; i < 6; i++) {
-    for (int j = 0; j < 6; j++) {
-      SKSpriteNode *blankCell = [SKSpriteNode spriteNodeWithImageNamed:@"blankSpace"];
-      blankCell.name = @"blankCell";
-      blankCell.zPosition = kZPositionBoardCell;
-      CGFloat xOffset = 0; // for odd rows
-      
-        // TODO: continue to tweak these numbers
-      CGFloat xPadding = 5.35f;
-      CGFloat yPadding = xPadding * .5f; // this is 2.59
-      CGFloat nodePadding = 0.5f * xPadding; // 0.5f is definitely correct
-      
-      if (j % 2 == 0) {
-        xOffset = blankCell.size.width * 0.75f + xPadding;
-      }
-
-      blankCell.position = CGPointMake(i * (blankCell.size.width * 1.5f + 2.f * xPadding) + xOffset, j * (blankCell.size.height / 2.f + yPadding));
-      blankCell.alpha = 0.1f;
-      [_board addChild:blankCell];
-      
-        // add board nodes
-      SnapNode *boardNodeTwelveAndSix = [[SnapNode alloc] initWithSnapNodeType:kSnapNodeBoardTwelveAndSix];
-      SnapNode *boardNodeTwoAndEight = [[SnapNode alloc] initWithSnapNodeType:kSnapNodeBoardTwoAndEight];
-      SnapNode *boardNodeFourAndTen = [[SnapNode alloc] initWithSnapNodeType:kSnapNodeBoardFourAndTen];
-      
-      boardNodeTwelveAndSix.position = [self addThisPoint:blankCell.position
-                                              toThisPoint:CGPointMake(0.f, 19.5f)];
-      boardNodeTwoAndEight.position = [self addThisPoint:blankCell.position
-                                             toThisPoint:CGPointMake(kBoardDiagonalX + nodePadding, kBoardDiagonalY)];
-      boardNodeFourAndTen.position = [self addThisPoint:blankCell.position
-                                            toThisPoint:CGPointMake(-kBoardDiagonalX - nodePadding, kBoardDiagonalY)];
-      
-      boardNodeTwelveAndSix.name = @"board 12-6";
-      boardNodeTwoAndEight.name = @"board 2-8";
-      boardNodeFourAndTen.name = @"board 4-10";
-      
-      [_boardNodesTwelveAndSix addObject:boardNodeTwelveAndSix];
-      [_boardNodesTwoAndEight addObject:boardNodeTwoAndEight];
-      [_boardNodesFourAndTen addObject:boardNodeFourAndTen];
-      [_board addChild:boardNodeTwelveAndSix];
-      [_board addChild:boardNodeTwoAndEight];
-      [_board addChild:boardNodeFourAndTen];
-      
-        // for testing purposes only
-      if (i == 2 && j == 2) {
-        _testLabelNode = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
-        _testLabelNode.position = blankCell.position;
-        _testLabelNode.zPosition = kZPositionMessage;
-        _testLabelNode.text = @"C";
-        _testLabelNode.name = @"testLabel";
-        _testLabelNode.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
-        [_board addChild:_testLabelNode];
-      }
-    }
-  }
-}
-
--(void)layoutOrRefreshRackField {
+-(void)layoutOrRefreshRackFieldAndDyadminoes {
   if (!_rackField) {
-    _rackField = [[FieldNode alloc] initWithWidth:self.frame.size.width andFieldNodeType:kFieldNodeRack];
+    _rackField = [[FieldNode alloc] initWithFieldNodeType:kFieldNodeRack
+                                                andColour:kFieldPurple
+                                                  andSize:CGSizeMake(self.frame.size.width, kRackHeight)
+                                           andAnchorPoint:CGPointZero
+                                              andPosition:CGPointZero
+                                             andZPosition:kZPositionRackField];
     _rackField.delegate = self;
-    _rackField.color = [SKColor purpleColor];
-    _rackField.size = CGSizeMake(self.frame.size.width, kRackHeight);
-    _rackField.anchorPoint = CGPointZero;
-    _rackField.position = CGPointMake(0, 0);
-    _rackField.zPosition = kZPositionRackField;
     [self addChild:_rackField];
   }
   [_rackField layoutOrRefreshNodesWithCount:self.myPlayer.dyadminoesInRack.count];
-}
-
--(void)populateOrRefreshRackWithDyadminoes {
   [_rackField repositionDyadminoes:self.myPlayer.dyadminoesInRack];
 }
 
@@ -339,10 +260,10 @@
     //--------------------------------------------------------------------------
 
     // board touched
-  if ([_touchNode.name isEqualToString:@"blankCell"] || _touchNode == _boardCover) {
+  if ([_touchNode.name isEqualToString:@"blankCell"] || _touchNode == _boardField.boardCover) {
     _boardBeingMoved = YES;
     _offsetTouchVector = [self fromThisPoint:_beganTouchLocation
-                           subtractThisPoint:_board.position];
+                           subtractThisPoint:_boardField.position];
     return;
   }
   
@@ -369,7 +290,7 @@
 
 -(void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
   NSLog(@"test label now at %.1f, %.1f", _testLabelNode.position.x, _testLabelNode.position.y);
-  NSLog(@"board node is now at %.1f, %.1f", _board.position.x, _board.position.y);
+  NSLog(@"board node is now at %.1f, %.1f", _boardField.position.x, _boardField.position.y);
   
     // safeguard against nuttiness
   if (_currentlyTouchedDyadmino && _currentlyTouchedDyadmino.myTouch != [touches anyObject]) {
@@ -395,7 +316,7 @@
   
     // if board being moved, handle and return
   if (_boardBeingMoved) {
-    _board.position = [self fromThisPoint:_currentTouchLocation
+    _boardField.position = [self fromThisPoint:_currentTouchLocation
                         subtractThisPoint:_offsetTouchVector];
     return;
   }
@@ -733,13 +654,13 @@
 
 -(void)revealBoardCover {
     // TODO: make this animated
-  _boardCover.hidden = NO;
-  _boardCover.zPosition = kZPositionBoardCover;
+  _boardField.boardCover.hidden = NO;
+  _boardField.boardCover.zPosition = kZPositionBoardCover;
 }
 
 -(void)hideBoardCover {
-  _boardCover.hidden = YES;
-  _boardCover.zPosition = kZPositionBoardCoverHidden;
+  _boardField.boardCover.hidden = YES;
+  _boardField.boardCover.zPosition = kZPositionBoardCoverHidden;
 }
 
 #pragma mark - engine methods
@@ -792,8 +713,7 @@
       // then swap in the logic
     [self.ourGameEngine swapTheseDyadminoes:toPile fromPlayer:self.myPlayer];
     
-    [self layoutOrRefreshRackField];
-    [self populateOrRefreshRackWithDyadminoes];
+    [self layoutOrRefreshRackFieldAndDyadminoes];
       // update views
     [self updatePileCountLabel];
     [self updateMessageLabelWithString:@"swapped!"];
@@ -815,8 +735,7 @@
       _hoveringButNotTouchedDyadmino = nil;
     }
   }
-  [self layoutOrRefreshRackField];
-  [self populateOrRefreshRackWithDyadminoes];
+  [self layoutOrRefreshRackFieldAndDyadminoes];
 }
 
 -(void)finalisePlayerTurn {
@@ -825,8 +744,7 @@
     [self.ourGameEngine putDyadminoFromPileIntoRackOfPlayer:self.myPlayer];
   }
 
-  [self layoutOrRefreshRackField];
-  [self populateOrRefreshRackWithDyadminoes];
+  [self layoutOrRefreshRackFieldAndDyadminoes];
   
     // update views
   [self updatePileCountLabel];
@@ -1055,11 +973,11 @@
   
 if (!_swapMode && [dyadmino isOnBoard]) {
     if (dyadmino.orientation == kPC1atTwelveOClock || dyadmino.orientation == kPC1atSixOClock) {
-      arrayOrSetToSearch = _boardNodesTwelveAndSix;
+      arrayOrSetToSearch = _boardField.boardNodesTwelveAndSix;
     } else if (dyadmino.orientation == kPC1atTwoOClock || dyadmino.orientation == kPC1atEightOClock) {
-      arrayOrSetToSearch = _boardNodesTwoAndEight;
+      arrayOrSetToSearch = _boardField.boardNodesTwoAndEight;
     } else if (dyadmino.orientation == kPC1atFourOClock || dyadmino.orientation == kPC1atTenOClock) {
-      arrayOrSetToSearch = _boardNodesFourAndTen;
+      arrayOrSetToSearch = _boardField.boardNodesFourAndTen;
     }
     
   } else if ([dyadmino isInRack] || [dyadmino isInSwap]) {

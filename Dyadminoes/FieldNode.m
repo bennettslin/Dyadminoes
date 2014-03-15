@@ -12,9 +12,6 @@
 
 @implementation FieldNode {
   CGFloat _nodeYPosition;
-  CGFloat _height;
-  
-  CGFloat _width;
   SnapNodeType _snapNodeType;
   
   BOOL _exchangeInProgress;
@@ -22,12 +19,17 @@
 
 #pragma mark - init and layout methods
 
--(id)initWithWidth:(CGFloat)width andFieldNodeType:(NSUInteger)fieldNodeType {
+-(id)initWithFieldNodeType:(NSUInteger)fieldNodeType andColour:(UIColor *)colour
+                   andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint
+               andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition {
   self = [super init];
   if (self) {
     self.rackNodes = [NSMutableArray new];
-    _width = width;
-    _height = kRackHeight;
+    self.color = colour;
+    self.size = size;
+    self.anchorPoint = anchorPoint;
+    self.position = position;
+    self.zPosition = zPosition;
     _snapNodeType = fieldNodeType;
     
     if (_snapNodeType == kFieldNodeRack) {
@@ -100,7 +102,7 @@
       
         // dyadmino is *not* already on rack, so add offscreen first and then animate
     } else {
-      dyadmino.position = CGPointMake(_width + self.xIncrementInRack, shouldBePosition.y);
+      dyadmino.position = CGPointMake(self.size.width + self.xIncrementInRack, shouldBePosition.y);
       [self addChild:dyadmino];
       [dyadmino animateConstantSpeedMoveDyadminoToPoint:shouldBePosition];
     }
@@ -174,9 +176,10 @@
 
     // margins will vary based on number of dyadminoes in rack
   CGFloat xEdgeMargin = 12.f + (16.f * (kNumDyadminoesInRack - countNumber));
-  self.xIncrementInRack = (_width - (2 * xEdgeMargin)) / (countNumber * 2); // right now it's 24.666
+  self.xIncrementInRack = (self.size.width - (2 * xEdgeMargin)) / (countNumber * 2); // right now it's 24.666
   
-  return CGPointMake(xEdgeMargin + self.xIncrementInRack + (2 * self.xIncrementInRack * nodeIndex), _nodeYPosition + (_height / 2));
+  return CGPointMake(xEdgeMargin + self.xIncrementInRack + (2 * self.xIncrementInRack * nodeIndex),
+                     _nodeYPosition + (self.size.height) / 2);
 }
 
 @end

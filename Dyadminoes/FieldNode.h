@@ -20,9 +20,15 @@
 @property (strong, nonatomic) NSMutableArray *rackNodes;
 @property (weak, nonatomic) id <FieldNodeDelegate> delegate;
 
+  //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
+
 #pragma mark - init and layout methods
 
--(id)initWithWidth:(CGFloat)width andFieldNodeType:(NSUInteger)fieldNodeType;
+-(id)initWithFieldNodeType:(NSUInteger)fieldNodeType andColour:(SKColor *)colour
+                   andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint
+               andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition;
+
 -(void)layoutOrRefreshNodesWithCount:(NSUInteger)countNumber;
 
 #pragma mark - reposition methods

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		3F18924718CDB43300BEE276 /* Player.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F18924618CDB43300BEE276 /* Player.m */; };
 		3F3116CE18CEFC5D0015CC2A /* FieldNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3116CD18CEFC5D0015CC2A /* FieldNode.m */; };
+		3F6AE50E18D4D1E7000528C1 /* TopBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F6AE50D18D4D1E7000528C1 /* TopBar.m */; };
 		3F87AAAB188DEE4B008C4A0D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAA188DEE4B008C4A0D /* Foundation.framework */; };
 		3F87AAAD188DEE4B008C4A0D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAC188DEE4B008C4A0D /* CoreGraphics.framework */; };
 		3F87AAAF188DEE4B008C4A0D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAE188DEE4B008C4A0D /* UIKit.framework */; };
@@ -31,6 +32,7 @@
 		3F9923091895ECCA00FC9392 /* SonorityLogic.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F9923081895ECCA00FC9392 /* SonorityLogic.m */; };
 		3FCCA71B18948AF200E0E4B5 /* Dyadmino.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCA71A18948AF200E0E4B5 /* Dyadmino.m */; };
 		3FCCA71E18948B0500E0E4B5 /* GameEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCA71D18948B0500E0E4B5 /* GameEngine.m */; };
+		3FDD7FD918D4C89B0029DB7D /* BoardNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FDD7FD818D4C89B0029DB7D /* BoardNode.m */; };
 		3FFD6CA318B40A83000D2DA4 /* DyadminoImages.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 3FFD6CA218B40A83000D2DA4 /* DyadminoImages.atlas */; };
 /* End PBXBuildFile section */
 
@@ -49,6 +51,8 @@
 		3F18924618CDB43300BEE276 /* Player.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Player.m; sourceTree = "<group>"; };
 		3F3116CC18CEFC5D0015CC2A /* FieldNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FieldNode.h; sourceTree = "<group>"; };
 		3F3116CD18CEFC5D0015CC2A /* FieldNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FieldNode.m; sourceTree = "<group>"; };
+		3F6AE50C18D4D1E7000528C1 /* TopBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TopBar.h; sourceTree = "<group>"; };
+		3F6AE50D18D4D1E7000528C1 /* TopBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TopBar.m; sourceTree = "<group>"; };
 		3F87AAA7188DEE4B008C4A0D /* Dyadminoes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dyadminoes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F87AAAA188DEE4B008C4A0D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		3F87AAAC188DEE4B008C4A0D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -82,6 +86,8 @@
 		3FCCA71A18948AF200E0E4B5 /* Dyadmino.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Dyadmino.m; sourceTree = "<group>"; };
 		3FCCA71C18948B0500E0E4B5 /* GameEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameEngine.h; sourceTree = "<group>"; };
 		3FCCA71D18948B0500E0E4B5 /* GameEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameEngine.m; sourceTree = "<group>"; };
+		3FDD7FD718D4C89B0029DB7D /* BoardNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BoardNode.h; sourceTree = "<group>"; };
+		3FDD7FD818D4C89B0029DB7D /* BoardNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BoardNode.m; sourceTree = "<group>"; };
 		3FFD6CA218B40A83000D2DA4 /* DyadminoImages.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; name = DyadminoImages.atlas; path = ../DyadminoImages.atlas; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -214,6 +220,10 @@
 		3FFD6BE518B3CCE7000D2DA4 /* Objects */ = {
 			isa = PBXGroup;
 			children = (
+				3FDD7FD718D4C89B0029DB7D /* BoardNode.h */,
+				3FDD7FD818D4C89B0029DB7D /* BoardNode.m */,
+				3F6AE50C18D4D1E7000528C1 /* TopBar.h */,
+				3F6AE50D18D4D1E7000528C1 /* TopBar.m */,
 				3F3116CC18CEFC5D0015CC2A /* FieldNode.h */,
 				3F3116CD18CEFC5D0015CC2A /* FieldNode.m */,
 				3F8F045918BFEF3300853C4C /* SnapNode.h */,
@@ -334,8 +344,10 @@
 				3F3116CE18CEFC5D0015CC2A /* FieldNode.m in Sources */,
 				3F87AAC9188DEE4B008C4A0D /* MyScene.m in Sources */,
 				3F87AAC6188DEE4B008C4A0D /* ViewController.m in Sources */,
+				3FDD7FD918D4C89B0029DB7D /* BoardNode.m in Sources */,
 				3F18924718CDB43300BEE276 /* Player.m in Sources */,
 				3FCCA71E18948B0500E0E4B5 /* GameEngine.m in Sources */,
+				3F6AE50E18D4D1E7000528C1 /* TopBar.m in Sources */,
 				3F9923091895ECCA00FC9392 /* SonorityLogic.m in Sources */,
 				3F87AABD188DEE4B008C4A0D /* AppDelegate.m in Sources */,
 				3F87AAB9188DEE4B008C4A0D /* main.m in Sources */,

@@ -14,7 +14,6 @@
 
   // dyadminoes
 @property (strong, nonatomic) NSMutableSet *allDyadminoes;
-@property (strong, nonatomic) NSMutableSet *dyadminoesOnBoard;
 
 +(GameEngine *)gameEngine;
 -(Player *)getAssignedAsPlayer;
