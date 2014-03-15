@@ -76,9 +76,7 @@
 
 -(void)repositionDyadminoes:(NSMutableArray *)dyadminoesInArray {
     // dyadminoes are already in array, this method manages the sprite views
-  
-  NSLog(@"rackNodes count is %i, dyadminoes count is %i", self.rackNodes.count, dyadminoesInArray.count);
-  
+    
   for (NSUInteger index = 0; index < dyadminoesInArray.count; index++) {
     
     // assign pointers

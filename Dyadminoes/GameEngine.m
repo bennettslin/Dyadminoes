@@ -103,7 +103,7 @@
     //  } else {
   NSMutableArray *tempArray = [NSMutableArray new];
   for (int i = 0; i < kNumDyadminoesInRack; i++) {
-    Dyadmino *dyadmino = [self pickRandomDyadminoOutOfCommonPile];
+    Dyadmino *dyadmino = [self removeRandomDyadminoFromPile];
     if (dyadmino) {
       [tempArray addObject:dyadmino];
     }
@@ -123,7 +123,20 @@
 
 #pragma mark - player interaction methods
 
--(Dyadmino *)pickRandomDyadminoOutOfCommonPile {
+-(void)swapTheseDyadminoes:(NSMutableArray *)fromPlayer fromPlayer:(Player *)player {
+    // dyadminoes taken out of pile
+  for (NSUInteger i = 0; i < fromPlayer.count; i++) {
+    [player.dyadminoesInRack addObject:[self removeRandomDyadminoFromPile]];
+  }
+  
+    // put player dyadminoes back in pile
+  for (Dyadmino *dyadmino in fromPlayer) {
+    [self.dyadminoesInCommonPile addObject:dyadmino];
+    [player.dyadminoesInRack removeObject:dyadmino];
+  }
+}
+
+-(Dyadmino *)removeRandomDyadminoFromPile {
   NSUInteger dyadminoesLeftInPile = self.dyadminoesInCommonPile.count;
     // if dyadminoes left...
   if (dyadminoesLeftInPile >= 1) {
@@ -137,8 +150,8 @@
   }
 }
 
--(BOOL)putDyadminoFromCommonPileIntoRackOfPlayer:(Player *)player {
-  Dyadmino *dyadmino = [self pickRandomDyadminoOutOfCommonPile];
+-(BOOL)putDyadminoFromPileIntoRackOfPlayer:(Player *)player {
+  Dyadmino *dyadmino = [self removeRandomDyadminoFromPile];
   if (dyadmino) {
     [player.dyadminoesInRack addObject:dyadmino];
     return YES;

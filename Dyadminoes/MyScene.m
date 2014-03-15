@@ -52,6 +52,7 @@
     // sprites and nodes
   FieldNode *_rackField;
   FieldNode *_swapField;
+  SKSpriteNode *_board;
   SKSpriteNode *_boardCover;
   SKNode *_touchNode;
 
@@ -224,13 +225,21 @@
 
 -(void)layoutBoardAndCover {
   self.backgroundColor = [SKColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1.0];
+
+  _board = [[SKSpriteNode alloc] initWithColor:[SKColor lightGrayColor]
+                                               size:CGSizeMake(self.frame.size.width, self.frame.size.height)];
+  _board.position = CGPointZero;
+  _board.anchorPoint = CGPointZero;
+//  _board.position = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
+  _board.zPosition = kZPositionBoard;
+  [self addChild:_board];
   
   _boardCover = [[SKSpriteNode alloc] initWithColor:[SKColor blackColor]
                                                size:CGSizeMake(self.frame.size.width, self.frame.size.height)];
   _boardCover.position = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
   _boardCover.zPosition = kZPositionBoardCover;
   _boardCover.alpha = kBoardCoverAlpha;
-  [self addChild:_boardCover];
+  [_board addChild:_boardCover];
   _boardCover.hidden = YES;
   
     // layout cells for now
@@ -251,9 +260,9 @@
       }
       
         // add blank cell
-      blankCell.anchorPoint = CGPointMake(0.5, 0.5);
+//      blankCell.anchorPoint = CGPointZero;
       blankCell.position = CGPointMake(i * (blankCell.size.width * 1.5f + 2.f * xPadding) + xOffset, j * (blankCell.size.height / 2.f + yPadding));
-      [self addChild:blankCell];
+      [_board addChild:blankCell];
       
         // add board nodes
       SnapNode *boardNodeTwelveAndSix = [[SnapNode alloc] initWithSnapNodeType:kSnapNodeBoardTwelveAndSix];
@@ -610,44 +619,35 @@
 #pragma mark - button methods
 
 -(void)handleButtonPressed {
+  
     // swap dyadminoes
   if (_buttonPressed == _swapButton) {
     if (!_swapMode) {
       [self toggleSwapField];
-    } else if (_swapMode) {
+    }
+    
+  } else if (_buttonPressed == _togglePCModeButton) {
+    [self toggleBetweenLetterAndNumberMode];
+    
+  } else if (_buttonPressed == _playDyadminoButton) {
+    [self playDyadmino];
+    
+  } else if (_buttonPressed == _cancelButton) {
+    if (_swapMode) {
       [self cancelSwappedDyadminoes];
       [self toggleSwapField];
     }
-    return;
-  }
-  
-    // toggle between letter and number symbols
-  if (_buttonPressed == _togglePCModeButton) {
-    [self toggleBetweenLetterAndNumberMode];
-    return;
-  }
-  
-    // submits play
-  if (_buttonPressed == _playDyadminoButton) {
-    [self playDyadmino];
-  }
-  
-    // cancels... something
-  if (_buttonPressed == _cancelButton) {
-
-  }
-  
-    // submits turn
-  if (_buttonPressed == _doneTurnButton) {
+    
+  } else if (_buttonPressed == _doneTurnButton) {
     if (!_swapMode) {
       [self finalisePlayerTurn];
     } else if (_swapMode) {
-      [self finaliseSwap];
+      if ([self finaliseSwap]) {
+        [self toggleSwapField];
+      }
     }
-  }
-  
-    // logs
-  if (_buttonPressed == _logButton) {
+    
+  } else if (_buttonPressed == _logButton) {
     [self logRecentAndCurrentDyadminoes];
   }
 }
@@ -708,8 +708,8 @@
 
 #pragma mark - engine methods
 
-  // FIXME: obviously, this must work
 -(BOOL)validateLegalityOfDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapNode *)boardNode {
+    // FIXME: obviously, this must work
   if ([dyadmino belongsInRack]) {
       // (as long as it doesn't conflict with other dyadminoes, not important if it scores points)
   } else {
@@ -727,12 +727,41 @@
   }
 }
 
--(void)finaliseSwap {
+-(BOOL)finaliseSwap {
+  NSMutableArray *toPile = [NSMutableArray new];
+  
   for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
     if (dyadmino.belongsInSwap) {
-      dyadmino.belongsInSwap = NO;
-      [dyadmino goHomeByPoppingIn:NO];
+      [toPile addObject:dyadmino];
     }
+  }
+  
+    // if swapped dyadminoes is greater than pile count, cancel
+  if (toPile.count > [self.ourGameEngine getCommonPileCount]) {
+    [self updateMessageLabelWithString:@"This is more than the pile count"];
+    return NO;
+    
+      // else, proceed with swap
+  } else {
+
+      // first take care of views
+    for (Dyadmino *dyadmino in toPile) {
+      dyadmino.belongsInSwap = NO;
+      
+        // TODO: this should be a better animation
+      [dyadmino goHomeByPoppingIn:NO];
+      [dyadmino removeFromParent];
+    }
+    
+      // then swap in the logic
+    [self.ourGameEngine swapTheseDyadminoes:toPile fromPlayer:self.myPlayer];
+    
+    [self layoutOrRefreshRackField];
+    [self populateOrRefreshRackWithDyadminoes];
+      // update views
+    [self updatePileCountLabel];
+    [self updateMessageLabelWithString:@"swapped!"];
+    return YES;
   }
 }
 
@@ -757,7 +786,7 @@
 -(void)finalisePlayerTurn {
     // no recent rack dyadmino on board
   while ([self.ourGameEngine getCommonPileCount] >= 1 && self.myPlayer.dyadminoesInRack.count < 6) {
-    [self.ourGameEngine putDyadminoFromCommonPileIntoRackOfPlayer:self.myPlayer];
+    [self.ourGameEngine putDyadminoFromPileIntoRackOfPlayer:self.myPlayer];
   }
 
   [self layoutOrRefreshRackField];
@@ -768,8 +797,8 @@
   [self updateMessageLabelWithString:@"done"];
 }
 
-  // FIXME: make this better
 -(void)enableButton:(SKSpriteNode *)button {
+    // FIXME: make this better
   button.hidden = NO;
 }
 
@@ -826,6 +855,7 @@
   
     // while *not* in swap mode...
   if (!_swapMode) {
+    [self disableButton:_cancelButton];
     
         // these are the criteria by which play and done button is enabled
     if ([_recentRackDyadmino belongsInRack] && [_recentRackDyadmino isOnBoard] &&
@@ -846,10 +876,11 @@
       [self enableButton:_swapButton];
     }
     
-      // if in swap mode, swap button cancels swap, done button finalises swap
-  } else {
-    [self enableButton:_swapButton];
+      // if in swap mode, cancel button cancels swap, done button finalises swap
+  } else if (_swapMode) {
+    [self enableButton:_cancelButton];
     [self enableButton:_doneTurnButton];
+    [self disableButton:_swapButton];
   }
 }
 
@@ -877,6 +908,7 @@
 }
 
 -(void)updateMessageLabelWithString:(NSString *)string {
+  [_messageLabel removeAllActions];
   _messageLabel.text = string;
   SKAction *wait = [SKAction waitForDuration:2.f];
   SKAction *fadeColor = [SKAction colorizeWithColor:[UIColor clearColor] colorBlendFactor:1.f duration:0.5f];
@@ -977,8 +1009,6 @@
       return dyadmino;
     }
   }
-  
-  
   
     // otherwise, not close enough
   return nil;
