@@ -17,7 +17,6 @@
 @property (strong, nonatomic) NSMutableSet *dyadminoesOnBoard;
 
 +(GameEngine *)gameEngine;
-
 -(Player *)getAssignedAsPlayer;
 -(NSUInteger)getCommonPileCount;
 

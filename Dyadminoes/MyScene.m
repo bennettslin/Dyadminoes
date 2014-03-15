@@ -65,6 +65,7 @@
     // buttons
   SKSpriteNode *_togglePCModeButton;
   SKSpriteNode *_swapButton;
+  SKSpriteNode *_cancelButton;
   SKSpriteNode *_playDyadminoButton;
   SKSpriteNode *_doneTurnButton;
 
@@ -167,10 +168,16 @@
   [topBar addChild:_swapButton];
   [_buttonNodes addObject:_swapButton];
   
+  _cancelButton = [[SKSpriteNode alloc] initWithColor:[UIColor redColor] size:buttonSize];
+  _cancelButton.position = CGPointMake(buttonWidth * 3, buttonYPosition);
+  _cancelButton.zPosition = kZPositionTopBarButton;
+  [topBar addChild:_cancelButton];
+  [_buttonNodes addObject:_cancelButton];
+  [self disableButton:_cancelButton];
   
     // play and done buttons are in same location, at least for now, as they are never shown together
   _playDyadminoButton = [[SKSpriteNode alloc] initWithColor:[UIColor greenColor] size:buttonSize];
-  _playDyadminoButton.position = CGPointMake(buttonWidth * 3, buttonYPosition);
+  _playDyadminoButton.position = CGPointMake(buttonWidth * 4, buttonYPosition);
   _playDyadminoButton.zPosition = kZPositionTopBarButton;
   [topBar addChild:_playDyadminoButton];
   [_buttonNodes addObject:_playDyadminoButton];
@@ -178,13 +185,13 @@
   
     // done turn button is also pass turn
   _doneTurnButton = [[SKSpriteNode alloc] initWithColor:[UIColor blueColor] size:buttonSize];
-  _doneTurnButton.position = CGPointMake(buttonWidth * 4, buttonYPosition);
+  _doneTurnButton.position = CGPointMake(buttonWidth * 5, buttonYPosition);
   _doneTurnButton.zPosition = kZPositionTopBarButton;
   [topBar addChild:_doneTurnButton];
   [_buttonNodes addObject:_doneTurnButton];
   
   _logButton = [[SKSpriteNode alloc] initWithColor:[UIColor blackColor] size:buttonSize];
-  _logButton.position = CGPointMake(buttonWidth * 5, buttonYPosition);
+  _logButton.position = CGPointMake(buttonWidth * 6, buttonYPosition);
   _logButton.zPosition = kZPositionTopBarButton;
   [topBar addChild:_logButton];
   [_buttonNodes addObject:_logButton];
@@ -600,24 +607,17 @@
   }
 }
 
-#pragma mark - game logic methods
-
-  // FIXME: obviously, this must work
--(BOOL)validateLegalityOfDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapNode *)boardNode {
-  if ([dyadmino belongsInRack]) {
-    // (as long as it doesn't conflict with other dyadminoes, not important if it scores points)
-  } else {
-    // (doesn't conflict with other dyadminoes, *and* doesn't break musical rules)
-  }
-  return YES;
-}
-
 #pragma mark - button methods
 
 -(void)handleButtonPressed {
     // swap dyadminoes
   if (_buttonPressed == _swapButton) {
-    [self toggleSwapField];
+    if (!_swapMode) {
+      [self toggleSwapField];
+    } else if (_swapMode) {
+      [self cancelSwappedDyadminoes];
+      [self toggleSwapField];
+    }
     return;
   }
   
@@ -632,9 +632,18 @@
     [self playDyadmino];
   }
   
+    // cancels... something
+  if (_buttonPressed == _cancelButton) {
+
+  }
+  
     // submits turn
   if (_buttonPressed == _doneTurnButton) {
-    [self finalisePlayerTurn];
+    if (!_swapMode) {
+      [self finalisePlayerTurn];
+    } else if (_swapMode) {
+      [self finaliseSwap];
+    }
   }
   
     // logs
@@ -697,12 +706,34 @@
   _boardCover.hidden = YES;
 }
 
--(void)cancelSwap {
-  
+#pragma mark - engine methods
+
+  // FIXME: obviously, this must work
+-(BOOL)validateLegalityOfDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapNode *)boardNode {
+  if ([dyadmino belongsInRack]) {
+      // (as long as it doesn't conflict with other dyadminoes, not important if it scores points)
+  } else {
+      // (doesn't conflict with other dyadminoes, *and* doesn't break musical rules)
+  }
+  return YES;
+}
+
+-(void)cancelSwappedDyadminoes {
+  for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
+    if (dyadmino.belongsInSwap) {
+      dyadmino.belongsInSwap = NO;
+      [dyadmino goHomeByPoppingIn:NO];
+    }
+  }
 }
 
 -(void)finaliseSwap {
-  
+  for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
+    if (dyadmino.belongsInSwap) {
+      dyadmino.belongsInSwap = NO;
+      [dyadmino goHomeByPoppingIn:NO];
+    }
+  }
 }
 
 -(void)playDyadmino {
