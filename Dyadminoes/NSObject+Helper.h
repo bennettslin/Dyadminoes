@@ -27,6 +27,7 @@
   // view constants
 #define kTopBarHeight 72.f
 #define kRackHeight 108.f
+#define kBoardCoverAlpha 0.4f
 
   // game logic constants
 #define kNumDyadminoesInRack 6
@@ -47,6 +48,7 @@
   // z positions
 #define kZPositionBoard 10.f
 #define kZPositionBoardCell 20.f
+#define kZPositionBoardCover 25.f
 #define kZPositionBoardNode 30.f
 #define kZPositionBoardRestingDyadmino 40.f
 #define kZPositionTopBar 100.f

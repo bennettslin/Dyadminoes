@@ -83,7 +83,7 @@
 #pragma mark - change state methods
 
 -(void)setToHomeZPosition;
--(void)goHome;
+-(void)goHomeByPoppingIn:(BOOL)poppingIn;
 -(void)removeActionsAndEstablishNotRotating;
 
 #pragma mark - pivot methods

@@ -226,11 +226,16 @@
   }
 }
 
--(void)goHome {
+-(void)goHomeByPoppingIn:(BOOL)poppingIn {
+    // move these into a completion block for animation
   [self unhighlightOutOfPlay];
   [self orientBySnapNode:self.homeNode];
   self.zPosition = kZPositionRackMovedDyadmino;
-  [self animateConstantSpeedMoveDyadminoToPoint:[self getHomeNodePosition]];
+  if (poppingIn) {
+    [self animatePopBackIntoRackNode];
+  } else {
+    [self animateConstantSpeedMoveDyadminoToPoint:[self getHomeNodePosition]];
+  }
   self.tempBoardNode = nil;
   [self setToHomeZPosition];
   [self finishHovering];
@@ -388,6 +393,17 @@
   CGFloat distance = [self getDistanceFromThisPoint:self.position toThisPoint:point];
   SKAction *moveAction = [SKAction moveTo:point duration:kConstantSpeed * distance];
   [self runAction:moveAction];
+}
+
+-(void)animatePopBackIntoRackNode {
+  [self removeActionsAndEstablishNotRotating];
+  SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
+  SKAction *repositionAction = [SKAction runBlock:^{
+    self.position = [self getHomeNodePosition];
+  }];
+  SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
+  SKAction *sequenceAction = [SKAction sequence:@[shrinkAction, repositionAction, growAction]];
+  [self runAction:sequenceAction];
 }
 
 -(void)animateFlip {

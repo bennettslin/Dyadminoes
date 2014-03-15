@@ -17,9 +17,6 @@
 @interface MyScene () <FieldNodeDelegate>
 @end
 
-  // next step
-  // TODO: implement swap, and make it so that adding dyadminoes in board automatically adds rack nodes
-
   // TODO: put board cells on their own sprite nodes
   // TODO: board cells need coordinates
 
@@ -53,8 +50,9 @@
 @implementation MyScene {
 
     // sprites and nodes
-  FieldNode *_rackFieldSprite;
-  FieldNode *_swapFieldSprite;
+  FieldNode *_rackField;
+  FieldNode *_swapField;
+  SKSpriteNode *_boardCover;
   SKNode *_touchNode;
 
     // arrays to keep track of sprites and nodes
@@ -115,7 +113,7 @@
 }
 
 -(void)didMoveToView:(SKView *)view {
-  [self layoutBoard];
+  [self layoutBoardAndCover];
   [self layoutSwapField];
   [self layoutTopBar];
   [self layoutOrRefreshRackField];
@@ -126,19 +124,17 @@
 
 -(void)layoutSwapField {
   // initial instantiation of swap field sprite
-  _swapFieldSprite = [[FieldNode alloc] initWithWidth:self.frame.size.width andFieldNodeType:kFieldNodeSwap];
-  _swapFieldSprite.delegate = self;
-  _swapFieldSprite.color = [SKColor lightGrayColor];
-  _swapFieldSprite.size = CGSizeMake(self.frame.size.width, kRackHeight);
-  _swapFieldSprite.anchorPoint = CGPointZero;
-//  _swapFieldSprite.position = CGPointMake(0.f, 0.f);
-  _swapFieldSprite.zPosition = kZPositionSwapField;
-  [self addChild:_swapFieldSprite];
-//  [_swapFieldSprite layoutOrRefreshNodesWithCount:0.f];
+  _swapField = [[FieldNode alloc] initWithWidth:self.frame.size.width andFieldNodeType:kFieldNodeSwap];
+  _swapField.delegate = self;
+  _swapField.color = [SKColor lightGrayColor];
+  _swapField.size = CGSizeMake(self.frame.size.width, kRackHeight);
+  _swapField.anchorPoint = CGPointZero;
+  _swapField.zPosition = kZPositionSwapField;
+  [self addChild:_swapField];
   
     // initially sets swap mode
   _swapMode = NO;
-  _swapFieldSprite.hidden = YES;
+  _swapField.hidden = YES;
 }
 
 -(void)layoutTopBar {
@@ -171,6 +167,8 @@
   [topBar addChild:_swapButton];
   [_buttonNodes addObject:_swapButton];
   
+  
+    // play and done buttons are in same location, at least for now, as they are never shown together
   _playDyadminoButton = [[SKSpriteNode alloc] initWithColor:[UIColor greenColor] size:buttonSize];
   _playDyadminoButton.position = CGPointMake(buttonWidth * 3, buttonYPosition);
   _playDyadminoButton.zPosition = kZPositionTopBarButton;
@@ -178,14 +176,14 @@
   [_buttonNodes addObject:_playDyadminoButton];
   [self disableButton:_playDyadminoButton];
   
+    // done turn button is also pass turn
   _doneTurnButton = [[SKSpriteNode alloc] initWithColor:[UIColor blueColor] size:buttonSize];
   _doneTurnButton.position = CGPointMake(buttonWidth * 4, buttonYPosition);
   _doneTurnButton.zPosition = kZPositionTopBarButton;
   [topBar addChild:_doneTurnButton];
   [_buttonNodes addObject:_doneTurnButton];
-  [self disableButton:_doneTurnButton];
   
-  _logButton = [[SKSpriteNode alloc] initWithColor:[UIColor purpleColor] size:buttonSize];
+  _logButton = [[SKSpriteNode alloc] initWithColor:[UIColor blackColor] size:buttonSize];
   _logButton.position = CGPointMake(buttonWidth * 5, buttonYPosition);
   _logButton.zPosition = kZPositionTopBarButton;
   [topBar addChild:_logButton];
@@ -217,9 +215,18 @@
   [topBar addChild:_logLabel];
 }
 
--(void)layoutBoard {
+-(void)layoutBoardAndCover {
   self.backgroundColor = [SKColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1.0];
   
+  _boardCover = [[SKSpriteNode alloc] initWithColor:[SKColor blackColor]
+                                               size:CGSizeMake(self.frame.size.width, self.frame.size.height)];
+  _boardCover.position = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
+  _boardCover.zPosition = kZPositionBoardCover;
+  _boardCover.alpha = kBoardCoverAlpha;
+  [self addChild:_boardCover];
+  _boardCover.hidden = YES;
+  
+    // layout cells for now
   for (int i = 0; i < 6; i++) {
     for (int j = 0; j < 30; j++) {
       SKSpriteNode *blankCell = [SKSpriteNode spriteNodeWithImageNamed:@"blankSpace"];
@@ -274,21 +281,21 @@
 }
 
 -(void)layoutOrRefreshRackField {
-  if (!_rackFieldSprite) {
-    _rackFieldSprite = [[FieldNode alloc] initWithWidth:self.frame.size.width andFieldNodeType:kFieldNodeRack];
-    _rackFieldSprite.delegate = self;
-    _rackFieldSprite.color = [SKColor purpleColor];
-    _rackFieldSprite.size = CGSizeMake(self.frame.size.width, kRackHeight);
-    _rackFieldSprite.anchorPoint = CGPointZero;
-    _rackFieldSprite.position = CGPointMake(0, 0);
-    _rackFieldSprite.zPosition = kZPositionRackField;
-    [self addChild:_rackFieldSprite];
+  if (!_rackField) {
+    _rackField = [[FieldNode alloc] initWithWidth:self.frame.size.width andFieldNodeType:kFieldNodeRack];
+    _rackField.delegate = self;
+    _rackField.color = [SKColor purpleColor];
+    _rackField.size = CGSizeMake(self.frame.size.width, kRackHeight);
+    _rackField.anchorPoint = CGPointZero;
+    _rackField.position = CGPointMake(0, 0);
+    _rackField.zPosition = kZPositionRackField;
+    [self addChild:_rackField];
   }
-  [_rackFieldSprite layoutOrRefreshNodesWithCount:self.myPlayer.dyadminoesInRack.count];
+  [_rackField layoutOrRefreshNodesWithCount:self.myPlayer.dyadminoesInRack.count];
 }
 
 -(void)populateOrRefreshRackWithDyadminoes {
-  [_rackFieldSprite repositionDyadminoes:self.myPlayer.dyadminoesInRack];
+  [_rackField repositionDyadminoes:self.myPlayer.dyadminoesInRack];
 }
 
 #pragma mark - touch methods
@@ -389,7 +396,7 @@
   if ([_currentlyTouchedDyadmino belongsInRack] &&
       [_currentlyTouchedDyadmino isOnBoard] &&
       _currentlyTouchedDyadmino != _recentRackDyadmino) {
-    [self sendDyadminoHome:_recentRackDyadmino];
+    [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES];
   }
   
     //--------------------------------------------------------------------------
@@ -420,7 +427,7 @@
         ([_currentlyTouchedDyadmino isInRack] || [_currentlyTouchedDyadmino isInSwap])) {
       SnapNode *rackNode = [self findSnapNodeClosestToDyadmino:_currentlyTouchedDyadmino];
       
-      [_rackFieldSprite handleRackExchangeOfTouchedDyadmino:_currentlyTouchedDyadmino
+      [_rackField handleRackExchangeOfTouchedDyadmino:_currentlyTouchedDyadmino
                                              withDyadminoes:(NSMutableArray *)self.myPlayer.dyadminoesInRack
                                          andClosestRackNode:rackNode];
     }
@@ -487,7 +494,7 @@
 //        NSLog(@"about to flip");
         [dyadmino animateFlip];
       } else {
-        [self sendDyadminoHome:dyadmino];
+        [self sendDyadminoHome:dyadmino byPoppingIn:NO];
       }
 
         // else prepare it for hover
@@ -589,7 +596,7 @@
     
       // if it can still rotate, do so
     
-    [self sendDyadminoHome:_hoveringButNotTouchedDyadmino];
+    [self sendDyadminoHome:_hoveringButNotTouchedDyadmino byPoppingIn:NO];
   }
 }
 
@@ -650,7 +657,7 @@
 }
 
 -(void)toggleSwapField {
-  
+    // TODO: move animations at some point
     // FIXME: make better animation
     // otherwise toggle
   if (_swapMode) { // swap mode on, so turn off
@@ -659,24 +666,35 @@
     SKAction *moveAction = [SKAction moveTo:CGPointMake(0.f, 0.f) duration:kConstantTime];
     SKAction *completionAction = [SKAction runBlock:^{
       _swapFieldActionInProgress = NO;
-      _swapFieldSprite.hidden = YES;
+      _swapField.hidden = YES;
       _swapMode = NO;
+      [self hideBoardCover];
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
-    [_swapFieldSprite runAction:sequenceAction];
+    [_swapField runAction:sequenceAction];
     
   } else { // swap mode off, turn on
     _swapFieldActionInProgress = YES;
     
-    _swapFieldSprite.hidden = NO;
+    _swapField.hidden = NO;
     SKAction *moveAction = [SKAction moveTo:CGPointMake(0.f, kRackHeight) duration:kConstantTime];
     SKAction *completionAction = [SKAction runBlock:^{
       _swapFieldActionInProgress = NO;
       _swapMode = YES;
+      [self revealBoardCover];
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
-    [_swapFieldSprite runAction:sequenceAction];
+    [_swapField runAction:sequenceAction];
   }
+}
+
+-(void)revealBoardCover {
+    // TODO: make this animated
+  _boardCover.hidden = NO;
+}
+
+-(void)hideBoardCover {
+  _boardCover.hidden = YES;
 }
 
 -(void)cancelSwap {
@@ -808,8 +826,8 @@
   _pileCountLabel.text = [NSString stringWithFormat:@"pile %lu", (unsigned long)[self.ourGameEngine getCommonPileCount]];
 }
 
--(void)sendDyadminoHome:(Dyadmino *)dyadmino {
-  [dyadmino goHome];
+-(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingIn:(BOOL)poppingIn {
+  [dyadmino goHomeByPoppingIn:poppingIn];
   [dyadmino endTouchThenHoverResize];
   
   if (dyadmino.belongsInSwap) {
@@ -924,7 +942,7 @@
       // if dyadmino is in rack...
   } else if ([dyadmino isInRack] || [dyadmino isInSwap]) {
     if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
-        _rackFieldSprite.xIncrementInRack) {
+        _rackField.xIncrementInRack) {
       return dyadmino;
     }
   }
@@ -948,7 +966,7 @@ if (!_swapMode && [dyadmino isOnBoard]) {
     }
     
   } else if ([dyadmino isInRack] || [dyadmino isInSwap]) {
-    arrayOrSetToSearch = _rackFieldSprite.rackNodes;
+    arrayOrSetToSearch = _rackField.rackNodes;
   }
   
     // get the closest snapNode
@@ -978,7 +996,7 @@ if (!_swapMode && [dyadmino isOnBoard]) {
   }
   NSLog(@"current dyadmino is at %.2f, %.2f", _recentRackDyadmino.position.x, _recentRackDyadmino.position.y);
   
-  for (SnapNode *snapNode in _rackFieldSprite.rackNodes) {
+  for (SnapNode *snapNode in _rackField.rackNodes) {
     NSLog(@"%@ is in position %.1f, %.1f", snapNode.name, snapNode.position.x, snapNode.position.y);
   }
   
