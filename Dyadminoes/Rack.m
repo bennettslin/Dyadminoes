@@ -6,15 +6,15 @@
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
-#import "FieldNode.h"
-#import "SnapNode.h"
+#import "Rack.h"
+#import "SnapPoint.h"
 #import "Dyadmino.h"
-#import "BoardNode.h"
+#import "Board.h"
 
-@implementation FieldNode {
+@implementation Rack {
   CGFloat _nodeYPosition;
-  SnapNodeType _snapNodeType;
-  BoardNode *_board;
+  SnapPointType _snapNodeType;
+  Board *_board;
   BOOL _exchangeInProgress;
 }
 
@@ -71,7 +71,7 @@
     }
     
       // then reposition the rackNodes
-    for (SnapNode *rackNode in self.rackNodes) {
+    for (SnapPoint *rackNode in self.rackNodes) {
       NSUInteger index = [self.rackNodes indexOfObject:rackNode];
       rackNode.position = [self getNodePositionAtIndex:index withCountNumber:countNumber];
     }
@@ -116,7 +116,7 @@
 
 -(void)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
                             withDyadminoes:(NSMutableArray *)dyadminoesInArray
-                        andClosestRackNode:(SnapNode *)touchedDyadminoNewRackNode {
+                        andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode {
   
     // touchedDyadmino is in the rack, eligible for exchange
   if ([touchedDyadmino isInRack] || [touchedDyadmino isOrBelongsInSwap]) {
@@ -168,7 +168,7 @@
 }
 
 -(void)addRackNodeAtIndex:(NSUInteger)nodeIndex withCountNumber:(NSUInteger)countNumber {
-  SnapNode *rackNode = [[SnapNode alloc] initWithSnapNodeType:_snapNodeType];
+  SnapPoint *rackNode = [[SnapPoint alloc] initWithSnapPointType:_snapNodeType];
   rackNode.position = [self getNodePositionAtIndex:nodeIndex withCountNumber:countNumber];
   
   rackNode.name = [NSString stringWithFormat:@"%@ node %lu", self.name, (unsigned long)nodeIndex];

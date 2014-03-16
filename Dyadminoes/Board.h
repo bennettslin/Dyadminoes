@@ -9,15 +9,13 @@
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
 
-@interface BoardNode : SKSpriteNode
+@interface Board : SKSpriteNode
 
 @property (strong, nonatomic) SKSpriteNode *boardCover;
 
-@property (strong, nonatomic) NSMutableSet *boardNodesTwelveAndSix;
-@property (strong, nonatomic) NSMutableSet *boardNodesTwoAndEight;
-@property (strong, nonatomic) NSMutableSet *boardNodesFourAndTen;
-
-@property (strong, nonatomic) SKLabelNode *testLabelNode;
+@property (strong, nonatomic) NSMutableSet *snapPointsTwelveOClock;
+@property (strong, nonatomic) NSMutableSet *snapPointsTwoOClock;
+@property (strong, nonatomic) NSMutableSet *snapPointsTenOClock;
 
   //----------------------------------------------------------------------------
   //----------------------------------------------------------------------------
@@ -27,7 +25,7 @@
        andPosition:(CGPoint)position
       andZPosition:(CGFloat)zPosition;
 
--(void)layoutBoardCellsAndNodes;
+-(void)layoutBoardCellsAndSnapPoints;
 
 #pragma mark - board cover methods
 

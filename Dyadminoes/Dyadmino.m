@@ -12,9 +12,6 @@
   BOOL _alreadyAddedChildren;
   CGSize _touchSize;
   PivotOnPC _pivotOnPC;
-  
-    // this might not be needed
-  BOOL _isInPlay;
 }
 
 #pragma mark - init and layout methods
@@ -39,7 +36,6 @@
     self.pc2LetterSprite = pc2LetterSprite;
     self.pc1NumberSprite = pc1NumberSprite;
     self.pc2NumberSprite = pc2NumberSprite;
-//    self.withinSection = kWithinRack;
     self.hoveringStatus = kDyadminoNoHoverStatus;
     [self randomiseRackOrientation];
     [self selectAndPositionSprites];
@@ -120,9 +116,9 @@
   }
 }
 
--(void)orientBySnapNode:(SnapNode *)snapNode {
-  switch (snapNode.snapNodeType) {
-    case kSnapNodeRack:
+-(void)orientBySnapNode:(SnapPoint *)snapNode {
+  switch (snapNode.snapPointType) {
+    case kSnapPointRack:
       if (self.orientation <= 1 || self.orientation >= 5) {
         self.orientation = 0;
       } else {
@@ -205,21 +201,18 @@
     self.colorBlendFactor = kDyadminoColorBlendFactor * inPlayFloat;
   
   if (inPlayFloat > 0.f) {
-      // once in play, must be reset by other means than movement
-    _isInPlay = YES;
   }
 }
 
 -(void)unhighlightOutOfPlay {
 // TODO: possibly some animation here
   self.colorBlendFactor = 0.f;
-  _isInPlay = NO;
 }
 
 #pragma mark - change state methods
 
 -(void)setToHomeZPosition {
-  if (self.homeNode.snapNodeType == kSnapNodeRack) {
+  if (self.homeNode.snapPointType == kSnapPointRack) {
     self.zPosition = kZPositionRackRestingDyadmino;
   } else {
     self.zPosition = kZPositionBoardRestingDyadmino;
@@ -239,7 +232,12 @@
   self.tempBoardNode = nil;
   [self setToHomeZPosition];
   [self finishHovering];
-  _isInPlay = NO;
+}
+
+-(void)goFromTopBarToTempBoardNode {
+  [self animateConstantSpeedMoveDyadminoToPoint:self.tempBoardNode.position];
+  [self endTouchThenHoverResize];
+  [self orientBySnapNode:self.tempBoardNode];
 }
 
 -(void)removeActionsAndEstablishNotRotating {
@@ -442,6 +440,7 @@
 }
 
 -(void)animateEaseIntoNodeAfterHover {
+  
     // animate to homeNode as default, to tempBoardNode if it's a rack dyadmino
   CGPoint settledPosition = [self getHomeNodePosition];
   if ([self belongsInRack] && [self isOnBoard]) {
@@ -464,37 +463,29 @@
 
 -(BOOL)isOrBelongsInSwap {
   return self.belongsInSwap;
-    //  return (self.withinSection == kWithinSwap);
 }
 
 -(BOOL)belongsInRack {
-  return (self.homeNode.snapNodeType == kSnapNodeRack);
+  return (self.homeNode.snapPointType == kSnapPointRack);
 }
 
 -(BOOL)belongsOnBoard {
-  return (self.homeNode.snapNodeType == kSnapNodeBoardTwelveAndSix ||
-          self.homeNode.snapNodeType == kSnapNodeBoardTwoAndEight ||
-          self.homeNode.snapNodeType == kSnapNodeBoardFourAndTen);
+  return (self.homeNode.snapPointType == kSnapPointBoardTwelveOClock ||
+          self.homeNode.snapPointType == kSnapPointBoardTwoOClock ||
+          self.homeNode.snapPointType == kSnapPointBoardTenOClock);
 }
 
 -(BOOL)isInRack {
   return [self.parent.name isEqualToString:@"rack"];
-//  return (self.withinSection == kWithinRack);
 }
 
 -(BOOL)isOnBoard {
   return [self.parent.name isEqualToString:@"board"];
-//  return (self.withinSection == kWithinBoard);
 }
 
 -(BOOL)isLocatedInTopBar {
   return self.isInTopBar;
 }
-
-//-(BOOL)isInSwap {
-//  return self.belongsInSwap;
-////  return (self.withinSection == kWithinSwap);
-//}
 
 -(BOOL)isHovering {
   if (self.hoveringStatus == kDyadminoHovering) {
@@ -520,13 +511,10 @@
   }
 }
 
--(BOOL)isInPlay {
-  return _isInPlay;
-}
-
 #pragma mark - helper methods
 
 -(CGFloat)getHeightFloatGivenGap:(CGFloat)gap {
+  
     // returns 0 at bottom, gradually reaches 1 at peak...
   if (self.position.y < kRackHeight + (gap / 2) &&
       self.position.y >= kRackHeight - (gap / 2)) {

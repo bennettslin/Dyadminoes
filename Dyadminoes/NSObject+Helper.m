@@ -51,4 +51,11 @@
   return (M_PI * degree) / 180;
 }
 
+-(BoardXY)boardXYFromX:(NSInteger)x andY:(NSInteger)y {
+  BoardXY newBoardXY;
+  newBoardXY.x = x;
+  newBoardXY.y = y;
+  return newBoardXY;
+}
+
 @end

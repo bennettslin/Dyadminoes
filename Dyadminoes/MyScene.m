@@ -10,10 +10,10 @@
 #import "GameEngine.h"
 #import "Dyadmino.h"
 #import "NSObject+Helper.h"
-#import "SnapNode.h"
+#import "SnapPoint.h"
 #import "Player.h"
-#import "FieldNode.h"
-#import "BoardNode.h"
+#import "Rack.h"
+#import "Board.h"
 #import "TopBar.h"
 
 @interface MyScene () <FieldNodeDelegate>
@@ -52,9 +52,9 @@
 @implementation MyScene {
   
     // sprites and nodes
-  FieldNode *_rackField;
-  FieldNode *_swapField;
-  BoardNode *_boardField;
+  Rack *_rackField;
+  Rack *_swapField;
+  Board *_boardField;
   TopBar *_topBar;
   SKNode *_touchNode;
 
@@ -114,19 +114,19 @@
 -(void)layoutBoard {
   self.backgroundColor = [SKColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1.0];
 
-  _boardField = [[BoardNode alloc] initWithColor:kSkyBlue
-                                        andSize:CGSizeMake(self.frame.size.width, self.frame.size.height)
+  _boardField = [[Board alloc] initWithColor:kSkyBlue
+                                        andSize:CGSizeMake(self.frame.size.width * 2.f, self.frame.size.height * 2.f)
                                  andAnchorPoint:CGPointZero
                                     andPosition:CGPointZero
                                    andZPosition:kZPositionBoard];
   [self addChild:_boardField];
-  [_boardField layoutBoardCellsAndNodes];
+  [_boardField layoutBoardCellsAndSnapPoints];
 }
 
 -(void)layoutSwapField {
     // initial instantiation of swap field sprite
-  _swapField = [[FieldNode alloc] initWithFieldNodeType:kFieldNodeSwap
-                                              andColour:[SKColor lightGrayColor]
+  _swapField = [[Rack alloc] initWithFieldNodeType:kFieldNodeSwap
+                                              andColour:kGold
                                                 andSize:CGSizeMake(self.frame.size.width, kRackHeight)
                                          andAnchorPoint:CGPointZero
                                             andPosition:CGPointZero
@@ -155,7 +155,7 @@
 
 -(void)layoutOrRefreshRackFieldAndDyadminoes {
   if (!_rackField) {
-    _rackField = [[FieldNode alloc] initWithFieldNodeType:kFieldNodeRack
+    _rackField = [[Rack alloc] initWithFieldNodeType:kFieldNodeRack
                                                 andColour:kFieldPurple
                                                   andSize:CGSizeMake(self.frame.size.width, kRackHeight)
                                            andAnchorPoint:CGPointZero
@@ -218,10 +218,8 @@
   
     // otherwise, if it's a dyadmino
   if (dyadmino && !dyadmino.isRotating && !_currentlyTouchedDyadmino) {
-    [dyadmino startTouchThenHoverResize];
     
-    // safeguard against nuttiness
-//    dyadmino.myTouch = [touches anyObject];
+    [dyadmino startTouchThenHoverResize];
     [self handleBeginTouchOfDyadmino:dyadmino];
   }
 }
@@ -233,11 +231,6 @@
   if (thisTouch != _currentTouch) {
     return;
   }
-  
-    // safeguard against nuttiness
-//  if (_currentlyTouchedDyadmino && _currentlyTouchedDyadmino.myTouch != [touches anyObject]) {
-//    return;
-//  }
 
     // if the touch started on a button, do nothing and return
   if (_buttonPressed) {
@@ -278,7 +271,7 @@
     [_currentlyTouchedDyadmino keepHovering];
   }
   
-    // this is the only place that sets dyadmino highlight
+    // this is the only place that sets dyadmino highlight to YES
     // dyadmino highlight is reset when sent home or finalised
   if ([_currentlyTouchedDyadmino belongsInRack] && !_swapMode) {
     [_currentlyTouchedDyadmino adjustHighlightIntoPlay];
@@ -309,18 +302,18 @@
   
     // A. determine whether to snap out, or keep moving if already snapped out
     // refer to proper snap node
-  SnapNode *snapNode;
+  SnapPoint *snapPoint;
   if ([_currentlyTouchedDyadmino belongsInRack] || [_currentlyTouchedDyadmino belongsInSwap]) {
-    snapNode = _currentlyTouchedDyadmino.tempBoardNode;
+    snapPoint = _currentlyTouchedDyadmino.tempBoardNode;
   } else {
-    snapNode = _currentlyTouchedDyadmino.homeNode;
+    snapPoint = _currentlyTouchedDyadmino.homeNode;
   }
   
   CGPoint reverseOffsetPoint = [self fromThisPoint:_currentTouchLocation subtractThisPoint:_touchOffsetVector];
   
   if (_dyadminoSnappedIntoMovement ||
       (!_dyadminoSnappedIntoMovement && [self getDistanceFromThisPoint:reverseOffsetPoint
-      toThisPoint:snapNode.position] > kDistanceForSnapOut)) {
+      toThisPoint:snapPoint.position] > kDistanceForSnapOut)) {
       // if so, do initial setup; its current node now has no dyadmino, and it can no longer rotate
     _dyadminoSnappedIntoMovement = YES;
 
@@ -337,7 +330,7 @@
       // if it's a rack dyadmino, then while movement is within rack, rearrange dyadminoes
     if (([_currentlyTouchedDyadmino belongsInRack] || [_currentlyTouchedDyadmino belongsInSwap]) &&
         ([_currentlyTouchedDyadmino isInRack] || [_currentlyTouchedDyadmino isOrBelongsInSwap])) {
-      SnapNode *rackNode = [self findSnapNodeClosestToDyadmino:_currentlyTouchedDyadmino];
+      SnapPoint *rackNode = [self findSnapPointClosestToDyadmino:_currentlyTouchedDyadmino];
       
       [_rackField handleRackExchangeOfTouchedDyadmino:_currentlyTouchedDyadmino
                                              withDyadminoes:(NSMutableArray *)self.myPlayer.dyadminoesInRack
@@ -358,11 +351,6 @@
   if (_swapFieldActionInProgress) {
     return;
   }
-  
-    // safeguard against nuttiness
-//  if (_currentlyTouchedDyadmino && _currentlyTouchedDyadmino.myTouch != [touches anyObject]) {
-//    return;
-//  }
   
     // handle button that was pressed, ensure that touch is still on button when it ends
   if (_buttonPressed) {
@@ -400,19 +388,6 @@
       // if dyadmino belongs in rack (or swap) and *isn't* on board...
     if (([dyadmino belongsInRack] || [dyadmino belongsInSwap]) && ![dyadmino isOnBoard]) {
       
-        // if it's in swap field...
-        // this doesn't change the dyadmino's home node, it just changes
-        // its status; rack will recognise this status and position dyadmino
-        // in same x position, but with heightened yPosition as if it's on rack
-      
-        // this is the only place that belongsInSwap gets set to YES
-        // as long as it's not in the rack, it's in the swap
-//      if (_swapMode) {
-//        dyadmino.belongsInSwap = YES;
-//      } else {
-//        dyadmino.belongsInSwap = NO;
-//      }
-      
           // ...flip if possible, or send it home
       if (dyadmino.canFlip) {
         [dyadmino animateFlip];
@@ -420,15 +395,15 @@
         [self sendDyadminoHome:dyadmino byPoppingIn:NO];
       }
       
-        // if dyadmino is in top bar...
+        // or if dyadmino is in top bar...
     } else if ([dyadmino isInTopBar]) {
       if (dyadmino.tempBoardNode) {
-        [self sendDyadminoFromTopBarToTempBoardNode:dyadmino];
+        [dyadmino goFromTopBarToTempBoardNode];
       } else {
         [self sendDyadminoHome:dyadmino byPoppingIn:NO];
       }
            
-        // else prepare it for hover
+        // otherwise, prepare it for hover
     } else {
       _hoveringButNotTouchedDyadmino = dyadmino;
       [_hoveringButNotTouchedDyadmino startHovering];
@@ -508,7 +483,7 @@
   if ([_hoveringButNotTouchedDyadmino isOnBoard]) {
     
       // establish the closest board node, without snapping just yet
-    SnapNode *boardNode = [self findSnapNodeClosestToDyadmino:_hoveringButNotTouchedDyadmino];
+    SnapPoint *boardNode = [self findSnapPointClosestToDyadmino:_hoveringButNotTouchedDyadmino];
     
       // if valid placement
     if ([self validateLegalityOfDyadmino:_hoveringButNotTouchedDyadmino onBoardNode:boardNode]) {
@@ -619,7 +594,7 @@
 
 #pragma mark - engine methods
 
--(BOOL)validateLegalityOfDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapNode *)boardNode {
+-(BOOL)validateLegalityOfDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)boardNode {
     // FIXME: obviously, this must work
   if ([dyadmino belongsInRack]) {
       // (as long as it doesn't conflict with other dyadminoes, not important if it scores points)
@@ -712,14 +687,6 @@
 #pragma mark - update and reset methods
 
 -(void)update:(CFTimeInterval)currentTime {
-
-    // FIXME: this was the reason for the pause in the beginning
-    // when dyadmino is forst placed on board, but I'm not sure why
-//  if (_hoverTime != 0.f) {
-//    [self updateLogLabelWithString:[NSString stringWithFormat:@"%.2f", kAnimateHoverTime - (currentTime - _hoverTime)]];
-//  } else {
-//    [self updateLogLabelWithString:@""];
-//  }
   
   if ([_hoveringButNotTouchedDyadmino isHovering]) {
     if (_hoverTime == 0.f) {
@@ -772,9 +739,9 @@
     
       // ...these are the criteria by which swap button is enabled
       // swap button cannot have any rack dyadminoes on board
-    if (_currentlyTouchedDyadmino || _recentRackDyadmino) {
+    if ([_currentlyTouchedDyadmino isOnBoard] || _recentRackDyadmino) {
       [_topBar disableButton:_topBar.swapButton];
-    } else {
+    } else if (!_currentlyTouchedDyadmino || [_currentlyTouchedDyadmino isInRack]) {
       [_topBar enableButton:_topBar.swapButton];
     }
     
@@ -797,25 +764,10 @@
   
   [self determineCurrentSectionOfDyadmino:dyadmino];
   
-    // instead of determineCurrentSection method, this used to be here
-    // ensure that it's okay without it.
-//  if (dyadmino.belongsInSwap) {
-//    dyadmino.withinSection = kWithinSwap;
-//  } else {
-//    dyadmino.withinSection = kWithinRack;
-//  }
-  
   [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
   if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
     _recentRackDyadmino = nil;
   }
-}
-
-  // should move to Dyadmino class
--(void)sendDyadminoFromTopBarToTempBoardNode:(Dyadmino *)dyadmino {
-  [dyadmino animateConstantSpeedMoveDyadminoToPoint:dyadmino.tempBoardNode.position];
-  [dyadmino endTouchThenHoverResize];
-  [dyadmino orientBySnapNode:dyadmino.tempBoardNode];
 }
 
 -(void)updateLogLabelWithString:(NSString *)string {
@@ -847,47 +799,32 @@
 }
 
 -(void)determineCurrentSectionOfDyadmino:(Dyadmino *)dyadmino {
-    // TODO: make this the ONLY place that determines current section of dyadmino
-    // this is the ONLY place that determines whether dyadmino is in swap
-  
-    // initially make this the dyadmino's previous within section,
-    // then change based on new criteria
-//  DyadminoWithinSection withinSection = dyadmino.withinSection;
-  
+    // this the ONLY place that determines current section of dyadmino
+    // this is the ONLY place that sets dyadmino's belongsInSwap to YES
+
     // if dyadmino is in swap, its parent is the rack, and stays as such
   if (_swapMode && _currentTouchLocation.y - _touchOffsetVector.y > kRackHeight) {
     dyadmino.belongsInSwap = YES;
     dyadmino.isInTopBar = NO;
-    
-//    dyadmino.withinSection = kWithinSwap;
-//    withinSection = kWithinSwap;
 
     // if in rack field, doesn't matter if it's in swap
   } else if (_currentTouchLocation.y - _touchOffsetVector.y <= kRackHeight) {
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
+    dyadmino.belongsInSwap = NO;
     dyadmino.isInTopBar = NO;
-//    dyadmino.withinSection = kWithinRack;
-//    withinSection = kWithinRack;
 
       // if not in swap, it's in board when above rack and below top bar
   } else if (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
       _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight) {
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
     dyadmino.isInTopBar = NO;
-//    dyadmino.withinSection = kWithinBoard;
-//    withinSection = kWithinBoard;
     
       // else it's in the top bar
   } else if (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= self.frame.size.height - kTopBarHeight) {
     
       // this is a clumsy workaround...
     dyadmino.isInTopBar = YES;
-    
-      //    dyadmino.withinSection = kWithinNowhereLegal;
-//    withinSection = kWithinNowhereLegal;
   }
-  
-//  return withinSection;
 }
 
 -(Dyadmino *)selectDyadminoFromTouchNode:(SKNode *)touchNode andTouchPoint:(CGPoint)touchPoint {
@@ -962,34 +899,35 @@
   return nil;
 }
 
--(SnapNode *)findSnapNodeClosestToDyadmino:(Dyadmino *)dyadmino {
+-(SnapPoint *)findSnapPointClosestToDyadmino:(Dyadmino *)dyadmino {
   id arrayOrSetToSearch;
   
 if (!_swapMode && [dyadmino isOnBoard]) {
     if (dyadmino.orientation == kPC1atTwelveOClock || dyadmino.orientation == kPC1atSixOClock) {
-      arrayOrSetToSearch = _boardField.boardNodesTwelveAndSix;
+      arrayOrSetToSearch = _boardField.snapPointsTwelveOClock;
     } else if (dyadmino.orientation == kPC1atTwoOClock || dyadmino.orientation == kPC1atEightOClock) {
-      arrayOrSetToSearch = _boardField.boardNodesTwoAndEight;
+      arrayOrSetToSearch = _boardField.snapPointsTwoOClock;
     } else if (dyadmino.orientation == kPC1atFourOClock || dyadmino.orientation == kPC1atTenOClock) {
-      arrayOrSetToSearch = _boardField.boardNodesFourAndTen;
+      arrayOrSetToSearch = _boardField.snapPointsTenOClock;
     }
     
   } else if ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap]) {
     arrayOrSetToSearch = _rackField.rackNodes;
   }
   
-    // get the closest snapNode
-  SnapNode *closestSnapnode;
+    // get the closest snapPoint
+  SnapPoint *closestSnapPoint;
   CGFloat shortestDistance = self.frame.size.height;
   
-  for (SnapNode *snapNode in arrayOrSetToSearch) {
-    CGFloat thisDistance = [self getDistanceFromThisPoint:dyadmino.position toThisPoint:snapNode.position];
+  for (SnapPoint *snapPoint in arrayOrSetToSearch) {
+    CGFloat thisDistance = [self getDistanceFromThisPoint:dyadmino.position
+                                              toThisPoint:snapPoint.position];
     if (thisDistance < shortestDistance) {
       shortestDistance = thisDistance;
-      closestSnapnode = snapNode;
+      closestSnapPoint = snapPoint;
     }
   }
-  return closestSnapnode;
+  return closestSnapPoint;
 }
 
 -(void)removeDyadmino:(Dyadmino *)dyadmino fromParentAndAddToNewParent:(SKSpriteNode *)newParent {
@@ -1008,15 +946,11 @@ if (!_swapMode && [dyadmino isOnBoard]) {
   NSLog(@"%@, %@, %@", hoveringString, currentString, recentRackString);
   
   for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
-    NSLog(@"%@ has homeNode %@, tempReturn %@, is child of %@, belongs in swap %i, and is at %.2f, %.2f and child of %@", dyadmino.name, dyadmino.homeNode.name, dyadmino.tempBoardNode.name, dyadmino.parent.name, dyadmino.belongsInSwap, dyadmino.position.x, dyadmino.position.y, dyadmino.parent.name);
+    NSLog(@"%@ has homeNode %@, tempReturn %@, is child of %@, belongs in swap %i, and is at %.2f, %.2f and child of %@", dyadmino.name, dyadmino.homeNode.name, dyadmino.tempBoardNode.name, dyadmino.parent.name, dyadmino.belongsInSwap,
+          dyadmino.position.x, dyadmino.position.y, dyadmino.parent.name);
   }
   
-  
   NSLog(@"rack dyadmino on board is at %.2f, %.2f and child of %@", _recentRackDyadmino.position.x, _recentRackDyadmino.position.y, _recentRackDyadmino.parent.name);
-  
-//  for (SnapNode *snapNode in _rackField.rackNodes) {
-//    NSLog(@"%@ is in position %.1f, %.1f", snapNode.name, snapNode.position.x, snapNode.position.y);
-//  }
   
   _boardField.position = CGPointZero;
   _boardShiftedAfterEachTouch = CGPointZero;

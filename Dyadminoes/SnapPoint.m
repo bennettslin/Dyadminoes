@@ -6,21 +6,21 @@
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
-#import "SnapNode.h"
+#import "SnapPoint.h"
 #import "Dyadmino.h"
 
-@implementation SnapNode
+@implementation SnapPoint
 
--(id)initWithSnapNodeType:(SnapNodeType)snapNodeType {
+-(id)initWithSnapPointType:(SnapPointType)snapPointType {
   self = [super init];
   if (self) {
-    self.snapNodeType = snapNodeType;
+    self.snapPointType = snapPointType;
   }
   return self;
 }
 
--(SnapNodeType)isType {
-  return self.snapNodeType;
+-(SnapPointType)isType {
+  return self.snapPointType;
 }
 
 @end

@@ -68,7 +68,7 @@
         
         Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1 andPC2:pc2 andPCMode:kPCModeLetter andRotationFrameArray:rotationFrameArray andPC1LetterSprite:pc1LetterSprite andPC2LetterSprite:pc2LetterSprite andPC1NumberSprite:pc1NumberSprite andPC2NumberSprite:pc2NumberSprite];
         dyadmino.pivotGuide = pivotGuide;
-        dyadmino.pivotGuide.zPosition = 0.f;
+        dyadmino.pivotGuide.zPosition = -1.f;
         dyadmino.pivotGuide.name = @"pivotGuide";
         
         [self.allDyadminoes addObject:dyadmino];
@@ -108,8 +108,8 @@
                  kMaxDistanceForPivot * sinf([self getRadiansFromDegree:startAngle[i]]));
     shapeNode.path = shapePath;
     shapeNode.lineWidth = 0.1f;
-    shapeNode.alpha = 0.2f;
-    shapeNode.strokeColor = colourArray[i];
+    shapeNode.alpha = 0.15f;
+    shapeNode.strokeColor = [SKColor clearColor];
     shapeNode.fillColor = colourArray[i];
     [pivotGuide addChild:shapeNode];
   }

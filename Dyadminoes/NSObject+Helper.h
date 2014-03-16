@@ -39,9 +39,9 @@
 #define kDistanceForOtherRackDyadminoToMoveOver 22.f
 #define kDistanceForSnapIn 21.f // this is half the height of the cell space, plus wiggle room
 
-#define kDistanceForTouchingHoveringDyadmino 37.5f // this is also the min distance for pivot
+#define kDistanceForTouchingHoveringDyadmino 32.f // this is also the min distance for pivot
 #define kDistanceForTouchingLockedDyadmino 25.f
-#define kMaxDistanceForPivot 100.f
+#define kMaxDistanceForPivot 96.f
 
 #define kGapForHighlight 30.f
 #define kGapForShiftingDyadminoes 40.f
@@ -73,19 +73,17 @@
 #define kSolidBlue [SKColor colorWithRed:.15f green:.19f blue:.55f alpha:1.f]
 #define kGold [SKColor colorWithRed:.64f green:.57f blue:.38f alpha:1.f]
 
+typedef struct BoardXY {
+  NSInteger x;
+  NSInteger y;
+} BoardXY;
+
 typedef enum dyadminoHoveringStatus {
   kDyadminoNoHoverStatus,
   kDyadminoHovering,
   kDyadminoContinuesHovering,
   kDyadminoFinishedHovering
 } DyadminoHoveringStatus;
-
-typedef enum dyadminoWithinSection {
-  kWithinRack,
-  kWithinBoard,
-  kWithinNowhereLegal,
-  kWithinSwap,
-} DyadminoWithinSection;
 
 typedef enum pcMode {
   kPCModeLetter,
@@ -94,16 +92,17 @@ typedef enum pcMode {
 
 typedef enum fieldNodeType {
   kFieldNodeRack,
-  kFieldNodeSwap
+  kFieldNodeSwap,
+  kFieldNodeBoard,
 } FieldNodeType;
 
-typedef enum snapNodeType {
-  kSnapNodeRack,
-  kSnapNodeSwap,
-  kSnapNodeBoardTwelveAndSix,
-  kSnapNodeBoardTwoAndEight,
-  kSnapNodeBoardFourAndTen
-} SnapNodeType;
+typedef enum snapPointType {
+  kSnapPointRack,
+  kSnapPointSwap,
+  kSnapPointBoardTwelveOClock,
+  kSnapPointBoardTwoOClock,
+  kSnapPointBoardTenOClock
+} SnapPointType;
 
 typedef enum dyadminoOrientation {
   kPC1atTwelveOClock,
@@ -120,12 +119,6 @@ typedef enum pivotOnPC {
   kPivotOnPC2
 } PivotOnPC;
 
-typedef enum touchStatus {
-  kTouchBegan,
-  kTouchMoved,
-  kTouchEnded
-} TouchStatus;
-
 @interface NSObject (Helper)
 
   // math stuff
@@ -136,5 +129,8 @@ typedef enum touchStatus {
 -(CGFloat)findAngleInDegreesFromThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
 -(CGFloat)getSextantChangeFromThisAngle:(CGFloat)angle1 toThisAngle:(CGFloat)angle2;
 -(CGFloat)getRadiansFromDegree:(CGFloat)degree;
+
+  // struct stuff
+-(BoardXY)boardXYFromX:(NSInteger)x andY:(NSInteger)y;
 
 @end

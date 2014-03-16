@@ -8,14 +8,14 @@
 
 #import <SpriteKit/SpriteKit.h>
 @class Dyadmino;
-@class SnapNode;
-@class BoardNode;
+@class SnapPoint;
+@class Board;
 
 @protocol FieldNodeDelegate <NSObject>
 
 @end
 
-@interface FieldNode : SKSpriteNode
+@interface Rack : SKSpriteNode
 
 @property (nonatomic) CGFloat xIncrementInRack;
 @property (strong, nonatomic) NSMutableArray *rackNodes;
@@ -29,7 +29,7 @@
 -(id)initWithFieldNodeType:(NSUInteger)fieldNodeType andColour:(SKColor *)colour
                    andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint
                andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition
-                  andBoard:(BoardNode *)board;
+                  andBoard:(Board *)board;
 
 -(void)layoutOrRefreshNodesWithCount:(NSUInteger)countNumber;
 
@@ -39,7 +39,7 @@
 
 -(void)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
                             withDyadminoes:(NSMutableArray *)dyadminoesInArray
-                        andClosestRackNode:(SnapNode *)touchedDyadminoNewRackNode;
+                        andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode;
 
 @end
 

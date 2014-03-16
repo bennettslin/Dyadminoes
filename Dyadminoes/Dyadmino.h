@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
-#import "SnapNode.h"
+#import "SnapPoint.h"
 
 @interface Dyadmino : SKSpriteNode
 
@@ -19,9 +19,8 @@
 @property (nonatomic) PCMode pcMode;
 
   // nodes and touches
-@property (strong, nonatomic) SnapNode *homeNode;
-@property (strong, nonatomic) SnapNode *tempBoardNode;
-//@property (strong, nonatomic) UITouch *myTouch;
+@property (strong, nonatomic) SnapPoint *homeNode;
+@property (strong, nonatomic) SnapPoint *tempBoardNode;
 
   // orientations
 @property (nonatomic) DyadminoOrientation orientation;
@@ -67,7 +66,7 @@
 #pragma mark - orient and position methods
 
 -(void)selectAndPositionSprites;
--(void)orientBySnapNode:(SnapNode *)snapNode;
+-(void)orientBySnapNode:(SnapPoint *)snapNode;
 -(void)orientBasedOnSextantChange:(CGFloat)sextantChange;
 -(CGPoint)getHomeNodePosition;
 
@@ -85,6 +84,7 @@
 
 -(void)setToHomeZPosition;
 -(void)goHomeByPoppingIn:(BOOL)poppingIn;
+-(void)goFromTopBarToTempBoardNode;
 -(void)removeActionsAndEstablishNotRotating;
 
 #pragma mark - pivot methods
@@ -109,11 +109,9 @@
 -(BOOL)isInRack;
 -(BOOL)isOnBoard;
 -(BOOL)isLocatedInTopBar;
-//-(BOOL)isInSwap;
 -(BOOL)isHovering;
 -(BOOL)continuesToHover;
 -(BOOL)isFinishedHovering;
--(BOOL)isInPlay;
 
 #pragma mark - helper methods
 
