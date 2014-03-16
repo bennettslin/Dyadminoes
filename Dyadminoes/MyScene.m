@@ -107,36 +107,6 @@
   [self layoutSwapField];
   [self layoutTopBar];
   [self layoutOrRefreshRackFieldAndDyadminoes];
-  [self createPivotGuide];
-}
-
--(void)createPivotGuide {
-  _pivotGuide = [SKNode new];
-  _pivotGuide.position = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
-  
-    // min circle
-  SKShapeNode *minCircle = [SKShapeNode new];
-  CGMutablePathRef minCirclePath = CGPathCreateMutable();
-  CGPathAddArc(minCirclePath, NULL, 0.5f, 0.5f, kDistanceForTouchingHoveringDyadmino, 0.f, M_PI * 2, YES);
-  minCircle.path = minCirclePath;
-  minCircle.lineWidth = 1.5f;
-  minCircle.alpha = 0.15f;
-  minCircle.strokeColor = [SKColor orangeColor];
-  [_pivotGuide addChild:minCircle];
-  
-    // max circle
-  SKShapeNode *maxCircle = [SKShapeNode new];
-  CGMutablePathRef maxCirclePath = CGPathCreateMutable();
-  CGPathAddArc(maxCirclePath, NULL, 0.5f, 0.5f, kMaxDistanceForPivot, 0.f, M_PI * 2, YES);
-  maxCircle.path = maxCirclePath;
-  maxCircle.lineWidth = 1.5f;
-  maxCircle.alpha = 0.15f;
-  maxCircle.strokeColor = [SKColor orangeColor];
-  [_pivotGuide addChild:maxCircle];
-  
-    // dividing lines
-  
-  [_boardField addChild:_pivotGuide];
 }
 
 #pragma mark - layout methods
@@ -172,13 +142,15 @@
 
 -(void)layoutTopBar {
     // background
-  _topBar = [[TopBar alloc] initWithColor:kDarkBlue andSize:CGSizeMake(self.frame.size.width, kTopBarHeight)
-                           andAnchorPoint:CGPointZero andPosition:CGPointMake(0, self.frame.size.height - kTopBarHeight)
+  _topBar = [[TopBar alloc] initWithColor:kDarkBlue
+                                  andSize:CGSizeMake(self.frame.size.width, kTopBarHeight)
+                           andAnchorPoint:CGPointZero
+                              andPosition:CGPointMake(0, self.frame.size.height - kTopBarHeight)
                              andZPosition:kZPositionTopBar];
-  [self addChild:_topBar];
-  
   [_topBar populateWithButtons];
   [_topBar populateWithLabels];
+  [self addChild:_topBar];
+  [self updatePileCountLabel];
 }
 
 -(void)layoutOrRefreshRackFieldAndDyadminoes {
@@ -216,7 +188,7 @@
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
-//  NSLog(@"touchNode is %@ and has parent %@", _touchNode.name, _touchNode.parent.name);
+  NSLog(@"touchNode is %@ and has parent %@", _touchNode.name, _touchNode.parent.name);
   
     //--------------------------------------------------------------------------
 
@@ -717,15 +689,17 @@
 
 -(void)finalisePlayerTurn {
     // no recent rack dyadmino on board
-  while ([self.ourGameEngine getCommonPileCount] >= 1 && self.myPlayer.dyadminoesInRack.count < 6) {
-    [self.ourGameEngine putDyadminoFromPileIntoRackOfPlayer:self.myPlayer];
-  }
+  if (!_recentRackDyadmino) {
+    while ([self.ourGameEngine getCommonPileCount] >= 1 && self.myPlayer.dyadminoesInRack.count < 6) {
+      [self.ourGameEngine putDyadminoFromPileIntoRackOfPlayer:self.myPlayer];
+    }
 
   [self layoutOrRefreshRackFieldAndDyadminoes];
   
     // update views
   [self updatePileCountLabel];
   [self updateMessageLabelWithString:@"done"];
+  }
 }
 
 #pragma mark - update and reset methods
@@ -804,7 +778,6 @@
     [_topBar disableButton:_topBar.swapButton];
   }
 }
-
 
 -(void)updatePileCountLabel {
   _topBar.pileCountLabel.text = [NSString stringWithFormat:@"pile %lu", (unsigned long)[self.ourGameEngine getCommonPileCount]];
@@ -929,6 +902,8 @@
     dyadmino = (Dyadmino *)touchNode;
   } else if ([touchNode.parent isKindOfClass:[Dyadmino class]]) {
     dyadmino = (Dyadmino *)touchNode.parent;
+  } else if ([touchNode.parent.parent isKindOfClass:[Dyadmino class]]) {
+    dyadmino = (Dyadmino *)touchNode.parent.parent;
   } else {
     return nil;
   }
@@ -1016,6 +991,11 @@ if (!_swapMode && [dyadmino isOnBoard]) {
   
   _boardField.position = CGPointZero;
   _boardShiftedAfterEachTouch = CGPointZero;
+  
+  if (_recentRackDyadmino) {
+    [_recentRackDyadmino.pivotGuide removeFromParent];
+    [_recentRackDyadmino addChild:_recentRackDyadmino.pivotGuide];
+  }
 }
 
 @end

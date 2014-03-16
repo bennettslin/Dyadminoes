@@ -35,6 +35,7 @@
 @property (strong, nonatomic) SKSpriteNode *pc2NumberSprite;
 @property (strong, nonatomic) SKSpriteNode *pc1Sprite;
 @property (strong, nonatomic) SKSpriteNode *pc2Sprite;
+@property (strong, nonatomic) SKSpriteNode *pivotGuide;
 
   // bools and states
 @property DyadminoWithinSection withinSection;

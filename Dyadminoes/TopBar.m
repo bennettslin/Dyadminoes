@@ -81,7 +81,7 @@
 -(void)populateWithLabels {
   CGFloat labelYPosition = -30.f;
   
-  self.pileCountLabel = [SKLabelNode labelNodeWithFontNamed:@"Helvetica-Neue"];
+  self.pileCountLabel = [[SKLabelNode alloc] init];
   self.pileCountLabel.name = @"pileCountLabel";
   self.pileCountLabel.fontSize = 14.f;
   self.pileCountLabel.color = [UIColor whiteColor];
@@ -89,7 +89,7 @@
   self.pileCountLabel.zPosition = kZPositionTopBarLabel;
   [self addChild:self.pileCountLabel];
   
-  self.messageLabel = [SKLabelNode labelNodeWithFontNamed:@"Helvetica-Neue"];
+  self.messageLabel = [[SKLabelNode alloc] init];
   self.messageLabel.name = @"messageLabel";
   self.messageLabel.fontSize = 14.f;
   self.messageLabel.color = [UIColor whiteColor];
@@ -97,7 +97,7 @@
   self.messageLabel.zPosition = kZPositionMessage;
   [self addChild:self.messageLabel];
   
-  self.logLabel = [SKLabelNode labelNodeWithFontNamed:@"Helvetica-Neue"];
+  self.logLabel = [[SKLabelNode alloc] init];
   self.logLabel.name = @"logLabel";
   self.logLabel.fontSize = 14.f;
   self.logLabel.color = [UIColor whiteColor];

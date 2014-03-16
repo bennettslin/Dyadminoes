@@ -70,6 +70,8 @@
 #define kDarkBlue [SKColor colorWithRed:.29f green:.4f blue:.63f alpha:1.f]
 #define kSkyBlue [SKColor colorWithRed:.7f green:.8f blue:.9f alpha:1.f]
 #define kFieldPurple [SKColor colorWithRed:.3f green:.2f blue:.4f alpha:1.f]
+#define kSolidBlue [SKColor colorWithRed:.15f green:.19f blue:.55f alpha:1.f]
+#define kGold [SKColor colorWithRed:.64f green:.57f blue:.38f alpha:1.f]
 
 typedef enum dyadminoHoveringStatus {
   kDyadminoNoHoverStatus,
@@ -133,5 +135,6 @@ typedef enum touchStatus {
 -(CGPoint)fromThisPoint:(CGPoint)point1 subtractThisPoint:(CGPoint)point2;
 -(CGFloat)findAngleInDegreesFromThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
 -(CGFloat)getSextantChangeFromThisAngle:(CGFloat)angle1 toThisAngle:(CGFloat)angle2;
+-(CGFloat)getRadiansFromDegree:(CGFloat)degree;
 
 @end

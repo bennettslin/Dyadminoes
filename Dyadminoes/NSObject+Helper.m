@@ -47,4 +47,8 @@
   return angle;
 }
 
+-(CGFloat)getRadiansFromDegree:(CGFloat)degree {
+  return (M_PI * degree) / 180;
+}
+
 @end
