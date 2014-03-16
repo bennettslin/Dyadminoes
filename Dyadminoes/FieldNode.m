@@ -91,7 +91,7 @@
     // this has to be reset after turn
     dyadmino.homeNode = self.rackNodes[index];
     dyadmino.tempBoardNode = nil;
-    dyadmino.withinSection = kWithinRack;
+//    dyadmino.withinSection = kWithinRack;
 
     //--------------------------------------------------------------------------
   
@@ -119,7 +119,7 @@
                         andClosestRackNode:(SnapNode *)touchedDyadminoNewRackNode {
   
     // touchedDyadmino is in the rack, eligible for exchange
-  if ([touchedDyadmino isInRack] || [touchedDyadmino isInSwap]) {
+  if ([touchedDyadmino isInRack] || [touchedDyadmino isOrBelongsInSwap]) {
 
       // touchedDyadmino is closer to another dyadmino's rackNode
     if (touchedDyadminoNewRackNode != touchedDyadmino.homeNode) {

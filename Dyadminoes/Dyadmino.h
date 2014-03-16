@@ -38,12 +38,12 @@
 @property (strong, nonatomic) SKSpriteNode *pivotGuide;
 
   // bools and states
-@property DyadminoWithinSection withinSection;
-@property BOOL canFlip;
-@property BOOL isRotating;
-@property BOOL isTouchThenHoverResized;
-@property DyadminoHoveringStatus hoveringStatus;
-@property BOOL belongsInSwap;
+@property (nonatomic) BOOL isInTopBar;
+@property (nonatomic) BOOL belongsInSwap;
+@property (nonatomic) BOOL canFlip;
+@property (nonatomic) BOOL isRotating;
+@property (nonatomic) BOOL isTouchThenHoverResized;
+@property (nonatomic) DyadminoHoveringStatus hoveringStatus;
 
   // pivot properties
 @property (nonatomic) CGFloat initialPivotAngle;
@@ -105,9 +105,11 @@
 -(BOOL)belongsInRack;
 -(BOOL)belongsOnBoard;
 
+-(BOOL)isOrBelongsInSwap;
 -(BOOL)isInRack;
 -(BOOL)isOnBoard;
--(BOOL)isInSwap;
+-(BOOL)isLocatedInTopBar;
+//-(BOOL)isInSwap;
 -(BOOL)isHovering;
 -(BOOL)continuesToHover;
 -(BOOL)isFinishedHovering;

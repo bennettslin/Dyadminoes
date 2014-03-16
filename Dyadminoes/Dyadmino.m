@@ -39,7 +39,7 @@
     self.pc2LetterSprite = pc2LetterSprite;
     self.pc1NumberSprite = pc1NumberSprite;
     self.pc2NumberSprite = pc2NumberSprite;
-    self.withinSection = kWithinRack;
+//    self.withinSection = kWithinRack;
     self.hoveringStatus = kDyadminoNoHoverStatus;
     [self randomiseRackOrientation];
     [self selectAndPositionSprites];
@@ -418,7 +418,7 @@
   SKAction *finishAction;
   
     // rotation
-  if ([self isInRack] || [self isInSwap]) {
+  if ([self isInRack] || [self isOrBelongsInSwap]) {
     finishAction = [SKAction runBlock:^{
       [self finishHovering];
       [self setToHomeZPosition];
@@ -462,6 +462,11 @@
 
 #pragma mark - bool methods
 
+-(BOOL)isOrBelongsInSwap {
+  return self.belongsInSwap;
+    //  return (self.withinSection == kWithinSwap);
+}
+
 -(BOOL)belongsInRack {
   return (self.homeNode.snapNodeType == kSnapNodeRack);
 }
@@ -473,16 +478,23 @@
 }
 
 -(BOOL)isInRack {
-  return (self.withinSection == kWithinRack);
+  return [self.parent.name isEqualToString:@"rack"];
+//  return (self.withinSection == kWithinRack);
 }
 
 -(BOOL)isOnBoard {
-  return (self.withinSection == kWithinBoard);
+  return [self.parent.name isEqualToString:@"board"];
+//  return (self.withinSection == kWithinBoard);
 }
 
--(BOOL)isInSwap {
-  return (self.withinSection == kWithinSwap);
+-(BOOL)isLocatedInTopBar {
+  return self.isInTopBar;
 }
+
+//-(BOOL)isInSwap {
+//  return self.belongsInSwap;
+////  return (self.withinSection == kWithinSwap);
+//}
 
 -(BOOL)isHovering {
   if (self.hoveringStatus == kDyadminoHovering) {

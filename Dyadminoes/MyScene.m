@@ -336,7 +336,7 @@
     
       // if it's a rack dyadmino, then while movement is within rack, rearrange dyadminoes
     if (([_currentlyTouchedDyadmino belongsInRack] || [_currentlyTouchedDyadmino belongsInSwap]) &&
-        ([_currentlyTouchedDyadmino isInRack] || [_currentlyTouchedDyadmino isInSwap])) {
+        ([_currentlyTouchedDyadmino isInRack] || [_currentlyTouchedDyadmino isOrBelongsInSwap])) {
       SnapNode *rackNode = [self findSnapNodeClosestToDyadmino:_currentlyTouchedDyadmino];
       
       [_rackField handleRackExchangeOfTouchedDyadmino:_currentlyTouchedDyadmino
@@ -397,7 +397,7 @@
     // ensures we're not disrupting a rotating animation
   if (!dyadmino.isRotating) {
     
-      // if dyadmino belongs in rack and *isn't* on board...
+      // if dyadmino belongs in rack (or swap) and *isn't* on board...
     if (([dyadmino belongsInRack] || [dyadmino belongsInSwap]) && ![dyadmino isOnBoard]) {
       
         // if it's in swap field...
@@ -407,11 +407,11 @@
       
         // this is the only place that belongsInSwap gets set to YES
         // as long as it's not in the rack, it's in the swap
-      if (_swapMode && ![dyadmino isInRack]) {
-        dyadmino.belongsInSwap = YES;
-      } else {
-        dyadmino.belongsInSwap = NO;
-      }
+//      if (_swapMode) {
+//        dyadmino.belongsInSwap = YES;
+//      } else {
+//        dyadmino.belongsInSwap = NO;
+//      }
       
           // ...flip if possible, or send it home
       if (dyadmino.canFlip) {
@@ -419,7 +419,15 @@
       } else {
         [self sendDyadminoHome:dyadmino byPoppingIn:NO];
       }
-
+      
+        // if dyadmino is in top bar...
+    } else if ([dyadmino isInTopBar]) {
+      if (dyadmino.tempBoardNode) {
+        [self sendDyadminoFromTopBarToTempBoardNode:dyadmino];
+      } else {
+        [self sendDyadminoHome:dyadmino byPoppingIn:NO];
+      }
+           
         // else prepare it for hover
     } else {
       _hoveringButNotTouchedDyadmino = dyadmino;
@@ -453,7 +461,7 @@
     //--------------------------------------------------------------------------
   
     // if it's still in the rack, it can still rotate
-  if ([_currentlyTouchedDyadmino isInRack] || [_currentlyTouchedDyadmino isInSwap]) {
+  if ([_currentlyTouchedDyadmino isInRack] || [_currentlyTouchedDyadmino isOrBelongsInSwap]) {
     _currentlyTouchedDyadmino.canFlip = YES;
   }
   
@@ -803,6 +811,13 @@
   }
 }
 
+  // should move to Dyadmino class
+-(void)sendDyadminoFromTopBarToTempBoardNode:(Dyadmino *)dyadmino {
+  [dyadmino animateConstantSpeedMoveDyadminoToPoint:dyadmino.tempBoardNode.position];
+  [dyadmino endTouchThenHoverResize];
+  [dyadmino orientBySnapNode:dyadmino.tempBoardNode];
+}
+
 -(void)updateLogLabelWithString:(NSString *)string {
   _topBar.logLabel.text = string;
 }
@@ -831,39 +846,48 @@
   return CGPointMake(uiTouchLocation.x, self.frame.size.height - uiTouchLocation.y);
 }
 
--(DyadminoWithinSection)determineCurrentSectionOfDyadmino:(Dyadmino *)dyadmino {
+-(void)determineCurrentSectionOfDyadmino:(Dyadmino *)dyadmino {
     // TODO: make this the ONLY place that determines current section of dyadmino
     // this is the ONLY place that determines whether dyadmino is in swap
   
     // initially make this the dyadmino's previous within section,
     // then change based on new criteria
-  DyadminoWithinSection withinSection = dyadmino.withinSection;
+//  DyadminoWithinSection withinSection = dyadmino.withinSection;
   
     // if dyadmino is in swap, its parent is the rack, and stays as such
   if (_swapMode && _currentTouchLocation.y - _touchOffsetVector.y > kRackHeight) {
-    dyadmino.withinSection = kWithinSwap;
-    withinSection = kWithinSwap;
+    dyadmino.belongsInSwap = YES;
+    dyadmino.isInTopBar = NO;
+    
+//    dyadmino.withinSection = kWithinSwap;
+//    withinSection = kWithinSwap;
 
     // if in rack field, doesn't matter if it's in swap
   } else if (_currentTouchLocation.y - _touchOffsetVector.y <= kRackHeight) {
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
-    dyadmino.withinSection = kWithinRack;
-    withinSection = kWithinRack;
+    dyadmino.isInTopBar = NO;
+//    dyadmino.withinSection = kWithinRack;
+//    withinSection = kWithinRack;
 
       // if not in swap, it's in board when above rack and below top bar
   } else if (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
       _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight) {
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
-    dyadmino.withinSection = kWithinBoard;
-    withinSection = kWithinBoard;
+    dyadmino.isInTopBar = NO;
+//    dyadmino.withinSection = kWithinBoard;
+//    withinSection = kWithinBoard;
     
-      // else it's nowhere legal
-  } else {
-    dyadmino.withinSection = kWithinNowhereLegal;
-    withinSection = kWithinNowhereLegal;
+      // else it's in the top bar
+  } else if (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= self.frame.size.height - kTopBarHeight) {
+    
+      // this is a clumsy workaround...
+    dyadmino.isInTopBar = YES;
+    
+      //    dyadmino.withinSection = kWithinNowhereLegal;
+//    withinSection = kWithinNowhereLegal;
   }
   
-  return withinSection;
+//  return withinSection;
 }
 
 -(Dyadmino *)selectDyadminoFromTouchNode:(SKNode *)touchNode andTouchPoint:(CGPoint)touchPoint {
@@ -927,7 +951,7 @@
       return dyadmino;
     }
       // if dyadmino is in rack...
-  } else if ([dyadmino isInRack] || [dyadmino isInSwap]) {
+  } else if ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap]) {
     if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
         _rackField.xIncrementInRack) {
       return dyadmino;
@@ -950,7 +974,7 @@ if (!_swapMode && [dyadmino isOnBoard]) {
       arrayOrSetToSearch = _boardField.boardNodesFourAndTen;
     }
     
-  } else if ([dyadmino isInRack] || [dyadmino isInSwap]) {
+  } else if ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap]) {
     arrayOrSetToSearch = _rackField.rackNodes;
   }
   
