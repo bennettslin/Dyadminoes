@@ -72,15 +72,15 @@
       [self addBoardNodesForThisCell:blankCell];
       
         // for testing purposes only
-      if (xCoord == 2 && yCoord == 2) {
-        self.testLabelNode = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
-        self.testLabelNode.position = blankCell.position;
-        self.testLabelNode.zPosition = kZPositionMessage;
-        self.testLabelNode.text = @"C";
-        self.testLabelNode.name = @"testLabel";
-        self.testLabelNode.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
-        [self addChild:self.testLabelNode];
-      }
+//      if (xCoord == 2 && yCoord == 2) {
+//        self.testLabelNode = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
+//        self.testLabelNode.position = blankCell.position;
+//        self.testLabelNode.zPosition = kZPositionMessage;
+//        self.testLabelNode.text = @"C";
+//        self.testLabelNode.name = @"testLabel";
+//        self.testLabelNode.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
+//        [self addChild:self.testLabelNode];
+//      }
     }
   }
 }

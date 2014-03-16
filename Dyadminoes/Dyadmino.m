@@ -407,6 +407,7 @@
 }
 
 -(void)animateFlip {
+  NSLog(@"about to flip in animateFlip method");
   [self removeActionsAndEstablishNotRotating];
   self.isRotating = YES;
   

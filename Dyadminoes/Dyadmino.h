@@ -21,7 +21,7 @@
   // nodes and touches
 @property (strong, nonatomic) SnapNode *homeNode;
 @property (strong, nonatomic) SnapNode *tempBoardNode;
-@property (strong, nonatomic) UITouch *myTouch;
+//@property (strong, nonatomic) UITouch *myTouch;
 
   // orientations
 @property (nonatomic) DyadminoOrientation orientation;
