@@ -405,7 +405,7 @@
         // its status; rack will recognise this status and position dyadmino
         // in same x position, but with heightened yPosition as if it's on rack
       
-        // this is the only place that belongsInSwap is set
+        // this is the only place that belongsInSwap gets set to YES
         // as long as it's not in the rack, it's in the swap
       if (_swapMode && ![dyadmino isInRack]) {
         dyadmino.belongsInSwap = YES;
@@ -634,7 +634,7 @@
   NSMutableArray *toPile = [NSMutableArray new];
   
   for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
-    if (dyadmino.belongsInSwap) {
+    if ([dyadmino belongsInSwap]) {
       [toPile addObject:dyadmino];
     }
   }
@@ -655,7 +655,6 @@
         // dyadmino is already a child of rackField,
         // so no need to send dyadmino home through myScene's sendDyadmino method
       [dyadmino goHomeByPoppingIn:NO];
-//      [self sendDyadminoHome:dyadmino byPoppingIn:NO];
       [dyadmino removeFromParent];
     }
     
@@ -784,14 +783,19 @@
 }
 
 -(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingIn:(BOOL)poppingIn {
+  
   [dyadmino goHomeByPoppingIn:poppingIn];
   [dyadmino endTouchThenHoverResize];
   
-  if (dyadmino.belongsInSwap) {
-    dyadmino.withinSection = kWithinSwap;
-  } else {
-    dyadmino.withinSection = kWithinRack;
-  }
+  [self determineCurrentSectionOfDyadmino:dyadmino];
+  
+    // instead of determineCurrentSection method, this used to be here
+    // ensure that it's okay without it.
+//  if (dyadmino.belongsInSwap) {
+//    dyadmino.withinSection = kWithinSwap;
+//  } else {
+//    dyadmino.withinSection = kWithinRack;
+//  }
   
   [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
   if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
@@ -828,13 +832,15 @@
 }
 
 -(DyadminoWithinSection)determineCurrentSectionOfDyadmino:(Dyadmino *)dyadmino {
+    // TODO: make this the ONLY place that determines current section of dyadmino
+    // this is the ONLY place that determines whether dyadmino is in swap
   
     // initially make this the dyadmino's previous within section,
     // then change based on new criteria
   DyadminoWithinSection withinSection = dyadmino.withinSection;
   
+    // if dyadmino is in swap, its parent is the rack, and stays as such
   if (_swapMode && _currentTouchLocation.y - _touchOffsetVector.y > kRackHeight) {
-      // if dyadmino is in swap, its parent is the rack, and stays as such
     dyadmino.withinSection = kWithinSwap;
     withinSection = kWithinSwap;
 
@@ -845,9 +851,8 @@
     withinSection = kWithinRack;
 
       // if not in swap, it's in board when above rack and below top bar
-  } else if (!_swapMode &&
-             _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
-             _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight) {
+  } else if (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
+      _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight) {
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
     dyadmino.withinSection = kWithinBoard;
     withinSection = kWithinBoard;
