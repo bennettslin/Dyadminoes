@@ -9,19 +9,22 @@
 #import "FieldNode.h"
 #import "SnapNode.h"
 #import "Dyadmino.h"
+#import "BoardNode.h"
 
 @implementation FieldNode {
   CGFloat _nodeYPosition;
   SnapNodeType _snapNodeType;
-  
+  BoardNode *_board;
   BOOL _exchangeInProgress;
 }
 
 #pragma mark - init and layout methods
 
+  // FIXME: does rackNode need to know board?
 -(id)initWithFieldNodeType:(NSUInteger)fieldNodeType andColour:(UIColor *)colour
                    andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint
-               andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition {
+               andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition
+                  andBoard:(id)board {
   self = [super init];
   if (self) {
     self.rackNodes = [NSMutableArray new];
@@ -30,6 +33,7 @@
     self.anchorPoint = anchorPoint;
     self.position = position;
     self.zPosition = zPosition;
+    _board = board;
     _snapNodeType = fieldNodeType;
     
     if (_snapNodeType == kFieldNodeRack) {
@@ -103,6 +107,7 @@
         // dyadmino is *not* already on rack, so add offscreen first and then animate
     } else {
       dyadmino.position = CGPointMake(self.size.width + self.xIncrementInRack, shouldBePosition.y);
+      dyadmino.zPosition = kZPositionRackRestingDyadmino;
       [self addChild:dyadmino];
       [dyadmino animateConstantSpeedMoveDyadminoToPoint:shouldBePosition];
     }

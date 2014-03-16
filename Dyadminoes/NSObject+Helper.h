@@ -38,8 +38,10 @@
 
 #define kDistanceForOtherRackDyadminoToMoveOver 22.f
 #define kDistanceForSnapIn 21.f // this is half the height of the cell space, plus wiggle room
-#define kDistanceForTouchingHoveringDyadmino 37.5f
+
+#define kDistanceForTouchingHoveringDyadmino 37.5f // this is also the min distance for pivot
 #define kDistanceForTouchingLockedDyadmino 25.f
+#define kMaxDistanceForPivot 100.f
 
 #define kGapForHighlight 30.f
 #define kGapForShiftingDyadminoes 40.f
@@ -115,6 +117,12 @@ typedef enum pivotOnPC {
   kPivotOnPC1,
   kPivotOnPC2
 } PivotOnPC;
+
+typedef enum touchStatus {
+  kTouchBegan,
+  kTouchMoved,
+  kTouchEnded
+} TouchStatus;
 
 @interface NSObject (Helper)
 

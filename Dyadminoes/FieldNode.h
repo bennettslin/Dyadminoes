@@ -9,6 +9,7 @@
 #import <SpriteKit/SpriteKit.h>
 @class Dyadmino;
 @class SnapNode;
+@class BoardNode;
 
 @protocol FieldNodeDelegate <NSObject>
 
@@ -27,7 +28,8 @@
 
 -(id)initWithFieldNodeType:(NSUInteger)fieldNodeType andColour:(SKColor *)colour
                    andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint
-               andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition;
+               andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition
+                  andBoard:(BoardNode *)board;
 
 -(void)layoutOrRefreshNodesWithCount:(NSUInteger)countNumber;
 

@@ -29,4 +29,10 @@
 
 -(void)layoutBoardCellsAndNodes;
 
+#pragma mark - board cover methods
+
+-(void)revealBoardCover;
+
+-(void)hideBoardCover;
+
 @end

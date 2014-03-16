@@ -43,8 +43,6 @@
     self.boardNodesTwelveAndSix = [NSMutableSet new];
     self.boardNodesTwoAndEight = [NSMutableSet new];
     self.boardNodesFourAndTen = [NSMutableSet new];
-    
-      // layout cells and nodes
   }
   return self;
 }
@@ -52,8 +50,8 @@
 -(void)layoutBoardCellsAndNodes {
   
     // layout cells for now
-  for (int xCoord = 0; xCoord < 6; xCoord++) {
-    for (int yCoord = 0; yCoord < 6; yCoord++) {
+  for (int xCoord = 0; xCoord < 5; xCoord++) {
+    for (int yCoord = 0; yCoord < 28; yCoord++) {
       SKSpriteNode *blankCell = [SKSpriteNode spriteNodeWithImageNamed:@"blankSpace"];
       blankCell.name = @"blankCell";
       blankCell.zPosition = kZPositionBoardCell;
@@ -112,5 +110,17 @@
   [self addChild:boardNodeFourAndTen];
 }
 
+#pragma mark - board cover methods
+
+-(void)revealBoardCover {
+    // TODO: make this animated
+  self.boardCover.hidden = NO;
+  self.boardCover.zPosition = kZPositionBoardCover;
+}
+
+-(void)hideBoardCover {
+  self.boardCover.hidden = YES;
+  self.boardCover.zPosition = kZPositionBoardCoverHidden;
+}
 
 @end
