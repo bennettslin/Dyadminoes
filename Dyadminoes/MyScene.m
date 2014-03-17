@@ -15,6 +15,7 @@
 #import "Rack.h"
 #import "Board.h"
 #import "TopBar.h"
+#import "Cell.h"
 
 @interface MyScene () <FieldNodeDelegate>
 @end
@@ -115,9 +116,9 @@
   self.backgroundColor = [SKColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1.0];
 
   _boardField = [[Board alloc] initWithColor:kSkyBlue
-                                        andSize:CGSizeMake(self.frame.size.width * 2.f, self.frame.size.height * 2.f)
-                                 andAnchorPoint:CGPointZero
-                                    andPosition:CGPointZero
+                                        andSize:CGSizeMake(self.frame.size.width * 1.f, self.frame.size.height * 1.f)
+                              andAnchorPoint:CGPointMake(0.5, 0.5)
+                                    andHomePosition:CGPointMake(self.frame.size.width / 2.f, self.frame.size.height / 2.f)
                                    andZPosition:kZPositionBoard];
   [self addChild:_boardField];
   [_boardField layoutBoardCellsAndSnapPoints];
@@ -189,6 +190,10 @@
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
   NSLog(@"touchNode is %@ and has parent %@", _touchNode.name, _touchNode.parent.name);
+  if ([_touchNode.name isEqualToString:@"cell"]) {
+    Cell *cell = (Cell *)_touchNode;
+    NSLog(@"cell x is %i, %i", cell.boardXY.x, cell.boardXY.y);
+  }
   
     //--------------------------------------------------------------------------
 
@@ -200,7 +205,12 @@
   if (!_pivotInProgress || (_pivotInProgress && !dyadmino)) {
     
       // if board is touched, then it's being moved
-    if (_touchNode.parent == _boardField && ![_touchNode isKindOfClass:[Dyadmino class]]) {
+      // the last one, touchNode.parent == cell, is necessary only for testing purposes
+    if (_touchNode == _boardField ||
+        (_touchNode.parent == _boardField &&
+        ![_touchNode isKindOfClass:[Dyadmino class]]) ||
+        [_touchNode.parent.name isEqualToString:@"cell"]) {
+      
       _boardBeingMoved = YES;
       _boardShiftedAfterEachTouch = [self fromThisPoint:_beganTouchLocation subtractThisPoint:_boardField.position];
       return;
@@ -952,7 +962,7 @@ if (!_swapMode && [dyadmino isOnBoard]) {
   
   NSLog(@"rack dyadmino on board is at %.2f, %.2f and child of %@", _recentRackDyadmino.position.x, _recentRackDyadmino.position.y, _recentRackDyadmino.parent.name);
   
-  _boardField.position = CGPointZero;
+  _boardField.position = _boardField.homePosition;
   _boardShiftedAfterEachTouch = CGPointZero;
   
   if (_recentRackDyadmino) {

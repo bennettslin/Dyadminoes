@@ -56,6 +56,13 @@
     for (int pc2 = 0; pc2 < 12; pc2++) {
       if (pc1 != pc2 && pc1 < pc2) {
         
+          // test
+        if (pc1 == 0 && pc2 == 1) {
+          NSLog(@"dyadmino size oriented twelve is %f, %f", [textureAtlas textureNamed:@"blankTileNoSo"].size.width, [textureAtlas textureNamed:@"blankTileNoSo"].size.height);
+          NSLog(@"dyadmino size oriented two is %f, %f", [textureAtlas textureNamed:@"blankTileSwNe"].size.width, [textureAtlas textureNamed:@"blankTileSwNe"].size.height);
+          NSLog(@"dyadmino size oriented ten is %f, %f", [textureAtlas textureNamed:@"blankTileNwSe"].size.width, [textureAtlas textureNamed:@"blankTileNwSe"].size.height);
+        }
+        
         NSString *pc1LetterString = [NSString stringWithFormat:@"pcLetter%d", pc1];
         NSString *pc1NumberString = [NSString stringWithFormat:@"pcNumber%d", pc1];
         NSString *pc2LetterString = [NSString stringWithFormat:@"pcLetter%d", pc2];

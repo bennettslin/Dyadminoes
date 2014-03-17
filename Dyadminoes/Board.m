@@ -10,15 +10,11 @@
 #import "SnapPoint.h"
 #import "Cell.h"
 
-@implementation Board {
-  CGFloat _xOffset;
-  CGFloat _xPadding;
-  CGFloat _yPadding;
-}
+@implementation Board
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size
     andAnchorPoint:(CGPoint)anchorPoint
-       andPosition:(CGPoint)position
+   andHomePosition:(CGPoint)homePosition
       andZPosition:(CGFloat)zPosition {
   self = [super init];
   if (self) {
@@ -27,7 +23,8 @@
     self.color = color;
     self.size = size;
     self.anchorPoint = anchorPoint;
-    self.position = position;
+    self.homePosition = homePosition;
+    self.position = self.homePosition;
     self.zPosition = zPosition;
     
       // add board cover
@@ -50,25 +47,46 @@
 -(void)layoutBoardCellsAndSnapPoints {
   
     // layout cells for now
-  for (int xCoord = 0; xCoord < 5; xCoord++) {
-    for (int yCoord = 0; yCoord < 28; yCoord++) {
-      Cell *blankCell = [Cell spriteNodeWithImageNamed:@"blankSpace"];
-      blankCell.name = @"blankCell";
-      blankCell.zPosition = kZPositionBoardCell;
-      _xOffset = 0.f; // for odd rows
-        // TODO: continue to tweak these numbers
-      _xPadding = 5.35f;
-      _yPadding = _xPadding * .5f; // this is 2.59
+  for (int i = -5; i < 6; i++) {
+    for (int j = -10; j < 11; j++) {
       
-      if (yCoord % 2 == 0) {
-        _xOffset = blankCell.size.width * 0.75f + _xPadding;
+        // keeps it relatively square
+      if (i + j < 11 && i + j > -11) {
+        
+        Cell *blankCell = [Cell spriteNodeWithImageNamed:@"blankSpace"];
+        blankCell.name = @"cell";
+        blankCell.zPosition = kZPositionBoardCell;
+
+        CGFloat cellWidth = blankCell.size.width;
+        CGFloat cellHeight = blankCell.size.height;
+        CGFloat padding = 0.12738095f * cellWidth;
+        
+        CGFloat newX = i * (0.75f * cellWidth + padding);
+        CGFloat newY = (j + i / 2.f) * (cellHeight + padding);
+        blankCell.position = CGPointMake(newX, newY);
+        
+        [self addChild:blankCell];
+        
+        blankCell.alpha = 0.7f;
+        blankCell.boardXY = [self boardXYFromX:i andY:j];
+        
+          // test
+        NSString *boardXYString = [NSString stringWithFormat:@"%i, %i", blankCell.boardXY.x, blankCell.boardXY.y];
+        SKLabelNode *labelNode = [[SKLabelNode alloc] init];
+        labelNode.name = boardXYString;
+        labelNode.text = boardXYString;
+        labelNode.color = [SKColor yellowColor];
+        labelNode.fontSize = 14.f;
+        labelNode.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;
+        labelNode.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
+        [blankCell addChild:labelNode];
+        
+        [blankCell addSnapPointsToBoard:self];
+        
+          // test
+        if (i == 0 && j == 0)
+          NSLog(@"blankCell size is %f, %f, at position %f, %f", cellWidth, cellHeight, blankCell.position.x, blankCell.position.y);
       }
-      
-      blankCell.position = CGPointMake(xCoord * (blankCell.size.width * 1.5f + 2.f * _xPadding) + _xOffset, yCoord * (blankCell.size.height / 2.f + _yPadding));
-      blankCell.alpha = 0.1f;
-      [self addChild:blankCell];
-      
-      [blankCell addSnapPointsToBoard:self];
     }
   }
 }

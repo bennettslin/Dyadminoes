@@ -12,6 +12,7 @@
 @interface Board : SKSpriteNode
 
 @property (strong, nonatomic) SKSpriteNode *boardCover;
+@property (nonatomic) CGPoint homePosition;
 
 @property (strong, nonatomic) NSMutableSet *snapPointsTwelveOClock;
 @property (strong, nonatomic) NSMutableSet *snapPointsTwoOClock;
@@ -22,7 +23,7 @@
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size
     andAnchorPoint:(CGPoint)anchorPoint
-       andPosition:(CGPoint)position
+   andHomePosition:(CGPoint)homePosition
       andZPosition:(CGFloat)zPosition;
 
 -(void)layoutBoardCellsAndSnapPoints;
