@@ -26,10 +26,9 @@
 
 #pragma mark - init and layout methods
 
--(id)initWithFieldNodeType:(NSUInteger)fieldNodeType andColour:(SKColor *)colour
+-(id)initWithBoard:(Board *)board andColour:(SKColor *)colour
                    andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint
-               andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition
-                  andBoard:(Board *)board;
+               andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition;
 
 -(void)layoutOrRefreshNodesWithCount:(NSUInteger)countNumber;
 

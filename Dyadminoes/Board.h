@@ -28,6 +28,9 @@
 
 -(void)layoutBoardCellsAndSnapPoints;
 
+-(CGPoint)getRelativeToPoint:(CGPoint)point;
+-(CGPoint)getRelativeToPoint:(CGPoint)point withTouchOffset:(CGPoint)touchOffset;
+
 #pragma mark - board cover methods
 
 -(void)revealBoardCover;

@@ -48,6 +48,7 @@
 @property (nonatomic) CGFloat initialPivotAngle;
 @property (nonatomic) DyadminoOrientation prePivotDyadminoOrientation;
 @property (nonatomic) CGPoint prePivotPosition;
+@property (nonatomic) CGPoint pivotAroundPoint;
 
   //----------------------------------------------------------------------------
   //----------------------------------------------------------------------------
@@ -77,8 +78,8 @@
 -(void)startHovering;
 -(void)keepHovering;
 -(void)finishHovering;
--(void)adjustHighlightIntoPlay;
 -(void)unhighlightOutOfPlay;
+-(void)adjustHighlightGivenDyadminoOffsetPosition:(CGPoint)dyadminoOffsetPosition;
 
 #pragma mark - change state methods
 
@@ -112,10 +113,6 @@
 -(BOOL)isHovering;
 -(BOOL)continuesToHover;
 -(BOOL)isFinishedHovering;
-
-#pragma mark - helper methods
-
--(CGFloat)getHeightFloatGivenGap:(CGFloat)gap;
 
 #pragma mark - debugging methods
 

@@ -18,7 +18,7 @@
   CGFloat faceOffsetX = faceOffset * 0.5f * kSquareRootOfThree;
   CGFloat faceOffsetY = faceOffset * 0.5f;
   
-    // FIXME: 5.35 should not be hardCoded, get it from board padding?
+    // FIXME: 5.35 should not be hardCoded, get it from board padding? padding result should be around 1.5375046f;
   CGFloat snapPointPadding = 5.35 / 3.5f;
   SnapPoint *boardSnapPointTwelveOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwelveOClock];
   SnapPoint *boardSnapPointTwoOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwoOClock];
@@ -26,10 +26,8 @@
   
   boardSnapPointTwelveOClock.position = [self addThisPoint:self.position
                                                toThisPoint:CGPointMake(0.f, faceOffset)];
-  
   boardSnapPointTwoOClock.position = [self addThisPoint:self.position
                                             toThisPoint:CGPointMake(faceOffsetX + snapPointPadding, faceOffsetY)];
-  
   boardSnapPointTenOClock.position = [self addThisPoint:self.position
                                             toThisPoint:CGPointMake(-faceOffsetX - snapPointPadding, faceOffsetY)];
   

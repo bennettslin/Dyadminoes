@@ -7,6 +7,7 @@
 //
 
 #import "Dyadmino.h"
+#import "Board.h"
 
 @implementation Dyadmino {
   BOOL _alreadyAddedChildren;
@@ -196,17 +197,14 @@
   self.hoveringStatus = kDyadminoFinishedHovering;
 }
 
--(void)adjustHighlightIntoPlay {
-  CGFloat inPlayFloat = [self getHeightFloatGivenGap:kGapForHighlight];
-    self.colorBlendFactor = kDyadminoColorBlendFactor * inPlayFloat;
-  
-  if (inPlayFloat > 0.f) {
-  }
-}
-
 -(void)unhighlightOutOfPlay {
 // TODO: possibly some animation here
   self.colorBlendFactor = 0.f;
+}
+
+-(void)adjustHighlightGivenDyadminoOffsetPosition:(CGPoint)dyadminoOffsetPosition {
+  CGFloat inPlayFloat = [self getHeightFloatGivenGap:kGapForHighlight andDyadminoPosition:dyadminoOffsetPosition];
+  self.colorBlendFactor = kDyadminoColorBlendFactor * inPlayFloat;
 }
 
 #pragma mark - change state methods
@@ -269,7 +267,7 @@
       originOffset = 300.f;
       break;
   }
-  CGFloat offsetAngle = _initialPivotAngle + originOffset;
+  CGFloat offsetAngle = self.initialPivotAngle + originOffset;
   if (offsetAngle > 360.f) {
     offsetAngle -= 360.f;
   }
@@ -284,8 +282,7 @@
 }
 
 -(void)pivotBasedOnLocation:(CGPoint)location {
-  CGFloat thisAngle = [self findAngleInDegreesFromThisPoint:location
-                                                toThisPoint:self.position];
+  CGFloat thisAngle = [self findAngleInDegreesFromThisPoint:location toThisPoint:self.pivotAroundPoint];
   CGFloat sextantChange = [self getSextantChangeFromThisAngle:thisAngle toThisAngle:self.initialPivotAngle];
   
   for (NSUInteger i = 0; i < 12; i++) {
@@ -453,7 +450,7 @@
     [self setToHomeZPosition];
     self.canFlip = NO;
     self.hoveringStatus = kDyadminoNoHoverStatus;
-    self.prePivotPosition = CGPointZero;
+    self.prePivotPosition = CGPointMake(99999.f, 99999.f);
   }];
   SKAction *sequence = [SKAction sequence:@[moveAction, finishAction]];
   [self runAction:sequence];
@@ -513,15 +510,15 @@
 
 #pragma mark - helper methods
 
--(CGFloat)getHeightFloatGivenGap:(CGFloat)gap {
+-(CGFloat)getHeightFloatGivenGap:(CGFloat)gap andDyadminoPosition:(CGPoint)dyadminoOffsetPosition {
   
     // returns 0 at bottom, gradually reaches 1 at peak...
-  if (self.position.y < kRackHeight + (gap / 2) &&
-      self.position.y >= kRackHeight - (gap / 2)) {
-    return (self.position.y + (gap / 2) - kRackHeight) / gap;
+  if (dyadminoOffsetPosition.y < kRackHeight + (gap / 2) &&
+      dyadminoOffsetPosition.y >= kRackHeight - (gap / 2)) {
+    return (dyadminoOffsetPosition.y + (gap / 2) - kRackHeight) / gap;
     
       // then returns 1 thereafter
-  } else if (self.position.y > kRackHeight + (gap / 2)) {
+  } else if (dyadminoOffsetPosition.y > kRackHeight + (gap / 2)) {
     return 1.f;
   } else {
     return 0.f;

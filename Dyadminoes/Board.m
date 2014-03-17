@@ -80,8 +80,13 @@
         labelNode.name = boardXYString;
         labelNode.text = boardXYString;
         labelNode.fontColor = [SKColor whiteColor];
-        if (i == 0 && j == 0)
+        
+        if (i == 0 || j == 0 || i + j == 0)
           labelNode.fontColor = [SKColor yellowColor];
+        
+        if (i == 0 && j == 0)
+          labelNode.fontColor = [SKColor redColor];
+        
         labelNode.fontSize = 14.f;
         labelNode.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;
         labelNode.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
@@ -95,6 +100,15 @@
       }
     }
   }
+}
+
+-(CGPoint)getRelativeToPoint:(CGPoint)point {
+  return [self fromThisPoint:point subtractThisPoint:self.position];
+}
+
+-(CGPoint)getRelativeToPoint:(CGPoint)point withTouchOffset:(CGPoint)touchOffset {
+  CGPoint offsetPoint = [self fromThisPoint:point subtractThisPoint:touchOffset];
+  return [self fromThisPoint:offsetPoint subtractThisPoint:self.position];
 }
 
 #pragma mark - board cover methods

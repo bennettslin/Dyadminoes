@@ -21,10 +21,9 @@
 #pragma mark - init and layout methods
 
   // FIXME: does rackNode need to know board?
--(id)initWithFieldNodeType:(NSUInteger)fieldNodeType andColour:(UIColor *)colour
-                   andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint
-               andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition
-                  andBoard:(id)board {
+-(id)initWithBoard:(Board *)board andColour:(SKColor *)colour
+           andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint
+       andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition {
   self = [super init];
   if (self) {
     self.rackNodes = [NSMutableArray new];
@@ -34,16 +33,6 @@
     self.position = position;
     self.zPosition = zPosition;
     _board = board;
-    _snapNodeType = fieldNodeType;
-    
-    if (_snapNodeType == kFieldNodeRack) {
-      self.name = @"rack";
-      _nodeYPosition = 0.f;
-    } else if (_snapNodeType == kFieldNodeSwap) {
-      self.name = @"swap";
-      _nodeYPosition = kRackHeight;
-    }
-
   }
   return self;
 }

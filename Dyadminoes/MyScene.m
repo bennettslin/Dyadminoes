@@ -69,7 +69,6 @@
     // bools and modes
   BOOL _swapMode;
   BOOL _rackExchangeInProgress;
-  BOOL _dyadminoSnappedIntoMovement;
   BOOL _swapFieldActionInProgress;
   BOOL _boardBeingMoved;
   
@@ -113,7 +112,7 @@
 #pragma mark - layout methods
 
 -(void)layoutBoard {
-  self.backgroundColor = [SKColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1.0];
+  self.backgroundColor = kSkyBlue;
 
   _boardField = [[Board alloc] initWithColor:kSkyBlue
                                         andSize:CGSizeMake(self.frame.size.width * 1.f, self.frame.size.height * 1.f)
@@ -126,14 +125,13 @@
 
 -(void)layoutSwapField {
     // initial instantiation of swap field sprite
-  _swapField = [[Rack alloc] initWithFieldNodeType:kFieldNodeSwap
-                                              andColour:kGold
-                                                andSize:CGSizeMake(self.frame.size.width, kRackHeight)
-                                         andAnchorPoint:CGPointZero
-                                            andPosition:CGPointZero
-                                           andZPosition:kZPositionSwapField
-                                               andBoard:_boardField];
-  _swapField.delegate = self;
+  _swapField = [[Rack alloc] initWithBoard:_boardField
+                                 andColour:kGold
+                                   andSize:CGSizeMake(self.frame.size.width, kRackHeight)
+                            andAnchorPoint:CGPointZero
+                               andPosition:CGPointZero
+                              andZPosition:kZPositionSwapField];
+  _swapField.name = @"swap";
   [self addChild:_swapField];
   
     // initially sets swap mode
@@ -156,14 +154,13 @@
 
 -(void)layoutOrRefreshRackFieldAndDyadminoes {
   if (!_rackField) {
-    _rackField = [[Rack alloc] initWithFieldNodeType:kFieldNodeRack
-                                                andColour:kFieldPurple
-                                                  andSize:CGSizeMake(self.frame.size.width, kRackHeight)
-                                           andAnchorPoint:CGPointZero
-                                              andPosition:CGPointZero
-                                             andZPosition:kZPositionRackField
-                                                 andBoard:_boardField];
-    _rackField.delegate = self;
+    _rackField = [[Rack alloc] initWithBoard:_boardField
+                                   andColour:kFieldPurple
+                                     andSize:CGSizeMake(self.frame.size.width, kRackHeight)
+                              andAnchorPoint:CGPointZero
+                                 andPosition:CGPointZero
+                                andZPosition:kZPositionRackField];
+    _rackField.name = @"rack";
     [self addChild:_rackField];
   }
   [_rackField layoutOrRefreshNodesWithCount:self.myPlayer.dyadminoesInRack.count];
@@ -213,7 +210,7 @@
         [_touchNode.parent.name isEqualToString:@"cell"]) {
       
       _boardBeingMoved = YES;
-      _boardShiftedAfterEachTouch = [self fromThisPoint:_beganTouchLocation subtractThisPoint:_boardField.position];
+      _boardShiftedAfterEachTouch = [_boardField getRelativeToPoint:_beganTouchLocation];
       return;
     }
   }
@@ -262,7 +259,7 @@
     // if board being moved, handle and return
   if (_boardBeingMoved) {
     _boardField.position = [self fromThisPoint:_currentTouchLocation subtractThisPoint:_boardShiftedAfterEachTouch];
-    _boardShiftedAfterEachTouch = [self fromThisPoint:_currentTouchLocation subtractThisPoint:_boardField.position];
+    _boardShiftedAfterEachTouch = [_boardField getRelativeToPoint:_currentTouchLocation];
     return;
   }
 
@@ -284,8 +281,9 @@
   
     // this is the only place that sets dyadmino highlight to YES
     // dyadmino highlight is reset when sent home or finalised
-  if ([_currentlyTouchedDyadmino belongsInRack] && !_swapMode) {
-    [_currentlyTouchedDyadmino adjustHighlightIntoPlay];
+  if ([_currentlyTouchedDyadmino belongsInRack] && !_swapMode && !_pivotInProgress) {
+      CGPoint dyadminoOffsetPosition = [self addThisPoint:_currentTouchLocation toThisPoint:_touchOffsetVector];
+      [_currentlyTouchedDyadmino adjustHighlightGivenDyadminoOffsetPosition:dyadminoOffsetPosition];
   }
   
     //--------------------------------------------------------------------------
@@ -295,7 +293,11 @@
 
     // if we're currently pivoting, just rotate and return
   if (_pivotInProgress) {
-    [_currentlyTouchedDyadmino pivotBasedOnLocation:_currentTouchLocation];
+    
+      // eventually make the pivot point not the dyadmino position, of course
+    NSLog(@"distance between dyadmino and touch location is %.1f", [self getDistanceFromThisPoint:[_boardField getRelativeToPoint:_currentlyTouchedDyadmino.position] toThisPoint:_currentTouchLocation]);
+    CGPoint reverseOffset = [_boardField getRelativeToPoint:_currentTouchLocation];
+    [_currentlyTouchedDyadmino pivotBasedOnLocation:reverseOffset];
     return;
   }
   
@@ -311,42 +313,21 @@
   
     //--------------------------------------------------------------------------
   
-    // A. determine whether to snap out, or keep moving if already snapped out
-    // refer to proper snap node
-  SnapPoint *snapPoint;
-  if ([_currentlyTouchedDyadmino belongsInRack] || [_currentlyTouchedDyadmino belongsInSwap]) {
-    snapPoint = _currentlyTouchedDyadmino.tempBoardNode;
-  } else {
-    snapPoint = _currentlyTouchedDyadmino.homeNode;
-  }
+    // move the dyadmino!
+  _currentlyTouchedDyadmino.position =
+    [self reverseOffsetOfTouchPoint:_currentTouchLocation forDyadmino:_currentlyTouchedDyadmino];
   
-  CGPoint reverseOffsetPoint = [self fromThisPoint:_currentTouchLocation subtractThisPoint:_touchOffsetVector];
+  //--------------------------------------------------------------------------
   
-  if (_dyadminoSnappedIntoMovement ||
-      (!_dyadminoSnappedIntoMovement && [self getDistanceFromThisPoint:reverseOffsetPoint
-      toThisPoint:snapPoint.position] > kDistanceForSnapOut)) {
-      // if so, do initial setup; its current node now has no dyadmino, and it can no longer rotate
-    _dyadminoSnappedIntoMovement = YES;
-
-      // now move it
-    if (_currentlyTouchedDyadmino.parent == _boardField) {
-      _currentlyTouchedDyadmino.position =
-        [self fromThisPoint:reverseOffsetPoint subtractThisPoint:_boardField.position];
-    } else {
-      _currentlyTouchedDyadmino.position = reverseOffsetPoint;
-    }
+    // if it's a rack dyadmino, then while movement is within rack, rearrange dyadminoes
+  if (([_currentlyTouchedDyadmino belongsInRack] && [_currentlyTouchedDyadmino isInRack]) ||
+      [_currentlyTouchedDyadmino isOrBelongsInSwap]) {
     
-    //--------------------------------------------------------------------------
+    SnapPoint *rackNode = [self findSnapPointClosestToDyadmino:_currentlyTouchedDyadmino];
     
-      // if it's a rack dyadmino, then while movement is within rack, rearrange dyadminoes
-    if (([_currentlyTouchedDyadmino belongsInRack] || [_currentlyTouchedDyadmino belongsInSwap]) &&
-        ([_currentlyTouchedDyadmino isInRack] || [_currentlyTouchedDyadmino isOrBelongsInSwap])) {
-      SnapPoint *rackNode = [self findSnapPointClosestToDyadmino:_currentlyTouchedDyadmino];
-      
-      [_rackField handleRackExchangeOfTouchedDyadmino:_currentlyTouchedDyadmino
-                                             withDyadminoes:(NSMutableArray *)self.myPlayer.dyadminoesInRack
-                                         andClosestRackNode:rackNode];
-    }
+    [_rackField handleRackExchangeOfTouchedDyadmino:_currentlyTouchedDyadmino
+                                           withDyadminoes:(NSMutableArray *)self.myPlayer.dyadminoesInRack
+                                       andClosestRackNode:rackNode];
   }
 }
 
@@ -391,7 +372,6 @@
     // cleanup
   _pivotInProgress = NO;
   _touchOffsetVector = CGPointZero;
-  _dyadminoSnappedIntoMovement = NO;
 
     // ensures we're not disrupting a rotating animation
   if (!dyadmino.isRotating) {
@@ -458,8 +438,11 @@
   
     // if it's now about to pivot, just get pivot angle
   if (_pivotInProgress) {
-    _currentlyTouchedDyadmino.initialPivotAngle = [self findAngleInDegreesFromThisPoint:_currentTouchLocation
-                                                                            toThisPoint:_currentlyTouchedDyadmino.position];
+    
+    CGPoint reverseOffset = [_boardField getRelativeToPoint:_currentTouchLocation];
+    _currentlyTouchedDyadmino.initialPivotAngle =
+      [self findAngleInDegreesFromThisPoint:reverseOffset toThisPoint:_currentlyTouchedDyadmino.position];
+    
     [_currentlyTouchedDyadmino determinePivotOnPC];
     return;
   }
@@ -542,6 +525,8 @@
     if (_swapMode) {
       [self cancelSwappedDyadminoes];
       [self toggleSwapField];
+    } else if (_recentRackDyadmino) {
+      [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES];
     }
     
   } else if (_buttonPressed == _topBar.doneTurnButton) {
@@ -587,6 +572,8 @@
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
     [_swapField runAction:sequenceAction];
+    SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y - kRackHeight duration:kConstantTime];
+    [_boardField runAction:moveBoardAction];
     
   } else { // swap mode off, turn on
     _swapFieldActionInProgress = YES;
@@ -600,6 +587,8 @@
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
     [_swapField runAction:sequenceAction];
+    SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y + kRackHeight duration:kConstantTime];
+    [_boardField runAction:moveBoardAction];
   }
 }
 
@@ -741,9 +730,11 @@
     if ([_recentRackDyadmino belongsInRack] && [_recentRackDyadmino isOnBoard] &&
         ![_hoveringButNotTouchedDyadmino isHovering] &&
         (_currentlyTouchedDyadmino == nil || [_currentlyTouchedDyadmino isInRack])) {
+      [_topBar enableButton:_topBar.cancelButton];
       [_topBar enableButton:_topBar.playDyadminoButton];
       [_topBar disableButton:_topBar.doneTurnButton];
     } else {
+      [_topBar disableButton:_topBar.cancelButton];
       [_topBar disableButton:_topBar.playDyadminoButton];
       [_topBar enableButton:_topBar.doneTurnButton];
     }
@@ -838,38 +829,58 @@
   }
 }
 
+
+-(CGPoint)reverseOffsetOfTouchPoint:(CGPoint)touchPoint forDyadmino:(Dyadmino *)dyadmino {
+  CGPoint reverseOffset;
+  if (dyadmino.parent == _boardField) {
+    reverseOffset = [_boardField getRelativeToPoint:touchPoint withTouchOffset:_touchOffsetVector];
+  } else {
+    reverseOffset = [self fromThisPoint:touchPoint subtractThisPoint:_touchOffsetVector];
+  }
+  return reverseOffset;
+}
+
 -(Dyadmino *)selectDyadminoFromTouchNode:(SKNode *)touchNode andTouchPoint:(CGPoint)touchPoint {
     // pointer to determine last dyadmino, depending on
     // whether moving board dyadmino while rack dyadmino is in play
+  
+    // also establishes if pivot is in progress
+  
+    /// touchOffset isn't relevant for this method
 
     // if we're in hovering mode...
   if ([_hoveringButNotTouchedDyadmino isHovering]) {
     
       // accommodate if it's on board
-    CGPoint relativeToBoardPoint = touchPoint;
-    if (_hoveringButNotTouchedDyadmino.parent == _boardField) {
-      relativeToBoardPoint = [self fromThisPoint:touchPoint subtractThisPoint:_boardField.position];
-    }
-    
+    CGPoint reverseOffset = [_boardField getRelativeToPoint:touchPoint];
+
       // if touch point is close enough, just rotate
-    if ([self getDistanceFromThisPoint:relativeToBoardPoint toThisPoint:_hoveringButNotTouchedDyadmino.position] <
+    if ([self getDistanceFromThisPoint:reverseOffset toThisPoint:_hoveringButNotTouchedDyadmino.position] <
         kDistanceForTouchingHoveringDyadmino) {
+      
+      NSLog(@"hovering, not touched");
       return _hoveringButNotTouchedDyadmino;
  
         // otherwise, we're pivoting, so establish that
-    } else if ([self getDistanceFromThisPoint:relativeToBoardPoint toThisPoint:_hoveringButNotTouchedDyadmino.position] <
+    } else if ([self getDistanceFromThisPoint:reverseOffset toThisPoint:_hoveringButNotTouchedDyadmino.position] <
             kMaxDistanceForPivot) {
+      
+      NSLog(@"pivot in progress");
       _pivotInProgress = YES;
+      _hoveringButNotTouchedDyadmino.pivotAroundPoint = _hoveringButNotTouchedDyadmino.position;
       
       _hoveringButNotTouchedDyadmino.prePivotDyadminoOrientation = _hoveringButNotTouchedDyadmino.orientation;
         // this is reset to zero only after eased into place
-      if (CGPointEqualToPoint(_hoveringButNotTouchedDyadmino.prePivotPosition, CGPointZero)) {
+      CGPoint reallyBigPoint = CGPointMake(99999.f, 99999.f);
+      
+      if (CGPointEqualToPoint(_hoveringButNotTouchedDyadmino.prePivotPosition, reallyBigPoint)) {
         _hoveringButNotTouchedDyadmino.prePivotPosition = _hoveringButNotTouchedDyadmino.position;
       }
       
       [_hoveringButNotTouchedDyadmino removeActionsAndEstablishNotRotating];
       return _hoveringButNotTouchedDyadmino;
     }
+    NSLog(@"board moved");
   }
     //--------------------------------------------------------------------------
   
@@ -893,7 +904,7 @@
   if ([dyadmino isOnBoard] && !_swapMode) {
 
       // accommodate the fact that dyadmino's position is now relative to board
-    CGPoint relativeToBoardPoint = [self fromThisPoint:touchPoint subtractThisPoint:_boardField.position];
+    CGPoint relativeToBoardPoint = [_boardField getRelativeToPoint:touchPoint];
     if ([self getDistanceFromThisPoint:relativeToBoardPoint toThisPoint:dyadmino.position] <
         kDistanceForTouchingLockedDyadmino) {
       return dyadmino;

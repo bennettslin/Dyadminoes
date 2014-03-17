@@ -40,7 +40,7 @@
 
 #define kDistanceForTouchingHoveringDyadmino 32.f // this is also the min distance for pivot
 #define kDistanceForTouchingLockedDyadmino 25.f
-#define kMaxDistanceForPivot 96.f
+#define kMaxDistanceForPivot 125.f
 
 #define kGapForHighlight 30.f
 #define kGapForShiftingDyadminoes 40.f
@@ -88,12 +88,6 @@ typedef enum pcMode {
   kPCModeLetter,
   kPCModeNumber
 } PCMode;
-
-typedef enum fieldNodeType {
-  kFieldNodeRack,
-  kFieldNodeSwap,
-  kFieldNodeBoard,
-} FieldNodeType;
 
 typedef enum snapPointType {
   kSnapPointRack,
