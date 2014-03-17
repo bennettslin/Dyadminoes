@@ -190,10 +190,11 @@
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
   NSLog(@"touchNode is %@ and has parent %@", _touchNode.name, _touchNode.parent.name);
-  if ([_touchNode.name isEqualToString:@"cell"]) {
-    Cell *cell = (Cell *)_touchNode;
-    NSLog(@"cell x is %i, %i", cell.boardXY.x, cell.boardXY.y);
-  }
+  
+//  if ([_touchNode.name isEqualToString:@"cell"]) {
+//    Cell *cell = (Cell *)_touchNode;
+//    NSLog(@"cell x is %i, %i", cell.boardXY.x, cell.boardXY.y);
+//  }
   
     //--------------------------------------------------------------------------
 

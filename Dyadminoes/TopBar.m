@@ -28,7 +28,7 @@
 
 -(void)populateWithButtons {
   CGFloat buttonWidth = 45.f;
-  CGSize buttonSize = CGSizeMake(buttonWidth, 50.f);
+  CGSize buttonSize = CGSizeMake(buttonWidth, 45.f);
   CGFloat buttonYPosition = 30.f;
   
   self.togglePCModeButton = [[SKSpriteNode alloc] initWithColor:[UIColor orangeColor] size:buttonSize];
@@ -83,7 +83,7 @@
   
   self.pileCountLabel = [[SKLabelNode alloc] init];
   self.pileCountLabel.name = @"pileCountLabel";
-  self.pileCountLabel.fontSize = 14.f;
+  self.pileCountLabel.fontSize = 16.f;
   self.pileCountLabel.color = [UIColor whiteColor];
   self.pileCountLabel.position = CGPointMake(275, labelYPosition);
   self.pileCountLabel.zPosition = kZPositionTopBarLabel;
@@ -91,7 +91,7 @@
   
   self.messageLabel = [[SKLabelNode alloc] init];
   self.messageLabel.name = @"messageLabel";
-  self.messageLabel.fontSize = 14.f;
+  self.messageLabel.fontSize = 16.f;
   self.messageLabel.color = [UIColor whiteColor];
   self.messageLabel.position = CGPointMake(50, labelYPosition);
   self.messageLabel.zPosition = kZPositionMessage;
@@ -99,7 +99,7 @@
   
   self.logLabel = [[SKLabelNode alloc] init];
   self.logLabel.name = @"logLabel";
-  self.logLabel.fontSize = 14.f;
+  self.logLabel.fontSize = 16.f;
   self.logLabel.color = [UIColor whiteColor];
   self.logLabel.position = CGPointMake(50, labelYPosition * 2);
   self.logLabel.zPosition = kZPositionMessage;

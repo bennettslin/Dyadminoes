@@ -30,7 +30,7 @@
       // add board cover
     self.boardCover = [[SKSpriteNode alloc] initWithColor:[SKColor blackColor] size:size];
     self.boardCover.name = @"boardCover";
-    self.boardCover.position = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
+    self.boardCover.position = CGPointZero;
     self.boardCover.zPosition = kZPositionBoardCoverHidden;
     self.boardCover.alpha = kBoardCoverAlpha;
     [self addChild:self.boardCover];
@@ -47,27 +47,31 @@
 -(void)layoutBoardCellsAndSnapPoints {
   
     // layout cells for now
-  for (int i = -5; i < 6; i++) {
-    for (int j = -10; j < 11; j++) {
+  
+  NSInteger hexSize = 10;
+  
+  for (int i = -hexSize; i <= hexSize; i++) {
+    for (int j = -hexSize; j <= hexSize; j++) {
       
         // keeps it relatively square
-      if (i + j < 11 && i + j > -11) {
+      if (i + j <= hexSize && i + j >= -hexSize) {
         
         Cell *blankCell = [Cell spriteNodeWithImageNamed:@"blankSpace"];
         blankCell.name = @"cell";
         blankCell.zPosition = kZPositionBoardCell;
 
+          // does this squash yCoord a bit?
         CGFloat cellWidth = blankCell.size.width;
         CGFloat cellHeight = blankCell.size.height;
-        CGFloat padding = 0.12738095f * cellWidth;
+        CGFloat padding = 0.12738095f * cellWidth; // 5.35 from this before
         
         CGFloat newX = i * (0.75f * cellWidth + padding);
-        CGFloat newY = (j + i / 2.f) * (cellHeight + padding);
+        CGFloat newY = (j + i * 0.5f) * (cellHeight + padding);
         blankCell.position = CGPointMake(newX, newY);
         
         [self addChild:blankCell];
         
-        blankCell.alpha = 0.7f;
+        blankCell.alpha = 0.6f;
         blankCell.boardXY = [self boardXYFromX:i andY:j];
         
           // test
@@ -75,7 +79,9 @@
         SKLabelNode *labelNode = [[SKLabelNode alloc] init];
         labelNode.name = boardXYString;
         labelNode.text = boardXYString;
-        labelNode.color = [SKColor yellowColor];
+        labelNode.fontColor = [SKColor whiteColor];
+        if (i == 0 && j == 0)
+          labelNode.fontColor = [SKColor yellowColor];
         labelNode.fontSize = 14.f;
         labelNode.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;
         labelNode.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;

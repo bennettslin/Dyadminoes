@@ -21,8 +21,7 @@
 #define kDyadminoColorBlendFactor 0.2f
 
   // math constants
-#define kBoardDiagonalX 15.75f
-#define kBoardDiagonalY 8.95f
+#define kSquareRootOfThree 1.73205081f
 
   // view constants
 #define kTopBarHeight 72.f
@@ -118,6 +117,12 @@ typedef enum pivotOnPC {
   kPivotOnPC1,
   kPivotOnPC2
 } PivotOnPC;
+
+typedef enum dyadminoPCOnCell {
+  kNoPCsOnCell,
+  kPCOneOnCell,
+  kPCTwoOnCell
+} dyadminoPCOnCell;
 
 @interface NSObject (Helper)
 
