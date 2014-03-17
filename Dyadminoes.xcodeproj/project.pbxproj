@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		3F18924718CDB43300BEE276 /* Player.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F18924618CDB43300BEE276 /* Player.m */; };
 		3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3116CD18CEFC5D0015CC2A /* Rack.m */; };
+		3F55E1FD18D7A8520048E67E /* Button.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F55E1FC18D7A8520048E67E /* Button.m */; };
 		3F6AE50E18D4D1E7000528C1 /* TopBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F6AE50D18D4D1E7000528C1 /* TopBar.m */; };
 		3F87AAAB188DEE4B008C4A0D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAA188DEE4B008C4A0D /* Foundation.framework */; };
 		3F87AAAD188DEE4B008C4A0D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAC188DEE4B008C4A0D /* CoreGraphics.framework */; };
@@ -52,6 +53,8 @@
 		3F18924618CDB43300BEE276 /* Player.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Player.m; sourceTree = "<group>"; };
 		3F3116CC18CEFC5D0015CC2A /* Rack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rack.h; sourceTree = "<group>"; };
 		3F3116CD18CEFC5D0015CC2A /* Rack.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Rack.m; sourceTree = "<group>"; };
+		3F55E1FB18D7A8520048E67E /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
+		3F55E1FC18D7A8520048E67E /* Button.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Button.m; sourceTree = "<group>"; };
 		3F6AE50C18D4D1E7000528C1 /* TopBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TopBar.h; sourceTree = "<group>"; };
 		3F6AE50D18D4D1E7000528C1 /* TopBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TopBar.m; sourceTree = "<group>"; };
 		3F87AAA7188DEE4B008C4A0D /* Dyadminoes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dyadminoes.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -227,6 +230,8 @@
 				3FDD7FD818D4C89B0029DB7D /* Board.m */,
 				3FD06E2118D6544F00E2FF04 /* Cell.h */,
 				3FD06E2218D6544F00E2FF04 /* Cell.m */,
+				3F55E1FB18D7A8520048E67E /* Button.h */,
+				3F55E1FC18D7A8520048E67E /* Button.m */,
 				3F8F045918BFEF3300853C4C /* SnapPoint.h */,
 				3F8F045A18BFEF3300853C4C /* SnapPoint.m */,
 				3F6AE50C18D4D1E7000528C1 /* TopBar.h */,
@@ -355,6 +360,7 @@
 				3F6AE50E18D4D1E7000528C1 /* TopBar.m in Sources */,
 				3F9923091895ECCA00FC9392 /* SonorityLogic.m in Sources */,
 				3F87AABD188DEE4B008C4A0D /* AppDelegate.m in Sources */,
+				3F55E1FD18D7A8520048E67E /* Button.m in Sources */,
 				3F87AAB9188DEE4B008C4A0D /* main.m in Sources */,
 				3FD06E2318D6544F00E2FF04 /* Cell.m in Sources */,
 			);

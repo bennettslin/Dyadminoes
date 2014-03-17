@@ -48,7 +48,6 @@
 @property (nonatomic) CGFloat initialPivotAngle;
 @property (nonatomic) DyadminoOrientation prePivotDyadminoOrientation;
 @property (nonatomic) CGPoint prePivotPosition;
-@property (nonatomic) CGPoint pivotAroundPoint;
 
   //----------------------------------------------------------------------------
   //----------------------------------------------------------------------------
@@ -90,7 +89,6 @@
 
 #pragma mark - pivot methods
 
--(void)determinePivotOnPC;
 -(void)pivotBasedOnLocation:(CGPoint)location;
 
 #pragma mark - animation methods
@@ -113,6 +111,10 @@
 -(BOOL)isHovering;
 -(BOOL)continuesToHover;
 -(BOOL)isFinishedHovering;
+
+#pragma mark - helper methods
+
+-(PivotOnPC)determinePivotOnPC;
 
 #pragma mark - debugging methods
 

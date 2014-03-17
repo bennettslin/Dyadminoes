@@ -102,11 +102,11 @@
   }
 }
 
--(CGPoint)getRelativeToPoint:(CGPoint)point {
+-(CGPoint)getOffsetFromPoint:(CGPoint)point {
   return [self fromThisPoint:point subtractThisPoint:self.position];
 }
 
--(CGPoint)getRelativeToPoint:(CGPoint)point withTouchOffset:(CGPoint)touchOffset {
+-(CGPoint)getOffsetForPoint:(CGPoint)point withTouchOffset:(CGPoint)touchOffset {
   CGPoint offsetPoint = [self fromThisPoint:point subtractThisPoint:touchOffset];
   return [self fromThisPoint:offsetPoint subtractThisPoint:self.position];
 }

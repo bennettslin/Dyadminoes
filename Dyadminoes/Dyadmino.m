@@ -9,6 +9,12 @@
 #import "Dyadmino.h"
 #import "Board.h"
 
+@interface Dyadmino ()
+
+@property (nonatomic) CGPoint pivotAroundPoint;
+
+@end
+
 @implementation Dyadmino {
   BOOL _alreadyAddedChildren;
   CGSize _touchSize;
@@ -245,48 +251,22 @@
 
 #pragma mark - pivot methods
 
--(void)determinePivotOnPC {
-  CGFloat originOffset;
-  switch (self.orientation) {
-    case kPC1atTwelveOClock:
-      originOffset = 0.f;
-      break;
-    case kPC1atTwoOClock:
-      originOffset = 60.f;
-      break;
-    case kPC1atFourOClock:
-      originOffset = 120.f;
-      break;
-    case kPC1atSixOClock:
-      originOffset = 180.f;
-      break;
-    case kPC1atEightOClock:
-      originOffset = 240.f;
-      break;
-    case kPC1atTenOClock:
-      originOffset = 300.f;
-      break;
-  }
-  CGFloat offsetAngle = self.initialPivotAngle + originOffset;
-  if (offsetAngle > 360.f) {
-    offsetAngle -= 360.f;
-  }
-  
-  if (offsetAngle > 210.f && offsetAngle <= 330.f) {
-    _pivotOnPC = kPivotOnPC1;
-  } else if (offsetAngle >= 30.f && offsetAngle <= 150.f) {
-    _pivotOnPC = kPivotOnPC2;
-  } else {
-    _pivotOnPC = kPivotCentre;
-  }
-}
-
 -(void)pivotBasedOnLocation:(CGPoint)location {
+  
+  NSLog(@"from dyadmino's pivotBasedOnLocation, dyadmino parent is %@", self.parent.name);
+  
+    // there should be a method here that gets the pivotAroundPoint based on the location and the pivotOnPC
+
+    // for now
+  self.pivotAroundPoint = self.position;
+  
+  NSLog(@"dyadmino pivotAroundPoint is %.1f, %.1f", self.pivotAroundPoint.x, self.pivotAroundPoint.y);
+  
   CGFloat thisAngle = [self findAngleInDegreesFromThisPoint:location toThisPoint:self.pivotAroundPoint];
-  CGFloat sextantChange = [self getSextantChangeFromThisAngle:thisAngle toThisAngle:self.initialPivotAngle];
+  CGFloat sextant = [self getSextantFromThisAngle:thisAngle toThisAngle:self.initialPivotAngle];
   
   for (NSUInteger i = 0; i < 12; i++) {
-    if (sextantChange >= 0.f + i + kAngleForSnapToPivot && sextantChange < 1.f + i - kAngleForSnapToPivot) {
+    if (sextant >= 0.f + i + kAngleForSnapToPivot && sextant < 1.f + i - kAngleForSnapToPivot) {
       NSUInteger dyadminoOrientationShouldBe = (self.prePivotDyadminoOrientation + i) % 6;
       if (self.orientation == dyadminoOrientationShouldBe) {
         return;
@@ -450,7 +430,7 @@
     [self setToHomeZPosition];
     self.canFlip = NO;
     self.hoveringStatus = kDyadminoNoHoverStatus;
-    self.prePivotPosition = CGPointMake(99999.f, 99999.f);
+    self.prePivotPosition = self.position;
   }];
   SKAction *sequence = [SKAction sequence:@[moveAction, finishAction]];
   [self runAction:sequence];
@@ -509,6 +489,43 @@
 }
 
 #pragma mark - helper methods
+
+-(PivotOnPC)determinePivotOnPC {
+  CGFloat originOffset;
+  switch (self.orientation) {
+    case kPC1atTwelveOClock:
+      originOffset = 0.f;
+      break;
+    case kPC1atTwoOClock:
+      originOffset = 60.f;
+      break;
+    case kPC1atFourOClock:
+      originOffset = 120.f;
+      break;
+    case kPC1atSixOClock:
+      originOffset = 180.f;
+      break;
+    case kPC1atEightOClock:
+      originOffset = 240.f;
+      break;
+    case kPC1atTenOClock:
+      originOffset = 300.f;
+      break;
+  }
+  CGFloat offsetAngle = self.initialPivotAngle + originOffset;
+  if (offsetAngle > 360.f) {
+    offsetAngle -= 360.f;
+  }
+  
+  if (offsetAngle > 210.f && offsetAngle <= 330.f) {
+    _pivotOnPC = kPivotOnPC1;
+  } else if (offsetAngle >= 30.f && offsetAngle <= 150.f) {
+    _pivotOnPC = kPivotOnPC2;
+  } else {
+    _pivotOnPC = kPivotCentre;
+  }
+  return _pivotOnPC;
+}
 
 -(CGFloat)getHeightFloatGivenGap:(CGFloat)gap andDyadminoPosition:(CGPoint)dyadminoOffsetPosition {
   

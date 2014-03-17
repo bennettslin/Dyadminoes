@@ -126,7 +126,7 @@ typedef enum dyadminoPCOnCell {
 -(CGPoint)addThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
 -(CGPoint)fromThisPoint:(CGPoint)point1 subtractThisPoint:(CGPoint)point2;
 -(CGFloat)findAngleInDegreesFromThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
--(CGFloat)getSextantChangeFromThisAngle:(CGFloat)angle1 toThisAngle:(CGFloat)angle2;
+-(CGFloat)getSextantFromThisAngle:(CGFloat)angle1 toThisAngle:(CGFloat)angle2;
 -(CGFloat)getRadiansFromDegree:(CGFloat)degree;
 
   // struct stuff

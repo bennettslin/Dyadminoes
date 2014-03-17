@@ -7,6 +7,7 @@
 //
 
 #import "TopBar.h"
+#import "Button.h"
 
 @implementation TopBar
 
@@ -31,21 +32,23 @@
   CGSize buttonSize = CGSizeMake(buttonWidth, 45.f);
   CGFloat buttonYPosition = 30.f;
   
-  self.togglePCModeButton = [[SKSpriteNode alloc] initWithColor:[UIColor orangeColor] size:buttonSize];
+  self.togglePCModeButton = [[Button alloc] initWithColor:[UIColor orangeColor] size:buttonSize];
   self.togglePCModeButton.name = @"togglePCButton";
   self.togglePCModeButton.position = CGPointMake(buttonWidth, buttonYPosition);
   self.togglePCModeButton.zPosition = kZPositionTopBarButton;
   [self addChild:self.togglePCModeButton];
   [self.buttonNodes addObject:self.togglePCModeButton];
+  [self enableButton:self.togglePCModeButton];
   
-  self.swapButton = [[SKSpriteNode alloc] initWithColor:[UIColor yellowColor] size:buttonSize];
+  self.swapButton = [[Button alloc] initWithColor:[UIColor yellowColor] size:buttonSize];
   self.swapButton.name = @"swapButton";
   self.swapButton.position = CGPointMake(buttonWidth * 2, buttonYPosition);
   self.swapButton.zPosition = kZPositionTopBarButton;
   [self addChild:self.swapButton];
   [self.buttonNodes addObject:self.swapButton];
+  [self enableButton:self.swapButton];
   
-  self.cancelButton = [[SKSpriteNode alloc] initWithColor:[UIColor redColor] size:buttonSize];
+  self.cancelButton = [[Button alloc] initWithColor:[UIColor redColor] size:buttonSize];
   self.cancelButton.name = @"cancelButton";
   self.cancelButton.position = CGPointMake(buttonWidth * 3, buttonYPosition);
   self.cancelButton.zPosition = kZPositionTopBarButton;
@@ -54,7 +57,7 @@
   [self disableButton:_cancelButton];
   
     // play and done buttons are in same location, at least for now, as they are never shown together
-  self.playDyadminoButton = [[SKSpriteNode alloc] initWithColor:[UIColor greenColor] size:buttonSize];
+  self.playDyadminoButton = [[Button alloc] initWithColor:[UIColor greenColor] size:buttonSize];
   self.playDyadminoButton.name = @"playDyadminoButton";
   self.playDyadminoButton.position = CGPointMake(buttonWidth * 4, buttonYPosition);
   self.playDyadminoButton.zPosition = kZPositionTopBarButton;
@@ -63,23 +66,25 @@
   [self disableButton:_playDyadminoButton];
   
     // done turn button is also pass turn
-  self.doneTurnButton = [[SKSpriteNode alloc] initWithColor:[UIColor blueColor] size:buttonSize];
+  self.doneTurnButton = [[Button alloc] initWithColor:[UIColor blueColor] size:buttonSize];
   self.doneTurnButton.name = @"doneTurnButton";
   self.doneTurnButton.position = CGPointMake(buttonWidth * 5, buttonYPosition);
   self.doneTurnButton.zPosition = kZPositionTopBarButton;
   [self addChild:self.doneTurnButton];
   [self.buttonNodes addObject:self.doneTurnButton];
+  [self enableButton:self.doneTurnButton];
   
-  self.logButton = [[SKSpriteNode alloc] initWithColor:[UIColor blackColor] size:buttonSize];
+  self.logButton = [[Button alloc] initWithColor:[UIColor blackColor] size:buttonSize];
   self.logButton.name = @"logButton";
   self.logButton.position = CGPointMake(buttonWidth * 6, buttonYPosition);
   self.logButton.zPosition = kZPositionTopBarButton;
   [self addChild:self.logButton];
   [_buttonNodes addObject:self.logButton];
+  [self enableButton:self.logButton];
 }
 
 -(void)populateWithLabels {
-  CGFloat labelYPosition = -30.f;
+  CGFloat labelYPosition = -5.f;
   
   self.pileCountLabel = [[SKLabelNode alloc] init];
   self.pileCountLabel.name = @"pileCountLabel";
@@ -106,13 +111,15 @@
   [self addChild:self.logLabel];
 }
 
--(void)enableButton:(SKSpriteNode *)button {
+-(void)enableButton:(Button *)button {
     // FIXME: make this better
   button.hidden = NO;
+  button.enabled = YES;
 }
 
--(void)disableButton:(SKSpriteNode *)button {
+-(void)disableButton:(Button *)button {
   button.hidden = YES;
+  button.enabled = NO;
 }
 
 @end

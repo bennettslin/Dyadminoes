@@ -16,12 +16,10 @@
 #import "Board.h"
 #import "TopBar.h"
 #import "Cell.h"
+#import "Button.h"
 
 @interface MyScene () <FieldNodeDelegate>
 @end
-
-  // TODO: put board cells on their own sprite nodes
-  // TODO: board cells need coordinates
 
   // after do board coordinates
   // TODO: put initial dyadmino on board
@@ -76,7 +74,7 @@
   Dyadmino *_currentlyTouchedDyadmino;
   Dyadmino *_recentRackDyadmino;
   Dyadmino *_hoveringButNotTouchedDyadmino;
-  SKSpriteNode *_buttonPressed;
+  Button *_buttonPressed;
 
     // hover and pivot properties
   BOOL _pivotInProgress;
@@ -146,6 +144,7 @@
                            andAnchorPoint:CGPointZero
                               andPosition:CGPointMake(0, self.frame.size.height - kTopBarHeight)
                              andZPosition:kZPositionTopBar];
+  _topBar.name = @"topBar";
   [_topBar populateWithButtons];
   [_topBar populateWithLabels];
   [self addChild:_topBar];
@@ -186,8 +185,10 @@
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
-  NSLog(@"touchNode is %@ and has parent %@", _touchNode.name, _touchNode.parent.name);
   
+    //test
+//  NSLog(@"touchNode is %@ and has parent %@", _touchNode.name, _touchNode.parent.name);
+//  NSLog(@"touchNode description is %@", _touchNode.description);
 //  if ([_touchNode.name isEqualToString:@"cell"]) {
 //    Cell *cell = (Cell *)_touchNode;
 //    NSLog(@"cell x is %i, %i", cell.boardXY.x, cell.boardXY.y);
@@ -196,28 +197,25 @@
     //--------------------------------------------------------------------------
 
     // if it's a dyadmino, dyadmino will not be nil
-  Dyadmino *dyadmino = [self selectDyadminoFromTouchNode:_touchNode
-                                           andTouchPoint:_currentTouchLocation];
+  Dyadmino *dyadmino = [self selectDyadminoFromTouchNode:_touchNode andTouchPoint:_currentTouchLocation];
   
     // if pivot not in progress, or pivot in progress but dyadmino is not close enough
+    // then the board is touched and being moved
   if (!_pivotInProgress || (_pivotInProgress && !dyadmino)) {
-    
-      // if board is touched, then it's being moved
-      // the last one, touchNode.parent == cell, is necessary only for testing purposes
     if (_touchNode == _boardField ||
         (_touchNode.parent == _boardField &&
         ![_touchNode isKindOfClass:[Dyadmino class]]) ||
-        [_touchNode.parent.name isEqualToString:@"cell"]) {
+        [_touchNode.parent.name isEqualToString:@"cell"]) { // this one is necessary only for testing purposes
       
       _boardBeingMoved = YES;
-      _boardShiftedAfterEachTouch = [_boardField getRelativeToPoint:_beganTouchLocation];
+      _boardShiftedAfterEachTouch = [_boardField getOffsetFromPoint:_beganTouchLocation];
       return;
     }
   }
   
     // if it's a button, take care of it when touch ended
   if ([_topBar.buttonNodes containsObject:_touchNode]) {
-    _buttonPressed = (SKSpriteNode *)_touchNode;
+    _buttonPressed = (Button *)_touchNode;
       // TODO: make distinction of button pressed better, of course
     _buttonPressed.alpha = 0.3f;
     return;
@@ -226,9 +224,7 @@
   
     // otherwise, if it's a dyadmino
   if (dyadmino && !dyadmino.isRotating && !_currentlyTouchedDyadmino) {
-    
-    [dyadmino startTouchThenHoverResize];
-    [self handleBeginTouchOfDyadmino:dyadmino];
+    [self beginTouchOrPivotOfDyadmino:dyadmino];
   }
 }
 
@@ -259,7 +255,7 @@
     // if board being moved, handle and return
   if (_boardBeingMoved) {
     _boardField.position = [self fromThisPoint:_currentTouchLocation subtractThisPoint:_boardShiftedAfterEachTouch];
-    _boardShiftedAfterEachTouch = [_boardField getRelativeToPoint:_currentTouchLocation];
+    _boardShiftedAfterEachTouch = [_boardField getOffsetFromPoint:_currentTouchLocation];
     return;
   }
 
@@ -293,11 +289,7 @@
 
     // if we're currently pivoting, just rotate and return
   if (_pivotInProgress) {
-    
-      // eventually make the pivot point not the dyadmino position, of course
-    NSLog(@"distance between dyadmino and touch location is %.1f", [self getDistanceFromThisPoint:[_boardField getRelativeToPoint:_currentlyTouchedDyadmino.position] toThisPoint:_currentTouchLocation]);
-    CGPoint reverseOffset = [_boardField getRelativeToPoint:_currentTouchLocation];
-    [_currentlyTouchedDyadmino pivotBasedOnLocation:reverseOffset];
+    [self handlePivotOfDyadmino:_hoveringButNotTouchedDyadmino];
     return;
   }
   
@@ -315,7 +307,7 @@
   
     // move the dyadmino!
   _currentlyTouchedDyadmino.position =
-    [self reverseOffsetOfTouchPoint:_currentTouchLocation forDyadmino:_currentlyTouchedDyadmino];
+    [self getOffsetForTouchPoint:_currentTouchLocation forDyadmino:_currentlyTouchedDyadmino];
   
   //--------------------------------------------------------------------------
   
@@ -368,16 +360,15 @@
   
   [self determineCurrentSectionOfDyadmino:_currentlyTouchedDyadmino];
   Dyadmino *dyadmino = [self assignCurrentDyadminoToPointer];
-  
-    // cleanup
-  _pivotInProgress = NO;
-  _touchOffsetVector = CGPointZero;
 
     // ensures we're not disrupting a rotating animation
   if (!dyadmino.isRotating) {
     
+    NSLog(@"dyadmino is not rotating");
+    
       // if dyadmino belongs in rack (or swap) and *isn't* on board...
     if (([dyadmino belongsInRack] || [dyadmino belongsInSwap]) && ![dyadmino isOnBoard]) {
+      NSLog(@"dyadmino belongs in rack and isn't on board");
       
           // ...flip if possible, or send it home
       if (dyadmino.canFlip) {
@@ -388,6 +379,8 @@
       
         // or if dyadmino is in top bar...
     } else if ([dyadmino isInTopBar]) {
+      NSLog(@"dyadmino is in top bar");
+      
       if (dyadmino.tempBoardNode) {
         [dyadmino goFromTopBarToTempBoardNode];
       } else {
@@ -396,55 +389,30 @@
            
         // otherwise, prepare it for hover
     } else {
+      
+      NSLog(@"in touchEnded, prepare dyadmino for hover");
       _hoveringButNotTouchedDyadmino = dyadmino;
       [_hoveringButNotTouchedDyadmino startHovering];
       [self prepareTouchEndedDyadminoForHover];
     }
   }
+  
+    // cleanup
+  _pivotInProgress = NO;
+  _touchOffsetVector = CGPointZero;
 }
 
 #pragma mark - touch procedure methods
 
--(void)handleBeginTouchOfDyadmino:(Dyadmino *)dyadmino {
+-(void)beginTouchOrPivotOfDyadmino:(Dyadmino *)dyadmino {
+  [dyadmino startTouchThenHoverResize];
+  
   _currentlyTouchedDyadmino = dyadmino;
-  [self determineCurrentSectionOfDyadmino:_currentlyTouchedDyadmino];
-  
-  if (dyadmino.parent == _rackField) {
-    _touchOffsetVector = [self fromThisPoint:_beganTouchLocation
-                           subtractThisPoint:_currentlyTouchedDyadmino.position];
-  } else {
-    CGPoint boardOffsetPoint = [self addThisPoint:_currentlyTouchedDyadmino.position toThisPoint:_boardField.position];
-    _touchOffsetVector = [self fromThisPoint:_beganTouchLocation subtractThisPoint:boardOffsetPoint];
-  }
-  
-    // reset hover count
-  if ([_currentlyTouchedDyadmino isHovering]) {
-    [_currentlyTouchedDyadmino keepHovering];
-  }
-  
-  [_currentlyTouchedDyadmino removeActionsAndEstablishNotRotating];
-  
-    //--------------------------------------------------------------------------
-  
-    // if it's still in the rack, it can still rotate
-  if ([_currentlyTouchedDyadmino isInRack] || [_currentlyTouchedDyadmino isOrBelongsInSwap]) {
-    _currentlyTouchedDyadmino.canFlip = YES;
-  }
-  
-    // various prep
-  _currentlyTouchedDyadmino.zPosition = kZPositionHoveredDyadmino;
-  
-    //--------------------------------------------------------------------------
+  [self getReadyToMoveCurrentDyadmino:_currentlyTouchedDyadmino];
   
     // if it's now about to pivot, just get pivot angle
   if (_pivotInProgress) {
-    
-    CGPoint reverseOffset = [_boardField getRelativeToPoint:_currentTouchLocation];
-    _currentlyTouchedDyadmino.initialPivotAngle =
-      [self findAngleInDegreesFromThisPoint:reverseOffset toThisPoint:_currentlyTouchedDyadmino.position];
-    
-    [_currentlyTouchedDyadmino determinePivotOnPC];
-    return;
+    [self getReadyToPivotHoveringDyadmino:_hoveringButNotTouchedDyadmino];
   }
   
     // if it's on the board and not already rotating, two possibilities
@@ -459,6 +427,67 @@
       [_currentlyTouchedDyadmino animateFlip];
     }
   }
+}
+
+-(void)getReadyToMoveCurrentDyadmino:(Dyadmino *)dyadmino {
+  [self determineCurrentSectionOfDyadmino:dyadmino];
+  
+  if (dyadmino.parent == _rackField) {
+    _touchOffsetVector = [self fromThisPoint:_beganTouchLocation subtractThisPoint:dyadmino.position];
+  } else {
+    CGPoint boardOffsetPoint = [self addThisPoint:dyadmino.position toThisPoint:_boardField.position];
+    _touchOffsetVector = [self fromThisPoint:_beganTouchLocation subtractThisPoint:boardOffsetPoint];
+  }
+  
+    // reset hover count
+  if ([dyadmino isHovering]) {
+    [dyadmino keepHovering];
+  }
+  
+  [dyadmino removeActionsAndEstablishNotRotating];
+  
+    //--------------------------------------------------------------------------
+  
+    // if it's still in the rack, it can still rotate
+  if ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap]) {
+    dyadmino.canFlip = YES;
+  }
+  
+    // various prep
+  dyadmino.zPosition = kZPositionHoveredDyadmino;
+}
+
+-(void)getReadyToPivotHoveringDyadmino:(Dyadmino *)dyadmino {
+  
+//  NSLog(@"prePivotPosition is %.1f, %.1f", dyadmino.prePivotPosition.x, dyadmino.prePivotPosition.y);
+  
+  [dyadmino removeActionsAndEstablishNotRotating];
+  
+    // this section just determines which pc to pivot on
+    // it's not relevant after dyadmino is moved
+  CGPoint touchBoardOffset = [_boardField getOffsetFromPoint:_beganTouchLocation];
+  dyadmino.initialPivotAngle = [self findAngleInDegreesFromThisPoint:touchBoardOffset
+                                                         toThisPoint:dyadmino.position];
+  [dyadmino determinePivotOnPC];
+  
+  dyadmino.prePivotDyadminoOrientation = dyadmino.orientation;
+  dyadmino.prePivotPosition = dyadmino.position;
+  
+//  NSLog(@"initial pivot angle is %.1f", dyadmino.initialPivotAngle);
+}
+
+-(void)handlePivotOfDyadmino:(Dyadmino *)dyadmino {
+  
+    // eventually make the pivot point not the dyadmino position, of course
+    //    NSLog(@"distance between dyadmino and touch location is %.1f",
+    //          [self getDistanceFromThisPoint:[_boardField getRelativeToPoint:_currentlyTouchedDyadmino.position]
+    //                             toThisPoint:_currentTouchLocation]);
+  
+  CGPoint touchBoardOffset = [_boardField getOffsetFromPoint:_currentTouchLocation];
+  
+  NSLog(@"in handlePivot, touchBoardOffset is %.1f, %.1f", touchBoardOffset.x, touchBoardOffset.y);
+  
+  [dyadmino pivotBasedOnLocation:touchBoardOffset];
 }
 
 -(Dyadmino *)assignCurrentDyadminoToPointer {
@@ -508,6 +537,10 @@
 #pragma mark - button methods
 
 -(void)handleButtonPressed {
+  
+  if (!_buttonPressed.enabled) {
+    return;
+  }
   
     // swap dyadminoes
   if (_buttonPressed == _topBar.swapButton) {
@@ -803,9 +836,14 @@
 -(void)determineCurrentSectionOfDyadmino:(Dyadmino *)dyadmino {
     // this the ONLY place that determines current section of dyadmino
     // this is the ONLY place that sets dyadmino's belongsInSwap to YES
-
-    // if dyadmino is in swap, its parent is the rack, and stays as such
-  if (_swapMode && _currentTouchLocation.y - _touchOffsetVector.y > kRackHeight) {
+  
+    // if it's pivoting, it's on the board, period
+    // it's also on board, if not in swap and above rack and below top bar
+  if (_pivotInProgress || (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
+      _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight)) {
+    [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
+    dyadmino.isInTopBar = NO;
+  } else if (_swapMode && _currentTouchLocation.y - _touchOffsetVector.y > kRackHeight) {
     dyadmino.belongsInSwap = YES;
     dyadmino.isInTopBar = NO;
 
@@ -815,72 +853,49 @@
     dyadmino.belongsInSwap = NO;
     dyadmino.isInTopBar = NO;
 
-      // if not in swap, it's in board when above rack and below top bar
-  } else if (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
-      _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight) {
-    [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
-    dyadmino.isInTopBar = NO;
-    
-      // else it's in the top bar
-  } else if (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= self.frame.size.height - kTopBarHeight) {
-    
-      // this is a clumsy workaround...
+      // else it's in the top bar, but this is a clumsy workaround, so be careful!
+  } else if (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >=
+             self.frame.size.height - kTopBarHeight) {
+    NSLog(@"dyadmino is in top bar");
     dyadmino.isInTopBar = YES;
   }
 }
 
 
--(CGPoint)reverseOffsetOfTouchPoint:(CGPoint)touchPoint forDyadmino:(Dyadmino *)dyadmino {
-  CGPoint reverseOffset;
+-(CGPoint)getOffsetForTouchPoint:(CGPoint)touchPoint forDyadmino:(Dyadmino *)dyadmino {
+  CGPoint touchOffset;
   if (dyadmino.parent == _boardField) {
-    reverseOffset = [_boardField getRelativeToPoint:touchPoint withTouchOffset:_touchOffsetVector];
+    touchOffset = [_boardField getOffsetForPoint:touchPoint withTouchOffset:_touchOffsetVector];
   } else {
-    reverseOffset = [self fromThisPoint:touchPoint subtractThisPoint:_touchOffsetVector];
+    touchOffset = [self fromThisPoint:touchPoint subtractThisPoint:_touchOffsetVector];
   }
-  return reverseOffset;
+  return touchOffset;
 }
 
 -(Dyadmino *)selectDyadminoFromTouchNode:(SKNode *)touchNode andTouchPoint:(CGPoint)touchPoint {
-    // pointer to determine last dyadmino, depending on
-    // whether moving board dyadmino while rack dyadmino is in play
-  
-    // also establishes if pivot is in progress
-  
-    /// touchOffset isn't relevant for this method
+    // also establishes if pivot is in progress; touchOffset isn't relevant for this method
 
     // if we're in hovering mode...
   if ([_hoveringButNotTouchedDyadmino isHovering]) {
     
       // accommodate if it's on board
-    CGPoint reverseOffset = [_boardField getRelativeToPoint:touchPoint];
+    CGPoint touchBoardOffset = [_boardField getOffsetFromPoint:touchPoint];
 
       // if touch point is close enough, just rotate
-    if ([self getDistanceFromThisPoint:reverseOffset toThisPoint:_hoveringButNotTouchedDyadmino.position] <
+    if ([self getDistanceFromThisPoint:touchBoardOffset toThisPoint:_hoveringButNotTouchedDyadmino.position] <
         kDistanceForTouchingHoveringDyadmino) {
-      
-      NSLog(@"hovering, not touched");
+//      NSLog(@"hovering, not touched, so just rotate");
       return _hoveringButNotTouchedDyadmino;
  
         // otherwise, we're pivoting, so establish that
-    } else if ([self getDistanceFromThisPoint:reverseOffset toThisPoint:_hoveringButNotTouchedDyadmino.position] <
+    } else if ([self getDistanceFromThisPoint:touchBoardOffset toThisPoint:_hoveringButNotTouchedDyadmino.position] <
             kMaxDistanceForPivot) {
-      
-      NSLog(@"pivot in progress");
+//      NSLog(@"establish pivot in progress");
       _pivotInProgress = YES;
-      _hoveringButNotTouchedDyadmino.pivotAroundPoint = _hoveringButNotTouchedDyadmino.position;
-      
-      _hoveringButNotTouchedDyadmino.prePivotDyadminoOrientation = _hoveringButNotTouchedDyadmino.orientation;
-        // this is reset to zero only after eased into place
-      CGPoint reallyBigPoint = CGPointMake(99999.f, 99999.f);
-      
-      if (CGPointEqualToPoint(_hoveringButNotTouchedDyadmino.prePivotPosition, reallyBigPoint)) {
-        _hoveringButNotTouchedDyadmino.prePivotPosition = _hoveringButNotTouchedDyadmino.position;
-      }
-      
-      [_hoveringButNotTouchedDyadmino removeActionsAndEstablishNotRotating];
+      _hoveringButNotTouchedDyadmino.canFlip = NO;
       return _hoveringButNotTouchedDyadmino;
     }
-    NSLog(@"board moved");
+//    NSLog(@"board moved");
   }
     //--------------------------------------------------------------------------
   
@@ -899,12 +914,11 @@
     // second restriction is that touch point is close enough based on following criteria:
     // if dyadmino is on board, not hovering and thus locked in a node, and we're not in swap mode...
   [self determineCurrentSectionOfDyadmino:dyadmino];
-  
 
   if ([dyadmino isOnBoard] && !_swapMode) {
 
       // accommodate the fact that dyadmino's position is now relative to board
-    CGPoint relativeToBoardPoint = [_boardField getRelativeToPoint:touchPoint];
+    CGPoint relativeToBoardPoint = [_boardField getOffsetFromPoint:touchPoint];
     if ([self getDistanceFromThisPoint:relativeToBoardPoint toThisPoint:dyadmino.position] <
         kDistanceForTouchingLockedDyadmino) {
       return dyadmino;

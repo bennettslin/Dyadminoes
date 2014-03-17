@@ -8,16 +8,17 @@
 
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
+@class Button;
 
 @interface TopBar : SKSpriteNode
 
 @property (strong, nonatomic) NSMutableSet *buttonNodes;
-@property (strong, nonatomic) SKSpriteNode *togglePCModeButton;
-@property (strong, nonatomic) SKSpriteNode *swapButton;
-@property (strong, nonatomic) SKSpriteNode *cancelButton;
-@property (strong, nonatomic) SKSpriteNode *playDyadminoButton;
-@property (strong, nonatomic) SKSpriteNode *doneTurnButton;
-@property (strong, nonatomic) SKSpriteNode *logButton;
+@property (strong, nonatomic) Button *togglePCModeButton;
+@property (strong, nonatomic) Button *swapButton;
+@property (strong, nonatomic) Button *cancelButton;
+@property (strong, nonatomic) Button *playDyadminoButton;
+@property (strong, nonatomic) Button *doneTurnButton;
+@property (strong, nonatomic) Button *logButton;
 
 @property (strong, nonatomic) SKLabelNode *pileCountLabel;
 @property (strong, nonatomic) SKLabelNode *messageLabel;
