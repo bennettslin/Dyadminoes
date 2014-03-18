@@ -28,13 +28,17 @@
 
   // sprites
 @property (strong, nonatomic) NSArray *rotationFrameArray;
+
 @property (strong, nonatomic) SKSpriteNode *pc1LetterSprite;
 @property (strong, nonatomic) SKSpriteNode *pc2LetterSprite;
 @property (strong, nonatomic) SKSpriteNode *pc1NumberSprite;
 @property (strong, nonatomic) SKSpriteNode *pc2NumberSprite;
 @property (strong, nonatomic) SKSpriteNode *pc1Sprite;
 @property (strong, nonatomic) SKSpriteNode *pc2Sprite;
-@property (strong, nonatomic) SKSpriteNode *prePivotGuide;
+
+@property (strong, nonatomic) SKNode *prePivotGuide;
+@property (strong, nonatomic) SKNode *pivotRotateGuide;
+@property (strong, nonatomic) SKNode *pivotAroundGuide;
 
   // bools and states
 @property (nonatomic) BOOL isInTopBar;
@@ -115,6 +119,7 @@
 
 -(PivotOnPC)determinePivotOnPC;
 -(CGPoint)determinePivotAroundPoint;
+-(void)hidePivotGuideAndShowPrePivotGuide;
 
 #pragma mark - debugging methods
 

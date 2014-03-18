@@ -221,6 +221,9 @@
 }
 
 -(void)startHovering {
+    // this is the only place where prePivot guide is made visible
+    // starting from no pivot guides
+  [self showPivotGuide:self.prePivotGuide];
   self.hoveringStatus = kDyadminoHovering;
 }
 
@@ -254,6 +257,10 @@
 
 -(void)goHomeByPoppingIn:(BOOL)poppingIn {
     // move these into a completion block for animation
+  
+  [self hidePivotGuide:self.prePivotGuide];
+  [self hidePivotGuide:self.pivotAroundGuide];
+  [self hidePivotGuide:self.pivotRotateGuide];
 
   if (poppingIn) {
     [self animatePopBackIntoRackNode];
@@ -441,6 +448,10 @@
   SKAction *finishAction = [SKAction runBlock:^{
     [self endTouchThenHoverResize];
     [self setToHomeZPosition];
+    
+      // this is the only place where pivot guides are hidden for good
+    [self hidePivotGuide:self.prePivotGuide];
+    
     self.canFlip = NO;
     self.hoveringStatus = kDyadminoNoHoverStatus;
     self.initialPivotPosition = self.position;
@@ -511,15 +522,38 @@
     offsetAngle -= 360;
   }
   
+    // this is the only place where prePivotGuide is hidden
+    // and pivotAround or pivotRotate guides are then made visible
+  
+  [self hidePivotGuide:self.prePivotGuide];
+  
   if (offsetAngle > 210 && offsetAngle <= 330) {
+    [self showPivotGuide:self.pivotAroundGuide];
     _pivotOnPC = kPivotOnPC1;
   } else if (offsetAngle >= 30 && offsetAngle <= 150) {
+    [self showPivotGuide:self.pivotAroundGuide];
     _pivotOnPC = kPivotOnPC2;
   } else {
+    [self showPivotGuide:self.pivotRotateGuide];
     _pivotOnPC = kPivotCentre;
   }
   return _pivotOnPC;
 }
+
+-(void)showPivotGuide:(SKNode *)pivotGuide {
+  if (!pivotGuide.parent) {
+    [self addChild:pivotGuide];
+    pivotGuide.hidden = NO;
+  }
+}
+
+-(void)hidePivotGuide:(SKNode *)pivotGuide {
+  if (pivotGuide.parent) {
+    [pivotGuide removeFromParent];
+    pivotGuide.hidden = YES;
+  }
+}
+
 
 -(CGPoint)determinePivotAroundPoint {
   
@@ -559,15 +593,24 @@
   return self.pivotAroundPoint;
 }
 
+-(void)hidePivotGuideAndShowPrePivotGuide {
+  
+    // this is the only place where pivot guide is hidden
+    // and the prePivot guide is made visible
+  [self showPivotGuide:self.prePivotGuide];
+  [self hidePivotGuide:self.pivotRotateGuide];
+  [self hidePivotGuide:self.pivotAroundGuide];
+}
+
 -(CGFloat)getHeightFloatGivenGap:(CGFloat)gap andDyadminoPosition:(CGPoint)dyadminoOffsetPosition {
   
     // returns 0 at bottom, gradually reaches 1 at peak...
-  if (dyadminoOffsetPosition.y < kRackHeight + (gap / 2) &&
-      dyadminoOffsetPosition.y >= kRackHeight - (gap / 2)) {
-    return (dyadminoOffsetPosition.y + (gap / 2) - kRackHeight) / gap;
+  if (dyadminoOffsetPosition.y < kRackHeight + (gap * 0.5) &&
+      dyadminoOffsetPosition.y >= kRackHeight - (gap * 0.5)) {
+    return (dyadminoOffsetPosition.y + (gap * 0.5) - kRackHeight) / gap;
     
       // then returns 1 thereafter
-  } else if (dyadminoOffsetPosition.y > kRackHeight + (gap / 2)) {
+  } else if (dyadminoOffsetPosition.y > kRackHeight + (gap * 0.5)) {
     return 1.f;
   } else {
     return 0.f;

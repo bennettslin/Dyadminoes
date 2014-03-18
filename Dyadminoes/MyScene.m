@@ -381,19 +381,19 @@
       } else {
         [self sendDyadminoHome:dyadmino byPoppingIn:YES];
       }
-           
         // otherwise, prepare it for hover
     } else {
       
-      NSLog(@"in touchEnded, prepare dyadmino for hover");
+//      NSLog(@"in touchEnded, prepare dyadmino for hover");
       _hoveringButNotTouchedDyadmino = dyadmino;
-      [_hoveringButNotTouchedDyadmino startHovering];
+//      [_hoveringButNotTouchedDyadmino startHovering];
       [self prepareTouchEndedDyadminoForHover];
     }
   }
   
     // cleanup
   _pivotInProgress = NO;
+  [dyadmino hidePivotGuideAndShowPrePivotGuide];
   _touchOffsetVector = CGPointZero;
 }
 
@@ -994,10 +994,10 @@ if (!_swapMode && [dyadmino isOnBoard]) {
   _boardField.position = _boardField.homePosition;
   _boardShiftedAfterEachTouch = CGPointZero;
   
-  if (_recentRackDyadmino) {
-    [_recentRackDyadmino.prePivotGuide removeFromParent];
-    [_recentRackDyadmino addChild:_recentRackDyadmino.prePivotGuide];
-  }
+//  if (_recentRackDyadmino) {
+//    [_recentRackDyadmino.prePivotGuide removeFromParent];
+//    [_recentRackDyadmino addChild:_recentRackDyadmino.prePivotGuide];
+//  }
 }
 
 @end

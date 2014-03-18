@@ -42,11 +42,15 @@
 
 -(void)createPile {
   
-  SKSpriteNode *pivotGuide = [self createPrePivotGuide];
+    // create pivot guides
+    // TODO: refactor into one method?
+  SKNode *prePivotGuide = [self createPivotGuideNamed:@"prePivotGuide"];
+  SKNode *pivotRotateGuide = [self createPivotGuideNamed:@"pivotRotateGuide"];
+  SKNode *pivotAroundGuide = [self createPivotGuideNamed:@"pivotAroundGuide"];
   
+    // get dyadmino textures
   SKTextureAtlas *textureAtlas = [SKTextureAtlas atlasNamed:@"DyadminoImages"];
   NSMutableArray *tempRotationArray = [[NSMutableArray alloc] initWithCapacity:3];
-  
   [tempRotationArray addObject:[textureAtlas textureNamed:@"blankTileNoSo"]];
   [tempRotationArray addObject:[textureAtlas textureNamed:@"blankTileSwNe"]];
   [tempRotationArray addObject:[textureAtlas textureNamed:@"blankTileNwSe"]];
@@ -56,26 +60,35 @@
     for (int pc2 = 0; pc2 < 12; pc2++) {
       if (pc1 != pc2 && pc1 < pc2) {
         
+          //get pc textures
         NSString *pc1LetterString = [NSString stringWithFormat:@"pcLetter%d", pc1];
         NSString *pc1NumberString = [NSString stringWithFormat:@"pcNumber%d", pc1];
         NSString *pc2LetterString = [NSString stringWithFormat:@"pcLetter%d", pc2];
         NSString *pc2NumberString = [NSString stringWithFormat:@"pcNumber%d", pc2];
-        
         SKSpriteNode *pc1LetterSprite = [SKSpriteNode spriteNodeWithTexture:[textureAtlas textureNamed:pc1LetterString]];
         SKSpriteNode *pc1NumberSprite = [SKSpriteNode spriteNodeWithTexture:[textureAtlas textureNamed:pc1NumberString]];
         SKSpriteNode *pc2LetterSprite = [SKSpriteNode spriteNodeWithTexture:[textureAtlas textureNamed:pc2LetterString]];
         SKSpriteNode *pc2NumberSprite = [SKSpriteNode spriteNodeWithTexture:[textureAtlas textureNamed:pc2NumberString]];
         
+          // instantiate dyadmino
         Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1 andPC2:pc2 andPCMode:kPCModeLetter andRotationFrameArray:rotationFrameArray andPC1LetterSprite:pc1LetterSprite andPC2LetterSprite:pc2LetterSprite andPC1NumberSprite:pc1NumberSprite andPC2NumberSprite:pc2NumberSprite];
         
-        dyadmino.prePivotGuide = pivotGuide;
+          // assign pivot guides
+        dyadmino.prePivotGuide = prePivotGuide;
         dyadmino.prePivotGuide.zPosition = -1.f;
-        dyadmino.prePivotGuide.name = @"pivotGuide";
+        dyadmino.prePivotGuide.name = @"prePivotGuide";
+        dyadmino.pivotRotateGuide = pivotRotateGuide;
+        dyadmino.pivotRotateGuide.zPosition = -1.f;
+        dyadmino.pivotRotateGuide.name = @"pivotRotateGuide";
+        dyadmino.pivotAroundGuide = pivotAroundGuide;
+        dyadmino.pivotAroundGuide.zPosition = -1.f;
+        dyadmino.pivotAroundGuide.name = @"pivotAroundGuide";
         
+          // initially put them all in the common pile
         [self.allDyadminoes addObject:dyadmino];
         [self.dyadminoesInCommonPile addObject:dyadmino];
         
-          // test
+          // testing purposes
         if (pc1 == 0 && pc2 == 1) {
           NSLog(@"dyadmino size oriented twelve is %f, %f", [textureAtlas textureNamed:@"blankTileNoSo"].size.width, [textureAtlas textureNamed:@"blankTileNoSo"].size.height);
           NSLog(@"dyadmino size oriented two is %f, %f", [textureAtlas textureNamed:@"blankTileSwNe"].size.width, [textureAtlas textureNamed:@"blankTileSwNe"].size.height);
@@ -96,15 +109,32 @@
   }
 }
 
--(SKSpriteNode *)createPrePivotGuide {
-  SKSpriteNode *prePivotGuide = [SKSpriteNode new];
-  prePivotGuide.name = @"pivotGuide";
+-(SKNode *)createPivotGuideNamed:(NSString *)name {
   
-  float startAngle[4] = {30.f, 210.f, 330.f, 150.f};
-  float endAngle[4] = {150.f, 330.f, 30.f, 210.f};
+  float startAngle[4] = {210, 30, 330, 150};
+  float endAngle[4] = {330, 150, 30, 210};
   NSArray *colourArray = @[kGold, kGold, kDarkBlue, kDarkBlue];
   
-  for (int i = 0; i < 4; i++) {
+  SKNode *pivotGuide = [SKNode new];
+  pivotGuide.name = name;
+  
+    // this will have to change substantially...
+  NSUInteger initialNumber;
+  NSUInteger conditionalNumber;
+  if ([pivotGuide.name isEqualToString:@"prePivotGuide"]) {
+    initialNumber = 0;
+    conditionalNumber = 4;
+  } else if ([pivotGuide.name isEqualToString:@"pivotRotateGuide"]) {
+    initialNumber = 3;
+    conditionalNumber = 4;
+  } else if ([pivotGuide.name isEqualToString:@"pivotAroundGuide"]) {
+    initialNumber = 0;
+    conditionalNumber = 1;
+  } else {
+    return nil;
+  }
+
+  for (int i = initialNumber; i < conditionalNumber; i++) {
     SKShapeNode *shapeNode = [SKShapeNode new];
     CGMutablePathRef shapePath = CGPathCreateMutable();
     
@@ -121,9 +151,9 @@
     shapeNode.alpha = kPivotGuideAlpha;
     shapeNode.strokeColor = [SKColor clearColor];
     shapeNode.fillColor = colourArray[i];
-    [prePivotGuide addChild:shapeNode];
+    [pivotGuide addChild:shapeNode];
   }
-  return prePivotGuide;
+  return pivotGuide;
 }
 
 -(NSMutableArray *)getInitiallyPopulatedRack {
@@ -142,6 +172,7 @@
 }
 
   // FIXME: obviously, this will asign players more wisely...
+
 -(Player *)getAssignedAsPlayer {
   return self.player1;
 }
