@@ -265,7 +265,7 @@
   if (poppingIn) {
     [self animatePopBackIntoRackNode];
   } else {
-    [self animateMoveDyadminoInRackToPoint:[self getHomeNodePosition]];
+    [self animateMoveToPoint:[self getHomeNodePosition]];
     [self unhighlightOutOfPlay];
     [self orientBySnapNode:self.homeNode];
     self.zPosition = kZPositionRackMovedDyadmino;
@@ -275,8 +275,8 @@
   [self finishHovering];
 }
 
--(void)goFromTopBarToTempBoardNode {
-  [self animateMoveDyadminoInRackToPoint:self.tempBoardNode.position];
+-(void)goToBoardNode {
+  [self animateMoveToPoint:self.tempBoardNode.position];
   [self endTouchThenHoverResize];
   [self orientBySnapNode:self.tempBoardNode];
 }
@@ -390,7 +390,7 @@
 
 #pragma mark - animation methods
 
--(void)animateMoveDyadminoInRackToPoint:(CGPoint)point{
+-(void)animateMoveToPoint:(CGPoint)point{
   [self removeActionsAndEstablishNotRotating];
   CGFloat distance = [self getDistanceFromThisPoint:self.position toThisPoint:point];
   SKAction *moveAction = [SKAction moveTo:point duration:kConstantSpeed * distance];

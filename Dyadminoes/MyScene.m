@@ -361,12 +361,10 @@
 
     // ensures we're not disrupting a rotating animation
   if (!dyadmino.isRotating) {
-    
-//    NSLog(@"dyadmino is not rotating");
-    
+
       // if dyadmino belongs in rack (or swap) and *isn't* on board...
     if (([dyadmino belongsInRack] || [dyadmino belongsInSwap]) && ![dyadmino isOnBoard]) {
-//      NSLog(@"dyadmino belongs in rack and isn't on board");
+      NSLog(@"dyadmino belongs in rack and isn't on board");
       
           // ...flip if possible, or send it home
       if (dyadmino.canFlip) {
@@ -377,27 +375,33 @@
       
         // or if dyadmino is in top bar...
     } else if ([dyadmino isInTopBar]) {
-//      NSLog(@"dyadmino is in top bar");
+      NSLog(@"dyadmino is in top bar");
       
       if (dyadmino.tempBoardNode) {
-        [dyadmino goFromTopBarToTempBoardNode];
+        [dyadmino goToBoardNode];
       } else {
         [self sendDyadminoHome:dyadmino byPoppingIn:YES];
       }
+      
+        // or if dyadmino is in rack but belongs on board (this seems to work)
+    } else if ([dyadmino belongsOnBoard] && [dyadmino isInRack]) {
+      
+      NSLog(@"dyadmino belongs on board and is in rack");
+
+      [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
+      dyadmino.position = [_boardField getOffsetFromPoint:dyadmino.position];
+      [dyadmino goToBoardNode];
+      
         // otherwise, prepare it for hover
     } else {
-      
-//      NSLog(@"in touchEnded, prepare dyadmino for hover");
+      NSLog(@"in touchEnded, prepare dyadmino for hover");
       _hoveringButNotTouchedDyadmino = dyadmino;
-//      [_hoveringButNotTouchedDyadmino startHovering];
       [self prepareTouchEndedDyadminoForHover];
-      
     }
   }
   
     // cleanup
   _pivotInProgress = NO;
-//    [dyadmino hidePivotGuideAndShowPrePivotGuide];
   _touchOffsetVector = CGPointZero;
 }
 
@@ -508,35 +512,25 @@
 }
 
 -(void)prepareTouchEndedDyadminoForHover {
+
+    // establish the closest board node, without snapping just yet
+  SnapPoint *boardNode = [self findSnapPointClosestToDyadmino:_hoveringButNotTouchedDyadmino];
   
-  if ([_hoveringButNotTouchedDyadmino isOnBoard]) {
-//    NSLog(@"why is it saying it's on board?");
-      // establish the closest board node, without snapping just yet
-    SnapPoint *boardNode = [self findSnapPointClosestToDyadmino:_hoveringButNotTouchedDyadmino];
-    
-      // if valid placement
-    if ([self validateLegalityOfDyadmino:_hoveringButNotTouchedDyadmino onBoardNode:boardNode]) {
+    // first valid placement
+  if ([self validateLegalityOfDyadmino:_hoveringButNotTouchedDyadmino onBoardNode:boardNode]) {
+
+      // change to new board node if it's a board dyadmino
+    if ([_hoveringButNotTouchedDyadmino belongsOnBoard]) {
+      _hoveringButNotTouchedDyadmino.homeNode = boardNode;
+      
+        // establish board node as temp if it's a rack dyadmino
+    } else if ([_hoveringButNotTouchedDyadmino belongsInRack]) {
       _hoveringButNotTouchedDyadmino.tempBoardNode = boardNode;
-      
-        // change to new board node if it's a board dyadmino
-      if ([_hoveringButNotTouchedDyadmino belongsOnBoard]) {
-        _hoveringButNotTouchedDyadmino.homeNode = boardNode;
-      }
-      
-        //      [_hoveringButNotTouchedDyadmino prepareStateForHoverWithBoardNode:boardNode];
-      [_hoveringButNotTouchedDyadmino removeActionsAndEstablishNotRotating];
-      [_hoveringButNotTouchedDyadmino startHovering];
-      
-    } else {
-        // method to return to original place
     }
-    
-      // if it's in the top bar or the rack (doesn't matter whether it's a board or rack dyadmino)
-  } else {
-    
-      // if it can still rotate, do so
-    
-    [self sendDyadminoHome:_hoveringButNotTouchedDyadmino byPoppingIn:NO];
+
+      // start hovering
+    [_hoveringButNotTouchedDyadmino removeActionsAndEstablishNotRotating];
+    [_hoveringButNotTouchedDyadmino startHovering];
   }
 }
 

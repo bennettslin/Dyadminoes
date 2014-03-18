@@ -89,7 +89,7 @@
 
 -(void)setToHomeZPosition;
 -(void)goHomeByPoppingIn:(BOOL)poppingIn;
--(void)goFromTopBarToTempBoardNode;
+-(void)goToBoardNode;
 -(void)removeActionsAndEstablishNotRotating;
 
 #pragma mark - pivot methods
@@ -98,7 +98,7 @@
 
 #pragma mark - animation methods
 
--(void)animateMoveDyadminoInRackToPoint:(CGPoint)point;
+-(void)animateMoveToPoint:(CGPoint)point;
 -(void)animateFlip;
 -(void)animateEaseIntoNodeAfterHover;
 
