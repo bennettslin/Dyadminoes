@@ -223,7 +223,9 @@
 -(void)startHovering {
     // this is the only place where prePivot guide is made visible
     // starting from no pivot guides
-  [self showPivotGuide:self.prePivotGuide];
+  
+//  NSLog(@"start hovering?!");
+  [self hidePivotGuideAndShowPrePivotGuide];
   self.hoveringStatus = kDyadminoHovering;
 }
 
@@ -258,9 +260,7 @@
 -(void)goHomeByPoppingIn:(BOOL)poppingIn {
     // move these into a completion block for animation
   
-  [self hidePivotGuide:self.prePivotGuide];
-  [self hidePivotGuide:self.pivotAroundGuide];
-  [self hidePivotGuide:self.pivotRotateGuide];
+  [self hideAllPivotGuides];
 
   if (poppingIn) {
     [self animatePopBackIntoRackNode];
@@ -448,9 +448,7 @@
   SKAction *finishAction = [SKAction runBlock:^{
     [self endTouchThenHoverResize];
     [self setToHomeZPosition];
-    
-      // this is the only place where pivot guides are hidden for good
-    [self hidePivotGuide:self.prePivotGuide];
+    [self hideAllPivotGuides];
     
     self.canFlip = NO;
     self.hoveringStatus = kDyadminoNoHoverStatus;
@@ -525,7 +523,7 @@
     // this is the only place where prePivotGuide is hidden
     // and pivotAround or pivotRotate guides are then made visible
   
-  [self hidePivotGuide:self.prePivotGuide];
+  [self hideAllPivotGuides];
   
   if (offsetAngle > 210 && offsetAngle <= 330) {
     [self showPivotGuide:self.pivotAroundGuide];
@@ -593,15 +591,6 @@
   return self.pivotAroundPoint;
 }
 
--(void)hidePivotGuideAndShowPrePivotGuide {
-  
-    // this is the only place where pivot guide is hidden
-    // and the prePivot guide is made visible
-  [self showPivotGuide:self.prePivotGuide];
-  [self hidePivotGuide:self.pivotRotateGuide];
-  [self hidePivotGuide:self.pivotAroundGuide];
-}
-
 -(CGFloat)getHeightFloatGivenGap:(CGFloat)gap andDyadminoPosition:(CGPoint)dyadminoOffsetPosition {
   
     // returns 0 at bottom, gradually reaches 1 at peak...
@@ -615,6 +604,18 @@
   } else {
     return 0.f;
   }
+}
+
+-(void)hidePivotGuideAndShowPrePivotGuide {
+  [self showPivotGuide:self.prePivotGuide];
+  [self hidePivotGuide:self.pivotRotateGuide];
+  [self hidePivotGuide:self.pivotAroundGuide];
+}
+
+-(void)hideAllPivotGuides {
+  [self hidePivotGuide:self.prePivotGuide];
+  [self hidePivotGuide:self.pivotAroundGuide];
+  [self hidePivotGuide:self.pivotRotateGuide];
 }
 
 #pragma mark - debugging methods

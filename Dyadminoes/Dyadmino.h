@@ -120,6 +120,7 @@
 -(PivotOnPC)determinePivotOnPC;
 -(CGPoint)determinePivotAroundPoint;
 -(void)hidePivotGuideAndShowPrePivotGuide;
+-(void)hideAllPivotGuides;
 
 #pragma mark - debugging methods
 

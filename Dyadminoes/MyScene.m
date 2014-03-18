@@ -61,6 +61,8 @@
   BOOL _rackExchangeInProgress;
   BOOL _swapFieldActionInProgress;
   BOOL _boardBeingMoved;
+  BOOL _canDoubleTap;
+  CFTimeInterval _doubleTapTime;
   
     // pointers
   Dyadmino *_currentlyTouchedDyadmino;
@@ -71,7 +73,7 @@
     // hover and pivot properties
   BOOL _pivotInProgress;
   CFTimeInterval _hoverTime;
-  
+
     // temporary
   SKLabelNode *_testLabelNode;
   
@@ -388,12 +390,13 @@
       _hoveringButNotTouchedDyadmino = dyadmino;
 //      [_hoveringButNotTouchedDyadmino startHovering];
       [self prepareTouchEndedDyadminoForHover];
+      
     }
   }
   
     // cleanup
   _pivotInProgress = NO;
-  [dyadmino hidePivotGuideAndShowPrePivotGuide];
+//    [dyadmino hidePivotGuideAndShowPrePivotGuide];
   _touchOffsetVector = CGPointZero;
 }
 
@@ -416,6 +419,7 @@
       // 1. it's not hovering, so make it hover
     if (!_currentlyTouchedDyadmino.canFlip) {
       _currentlyTouchedDyadmino.canFlip = YES;
+      _canDoubleTap = YES;
       
         // 2. it's already hovering, so tap inside to flip
     } else {
@@ -505,7 +509,7 @@
 -(void)prepareTouchEndedDyadminoForHover {
   
   if ([_hoveringButNotTouchedDyadmino isOnBoard]) {
-    
+//    NSLog(@"why is it saying it's on board?");
       // establish the closest board node, without snapping just yet
     SnapPoint *boardNode = [self findSnapPointClosestToDyadmino:_hoveringButNotTouchedDyadmino];
     
@@ -722,6 +726,20 @@
 
 -(void)update:(CFTimeInterval)currentTime {
   
+    // for double tap
+  if (_canDoubleTap) {
+    if (_doubleTapTime == 0.f) {
+      _doubleTapTime = currentTime;
+    }
+  }
+  
+  if (_doubleTapTime != 0.f && currentTime > _doubleTapTime + kDoubleTapTime) {
+    _canDoubleTap = NO;
+    _hoveringButNotTouchedDyadmino.canFlip = NO;
+    _doubleTapTime = 0.f;
+  }
+    //--------------------------------------------------------------------------
+  
   if ([_hoveringButNotTouchedDyadmino isHovering]) {
     if (_hoverTime == 0.f) {
       _hoverTime = currentTime;
@@ -847,6 +865,8 @@
       _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight)) {
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
     dyadmino.isInTopBar = NO;
+    
+      // it's in swap
   } else if (_swapMode && _currentTouchLocation.y - _touchOffsetVector.y > kRackHeight) {
     dyadmino.belongsInSwap = YES;
     dyadmino.isInTopBar = NO;

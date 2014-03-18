@@ -14,6 +14,7 @@
 #define kConstantTime 0.15f
 #define kConstantSpeed 0.002f
 #define kAnimateHoverTime 0.35f
+#define kDoubleTapTime 0.2f
 
   // dyadmino size constants
   // one constant rules them all (literally, haha)
