@@ -29,7 +29,7 @@
 
   // view constants
 #define kTopBarHeight 72.f
-#define kRackHeight 108.f
+#define kRackHeight 100.f
 #define kBoardCoverAlpha 0.4f
 
   // game logic constants

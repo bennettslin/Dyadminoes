@@ -26,15 +26,6 @@
     self.homePosition = homePosition;
     self.position = self.homePosition;
     self.zPosition = zPosition;
-    
-      // add board cover
-    self.boardCover = [[SKSpriteNode alloc] initWithColor:[SKColor blackColor] size:size];
-    self.boardCover.name = @"boardCover";
-    self.boardCover.position = CGPointZero;
-    self.boardCover.zPosition = kZPositionBoardCoverHidden;
-    self.boardCover.alpha = kBoardCoverAlpha;
-    [self addChild:self.boardCover];
-    self.boardCover.hidden = YES;
 
       // instantiate board node arrays
     self.snapPointsTwelveOClock = [NSMutableSet new];
@@ -44,20 +35,17 @@
   return self;
 }
 
--(void)layoutBoardCellsAndSnapPoints {
+-(void)layoutBoardCellsAndSnapPointsWithCellsTop:(NSInteger)cellsTop
+                                      cellsRight:(NSInteger)cellsRight
+                                     cellsBottom:(NSInteger)cellsBottom
+                                       cellsLeft:(NSInteger)cellsLeft {
   
-    // initially hardcoded bounds, these values will change as dyadminoes are moved and added
-  NSInteger boundsTop = 7;
-  NSInteger boundsBottom = -6;
-  NSInteger boundsLeft = -4;
-  NSInteger boundsRight = 4;
-  
-  for (int i = boundsLeft; i <= boundsRight; i++) {
-    for (int j = boundsBottom; j <= boundsTop; j++) {
+  for (int i = cellsLeft; i <= cellsRight; i++) {
+    for (int j = cellsBottom; j <= cellsTop; j++) {
 
         // this keeps it relatively square
-      if ((j >= 0 && i + (2 * j) < (boundsTop + 0.5 * (boundsRight - boundsLeft))) ||
-          (j < 0 && i + (2 * j) > (boundsBottom + 0.5 * (boundsLeft - boundsRight)))) {
+      if ((j >= 0 && i + (2 * j) < (cellsTop + 0.5 * (cellsRight - cellsLeft))) ||
+          (j < 0 && i + (2 * j) > (cellsBottom + 0.5 * (cellsLeft - cellsRight)))) {
         Cell *blankCell = [Cell spriteNodeWithImageNamed:@"blankSpace"];
         blankCell.name = @"cell";
         blankCell.zPosition = kZPositionBoardCell;
@@ -107,6 +95,15 @@
       }
     }
   }
+  
+  [self determineBounds];
+}
+
+-(void)determineBounds {
+    // this gets called after every method that adds cells or removes them
+  
+    //// this will determine bounds
+  
 }
 
 -(CGPoint)getOffsetFromPoint:(CGPoint)point {
@@ -116,19 +113,6 @@
 -(CGPoint)getOffsetForPoint:(CGPoint)point withTouchOffset:(CGPoint)touchOffset {
   CGPoint offsetPoint = [self fromThisPoint:point subtractThisPoint:touchOffset];
   return [self fromThisPoint:offsetPoint subtractThisPoint:self.position];
-}
-
-#pragma mark - board cover methods
-
--(void)revealBoardCover {
-    // TODO: make this animated
-  self.boardCover.hidden = NO;
-  self.boardCover.zPosition = kZPositionBoardCover;
-}
-
--(void)hideBoardCover {
-  self.boardCover.hidden = YES;
-  self.boardCover.zPosition = kZPositionBoardCoverHidden;
 }
 
 @end

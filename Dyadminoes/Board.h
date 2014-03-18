@@ -14,6 +14,11 @@
 @property (strong, nonatomic) SKSpriteNode *boardCover;
 @property (nonatomic) CGPoint homePosition;
 
+@property (nonatomic) CGFloat boundsTop;
+@property (nonatomic) CGFloat boundsRight;
+@property (nonatomic) CGFloat boundsBottom;
+@property (nonatomic) CGFloat boundsLeft;
+
 @property (strong, nonatomic) NSMutableSet *snapPointsTwelveOClock;
 @property (strong, nonatomic) NSMutableSet *snapPointsTwoOClock;
 @property (strong, nonatomic) NSMutableSet *snapPointsTenOClock;
@@ -26,15 +31,12 @@
    andHomePosition:(CGPoint)homePosition
       andZPosition:(CGFloat)zPosition;
 
--(void)layoutBoardCellsAndSnapPoints;
+-(void)layoutBoardCellsAndSnapPointsWithCellsTop:(NSInteger)cellsTop
+                                      cellsRight:(NSInteger)cellsRight
+                                     cellsBottom:(NSInteger)cellsBottom
+                                       cellsLeft:(NSInteger)cellsLeft;
 
 -(CGPoint)getOffsetFromPoint:(CGPoint)point;
 -(CGPoint)getOffsetForPoint:(CGPoint)point withTouchOffset:(CGPoint)touchOffset;
-
-#pragma mark - board cover methods
-
--(void)revealBoardCover;
-
--(void)hideBoardCover;
 
 @end

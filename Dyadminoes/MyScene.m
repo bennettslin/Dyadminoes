@@ -46,6 +46,7 @@
   Rack *_rackField;
   Rack *_swapField;
   Board *_boardField;
+  SKSpriteNode *_boardCover;
   TopBar *_topBar;
   SKNode *_touchNode;
 
@@ -95,7 +96,7 @@
 }
 
 -(void)didMoveToView:(SKView *)view {
-  [self layoutBoard];
+  [self layoutBoardAndCover];
   [self layoutSwapField];
   [self layoutTopBar];
   [self layoutOrRefreshRackFieldAndDyadminoes];
@@ -103,16 +104,37 @@
 
 #pragma mark - layout methods
 
--(void)layoutBoard {
-  self.backgroundColor = kSkyBlue;
+-(void)layoutBoardAndCover {
+  self.backgroundColor = kSolidBlue;
+  
+  CGSize size = CGSizeMake(self.frame.size.width,
+                           self.frame.size.height - kTopBarHeight - kRackHeight);
+  CGPoint homePosition = CGPointMake(self.view.frame.size.width * 0.5,
+                                     (self.view.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
 
   _boardField = [[Board alloc] initWithColor:kSkyBlue
-                                        andSize:CGSizeZero
-                              andAnchorPoint:CGPointMake(0.5, 0.5)
-                                    andHomePosition:CGPointMake(self.frame.size.width / 2.f, self.frame.size.height / 2.f)
+                                        andSize:size
+                                 andAnchorPoint:CGPointMake(0.5, 0.5)
+                                andHomePosition:homePosition
                                    andZPosition:kZPositionBoard];
   [self addChild:_boardField];
-  [_boardField layoutBoardCellsAndSnapPoints];
+  
+      // initially hardcoded bounds
+      // figure out how to determine them by screen size and cell size alone?
+  [_boardField layoutBoardCellsAndSnapPointsWithCellsTop:7
+                                              cellsRight:4
+                                             cellsBottom:-6
+                                               cellsLeft:-4];
+  
+    // add board cover
+  _boardCover = [[SKSpriteNode alloc] initWithColor:[SKColor blackColor] size:size];
+  _boardCover.name = @"boardCover";
+  _boardCover.anchorPoint = CGPointMake(0.5, 0.5);
+  _boardCover.position = homePosition;
+  _boardCover.zPosition = kZPositionBoardCoverHidden;
+  _boardCover.alpha = kBoardCoverAlpha;
+  [self addChild:_boardCover];
+  _boardCover.hidden = YES;
 }
 
 -(void)layoutSwapField {
@@ -201,7 +223,7 @@
     // if pivot not in progress, or pivot in progress but dyadmino is not close enough
     // then the board is touched and being moved
   if (!_pivotInProgress || (_pivotInProgress && !dyadmino)) {
-    if (_touchNode == _boardField ||
+    if (_touchNode == _boardField || _touchNode == _boardCover ||
         (_touchNode.parent == _boardField &&
         ![_touchNode isKindOfClass:[Dyadmino class]]) ||
         [_touchNode.parent.name isEqualToString:@"cell"]) { // this one is necessary only for testing purposes
@@ -601,7 +623,7 @@
       _swapFieldActionInProgress = NO;
       _swapField.hidden = YES;
       _swapMode = NO;
-      [_boardField hideBoardCover];
+      [self hideBoardCover];
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
     [_swapField runAction:sequenceAction];
@@ -616,7 +638,7 @@
     SKAction *completionAction = [SKAction runBlock:^{
       _swapFieldActionInProgress = NO;
       _swapMode = YES;
-      [_boardField revealBoardCover];
+      [self revealBoardCover];
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
     [_swapField runAction:sequenceAction];
@@ -839,6 +861,19 @@
   [_topBar.messageLabel runAction:sequence];
 }
 
+#pragma mark - board cover methods
+
+-(void)revealBoardCover {
+    // TODO: make this animated
+  _boardCover.hidden = NO;
+  _boardCover.zPosition = kZPositionBoardCover;
+}
+
+-(void)hideBoardCover {
+  _boardCover.hidden = YES;
+  _boardCover.zPosition = kZPositionBoardCoverHidden;
+}
+
 #pragma mark - helper methods
 
 -(void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -1008,11 +1043,6 @@ if (!_swapMode && [dyadmino isOnBoard]) {
   
   _boardField.position = _boardField.homePosition;
   _boardShiftedAfterEachTouch = CGPointZero;
-  
-//  if (_recentRackDyadmino) {
-//    [_recentRackDyadmino.prePivotGuide removeFromParent];
-//    [_recentRackDyadmino addChild:_recentRackDyadmino.prePivotGuide];
-//  }
 }
 
 @end
