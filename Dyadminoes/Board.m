@@ -105,20 +105,20 @@
     //// this will determine bounds
   
 //  hardcode just to test
-  self.boundsBottom = -300.f;
-  self.boundsRight = 150.f;
-  self.boundsLeft = -150.f;
-  self.boundsTop  = 300.f;
+  self.boundsBottom = 280.f;
+  self.boundsRight = 180.f;
+  self.boundsLeft = 140.f;
+  self.boundsTop  = 320.f;
   
 }
 
 -(CGPoint)getOffsetFromPoint:(CGPoint)point {
-  return [self fromThisPoint:point subtractThisPoint:self.position];
+  return [self subtractFromThisPoint:point thisPoint:self.position];
 }
 
 -(CGPoint)getOffsetForPoint:(CGPoint)point withTouchOffset:(CGPoint)touchOffset {
-  CGPoint offsetPoint = [self fromThisPoint:point subtractThisPoint:touchOffset];
-  return [self fromThisPoint:offsetPoint subtractThisPoint:self.position];
+  CGPoint offsetPoint = [self subtractFromThisPoint:point thisPoint:touchOffset];
+  return [self subtractFromThisPoint:offsetPoint thisPoint:self.position];
 }
 
 @end

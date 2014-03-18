@@ -25,11 +25,11 @@
   return distance;
 }
 
--(CGPoint)addThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2 {
+-(CGPoint)addToThisPoint:(CGPoint)point1 thisPoint:(CGPoint)point2 {
   return CGPointMake(point1.x + point2.x, point1.y + point2.y);
 }
 
--(CGPoint)fromThisPoint:(CGPoint)point1 subtractThisPoint:(CGPoint)point2 {
+-(CGPoint)subtractFromThisPoint:(CGPoint)point1 thisPoint:(CGPoint)point2 {
   return CGPointMake(point1.x - point2.x, point1.y - point2.y);
 }
 

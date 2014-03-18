@@ -199,8 +199,8 @@
 
 -(CGPoint)getHomeNodePosition {
   if (self.belongsInSwap) {
-    return [self addThisPoint:self.homeNode.position
-                  toThisPoint:CGPointMake(0.f, self.homeNode.position.y + (kRackHeight / 2))];
+    return [self addToThisPoint:self.homeNode.position
+                  thisPoint:CGPointMake(0.f, self.homeNode.position.y + (kRackHeight / 2))];
   } else {
     return self.homeNode.position;
   }
@@ -348,19 +348,19 @@
               newPosition = self.initialPivotPosition;
               break;
             case 1:
-              newPosition = [self addThisPoint:self.initialPivotPosition toThisPoint:CGPointMake(xIncrement, -yIncrement)];
+              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(xIncrement, -yIncrement)];
               break;
             case 2:
-              newPosition = [self addThisPoint:self.initialPivotPosition toThisPoint:CGPointMake(xIncrement, -yIncrement * 3)];
+              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(xIncrement, -yIncrement * 3)];
               break;
             case 3:
-              newPosition = [self addThisPoint:self.initialPivotPosition toThisPoint:CGPointMake(0, -yIncrement * 4)];
+              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(0, -yIncrement * 4)];
               break;
             case 4:
-              newPosition = [self addThisPoint:self.initialPivotPosition toThisPoint:CGPointMake(-xIncrement, -yIncrement * 3)];
+              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(-xIncrement, -yIncrement * 3)];
               break;
             case 5:
-              newPosition = [self addThisPoint:self.initialPivotPosition toThisPoint:CGPointMake(-xIncrement, -yIncrement)];
+              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(-xIncrement, -yIncrement)];
               break;
           }
           
@@ -369,19 +369,19 @@
               self.position = newPosition;
               break;
             case 1:
-              self.position = [self addThisPoint:newPosition toThisPoint:CGPointMake(-xIncrement, yIncrement)];
+              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(-xIncrement, yIncrement)];
               break;
             case 2:
-              self.position = [self addThisPoint:newPosition toThisPoint:CGPointMake(-xIncrement, yIncrement * 3)];
+              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(-xIncrement, yIncrement * 3)];
               break;
             case 3:
-              self.position = [self addThisPoint:newPosition toThisPoint:CGPointMake(0, yIncrement * 4)];
+              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(0, yIncrement * 4)];
               break;
             case 4:
-              self.position = [self addThisPoint:newPosition toThisPoint:CGPointMake(xIncrement, yIncrement * 3)];
+              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(xIncrement, yIncrement * 3)];
               break;
             case 5:
-              self.position = [self addThisPoint:newPosition toThisPoint:CGPointMake(xIncrement, yIncrement)];
+              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(xIncrement, yIncrement)];
               break;
           }
         }
@@ -602,7 +602,7 @@
       pivotOffset = CGPointMake(-xSlant, ySlant);
       break;
   }
-  self.pivotAroundPoint = [self addThisPoint:self.position toThisPoint:pivotOffset];
+  self.pivotAroundPoint = [self addToThisPoint:self.position thisPoint:pivotOffset];
   return self.pivotAroundPoint;
 }
 

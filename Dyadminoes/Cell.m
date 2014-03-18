@@ -24,12 +24,12 @@
   SnapPoint *boardSnapPointTwoOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwoOClock];
   SnapPoint *boardSnapPointTenOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTenOClock];
   
-  boardSnapPointTwelveOClock.position = [self addThisPoint:self.position
-                                               toThisPoint:CGPointMake(0.f, faceOffset)];
-  boardSnapPointTwoOClock.position = [self addThisPoint:self.position
-                                            toThisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
-  boardSnapPointTenOClock.position = [self addThisPoint:self.position
-                                            toThisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
+  boardSnapPointTwelveOClock.position = [self addToThisPoint:self.position
+                                               thisPoint:CGPointMake(0.f, faceOffset)];
+  boardSnapPointTwoOClock.position = [self addToThisPoint:self.position
+                                            thisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
+  boardSnapPointTenOClock.position = [self addToThisPoint:self.position
+                                            thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
   
   boardSnapPointTwelveOClock.name = @"snapPoint 12-6";
   boardSnapPointTwoOClock.name = @"snapPoint 2-8";

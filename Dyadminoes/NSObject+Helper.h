@@ -129,8 +129,8 @@ typedef enum dyadminoPCOnCell {
   // math stuff
 -(NSUInteger)randomValueUpTo:(NSUInteger)high;
 -(CGFloat)getDistanceFromThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
--(CGPoint)addThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
--(CGPoint)fromThisPoint:(CGPoint)point1 subtractThisPoint:(CGPoint)point2;
+-(CGPoint)addToThisPoint:(CGPoint)point1 thisPoint:(CGPoint)point2;
+-(CGPoint)subtractFromThisPoint:(CGPoint)point1 thisPoint:(CGPoint)point2;
 -(CGFloat)findAngleInDegreesFromThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
 -(CGFloat)getChangeFromThisAngle:(CGFloat)angle1 toThisAngle:(CGFloat)angle2;
 -(CGFloat)getRadiansFromDegree:(CGFloat)degree;

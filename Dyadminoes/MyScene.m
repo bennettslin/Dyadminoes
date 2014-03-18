@@ -119,7 +119,7 @@
                                 andHomePosition:_boardOrigin
                                    andZPosition:kZPositionBoard];
   [self addChild:_boardField];
-  
+
       // initially hardcoded bounds
       // figure out how to determine them by screen size and cell size alone?
   [_boardField layoutBoardCellsAndSnapPointsWithCellsTop:7
@@ -136,6 +136,9 @@
   _boardCover.alpha = kBoardCoverAlpha;
   [self addChild:_boardCover];
   _boardCover.hidden = YES;
+  
+    // initialise this as zero
+  _boardOffsetAfterTouch = CGPointZero;
 }
 
 -(void)layoutSwapField {
@@ -208,6 +211,8 @@
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
   
+  NSLog(@"began touch location is at %.1f, %.1f", _beganTouchLocation.x, _beganTouchLocation.y);
+  
     //test
 //  NSLog(@"touchNode is %@ and has parent %@", _touchNode.name, _touchNode.parent.name);
 //  NSLog(@"touchNode description is %@", _touchNode.description);
@@ -230,7 +235,11 @@
         [_touchNode.parent.name isEqualToString:@"cell"]) { // this one is necessary only for testing purposes
       
       _boardBeingMoved = YES;
-      _boardOffsetAfterTouch = [_boardField getOffsetFromPoint:_beganTouchLocation];
+//      _boardOffsetAfterTouch = [_boardField getOffsetFromPoint:_beganTouchLocation];
+      
+//      NSLog(@"board offset after touch is at %.1f, %.1f", _boardOffsetAfterTouch.x, _boardOffsetAfterTouch.y);
+
+      
       return;
     }
   }
@@ -276,30 +285,42 @@
   
     // if board being moved, handle and return
   if (_boardBeingMoved) {
-    CGPoint newPosition = [self fromThisPoint:_currentTouchLocation
-                            subtractThisPoint:_boardOffsetAfterTouch];
-    
-//    NSLog(@"new position is %.1f, %.1f", newPosition.x, newPosition.y);
-//    BOOL topGood = _boardField.boundsTop < newPosition.y;
-//    BOOL rightGood = _boardField.boundsRight < newPosition.x;
-//    BOOL bottomGood = _boardField.boundsBottom > newPosition.y;
-//    BOOL leftGood = _boardField.boundsLeft > newPosition.x;
-//    
-//    NSLog(@"%i %i %i %i", topGood, rightGood, bottomGood, leftGood);
-    
-    BOOL withinBoardBounds = YES;
-    if (_boardField.boundsTop < newPosition.y ||
-        _boardField.boundsRight < newPosition.x ||
-        _boardField.boundsBottom > newPosition.y ||
-        _boardField.boundsLeft > newPosition.x) {
-      withinBoardBounds = NO;
-    }
 
-    if (withinBoardBounds) {
-//      NSLog(@"board moved");
-      _boardField.position = newPosition;
-      _boardOffsetAfterTouch = [_boardField getOffsetFromPoint:_currentTouchLocation];
+      /// okay, the movement works, now we just have to persist the offset once the touch ends
+      /// and a new touch begins
+    
+    CGPoint tempOffset = [self subtractFromThisPoint:_beganTouchLocation thisPoint:_currentTouchLocation];
+    CGPoint tempPosition = [self subtractFromThisPoint:_boardField.homePosition thisPoint:tempOffset];
+    
+//    CGFloat slackX = 0.f;
+//    CGFloat slackY = 0.f;
+    CGFloat newX = tempPosition.x;
+    CGFloat newY = tempPosition.y;
+    if (_boardField.boundsTop < tempPosition.y) {
+//      slackY = tempPosition.y - _boardField.boundsTop;
+      newY = _boardField.boundsTop;
     }
+    if (_boardField.boundsRight < tempPosition.x) {
+//      slackX = tempPosition.x - _boardField.boundsRight;
+      newX = _boardField.boundsRight;
+    }
+    if (_boardField.boundsBottom > tempPosition.y) {
+//      slackY = tempPosition.y - _boardField.boundsBottom;
+      newY = _boardField.boundsBottom;
+    }
+    if (_boardField.boundsLeft > tempPosition.x) {
+//      slackX = tempPosition.x - _boardField.boundsLeft;
+      newX = _boardField.boundsLeft;
+    }
+    
+//    CGPoint newOffset = [self addToThisPoint:tempOffset thisPoint:CGPointZero];
+    _boardField.position = CGPointMake(newX, newY);
+    _boardField.homePosition = [self addToThisPoint:_boardField.position thisPoint:tempOffset];
+    
+      //test
+    NSLog(@"board home position is %.1f, %.1f", _boardField.homePosition.x, _boardField.homePosition.y);
+    NSLog(@"board position is %.1f, %.1f", _boardField.position.x, _boardField.position.y);
+    
     return;
   }
 
@@ -322,7 +343,7 @@
     // this is the only place that sets dyadmino highlight to YES
     // dyadmino highlight is reset when sent home or finalised
   if ([_currentlyTouchedDyadmino belongsInRack] && !_swapMode && !_pivotInProgress) {
-      CGPoint dyadminoOffsetPosition = [self addThisPoint:_currentTouchLocation toThisPoint:_touchOffsetVector];
+      CGPoint dyadminoOffsetPosition = [self addToThisPoint:_currentTouchLocation thisPoint:_touchOffsetVector];
       [_currentlyTouchedDyadmino adjustHighlightGivenDyadminoOffsetPosition:dyadminoOffsetPosition];
   }
   
@@ -393,6 +414,7 @@
     // board no longer being moved
   if (_boardBeingMoved) {
     _boardBeingMoved = NO;
+    _boardField.homePosition = _boardField.position;
   }
   
     // nothing happens if there is no current dyadmino
@@ -482,10 +504,10 @@
   [self determineCurrentSectionOfDyadmino:dyadmino];
   
   if (dyadmino.parent == _rackField) {
-    _touchOffsetVector = [self fromThisPoint:_beganTouchLocation subtractThisPoint:dyadmino.position];
+    _touchOffsetVector = [self subtractFromThisPoint:_beganTouchLocation thisPoint:dyadmino.position];
   } else {
-    CGPoint boardOffsetPoint = [self addThisPoint:dyadmino.position toThisPoint:_boardField.position];
-    _touchOffsetVector = [self fromThisPoint:_beganTouchLocation subtractThisPoint:boardOffsetPoint];
+    CGPoint boardOffsetPoint = [self addToThisPoint:dyadmino.position thisPoint:_boardField.position];
+    _touchOffsetVector = [self subtractFromThisPoint:_beganTouchLocation thisPoint:boardOffsetPoint];
   }
   
     // reset hover count
@@ -854,7 +876,7 @@
 -(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingIn:(BOOL)poppingIn {
 
   if (dyadmino.parent == _boardField) {
-    CGPoint newPosition = [self addThisPoint:dyadmino.position toThisPoint:_boardField.position];
+    CGPoint newPosition = [self addToThisPoint:dyadmino.position thisPoint:_boardField.position];
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
     dyadmino.position = newPosition;
   }
@@ -943,7 +965,7 @@
   if (dyadmino.parent == _boardField) {
     touchOffset = [_boardField getOffsetForPoint:touchPoint withTouchOffset:_touchOffsetVector];
   } else {
-    touchOffset = [self fromThisPoint:touchPoint subtractThisPoint:_touchOffsetVector];
+    touchOffset = [self subtractFromThisPoint:touchPoint thisPoint:_touchOffsetVector];
   }
   return touchOffset;
 }
