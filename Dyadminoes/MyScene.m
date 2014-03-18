@@ -46,6 +46,7 @@
   Rack *_rackField;
   Rack *_swapField;
   Board *_boardField;
+  CGPoint _boardOrigin;
   SKSpriteNode *_boardCover;
   TopBar *_topBar;
   SKNode *_touchNode;
@@ -55,7 +56,7 @@
   CGPoint _beganTouchLocation;
   CGPoint _currentTouchLocation;
   CGPoint _touchOffsetVector;
-  CGPoint _boardShiftedAfterEachTouch;
+  CGPoint _boardOffsetAfterTouch;
   
     // bools and modes
   BOOL _swapMode;
@@ -109,13 +110,13 @@
   
   CGSize size = CGSizeMake(self.frame.size.width,
                            self.frame.size.height - kTopBarHeight - kRackHeight);
-  CGPoint homePosition = CGPointMake(self.view.frame.size.width * 0.5,
+  _boardOrigin = CGPointMake(self.view.frame.size.width * 0.5,
                                      (self.view.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
 
   _boardField = [[Board alloc] initWithColor:kSkyBlue
                                         andSize:size
                                  andAnchorPoint:CGPointMake(0.5, 0.5)
-                                andHomePosition:homePosition
+                                andHomePosition:_boardOrigin
                                    andZPosition:kZPositionBoard];
   [self addChild:_boardField];
   
@@ -130,7 +131,7 @@
   _boardCover = [[SKSpriteNode alloc] initWithColor:[SKColor blackColor] size:size];
   _boardCover.name = @"boardCover";
   _boardCover.anchorPoint = CGPointMake(0.5, 0.5);
-  _boardCover.position = homePosition;
+  _boardCover.position = _boardOrigin;
   _boardCover.zPosition = kZPositionBoardCoverHidden;
   _boardCover.alpha = kBoardCoverAlpha;
   [self addChild:_boardCover];
@@ -229,7 +230,7 @@
         [_touchNode.parent.name isEqualToString:@"cell"]) { // this one is necessary only for testing purposes
       
       _boardBeingMoved = YES;
-      _boardShiftedAfterEachTouch = [_boardField getOffsetFromPoint:_beganTouchLocation];
+      _boardOffsetAfterTouch = [_boardField getOffsetFromPoint:_beganTouchLocation];
       return;
     }
   }
@@ -275,8 +276,30 @@
   
     // if board being moved, handle and return
   if (_boardBeingMoved) {
-    _boardField.position = [self fromThisPoint:_currentTouchLocation subtractThisPoint:_boardShiftedAfterEachTouch];
-    _boardShiftedAfterEachTouch = [_boardField getOffsetFromPoint:_currentTouchLocation];
+    CGPoint newPosition = [self fromThisPoint:_currentTouchLocation
+                            subtractThisPoint:_boardOffsetAfterTouch];
+    
+//    NSLog(@"new position is %.1f, %.1f", newPosition.x, newPosition.y);
+//    BOOL topGood = _boardField.boundsTop < newPosition.y;
+//    BOOL rightGood = _boardField.boundsRight < newPosition.x;
+//    BOOL bottomGood = _boardField.boundsBottom > newPosition.y;
+//    BOOL leftGood = _boardField.boundsLeft > newPosition.x;
+//    
+//    NSLog(@"%i %i %i %i", topGood, rightGood, bottomGood, leftGood);
+    
+    BOOL withinBoardBounds = YES;
+    if (_boardField.boundsTop < newPosition.y ||
+        _boardField.boundsRight < newPosition.x ||
+        _boardField.boundsBottom > newPosition.y ||
+        _boardField.boundsLeft > newPosition.x) {
+      withinBoardBounds = NO;
+    }
+
+    if (withinBoardBounds) {
+//      NSLog(@"board moved");
+      _boardField.position = newPosition;
+      _boardOffsetAfterTouch = [_boardField getOffsetFromPoint:_currentTouchLocation];
+    }
     return;
   }
 
@@ -1042,7 +1065,7 @@ if (!_swapMode && [dyadmino isOnBoard]) {
   NSLog(@"rack dyadmino on board is at %.2f, %.2f and child of %@", _recentRackDyadmino.position.x, _recentRackDyadmino.position.y, _recentRackDyadmino.parent.name);
   
   _boardField.position = _boardField.homePosition;
-  _boardShiftedAfterEachTouch = CGPointZero;
+  _boardOffsetAfterTouch = CGPointZero;
 }
 
 @end

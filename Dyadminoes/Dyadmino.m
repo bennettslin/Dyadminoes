@@ -276,9 +276,14 @@
 }
 
 -(void)goToBoardNode {
-  [self animateMoveToPoint:self.tempBoardNode.position];
   [self endTouchThenHoverResize];
-  [self orientBySnapNode:self.tempBoardNode];
+  if ([self belongsInRack]) {
+    [self orientBySnapNode:self.tempBoardNode];
+    [self animateMoveToPoint:self.tempBoardNode.position];
+  } else {
+    [self orientBySnapNode:self.homeNode];
+    [self animateMoveToPoint:self.homeNode.position];
+  }
 }
 
 -(void)removeActionsAndEstablishNotRotating {

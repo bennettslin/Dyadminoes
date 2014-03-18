@@ -104,6 +104,12 @@
   
     //// this will determine bounds
   
+//  hardcode just to test
+  self.boundsBottom = -300.f;
+  self.boundsRight = 150.f;
+  self.boundsLeft = -150.f;
+  self.boundsTop  = 300.f;
+  
 }
 
 -(CGPoint)getOffsetFromPoint:(CGPoint)point {

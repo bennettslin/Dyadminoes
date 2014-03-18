@@ -12,7 +12,7 @@
 #import "Board.h"
 
 @implementation Rack {
-  CGFloat _nodeYPosition;
+//  CGFloat _nodeYPosition;
   SnapPointType _snapNodeType;
   Board *_board;
   BOOL _exchangeInProgress;
@@ -176,8 +176,8 @@
   CGFloat xEdgeMargin = kDyadminoFaceRadius * (screenEdgeMarginFactor + dyadminoesLeftFactor);
   self.xIncrementInRack = (self.size.width / 2.f - xEdgeMargin) / countNumber;
   
-  return CGPointMake(xEdgeMargin + self.xIncrementInRack + (2.f * self.xIncrementInRack * nodeIndex),
-                     _nodeYPosition + (self.size.height) / 2.f);
+  return CGPointMake(xEdgeMargin + self.xIncrementInRack + (2 * self.xIncrementInRack * nodeIndex),
+                     (self.size.height) * 0.5);
 }
 
 @end
