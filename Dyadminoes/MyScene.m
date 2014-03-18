@@ -172,6 +172,7 @@
   if (!_currentTouch) {
     _currentTouch = [touches anyObject];
   } else {
+    NSLog(@"current touch is not nil");
     return;
   }
     

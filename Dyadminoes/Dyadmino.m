@@ -296,9 +296,19 @@
     return;
   }
   
+    // establish angles
   CGFloat touchAngle = [self findAngleInDegreesFromThisPoint:touchLocation toThisPoint:self.pivotAroundPoint];
   CGFloat changeInAngle = [self getChangeFromThisAngle:touchAngle toThisAngle:self.initialPivotAngle];
   
+    //// pivot guide positions and rotations should be established in determinePivotOnPC methods
+    //// Here, they are adjusted. This should change, obviously
+  self.pivotAroundGuide.position = self.pivotAroundPoint;
+  self.pivotRotateGuide.position = self.pivotAroundPoint;
+  self.pivotAroundGuide.zRotation = [self getRadiansFromDegree:touchAngle];
+  self.pivotRotateGuide.zRotation = [self getRadiansFromDegree:touchAngle];
+  
+  
+    //// Figure out if all of this would be easier if we just made the pivotAroundPoint the temporary dyadmino position
   for (NSUInteger i = 0; i < 12; i++) {
     if (changeInAngle >= i + kAngleForSnapToPivot &&
         changeInAngle < (i + 1) - kAngleForSnapToPivot) {
