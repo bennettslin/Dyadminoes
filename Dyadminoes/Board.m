@@ -46,22 +46,25 @@
 
 -(void)layoutBoardCellsAndSnapPoints {
   
-    // board grid is a hexagon, establish its size
-  NSInteger hexSize = 10;
+    // initially hardcoded bounds, these values will change as dyadminoes are moved and added
+  NSInteger boundsTop = 7;
+  NSInteger boundsBottom = -6;
+  NSInteger boundsLeft = -4;
+  NSInteger boundsRight = 4;
   
-  for (int i = -hexSize; i <= hexSize; i++) {
-    for (int j = -hexSize; j <= hexSize; j++) {
-      
-        // this keeps it hexagonal
-      if (i + j <= hexSize && i + j >= -hexSize) {
-        
+  for (int i = boundsLeft; i <= boundsRight; i++) {
+    for (int j = boundsBottom; j <= boundsTop; j++) {
+
+        // this keeps it relatively square
+      if ((j >= 0 && i + (2 * j) < (boundsTop + 0.5 * (boundsRight - boundsLeft))) ||
+          (j < 0 && i + (2 * j) > (boundsBottom + 0.5 * (boundsLeft - boundsRight)))) {
         Cell *blankCell = [Cell spriteNodeWithImageNamed:@"blankSpace"];
         blankCell.name = @"cell";
         blankCell.zPosition = kZPositionBoardCell;
         
           // establish cell size
         CGFloat paddingBetweenCells = 5.f;
-        CGFloat ySize = kDyadminoFaceRadius * 2.f - paddingBetweenCells;
+        CGFloat ySize = kDyadminoFaceRadius * 2 - paddingBetweenCells;
         CGFloat widthToHeightRatio = blankCell.texture.size.width / blankCell.texture.size.height;
         CGFloat xSize = widthToHeightRatio * ySize;
         blankCell.size = CGSizeMake(xSize, ySize);
@@ -69,8 +72,8 @@
           // establish cell position
         CGFloat cellWidth = blankCell.size.width;
         CGFloat cellHeight = blankCell.size.height;
-        CGFloat newX = i * (0.75f * cellWidth + paddingBetweenCells);
-        CGFloat newY = (j + i * 0.5f) * (cellHeight + paddingBetweenCells);
+        CGFloat newX = i * (0.75 * cellWidth + paddingBetweenCells);
+        CGFloat newY = (j + i * 0.5) * (cellHeight + paddingBetweenCells);
         blankCell.position = CGPointMake(newX, newY);
         
         [self addChild:blankCell];

@@ -72,7 +72,7 @@
     orientationFactor = 3.f;
   }
   
-  CGFloat pcRelativeSizeFactor = 10.f / 7.f;
+  CGFloat pcRelativeSizeFactor = 10 / 7.f;
   
   CGFloat ySize;
   if (sprite == self) {
@@ -117,12 +117,12 @@
   if (self.isTouchThenHoverResized) {
     resizeFactor = kDyadminoResizedFactor;
   } else {
-    resizeFactor = 1.f;
+    resizeFactor = 1;
   }
   
   CGFloat yVertical = kDyadminoFaceRadius * resizeFactor;
-  CGFloat ySlant = kDyadminoFaceRadius * 0.5f * resizeFactor;
-  CGFloat xSlant = kDyadminoFaceRadius * 0.5f * kSquareRootOfThree * resizeFactor;
+  CGFloat ySlant = kDyadminoFaceRadius * 0.5 * resizeFactor;
+  CGFloat xSlant = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * resizeFactor;
   
   switch (self.orientation) {
     case kPC1atTwelveOClock:
@@ -258,7 +258,7 @@
   if (poppingIn) {
     [self animatePopBackIntoRackNode];
   } else {
-    [self animateConstantSpeedMoveDyadminoToPoint:[self getHomeNodePosition]];
+    [self animateMoveDyadminoInRackToPoint:[self getHomeNodePosition]];
     [self unhighlightOutOfPlay];
     [self orientBySnapNode:self.homeNode];
     self.zPosition = kZPositionRackMovedDyadmino;
@@ -269,7 +269,7 @@
 }
 
 -(void)goFromTopBarToTempBoardNode {
-  [self animateConstantSpeedMoveDyadminoToPoint:self.tempBoardNode.position];
+  [self animateMoveDyadminoInRackToPoint:self.tempBoardNode.position];
   [self endTouchThenHoverResize];
   [self orientBySnapNode:self.tempBoardNode];
 }
@@ -291,10 +291,6 @@
   
   CGFloat touchAngle = [self findAngleInDegreesFromThisPoint:touchLocation toThisPoint:self.pivotAroundPoint];
   CGFloat changeInAngle = [self getChangeFromThisAngle:touchAngle toThisAngle:self.initialPivotAngle];
-//  NSLog(@"changeInAngle is %.1f", changeInAngle);
-  NSLog(@"touch position is %.1f, %.1f", touchLocation.x, touchLocation.y);
-  NSLog(@"dyadmino initial position is %.1f, %.1f, pivotAroundPoint is %.1f, %.1f",
-        self.initialPivotPosition.x, self.initialPivotPosition.y, self.pivotAroundPoint.x, self.pivotAroundPoint.y);
   
   for (NSUInteger i = 0; i < 12; i++) {
     if (changeInAngle >= i + kAngleForSnapToPivot &&
@@ -333,44 +329,37 @@
               newPosition = [self addThisPoint:self.initialPivotPosition toThisPoint:CGPointMake(xIncrement, -yIncrement)];
               break;
             case 2:
-              newPosition = [self addThisPoint:self.initialPivotPosition toThisPoint:CGPointMake(xIncrement, -yIncrement * 3.f)];
+              newPosition = [self addThisPoint:self.initialPivotPosition toThisPoint:CGPointMake(xIncrement, -yIncrement * 3)];
               break;
             case 3:
-              newPosition = [self addThisPoint:self.initialPivotPosition toThisPoint:CGPointMake(0.f, -yIncrement * 4.f)];
+              newPosition = [self addThisPoint:self.initialPivotPosition toThisPoint:CGPointMake(0, -yIncrement * 4)];
               break;
             case 4:
-              newPosition = [self addThisPoint:self.initialPivotPosition toThisPoint:CGPointMake(-xIncrement, -yIncrement * 3.f)];
+              newPosition = [self addThisPoint:self.initialPivotPosition toThisPoint:CGPointMake(-xIncrement, -yIncrement * 3)];
               break;
             case 5:
               newPosition = [self addThisPoint:self.initialPivotPosition toThisPoint:CGPointMake(-xIncrement, -yIncrement)];
               break;
           }
           
-          CGPoint position8oclock = [self addThisPoint:newPosition toThisPoint:CGPointMake(-xIncrement, yIncrement)];
-          CGPoint position10oclock = [self addThisPoint:newPosition toThisPoint:CGPointMake(-xIncrement, yIncrement * 3.f)];
-          CGPoint position12oclock = [self addThisPoint:newPosition toThisPoint:CGPointMake(0.f, yIncrement * 4.f)];
-          CGPoint position2oclock = [self addThisPoint:newPosition toThisPoint:CGPointMake(xIncrement, yIncrement * 3.f)];
-          CGPoint position4oclock = [self addThisPoint:newPosition toThisPoint:CGPointMake(xIncrement, yIncrement)];
-          CGPoint position6oclock = newPosition;
-          
           switch (pivotOrientation) {
             case 0:
-              self.position = position6oclock;
+              self.position = newPosition;
               break;
             case 1:
-              self.position = position8oclock;
+              self.position = [self addThisPoint:newPosition toThisPoint:CGPointMake(-xIncrement, yIncrement)];
               break;
             case 2:
-              self.position = position10oclock;
+              self.position = [self addThisPoint:newPosition toThisPoint:CGPointMake(-xIncrement, yIncrement * 3)];
               break;
             case 3:
-              self.position = position12oclock;
+              self.position = [self addThisPoint:newPosition toThisPoint:CGPointMake(0, yIncrement * 4)];
               break;
             case 4:
-              self.position = position2oclock;
+              self.position = [self addThisPoint:newPosition toThisPoint:CGPointMake(xIncrement, yIncrement * 3)];
               break;
             case 5:
-              self.position = position4oclock;
+              self.position = [self addThisPoint:newPosition toThisPoint:CGPointMake(xIncrement, yIncrement)];
               break;
           }
         }
@@ -384,19 +373,7 @@
 
 #pragma mark - animation methods
 
--(void)animateConstantTimeMoveToPoint:(CGPoint)point {
-  [self removeActionsAndEstablishNotRotating];
-  SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime];
-  [self runAction:moveAction];
-}
-
--(void)animateSlowerConstantTimeMoveToPoint:(CGPoint)point {
-  [self removeActionsAndEstablishNotRotating];
-  SKAction *moveAction = [SKAction moveTo:point duration:kSlowerConstantTime];
-  [self runAction:moveAction];
-}
-
--(void)animateConstantSpeedMoveDyadminoToPoint:(CGPoint)point{
+-(void)animateMoveDyadminoInRackToPoint:(CGPoint)point{
   [self removeActionsAndEstablishNotRotating];
   CGFloat distance = [self getDistanceFromThisPoint:self.position toThisPoint:point];
   SKAction *moveAction = [SKAction moveTo:point duration:kConstantSpeed * distance];
@@ -528,15 +505,15 @@
 
 -(PivotOnPC)determinePivotOnPC {
   
-  CGFloat originOffset = self.orientation * 60.f;
+  CGFloat originOffset = self.orientation * 60;
   CGFloat offsetAngle = self.initialPivotAngle + originOffset;
-  while (offsetAngle > 360.f) {
-    offsetAngle -= 360.f;
+  while (offsetAngle > 360) {
+    offsetAngle -= 360;
   }
   
-  if (offsetAngle > 210.f && offsetAngle <= 330.f) {
+  if (offsetAngle > 210 && offsetAngle <= 330) {
     _pivotOnPC = kPivotOnPC1;
-  } else if (offsetAngle >= 30.f && offsetAngle <= 150.f) {
+  } else if (offsetAngle >= 30 && offsetAngle <= 150) {
     _pivotOnPC = kPivotOnPC2;
   } else {
     _pivotOnPC = kPivotCentre;
@@ -548,8 +525,8 @@
   
   CGPoint pivotOffset;
   CGFloat yVertical = kDyadminoFaceRadius * kDyadminoResizedFactor;
-  CGFloat xSlant = kDyadminoFaceRadius * 0.5f * kSquareRootOfThree * kDyadminoResizedFactor;
-  CGFloat ySlant = kDyadminoFaceRadius * 0.5f * kDyadminoResizedFactor;
+  CGFloat xSlant = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * kDyadminoResizedFactor;
+  CGFloat ySlant = kDyadminoFaceRadius * 0.5 * kDyadminoResizedFactor;
   
     // if pc2, pivot orientation is offset
   DyadminoOrientation pivotOrientation = self.prePivotDyadminoOrientation;
@@ -569,7 +546,7 @@
       pivotOffset = CGPointMake(xSlant, -ySlant);
       break;
     case kPC1atSixOClock:
-      pivotOffset = CGPointMake(0.f, -yVertical);
+      pivotOffset = CGPointMake(0, -yVertical);
       break;
     case kPC1atEightOClock:
       pivotOffset = CGPointMake(-xSlant, -ySlant);

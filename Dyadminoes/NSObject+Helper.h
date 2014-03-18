@@ -12,7 +12,6 @@
   // animation constants
 #define kRotateWait 0.05f
 #define kConstantTime 0.15f
-#define kSlowerConstantTime 0.2f
 #define kConstantSpeed 0.002f
 #define kAnimateHoverTime 0.35f
 
@@ -36,20 +35,16 @@
 #define kNumDyadminoesInRack 6
 
   // distance constants
-#define kDistanceForSnapOut 10.f
 #define kAngleForSnapToPivot 0.1f
 
-#define kDistanceForOtherRackDyadminoToMoveOver 22.f
-#define kDistanceForSnapIn 21.f // this is half the height of the cell space, plus wiggle room
+#define kDistanceForTouchingHoveringDyadmino kDyadminoFaceRadius // was 32.f
+#define kDistanceForTouchingRestingDyadmino kDyadminoFaceRadius // was 25.f
 
-#define kDistanceForTouchingHoveringDyadmino 32.f // this is also the min distance for pivot
-#define kDistanceForTouchingLockedDyadmino 25.f
 #define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
-#define kMaxDistanceForPivot 200.f
+#define kMaxDistanceForPivot kDyadminoFaceRadius * 5.f
+#define kPivotGuideAlpha 0.4f
 
 #define kGapForHighlight 30.f
-#define kGapForShiftingDyadminoes 40.f
-#define kBufferUnderShiftingGapForExchangingDyadminoes 10.f
 
   // z positions
 #define kZPositionBoardCoverHidden 5.f
@@ -82,17 +77,15 @@ typedef struct BoardXY {
   NSInteger y;
 } BoardXY;
 
-typedef enum dyadminoHoveringStatus {
-  kDyadminoNoHoverStatus,
-  kDyadminoHovering,
-  kDyadminoContinuesHovering,
-  kDyadminoFinishedHovering
-} DyadminoHoveringStatus;
-
 typedef enum pcMode {
   kPCModeLetter,
   kPCModeNumber
 } PCMode;
+
+typedef struct playerDyadminoSettings {
+  PCMode pcMode;
+  UIDeviceOrientation deviceOrientation;
+} PlayerDyadminoSettings;
 
 typedef enum snapPointType {
   kSnapPointRack,
@@ -110,6 +103,13 @@ typedef enum dyadminoOrientation {
   kPC1atEightOClock,
   kPC1atTenOClock
 } DyadminoOrientation;
+
+typedef enum dyadminoHoveringStatus {
+  kDyadminoNoHoverStatus,
+  kDyadminoHovering,
+  kDyadminoContinuesHovering,
+  kDyadminoFinishedHovering
+} DyadminoHoveringStatus;
 
 typedef enum pivotOnPC {
   kPivotCentre,

@@ -27,22 +27,14 @@
   // TODO: check nodes to ensure that dyadminoes do not conflict on board, do not finish hovering if there's a conflict
 
   // easy fixes
-  // FIXME: pivot touch should be measured against pc face, not dyadmino center;
-  // establish this in selectDyadmino method, and then calculate distance in touchesMoved
-  // to decide whether to pivot on that move; distance between pc face and dyadmino center is 21.1
-  // (can probably calculate this from texture image)
   // FIXME: zPosition is based on parent node, add sprites to board when in play.
   // (otherwise, a hovering board dyadmino might still be below a resting rack dyadmino)
 
-  // FIXME: make sure board dyadmino returns to its original spot and orientation if ended in rack;
-  // this might only happen right now because legality isn't being checked
   // FIXME: make second tap of double tap to rotate hovering dyadmino times out after certain amount of time
 
   // leisurely TODOs
   // TODO: have animation between rotation frames
   // TODO: make bouncier animations
-  // TODO: make dyadmino sent home shrink then reappear in rack
-  // TODO: pivot guides
   // TODO: background cells more colourful
 
   // leave alone for now until better information about how Game Center works
@@ -113,7 +105,7 @@
   self.backgroundColor = kSkyBlue;
 
   _boardField = [[Board alloc] initWithColor:kSkyBlue
-                                        andSize:CGSizeMake(self.frame.size.width * 1.f, self.frame.size.height * 1.f)
+                                        andSize:CGSizeZero
                               andAnchorPoint:CGPointMake(0.5, 0.5)
                                     andHomePosition:CGPointMake(self.frame.size.width / 2.f, self.frame.size.height / 2.f)
                                    andZPosition:kZPositionBoard];
@@ -164,6 +156,10 @@
   }
   [_rackField layoutOrRefreshNodesWithCount:self.myPlayer.dyadminoesInRack.count];
   [_rackField repositionDyadminoes:self.myPlayer.dyadminoesInRack];
+}
+
+-(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation {
+  
 }
 
 #pragma mark - touch methods
@@ -363,11 +359,11 @@
     // ensures we're not disrupting a rotating animation
   if (!dyadmino.isRotating) {
     
-    NSLog(@"dyadmino is not rotating");
+//    NSLog(@"dyadmino is not rotating");
     
       // if dyadmino belongs in rack (or swap) and *isn't* on board...
     if (([dyadmino belongsInRack] || [dyadmino belongsInSwap]) && ![dyadmino isOnBoard]) {
-      NSLog(@"dyadmino belongs in rack and isn't on board");
+//      NSLog(@"dyadmino belongs in rack and isn't on board");
       
           // ...flip if possible, or send it home
       if (dyadmino.canFlip) {
@@ -378,7 +374,7 @@
       
         // or if dyadmino is in top bar...
     } else if ([dyadmino isInTopBar]) {
-      NSLog(@"dyadmino is in top bar");
+//      NSLog(@"dyadmino is in top bar");
       
       if (dyadmino.tempBoardNode) {
         [dyadmino goFromTopBarToTempBoardNode];
@@ -864,11 +860,10 @@
       // else it's in the top bar, but this is a clumsy workaround, so be careful!
   } else if (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >=
              self.frame.size.height - kTopBarHeight) {
-    NSLog(@"dyadmino is in top bar");
+//    NSLog(@"dyadmino is in top bar");
     dyadmino.isInTopBar = YES;
   }
 }
-
 
 -(CGPoint)getOffsetForTouchPoint:(CGPoint)touchPoint forDyadmino:(Dyadmino *)dyadmino {
   CGPoint touchOffset;
@@ -928,7 +923,7 @@
       // accommodate the fact that dyadmino's position is now relative to board
     CGPoint relativeToBoardPoint = [_boardField getOffsetFromPoint:touchPoint];
     if ([self getDistanceFromThisPoint:relativeToBoardPoint toThisPoint:dyadmino.position] <
-        kDistanceForTouchingLockedDyadmino) {
+        kDistanceForTouchingRestingDyadmino) {
       return dyadmino;
     }
       // if dyadmino is in rack...

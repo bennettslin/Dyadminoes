@@ -90,7 +90,7 @@
       // dyadmino is already on rack, just has to animate to new position if not already there
     if (dyadmino.parent == self) {
       if (!CGPointEqualToPoint(dyadmino.position, shouldBePosition)) {
-        [dyadmino animateConstantSpeedMoveDyadminoToPoint:shouldBePosition];
+        [dyadmino animateMoveDyadminoInRackToPoint:shouldBePosition];
       }
       
         // dyadmino is *not* already on rack, so add offscreen first and then animate
@@ -98,7 +98,7 @@
       dyadmino.position = CGPointMake(self.size.width + self.xIncrementInRack, shouldBePosition.y);
       dyadmino.zPosition = kZPositionRackRestingDyadmino;
       [self addChild:dyadmino];
-      [dyadmino animateConstantSpeedMoveDyadminoToPoint:shouldBePosition];
+      [dyadmino animateMoveDyadminoInRackToPoint:shouldBePosition];
     }
   }
 }
@@ -140,7 +140,7 @@
           // take care of state change and animation of exchanged dyadmino, as long as it's not on the board
         if (!scootedDyadmino.tempBoardNode) {
           scootedDyadmino.zPosition = kZPositionRackMovedDyadmino;
-          [scootedDyadmino animateConstantSpeedMoveDyadminoToPoint:[scootedDyadmino getHomeNodePosition]];
+          [scootedDyadmino animateMoveDyadminoInRackToPoint:[scootedDyadmino getHomeNodePosition]];
           scootedDyadmino.zPosition = kZPositionRackRestingDyadmino;
         }
           // make the displacedDyadmino the new scootedDyadmino

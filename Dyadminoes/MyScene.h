@@ -15,4 +15,6 @@
 @property (strong, nonatomic) GameEngine *ourGameEngine;
 @property (strong, nonatomic) Player *myPlayer;
 
+-(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;
+
 @end

@@ -9,6 +9,12 @@
 #import "ViewController.h"
 #import "MyScene.h"
 
+@interface ViewController ()
+
+@property (strong, nonatomic) MyScene *myScene;
+
+@end
+
 @implementation ViewController {
   UIDeviceOrientation _deviceOrientation;
 }
@@ -39,6 +45,7 @@
     case UIDeviceOrientationUnknown:
       break;
   }
+  
 }
 
 -(BOOL)shouldAutorotate {
@@ -54,11 +61,11 @@
   skView.showsNodeCount = YES;
   
     // Create and configure the scene.
-  MyScene * scene = [MyScene sceneWithSize:skView.bounds.size];
-  scene.scaleMode = SKSceneScaleModeAspectFill;
+  self.myScene = [MyScene sceneWithSize:skView.bounds.size];
+  self.myScene.scaleMode = SKSceneScaleModeAspectFill;
 
     // Present the scene.
-  [skView presentScene:scene];
+  [skView presentScene:self.myScene];
 }
 
 -(NSUInteger)supportedInterfaceOrientations {

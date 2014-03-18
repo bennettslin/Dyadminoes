@@ -118,7 +118,7 @@
                  kMaxDistanceForPivot * sinf([self getRadiansFromDegree:startAngle[i]]));
     shapeNode.path = shapePath;
     shapeNode.lineWidth = 0.1f;
-    shapeNode.alpha = 0.15f;
+    shapeNode.alpha = kPivotGuideAlpha;
     shapeNode.strokeColor = [SKColor clearColor];
     shapeNode.fillColor = colourArray[i];
     [prePivotGuide addChild:shapeNode];

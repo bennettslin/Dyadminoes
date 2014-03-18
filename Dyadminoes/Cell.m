@@ -17,8 +17,8 @@
   CGFloat faceOffset = kDyadminoFaceRadius;
   
     // based on a 30-60-90 degree triangle
-  CGFloat faceOffsetX = faceOffset * 0.5f * kSquareRootOfThree;
-  CGFloat faceOffsetY = faceOffset * 0.5f;
+  CGFloat faceOffsetX = faceOffset * 0.5 * kSquareRootOfThree;
+  CGFloat faceOffsetY = faceOffset * 0.5;
 
   SnapPoint *boardSnapPointTwelveOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwelveOClock];
   SnapPoint *boardSnapPointTwoOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwoOClock];
