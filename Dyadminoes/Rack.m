@@ -157,6 +157,7 @@
 }
 
 -(void)addRackNodeAtIndex:(NSUInteger)nodeIndex withCountNumber:(NSUInteger)countNumber {
+  
   SnapPoint *rackNode = [[SnapPoint alloc] initWithSnapPointType:_snapNodeType];
   rackNode.position = [self getNodePositionAtIndex:nodeIndex withCountNumber:countNumber];
   
@@ -167,13 +168,16 @@
 #pragma mark - helper methods
 
 -(CGPoint)getNodePositionAtIndex:(NSUInteger)nodeIndex withCountNumber:(NSUInteger)countNumber {
-
-    // margins will vary based on number of dyadminoes in rack
-  CGFloat xEdgeMargin = 12.f + (16.f * (kNumDyadminoesInRack - countNumber));
-  self.xIncrementInRack = (self.size.width - (2 * xEdgeMargin)) / (countNumber * 2); // right now it's 24.666
   
-  return CGPointMake(xEdgeMargin + self.xIncrementInRack + (2 * self.xIncrementInRack * nodeIndex),
-                     _nodeYPosition + (self.size.height) / 2);
+  CGFloat screenEdgeMarginFactor = 0.125f;
+  CGFloat dyadminoesLeftFactor = .875f * (kNumDyadminoesInRack - countNumber);
+  
+    // margins will vary based on number of dyadminoes in rack
+  CGFloat xEdgeMargin = kDyadminoFaceRadius * (screenEdgeMarginFactor + dyadminoesLeftFactor);
+  self.xIncrementInRack = (self.size.width / 2.f - xEdgeMargin) / countNumber;
+  
+  return CGPointMake(xEdgeMargin + self.xIncrementInRack + (2.f * self.xIncrementInRack * nodeIndex),
+                     _nodeYPosition + (self.size.height) / 2.f);
 }
 
 @end

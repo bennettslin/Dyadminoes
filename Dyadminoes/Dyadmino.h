@@ -34,7 +34,7 @@
 @property (strong, nonatomic) SKSpriteNode *pc2NumberSprite;
 @property (strong, nonatomic) SKSpriteNode *pc1Sprite;
 @property (strong, nonatomic) SKSpriteNode *pc2Sprite;
-@property (strong, nonatomic) SKSpriteNode *pivotGuide;
+@property (strong, nonatomic) SKSpriteNode *prePivotGuide;
 
   // bools and states
 @property (nonatomic) BOOL isInTopBar;
@@ -47,7 +47,8 @@
   // pivot properties
 @property (nonatomic) CGFloat initialPivotAngle;
 @property (nonatomic) DyadminoOrientation prePivotDyadminoOrientation;
-@property (nonatomic) CGPoint prePivotPosition;
+@property (nonatomic) CGPoint initialPivotPosition;
+@property (nonatomic) CGPoint pivotAroundPoint;
 
   //----------------------------------------------------------------------------
   //----------------------------------------------------------------------------
@@ -63,7 +64,7 @@
 
 -(void)randomiseRackOrientation;
 
-#pragma mark - orient and position methods
+#pragma mark - orient, position, and size methods
 
 -(void)selectAndPositionSprites;
 -(void)orientBySnapNode:(SnapPoint *)snapNode;
@@ -89,7 +90,7 @@
 
 #pragma mark - pivot methods
 
--(void)pivotBasedOnLocation:(CGPoint)location;
+-(void)pivotBasedOnTouchLocation:(CGPoint)touchLocation;
 
 #pragma mark - animation methods
 
@@ -115,6 +116,7 @@
 #pragma mark - helper methods
 
 -(PivotOnPC)determinePivotOnPC;
+-(CGPoint)determinePivotAroundPoint;
 
 #pragma mark - debugging methods
 

@@ -16,8 +16,12 @@
 #define kConstantSpeed 0.002f
 #define kAnimateHoverTime 0.35f
 
+  // dyadmino size constants
+  // one constant rules them all (literally, haha)
+#define kDyadminoFaceRadius 21.75f // for now, perfectly reflects image size
+
   // dyadmino state constants
-#define kTouchedDyadminoSize 1.17f
+#define kDyadminoResizedFactor 1.17f
 #define kDyadminoColorBlendFactor 0.2f
 
   // math constants
@@ -33,14 +37,15 @@
 
   // distance constants
 #define kDistanceForSnapOut 10.f
-#define kAngleForSnapToPivot 0.2f
+#define kAngleForSnapToPivot 0.1f
 
 #define kDistanceForOtherRackDyadminoToMoveOver 22.f
 #define kDistanceForSnapIn 21.f // this is half the height of the cell space, plus wiggle room
 
 #define kDistanceForTouchingHoveringDyadmino 32.f // this is also the min distance for pivot
 #define kDistanceForTouchingLockedDyadmino 25.f
-#define kMaxDistanceForPivot 125.f
+#define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
+#define kMaxDistanceForPivot 200.f
 
 #define kGapForHighlight 30.f
 #define kGapForShiftingDyadminoes 40.f
@@ -126,7 +131,7 @@ typedef enum dyadminoPCOnCell {
 -(CGPoint)addThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
 -(CGPoint)fromThisPoint:(CGPoint)point1 subtractThisPoint:(CGPoint)point2;
 -(CGFloat)findAngleInDegreesFromThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
--(CGFloat)getSextantFromThisAngle:(CGFloat)angle1 toThisAngle:(CGFloat)angle2;
+-(CGFloat)getChangeFromThisAngle:(CGFloat)angle1 toThisAngle:(CGFloat)angle2;
 -(CGFloat)getRadiansFromDegree:(CGFloat)degree;
 
   // struct stuff

@@ -42,7 +42,7 @@
 
 -(void)createPile {
   
-  SKSpriteNode *pivotGuide = [self createPivotGuide];
+  SKSpriteNode *pivotGuide = [self createPrePivotGuide];
   
   SKTextureAtlas *textureAtlas = [SKTextureAtlas atlasNamed:@"DyadminoImages"];
   NSMutableArray *tempRotationArray = [[NSMutableArray alloc] initWithCapacity:3];
@@ -56,13 +56,6 @@
     for (int pc2 = 0; pc2 < 12; pc2++) {
       if (pc1 != pc2 && pc1 < pc2) {
         
-          // test
-        if (pc1 == 0 && pc2 == 1) {
-          NSLog(@"dyadmino size oriented twelve is %f, %f", [textureAtlas textureNamed:@"blankTileNoSo"].size.width, [textureAtlas textureNamed:@"blankTileNoSo"].size.height);
-          NSLog(@"dyadmino size oriented two is %f, %f", [textureAtlas textureNamed:@"blankTileSwNe"].size.width, [textureAtlas textureNamed:@"blankTileSwNe"].size.height);
-          NSLog(@"dyadmino size oriented ten is %f, %f", [textureAtlas textureNamed:@"blankTileNwSe"].size.width, [textureAtlas textureNamed:@"blankTileNwSe"].size.height);
-        }
-        
         NSString *pc1LetterString = [NSString stringWithFormat:@"pcLetter%d", pc1];
         NSString *pc1NumberString = [NSString stringWithFormat:@"pcNumber%d", pc1];
         NSString *pc2LetterString = [NSString stringWithFormat:@"pcLetter%d", pc2];
@@ -74,12 +67,21 @@
         SKSpriteNode *pc2NumberSprite = [SKSpriteNode spriteNodeWithTexture:[textureAtlas textureNamed:pc2NumberString]];
         
         Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1 andPC2:pc2 andPCMode:kPCModeLetter andRotationFrameArray:rotationFrameArray andPC1LetterSprite:pc1LetterSprite andPC2LetterSprite:pc2LetterSprite andPC1NumberSprite:pc1NumberSprite andPC2NumberSprite:pc2NumberSprite];
-        dyadmino.pivotGuide = pivotGuide;
-        dyadmino.pivotGuide.zPosition = -1.f;
-        dyadmino.pivotGuide.name = @"pivotGuide";
+        
+        dyadmino.prePivotGuide = pivotGuide;
+        dyadmino.prePivotGuide.zPosition = -1.f;
+        dyadmino.prePivotGuide.name = @"pivotGuide";
         
         [self.allDyadminoes addObject:dyadmino];
         [self.dyadminoesInCommonPile addObject:dyadmino];
+        
+          // test
+        if (pc1 == 0 && pc2 == 1) {
+          NSLog(@"dyadmino size oriented twelve is %f, %f", [textureAtlas textureNamed:@"blankTileNoSo"].size.width, [textureAtlas textureNamed:@"blankTileNoSo"].size.height);
+          NSLog(@"dyadmino size oriented two is %f, %f", [textureAtlas textureNamed:@"blankTileSwNe"].size.width, [textureAtlas textureNamed:@"blankTileSwNe"].size.height);
+          NSLog(@"dyadmino size oriented ten is %f, %f", [textureAtlas textureNamed:@"blankTileNwSe"].size.width, [textureAtlas textureNamed:@"blankTileNwSe"].size.height);
+          NSLog(@"pc size is %f, %f", [textureAtlas textureNamed:pc1LetterString].size.width, [textureAtlas textureNamed:pc1LetterString].size.height);
+        }
       }
     }
   }
@@ -94,8 +96,9 @@
   }
 }
 
--(SKSpriteNode *)createPivotGuide {
-  SKSpriteNode *pivotGuide = [SKSpriteNode new];
+-(SKSpriteNode *)createPrePivotGuide {
+  SKSpriteNode *prePivotGuide = [SKSpriteNode new];
+  prePivotGuide.name = @"pivotGuide";
   
   float startAngle[4] = {30.f, 210.f, 330.f, 150.f};
   float endAngle[4] = {150.f, 330.f, 30.f, 210.f};
@@ -107,9 +110,9 @@
     
     CGPathAddArc(shapePath, NULL, 0.5f, 0.5f, kMaxDistanceForPivot, [self getRadiansFromDegree:startAngle[i]],
                  [self getRadiansFromDegree:endAngle[i]], NO);
-    CGPathAddLineToPoint(shapePath, NULL, kDistanceForTouchingHoveringDyadmino * cosf([self getRadiansFromDegree:endAngle[i]]),
-                 kDistanceForTouchingHoveringDyadmino * sinf([self getRadiansFromDegree:endAngle[i]]));
-    CGPathAddArc(shapePath, NULL, 0.5f, 0.5f, kDistanceForTouchingHoveringDyadmino, [self getRadiansFromDegree:endAngle[i]],
+    CGPathAddLineToPoint(shapePath, NULL, kMinDistanceForPivot * cosf([self getRadiansFromDegree:endAngle[i]]),
+                 kMinDistanceForPivot * sinf([self getRadiansFromDegree:endAngle[i]]));
+    CGPathAddArc(shapePath, NULL, 0.5f, 0.5f, kMinDistanceForPivot, [self getRadiansFromDegree:endAngle[i]],
                  [self getRadiansFromDegree:startAngle[i]], YES);
     CGPathAddLineToPoint(shapePath, NULL, kMaxDistanceForPivot * cosf([self getRadiansFromDegree:startAngle[i]]),
                  kMaxDistanceForPivot * sinf([self getRadiansFromDegree:startAngle[i]]));
@@ -118,9 +121,9 @@
     shapeNode.alpha = 0.15f;
     shapeNode.strokeColor = [SKColor clearColor];
     shapeNode.fillColor = colourArray[i];
-    [pivotGuide addChild:shapeNode];
+    [prePivotGuide addChild:shapeNode];
   }
-  return pivotGuide;
+  return prePivotGuide;
 }
 
 -(NSMutableArray *)getInitiallyPopulatedRack {

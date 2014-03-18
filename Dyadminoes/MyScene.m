@@ -297,8 +297,7 @@
   _currentlyTouchedDyadmino.canFlip = NO;
   
     // if rack dyadmino is moved to board, send home recentRack dyadmino
-  if ([_currentlyTouchedDyadmino belongsInRack] &&
-      [_currentlyTouchedDyadmino isOnBoard] &&
+  if ([_currentlyTouchedDyadmino belongsInRack] && [_currentlyTouchedDyadmino isOnBoard] &&
       _currentlyTouchedDyadmino != _recentRackDyadmino) {
     [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES];
   }
@@ -384,7 +383,7 @@
       if (dyadmino.tempBoardNode) {
         [dyadmino goFromTopBarToTempBoardNode];
       } else {
-        [self sendDyadminoHome:dyadmino byPoppingIn:NO];
+        [self sendDyadminoHome:dyadmino byPoppingIn:YES];
       }
            
         // otherwise, prepare it for hover
@@ -469,9 +468,15 @@
   dyadmino.initialPivotAngle = [self findAngleInDegreesFromThisPoint:touchBoardOffset
                                                          toThisPoint:dyadmino.position];
   [dyadmino determinePivotOnPC];
+  [dyadmino determinePivotAroundPoint];
   
   dyadmino.prePivotDyadminoOrientation = dyadmino.orientation;
-  dyadmino.prePivotPosition = dyadmino.position;
+  dyadmino.initialPivotPosition = dyadmino.position;
+  
+//  dyadmino.pivotAroundPoint = dyadmino.position; // this will change if pivot around pc
+//  
+//    // might not need this; this is important to change pivotAroundPoint if pivoting around a pc
+//  [dyadmino pivotBasedOnLocation:_beganTouchLocation];
   
 //  NSLog(@"initial pivot angle is %.1f", dyadmino.initialPivotAngle);
 }
@@ -485,9 +490,9 @@
   
   CGPoint touchBoardOffset = [_boardField getOffsetFromPoint:_currentTouchLocation];
   
-  NSLog(@"in handlePivot, touchBoardOffset is %.1f, %.1f", touchBoardOffset.x, touchBoardOffset.y);
+//  NSLog(@"in handlePivot, touchBoardOffset is %.1f, %.1f", touchBoardOffset.x, touchBoardOffset.y);
   
-  [dyadmino pivotBasedOnLocation:touchBoardOffset];
+  [dyadmino pivotBasedOnTouchLocation:touchBoardOffset];
 }
 
 -(Dyadmino *)assignCurrentDyadminoToPointer {
@@ -793,13 +798,16 @@
 }
 
 -(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingIn:(BOOL)poppingIn {
+
+  if (dyadmino.parent == _boardField) {
+    CGPoint newPosition = [self addThisPoint:dyadmino.position toThisPoint:_boardField.position];
+    [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
+    dyadmino.position = newPosition;
+  }
   
-  [dyadmino goHomeByPoppingIn:poppingIn];
   [dyadmino endTouchThenHoverResize];
-  
-  [self determineCurrentSectionOfDyadmino:dyadmino];
-  
-  [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
+  [dyadmino goHomeByPoppingIn:poppingIn];
+
   if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
     _recentRackDyadmino = nil;
   }
@@ -992,8 +1000,8 @@ if (!_swapMode && [dyadmino isOnBoard]) {
   _boardShiftedAfterEachTouch = CGPointZero;
   
   if (_recentRackDyadmino) {
-    [_recentRackDyadmino.pivotGuide removeFromParent];
-    [_recentRackDyadmino addChild:_recentRackDyadmino.pivotGuide];
+    [_recentRackDyadmino.prePivotGuide removeFromParent];
+    [_recentRackDyadmino addChild:_recentRackDyadmino.prePivotGuide];
   }
 }
 

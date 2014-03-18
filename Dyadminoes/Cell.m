@@ -14,12 +14,12 @@
 
 -(void)addSnapPointsToBoard:(Board *)board {
   
-  CGFloat faceOffset = 19.5f;
+  CGFloat faceOffset = kDyadminoFaceRadius;
+  
+    // based on a 30-60-90 degree triangle
   CGFloat faceOffsetX = faceOffset * 0.5f * kSquareRootOfThree;
   CGFloat faceOffsetY = faceOffset * 0.5f;
-  
-    // FIXME: 5.35 should not be hardCoded, get it from board padding? padding result should be around 1.5375046f;
-  CGFloat snapPointPadding = 5.35 / 3.5f;
+
   SnapPoint *boardSnapPointTwelveOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwelveOClock];
   SnapPoint *boardSnapPointTwoOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwoOClock];
   SnapPoint *boardSnapPointTenOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTenOClock];
@@ -27,9 +27,9 @@
   boardSnapPointTwelveOClock.position = [self addThisPoint:self.position
                                                toThisPoint:CGPointMake(0.f, faceOffset)];
   boardSnapPointTwoOClock.position = [self addThisPoint:self.position
-                                            toThisPoint:CGPointMake(faceOffsetX + snapPointPadding, faceOffsetY)];
+                                            toThisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
   boardSnapPointTenOClock.position = [self addThisPoint:self.position
-                                            toThisPoint:CGPointMake(-faceOffsetX - snapPointPadding, faceOffsetY)];
+                                            toThisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
   
   boardSnapPointTwelveOClock.name = @"snapPoint 12-6";
   boardSnapPointTwoOClock.name = @"snapPoint 2-8";

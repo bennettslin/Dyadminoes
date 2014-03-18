@@ -46,27 +46,31 @@
 
 -(void)layoutBoardCellsAndSnapPoints {
   
-    // layout cells for now
-  
+    // board grid is a hexagon, establish its size
   NSInteger hexSize = 10;
   
   for (int i = -hexSize; i <= hexSize; i++) {
     for (int j = -hexSize; j <= hexSize; j++) {
       
-        // keeps it relatively square
+        // this keeps it hexagonal
       if (i + j <= hexSize && i + j >= -hexSize) {
         
         Cell *blankCell = [Cell spriteNodeWithImageNamed:@"blankSpace"];
         blankCell.name = @"cell";
         blankCell.zPosition = kZPositionBoardCell;
+        
+          // establish cell size
+        CGFloat paddingBetweenCells = 5.f;
+        CGFloat ySize = kDyadminoFaceRadius * 2.f - paddingBetweenCells;
+        CGFloat widthToHeightRatio = blankCell.texture.size.width / blankCell.texture.size.height;
+        CGFloat xSize = widthToHeightRatio * ySize;
+        blankCell.size = CGSizeMake(xSize, ySize);
 
-          // does this squash yCoord a bit?
+          // establish cell position
         CGFloat cellWidth = blankCell.size.width;
         CGFloat cellHeight = blankCell.size.height;
-        CGFloat padding = 0.12738095f * cellWidth; // 5.35 from this before
-        
-        CGFloat newX = i * (0.75f * cellWidth + padding);
-        CGFloat newY = (j + i * 0.5f) * (cellHeight + padding);
+        CGFloat newX = i * (0.75f * cellWidth + paddingBetweenCells);
+        CGFloat newY = (j + i * 0.5f) * (cellHeight + paddingBetweenCells);
         blankCell.position = CGPointMake(newX, newY);
         
         [self addChild:blankCell];
