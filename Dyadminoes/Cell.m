@@ -138,9 +138,9 @@
 
 -(void)createPCLabel {
   self.pcLabel = [[SKLabelNode alloc] init];
-  self.pcLabel.fontColor = [SKColor cyanColor];
+  self.pcLabel.fontColor = kTestRed;
   self.pcLabel.fontSize = 12.f;
-  self.pcLabel.alpha = 0.7f;
+  self.pcLabel.alpha = 1.f;
   self.pcLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;
   self.pcLabel.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
   self.pcLabel.position = CGPointMake(0, -9.f);
@@ -148,10 +148,12 @@
 }
 
 -(void)updatePCLabel {
+  NSString *pcString;
   if (self.myPC == -1) {
-    return;
+    pcString = @"";
+  } else {
+    pcString = [NSString stringWithFormat:@"%li", (long)self.myPC];
   }
-  NSString *pcString = [NSString stringWithFormat:@"%li", (long)self.myPC];
   self.pcLabel.name = pcString;
   self.pcLabel.text = pcString;
 }

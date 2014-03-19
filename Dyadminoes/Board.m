@@ -13,7 +13,7 @@
 
 @interface Board ()
 
-@property (strong, nonatomic) NSMutableSet *occupiedCells;
+@property (strong, nonatomic) NSMutableSet *allCells;
 
 @end
 
@@ -232,80 +232,69 @@
 
 #pragma mark - cell methods
 
--(BOOL)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint {
+-(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint {
     // this assumes dyadmino is properly oriented for this boardNode
   
   Cell *bottomCell = snapPoint.myCell;
   HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
   Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
-  
-    // if either cell is occupied, move is illegal, so return
-  if (bottomCell.myDyadmino || topCell.myDyadmino) {
-    return NO;
-  }
-  
-    // assign dyadmino to cells
-  bottomCell.myDyadmino = dyadmino;
-  topCell.myDyadmino = dyadmino;
-  
-    // assign pc to cell based on dyadmino orientation
-  switch (dyadmino.orientation) {
-    case kPC1atTwelveOClock:
-    case kPC1atTwoOClock:
-    case kPC1atFourOClock:
-      bottomCell.myPC = dyadmino.pc2;
-      topCell.myPC = dyadmino.pc1;
-      break;
-    case kPC1atSixOClock:
-    case kPC1atEightOClock:
-    case kPC1atTenOClock:
-      bottomCell.myPC = dyadmino.pc1;
-      topCell.myPC = dyadmino.pc2;
-      break;
-  }
-  
-  [self.occupiedCells addObject:bottomCell];
-  [self.occupiedCells addObject:topCell];
 
-    /// testing purposes
-  [bottomCell updatePCLabel];
-  [topCell updatePCLabel];
+  NSArray *cells = @[topCell, bottomCell];
+  NSInteger pcs[2] = {dyadmino.pc1, dyadmino.pc2};
   
-  return YES;
+  for (int i = 0; i < 2; i++) {
+    Cell *cell = cells[i];
+    
+      // only assign if cell doesn't have a dyadmino recorded
+    if (!cell.myDyadmino) {
+      
+      // assign dyadmino to cell
+      cell.myDyadmino = dyadmino;
+      
+      // assign pc to cell based on dyadmino orientation
+      switch (dyadmino.orientation) {
+        case kPC1atTwelveOClock:
+        case kPC1atTwoOClock:
+        case kPC1atTenOClock:
+          cell.myPC = pcs[i];
+          break;
+        case kPC1atSixOClock:
+        case kPC1atEightOClock:
+        case kPC1atFourOClock:
+          cell.myPC = pcs[(i + 1) % 2];
+          break;
+      }
+        // add to board's array of occupied cells to search
+      [self.occupiedCells addObject:cell];
+      
+        /// testing purposes
+      [cell updatePCLabel];
+    }
+  }
 }
 
--(BOOL)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint {
-  
-    // dyadmino is not placed on boardNode, so return
-  if (snapPoint != dyadmino.tempBoardNode || snapPoint != dyadmino.homeNode) {
-    return NO;
-  }
+-(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint {
   
   Cell *bottomCell = snapPoint.myCell;
   HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
   Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
   
-    // if either cell doesn't have dyadmino as its dyadmino, return
-  if (bottomCell.myDyadmino != dyadmino || topCell.myDyadmino != dyadmino) {
-    return NO;
+  NSArray *cells = @[topCell, bottomCell];
+  
+  for (int i = 0; i < 2; i++) {
+    Cell *cell = cells[i];
+    
+      // only remove if cell dyadmino is not dyadmino
+//    if (cell.myDyadmino != dyadmino) {
+      cell.myDyadmino = nil;
+      cell.myPC = -1;
+      
+      [self.occupiedCells removeObject:cell];
+      
+        /// testing purposes
+      [cell updatePCLabel];
+//    }
   }
-  
-    // dyadmino still knows its boardNode or homeNode in case it needs to return
-    // this just clears the board for legal-chord-checking purposes
-  
-  bottomCell.myDyadmino = nil;
-  topCell.myDyadmino = nil;
-  bottomCell.myPC = -1;
-  topCell.myPC = -1;
-  
-  [self.occupiedCells removeObject:bottomCell];
-  [self.occupiedCells removeObject:topCell];
-  
-    /// testing purposes
-  [bottomCell updatePCLabel];
-  [topCell updatePCLabel];
-  
-  return YES;
 }
 
 -(HexCoord)getHexCoordOfOtherCellGivenDyadmino:(Dyadmino *)dyadmino andBoardNode:(SnapPoint *)snapPoint {

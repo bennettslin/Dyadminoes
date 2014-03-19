@@ -72,6 +72,7 @@
 #define kFieldPurple [SKColor colorWithRed:.3f green:.2f blue:.4f alpha:1.f]
 #define kSolidBlue [SKColor colorWithRed:.15f green:.19f blue:.55f alpha:1.f]
 #define kGold [SKColor colorWithRed:.64f green:.57f blue:.38f alpha:1.f]
+#define kTestRed [SKColor colorWithRed:1.f green:.7f blue:.7f alpha:1.f]
 
 typedef struct HexCoord {
   NSInteger x;

@@ -29,7 +29,7 @@
 @property (strong, nonatomic) NSMutableSet *snapPointsTwoOClock;
 @property (strong, nonatomic) NSMutableSet *snapPointsTenOClock;
 
-@property (strong, nonatomic) NSMutableSet *allCells;
+@property (strong, nonatomic) NSMutableSet *occupiedCells;
 
   //----------------------------------------------------------------------------
   //----------------------------------------------------------------------------
@@ -48,8 +48,7 @@
 
 #pragma mark - cell methods
 
--(BOOL)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint;
-
--(BOOL)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint;
+-(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint;
+-(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint;
 
 @end
