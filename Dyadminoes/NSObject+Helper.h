@@ -39,7 +39,7 @@
 #define kAngleForSnapToPivot 0.1f
 
 #define kDistanceForTouchingHoveringDyadmino kDyadminoFaceRadius // was 32.f
-#define kDistanceForTouchingRestingDyadmino kDyadminoFaceRadius // was 25.f
+#define kDistanceForTouchingRestingDyadmino kDyadminoFaceRadius * 0.8f // was 25.f
 
 #define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
 #define kMaxDistanceForPivot kDyadminoFaceRadius * 5.f
@@ -118,11 +118,11 @@ typedef enum pivotOnPC {
   kPivotOnPC2
 } PivotOnPC;
 
-typedef enum dyadminoPCOnCell {
-  kNoPCsOnCell,
-  kPCOneOnCell,
-  kPCTwoOnCell
-} dyadminoPCOnCell;
+//typedef enum dyadminoPCOnCell {
+//  kNoPCsOnCell,
+//  kPCOneOnCell,
+//  kPCTwoOnCell
+//} dyadminoPCOnCell;
 
 @interface NSObject (Helper)
 

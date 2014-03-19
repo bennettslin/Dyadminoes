@@ -16,6 +16,9 @@
 @property (strong, nonatomic) SnapPoint *boardSnapPointTwoOClock;
 @property (strong, nonatomic) SnapPoint *boardSnapPointTenOClock;
 
+@property (strong, nonatomic) SKLabelNode *hexCoordLabel;
+@property (strong, nonatomic) SKLabelNode *pcLabel;
+
 @end
 
 
@@ -45,28 +48,17 @@
     CGFloat newX = self.hexCoord.x * (0.75 * cellWidth + paddingBetweenCells);
     CGFloat newY = (self.hexCoord.y + self.hexCoord.x * 0.5) * (cellHeight + paddingBetweenCells) - yOffset;
     self.position = CGPointMake(newX, newY);
+    
+      // establish logic default
+    self.myPC = -1;
 
+      // create snap points
     [self createSnapPoints];
 
       //// for testing purposes
-    NSString *boardXYString = [NSString stringWithFormat:@"%li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
-    SKLabelNode *labelNode = [[SKLabelNode alloc] init];
-    labelNode.name = boardXYString;
-    labelNode.text = boardXYString;
-    labelNode.fontColor = [SKColor whiteColor];
-    
-    if (self.hexCoord.x == 0 || self.hexCoord.y == 0 || self.hexCoord.x + self.hexCoord.y == 0)
-      labelNode.fontColor = [SKColor yellowColor];
-    
-    if (self.hexCoord.x == 0 && (self.hexCoord.y == 0 || self.hexCoord.y == 1))
-      labelNode.fontColor = [SKColor greenColor];
-    
-    labelNode.fontSize = 14.f;
-    labelNode.alpha = 0.7f;
-    labelNode.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;
-    labelNode.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
-    [self addChild:labelNode];
-      ////
+    [self createHexCoordLabel];
+    [self createPCLabel];
+    [self updatePCLabel];
   }
   return self;
 }
@@ -119,6 +111,49 @@
   if ([self.board.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
     [self.board.snapPointsTenOClock removeObject:self.boardSnapPointTenOClock];
   }
+}
+
+#pragma mark - testing methods
+
+-(void)createHexCoordLabel {
+  NSString *boardXYString = [NSString stringWithFormat:@"%li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
+  self.hexCoordLabel = [[SKLabelNode alloc] init];
+  self.hexCoordLabel.name = boardXYString;
+  self.hexCoordLabel.text = boardXYString;
+  self.hexCoordLabel.fontColor = [SKColor whiteColor];
+  
+  if (self.hexCoord.x == 0 || self.hexCoord.y == 0 || self.hexCoord.x + self.hexCoord.y == 0)
+    self.hexCoordLabel.fontColor = [SKColor yellowColor];
+  
+  if (self.hexCoord.x == 0 && (self.hexCoord.y == 0 || self.hexCoord.y == 1))
+    self.hexCoordLabel.fontColor = [SKColor greenColor];
+  
+  self.hexCoordLabel.fontSize = 14.f;
+  self.hexCoordLabel.alpha = 0.7f;
+  self.hexCoordLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;
+  self.hexCoordLabel.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
+  self.hexCoordLabel.position = CGPointMake(0, 2.f);
+  [self addChild:self.hexCoordLabel];
+}
+
+-(void)createPCLabel {
+  self.pcLabel = [[SKLabelNode alloc] init];
+  self.pcLabel.fontColor = [SKColor cyanColor];
+  self.pcLabel.fontSize = 12.f;
+  self.pcLabel.alpha = 0.7f;
+  self.pcLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;
+  self.pcLabel.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
+  self.pcLabel.position = CGPointMake(0, -9.f);
+  [self addChild:self.pcLabel];
+}
+
+-(void)updatePCLabel {
+  if (self.myPC == -1) {
+    return;
+  }
+  NSString *pcString = [NSString stringWithFormat:@"%li", (long)self.myPC];
+  self.pcLabel.name = pcString;
+  self.pcLabel.text = pcString;
 }
 
 @end

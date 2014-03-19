@@ -22,7 +22,6 @@
 @end
 
   // after do board coordinates
-  // TODO: put initial dyadmino on board
   // TODO: board nodes expand outward, don't establish them at first
   // TODO: check nodes to ensure that dyadminoes do not conflict on board, do not finish hovering if there's a conflict
 
@@ -97,6 +96,7 @@
   [self layoutBoard];
   [self layoutBoardCover];
   [self populateBoardWithCells];
+  [self prepFirstDyadminoOfGame];
   [self populateBoardWithDyadminoes];
   [self layoutSwapField];
   [self layoutTopBar];
@@ -135,7 +135,14 @@
 }
 
 -(void)populateBoardWithCells {
+  
+    // for this method, the only need for the board dyadminoes at this point
+    // is to determine the board's cells ranges given the dyadmino board positions
+    /// seems to work so far with one dyadmino, will have to keep testing with more
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.ourGameEngine.dyadminoesOnBoard];
+}
 
+-(void)prepFirstDyadminoOfGame {
     // handle first dyadmino
   if (self.ourGameEngine.dyadminoesOnBoard.count == 1) {
     Dyadmino *dyadmino = [self.ourGameEngine.dyadminoesOnBoard anyObject];
@@ -147,11 +154,6 @@
       }
     }
   }
-  
-    // for this method, the only need for the board dyadminoes at this point
-    // is to determine the board's cells ranges given the dyadmino board positions
-    /// seems to work so far with one dyadmino, will have to keep testing with more
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.ourGameEngine.dyadminoesOnBoard];
 }
 
 -(void)populateBoardWithDyadminoes {

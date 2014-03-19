@@ -11,6 +11,12 @@
 #import "Cell.h"
 #import "Dyadmino.h"
 
+@interface Board ()
+
+@property (strong, nonatomic) NSMutableSet *occupiedCells;
+
+@end
+
 @implementation Board
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size
@@ -28,17 +34,18 @@
     self.position = self.homePosition;
     self.zPosition = zPosition;
 
-      // instantiate boardNode arrays
+      // instantiate node and cell arrays to be searched
     self.snapPointsTwelveOClock = [NSMutableSet new];
     self.snapPointsTwoOClock = [NSMutableSet new];
     self.snapPointsTenOClock = [NSMutableSet new];
+    self.occupiedCells = [NSMutableSet new];
   }
   return self;
 }
 
 -(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSMutableSet *)boardDyadminoes {
 
-  [self determineCellsRangeBasedOnDyadminoes:boardDyadminoes];
+  [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
   
     // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
     // use this to get the range to iterate over y, and to keep the board square
@@ -119,9 +126,9 @@
 
 #pragma mark - board span methods
 
--(void)determineCellsRangeBasedOnDyadminoes:(NSMutableSet *)boardDyadminoes {
+-(void)determineOutermostCellsBasedOnDyadminoes:(NSMutableSet *)boardDyadminoes {
   for (Dyadmino *dyadmino in boardDyadminoes) {
-    [self determineCellsRangeBasedOnDyadmino:dyadmino];
+    [self determineOutermostCellsBasedOnDyadmino:dyadmino];
   }
   
     // hard coded for now, will change, obviously
@@ -130,10 +137,10 @@
 //  self.cellsBottom = -5;
 //  self.cellsLeft = -4;
   
-  NSLog(@"board cells range is top %i, right %i, bottom %i, left %i", self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
+//  NSLog(@"board cells range is top %i, right %i, bottom %i, left %i", self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
 }
 
--(void)determineCellsRangeBasedOnDyadmino:(Dyadmino *)dyadmino {
+-(void)determineOutermostCellsBasedOnDyadmino:(Dyadmino *)dyadmino {
     /// test this
   
   NSInteger cellsTop = 0;
@@ -141,8 +148,9 @@
   NSInteger cellsBottom = 0;
   NSInteger cellsLeft = 0;
   
+    // check hexCoords of both cells of dyadmino
   HexCoord hexCoord[2] = {dyadmino.homeNode.myCell.hexCoord,
-    [self getHexCoordOfOtherCellOfDyadmino:dyadmino]};
+    [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:dyadmino.homeNode]};
   
   for (int i = 0; i < 2; i++) {
     NSInteger xHex = hexCoord[i].x;
@@ -163,9 +171,10 @@
     }
   }
   
+    // this creates four cells plus one buffer cell beyond outermost dyadmino
   self.cellsTop = cellsTop + 5;
   self.cellsRight = cellsRight + 5;
-  self.cellsBottom = cellsBottom - 6;
+  self.cellsBottom = cellsBottom - 5;
   self.cellsLeft = cellsLeft - 5;
 }
 
@@ -221,19 +230,113 @@
   return [self subtractFromThisPoint:offsetPoint thisPoint:self.position];
 }
 
--(HexCoord)getHexCoordOfOtherCellOfDyadmino:(Dyadmino *)dyadmino {
-  NSInteger xHex = dyadmino.homeNode.myCell.hexCoord.x;
-  NSInteger yHex = dyadmino.homeNode.myCell.hexCoord.y;
+#pragma mark - cell methods
+
+-(BOOL)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint {
+    // this assumes dyadmino is properly oriented for this boardNode
   
-  if (dyadmino.orientation == kPC1atTwelveOClock || dyadmino.orientation == kPC1atSixOClock) {
-    yHex++;
-  } else if (dyadmino.orientation == kPC1atTwoOClock || dyadmino.orientation == kPC1atEightOClock) {
-    xHex++;
-  } else if (dyadmino.orientation == kPC1atFourOClock || dyadmino.orientation == kPC1atTenOClock) {
-    xHex--;
-    yHex++;
+  Cell *bottomCell = snapPoint.myCell;
+  HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
+  Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
+  
+    // if either cell is occupied, move is illegal, so return
+  if (bottomCell.myDyadmino || topCell.myDyadmino) {
+    return NO;
+  }
+  
+    // assign dyadmino to cells
+  bottomCell.myDyadmino = dyadmino;
+  topCell.myDyadmino = dyadmino;
+  
+    // assign pc to cell based on dyadmino orientation
+  switch (dyadmino.orientation) {
+    case kPC1atTwelveOClock:
+    case kPC1atTwoOClock:
+    case kPC1atFourOClock:
+      bottomCell.myPC = dyadmino.pc2;
+      topCell.myPC = dyadmino.pc1;
+      break;
+    case kPC1atSixOClock:
+    case kPC1atEightOClock:
+    case kPC1atTenOClock:
+      bottomCell.myPC = dyadmino.pc1;
+      topCell.myPC = dyadmino.pc2;
+      break;
+  }
+  
+  [self.occupiedCells addObject:bottomCell];
+  [self.occupiedCells addObject:topCell];
+
+    /// testing purposes
+  [bottomCell updatePCLabel];
+  [topCell updatePCLabel];
+  
+  return YES;
+}
+
+-(BOOL)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint {
+  
+    // dyadmino is not placed on boardNode, so return
+  if (snapPoint != dyadmino.tempBoardNode || snapPoint != dyadmino.homeNode) {
+    return NO;
+  }
+  
+  Cell *bottomCell = snapPoint.myCell;
+  HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
+  Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
+  
+    // if either cell doesn't have dyadmino as its dyadmino, return
+  if (bottomCell.myDyadmino != dyadmino || topCell.myDyadmino != dyadmino) {
+    return NO;
+  }
+  
+    // dyadmino still knows its boardNode or homeNode in case it needs to return
+    // this just clears the board for legal-chord-checking purposes
+  
+  bottomCell.myDyadmino = nil;
+  topCell.myDyadmino = nil;
+  bottomCell.myPC = -1;
+  topCell.myPC = -1;
+  
+  [self.occupiedCells removeObject:bottomCell];
+  [self.occupiedCells removeObject:topCell];
+  
+    /// testing purposes
+  [bottomCell updatePCLabel];
+  [topCell updatePCLabel];
+  
+  return YES;
+}
+
+-(HexCoord)getHexCoordOfOtherCellGivenDyadmino:(Dyadmino *)dyadmino andBoardNode:(SnapPoint *)snapPoint {
+  NSInteger xHex = snapPoint.myCell.hexCoord.x;
+  NSInteger yHex = snapPoint.myCell.hexCoord.y;
+  
+  switch (dyadmino.orientation) {
+    case kPC1atTwelveOClock:
+    case kPC1atSixOClock:
+      yHex++;
+      break;
+    case kPC1atTwoOClock:
+    case kPC1atEightOClock:
+      xHex++;
+      break;
+    case kPC1atFourOClock:
+    case kPC1atTenOClock:
+      xHex--;
+      yHex++;
+      break;
   }
   return [self hexCoordFromX:xHex andY:yHex];
+}
+
+-(Cell *)getCellWithHexCoord:(HexCoord)hexCoord {
+  for (Cell *cell in self.children) {
+    if (cell.hexCoord.x == hexCoord.x && cell.hexCoord.y == hexCoord.y) {
+      return cell;
+    }
+  }
+  return nil;
 }
 
 @end

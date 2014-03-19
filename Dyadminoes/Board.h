@@ -8,6 +8,7 @@
 
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
+@class SnapPoint;
 
 @interface Board : SKSpriteNode
 
@@ -44,5 +45,11 @@
 
 -(CGPoint)getOffsetFromPoint:(CGPoint)point;
 -(CGPoint)getOffsetForPoint:(CGPoint)point withTouchOffset:(CGPoint)touchOffset;
+
+#pragma mark - cell methods
+
+-(BOOL)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint;
+
+-(BOOL)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint;
 
 @end

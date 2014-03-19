@@ -15,8 +15,9 @@
 
 @property (strong, nonatomic) Board *board;
 @property (nonatomic) HexCoord hexCoord;
-@property (strong, nonatomic) Dyadmino *dyadmino;
-@property (nonatomic) dyadminoPCOnCell pcOnCell;
+@property (strong, nonatomic) Dyadmino *myDyadmino;
+@property (nonatomic) NSInteger myPC; // signed integer because myPC is -1 if no PC
+//@property (nonatomic) dyadminoPCOnCell pcOnCell;
 
 -(id)initWithBoard:(Board *)board
         andTexture:(SKTexture *)texture
@@ -24,5 +25,9 @@
 
 -(void)addSnapPointsToBoard;
 -(void)removeSnapPointsFromBoard;
+
+#pragma mark - testing methods
+
+-(void)updatePCLabel;
 
 @end
