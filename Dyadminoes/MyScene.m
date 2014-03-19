@@ -46,7 +46,6 @@
   Rack *_rackField;
   Rack *_swapField;
   Board *_boardField;
-  CGPoint _boardOrigin;
   SKSpriteNode *_boardCover;
   TopBar *_topBar;
   SKNode *_touchNode;
@@ -75,19 +74,17 @@
     // hover and pivot properties
   BOOL _pivotInProgress;
   CFTimeInterval _hoverTime;
-
-    // temporary
-  SKLabelNode *_testLabelNode;
   
-    // eventually move this to GameEngine, so it can add to dyadmino
-  SKNode *_pivotGuide;
+    // test
+  BOOL _dyadminoesHidden;
 }
 
 #pragma mark - init methods
 
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
-    self.name = @"myScene";
+    self.backgroundColor = kSolidBlue;
+    self.name = @"scene";
     self.ourGameEngine = [GameEngine new];
     self.myPlayer = [self.ourGameEngine getAssignedAsPlayer];
     _rackExchangeInProgress = NO;
@@ -97,7 +94,10 @@
 }
 
 -(void)didMoveToView:(SKView *)view {
-  [self layoutBoardAndCover];
+  [self layoutBoard];
+  [self layoutBoardCover];
+  [self populateBoardWithCells];
+  [self populateBoardWithDyadminoes];
   [self layoutSwapField];
   [self layoutTopBar];
   [self layoutOrRefreshRackFieldAndDyadminoes];
@@ -105,40 +105,62 @@
 
 #pragma mark - layout methods
 
--(void)layoutBoardAndCover {
-  self.backgroundColor = kSolidBlue;
-  
+-(void)layoutBoard {
   CGSize size = CGSizeMake(self.frame.size.width,
-                           self.frame.size.height - kTopBarHeight - kRackHeight);
-  _boardOrigin = CGPointMake(self.view.frame.size.width * 0.5,
+                           (self.frame.size.height - kTopBarHeight - kRackHeight));
+  CGPoint homePosition = CGPointMake(self.view.frame.size.width * 0.5,
                                      (self.view.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
 
   _boardField = [[Board alloc] initWithColor:kSkyBlue
                                         andSize:size
                                  andAnchorPoint:CGPointMake(0.5, 0.5)
-                                andHomePosition:_boardOrigin
+                                andHomePosition:homePosition
                                    andZPosition:kZPositionBoard];
   [self addChild:_boardField];
-
-      // initially hardcoded bounds
-      // figure out how to determine them by screen size and cell size alone?
-  [_boardField layoutBoardCellsAndSnapPointsWithCellsTop:7
-                                              cellsRight:4
-                                             cellsBottom:-6
-                                               cellsLeft:-4];
   
-    // add board cover
-  _boardCover = [[SKSpriteNode alloc] initWithColor:[SKColor blackColor] size:size];
+    // initialise this as zero
+  _boardOffsetAfterTouch = CGPointZero;
+}
+
+-(void)layoutBoardCover {
+    // call this *after* board has been laid out
+  _boardCover = [[SKSpriteNode alloc] initWithColor:[SKColor blackColor] size:_boardField.size];
   _boardCover.name = @"boardCover";
   _boardCover.anchorPoint = CGPointMake(0.5, 0.5);
-  _boardCover.position = _boardOrigin;
+  _boardCover.position = _boardField.homePosition;
   _boardCover.zPosition = kZPositionBoardCoverHidden;
   _boardCover.alpha = kBoardCoverAlpha;
   [self addChild:_boardCover];
   _boardCover.hidden = YES;
+}
+
+-(void)populateBoardWithCells {
+
+    // handle first dyadmino
+  if (self.ourGameEngine.dyadminoesOnBoard.count == 1) {
+    Dyadmino *dyadmino = [self.ourGameEngine.dyadminoesOnBoard anyObject];
+    if (!dyadmino.homeNode) {
+      for (SnapPoint *snapPoint in _boardField.snapPointsTwelveOClock) {
+        if ( snapPoint.myCell.hexCoord.x == 0 && snapPoint.myCell.hexCoord.y == 0) {
+          dyadmino.homeNode = snapPoint;
+        }
+      }
+    }
+  }
   
-    // initialise this as zero
-  _boardOffsetAfterTouch = CGPointZero;
+    // for this method, the only need for the board dyadminoes at this point
+    // is to determine the board's cells ranges given the dyadmino board positions
+    /// seems to work so far with one dyadmino, will have to keep testing with more
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.ourGameEngine.dyadminoesOnBoard];
+}
+
+-(void)populateBoardWithDyadminoes {
+  for (Dyadmino *dyadmino in self.ourGameEngine.dyadminoesOnBoard) {
+    dyadmino.position = dyadmino.homeNode.position;
+    [dyadmino orientBySnapNode:dyadmino.homeNode];
+    [dyadmino selectAndPositionSprites];
+    [_boardField addChild:dyadmino];
+  }
 }
 
 -(void)layoutSwapField {
@@ -211,7 +233,7 @@
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
   
-  NSLog(@"began touch location is at %.1f, %.1f", _beganTouchLocation.x, _beganTouchLocation.y);
+//  NSLog(@"began touch location is at %.1f, %.1f", _beganTouchLocation.x, _beganTouchLocation.y);
   
     //test
 //  NSLog(@"touchNode is %@ and has parent %@", _touchNode.name, _touchNode.parent.name);
@@ -232,14 +254,8 @@
     if (_touchNode == _boardField || _touchNode == _boardCover ||
         (_touchNode.parent == _boardField &&
         ![_touchNode isKindOfClass:[Dyadmino class]]) ||
-        [_touchNode.parent.name isEqualToString:@"cell"]) { // this one is necessary only for testing purposes
-      
+        [_touchNode.parent isKindOfClass:[Cell class]]) { // this one is necessary only for testing purposes
       _boardBeingMoved = YES;
-//      _boardOffsetAfterTouch = [_boardField getOffsetFromPoint:_beganTouchLocation];
-      
-//      NSLog(@"board offset after touch is at %.1f, %.1f", _boardOffsetAfterTouch.x, _boardOffsetAfterTouch.y);
-
-      
       return;
     }
   }
@@ -283,43 +299,37 @@
     // for both board and dyadmino movement
   _currentTouchLocation = [self findTouchLocationFromTouches:touches];
   
-    // if board being moved, handle and return
+    // if board is being moved, handle and return
   if (_boardBeingMoved) {
 
-      /// okay, the movement works, now we just have to persist the offset once the touch ends
-      /// and a new touch begins
-    
     CGPoint tempOffset = [self subtractFromThisPoint:_beganTouchLocation thisPoint:_currentTouchLocation];
     CGPoint tempPosition = [self subtractFromThisPoint:_boardField.homePosition thisPoint:tempOffset];
-    
-//    CGFloat slackX = 0.f;
-//    CGFloat slackY = 0.f;
+
     CGFloat newX = tempPosition.x;
     CGFloat newY = tempPosition.y;
     if (_boardField.boundsTop < tempPosition.y) {
-//      slackY = tempPosition.y - _boardField.boundsTop;
       newY = _boardField.boundsTop;
     }
     if (_boardField.boundsRight < tempPosition.x) {
-//      slackX = tempPosition.x - _boardField.boundsRight;
       newX = _boardField.boundsRight;
     }
     if (_boardField.boundsBottom > tempPosition.y) {
-//      slackY = tempPosition.y - _boardField.boundsBottom;
       newY = _boardField.boundsBottom;
     }
     if (_boardField.boundsLeft > tempPosition.x) {
-//      slackX = tempPosition.x - _boardField.boundsLeft;
       newX = _boardField.boundsLeft;
     }
     
-//    CGPoint newOffset = [self addToThisPoint:tempOffset thisPoint:CGPointZero];
     _boardField.position = CGPointMake(newX, newY);
     _boardField.homePosition = [self addToThisPoint:_boardField.position thisPoint:tempOffset];
     
-      //test
+      //testing purposes
+    NSLog(@"bounds must be top %.1f, right %.1f, bottom %.1f, left %.1f",
+          _boardField.boundsTop, _boardField.boundsRight, _boardField.boundsBottom, _boardField.boundsLeft);
     NSLog(@"board home position is %.1f, %.1f", _boardField.homePosition.x, _boardField.homePosition.y);
     NSLog(@"board position is %.1f, %.1f", _boardField.position.x, _boardField.position.y);
+    NSLog(@"board origin of course is %.1f, %.1f", self.view.frame.size.width * 0.5,
+          (self.view.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
     
     return;
   }
@@ -444,8 +454,11 @@
     } else if ([dyadmino isInTopBar]) {
       NSLog(@"dyadmino is in top bar");
       
-      if (dyadmino.tempBoardNode) {
+        // if it's on the board, regardless of whether it belongs in rack or on board
+      if (dyadmino.tempBoardNode || [dyadmino.homeNode isBoardNode]) {
         [dyadmino goToBoardNode];
+        
+          // if it's a rack dyadmino
       } else {
         [self sendDyadminoHome:dyadmino byPoppingIn:YES];
       }
@@ -583,7 +596,7 @@
     // establish the closest board node, without snapping just yet
   SnapPoint *boardNode = [self findSnapPointClosestToDyadmino:_hoveringButNotTouchedDyadmino];
   
-    // first valid placement
+    // FIXME: ensure valid placement
   if ([self validateLegalityOfDyadmino:_hoveringButNotTouchedDyadmino onBoardNode:boardNode]) {
 
       // change to new board node if it's a board dyadmino
@@ -619,7 +632,7 @@
     [self toggleBetweenLetterAndNumberMode];
     
   } else if (_buttonPressed == _topBar.playDyadminoButton) {
-    [self playDyadmino];
+    [self playDyadmino:_recentRackDyadmino];
     
   } else if (_buttonPressed == _topBar.cancelButton) {
     if (_swapMode) {
@@ -752,16 +765,19 @@
   }
 }
 
--(void)playDyadmino {
+-(void)playDyadmino:(Dyadmino *)dyadmino {
     // establish that dyadmino is indeed a rack dyadmino placed on the board
-  if ([_recentRackDyadmino belongsInRack] && [_recentRackDyadmino isOnBoard]) {
+  if ([dyadmino belongsInRack] && [dyadmino isOnBoard]) {
     
       // confirm that the dyadmino was successfully played before proceeding with anything else
-    if ([self.ourGameEngine playOnBoardThisDyadmino:_recentRackDyadmino fromRackOfPlayer:self.myPlayer]) {
+    if ([self.ourGameEngine playOnBoardThisDyadmino:dyadmino fromRackOfPlayer:self.myPlayer]) {
       
         // do cleanup, dyadmino's home node is now the board node
-      _recentRackDyadmino.homeNode = _recentRackDyadmino.tempBoardNode;
-      [_recentRackDyadmino unhighlightOutOfPlay];
+      dyadmino.homeNode = dyadmino.tempBoardNode;
+      dyadmino.tempBoardNode = nil;
+      [dyadmino unhighlightOutOfPlay];
+      
+        // empty pointers
       _recentRackDyadmino = nil;
       _hoveringButNotTouchedDyadmino = nil;
     }
@@ -1086,8 +1102,20 @@ if (!_swapMode && [dyadmino isOnBoard]) {
   
   NSLog(@"rack dyadmino on board is at %.2f, %.2f and child of %@", _recentRackDyadmino.position.x, _recentRackDyadmino.position.y, _recentRackDyadmino.parent.name);
   
-  _boardField.position = _boardField.homePosition;
-  _boardOffsetAfterTouch = CGPointZero;
+  if (!_dyadminoesHidden) {
+    for (Dyadmino *dyadmino in self.ourGameEngine.allDyadminoes) {
+      dyadmino.hidden = YES;
+    }
+    _dyadminoesHidden = YES;
+  } else {
+    for (Dyadmino *dyadmino in self.ourGameEngine.allDyadminoes) {
+      dyadmino.hidden = NO;
+    }
+    _dyadminoesHidden = NO;
+  }
+  
+//  _boardField.position = _boardField.homePosition;
+//  _boardOffsetAfterTouch = CGPointZero;
 }
 
 @end

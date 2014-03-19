@@ -28,8 +28,8 @@
 #define kSquareRootOfThree 1.73205081f
 
   // view constants
-#define kTopBarHeight 75.f
-#define kRackHeight 100.f
+#define kTopBarHeight 80.f
+#define kRackHeight 108.f
 #define kBoardCoverAlpha 0.4f
 
   // game logic constants
@@ -73,10 +73,10 @@
 #define kSolidBlue [SKColor colorWithRed:.15f green:.19f blue:.55f alpha:1.f]
 #define kGold [SKColor colorWithRed:.64f green:.57f blue:.38f alpha:1.f]
 
-typedef struct BoardXY {
+typedef struct HexCoord {
   NSInteger x;
   NSInteger y;
-} BoardXY;
+} HexCoord;
 
 typedef enum pcMode {
   kPCModeLetter,
@@ -136,6 +136,6 @@ typedef enum dyadminoPCOnCell {
 -(CGFloat)getRadiansFromDegree:(CGFloat)degree;
 
   // struct stuff
--(BoardXY)boardXYFromX:(NSInteger)x andY:(NSInteger)y;
+-(HexCoord)hexCoordFromX:(NSInteger)x andY:(NSInteger)y;
 
 @end

@@ -19,6 +19,6 @@
 @property (strong, nonatomic) Cell *myCell;
 
 -(id)initWithSnapPointType:(SnapPointType)snapPointType;
--(SnapPointType)isType;
+-(BOOL)isBoardNode;
 
 @end

@@ -13,10 +13,16 @@
 
 @interface Cell : SKSpriteNode
 
-@property (nonatomic) BoardXY boardXY;
+@property (strong, nonatomic) Board *board;
+@property (nonatomic) HexCoord hexCoord;
 @property (strong, nonatomic) Dyadmino *dyadmino;
 @property (nonatomic) dyadminoPCOnCell pcOnCell;
 
--(void)addSnapPointsToBoard:(Board *)board;
+-(id)initWithBoard:(Board *)board
+        andTexture:(SKTexture *)texture
+       andHexCoord:(HexCoord)hexCoord;
+
+-(void)addSnapPointsToBoard;
+-(void)removeSnapPointsFromBoard;
 
 @end

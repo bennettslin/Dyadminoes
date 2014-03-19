@@ -16,7 +16,6 @@
 @property (strong, nonatomic) Player *player1;
 @property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer1Rack;
 @property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer2Rack;
-@property (strong, nonatomic) NSMutableSet *dyadminoesOnBoard;
 @property (strong, nonatomic) NSMutableSet *dyadminoesInCommonPile;
 
 @end
@@ -31,6 +30,7 @@
     self.dyadminoesInCommonPile = [[NSMutableSet alloc] initWithCapacity:66];
     self.dyadminoesOnBoard = [NSMutableSet new];
     [self createPile];
+    [self putFirstDyadminoOnBoard];
     
       // FIXME: eventually change this to reflect how many players are playing
     self.dyadminoesInPlayer1Rack = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
@@ -107,6 +107,13 @@
     [self.allDyadminoes removeObject:dyadmino];
     [self.dyadminoesInCommonPile removeObject:dyadmino];
   }
+}
+
+-(void)putFirstDyadminoOnBoard {
+    // board will have method for positioning dyadmino without boardNode
+  Dyadmino *dyadmino = [self removeRandomDyadminoFromPile];
+  [dyadmino randomiseRackOrientation];
+  [self.dyadminoesOnBoard addObject:dyadmino];
 }
 
 -(SKNode *)createPivotGuideNamed:(NSString *)name {

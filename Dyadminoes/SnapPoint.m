@@ -19,8 +19,14 @@
   return self;
 }
 
--(SnapPointType)isType {
-  return self.snapPointType;
+-(BOOL)isBoardNode {
+  if (self.snapPointType == kSnapPointBoardTwelveOClock ||
+      self.snapPointType == kSnapPointBoardTwoOClock ||
+      self.snapPointType == kSnapPointBoardTenOClock) {
+    return YES;
+  } else {
+    return NO;
+  }
 }
 
 @end

@@ -51,11 +51,11 @@
   return (M_PI * degree) / 180;
 }
 
--(BoardXY)boardXYFromX:(NSInteger)x andY:(NSInteger)y {
-  BoardXY newBoardXY;
-  newBoardXY.x = x;
-  newBoardXY.y = y;
-  return newBoardXY;
+-(HexCoord)hexCoordFromX:(NSInteger)x andY:(NSInteger)y {
+  HexCoord newHexCoord;
+  newHexCoord.x = x;
+  newHexCoord.y = y;
+  return newHexCoord;
 }
 
 @end
