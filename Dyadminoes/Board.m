@@ -370,7 +370,7 @@
   }
   
     // if it's the first dyadmino
-  if (self.occupiedCells.count <= 2) {
+  if ([self.delegate isFirstDyadmino:dyadmino]) {
     NSLog(@"first dyadmino!");
     return kNoError;
   } else {

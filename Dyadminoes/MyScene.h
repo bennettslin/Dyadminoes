@@ -9,6 +9,7 @@
 #import <SpriteKit/SpriteKit.h>
 @class GameEngine;
 @class Player;
+@class Dyadmino;
 
 @interface MyScene : SKScene
 

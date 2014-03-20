@@ -11,7 +11,16 @@
 #import "NSObject+Helper.h"
 #import "SnapPoint.h"
 
+@protocol DyadminoDelegate <NSObject>
+
+-(void)determineCurrentSectionOfDyadmino:(Dyadmino *)dyadmino;
+-(Dyadmino *)assignTouchEndedPointerToDyadmino:(Dyadmino *)dyadmino;
+-(void)handleTouchEndOfDyadmino:(Dyadmino *)dyadmino;
+
+@end
+
 @interface Dyadmino : SKSpriteNode
+@property (weak, nonatomic) id<DyadminoDelegate> delegate;
 
   // pcs
 @property NSUInteger pc1;

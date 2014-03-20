@@ -444,8 +444,12 @@
   } else if ([self isOnBoard]) {
     finishAction = [SKAction runBlock:^{
       self.isRotating = NO;
-      self.tempReturnOrientation = self.orientation;
-      self.hoveringStatus = kDyadminoHovering;
+//      self.tempReturnOrientation = self.orientation;
+//      NSLog(@"this is being called");
+//      [self.delegate determineCurrentSectionOfDyadmino:self];
+      [self keepHovering];
+      [self.delegate assignTouchEndedPointerToDyadmino:self];
+      [self.delegate handleTouchEndOfDyadmino:self];
       self.canFlip = NO;
     }];
   }

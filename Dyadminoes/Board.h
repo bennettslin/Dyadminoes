@@ -10,7 +10,14 @@
 #import "NSObject+Helper.h"
 @class SnapPoint;
 
+@protocol BoardDelegate <NSObject>
+
+-(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino;
+
+@end
+
 @interface Board : SKSpriteNode
+@property (weak, nonatomic) id<BoardDelegate> delegate;
 
 @property (nonatomic) CGPoint homePosition;
 @property (nonatomic) CGPoint origin;
