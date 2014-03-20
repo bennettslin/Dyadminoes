@@ -10,4 +10,10 @@
 
 @interface Button : SKSpriteNode
 
+-(id)initWithName:(NSString *)name
+         andColor:(UIColor *)color
+          andSize:(CGSize)size
+      andPosition:(CGPoint)position
+     andZPosition:(CGFloat)zPosition;
+
 @end

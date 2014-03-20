@@ -28,11 +28,6 @@
   // FIXME: zPosition is based on parent node, add sprites to board when in play.
   // (otherwise, a hovering board dyadmino might still be below a resting rack dyadmino)
 
-  // leisurely TODOs
-  // TODO: have animation between rotation frames
-  // TODO: make bouncier animations
-  // TODO: background cells more colourful
-
   // leave alone for now until better information about how Game Center works
   // TODO: make so that player, not dyadmino, knows about pcMode
 
@@ -119,7 +114,7 @@
 }
 
 -(void)layoutBoardCover {
-    // call this *after* board has been laid out
+    // call this method *after* board has been laid out
   _boardCover = [[SKSpriteNode alloc] initWithColor:[SKColor blackColor] size:_boardField.size];
   _boardCover.name = @"boardCover";
   _boardCover.anchorPoint = CGPointMake(0.5, 0.5);
@@ -160,6 +155,7 @@
 }
 
 -(void)layoutSwapField {
+  
     // initial instantiation of swap field sprite
   _swapField = [[Rack alloc] initWithBoard:_boardField
                                  andColour:kGold
@@ -176,6 +172,7 @@
 }
 
 -(void)layoutTopBar {
+  
     // background
   _topBar = [[TopBar alloc] initWithColor:kDarkBlue
                                   andSize:CGSizeMake(self.frame.size.width, kTopBarHeight)
@@ -205,7 +202,7 @@
 }
 
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation {
-  
+    ////
 }
 
 #pragma mark - touch methods
@@ -267,7 +264,6 @@
   
     // otherwise, if it's a dyadmino
   if (dyadmino && !dyadmino.isRotating && !_touchedDyadmino) {
-    [self updateCellsForRemovedDyadmino:dyadmino];
     [self beginTouchOrPivotOfDyadmino:dyadmino];
   }
 }
@@ -321,12 +317,12 @@
     _boardField.homePosition = [self addToThisPoint:_boardField.position thisPoint:tempOffset];
     
       //testing purposes
-    NSLog(@"bounds must be top %.1f, right %.1f, bottom %.1f, left %.1f",
-          _boardField.boundsTop, _boardField.boundsRight, _boardField.boundsBottom, _boardField.boundsLeft);
-    NSLog(@"board home position is %.1f, %.1f", _boardField.homePosition.x, _boardField.homePosition.y);
-    NSLog(@"board position is %.1f, %.1f", _boardField.position.x, _boardField.position.y);
-    NSLog(@"board origin of course is %.1f, %.1f", self.view.frame.size.width * 0.5,
-          (self.view.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
+//    NSLog(@"bounds must be top %.1f, right %.1f, bottom %.1f, left %.1f",
+//          _boardField.boundsTop, _boardField.boundsRight, _boardField.boundsBottom, _boardField.boundsLeft);
+//    NSLog(@"board home position is %.1f, %.1f", _boardField.homePosition.x, _boardField.homePosition.y);
+//    NSLog(@"board position is %.1f, %.1f", _boardField.position.x, _boardField.position.y);
+//    NSLog(@"board origin of course is %.1f, %.1f", self.view.frame.size.width * 0.5,
+//          (self.view.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
     
     return;
   }
@@ -431,7 +427,7 @@
     //--------------------------------------------------------------------------
   
   [self determineCurrentSectionOfDyadmino:_touchedDyadmino];
-  Dyadmino *dyadmino = [self assignCurrentDyadminoToPointer];
+  Dyadmino *dyadmino = [self assignTouchedDyadminoToPointer];
 
     // ensures we're not disrupting a rotating animation
   if (!dyadmino.isRotating) {
@@ -485,6 +481,7 @@
 #pragma mark - dyadmino methods
 
 -(void)beginTouchOrPivotOfDyadmino:(Dyadmino *)dyadmino {
+  [self updateCellsForRemovedDyadmino:dyadmino];
   [dyadmino startTouchThenHoverResize];
   
   _touchedDyadmino = dyadmino;
@@ -578,7 +575,7 @@
   [dyadmino pivotBasedOnTouchLocation:touchBoardOffset];
 }
 
--(Dyadmino *)assignCurrentDyadminoToPointer {
+-(Dyadmino *)assignTouchedDyadminoToPointer {
     // rack dyadmino only needs pointer if it's still on board
   if ([_touchedDyadmino belongsInRack] && [_touchedDyadmino isOnBoard]) {
     _recentRackDyadmino = _touchedDyadmino;
@@ -757,7 +754,7 @@
     [self layoutOrRefreshRackFieldAndDyadminoes];
       // update views
     [self updatePileCountLabel];
-    [self updateMessageLabelWithString:@"swapped!"];
+    [self updateLogLabelWithString:@"swapped"];
     return YES;
   }
 }
@@ -793,7 +790,7 @@
   
     // update views
   [self updatePileCountLabel];
-  [self updateMessageLabelWithString:@"done"];
+  [self updateLogLabelWithString:@"turn done"];
   }
 }
 

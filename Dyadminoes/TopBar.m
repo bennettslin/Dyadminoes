@@ -9,6 +9,11 @@
 #import "TopBar.h"
 #import "Button.h"
 
+#define kLabelYPosition 5.f
+#define kButtonWidth 45.f
+#define kButtonSize CGSizeMake(kButtonWidth, kButtonWidth)
+#define kButtonYPosition 30.f
+
 @implementation TopBar
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size
@@ -28,87 +33,76 @@
 }
 
 -(void)populateWithButtons {
-  CGFloat buttonWidth = 45.f;
-  CGSize buttonSize = CGSizeMake(buttonWidth, 45.f);
-  CGFloat buttonYPosition = 30.f;
-  
-  self.togglePCModeButton = [[Button alloc] initWithColor:[UIColor orangeColor] size:buttonSize];
-  self.togglePCModeButton.name = @"togglePCButton";
-  self.togglePCModeButton.position = CGPointMake(buttonWidth, buttonYPosition);
-  self.togglePCModeButton.zPosition = kZPositionTopBarButton;
-//  [self addChild:self.togglePCModeButton];
+  self.togglePCModeButton = [[Button alloc] initWithName:@"toggle" andColor:[UIColor orangeColor]
+                                                 andSize:kButtonSize
+                                             andPosition:CGPointMake(kButtonWidth, kButtonYPosition)
+                                            andZPosition:kZPositionTopBarButton];
   [self.buttonNodes addObject:self.togglePCModeButton];
   [self enableButton:self.togglePCModeButton];
   
-  self.swapButton = [[Button alloc] initWithColor:[UIColor yellowColor] size:buttonSize];
-  self.swapButton.name = @"swapButton";
-  self.swapButton.position = CGPointMake(buttonWidth * 2, buttonYPosition);
-  self.swapButton.zPosition = kZPositionTopBarButton;
-//  [self addChild:self.swapButton];
+  self.swapButton = [[Button alloc] initWithName:@"swap" andColor:[UIColor yellowColor]
+                                         andSize:kButtonSize
+                                     andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition)
+                                    andZPosition:kZPositionTopBarButton];
   [self.buttonNodes addObject:self.swapButton];
   [self enableButton:self.swapButton];
   
-  self.cancelButton = [[Button alloc] initWithColor:[UIColor redColor] size:buttonSize];
-  self.cancelButton.name = @"cancelButton";
-  self.cancelButton.position = CGPointMake(buttonWidth * 3, buttonYPosition);
-  self.cancelButton.zPosition = kZPositionTopBarButton;
-//  [self addChild:self.cancelButton];
+  self.cancelButton = [[Button alloc] initWithName:@"cancel" andColor:[UIColor redColor]
+                                           andSize:kButtonSize
+                                       andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition)
+                                      andZPosition:kZPositionTopBarButton];
   [self.buttonNodes addObject:self.cancelButton];
   [self disableButton:_cancelButton];
   
-    // play and done buttons are in same location, at least for now, as they are never shown together
-  self.playDyadminoButton = [[Button alloc] initWithColor:[UIColor greenColor] size:buttonSize];
-  self.playDyadminoButton.name = @"playDyadminoButton";
-  self.playDyadminoButton.position = CGPointMake(buttonWidth * 4, buttonYPosition);
-  self.playDyadminoButton.zPosition = kZPositionTopBarButton;
-//  [self addChild:self.playDyadminoButton];
+  self.playDyadminoButton = [[Button alloc] initWithName:@"play" andColor:[UIColor greenColor]
+                                                 andSize:kButtonSize
+                                             andPosition:CGPointMake(kButtonWidth * 3, kButtonYPosition)
+                                            andZPosition:kZPositionTopBarButton];
   [self.buttonNodes addObject:self.playDyadminoButton];
   [self disableButton:_playDyadminoButton];
   
-    // done turn button is also pass turn
-  self.doneTurnButton = [[Button alloc] initWithColor:[UIColor blueColor] size:buttonSize];
-  self.doneTurnButton.name = @"doneTurnButton";
-  self.doneTurnButton.position = CGPointMake(buttonWidth * 5, buttonYPosition);
-  self.doneTurnButton.zPosition = kZPositionTopBarButton;
-//  [self addChild:self.doneTurnButton];
+  self.doneTurnButton = [[Button alloc] initWithName:@"done" andColor:[UIColor blueColor]
+                                             andSize:kButtonSize
+                                         andPosition:CGPointMake(kButtonWidth * 3, kButtonYPosition)
+                                        andZPosition:kZPositionTopBarButton];
   [self.buttonNodes addObject:self.doneTurnButton];
   [self enableButton:self.doneTurnButton];
   
-  self.logButton = [[Button alloc] initWithColor:[UIColor blackColor] size:buttonSize];
-  self.logButton.name = @"logButton";
-  self.logButton.position = CGPointMake(buttonWidth * 6, buttonYPosition);
-  self.logButton.zPosition = kZPositionTopBarButton;
-//  [self addChild:self.logButton];
+  self.logButton = [[Button alloc] initWithName:@"log" andColor:[UIColor brownColor]
+                                        andSize:kButtonSize
+                                    andPosition:CGPointMake(kButtonWidth * 4, kButtonYPosition)
+                                   andZPosition:kZPositionTopBarButton];
   [_buttonNodes addObject:self.logButton];
   [self enableButton:self.logButton];
 }
 
 -(void)populateWithLabels {
-  CGFloat labelYPosition = -5.f;
   
   self.pileCountLabel = [[SKLabelNode alloc] init];
   self.pileCountLabel.name = @"pileCountLabel";
-  self.pileCountLabel.fontSize = 16.f;
+  self.pileCountLabel.fontSize = 14.f;
   self.pileCountLabel.color = [UIColor whiteColor];
-  self.pileCountLabel.position = CGPointMake(275, labelYPosition);
+  self.pileCountLabel.position = CGPointMake(self.size.width - 5.f, kButtonYPosition);
   self.pileCountLabel.zPosition = kZPositionTopBarLabel;
+  self.pileCountLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeRight;
   [self addChild:self.pileCountLabel];
   
   self.messageLabel = [[SKLabelNode alloc] init];
   self.messageLabel.name = @"messageLabel";
-  self.messageLabel.fontSize = 16.f;
+  self.messageLabel.fontSize = 14.f;
   self.messageLabel.color = [UIColor whiteColor];
-  self.messageLabel.position = CGPointMake(5.f, labelYPosition * 2);
+  self.messageLabel.position = CGPointMake(5.f, -kLabelYPosition * 3);
   self.messageLabel.zPosition = kZPositionMessage;
   self.messageLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeLeft;
   [self addChild:self.messageLabel];
   
   self.logLabel = [[SKLabelNode alloc] init];
   self.logLabel.name = @"logLabel";
-  self.logLabel.fontSize = 16.f;
+  self.logLabel.fontSize = 14.f;
   self.logLabel.color = [UIColor whiteColor];
-  self.logLabel.position = CGPointMake(50, labelYPosition * 2);
+  self.logLabel.position = CGPointMake(self.size.width - 5.f, -kLabelYPosition * 3);
   self.logLabel.zPosition = kZPositionMessage;
+  self.logLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeRight;
   [self addChild:self.logLabel];
 }
 
