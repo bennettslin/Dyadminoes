@@ -13,7 +13,11 @@
 
 @interface GameEngine ()
 
+  // players
 @property (strong, nonatomic) Player *player1;
+
+  // dyadminoes
+@property (strong, nonatomic) NSMutableSet *allDyadminoes;
 @property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer1Rack;
 @property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer2Rack;
 @property (strong, nonatomic) NSMutableSet *dyadminoesInCommonPile;
@@ -230,6 +234,21 @@
     return YES;
   }
   return NO;
+}
+
+#pragma mark = player preference methods
+
+-(void)toggleBetweenLetterAndNumberMode {
+  
+    // FIXME: will this affect other player's view of dyadminoes?
+  for (Dyadmino *dyadmino in self.allDyadminoes) {
+    if (dyadmino.pcMode == kPCModeLetter) {
+      dyadmino.pcMode = kPCModeNumber;
+    } else {
+      dyadmino.pcMode = kPCModeLetter;
+    }
+    [dyadmino selectAndPositionSprites];
+  }
 }
 
 #pragma mark - singleton method

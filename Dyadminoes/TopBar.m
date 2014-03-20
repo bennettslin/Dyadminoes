@@ -98,8 +98,9 @@
   self.messageLabel.name = @"messageLabel";
   self.messageLabel.fontSize = 16.f;
   self.messageLabel.color = [UIColor whiteColor];
-  self.messageLabel.position = CGPointMake(50, labelYPosition);
+  self.messageLabel.position = CGPointMake(5.f, labelYPosition * 2);
   self.messageLabel.zPosition = kZPositionMessage;
+  self.messageLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeLeft;
   [self addChild:self.messageLabel];
   
   self.logLabel = [[SKLabelNode alloc] init];

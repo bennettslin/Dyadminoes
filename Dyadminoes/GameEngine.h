@@ -13,7 +13,6 @@
 @interface GameEngine : NSObject
 
   // dyadminoes
-@property (strong, nonatomic) NSMutableSet *allDyadminoes;
 @property (strong, nonatomic) NSMutableSet *dyadminoesOnBoard;
 
 +(GameEngine *)gameEngine;
@@ -23,5 +22,9 @@
 -(BOOL)playOnBoardThisDyadmino:(Dyadmino *)dyadmino fromRackOfPlayer:(Player *)player;
 -(BOOL)putDyadminoFromPileIntoRackOfPlayer:(Player *)player;
 -(void)swapTheseDyadminoes:(NSMutableArray *)fromPlayer fromPlayer:(Player *)player;
+
+#pragma mark - player preference methods
+
+-(void)toggleBetweenLetterAndNumberMode;
 
 @end

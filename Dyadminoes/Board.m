@@ -235,6 +235,7 @@
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint {
     // this assumes dyadmino is properly oriented for this boardNode
   
+    // this gets the cells based on dyadmino orientation and board node
   Cell *bottomCell = snapPoint.myCell;
   HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
   Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
@@ -275,6 +276,7 @@
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint {
   
+    // this gets the cells based on dyadmino orientation and board node
   Cell *bottomCell = snapPoint.myCell;
   HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
   Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
@@ -283,9 +285,9 @@
   
   for (int i = 0; i < 2; i++) {
     Cell *cell = cells[i];
-    
-      // only remove if cell dyadmino is not dyadmino
-//    if (cell.myDyadmino != dyadmino) {
+
+      // only remove if cell dyadmino is dyadmino
+    if (cell.myDyadmino == dyadmino) {
       cell.myDyadmino = nil;
       cell.myPC = -1;
       
@@ -293,7 +295,7 @@
       
         /// testing purposes
       [cell updatePCLabel];
-//    }
+    }
   }
 }
 
@@ -326,6 +328,57 @@
     }
   }
   return nil;
+}
+
+#pragma mark - legality methods
+
+-(PhysicalPlacementResult)validatePlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint {
+    // if it's the first dyadmino, placement anywhere is fine
+  if (self.occupiedCells.count == 0) {
+    return kNoError;
+  }
+
+      // this gets the cells based on dyadmino orientation and board node
+  Cell *bottomCell = snapPoint.myCell;
+  HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
+  Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
+  
+    // if either cell has a dyadmino, then it's not legal
+  if ((topCell.myDyadmino && topCell.myDyadmino != dyadmino) ||
+      (bottomCell.myDyadmino && bottomCell.myDyadmino != dyadmino)) {
+    return kErrorStackedDyadminoes;
+  }
+  
+    // now this checks if either cell has a neighbour cell occupied by another dyadmino
+  NSArray *cells = @[topCell, bottomCell];
+  for (Cell *dyadminoCell in cells) {
+    if ([self cell:dyadminoCell hasNeighbourCellNotOccupiedByDyadmino:dyadmino]) {
+      return kNoError;
+    };
+  }
+    // otherwise, it's a lone dyadmino
+  return kErrorLoneDyadmino;
+}
+
+-(BOOL)cell:(Cell *)dyadminoCell hasNeighbourCellNotOccupiedByDyadmino:(Dyadmino *)dyadmino {
+  NSInteger xHex = dyadminoCell.hexCoord.x;
+  NSInteger yHex = dyadminoCell.hexCoord.y;
+    // this includes cell and its eight surrounding cells (thinking in terms of square grid)
+  for (int i = xHex - 1; i <= xHex + 1; i++) {
+    for (int j = yHex - 1; j <= yHex + 1; j++) {
+        // this excludes cell itself and the two far cells
+      if (!(i == xHex && j == yHex) &&
+          !(i == xHex - 1 && j == yHex - 1) &&
+          !(i == xHex + 1 && j == yHex + 1)) {
+        
+        Cell *neighbourCell = [self getCellWithHexCoord:[self hexCoordFromX:i andY:j]];
+        if (neighbourCell.myDyadmino && neighbourCell.myDyadmino != dyadmino) {
+          return YES;
+        }
+      }
+    }
+  }
+  return NO;
 }
 
 @end

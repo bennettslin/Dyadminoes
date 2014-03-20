@@ -38,7 +38,7 @@
   // distance constants
 #define kAngleForSnapToPivot 0.1f
 
-#define kDistanceForTouchingHoveringDyadmino kDyadminoFaceRadius // was 32.f
+#define kDistanceForTouchingHoveringDyadmino kDyadminoFaceRadius * kDyadminoResizedFactor // was 32.f
 #define kDistanceForTouchingRestingDyadmino kDyadminoFaceRadius * 0.8f // was 25.f
 
 #define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
@@ -84,10 +84,10 @@ typedef enum pcMode {
   kPCModeNumber
 } PCMode;
 
-typedef struct playerDyadminoSettings {
-  PCMode pcMode;
-  UIDeviceOrientation deviceOrientation;
-} PlayerDyadminoSettings;
+//typedef struct playerDyadminoSettings {
+//  PCMode pcMode;
+//  UIDeviceOrientation deviceOrientation;
+//} PlayerDyadminoSettings;
 
 typedef enum snapPointType {
   kSnapPointRack,
@@ -118,6 +118,12 @@ typedef enum pivotOnPC {
   kPivotOnPC1,
   kPivotOnPC2
 } PivotOnPC;
+
+typedef enum physicalPlacementResult {
+  kErrorStackedDyadminoes,
+  kErrorLoneDyadmino,
+  kNoError
+} PhysicalPlacementResult;
 
 //typedef enum dyadminoPCOnCell {
 //  kNoPCsOnCell,
