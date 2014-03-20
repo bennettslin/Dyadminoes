@@ -73,6 +73,7 @@
 #define kSolidBlue [SKColor colorWithRed:.15f green:.19f blue:.55f alpha:1.f]
 #define kGold [SKColor colorWithRed:.64f green:.57f blue:.38f alpha:1.f]
 #define kTestRed [SKColor colorWithRed:1.f green:.7f blue:.7f alpha:1.f]
+#define kDarkGreen [SKColor colorWithRed:0.f green:.6f blue:.2f alpha:1.f]
 
 typedef struct HexCoord {
   NSInteger x;

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3F18924718CDB43300BEE276 /* Player.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F18924618CDB43300BEE276 /* Player.m */; };
+		3F28A6D018DA86BA0092B9B2 /* Label.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F28A6CF18DA86BA0092B9B2 /* Label.m */; };
 		3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3116CD18CEFC5D0015CC2A /* Rack.m */; };
 		3F55E1FD18D7A8520048E67E /* Button.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F55E1FC18D7A8520048E67E /* Button.m */; };
 		3F6AE50E18D4D1E7000528C1 /* TopBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F6AE50D18D4D1E7000528C1 /* TopBar.m */; };
@@ -51,6 +52,8 @@
 /* Begin PBXFileReference section */
 		3F18924518CDB43300BEE276 /* Player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Player.h; sourceTree = "<group>"; };
 		3F18924618CDB43300BEE276 /* Player.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Player.m; sourceTree = "<group>"; };
+		3F28A6CE18DA86BA0092B9B2 /* Label.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Label.h; sourceTree = "<group>"; };
+		3F28A6CF18DA86BA0092B9B2 /* Label.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Label.m; sourceTree = "<group>"; };
 		3F3116CC18CEFC5D0015CC2A /* Rack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rack.h; sourceTree = "<group>"; };
 		3F3116CD18CEFC5D0015CC2A /* Rack.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Rack.m; sourceTree = "<group>"; };
 		3F55E1FB18D7A8520048E67E /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
@@ -232,6 +235,8 @@
 				3FD06E2218D6544F00E2FF04 /* Cell.m */,
 				3F55E1FB18D7A8520048E67E /* Button.h */,
 				3F55E1FC18D7A8520048E67E /* Button.m */,
+				3F28A6CE18DA86BA0092B9B2 /* Label.h */,
+				3F28A6CF18DA86BA0092B9B2 /* Label.m */,
 				3F8F045918BFEF3300853C4C /* SnapPoint.h */,
 				3F8F045A18BFEF3300853C4C /* SnapPoint.m */,
 				3F6AE50C18D4D1E7000528C1 /* TopBar.h */,
@@ -350,6 +355,7 @@
 			files = (
 				3FCCA71B18948AF200E0E4B5 /* Dyadmino.m in Sources */,
 				3F8F045B18BFEF3300853C4C /* SnapPoint.m in Sources */,
+				3F28A6D018DA86BA0092B9B2 /* Label.m in Sources */,
 				3F8F045818BFB1B300853C4C /* NSObject+Helper.m in Sources */,
 				3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */,
 				3F87AAC9188DEE4B008C4A0D /* MyScene.m in Sources */,

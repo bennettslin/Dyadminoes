@@ -17,6 +17,7 @@
 #import "TopBar.h"
 #import "Cell.h"
 #import "Button.h"
+#import "Label.h"
 
 @interface MyScene () <FieldNodeDelegate>
 @end
@@ -254,12 +255,13 @@
   }
   
     // if it's a button, take care of it when touch ended
-  if ([_topBar.buttonNodes containsObject:_touchNode]) {
+  if ([_topBar.allButtons containsObject:_touchNode]) {
     _buttonPressed = (Button *)_touchNode;
       // TODO: make distinction of button pressed better, of course
     _buttonPressed.alpha = 0.3f;
     return;
   }
+  
     //--------------------------------------------------------------------------
   
     // otherwise, if it's a dyadmino
@@ -668,7 +670,7 @@
       }
     }
     
-  } else if (_buttonPressed == _topBar.logButton) {
+  } else if (_buttonPressed == _topBar.debugButton) {
     [self logStuff];
   }
 }
@@ -731,7 +733,7 @@
   
     // if swapped dyadminoes is greater than pile count, cancel
   if (toPile.count > [self.ourGameEngine getCommonPileCount]) {
-    [self updateMessageLabelWithString:@"This is more than the pile count"];
+    [_topBar flashLabelNamed:@"message" withText:@"this is more than the pile count"];
     return NO;
     
       // else, proceed with swap
@@ -754,7 +756,7 @@
     [self layoutOrRefreshRackFieldAndDyadminoes];
       // update views
     [self updatePileCountLabel];
-    [self updateLogLabelWithString:@"swapped"];
+    [_topBar flashLabelNamed:@"log" withText:@"swapped"];
     return YES;
   }
 }
@@ -790,7 +792,7 @@
   
     // update views
   [self updatePileCountLabel];
-  [self updateLogLabelWithString:@"turn done"];
+  [_topBar flashLabelNamed:@"log" withText:@"turn done"];
   }
 }
 
@@ -904,11 +906,11 @@
       _hoveringDyadmino = nil;
       
     } else if (placementResult == kErrorLoneDyadmino) {
-      [self updateMessageLabelWithString:@"no lone dyadminoes!"];
+      [_topBar flashLabelNamed:@"message" withText:@"no lone dyadminoes!"];
       [dyadmino keepHovering];
       
     } else if (placementResult == kErrorStackedDyadminoes) {
-      [self updateMessageLabelWithString:@"can't stack dyadminoes!"];
+      [_topBar flashLabelNamed:@"message" withText:@"can't stack dyadminoes!"];
       [dyadmino keepHovering];
     }
   }
@@ -917,24 +919,9 @@
 #pragma mark - label methods
 
 -(void)updatePileCountLabel {
-  _topBar.pileCountLabel.text = [NSString stringWithFormat:@"pile %lu", (unsigned long)[self.ourGameEngine getCommonPileCount]];
-}
-
--(void)updateLogLabelWithString:(NSString *)string {
-  _topBar.logLabel.text = string;
-}
-
--(void)updateMessageLabelWithString:(NSString *)string {
-  [_topBar.messageLabel removeAllActions];
-  _topBar.messageLabel.text = string;
-  SKAction *wait = [SKAction waitForDuration:2.f];
-  SKAction *fadeColor = [SKAction colorizeWithColor:[UIColor clearColor] colorBlendFactor:1.f duration:0.5f];
-  SKAction *finishAnimation = [SKAction runBlock:^{
-    _topBar.messageLabel.text = @"";
-    _topBar.messageLabel.color = [UIColor whiteColor];
-  }];
-  SKAction *sequence = [SKAction sequence:@[wait, fadeColor, finishAnimation]];
-  [_topBar.messageLabel runAction:sequence];
+  [_topBar updateLabelNamed:@"pileCount"
+                   withText:[NSString stringWithFormat:@"in pile: %lu",
+                             (unsigned long)[self.ourGameEngine getCommonPileCount]]];
 }
 
 #pragma mark - board cover methods
