@@ -26,6 +26,8 @@
 @property (strong, nonatomic) Label *pileCountLabel;
 @property (strong, nonatomic) Label *messageLabel;
 @property (strong, nonatomic) Label *logLabel;
+@property (strong, nonatomic) Label *chordLabel;
+@property (strong, nonatomic) Label *scoreLabel;
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size
     andAnchorPoint:(CGPoint)anchorPoint

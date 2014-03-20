@@ -11,7 +11,7 @@
 @implementation Label
 
 -(id)initWithName:(NSString *)name
-         andColor:(UIColor *)color
+     andFontColor:(UIColor *)fontColor
       andFontSize:(CGFloat)fontSize
       andPosition:(CGPoint)position
      andZPosition:(CGFloat)zPosition
@@ -20,7 +20,7 @@
   self = [super init];
   if (self) {
     self.name = name;
-    self.color = color;
+    self.fontColor = fontColor;
     self.fontSize = fontSize;
     self.position = position;
     self.zPosition = zPosition;

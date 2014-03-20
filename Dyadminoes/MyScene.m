@@ -807,6 +807,8 @@
   
     // update views
   [self updatePileCountLabel];
+  [_topBar flashLabelNamed:@"chord" withText:@"C major triad"];
+  [_topBar updateLabelNamed:@"score" withText:@"score: 3"];
   [_topBar flashLabelNamed:@"log" withText:@"turn done"];
   }
 }

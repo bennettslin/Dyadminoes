@@ -343,9 +343,6 @@
 
 -(PhysicalPlacementResult)validatePlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint {
     // if it's the first dyadmino, placement anywhere is fine
-  if (self.occupiedCells.count <= 2) {
-    return kNoError;
-  }
 
       // this gets the cells based on dyadmino orientation and board node
   Cell *bottomCell = snapPoint.myCell;
@@ -358,6 +355,8 @@
     return kErrorStackedDyadminoes;
   }
   
+    //--------------------------------------------------------------------------
+  
     // now this checks if either cell has a neighbour cell occupied by another dyadmino
   NSArray *cells = @[topCell, bottomCell];
   for (Cell *dyadminoCell in cells) {
@@ -365,8 +364,15 @@
       return kNoError;
     };
   }
+  
+    // if it's the first dyadmino
+  if (self.occupiedCells.count <= 2) {
+    NSLog(@"first dyadmino!");
+    return kNoError;
+  } else {
     // otherwise, it's a lone dyadmino
-  return kErrorLoneDyadmino;
+    return kErrorLoneDyadmino;
+  }
 }
 
 -(BOOL)cell:(Cell *)dyadminoCell hasNeighbourCellNotOccupiedByDyadmino:(Dyadmino *)dyadmino {

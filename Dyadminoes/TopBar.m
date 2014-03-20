@@ -35,21 +35,21 @@
 }
 
 -(void)populateWithButtons {
-  self.togglePCModeButton = [[Button alloc] initWithName:@"toggle" andColor:[UIColor orangeColor]
+  self.togglePCModeButton = [[Button alloc] initWithName:@"toggle" andColor:[SKColor orangeColor]
                                                  andSize:kButtonSize
                                              andPosition:CGPointMake(kButtonWidth, kButtonYPosition)
                                             andZPosition:kZPositionTopBarButton];
   [self.allButtons addObject:self.togglePCModeButton];
   [self enableButton:self.togglePCModeButton];
   
-  self.swapButton = [[Button alloc] initWithName:@"swap" andColor:[UIColor brownColor]
+  self.swapButton = [[Button alloc] initWithName:@"swap" andColor:[SKColor brownColor]
                                          andSize:kButtonSize
                                      andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition)
                                     andZPosition:kZPositionTopBarButton];
   [self.allButtons addObject:self.swapButton];
   [self enableButton:self.swapButton];
   
-  self.cancelButton = [[Button alloc] initWithName:@"cancel" andColor:[UIColor redColor]
+  self.cancelButton = [[Button alloc] initWithName:@"cancel" andColor:[SKColor redColor]
                                            andSize:kButtonSize
                                        andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition)
                                       andZPosition:kZPositionTopBarButton];
@@ -63,14 +63,14 @@
   [self.allButtons addObject:self.playDyadminoButton];
   [self disableButton:_playDyadminoButton];
   
-  self.doneTurnButton = [[Button alloc] initWithName:@"done" andColor:[UIColor blueColor]
+  self.doneTurnButton = [[Button alloc] initWithName:@"done" andColor:[SKColor blueColor]
                                              andSize:kButtonSize
                                          andPosition:CGPointMake(kButtonWidth * 3, kButtonYPosition)
                                         andZPosition:kZPositionTopBarButton];
   [self.allButtons addObject:self.doneTurnButton];
   [self enableButton:self.doneTurnButton];
   
-  self.debugButton = [[Button alloc] initWithName:@"debug" andColor:[UIColor blackColor]
+  self.debugButton = [[Button alloc] initWithName:@"debug" andColor:[SKColor blackColor]
                                         andSize:kButtonSize
                                     andPosition:CGPointMake(kButtonWidth * 4, kButtonYPosition)
                                    andZPosition:kZPositionTopBarButton];
@@ -79,32 +79,46 @@
 }
 
 -(void)populateWithLabels {
+  
+  self.scoreLabel = [[Label alloc] initWithName:@"score"
+                                   andFontColor:[SKColor whiteColor]
+                                    andFontSize:14.f
+                                    andPosition:CGPointMake(self.size.width - 5.f, 45.f)
+                                   andZPosition:kZPositionTopBarLabel
+                         andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
+  [self.allLabels setValue:self.scoreLabel forKey:self.scoreLabel.name];
+  
   self.pileCountLabel = [[Label alloc] initWithName:@"pileCount"
-                                           andColor:[UIColor whiteColor]
+                                       andFontColor:[SKColor whiteColor]
                                         andFontSize:14.f
-                                        andPosition:CGPointMake(self.size.width - 5.f, kButtonYPosition)
+                                        andPosition:CGPointMake(self.size.width - 5.f, 30.f)
                                        andZPosition:kZPositionTopBarLabel
                              andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
   [self.allLabels setValue:self.pileCountLabel forKey:self.pileCountLabel.name];
-//  [self addChild:self.pileCountLabel];
   
   self.messageLabel = [[Label alloc] initWithName:@"message"
-                                         andColor:[UIColor whiteColor]
+                                     andFontColor:kTestRed
                                       andFontSize:14.f
                                       andPosition:CGPointMake(5.f, -kLabelYPosition * 3)
                                      andZPosition:kZPositionMessage
                            andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [self.allLabels setValue:self.messageLabel forKey:self.messageLabel.name];
-//  [self addChild:self.messageLabel];
   
   self.logLabel = [[Label alloc] initWithName:@"log"
-                                     andColor:[UIColor whiteColor]
+                                 andFontColor:[SKColor whiteColor]
                                   andFontSize:14.f
                                   andPosition:CGPointMake(self.size.width - 5.f, -kLabelYPosition * 3)
                                  andZPosition:kZPositionMessage
                        andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
   [self.allLabels setValue:self.logLabel forKey:self.logLabel.name];
-//  [self addChild:self.logLabel];
+  
+  self.chordLabel = [[Label alloc] initWithName:@"chord"
+                                 andFontColor:[SKColor yellowColor]
+                                  andFontSize:16.f
+                                  andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 6)
+                                 andZPosition:kZPositionMessage
+                       andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
+  [self.allLabels setValue:self.chordLabel forKey:self.chordLabel.name];
 }
 
 #pragma mark - button methods
@@ -147,7 +161,7 @@
     SKAction *fadeColor = [SKAction colorizeWithColor:[UIColor clearColor] colorBlendFactor:1.f duration:0.5f];
     SKAction *finishAnimation = [SKAction runBlock:^{
       label.text = @"";
-      label.color = [UIColor whiteColor];
+      label.color = [SKColor whiteColor];
       [label removeFromParent];
     }];
     SKAction *sequence = [SKAction sequence:@[wait, fadeColor, finishAnimation]];

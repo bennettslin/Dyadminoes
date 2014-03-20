@@ -11,7 +11,7 @@
 @interface Label : SKLabelNode
 
 -(id)initWithName:(NSString *)name
-         andColor:(UIColor *)color
+     andFontColor:(UIColor *)fontColor
       andFontSize:(CGFloat)fontSize
       andPosition:(CGPoint)position
      andZPosition:(CGFloat)zPosition
