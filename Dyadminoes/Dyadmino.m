@@ -259,17 +259,20 @@
 
 -(void)goHomeByPoppingIn:(BOOL)poppingIn {
     // move these into a completion block for animation
-  
   [self hideAllPivotGuides];
 
+  NSLog(@"go home by popping in");
+  
   if (poppingIn) {
     [self animatePopBackIntoRackNode];
+    
   } else {
+    [self orientBySnapNode:self.homeNode];
     [self animateMoveToPoint:[self getHomeNodePosition]];
     [self unhighlightOutOfPlay];
-    [self orientBySnapNode:self.homeNode];
     self.zPosition = kZPositionRackMovedDyadmino;
   }
+  
   self.tempBoardNode = nil;
   [self setToHomeZPosition];
   [self finishHovering];

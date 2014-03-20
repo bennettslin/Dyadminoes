@@ -235,77 +235,81 @@
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint {
     // this assumes dyadmino is properly oriented for this boardNode
-  
-    // this gets the cells based on dyadmino orientation and board node
-  Cell *bottomCell = snapPoint.myCell;
-  HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
-  Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
-
-  NSArray *cells = @[topCell, bottomCell];
-  NSInteger pcs[2] = {dyadmino.pc1, dyadmino.pc2};
-  
-  for (int i = 0; i < 2; i++) {
-    Cell *cell = cells[i];
+  if ([snapPoint isBoardNode]) {
     
-      // only assign if cell doesn't have a dyadmino recorded
-    if (!cell.myDyadmino) {
+      // this gets the cells based on dyadmino orientation and board node
+    Cell *bottomCell = snapPoint.myCell;
+    HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
+    Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
+
+    NSArray *cells = @[topCell, bottomCell];
+    NSInteger pcs[2] = {dyadmino.pc1, dyadmino.pc2};
+    
+    for (int i = 0; i < 2; i++) {
+      Cell *cell = cells[i];
       
-      // assign dyadmino to cell
-      cell.myDyadmino = dyadmino;
-      
-      // assign pc to cell based on dyadmino orientation
-      switch (dyadmino.orientation) {
-        case kPC1atTwelveOClock:
-        case kPC1atTwoOClock:
-        case kPC1atTenOClock:
-          cell.myPC = pcs[i];
-          break;
-        case kPC1atSixOClock:
-        case kPC1atEightOClock:
-        case kPC1atFourOClock:
-          cell.myPC = pcs[(i + 1) % 2];
-          break;
+        // only assign if cell doesn't have a dyadmino recorded
+      if (!cell.myDyadmino) {
+        
+        // assign dyadmino to cell
+        cell.myDyadmino = dyadmino;
+        
+        // assign pc to cell based on dyadmino orientation
+        switch (dyadmino.orientation) {
+          case kPC1atTwelveOClock:
+          case kPC1atTwoOClock:
+          case kPC1atTenOClock:
+            cell.myPC = pcs[i];
+            break;
+          case kPC1atSixOClock:
+          case kPC1atEightOClock:
+          case kPC1atFourOClock:
+            cell.myPC = pcs[(i + 1) % 2];
+            break;
+        }
+          // add to board's array of occupied cells to search
+        [self.occupiedCells addObject:cell];
+        
+          /// testing purposes
+        [cell updatePCLabel];
       }
-        // add to board's array of occupied cells to search
-      [self.occupiedCells addObject:cell];
-      
-        /// testing purposes
-      [cell updatePCLabel];
     }
+    NSLog(@"cells placed on board");
   }
-  NSLog(@"cells placed on board");
 }
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint {
-  
-  NSLog(@"dyadmino is %@, snapPoint is %@", dyadmino.name, snapPoint.name);
-  
-    // this gets the cells based on dyadmino orientation and board node
-  Cell *bottomCell = snapPoint.myCell;
-  HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
-  Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
-  
-  NSArray *cells = @[topCell, bottomCell];
-  
-  for (int i = 0; i < 2; i++) {
-    Cell *cell = cells[i];
-
-    NSLog(@"cell.myDyadmino is %@", cell.myDyadmino.name);
+    // don't call if it's a rack node
+  if ([snapPoint isBoardNode]) {
+  //  NSLog(@"dyadmino is %@, snapPoint is %@", dyadmino.name, snapPoint.name);
     
-      // only remove if cell dyadmino is dyadmino
-    if (cell.myDyadmino == dyadmino) {
-      cell.myDyadmino = nil;
-      cell.myPC = -1;
-      
+      // this gets the cells based on dyadmino orientation and board node
+    Cell *bottomCell = snapPoint.myCell;
+    HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
+    Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
+    
+    NSArray *cells = @[topCell, bottomCell];
+    
+    for (int i = 0; i < 2; i++) {
+      Cell *cell = cells[i];
+
       NSLog(@"cell.myDyadmino is %@", cell.myDyadmino.name);
       
-      [self.occupiedCells removeObject:cell];
-      
-        /// testing purposes
-      [cell updatePCLabel];
+        // only remove if cell dyadmino is dyadmino
+      if (cell.myDyadmino == dyadmino) {
+        cell.myDyadmino = nil;
+        cell.myPC = -1;
+        
+        NSLog(@"cell.myDyadmino is %@", cell.myDyadmino.name);
+        
+        [self.occupiedCells removeObject:cell];
+        
+          /// testing purposes
+        [cell updatePCLabel];
+      }
     }
+    NSLog(@"cells removed from board");
   }
-  NSLog(@"cells removed from board");
 }
 
 -(HexCoord)getHexCoordOfOtherCellGivenDyadmino:(Dyadmino *)dyadmino andBoardNode:(SnapPoint *)snapPoint {

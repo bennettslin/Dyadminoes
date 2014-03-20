@@ -174,7 +174,6 @@
 }
 
 -(void)layoutTopBar {
-  
     // background
   _topBar = [[TopBar alloc] initWithColor:kDarkBlue
                                   andSize:CGSizeMake(self.frame.size.width, kTopBarHeight)
@@ -439,7 +438,7 @@
 //      NSLog(@"dyadmino is in top bar");
       
         // if it's on the board, regardless of whether it belongs in rack or on board
-      if (dyadmino.tempBoardNode || [dyadmino.homeNode isBoardNode]) {
+      if (dyadmino.tempBoardNode) {
         [self sendDyadminoToBoardNode:dyadmino];
         
           // if it's a rack dyadmino
@@ -499,6 +498,7 @@
 
 -(void)beginTouchOrPivotOfDyadmino:(Dyadmino *)dyadmino {
   [self updateCellsForRemovedDyadmino:dyadmino];
+  dyadmino.tempReturnOrientation = dyadmino.orientation;
   [dyadmino startTouchThenHoverResize];
   
   _touchedDyadmino = dyadmino;
@@ -607,16 +607,8 @@
   Dyadmino *dyadmino = _hoveringDyadmino;
   
     // establish the closest board node, without snapping just yet
-  SnapPoint *boardNode = [self findSnapPointClosestToDyadmino:dyadmino];
+  dyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:dyadmino];
 
-    // change to new board node if it's a board dyadmino
-  if ([dyadmino belongsOnBoard]) {
-    dyadmino.homeNode = boardNode;
-    
-    // establish board node as temp if it's a rack dyadmino
-  } else if ([dyadmino belongsInRack]) {
-    dyadmino.tempBoardNode = boardNode;
-  }
     // update cells for placement
   [self updateCellsForPlacedDyadmino:dyadmino];
   
@@ -626,17 +618,17 @@
 }
 
 -(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingIn:(BOOL)poppingIn {
+  
   if (dyadmino.parent == _boardField) {
-    CGPoint newPosition = [self addToThisPoint:dyadmino.position thisPoint:_boardField.position];
-    [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
-    dyadmino.position = newPosition;
+      // this only applies if dyadmino is rack dyadmino
+    if ([dyadmino belongsInRack]) {
+      CGPoint newPosition = [self addToThisPoint:dyadmino.position thisPoint:_boardField.position];
+      [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
+      dyadmino.position = newPosition;
+    }
   }
 
-    // this needs tempBoardNode
   [self updateCellsForRemovedDyadmino:dyadmino];
-  if ([dyadmino belongsOnBoard]) {
-    [self updateCellsForPlacedDyadmino:dyadmino];
-  }
   
   [dyadmino endTouchThenHoverResize];
     // this makes nil tempBoardNode
@@ -649,6 +641,12 @@
   if (dyadmino == _hoveringDyadmino) {
     _hoveringDyadmino = nil;
   }
+  
+    // this ensures that dyadmino is properly oriented and positioned before
+    // re-updating the cells of its original home node
+  if ([dyadmino belongsOnBoard]) {
+    [self updateCellsForPlacedDyadmino:dyadmino];
+  }
 }
 
 -(void)sendDyadminoToBoardNode:(Dyadmino *)dyadmino {
@@ -660,26 +658,37 @@
 
 -(void)handleButtonPressed {
   
-    // swap dyadminoes
+      /// swap button
   if (_buttonPressed == _topBar.swapButton) {
     if (!_swapMode) {
       [self toggleSwapField];
     }
     
+      /// togglePC button
   } else if (_buttonPressed == _topBar.togglePCModeButton) {
     [self.ourGameEngine toggleBetweenLetterAndNumberMode];
     
+      /// play button
   } else if (_buttonPressed == _topBar.playDyadminoButton) {
     [self playDyadmino:_recentRackDyadmino];
     
+      /// cancel button
   } else if (_buttonPressed == _topBar.cancelButton) {
+      // if in swap mode, cancel swap
     if (_swapMode) {
       [self cancelSwappedDyadminoes];
       [self toggleSwapField];
+      
+        // else send dyadmino home
     } else if (_hoveringDyadmino) {
-      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES];
+      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:NO];
+
+        // recent rack dyadmino is sent home
+    } else if (_recentRackDyadmino) {
+      [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES];
     }
     
+      /// done button
   } else if (_buttonPressed == _topBar.doneTurnButton) {
     if (!_swapMode) {
       [self finalisePlayerTurn];
@@ -689,6 +698,7 @@
       }
     }
     
+      /// debug button
   } else if (_buttonPressed == _topBar.debugButton) {
     [self debugButtonPressed];
   }
@@ -934,7 +944,7 @@
     [dyadmino setToHomeZPosition];
     
     [dyadmino finishHovering];
-    dyadmino.tempReturnOrientation = dyadmino.orientation;
+//    dyadmino.tempReturnOrientation = dyadmino.orientation;
   }
   
     // if finished hovering
@@ -942,28 +952,29 @@
       [dyadmino isFinishedHovering] &&
       _touchedDyadmino != dyadmino) {
     
-      // validate legal to finish hovering here
-    SnapPoint *snapPointToCheck;
-    if ([dyadmino belongsInRack]) {
-      snapPointToCheck = dyadmino.tempBoardNode;
-    } else if ([dyadmino belongsOnBoard]) {
-      snapPointToCheck = dyadmino.homeNode;
-    }
-    
       // finish hovering only if placement is legal
     PhysicalPlacementResult placementResult =
     [_boardField validatePlacingDyadmino:dyadmino
-                             onBoardNode:snapPointToCheck];
+                             onBoardNode:dyadmino.tempBoardNode];
     
+      // handle placement results:
+    
+      // no error
     if (placementResult == kNoError) {
+      if ([dyadmino belongsOnBoard]) {
+          // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
+        dyadmino.homeNode = dyadmino.tempBoardNode;
+      }
       
       [dyadmino animateEaseIntoNodeAfterHover];
       _hoveringDyadmino = nil;
-      
+     
+        // lone dyadmino
     } else if (placementResult == kErrorLoneDyadmino) {
       [_topBar flashLabelNamed:@"message" withText:@"no lone dyadminoes!"];
       [dyadmino keepHovering];
       
+        // stacked dyadminoes
     } else if (placementResult == kErrorStackedDyadminoes) {
       [_topBar flashLabelNamed:@"message" withText:@"can't stack dyadminoes!"];
       [dyadmino keepHovering];
@@ -995,17 +1006,17 @@
 #pragma mark - board interaction methods
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino {
-  if ([dyadmino belongsOnBoard]) {
-    [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode];
-  } else if ([dyadmino belongsInRack] && dyadmino.tempBoardNode) {
+  if (dyadmino.tempBoardNode) {
     [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.tempBoardNode];
+  } else {
+    [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode];
   }
 }
 
 -(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino {
-  if ([dyadmino belongsInRack] && dyadmino.tempBoardNode) {
+  if (dyadmino.tempBoardNode) {
     [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.tempBoardNode];
-  } else if ([dyadmino belongsOnBoard]) {
+  } else {
     [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.homeNode];
   }
 }
