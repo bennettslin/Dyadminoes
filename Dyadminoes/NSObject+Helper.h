@@ -19,6 +19,9 @@
   // dyadmino size constants
   // one constant rules them all (literally, haha)
 #define kDyadminoFaceRadius 21.75f // for now, perfectly reflects image size
+#define kDyadminoFaceDiameter (kDyadminoFaceRadius * 2)
+#define kDyadminoFaceWideRadius (kDyadminoFaceRadius * kTwoOverSquareRootOfThree)
+#define kDyadminoFaceWideDiameter (kDyadminoFaceWideRadius * 3 / 2)
 
   // dyadmino state constants
 #define kDyadminoResizedFactor 1.17f
@@ -26,6 +29,7 @@
 
   // math constants
 #define kSquareRootOfThree 1.73205081f
+#define kTwoOverSquareRootOfThree 1.15470054f
 
   // view constants
 #define kTopBarHeight 80.f
@@ -38,8 +42,8 @@
   // distance constants
 #define kAngleForSnapToPivot 0.1f
 
-#define kDistanceForTouchingHoveringDyadmino kDyadminoFaceRadius * kDyadminoResizedFactor // was 32.f
-#define kDistanceForTouchingRestingDyadmino kDyadminoFaceRadius * 0.8f // was 25.f
+#define kDistanceForTouchingHoveringDyadmino (kDyadminoFaceRadius * kDyadminoResizedFactor) // was 32.f
+#define kDistanceForTouchingRestingDyadmino (kDyadminoFaceRadius * 0.8f) // was 25.f
 
 #define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
 #define kMaxDistanceForPivot kDyadminoFaceRadius * 5.f

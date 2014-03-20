@@ -17,11 +17,15 @@
 
 @end
 
-@implementation Board
+@implementation Board {
+  CGFloat _cellsInVertRange;
+  CGFloat _cellsInHorzRange;
+}
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size
     andAnchorPoint:(CGPoint)anchorPoint
    andHomePosition:(CGPoint)homePosition
+         andOrigin:(CGPoint)origin
       andZPosition:(CGFloat)zPosition {
   self = [super init];
   if (self) {
@@ -31,6 +35,7 @@
     self.size = size;
     self.anchorPoint = anchorPoint;
     self.homePosition = homePosition;
+    self.origin = origin;
     self.position = self.homePosition;
     self.zPosition = zPosition;
 
@@ -39,6 +44,11 @@
     self.snapPointsTwoOClock = [NSMutableSet new];
     self.snapPointsTenOClock = [NSMutableSet new];
     self.occupiedCells = [NSMutableSet new];
+    
+      // these values are necessary for board movement
+      // see determineBoardPositionBounds method for explanation
+    _cellsInVertRange = ((self.origin.y - kRackHeight) / kDyadminoFaceDiameter);
+    _cellsInHorzRange = (self.origin.x / kDyadminoFaceWideDiameter);
   }
   return self;
 }
@@ -49,7 +59,6 @@
   
     // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
     // use this to get the range to iterate over y, and to keep the board square
-  
   for (NSInteger xHex = self.cellsLeft; xHex <= self.cellsRight; xHex++) {
     for (NSInteger yHex = self.cellsBottom - self.cellsRight / 2; yHex <= self.cellsTop - self.cellsLeft / 2; yHex++) {
 
@@ -59,7 +68,7 @@
       }
     }
   }
-  [self determineBoardBounds];
+  [self determineBoardPositionBounds];
 }
 
 #pragma mark - cell methods
@@ -107,7 +116,7 @@
   cell.hidden = NO;
   [self addChild:cell];
   [cell addSnapPointsToBoard];
-  [self determineBoardBounds];
+  [self determineBoardPositionBounds];
   return cell;
 }
 
@@ -120,7 +129,7 @@
   cell.hidden = YES;
   [cell removeFromParent];
   [cell removeSnapPointsFromBoard];
-  [self determineBoardBounds];
+  [self determineBoardPositionBounds];
   return cell;
 }
 
@@ -130,14 +139,6 @@
   for (Dyadmino *dyadmino in boardDyadminoes) {
     [self determineOutermostCellsBasedOnDyadmino:dyadmino];
   }
-  
-    // hard coded for now, will change, obviously
-//  self.cellsTop = 5;
-//  self.cellsRight = 4;
-//  self.cellsBottom = -5;
-//  self.cellsLeft = -4;
-  
-//  NSLog(@"board cells range is top %i, right %i, bottom %i, left %i", self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
 }
 
 -(void)determineOutermostCellsBasedOnDyadmino:(Dyadmino *)dyadmino {
@@ -171,52 +172,52 @@
     }
   }
   
-    // this creates four cells plus one buffer cell beyond outermost dyadmino
+    // this creates four cells, plus one buffer cell, beyond outermost dyadmino
   self.cellsTop = cellsTop + 5;
   self.cellsRight = cellsRight + 5;
   self.cellsBottom = cellsBottom - 5;
   self.cellsLeft = cellsLeft - 5;
 }
 
--(void)determineBoardBounds {
-    // this gets called after every method that adds cells or removes them
+-(void)determineBoardPositionBounds {
+    // this should get called after every method that adds cells or removes them
   
-    //// this will determine bounds
+  self.lowestYPos = self.origin.y - (self.cellsTop - 1 - _cellsInVertRange) * kDyadminoFaceDiameter;
+  self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange) * kDyadminoFaceWideDiameter;
+  self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange) * kDyadminoFaceDiameter;
+  self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange) * kDyadminoFaceWideDiameter;
   
-//  hardcode just to test
-  self.boundsBottom = 280.f;
-  self.boundsRight = 180.f;
-  self.boundsLeft = 140.f;
-  self.boundsTop  = 320.f;
+  /*
+    cellsTop determines lowest Y position
+    cellsBottom determines highest Y position
+    cellsRight determines lowest X position
+    cellsLeft determines highest X position
+  
+    cellsInVertRange and cellsInHorzRange is the number of cells
+    that span one half-height or half-width of screen
 
-//  NSLog(@"board size is %.1f, %.1f", self.size.width, self.size.height);
-  CGFloat tempTop = self.cellsTop * kDyadminoFaceRadius * 2;
-  CGFloat tempRight = self.cellsRight * kDyadminoFaceRadius * 2;
-  CGFloat tempBottom = -self.cellsBottom * kDyadminoFaceRadius * 2;
-  CGFloat tempLeft = -self.cellsLeft * kDyadminoFaceRadius * 2;
-  
-//  NSLog(@"bounds by cell size is top %.1f, right %.1f, bottom %.1f, left %.1f",
-//        tempTop, tempRight, tempBottom, tempLeft);
-  
-  if (tempTop < self.size.height * 0.5) {
-    tempTop = self.size.height * 0.5;
-  }
-  if (tempRight < self.size.width * 0.5) {
-    tempRight = self.size.width * 0.5;
-  }
-  if (tempBottom < self.size.height * 0.5) {
-    tempBottom = self.size.height * 0.5;
-  }
-  if (tempLeft < self.size.width * 0.5) {
-    tempLeft = self.size.width * 0.5;
-  }
-  
-//  self.boundsTop = tempTop;
-//  self.boundsRight = tempRight;
-//  self.boundsBottom = tempBottom;
-//  self.boundsLeft = tempLeft;
-  
-//  NSLog(@"bounds must be top %.1f, right %.1f, bottom %.1f, left %.1f", self.boundsTop, self.boundsRight, self.boundsBottom, self.boundsLeft);
+    so that number gets subtracted from the actual number of cells
+    in, let's say, the top half, then multiplied by the cell diameter
+    (which is different horizontally), then subtracted from the origin
+    to indicate how far away from the origin the board position is allowed to be
+   
+    furthest cell seen from outermost vertical cell is 4.5 cells away
+    furthest cell seen from outermost horizontal cell is 4.5 cells away
+    that half cell is not seen after it snaps back
+   
+    of course, on iPad, these numbers may be different
+    origin on iPhone 4-inch is 160, 298
+   */
+
+//  NSLog(@"cells top %i, right %i, bottom %i, left %i",
+//        self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
+//  NSLog(@"bounds is lowestY %.1f, lowestX %.1f, highestY %.1f, highestX %.1f",
+//        self.lowestYPos, self.lowestXPos, self.highestYPos, self.highestXPos);
+//  NSLog(@"origin is %f, %f", self.origin.x, self.origin.y);
+//  NSLog(@"vert range is this number of cells %.1f", _cellsInVertRange);
+//  NSLog(@"bottom range is this number of cells %.1f", _cellsInHorzRange);
+
+
 }
 
 #pragma mark - distance methods

@@ -13,11 +13,12 @@
 @interface Board : SKSpriteNode
 
 @property (nonatomic) CGPoint homePosition;
+@property (nonatomic) CGPoint origin;
 
-@property (nonatomic) CGFloat boundsTop;
-@property (nonatomic) CGFloat boundsRight;
-@property (nonatomic) CGFloat boundsBottom;
-@property (nonatomic) CGFloat boundsLeft;
+@property (nonatomic) CGFloat highestYPos;
+@property (nonatomic) CGFloat highestXPos;
+@property (nonatomic) CGFloat lowestYPos;
+@property (nonatomic) CGFloat lowestXPos;
 
   /// these are the limits in terms of number of cells
 @property (nonatomic) NSInteger cellsTop;
@@ -37,6 +38,7 @@
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size
     andAnchorPoint:(CGPoint)anchorPoint
    andHomePosition:(CGPoint)homePosition
+         andOrigin:(CGPoint)origin
       andZPosition:(CGFloat)zPosition;
 
 -(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSMutableSet *)boardDyadminoes;

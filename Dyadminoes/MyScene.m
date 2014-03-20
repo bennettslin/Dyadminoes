@@ -75,7 +75,7 @@
 
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
-    self.backgroundColor = kSolidBlue;
+    self.backgroundColor = kSkyBlue;
     self.name = @"scene";
     self.ourGameEngine = [GameEngine new];
     self.myPlayer = [self.ourGameEngine getAssignedAsPlayer];
@@ -103,11 +103,12 @@
   CGPoint homePosition = CGPointMake(self.view.frame.size.width * 0.5,
                                      (self.view.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
 
-  _boardField = [[Board alloc] initWithColor:kSkyBlue
-                                        andSize:size
-                                 andAnchorPoint:CGPointMake(0.5, 0.5)
-                                andHomePosition:homePosition
-                                   andZPosition:kZPositionBoard];
+  _boardField = [[Board alloc] initWithColor:[SKColor clearColor]
+                                     andSize:size
+                              andAnchorPoint:CGPointMake(0.5, 0.5)
+                             andHomePosition:homePosition // this is changed with board movement
+                                   andOrigin:(CGPoint)homePosition // origin *never* changes
+                                andZPosition:kZPositionBoard];
   [self addChild:_boardField];
   
     // initialise this as zero
@@ -244,13 +245,19 @@
   
     // if pivot not in progress, or pivot in progress but dyadmino is not close enough
     // then the board is touched and being moved
+  
   if (!_pivotInProgress || (_pivotInProgress && !dyadmino)) {
     if (_touchNode == _boardField || _touchNode == _boardCover ||
-        (_touchNode.parent == _boardField &&
-        ![_touchNode isKindOfClass:[Dyadmino class]]) ||
+        (_touchNode.parent == _boardField && ![_touchNode isKindOfClass:[Dyadmino class]]) ||
         [_touchNode.parent isKindOfClass:[Cell class]]) { // this one is necessary only for testing purposes
       _boardBeingMoved = YES;
+      
+      
+//      NSLog(@"board position is %.1f, %.1f", _boardField.position.x, _boardField.position.y);
+      
       return;
+
+      
     }
   }
   
@@ -297,35 +304,17 @@
     // if board is being moved, handle and return
   if (_boardBeingMoved) {
 
-    CGPoint tempOffset = [self subtractFromThisPoint:_beganTouchLocation thisPoint:_currentTouchLocation];
-    CGPoint tempPosition = [self subtractFromThisPoint:_boardField.homePosition thisPoint:tempOffset];
-
-    CGFloat newX = tempPosition.x;
-    CGFloat newY = tempPosition.y;
-    if (_boardField.boundsTop < tempPosition.y) {
-      newY = _boardField.boundsTop;
-    }
-    if (_boardField.boundsRight < tempPosition.x) {
-      newX = _boardField.boundsRight;
-    }
-    if (_boardField.boundsBottom > tempPosition.y) {
-      newY = _boardField.boundsBottom;
-    }
-    if (_boardField.boundsLeft > tempPosition.x) {
-      newX = _boardField.boundsLeft;
-    }
-    
-    _boardField.position = CGPointMake(newX, newY);
-    _boardField.homePosition = [self addToThisPoint:_boardField.position thisPoint:tempOffset];
+    [self moveBoard];
     
       //testing purposes
-//    NSLog(@"bounds must be top %.1f, right %.1f, bottom %.1f, left %.1f",
-//          _boardField.boundsTop, _boardField.boundsRight, _boardField.boundsBottom, _boardField.boundsLeft);
+//    NSLog(@"board wants to be %.1f, %.1f", newPosition.x, newPosition.y);
+//    NSLog(@"bounds must be within top %.1f, right %.1f, bottom %.1f, left %.1f",
+//          _boardField.highestYPos, _boardField.highestXPos, _boardField.lowestYPos, _boardField.lowestXPos);
 //    NSLog(@"board home position is %.1f, %.1f", _boardField.homePosition.x, _boardField.homePosition.y);
 //    NSLog(@"board position is %.1f, %.1f", _boardField.position.x, _boardField.position.y);
 //    NSLog(@"board origin of course is %.1f, %.1f", self.view.frame.size.width * 0.5,
 //          (self.view.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
-    
+//    NSLog(@"boardField position x is %.1f, lowest x possible is %.1f", _boardField.position.x, _boardField.lowestXPos);
     return;
   }
 
@@ -478,6 +467,32 @@
     // cleanup
   _pivotInProgress = NO;
   _touchOffsetVector = CGPointZero;
+}
+
+-(void)moveBoard {
+    // first get new board position, after applying touch offset
+  CGPoint touchOffset = [self subtractFromThisPoint:_beganTouchLocation thisPoint:_currentTouchLocation];
+  CGPoint newPosition = [self subtractFromThisPoint:_boardField.homePosition thisPoint:touchOffset];
+  
+  CGFloat newX = newPosition.x;
+  CGFloat newY = newPosition.y;
+  
+  if (newPosition.y < _boardField.lowestYPos) {
+    newY = _boardField.lowestYPos;
+  } else if (newPosition.y > _boardField.highestYPos) {
+    newY = _boardField.highestYPos;
+  }
+  
+  if (newPosition.x < _boardField.lowestXPos) {
+    newX = _boardField.lowestXPos;
+  } else if (newPosition.x > _boardField.highestXPos) {
+    newX = _boardField.highestXPos;
+  }
+  
+    // move board to new position
+  _boardField.position = CGPointMake(newX, newY);
+    // move home position to board position, after applying touch offset
+  _boardField.homePosition = [self addToThisPoint:_boardField.position thisPoint:touchOffset];
 }
 
 #pragma mark - dyadmino methods
@@ -671,7 +686,7 @@
     }
     
   } else if (_buttonPressed == _topBar.debugButton) {
-    [self logStuff];
+    [self debugButtonPressed];
   }
 }
 
@@ -802,6 +817,36 @@
   
   [self updateForDoubleTap:currentTime];
   [self updateDyadmino:_hoveringDyadmino forHover:currentTime];
+  
+    // snap back somewhat from board bounds
+    // TODO: this works, but it feels jumpy
+  if (!_currentTouch) {
+    
+      // tweak with this number, maybe make it dynamic so that it "snaps" more
+    CGFloat thisDistance = 1.f;
+    
+    CGFloat lowestXBuffer = _boardField.lowestXPos + kDyadminoFaceWideRadius * 0.5;
+    if (_boardField.position.x < lowestXBuffer) {
+      _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
+      _boardField.homePosition = _boardField.position;
+    }
+    CGFloat lowestYBuffer = _boardField.lowestYPos + kDyadminoFaceRadius * 0.5;
+    if (_boardField.position.y < lowestYBuffer) {
+      _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y + thisDistance);
+      _boardField.homePosition = _boardField.position;
+    }
+    CGFloat highestXBuffer = _boardField.highestXPos - kDyadminoFaceWideRadius * 0.5;
+    if (_boardField.position.x > highestXBuffer) {
+      _boardField.position = CGPointMake(_boardField.position.x - thisDistance, _boardField.position.y);
+      _boardField.homePosition = _boardField.position;
+    }
+    CGFloat highestYBuffer = _boardField.highestYPos - kDyadminoFaceRadius * 0.5;
+    if (_boardField.position.y > highestYBuffer) {
+      _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
+      _boardField.homePosition = _boardField.position;
+    }
+  }
+  
 
     // handle buttons
     // TODO: if button enabling and disabling are animated, change this
@@ -1109,7 +1154,7 @@ if (!_swapMode && [dyadmino isOnBoard]) {
 
 #pragma mark - debugging methods
 
--(void)logStuff {
+-(void)debugButtonPressed {
 //  NSString *hoveringString = [NSString stringWithFormat:@"hovering not touched %@", [_hoveringDyadmino logThisDyadmino]];
 //  NSString *recentRackString = [NSString stringWithFormat:@"recent rack %@", [_recentRackDyadmino logThisDyadmino]];
 //  NSString *currentString = [NSString stringWithFormat:@"current %@", [_currentlyTouchedDyadmino logThisDyadmino]];
