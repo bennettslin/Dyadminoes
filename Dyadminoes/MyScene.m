@@ -817,32 +817,7 @@
   
     // snap back somewhat from board bounds
     // TODO: this works, but it feels jumpy
-  if (!_currentTouch) {
-    
-      // tweak with this number, maybe make it dynamic so that it "snaps" more
-    CGFloat thisDistance = 1.f;
-    
-    CGFloat lowestXBuffer = _boardField.lowestXPos + kDyadminoFaceWideRadius * 0.5;
-    if (_boardField.position.x < lowestXBuffer) {
-      _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
-      _boardField.homePosition = _boardField.position;
-    }
-    CGFloat lowestYBuffer = _boardField.lowestYPos + kDyadminoFaceRadius * 0.5;
-    if (_boardField.position.y < lowestYBuffer) {
-      _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y + thisDistance);
-      _boardField.homePosition = _boardField.position;
-    }
-    CGFloat highestXBuffer = _boardField.highestXPos - kDyadminoFaceWideRadius * 0.5;
-    if (_boardField.position.x > highestXBuffer) {
-      _boardField.position = CGPointMake(_boardField.position.x - thisDistance, _boardField.position.y);
-      _boardField.homePosition = _boardField.position;
-    }
-    CGFloat highestYBuffer = _boardField.highestYPos - kDyadminoFaceRadius * 0.5;
-    if (_boardField.position.y > highestYBuffer) {
-      _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
-      _boardField.homePosition = _boardField.position;
-    }
-  }
+  [self updateForBoardSnapBack];
   
   [self updateForButtons];
 }
@@ -860,7 +835,7 @@
       [_topBar disableButton:_topBar.playDyadminoButton];
     }
     
-    if (_recentRackDyadmino || _hoveringDyadmino) {
+    if ((_recentRackDyadmino || _hoveringDyadmino) && ![self isFirstDyadmino:_hoveringDyadmino]) {
       [_topBar enableButton:_topBar.cancelButton];
     } else {
       [_topBar disableButton:_topBar.cancelButton];
@@ -902,6 +877,35 @@
     _canDoubleTap = NO;
     _hoveringDyadmino.canFlip = NO;
     _doubleTapTime = 0.f;
+  }
+}
+
+-(void)updateForBoardSnapBack {
+  if (!_currentTouch) {
+    
+      // tweak with this number, maybe make it dynamic so that it "snaps" more
+    CGFloat thisDistance = 1.f;
+    
+    CGFloat lowestXBuffer = _boardField.lowestXPos + kDyadminoFaceWideRadius * 0.5;
+    if (_boardField.position.x < lowestXBuffer) {
+      _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
+      _boardField.homePosition = _boardField.position;
+    }
+    CGFloat lowestYBuffer = _boardField.lowestYPos + kDyadminoFaceRadius * 0.5;
+    if (_boardField.position.y < lowestYBuffer) {
+      _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y + thisDistance);
+      _boardField.homePosition = _boardField.position;
+    }
+    CGFloat highestXBuffer = _boardField.highestXPos - kDyadminoFaceWideRadius * 0.5;
+    if (_boardField.position.x > highestXBuffer) {
+      _boardField.position = CGPointMake(_boardField.position.x - thisDistance, _boardField.position.y);
+      _boardField.homePosition = _boardField.position;
+    }
+    CGFloat highestYBuffer = _boardField.highestYPos - kDyadminoFaceRadius * 0.5;
+    if (_boardField.position.y > highestYBuffer) {
+      _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
+      _boardField.homePosition = _boardField.position;
+    }
   }
 }
 
@@ -1002,7 +1006,7 @@
   }
 }
 
-#pragma mark - helper methods
+#pragma mark - touch helper methods
 
 -(void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
   [self touchesEnded:touches withEvent:event];
@@ -1012,6 +1016,8 @@
   CGPoint uiTouchLocation = [[touches anyObject] locationInView:self.view];
   return CGPointMake(uiTouchLocation.x, self.frame.size.height - uiTouchLocation.y);
 }
+
+#pragma mark - dyadmino helper methods
 
 -(void)determineCurrentSectionOfDyadmino:(Dyadmino *)dyadmino {
     // this the ONLY place that determines current section of dyadmino
@@ -1154,6 +1160,8 @@ if (!_swapMode && [dyadmino isOnBoard]) {
   }
 }
 
+#pragma mark - delegate methods
+
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino {
   if (self.ourGameEngine.dyadminoesOnBoard.count == 1 &&
       dyadmino == [self.ourGameEngine.dyadminoesOnBoard anyObject]) {
@@ -1166,18 +1174,7 @@ if (!_swapMode && [dyadmino isOnBoard]) {
 #pragma mark - debugging methods
 
 -(void)debugButtonPressed {
-//  NSString *hoveringString = [NSString stringWithFormat:@"hovering not touched %@", [_hoveringDyadmino logThisDyadmino]];
-//  NSString *recentRackString = [NSString stringWithFormat:@"recent rack %@", [_recentRackDyadmino logThisDyadmino]];
-//  NSString *currentString = [NSString stringWithFormat:@"current %@", [_currentlyTouchedDyadmino logThisDyadmino]];
-//  NSLog(@"%@, %@, %@", hoveringString, currentString, recentRackString);
-//  
-//  for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
-//    NSLog(@"%@ has homeNode %@, tempReturn %@, is child of %@, belongs in swap %i, and is at %.2f, %.2f and child of %@", dyadmino.name, dyadmino.homeNode.name, dyadmino.tempBoardNode.name, dyadmino.parent.name, dyadmino.belongsInSwap,
-//          dyadmino.position.x, dyadmino.position.y, dyadmino.parent.name);
-//  }
-//  
-//  NSLog(@"rack dyadmino on board is at %.2f, %.2f and child of %@", _recentRackDyadmino.position.x, _recentRackDyadmino.position.y, _recentRackDyadmino.parent.name);
-//  
+
   if (!_dyadminoesHidden) {
     for (Dyadmino *dyadmino in _boardField.children) {
       if ([dyadmino isKindOfClass:[Dyadmino class]])
@@ -1191,10 +1188,7 @@ if (!_swapMode && [dyadmino isOnBoard]) {
     }
     _dyadminoesHidden = NO;
   }
-  
-//  _boardField.position = _boardField.homePosition;
-//  _boardOffsetAfterTouch = CGPointZero;
-//  NSLog(@"")
+
   NSLog(@"number of dyadminoes on board is %i, number of occupied cells is %i", self.ourGameEngine.dyadminoesOnBoard.count, _boardField.occupiedCells.count);
   
   NSLog(@"touched dyadmino %@, recent rack dyadmino %@, hovering dyadmino %@", _touchedDyadmino.name, _recentRackDyadmino.name, _hoveringDyadmino.name);

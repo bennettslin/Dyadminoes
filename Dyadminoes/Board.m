@@ -64,7 +64,8 @@
 
       if (xHex >= self.cellsLeft && xHex <= self.cellsRight &&
           yHex <= self.cellsTop - (xHex / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f)) {
-        [self addCellWithXHex:xHex andYHex:yHex];
+        Cell *cell = [self addCellWithXHex:xHex andYHex:yHex];
+        [cell addSnapPointsToBoard];
       }
     }
   }
@@ -78,13 +79,12 @@
     // without checking to see if they're already in allCells
   
   Cell *cell = [[Cell alloc] initWithBoard:self
-                                     andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
-                                    andHexCoord:[self hexCoordFromX:xHex andY:yHex]];
+                                andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
+                               andHexCoord:[self hexCoordFromX:xHex andY:yHex]];
   cell.color = [SKColor orangeColor];
   cell.colorBlendFactor = 0.5f;
   cell.hidden = NO;
   [self addChild:cell];
-  [cell addSnapPointsToBoard];
   return cell;
 }
 
@@ -207,17 +207,15 @@
    
     of course, on iPad, these numbers may be different
     origin on iPhone 4-inch is 160, 298
+   
+   //  NSLog(@"cells top %i, right %i, bottom %i, left %i",
+   //        self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
+   //  NSLog(@"bounds is lowestY %.1f, lowestX %.1f, highestY %.1f, highestX %.1f",
+   //        self.lowestYPos, self.lowestXPos, self.highestYPos, self.highestXPos);
+   //  NSLog(@"origin is %f, %f", self.origin.x, self.origin.y);
+   //  NSLog(@"vert range is this number of cells %.1f", _cellsInVertRange);
+   //  NSLog(@"bottom range is this number of cells %.1f", _cellsInHorzRange);
    */
-
-//  NSLog(@"cells top %i, right %i, bottom %i, left %i",
-//        self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
-//  NSLog(@"bounds is lowestY %.1f, lowestX %.1f, highestY %.1f, highestX %.1f",
-//        self.lowestYPos, self.lowestXPos, self.highestYPos, self.highestXPos);
-//  NSLog(@"origin is %f, %f", self.origin.x, self.origin.y);
-//  NSLog(@"vert range is this number of cells %.1f", _cellsInVertRange);
-//  NSLog(@"bottom range is this number of cells %.1f", _cellsInHorzRange);
-
-
 }
 
 #pragma mark - distance methods
@@ -281,7 +279,6 @@
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint {
     // don't call if it's a rack node
   if ([snapPoint isBoardNode]) {
-  //  NSLog(@"dyadmino is %@, snapPoint is %@", dyadmino.name, snapPoint.name);
     
       // this gets the cells based on dyadmino orientation and board node
     Cell *bottomCell = snapPoint.myCell;
@@ -336,8 +333,10 @@
 
 -(Cell *)getCellWithHexCoord:(HexCoord)hexCoord {
   for (Cell *cell in self.children) {
-    if (cell.hexCoord.x == hexCoord.x && cell.hexCoord.y == hexCoord.y) {
-      return cell;
+    if ([cell isKindOfClass:[Cell class]]) {
+      if (cell.hexCoord.x == hexCoord.x && cell.hexCoord.y == hexCoord.y) {
+        return cell;
+      }
     }
   }
   return nil;
