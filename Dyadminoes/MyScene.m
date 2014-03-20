@@ -642,8 +642,12 @@
     // this makes nil tempBoardNode
   [dyadmino goHomeByPoppingIn:poppingIn];
   
+    // make nil all pointers
   if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
     _recentRackDyadmino = nil;
+  }
+  if (dyadmino == _hoveringDyadmino) {
+    _hoveringDyadmino = nil;
   }
 }
 
@@ -672,8 +676,8 @@
     if (_swapMode) {
       [self cancelSwappedDyadminoes];
       [self toggleSwapField];
-    } else if (_recentRackDyadmino) {
-      [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES];
+    } else if (_hoveringDyadmino) {
+      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES];
     }
     
   } else if (_buttonPressed == _topBar.doneTurnButton) {
@@ -849,10 +853,10 @@
     }
   }
   
+  [self updateForButtons];
+}
 
-    // handle buttons
-    // TODO: if button enabling and disabling are animated, change this
-  
+-(void)updateForButtons {
     // while *not* in swap mode...
   if (!_swapMode) {
     [_topBar disableButton:_topBar.cancelButton];
@@ -860,11 +864,15 @@
       // play button is enabled when there's a rack dyadmino on board
       // and no dyadmino is touched or hovering
     if (_recentRackDyadmino && !_touchedDyadmino && !_hoveringDyadmino) {
-      [_topBar enableButton:_topBar.cancelButton];
       [_topBar enableButton:_topBar.playDyadminoButton];
     } else {
-      [_topBar disableButton:_topBar.cancelButton];
       [_topBar disableButton:_topBar.playDyadminoButton];
+    }
+    
+    if (_recentRackDyadmino || _hoveringDyadmino) {
+      [_topBar enableButton:_topBar.cancelButton];
+    } else {
+      [_topBar disableButton:_topBar.cancelButton];
     }
     
       // done button is enabled only when no recent rack dyadmino
@@ -1187,6 +1195,8 @@ if (!_swapMode && [dyadmino isOnBoard]) {
 //  _boardOffsetAfterTouch = CGPointZero;
 //  NSLog(@"")
   NSLog(@"number of dyadminoes on board is %i, number of occupied cells is %i", self.ourGameEngine.dyadminoesOnBoard.count, _boardField.occupiedCells.count);
+  
+  NSLog(@"touched dyadmino %@, recent rack dyadmino %@, hovering dyadmino %@", _touchedDyadmino.name, _recentRackDyadmino.name, _hoveringDyadmino.name);
   
 }
 

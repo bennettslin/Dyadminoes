@@ -379,8 +379,8 @@
   NSInteger xHex = dyadminoCell.hexCoord.x;
   NSInteger yHex = dyadminoCell.hexCoord.y;
     // this includes cell and its eight surrounding cells (thinking in terms of square grid)
-  for (int i = xHex - 1; i <= xHex + 1; i++) {
-    for (int j = yHex - 1; j <= yHex + 1; j++) {
+  for (NSInteger i = xHex - 1; i <= xHex + 1; i++) {
+    for (NSInteger j = yHex - 1; j <= yHex + 1; j++) {
         // this excludes cell itself and the two far cells
       if (!(i == xHex && j == yHex) &&
           !(i == xHex - 1 && j == yHex - 1) &&
