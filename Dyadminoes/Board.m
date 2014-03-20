@@ -272,9 +272,12 @@
       [cell updatePCLabel];
     }
   }
+  NSLog(@"cells placed on board");
 }
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint {
+  
+  NSLog(@"dyadmino is %@, snapPoint is %@", dyadmino.name, snapPoint.name);
   
     // this gets the cells based on dyadmino orientation and board node
   Cell *bottomCell = snapPoint.myCell;
@@ -286,10 +289,14 @@
   for (int i = 0; i < 2; i++) {
     Cell *cell = cells[i];
 
+    NSLog(@"cell.myDyadmino is %@", cell.myDyadmino.name);
+    
       // only remove if cell dyadmino is dyadmino
     if (cell.myDyadmino == dyadmino) {
       cell.myDyadmino = nil;
       cell.myPC = -1;
+      
+      NSLog(@"cell.myDyadmino is %@", cell.myDyadmino.name);
       
       [self.occupiedCells removeObject:cell];
       
@@ -297,6 +304,7 @@
       [cell updatePCLabel];
     }
   }
+  NSLog(@"cells removed from board");
 }
 
 -(HexCoord)getHexCoordOfOtherCellGivenDyadmino:(Dyadmino *)dyadmino andBoardNode:(SnapPoint *)snapPoint {
@@ -334,7 +342,7 @@
 
 -(PhysicalPlacementResult)validatePlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint {
     // if it's the first dyadmino, placement anywhere is fine
-  if (self.occupiedCells.count == 0) {
+  if (self.occupiedCells.count <= 2) {
     return kNoError;
   }
 

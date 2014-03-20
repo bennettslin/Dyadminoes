@@ -10,6 +10,4 @@
 
 @interface Button : SKSpriteNode
 
-@property (nonatomic) BOOL enabled;
-
 @end

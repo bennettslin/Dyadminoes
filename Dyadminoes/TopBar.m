@@ -36,7 +36,7 @@
   self.togglePCModeButton.name = @"togglePCButton";
   self.togglePCModeButton.position = CGPointMake(buttonWidth, buttonYPosition);
   self.togglePCModeButton.zPosition = kZPositionTopBarButton;
-  [self addChild:self.togglePCModeButton];
+//  [self addChild:self.togglePCModeButton];
   [self.buttonNodes addObject:self.togglePCModeButton];
   [self enableButton:self.togglePCModeButton];
   
@@ -44,7 +44,7 @@
   self.swapButton.name = @"swapButton";
   self.swapButton.position = CGPointMake(buttonWidth * 2, buttonYPosition);
   self.swapButton.zPosition = kZPositionTopBarButton;
-  [self addChild:self.swapButton];
+//  [self addChild:self.swapButton];
   [self.buttonNodes addObject:self.swapButton];
   [self enableButton:self.swapButton];
   
@@ -52,7 +52,7 @@
   self.cancelButton.name = @"cancelButton";
   self.cancelButton.position = CGPointMake(buttonWidth * 3, buttonYPosition);
   self.cancelButton.zPosition = kZPositionTopBarButton;
-  [self addChild:self.cancelButton];
+//  [self addChild:self.cancelButton];
   [self.buttonNodes addObject:self.cancelButton];
   [self disableButton:_cancelButton];
   
@@ -61,7 +61,7 @@
   self.playDyadminoButton.name = @"playDyadminoButton";
   self.playDyadminoButton.position = CGPointMake(buttonWidth * 4, buttonYPosition);
   self.playDyadminoButton.zPosition = kZPositionTopBarButton;
-  [self addChild:self.playDyadminoButton];
+//  [self addChild:self.playDyadminoButton];
   [self.buttonNodes addObject:self.playDyadminoButton];
   [self disableButton:_playDyadminoButton];
   
@@ -70,7 +70,7 @@
   self.doneTurnButton.name = @"doneTurnButton";
   self.doneTurnButton.position = CGPointMake(buttonWidth * 5, buttonYPosition);
   self.doneTurnButton.zPosition = kZPositionTopBarButton;
-  [self addChild:self.doneTurnButton];
+//  [self addChild:self.doneTurnButton];
   [self.buttonNodes addObject:self.doneTurnButton];
   [self enableButton:self.doneTurnButton];
   
@@ -78,7 +78,7 @@
   self.logButton.name = @"logButton";
   self.logButton.position = CGPointMake(buttonWidth * 6, buttonYPosition);
   self.logButton.zPosition = kZPositionTopBarButton;
-  [self addChild:self.logButton];
+//  [self addChild:self.logButton];
   [_buttonNodes addObject:self.logButton];
   [self enableButton:self.logButton];
 }
@@ -113,14 +113,17 @@
 }
 
 -(void)enableButton:(Button *)button {
-    // FIXME: make this better
   button.hidden = NO;
-  button.enabled = YES;
+  if (!button.parent) {
+    [self addChild:button];
+  }
 }
 
 -(void)disableButton:(Button *)button {
   button.hidden = YES;
-  button.enabled = NO;
+  if (button.parent) {
+    [button removeFromParent];
+  }
 }
 
 @end
