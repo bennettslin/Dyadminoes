@@ -261,8 +261,6 @@
     // move these into a completion block for animation
   [self hideAllPivotGuides];
 
-  NSLog(@"go home by popping in");
-  
   if (poppingIn) {
     [self animatePopBackIntoRackNode];
     
@@ -444,12 +442,10 @@
   } else if ([self isOnBoard]) {
     finishAction = [SKAction runBlock:^{
       self.isRotating = NO;
-//      self.tempReturnOrientation = self.orientation;
-//      NSLog(@"this is being called");
-//      [self.delegate determineCurrentSectionOfDyadmino:self];
       [self keepHovering];
-      [self.delegate assignTouchEndedPointerToDyadmino:self];
-      [self.delegate handleTouchEndOfDyadmino:self];
+      NSLog(@"animate flip, now prepare for hover");
+      NSLog(@"delegate is %@", self.delegate);
+      [self.delegate prepareForHoverThisDyadmino:self];
       self.canFlip = NO;
     }];
   }

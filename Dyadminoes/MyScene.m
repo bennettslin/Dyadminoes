@@ -20,17 +20,8 @@
 #import "Label.h"
 
 @interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate>
+
 @end
-
-  // after do board coordinates
-  // TODO: board nodes expand outward, don't establish them at first
-
-  // easy fixes
-  // FIXME: zPosition is based on parent node, add sprites to board when in play.
-  // (otherwise, a hovering board dyadmino might still be below a resting rack dyadmino)
-
-  // leave alone for now until better information about how Game Center works
-  // TODO: make so that player, not dyadmino, knows about pcMode
 
 @implementation MyScene {
   
@@ -124,30 +115,30 @@
   _boardCover.position = _boardField.homePosition;
   _boardCover.zPosition = kZPositionBoardCoverHidden;
   _boardCover.alpha = kBoardCoverAlpha;
-  [self addChild:_boardCover];
   _boardCover.hidden = YES;
+  [self addChild:_boardCover];
 }
 
 -(void)populateBoardWithCells {
-  
-    // for this method, the only need for the board dyadminoes at this point
-    // is to determine the board's cells ranges given the dyadmino board positions
+    // this method only needs the board dyadminoes to determine the board's cells ranges
     /// seems to work so far with one dyadmino, will have to keep testing with more
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.ourGameEngine.dyadminoesOnBoard];
 }
 
 -(void)populateBoardWithDyadminoes {
   for (Dyadmino *dyadmino in self.ourGameEngine.dyadminoesOnBoard) {
+    dyadmino.delegate = self;
     
-      // handle first dyadmino, which doesn't have a boardNode
+      // this is for the first dyadmino, which doesn't have a boardNode
     if (!dyadmino.homeNode) {
       for (SnapPoint *snapPoint in _boardField.snapPointsTwelveOClock) {
         if ( snapPoint.myCell.hexCoord.x == 0 && snapPoint.myCell.hexCoord.y == 0) {
           dyadmino.homeNode = snapPoint;
-          dyadmino.delegate = self;
         }
       }
     }
+    
+      //------------------------------------------------------------------------
     
       // update cells
     [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode];
@@ -159,7 +150,6 @@
 }
 
 -(void)layoutSwapField {
-  
     // initial instantiation of swap field sprite
   _swapField = [[Rack alloc] initWithBoard:_boardField
                                  andColour:kGold
@@ -202,6 +192,10 @@
   }
   [_rackField layoutOrRefreshNodesWithCount:self.myPlayer.dyadminoesInRack.count];
   [_rackField repositionDyadminoes:self.myPlayer.dyadminoesInRack];
+  
+  for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
+    dyadmino.delegate = self;
+  }
 }
 
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation {
@@ -211,6 +205,7 @@
 #pragma mark - touch methods
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    /// 1. first, easy checks to determine whether to even register the touch
   
     // this ensures no more than one touch at a time
   if (!_currentTouch) {
@@ -224,22 +219,16 @@
     return;
   }
   
+    //--------------------------------------------------------------------------
+    /// 2. next, register the touch and decide what to do with it
+  
     // get touch location and touched node
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
   
-//  NSLog(@"began touch location is at %.1f, %.1f", _beganTouchLocation.x, _beganTouchLocation.y);
-  
-    //test
-//  NSLog(@"touchNode is %@ and has parent %@", _touchNode.name, _touchNode.parent.name);
-//  NSLog(@"touchNode description is %@", _touchNode.description);
-//  if ([_touchNode.name isEqualToString:@"cell"]) {
-//    Cell *cell = (Cell *)_touchNode;
-//    NSLog(@"cell x is %i, %i", cell.boardXY.x, cell.boardXY.y);
-//  }
-  
     //--------------------------------------------------------------------------
+    /// 3a. board about to be moved
   
     // if pivot not in progress, or pivot in progress but dyadmino is not close enough
     // then the board is touched and being moved
@@ -253,6 +242,7 @@
   }
   
     //--------------------------------------------------------------------------
+    /// 3b. button pressed
   
     // if it's a button, take care of it when touch ended
   if ([_topBar.allButtons containsObject:_touchNode]) {
@@ -263,24 +253,25 @@
   }
   
     //--------------------------------------------------------------------------
+    /// 3c. dyadmino touched
   
-    // if it's a dyadmino, dyadmino will not be nil
-  Dyadmino *dyadmino = [self selectDyadminoFromTouchNode:_touchNode andTouchPoint:_currentTouchLocation];
+  Dyadmino *dyadmino = [self selectDyadminoFromTouchNode:_touchNode
+                                           andTouchPoint:_currentTouchLocation];
   
-    // otherwise, if it's a dyadmino
   if (dyadmino && !dyadmino.isRotating && !_touchedDyadmino) {
     [self beginTouchOrPivotOfDyadmino:dyadmino];
   }
 }
 
 -(void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+    /// 1. easy checks to determine whether to register the touch moved
   
     // this ensures no more than one touch at a time
   UITouch *thisTouch = [touches anyObject];
   if (thisTouch != _currentTouch) {
     return;
   }
-
+  
     // if the touch started on a button, do nothing and return
   if (_buttonPressed) {
     SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
@@ -294,14 +285,22 @@
     }
   }
   
-    // for both board and dyadmino movement
+    // register no touches moved while swap field is being toggled
+  if (_swapFieldActionInProgress) {
+    return;
+  }
+  
+    //--------------------------------------------------------------------------
+    /// 2. next, update the touch location
+
   _currentTouchLocation = [self findTouchLocationFromTouches:touches];
+  
+    //--------------------------------------------------------------------------
+    /// 3a. board is being moved
   
     // if board is being moved, handle and return
   if (_boardBeingMoved) {
-
     [self moveBoard];
-    
       //testing purposes
 //    NSLog(@"board wants to be %.1f, %.1f", newPosition.x, newPosition.y);
 //    NSLog(@"bounds must be within top %.1f, right %.1f, bottom %.1f, left %.1f",
@@ -313,40 +312,17 @@
 //    NSLog(@"boardField position x is %.1f, lowest x possible is %.1f", _boardField.position.x, _boardField.lowestXPos);
     return;
   }
-
-    // nothing happens if there is no current dyadmino
-  if (!_touchedDyadmino) {
-    return;
-  }
   
-  if (_swapFieldActionInProgress) {
+    // check this *after* checking board move
+    if (!_touchedDyadmino) {
     return;
   }
   
     //--------------------------------------------------------------------------
-  
-    // continue to reset hover count
-  if ([_touchedDyadmino isHovering]) {
-    [_touchedDyadmino keepHovering];
-  }
-  
-    // this is the only place that sets dyadmino highlight to YES
-    // dyadmino highlight is reset when sent home or finalised
-  if ([_touchedDyadmino belongsInRack] && !_swapMode && !_pivotInProgress) {
-      CGPoint dyadminoOffsetPosition = [self addToThisPoint:_currentTouchLocation thisPoint:_touchOffsetVector];
-      [_touchedDyadmino adjustHighlightGivenDyadminoOffsetPosition:dyadminoOffsetPosition];
-  }
-  
-    //--------------------------------------------------------------------------
+    /// 3b part i: dyadmino is being moved, take care of the prepwork
   
     // update currently touched dyadmino's section
   [self determineCurrentSectionOfDyadmino:_touchedDyadmino];
-
-    // if we're currently pivoting, just rotate and return
-  if (_pivotInProgress) {
-    [self handlePivotOfDyadmino:_hoveringDyadmino];
-    return;
-  }
   
     // if it moved at all, it can no longer flip
   _touchedDyadmino.canFlip = NO;
@@ -357,13 +333,36 @@
     [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES];
   }
   
+    // continue to reset hover count
+  if ([_touchedDyadmino isHovering]) {
+    [_touchedDyadmino keepHovering];
+  }
+  
+    // take care of highlighting as it moves between rack and dyadmino
+  if ([_touchedDyadmino belongsInRack] && !_swapMode && !_pivotInProgress) {
+    /*
+      this is the only place that sets dyadmino highlight to YES
+      dyadmino highlight is reset when sent home or finalised
+*/
+      CGPoint dyadminoOffsetPosition = [self addToThisPoint:_currentTouchLocation thisPoint:_touchOffsetVector];
+      [_touchedDyadmino adjustHighlightGivenDyadminoOffsetPosition:dyadminoOffsetPosition];
+  }
+  
     //--------------------------------------------------------------------------
+    /// 3b part ii: pivot or move
+  
+    // if we're currently pivoting, just rotate and return
+  if (_pivotInProgress) {
+    [self handlePivotOfDyadmino:_hoveringDyadmino];
+    return;
+  }
   
     // move the dyadmino!
   _touchedDyadmino.position =
     [self getOffsetForTouchPoint:_currentTouchLocation forDyadmino:_touchedDyadmino];
   
   //--------------------------------------------------------------------------
+  /// 3c. dyadmino is just being exchanged in rack
   
     // if it's a rack dyadmino, then while movement is within rack, rearrange dyadminoes
   if (([_touchedDyadmino belongsInRack] && [_touchedDyadmino isInRack]) ||
@@ -378,6 +377,7 @@
 }
 
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+    /// 1. first check whether to even register the touch ended
 
     // this ensures no more than one touch at a time
   UITouch *thisTouch = [touches anyObject];
@@ -389,6 +389,9 @@
   if (_swapFieldActionInProgress) {
     return;
   }
+  
+    //--------------------------------------------------------------------------
+    /// 2a and b. handle button pressed or board moved
   
     // handle button that was pressed, ensure that touch is still on button when it ends
   if (_buttonPressed) {
@@ -407,11 +410,12 @@
     _boardField.homePosition = _boardField.position;
   }
   
-    // nothing happens if there is no current dyadmino
+    // check this *after* checking board move
   if (!_touchedDyadmino) {
     return;
   }
     //--------------------------------------------------------------------------
+    /// 2c. handle touched dyadmino
   
   [self determineCurrentSectionOfDyadmino:_touchedDyadmino];
   Dyadmino *dyadmino = [self assignTouchEndedPointerToDyadmino:_touchedDyadmino];
@@ -455,6 +459,13 @@
 
 -(void)beginTouchOrPivotOfDyadmino:(Dyadmino *)dyadmino {
   [self updateCellsForRemovedDyadmino:dyadmino];
+  
+    // board dyadmino sends recent rack home upon touch
+    // rack dyadmino will do so upon move out of rack
+  if ([dyadmino isOnBoard] && [dyadmino belongsOnBoard] && dyadmino != _hoveringDyadmino) {
+    NSLog(@" is this what's being called");
+    [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES];
+  }
   
     // record tempReturnOrientation only if it's settled and not hovering
   if (dyadmino != _hoveringDyadmino) {
@@ -593,6 +604,7 @@
   dyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:dyadmino];
 
     // update cells for placement
+  NSLog(@"update cells for placed dyadmino");
   [self updateCellsForPlacedDyadmino:dyadmino];
   
     // start hovering

@@ -13,9 +13,7 @@
 
 @protocol DyadminoDelegate <NSObject>
 
--(void)determineCurrentSectionOfDyadmino:(Dyadmino *)dyadmino;
--(Dyadmino *)assignTouchEndedPointerToDyadmino:(Dyadmino *)dyadmino;
--(void)handleTouchEndOfDyadmino:(Dyadmino *)dyadmino;
+-(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
 
 @end
 
