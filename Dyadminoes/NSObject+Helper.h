@@ -13,7 +13,7 @@
 #define kRotateWait 0.05f
 #define kConstantTime 0.15f
 #define kConstantSpeed 0.002f
-#define kAnimateHoverTime 0.35f
+#define kAnimateHoverTime 0.4f
 #define kDoubleTapTime 0.25f
 
   // dyadmino size constants

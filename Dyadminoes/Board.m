@@ -58,13 +58,10 @@
     
       // assign pivot guides
     self.prePivotGuide = prePivotGuide;
-    self.prePivotGuide.zPosition = kZPositionBoardRestingDyadmino + 1000.f; // add 1000 just for debugging purposes
     self.prePivotGuide.name = @"prePivotGuide";
     self.pivotRotateGuide = pivotRotateGuide;
-    self.pivotRotateGuide.zPosition = kZPositionBoardRestingDyadmino + 1000.f;
     self.pivotRotateGuide.name = @"pivotRotateGuide";
     self.pivotAroundGuide = pivotAroundGuide;
-    self.pivotAroundGuide.zPosition = kZPositionBoardRestingDyadmino + 1000.f;
     self.pivotAroundGuide.name = @"pivotAroundGuide";
   }
   return self;
@@ -439,6 +436,7 @@
   
   SKNode *pivotGuide = [SKNode new];
   pivotGuide.name = name;
+  pivotGuide.zPosition = kZPositionHoveredDyadmino - 1.f; // for now
   
     // this will have to change substantially...
   NSUInteger initialNumber;
@@ -485,6 +483,15 @@
     } else {
       pivotGuide.position = dyadmino.pivotAroundPoint;
     }
+    
+    CGFloat degree = (dyadmino.orientation) * -60.f;
+    while (degree > 360.f) {
+      degree -= 360.f;
+    }
+    
+    NSLog(@"show pivot guide %@", pivotGuide.name);
+    pivotGuide.zRotation = [self getRadiansFromDegree:degree];
+    
     [self addChild:pivotGuide];
     pivotGuide.hidden = NO;
   }
