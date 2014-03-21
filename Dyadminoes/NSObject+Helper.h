@@ -47,7 +47,7 @@
 
 #define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
 #define kMaxDistanceForPivot kDyadminoFaceRadius * 5.f
-#define kPivotGuideAlpha 0.4f
+#define kPivotGuideAlpha 0.7f
 
 #define kGapForHighlight 30.f
 

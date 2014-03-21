@@ -39,6 +39,13 @@
 
 @property (strong, nonatomic) NSMutableSet *occupiedCells;
 
+  // pivot properties
+
+@property (nonatomic) PivotOnPC pivotOnPC;
+@property (strong, nonatomic) SKNode *prePivotGuide;
+@property (strong, nonatomic) SKNode *pivotRotateGuide;
+@property (strong, nonatomic) SKNode *pivotAroundGuide;
+
   //----------------------------------------------------------------------------
   //----------------------------------------------------------------------------
 
@@ -49,6 +56,17 @@
       andZPosition:(CGFloat)zPosition;
 
 -(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSMutableSet *)boardDyadminoes;
+
+#pragma mark - pivot guide methods
+
+-(void)hidePivotGuideAndShowPrePivotGuideForDyadmino:(Dyadmino *)dyadmino;
+-(void)hideAllPivotGuides;
+
+#pragma mark - pivot methods
+
+-(SKNode *)determineCurrentPivotGuide;
+-(PivotOnPC)determinePivotOnPCForDyadmino:(Dyadmino *)dyadmino;
+-(void)pivotGuidesBasedOnTouchLocation:(CGPoint)touchLocation forDyadmino:(Dyadmino *)dyadmino;
 
 #pragma mark - distance methods
 

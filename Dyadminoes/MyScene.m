@@ -226,23 +226,10 @@
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
-  
+  NSLog(@"touched node is %@", _touchNode.name);
+
     //--------------------------------------------------------------------------
-    /// 3a. board about to be moved
-  
-    // if pivot not in progress, or pivot in progress but dyadmino is not close enough
-    // then the board is touched and being moved
-  if (!_pivotInProgress || (_pivotInProgress && !_touchedDyadmino)) {
-    if (_touchNode == _boardField || _touchNode == _boardCover ||
-        (_touchNode.parent == _boardField && ![_touchNode isKindOfClass:[Dyadmino class]]) ||
-        [_touchNode.parent isKindOfClass:[Cell class]]) { // this one is necessary only for testing purposes
-      _boardBeingMoved = YES;
-      return;
-    }
-  }
-  
-    //--------------------------------------------------------------------------
-    /// 3b. button pressed
+    /// 3a. button pressed
   
     // if it's a button, take care of it when touch ended
   if ([_topBar.allButtons containsObject:_touchNode]) {
@@ -253,13 +240,28 @@
   }
   
     //--------------------------------------------------------------------------
-    /// 3c. dyadmino touched
+    /// 3b. dyadmino touched
   
   Dyadmino *dyadmino = [self selectDyadminoFromTouchNode:_touchNode
                                            andTouchPoint:_currentTouchLocation];
   
   if (dyadmino && !dyadmino.isRotating && !_touchedDyadmino) {
+    _touchedDyadmino = dyadmino;
     [self beginTouchOrPivotOfDyadmino:dyadmino];
+  }
+  
+    //--------------------------------------------------------------------------
+    /// 3c. board about to be moved
+  
+    // if pivot not in progress, or pivot in progress but dyadmino is not close enough
+    // then the board is touched and being moved
+  if (!_pivotInProgress || (_pivotInProgress && !_touchedDyadmino)) {
+    if (_touchNode == _boardField || _touchNode == _boardCover ||
+        (_touchNode.parent == _boardField && ![_touchNode isKindOfClass:[Dyadmino class]]) ||
+        [_touchNode.parent isKindOfClass:[Cell class]]) { // this one is necessary only for testing purposes
+      _boardBeingMoved = YES;
+      return;
+    }
   }
 }
 
@@ -343,7 +345,7 @@
     /*
       this is the only place that sets dyadmino highlight to YES
       dyadmino highlight is reset when sent home or finalised
-*/
+     */
       CGPoint dyadminoOffsetPosition = [self addToThisPoint:_currentTouchLocation thisPoint:_touchOffsetVector];
       [_touchedDyadmino adjustHighlightGivenDyadminoOffsetPosition:dyadminoOffsetPosition];
   }
@@ -355,6 +357,12 @@
   if (_pivotInProgress) {
     [self handlePivotOfDyadmino:_hoveringDyadmino];
     return;
+  }
+  
+  
+    // this ensures that pivot guides are not hidden if rack exchange
+  if (_touchedDyadmino == _hoveringDyadmino && !_touchedDyadmino.isRotating) {
+    [_boardField hideAllPivotGuides];
   }
   
     // move the dyadmino!
@@ -437,10 +445,15 @@
   CGFloat newX = newPosition.x;
   CGFloat newY = newPosition.y;
   
+  CGFloat swapBuffer = 0.f;
+  if (_swapMode) {
+    swapBuffer = kRackHeight; // the height of the swap field
+  }
+  
   if (newPosition.y < _boardField.lowestYPos) {
     newY = _boardField.lowestYPos;
-  } else if (newPosition.y > _boardField.highestYPos) {
-    newY = _boardField.highestYPos;
+  } else if (newPosition.y > _boardField.highestYPos + swapBuffer) {
+    newY = _boardField.highestYPos + swapBuffer;
   }
   
   if (newPosition.x < _boardField.lowestXPos) {
@@ -463,7 +476,6 @@
     // board dyadmino sends recent rack home upon touch
     // rack dyadmino will do so upon move out of rack
   if ([dyadmino isOnBoard] && [dyadmino belongsOnBoard] && dyadmino != _hoveringDyadmino) {
-    NSLog(@" is this what's being called");
     [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES];
   }
   
@@ -473,8 +485,6 @@
   }
   
   [dyadmino startTouchThenHoverResize];
-  
-  _touchedDyadmino = dyadmino;
   
   [self getReadyToMoveCurrentDyadmino:_touchedDyadmino];
   
@@ -496,12 +506,13 @@
       [_touchedDyadmino animateFlip];
     }
   }
+
 }
 
 -(void)getReadyToMoveCurrentDyadmino:(Dyadmino *)dyadmino {
   [self determineCurrentSectionOfDyadmino:dyadmino];
   
-  if (dyadmino.parent == _rackField) {
+  if ([dyadmino isInRack]) {
     _touchOffsetVector = [self subtractFromThisPoint:_beganTouchLocation thisPoint:dyadmino.position];
   } else {
     CGPoint boardOffsetPoint = [self addToThisPoint:dyadmino.position thisPoint:_boardField.position];
@@ -574,17 +585,23 @@
   CGPoint touchBoardOffset = [_boardField getOffsetFromPoint:_beganTouchLocation];
   dyadmino.initialPivotAngle = [self findAngleInDegreesFromThisPoint:touchBoardOffset
                                                          toThisPoint:dyadmino.position];
-  [dyadmino determinePivotOnPC];
-  [dyadmino determinePivotAroundPoint];
   
   dyadmino.prePivotDyadminoOrientation = dyadmino.orientation;
   dyadmino.initialPivotPosition = dyadmino.position;
+  [_boardField determinePivotOnPCForDyadmino:dyadmino];
+  [dyadmino determinePivotAroundPointBasedOnPivotOnPC:_boardField.pivotOnPC];
 }
 
 -(void)handlePivotOfDyadmino:(Dyadmino *)dyadmino {
   
   CGPoint touchBoardOffset = [_boardField getOffsetFromPoint:_currentTouchLocation];
-  [dyadmino pivotBasedOnTouchLocation:touchBoardOffset];
+
+  SKNode *pivotGuide = [_boardField determineCurrentPivotGuide];
+  
+  NSLog(@"pivot guide position is %.1f, %.1f, dyadmino pivot position is %.1f, %.1f", pivotGuide.position.x, pivotGuide.position.y, dyadmino.pivotAroundPoint.x, dyadmino.pivotAroundPoint.y);
+  
+  [_boardField pivotGuidesBasedOnTouchLocation:touchBoardOffset forDyadmino:dyadmino];
+  [dyadmino pivotBasedOnTouchLocation:touchBoardOffset andPivotOnPC:_boardField.pivotOnPC];
 }
 
 -(Dyadmino *)assignTouchEndedPointerToDyadmino:(Dyadmino *)dyadmino {
@@ -610,6 +627,7 @@
     // start hovering
   [dyadmino removeActionsAndEstablishNotRotating];
   [dyadmino startHovering];
+  [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
 }
 
 -(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingIn:(BOOL)poppingIn {
@@ -626,6 +644,11 @@
   [dyadmino endTouchThenHoverResize];
     // this makes nil tempBoardNode
   [dyadmino goHomeByPoppingIn:poppingIn];
+
+    // this ensures that pivot guide doesn't disappear if rack exchange
+  if (dyadmino == _hoveringDyadmino) {
+    [_boardField hideAllPivotGuides];
+  }
   
     // make nil all pointers
   if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
@@ -713,8 +736,12 @@
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
     [_swapField runAction:sequenceAction];
-    SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y - kRackHeight duration:kConstantTime];
-    [_boardField runAction:moveBoardAction];
+    
+    if (_boardField.position.y > _boardField.highestYPos) {
+      CGFloat swapBuffer = _boardField.position.y - _boardField.highestYPos;
+      SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y - swapBuffer duration:kConstantTime];
+      [_boardField runAction:moveBoardAction];
+    }
     
   } else { // swap mode off, turn on
     _swapFieldActionInProgress = YES;
@@ -832,6 +859,13 @@
   [self updateForBoardSnapBack];
   
   [self updateForButtons];
+  
+    // test
+//  if ([_hoveringDyadmino isHovering]) {
+//    [_topBar updateLabelNamed:@"log" withText:@"dyadmino is hovering"];
+//  } else {
+//    [_topBar updateLabelNamed:@"log" withText:@"dyadmino is not hovering"];
+//  }
 }
 
 -(void)updateForButtons {
@@ -898,6 +932,11 @@
       // tweak with this number, maybe make it dynamic so that it "snaps" more
     CGFloat thisDistance = 1.f;
     
+    CGFloat swapBuffer = 0.f;
+    if (_swapMode) {
+      swapBuffer = kRackHeight; // the height of the swap field
+    }
+    
     CGFloat lowestXBuffer = _boardField.lowestXPos + kDyadminoFaceWideRadius * 0.5;
     if (_boardField.position.x < lowestXBuffer) {
       _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
@@ -914,7 +953,7 @@
       _boardField.homePosition = _boardField.position;
     }
     CGFloat highestYBuffer = _boardField.highestYPos - kDyadminoFaceRadius * 0.5;
-    if (_boardField.position.y > highestYBuffer) {
+    if (_boardField.position.y > highestYBuffer + swapBuffer) {
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
       _boardField.homePosition = _boardField.position;
     }
@@ -962,7 +1001,7 @@
           // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
         dyadmino.homeNode = dyadmino.tempBoardNode;
       }
-      
+      [_boardField hideAllPivotGuides];
       [dyadmino animateEaseIntoNodeAfterHover];
       _hoveringDyadmino = nil;
      
@@ -1076,6 +1115,7 @@
 
     // if we're in hovering mode...
   if ([_hoveringDyadmino isHovering]) {
+    NSLog(@"we're in hovering mode");
     
       // accommodate if it's on board
     CGPoint touchBoardOffset = [_boardField getOffsetFromPoint:touchPoint];
@@ -1083,19 +1123,21 @@
       // if touch point is close enough, just rotate
     if ([self getDistanceFromThisPoint:touchBoardOffset toThisPoint:_hoveringDyadmino.position] <
         kDistanceForTouchingHoveringDyadmino) {
-//      NSLog(@"hovering, not touched, so just rotate");
+      NSLog(@"hovering, not touched, so just rotate");
       return _hoveringDyadmino;
  
         // otherwise, we're pivoting, so establish that
     } else if ([self getDistanceFromThisPoint:touchBoardOffset toThisPoint:_hoveringDyadmino.position] <
             kMaxDistanceForPivot) {
-//      NSLog(@"establish pivot in progress");
+      NSLog(@"establish pivot in progress");
       _pivotInProgress = YES;
       _hoveringDyadmino.canFlip = NO;
       return _hoveringDyadmino;
     }
 //    NSLog(@"board moved");
   }
+  
+  NSLog(@"we're NOT in hovering mode");
     //--------------------------------------------------------------------------
   
     // otherwise, first restriction is that the node being touched is the dyadmino

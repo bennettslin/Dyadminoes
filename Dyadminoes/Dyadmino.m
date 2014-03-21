@@ -12,7 +12,7 @@
 @implementation Dyadmino {
   BOOL _alreadyAddedChildren;
   CGSize _touchSize;
-  PivotOnPC _pivotOnPC;
+//  PivotOnPC _pivotOnPC;
 }
 
 #pragma mark - init and layout methods
@@ -180,23 +180,6 @@
   [self selectAndPositionSprites];
 }
 
--(void)orientBasedOnSextantChange:(CGFloat)sextantChange {
-  for (NSUInteger i = 0; i < 12; i++) {
-    if (sextantChange >= 0.f + i && sextantChange < 1.f + i) {
-      NSUInteger dyadminoOrientationShouldBe = (self.prePivotDyadminoOrientation + i) % 6;
-      if (self.orientation == dyadminoOrientationShouldBe) {
-        return;
-      } else {
-        self.orientation = dyadminoOrientationShouldBe;
-        
-          // or else put this in an animation
-        [self selectAndPositionSprites];
-        return;
-      }
-    }
-  }
-}
-
 -(CGPoint)getHomeNodePosition {
   if (self.belongsInSwap) {
     return [self addToThisPoint:self.homeNode.position
@@ -225,7 +208,6 @@
     // starting from no pivot guides
   
 //  NSLog(@"start hovering?!");
-  [self hidePivotGuideAndShowPrePivotGuide];
   self.hoveringStatus = kDyadminoHovering;
 }
 
@@ -259,7 +241,6 @@
 
 -(void)goHomeByPoppingIn:(BOOL)poppingIn {
     // move these into a completion block for animation
-  [self hideAllPivotGuides];
 
   if (poppingIn) {
     [self animatePopBackIntoRackNode];
@@ -294,7 +275,52 @@
 
 #pragma mark - pivot methods
 
--(void)pivotBasedOnTouchLocation:(CGPoint)touchLocation {
+-(CGPoint)determinePivotAroundPointBasedOnPivotOnPC:(PivotOnPC)pivotOnPC {
+  
+    // if it's pivoting around center, then it's just the dyadmino position
+  if (pivotOnPC == kPivotCentre) {
+    self.pivotAroundPoint = self.position;
+    
+      // otherwise it's one of the pc faces
+  } else {
+    CGPoint pivotOffset;
+    CGFloat yVertical = kDyadminoFaceRadius * kDyadminoResizedFactor;
+    CGFloat xSlant = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * kDyadminoResizedFactor;
+    CGFloat ySlant = kDyadminoFaceRadius * 0.5 * kDyadminoResizedFactor;
+    
+      // if pc2, pivot orientation is offset
+    DyadminoOrientation pivotOrientation = self.prePivotDyadminoOrientation;
+    if (pivotOnPC == kPivotOnPC2) {
+      pivotOrientation = 3 + pivotOrientation;
+    }
+    pivotOrientation = pivotOrientation % 6;
+    
+    switch (pivotOrientation) {
+      case kPC1atTwelveOClock:
+        pivotOffset = CGPointMake(0.f, yVertical);
+        break;
+      case kPC1atTwoOClock:
+        pivotOffset = CGPointMake(xSlant, ySlant);
+        break;
+      case kPC1atFourOClock:
+        pivotOffset = CGPointMake(xSlant, -ySlant);
+        break;
+      case kPC1atSixOClock:
+        pivotOffset = CGPointMake(0, -yVertical);
+        break;
+      case kPC1atEightOClock:
+        pivotOffset = CGPointMake(-xSlant, -ySlant);
+        break;
+      case kPC1atTenOClock:
+        pivotOffset = CGPointMake(-xSlant, ySlant);
+        break;
+    }
+    self.pivotAroundPoint = [self addToThisPoint:self.position thisPoint:pivotOffset];
+  }
+  return self.pivotAroundPoint;
+}
+
+-(void)pivotBasedOnTouchLocation:(CGPoint)touchLocation andPivotOnPC:(PivotOnPC)pivotOnPC {
     // initial pivotOnPC is dyadmino position
   
     // ensures that touch doesn't get too close to pivotAroundPoint
@@ -305,14 +331,6 @@
     // establish angles
   CGFloat touchAngle = [self findAngleInDegreesFromThisPoint:touchLocation toThisPoint:self.pivotAroundPoint];
   CGFloat changeInAngle = [self getChangeFromThisAngle:touchAngle toThisAngle:self.initialPivotAngle];
-  
-    //// pivot guide positions and rotations should be established in determinePivotOnPC methods
-    //// Here, they are adjusted. This should change, obviously
-  self.pivotAroundGuide.position = self.pivotAroundPoint;
-  self.pivotRotateGuide.position = self.pivotAroundPoint;
-  self.pivotAroundGuide.zRotation = [self getRadiansFromDegree:touchAngle];
-  self.pivotRotateGuide.zRotation = [self getRadiansFromDegree:touchAngle];
-  
   
     //// Figure out if all of this would be easier if we just made the pivotAroundPoint the temporary dyadmino position
   for (NSUInteger i = 0; i < 12; i++) {
@@ -326,7 +344,7 @@
         self.orientation = newOrientation;
         
           // if it pivots on center, just go straight to positioning sprites
-        if (_pivotOnPC != kPivotCentre) {
+        if (pivotOnPC != kPivotCentre) {
           
           CGFloat xIncrement = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * kDyadminoResizedFactor;
           CGFloat yIncrement = kDyadminoFaceRadius * 0.5 * kDyadminoResizedFactor;
@@ -336,7 +354,7 @@
           
             // if pc2, pivot orientation is offset
           NSUInteger pivotOnPC2Offset = 0;
-          if (_pivotOnPC == kPivotOnPC2) {
+          if (pivotOnPC == kPivotOnPC2) {
             pivotOrientation = 3 + pivotOrientation;
             pivotOnPC2Offset = 3;
           }
@@ -466,7 +484,6 @@
   SKAction *finishAction = [SKAction runBlock:^{
     [self endTouchThenHoverResize];
     [self setToHomeZPosition];
-    [self hideAllPivotGuides];
     
     self.canFlip = NO;
     self.hoveringStatus = kDyadminoNoHoverStatus;
@@ -530,85 +547,6 @@
 
 #pragma mark - helper methods
 
--(PivotOnPC)determinePivotOnPC {
-  
-  CGFloat originOffset = self.orientation * 60;
-  CGFloat offsetAngle = self.initialPivotAngle + originOffset;
-  while (offsetAngle > 360) {
-    offsetAngle -= 360;
-  }
-  
-    // this is the only place where prePivotGuide is hidden
-    // and pivotAround or pivotRotate guides are then made visible
-  
-  [self hideAllPivotGuides];
-  
-  if (offsetAngle > 210 && offsetAngle <= 330) {
-    [self showPivotGuide:self.pivotAroundGuide];
-    _pivotOnPC = kPivotOnPC1;
-  } else if (offsetAngle >= 30 && offsetAngle <= 150) {
-    [self showPivotGuide:self.pivotAroundGuide];
-    _pivotOnPC = kPivotOnPC2;
-  } else {
-    [self showPivotGuide:self.pivotRotateGuide];
-    _pivotOnPC = kPivotCentre;
-  }
-  return _pivotOnPC;
-}
-
--(void)showPivotGuide:(SKNode *)pivotGuide {
-  if (!pivotGuide.parent) {
-    [self addChild:pivotGuide];
-    pivotGuide.hidden = NO;
-  }
-}
-
--(void)hidePivotGuide:(SKNode *)pivotGuide {
-  if (pivotGuide.parent) {
-    [pivotGuide removeFromParent];
-    pivotGuide.hidden = YES;
-  }
-}
-
-
--(CGPoint)determinePivotAroundPoint {
-  
-  CGPoint pivotOffset;
-  CGFloat yVertical = kDyadminoFaceRadius * kDyadminoResizedFactor;
-  CGFloat xSlant = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * kDyadminoResizedFactor;
-  CGFloat ySlant = kDyadminoFaceRadius * 0.5 * kDyadminoResizedFactor;
-  
-    // if pc2, pivot orientation is offset
-  DyadminoOrientation pivotOrientation = self.prePivotDyadminoOrientation;
-  if (_pivotOnPC == kPivotOnPC2) {
-    pivotOrientation = 3 + pivotOrientation;
-  }
-  pivotOrientation = pivotOrientation % 6;
-
-  switch (pivotOrientation) {
-    case kPC1atTwelveOClock:
-      pivotOffset = CGPointMake(0.f, yVertical);
-      break;
-    case kPC1atTwoOClock:
-      pivotOffset = CGPointMake(xSlant, ySlant);
-      break;
-    case kPC1atFourOClock:
-      pivotOffset = CGPointMake(xSlant, -ySlant);
-      break;
-    case kPC1atSixOClock:
-      pivotOffset = CGPointMake(0, -yVertical);
-      break;
-    case kPC1atEightOClock:
-      pivotOffset = CGPointMake(-xSlant, -ySlant);
-      break;
-    case kPC1atTenOClock:
-      pivotOffset = CGPointMake(-xSlant, ySlant);
-      break;
-  }
-  self.pivotAroundPoint = [self addToThisPoint:self.position thisPoint:pivotOffset];
-  return self.pivotAroundPoint;
-}
-
 -(CGFloat)getHeightFloatGivenGap:(CGFloat)gap andDyadminoPosition:(CGPoint)dyadminoOffsetPosition {
   
     // returns 0 at bottom, gradually reaches 1 at peak...
@@ -622,18 +560,6 @@
   } else {
     return 0.f;
   }
-}
-
--(void)hidePivotGuideAndShowPrePivotGuide {
-  [self showPivotGuide:self.prePivotGuide];
-  [self hidePivotGuide:self.pivotRotateGuide];
-  [self hidePivotGuide:self.pivotAroundGuide];
-}
-
--(void)hideAllPivotGuides {
-  [self hidePivotGuide:self.prePivotGuide];
-  [self hidePivotGuide:self.pivotAroundGuide];
-  [self hidePivotGuide:self.pivotRotateGuide];
 }
 
 #pragma mark - debugging methods

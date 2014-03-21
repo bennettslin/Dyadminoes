@@ -46,12 +46,6 @@
 
 -(void)createPile {
   
-    // create pivot guides
-    // TODO: refactor into one method?
-  SKNode *prePivotGuide = [self createPivotGuideNamed:@"prePivotGuide"];
-  SKNode *pivotRotateGuide = [self createPivotGuideNamed:@"pivotRotateGuide"];
-  SKNode *pivotAroundGuide = [self createPivotGuideNamed:@"pivotAroundGuide"];
-  
     // get dyadmino textures
   SKTextureAtlas *textureAtlas = [SKTextureAtlas atlasNamed:@"DyadminoImages"];
   NSMutableArray *tempRotationArray = [[NSMutableArray alloc] initWithCapacity:3];
@@ -76,17 +70,6 @@
         
           // instantiate dyadmino
         Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1 andPC2:pc2 andPCMode:kPCModeLetter andRotationFrameArray:rotationFrameArray andPC1LetterSprite:pc1LetterSprite andPC2LetterSprite:pc2LetterSprite andPC1NumberSprite:pc1NumberSprite andPC2NumberSprite:pc2NumberSprite];
-        
-          // assign pivot guides
-        dyadmino.prePivotGuide = prePivotGuide;
-        dyadmino.prePivotGuide.zPosition = -1.f;
-        dyadmino.prePivotGuide.name = @"prePivotGuide";
-        dyadmino.pivotRotateGuide = pivotRotateGuide;
-        dyadmino.pivotRotateGuide.zPosition = -1.f;
-        dyadmino.pivotRotateGuide.name = @"pivotRotateGuide";
-        dyadmino.pivotAroundGuide = pivotAroundGuide;
-        dyadmino.pivotAroundGuide.zPosition = -1.f;
-        dyadmino.pivotAroundGuide.name = @"pivotAroundGuide";
         
           // initially put them all in the common pile
         [self.allDyadminoes addObject:dyadmino];
@@ -118,53 +101,6 @@
   Dyadmino *dyadmino = [self removeRandomDyadminoFromPile];
   [dyadmino randomiseRackOrientation];
   [self.dyadminoesOnBoard addObject:dyadmino];
-}
-
--(SKNode *)createPivotGuideNamed:(NSString *)name {
-  
-  float startAngle[4] = {210, 30, 330, 150};
-  float endAngle[4] = {330, 150, 30, 210};
-  NSArray *colourArray = @[kGold, kGold, kDarkBlue, kDarkBlue];
-  
-  SKNode *pivotGuide = [SKNode new];
-  pivotGuide.name = name;
-  
-    // this will have to change substantially...
-  NSUInteger initialNumber;
-  NSUInteger conditionalNumber;
-  if ([pivotGuide.name isEqualToString:@"prePivotGuide"]) {
-    initialNumber = 0;
-    conditionalNumber = 4;
-  } else if ([pivotGuide.name isEqualToString:@"pivotRotateGuide"]) {
-    initialNumber = 3;
-    conditionalNumber = 4;
-  } else if ([pivotGuide.name isEqualToString:@"pivotAroundGuide"]) {
-    initialNumber = 0;
-    conditionalNumber = 1;
-  } else {
-    return nil;
-  }
-
-  for (int i = initialNumber; i < conditionalNumber; i++) {
-    SKShapeNode *shapeNode = [SKShapeNode new];
-    CGMutablePathRef shapePath = CGPathCreateMutable();
-    
-    CGPathAddArc(shapePath, NULL, 0.5f, 0.5f, kMaxDistanceForPivot, [self getRadiansFromDegree:startAngle[i]],
-                 [self getRadiansFromDegree:endAngle[i]], NO);
-    CGPathAddLineToPoint(shapePath, NULL, kMinDistanceForPivot * cosf([self getRadiansFromDegree:endAngle[i]]),
-                 kMinDistanceForPivot * sinf([self getRadiansFromDegree:endAngle[i]]));
-    CGPathAddArc(shapePath, NULL, 0.5f, 0.5f, kMinDistanceForPivot, [self getRadiansFromDegree:endAngle[i]],
-                 [self getRadiansFromDegree:startAngle[i]], YES);
-    CGPathAddLineToPoint(shapePath, NULL, kMaxDistanceForPivot * cosf([self getRadiansFromDegree:startAngle[i]]),
-                 kMaxDistanceForPivot * sinf([self getRadiansFromDegree:startAngle[i]]));
-    shapeNode.path = shapePath;
-    shapeNode.lineWidth = 0.1f;
-    shapeNode.alpha = kPivotGuideAlpha;
-    shapeNode.strokeColor = [SKColor clearColor];
-    shapeNode.fillColor = colourArray[i];
-    [pivotGuide addChild:shapeNode];
-  }
-  return pivotGuide;
 }
 
 -(NSMutableArray *)getInitiallyPopulatedRack {

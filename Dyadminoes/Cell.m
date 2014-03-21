@@ -128,18 +128,18 @@
   if (self.hexCoord.x == 0 && (self.hexCoord.y == 0 || self.hexCoord.y == 1))
     self.hexCoordLabel.fontColor = [SKColor greenColor];
   
-  self.hexCoordLabel.fontSize = 14.f;
+  self.hexCoordLabel.fontSize = 12.f;
   self.hexCoordLabel.alpha = 0.7f;
   self.hexCoordLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;
   self.hexCoordLabel.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
-  self.hexCoordLabel.position = CGPointMake(0, 2.f);
+  self.hexCoordLabel.position = CGPointMake(0, 5.f);
   [self addChild:self.hexCoordLabel];
 }
 
 -(void)createPCLabel {
   self.pcLabel = [[SKLabelNode alloc] init];
   self.pcLabel.fontColor = kTestRed;
-  self.pcLabel.fontSize = 12.f;
+  self.pcLabel.fontSize = 14.f;
   self.pcLabel.alpha = 1.f;
   self.pcLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;
   self.pcLabel.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;

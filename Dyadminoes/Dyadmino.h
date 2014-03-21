@@ -14,6 +14,7 @@
 @protocol DyadminoDelegate <NSObject>
 
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
+//-(void)hideAllPivotGuides;
 
 @end
 
@@ -42,10 +43,6 @@
 @property (strong, nonatomic) SKSpriteNode *pc2NumberSprite;
 @property (strong, nonatomic) SKSpriteNode *pc1Sprite;
 @property (strong, nonatomic) SKSpriteNode *pc2Sprite;
-
-@property (strong, nonatomic) SKNode *prePivotGuide;
-@property (strong, nonatomic) SKNode *pivotRotateGuide;
-@property (strong, nonatomic) SKNode *pivotAroundGuide;
 
   // bools and states
 @property (nonatomic) BOOL isInTopBar;
@@ -79,7 +76,6 @@
 
 -(void)selectAndPositionSprites;
 -(void)orientBySnapNode:(SnapPoint *)snapNode;
--(void)orientBasedOnSextantChange:(CGFloat)sextantChange;
 -(CGPoint)getHomeNodePosition;
 
 #pragma mark - change status methods
@@ -101,7 +97,7 @@
 
 #pragma mark - pivot methods
 
--(void)pivotBasedOnTouchLocation:(CGPoint)touchLocation;
+-(void)pivotBasedOnTouchLocation:(CGPoint)touchLocation andPivotOnPC:(PivotOnPC)pivotOnPC;
 
 #pragma mark - animation methods
 
@@ -124,10 +120,7 @@
 
 #pragma mark - helper methods
 
--(PivotOnPC)determinePivotOnPC;
--(CGPoint)determinePivotAroundPoint;
--(void)hidePivotGuideAndShowPrePivotGuide;
--(void)hideAllPivotGuides;
+-(CGPoint)determinePivotAroundPointBasedOnPivotOnPC:(PivotOnPC)pivotOnPC;
 
 #pragma mark - debugging methods
 

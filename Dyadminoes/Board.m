@@ -49,6 +49,23 @@
       // see determineBoardPositionBounds method for explanation
     _cellsInVertRange = ((self.origin.y - kRackHeight) / kDyadminoFaceDiameter);
     _cellsInHorzRange = (self.origin.x / kDyadminoFaceWideDiameter);
+    
+      // create pivot guides
+      // TODO: refactor into one method?
+    SKNode *prePivotGuide = [self createPivotGuideNamed:@"prePivotGuide"];
+    SKNode *pivotRotateGuide = [self createPivotGuideNamed:@"pivotRotateGuide"];
+    SKNode *pivotAroundGuide = [self createPivotGuideNamed:@"pivotAroundGuide"];
+    
+      // assign pivot guides
+    self.prePivotGuide = prePivotGuide;
+    self.prePivotGuide.zPosition = kZPositionBoardRestingDyadmino + 1000.f; // add 1000 just for debugging purposes
+    self.prePivotGuide.name = @"prePivotGuide";
+    self.pivotRotateGuide = pivotRotateGuide;
+    self.pivotRotateGuide.zPosition = kZPositionBoardRestingDyadmino + 1000.f;
+    self.pivotRotateGuide.name = @"pivotRotateGuide";
+    self.pivotAroundGuide = pivotAroundGuide;
+    self.pivotAroundGuide.zPosition = kZPositionBoardRestingDyadmino + 1000.f;
+    self.pivotAroundGuide.name = @"pivotAroundGuide";
   }
   return self;
 }
@@ -290,14 +307,14 @@
     for (int i = 0; i < 2; i++) {
       Cell *cell = cells[i];
 
-      NSLog(@"cell.myDyadmino is %@", cell.myDyadmino.name);
+//      NSLog(@"cell.myDyadmino is %@", cell.myDyadmino.name);
       
         // only remove if cell dyadmino is dyadmino
       if (cell.myDyadmino == dyadmino) {
         cell.myDyadmino = nil;
         cell.myPC = -1;
         
-        NSLog(@"cell.myDyadmino is %@", cell.myDyadmino.name);
+//        NSLog(@"cell.myDyadmino is %@", cell.myDyadmino.name);
         
         [self.occupiedCells removeObject:cell];
         
@@ -397,6 +414,158 @@
     }
   }
   return NO;
+}
+
+#pragma mark - pivot guide methods
+
+  // useful for testing purposes, not really needed otherwise
+-(SKNode *)determineCurrentPivotGuide {
+  SKNode *pivotGuide;
+  if (self.prePivotGuide.parent == self) {
+    pivotGuide = self.prePivotGuide;
+  } else if (self.pivotRotateGuide.parent == self) {
+    pivotGuide = self.pivotRotateGuide;
+  } else if (self.pivotAroundGuide.parent == self) {
+    pivotGuide = self.pivotAroundGuide;
+  }
+  return pivotGuide;
+}
+
+-(SKNode *)createPivotGuideNamed:(NSString *)name {
+  
+  float startAngle[4] = {210, 30, 330, 150};
+  float endAngle[4] = {330, 150, 30, 210};
+  NSArray *colourArray = @[kGold, kGold, kDarkBlue, kDarkBlue];
+  
+  SKNode *pivotGuide = [SKNode new];
+  pivotGuide.name = name;
+  
+    // this will have to change substantially...
+  NSUInteger initialNumber;
+  NSUInteger conditionalNumber;
+  if ([pivotGuide.name isEqualToString:@"prePivotGuide"]) {
+    initialNumber = 0;
+    conditionalNumber = 4;
+  } else if ([pivotGuide.name isEqualToString:@"pivotRotateGuide"]) {
+    initialNumber = 3;
+    conditionalNumber = 4;
+  } else if ([pivotGuide.name isEqualToString:@"pivotAroundGuide"]) {
+    initialNumber = 0;
+    conditionalNumber = 1;
+  } else {
+    return nil;
+  }
+  
+  for (int i = initialNumber; i < conditionalNumber; i++) {
+    SKShapeNode *shapeNode = [SKShapeNode new];
+    CGMutablePathRef shapePath = CGPathCreateMutable();
+    
+    CGPathAddArc(shapePath, NULL, 0.5f, 0.5f, kMaxDistanceForPivot, [self getRadiansFromDegree:startAngle[i]],
+                 [self getRadiansFromDegree:endAngle[i]], NO);
+    CGPathAddLineToPoint(shapePath, NULL, kMinDistanceForPivot * cosf([self getRadiansFromDegree:endAngle[i]]),
+                         kMinDistanceForPivot * sinf([self getRadiansFromDegree:endAngle[i]]));
+    CGPathAddArc(shapePath, NULL, 0.5f, 0.5f, kMinDistanceForPivot, [self getRadiansFromDegree:endAngle[i]],
+                 [self getRadiansFromDegree:startAngle[i]], YES);
+    CGPathAddLineToPoint(shapePath, NULL, kMaxDistanceForPivot * cosf([self getRadiansFromDegree:startAngle[i]]),
+                         kMaxDistanceForPivot * sinf([self getRadiansFromDegree:startAngle[i]]));
+    shapeNode.path = shapePath;
+    shapeNode.lineWidth = 0.1f;
+    shapeNode.alpha = kPivotGuideAlpha;
+    shapeNode.strokeColor = [SKColor clearColor];
+    shapeNode.fillColor = colourArray[i];
+    [pivotGuide addChild:shapeNode];
+  }
+  return pivotGuide;
+}
+
+-(void)showPivotGuide:(SKNode *)pivotGuide forDyadmino:(Dyadmino *)dyadmino {
+  if (!pivotGuide.parent) {
+    if (pivotGuide == self.prePivotGuide) {
+      pivotGuide.position = dyadmino.position;
+    } else {
+      pivotGuide.position = dyadmino.pivotAroundPoint;
+    }
+    [self addChild:pivotGuide];
+    pivotGuide.hidden = NO;
+  }
+}
+
+-(void)hidePivotGuide:(SKNode *)pivotGuide {
+  if (pivotGuide.parent) {
+    [pivotGuide removeFromParent];
+    pivotGuide.hidden = YES;
+  }
+}
+
+-(void)hidePivotGuideAndShowPrePivotGuideForDyadmino:(Dyadmino *)dyadmino {
+  [self showPivotGuide:self.prePivotGuide forDyadmino:dyadmino];
+  [self hidePivotGuide:self.pivotRotateGuide];
+  [self hidePivotGuide:self.pivotAroundGuide];
+}
+
+-(void)hideAllPivotGuides {
+  [self hidePivotGuide:self.prePivotGuide];
+  [self hidePivotGuide:self.pivotAroundGuide];
+  [self hidePivotGuide:self.pivotRotateGuide];
+}
+
+#pragma mark - pivot methods
+
+-(void)orientDyadmino:(Dyadmino *)dyadmino basedOnSextantChange:(CGFloat)sextantChange {
+  for (NSUInteger i = 0; i < 12; i++) {
+    if (sextantChange >= 0.f + i && sextantChange < 1.f + i) {
+      NSUInteger dyadminoOrientationShouldBe = (dyadmino.prePivotDyadminoOrientation + i) % 6;
+      if (dyadmino.orientation == dyadminoOrientationShouldBe) {
+        return;
+      } else {
+        dyadmino.orientation = dyadminoOrientationShouldBe;
+        
+          // or else put this in an animation
+        [dyadmino selectAndPositionSprites];
+        return;
+      }
+    }
+  }
+}
+
+-(PivotOnPC)determinePivotOnPCForDyadmino:(Dyadmino *)dyadmino {
+  
+  CGFloat originOffset = dyadmino.orientation * 60;
+  CGFloat offsetAngle = dyadmino.initialPivotAngle + originOffset;
+  while (offsetAngle > 360) {
+    offsetAngle -= 360;
+  }
+  
+    // this is the only place where prePivotGuide is hidden
+    // and pivotAround or pivotRotate guides are then made visible
+  
+  [self hideAllPivotGuides];
+  
+  if (offsetAngle > 210 && offsetAngle <= 330) {
+    [self showPivotGuide:self.pivotAroundGuide forDyadmino:dyadmino];
+    self.pivotOnPC = kPivotOnPC1;
+  } else if (offsetAngle >= 30 && offsetAngle <= 150) {
+    [self showPivotGuide:self.pivotAroundGuide forDyadmino:dyadmino];
+    self.pivotOnPC = kPivotOnPC2;
+  } else {
+    [self showPivotGuide:self.pivotRotateGuide forDyadmino:dyadmino];
+    self.pivotOnPC = kPivotCentre;
+  }
+  return self.pivotOnPC;
+}
+
+-(void)pivotGuidesBasedOnTouchLocation:(CGPoint)touchLocation forDyadmino:(Dyadmino *)dyadmino {
+
+    // establish angles
+  CGFloat touchAngle = [self findAngleInDegreesFromThisPoint:touchLocation toThisPoint:dyadmino.pivotAroundPoint];
+//  CGFloat changeInAngle = [self getChangeFromThisAngle:touchAngle toThisAngle:dyadmino.initialPivotAngle];
+  
+    //// pivot guide positions and rotations should be established in determinePivotOnPC methods
+    //// Here, they are adjusted. This should change, obviously
+  self.pivotAroundGuide.position = dyadmino.pivotAroundPoint;
+  self.pivotRotateGuide.position = dyadmino.pivotAroundPoint;
+  self.pivotAroundGuide.zRotation = [self getRadiansFromDegree:touchAngle];
+  self.pivotRotateGuide.zRotation = [self getRadiansFromDegree:touchAngle];
 }
 
 @end
