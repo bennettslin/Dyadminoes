@@ -66,7 +66,7 @@
 
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
-    self.backgroundColor = kSkyBlue;
+    self.backgroundColor = [SKColor blackColor];
     self.name = @"scene";
     self.ourGameEngine = [GameEngine new];
     self.myPlayer = [self.ourGameEngine getAssignedAsPlayer];
@@ -590,6 +590,7 @@
   dyadmino.initialPivotPosition = dyadmino.position;
   [_boardField determinePivotOnPCForDyadmino:dyadmino];
   [dyadmino determinePivotAroundPointBasedOnPivotOnPC:_boardField.pivotOnPC];
+  [_boardField pivotGuidesBasedOnTouchLocation:touchBoardOffset forDyadmino:dyadmino];
 }
 
 -(void)handlePivotOfDyadmino:(Dyadmino *)dyadmino {

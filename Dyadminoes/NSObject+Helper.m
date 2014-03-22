@@ -40,7 +40,7 @@
 }
 
 -(CGFloat)getChangeFromThisAngle:(CGFloat)angle1 toThisAngle:(CGFloat)angle2 {
-  CGFloat angle = 0.5f - ((angle1 - angle2) / 30);
+  CGFloat angle = 0.5f - ((angle1 - angle2) / 60);
   if (angle < 0.f) {
     angle += 12.f;
   }

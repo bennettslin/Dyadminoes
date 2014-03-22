@@ -46,7 +46,7 @@
 #define kDistanceForTouchingRestingDyadmino (kDyadminoFaceRadius * 0.8f) // was 25.f
 
 #define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
-#define kMaxDistanceForPivot kDyadminoFaceRadius * 5.f
+#define kMaxDistanceForPivot kDyadminoFaceRadius * 3.5f
 #define kPivotGuideAlpha 0.7f
 
 #define kGapForHighlight 30.f
@@ -78,6 +78,12 @@
 #define kGold [SKColor colorWithRed:.64f green:.57f blue:.38f alpha:1.f]
 #define kTestRed [SKColor colorWithRed:1.f green:.7f blue:.7f alpha:1.f]
 #define kDarkGreen [SKColor colorWithRed:0.f green:.6f blue:.2f alpha:1.f]
+
+#define kPivotRed [SKColor colorWithRed:1.f green:.8f blue:.8f alpha:1.f]
+#define kVanilla [SKColor colorWithRed:1.f green:1.f blue:.92f alpha:1.f]
+#define kWhite [SKColor colorWithRed:1.f green:1.f blue:1.f alpha:1.f]
+#define kYellow [SKColor colorWithRed:1.f green:0.96f blue:.62f alpha:1.f]
+#define kCyanBlue [SKColor colorWithRed:.62f green:.96f blue:1.f alpha:1.f]
 
 typedef struct HexCoord {
   NSInteger x;

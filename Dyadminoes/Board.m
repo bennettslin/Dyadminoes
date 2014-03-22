@@ -430,55 +430,85 @@
 
 -(SKNode *)createPivotGuideNamed:(NSString *)name {
   
-  float startAngle[4] = {210, 30, 330, 150};
-  float endAngle[4] = {330, 150, 30, 210};
-  NSArray *colourArray = @[kGold, kGold, kDarkBlue, kDarkBlue];
+    // first four are prePivot, next is pivotRotate, next two are pivotAround
+  
+  float startAngle[9] = {212.5, 32.5, 212.5, 32.5, // prePivot around
+                         332.5, 152.5, // prePivot rotate
+                         300, // rotate
+                         300, 300}; // around
+  float endAngle[9] = {327.5, 147.5, 327.5, 147.5,
+                       27.5, 207.5,
+                       60, 60, 60};
+  NSArray *colourArray = @[kPivotRed, kPivotRed, kPivotRed, kPivotRed,
+                           kYellow, kYellow,
+                           kYellow, kPivotRed, kPivotRed];
+  
+  CGFloat outerMin = kMaxDistanceForPivot + 5.f;
+  CGFloat outerMax = kMaxDistanceForPivot + kMaxDistanceForPivot - kMinDistanceForPivot;
+  
+    // hard-coded values for second pivotAround guide, needs to change
+  float minDistance[9] = {kMinDistanceForPivot, kMinDistanceForPivot, outerMin, outerMin, // prePivot around
+                          kMinDistanceForPivot, kMinDistanceForPivot, // prePivot rotate
+                          kMinDistanceForPivot, // rotate
+                          kMinDistanceForPivot + kDyadminoFaceRadius, outerMin + kDyadminoFaceRadius}; // around
+  
+  float maxDistance[9] = {kMaxDistanceForPivot, kMaxDistanceForPivot, outerMax, outerMax, // prePivot around
+                          kMaxDistanceForPivot, kMaxDistanceForPivot, // prePivot rotate
+                          kMaxDistanceForPivot, // rotate
+                          kMaxDistanceForPivot + kDyadminoFaceRadius, outerMax + kDyadminoFaceRadius}; // around
   
   SKNode *pivotGuide = [SKNode new];
   pivotGuide.name = name;
-  pivotGuide.zPosition = kZPositionHoveredDyadmino - 1.f; // for now
+  pivotGuide.zPosition = kZPositionBoardRestingDyadmino + 1.f; // for now
   
     // this will have to change substantially...
   NSUInteger initialNumber;
   NSUInteger conditionalNumber;
+  CGFloat pivotYOffset = 0.f;
   if ([pivotGuide.name isEqualToString:@"prePivotGuide"]) {
     initialNumber = 0;
-    conditionalNumber = 4;
+    conditionalNumber = 6;
   } else if ([pivotGuide.name isEqualToString:@"pivotRotateGuide"]) {
-    initialNumber = 3;
-    conditionalNumber = 4;
+    initialNumber = 6;
+    conditionalNumber = 7;
   } else if ([pivotGuide.name isEqualToString:@"pivotAroundGuide"]) {
-    initialNumber = 0;
-    conditionalNumber = 1;
+    initialNumber = 7;
+    conditionalNumber = 8; // for now, leave out second, double-speed pivotAround guide
   } else {
     return nil;
   }
   
   for (int i = initialNumber; i < conditionalNumber; i++) {
-    SKShapeNode *shapeNode = [SKShapeNode new];
-    CGMutablePathRef shapePath = CGPathCreateMutable();
+    if (i != 2 && i != 3) { // for now, leave out second, double-speed guide
+      SKShapeNode *shapeNode = [SKShapeNode new];
+      CGMutablePathRef shapePath = CGPathCreateMutable();
     
-    CGPathAddArc(shapePath, NULL, 0.5f, 0.5f, kMaxDistanceForPivot, [self getRadiansFromDegree:startAngle[i]],
-                 [self getRadiansFromDegree:endAngle[i]], NO);
-    CGPathAddLineToPoint(shapePath, NULL, kMinDistanceForPivot * cosf([self getRadiansFromDegree:endAngle[i]]),
-                         kMinDistanceForPivot * sinf([self getRadiansFromDegree:endAngle[i]]));
-    CGPathAddArc(shapePath, NULL, 0.5f, 0.5f, kMinDistanceForPivot, [self getRadiansFromDegree:endAngle[i]],
-                 [self getRadiansFromDegree:startAngle[i]], YES);
-    CGPathAddLineToPoint(shapePath, NULL, kMaxDistanceForPivot * cosf([self getRadiansFromDegree:startAngle[i]]),
-                         kMaxDistanceForPivot * sinf([self getRadiansFromDegree:startAngle[i]]));
-    shapeNode.path = shapePath;
-    shapeNode.lineWidth = 0.1f;
-    shapeNode.alpha = kPivotGuideAlpha;
-    shapeNode.strokeColor = [SKColor clearColor];
-    shapeNode.fillColor = colourArray[i];
-    [pivotGuide addChild:shapeNode];
+        // outer arc
+      CGPathAddArc(shapePath, NULL, 0.f, 0.f + pivotYOffset, maxDistance[i], [self getRadiansFromDegree:startAngle[i]],
+                   [self getRadiansFromDegree:endAngle[i]], NO);
+        // line in
+      CGPathAddLineToPoint(shapePath, NULL, minDistance[i] * cosf([self getRadiansFromDegree:endAngle[i]]),
+                           minDistance[i] * sinf([self getRadiansFromDegree:endAngle[i]]));
+        // inner arc
+      CGPathAddArc(shapePath, NULL, 0.f, 0.f + pivotYOffset, minDistance[i], [self getRadiansFromDegree:endAngle[i]],
+                   [self getRadiansFromDegree:startAngle[i]], YES);
+        // line out
+      CGPathAddLineToPoint(shapePath, NULL, maxDistance[i] * cosf([self getRadiansFromDegree:startAngle[i]]),
+                           maxDistance[i] * sinf([self getRadiansFromDegree:startAngle[i]]));
+      shapeNode.path = shapePath;
+      shapeNode.lineWidth = 0.75;
+      shapeNode.alpha = kPivotGuideAlpha;
+      shapeNode.strokeColor = colourArray[i];
+//      shapeNode.fillColor = colourArray[i];
+      [pivotGuide addChild:shapeNode];
+    }
   }
   return pivotGuide;
 }
 
 -(void)showPivotGuide:(SKNode *)pivotGuide forDyadmino:(Dyadmino *)dyadmino {
   if (!pivotGuide.parent) {
-    if (pivotGuide == self.prePivotGuide) {
+    if (pivotGuide == self.prePivotGuide || pivotGuide == self.pivotRotateGuide) {
       pivotGuide.position = dyadmino.position;
     } else {
       pivotGuide.position = dyadmino.pivotAroundPoint;
