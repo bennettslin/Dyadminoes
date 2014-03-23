@@ -461,8 +461,7 @@
     finishAction = [SKAction runBlock:^{
       self.isRotating = NO;
       [self keepHovering];
-      NSLog(@"animate flip, now prepare for hover");
-      NSLog(@"delegate is %@", self.delegate);
+//      NSLog(@"animate flip, now prepare for hover");
       [self.delegate prepareForHoverThisDyadmino:self];
       self.canFlip = NO;
     }];

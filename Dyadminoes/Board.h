@@ -64,7 +64,7 @@
 
 #pragma mark - pivot methods
 
--(SKNode *)determineCurrentPivotGuide;
+//-(SKNode *)determineCurrentPivotGuide;
 -(PivotOnPC)determinePivotOnPCForDyadmino:(Dyadmino *)dyadmino;
 -(void)pivotGuidesBasedOnTouchLocation:(CGPoint)touchLocation forDyadmino:(Dyadmino *)dyadmino;
 
@@ -77,6 +77,12 @@
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint;
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint;
+
+#pragma mark - board span methods
+
+-(void)determineOutermostCellsBasedOnDyadminoes:(NSMutableSet *)boardDyadminoes;
+-(void)determineOutermostCellsBasedOnDyadmino:(Dyadmino *)dyadmino;
+-(void)determineBoardPositionBounds;
 
 #pragma mark - legality methods
 

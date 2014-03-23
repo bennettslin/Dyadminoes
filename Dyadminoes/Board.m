@@ -158,14 +158,17 @@
 -(void)determineOutermostCellsBasedOnDyadmino:(Dyadmino *)dyadmino {
     /// test this
   
-  NSInteger cellsTop = 0;
-  NSInteger cellsRight = 0;
-  NSInteger cellsBottom = 0;
-  NSInteger cellsLeft = 0;
+    // ridiculously high numbers arbitrarily chosen to force limits
+  NSInteger cellsTop = -99999;
+  NSInteger cellsRight = -99999;
+  NSInteger cellsBottom = 99999;
+  NSInteger cellsLeft = 99999;
   
     // check hexCoords of both cells of dyadmino
   HexCoord hexCoord[2] = {dyadmino.homeNode.myCell.hexCoord,
     [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:dyadmino.homeNode]};
+  
+  NSLog(@"dyadmino homeNode is %@", dyadmino.homeNode.myCell.name);
   
   for (int i = 0; i < 2; i++) {
     NSInteger xHex = hexCoord[i].x;
@@ -174,23 +177,42 @@
       // check x span
     if (xHex > cellsRight) {
       cellsRight = xHex;
-    } else if (xHex < cellsLeft) {
+    }
+    if (xHex < cellsLeft) {
       cellsLeft = xHex;
     }
     
       // check y span
-    if (yHex > cellsTop - (xHex / 2.f)) {
-      cellsTop = yHex;
-    } else if (yHex < cellsBottom - (xHex / 2.f)) {
-      cellsBottom = yHex;
+    if (xHex >= 0) {
+      if (yHex > cellsTop - xHex / 2) {
+        cellsTop = yHex + xHex / 2;
+      }
+      if (yHex < cellsBottom - xHex / 2) {
+        cellsBottom = yHex + xHex / 2;
+      }
+    } else if (xHex < 0) {
+      if (yHex >= cellsTop - (xHex - 1) / 2) {
+        cellsTop = yHex + (xHex - 1) / 2;
+      }
+      if (yHex <= cellsBottom - (xHex - 1) / 2) {
+        cellsBottom = yHex + (xHex - 1) / 2;
+      }
     }
+    
+  NSLog(@"yHex is %i, this value is %.1f", yHex, cellsTop - (xHex / 2.f));
+  NSLog(@"yHex %i, cellsTop %i, xHex / 2 is %.1f", yHex, cellsTop, xHex / 2.f);
+  NSLog(@"xHex is %i, yHex is %i", xHex, yHex);
   }
   
+
+  
     // this creates four cells, plus one buffer cell, beyond outermost dyadmino
-  self.cellsTop = cellsTop + 5;
-  self.cellsRight = cellsRight + 5;
-  self.cellsBottom = cellsBottom - 5;
-  self.cellsLeft = cellsLeft - 5;
+  
+  NSUInteger extraCells = 5;
+  self.cellsTop = cellsTop + extraCells;
+  self.cellsRight = cellsRight + extraCells;
+  self.cellsBottom = cellsBottom - extraCells;
+  self.cellsLeft = cellsLeft - extraCells;
 }
 
 -(void)determineBoardPositionBounds {
@@ -222,14 +244,16 @@
     of course, on iPad, these numbers may be different
     origin on iPhone 4-inch is 160, 298
    
-   //  NSLog(@"cells top %i, right %i, bottom %i, left %i",
-   //        self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
-   //  NSLog(@"bounds is lowestY %.1f, lowestX %.1f, highestY %.1f, highestX %.1f",
-   //        self.lowestYPos, self.lowestXPos, self.highestYPos, self.highestXPos);
+
    //  NSLog(@"origin is %f, %f", self.origin.x, self.origin.y);
    //  NSLog(@"vert range is this number of cells %.1f", _cellsInVertRange);
    //  NSLog(@"bottom range is this number of cells %.1f", _cellsInHorzRange);
    */
+  
+  NSLog(@"cells top %i, right %i, bottom %i, left %i",
+        self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
+  NSLog(@"bounds is lowestY %.1f, lowestX %.1f, highestY %.1f, highestX %.1f",
+        self.lowestYPos, self.lowestXPos, self.highestYPos, self.highestXPos);
 }
 
 #pragma mark - distance methods
@@ -286,7 +310,7 @@
         [cell updatePCLabel];
       }
     }
-    NSLog(@"cells placed on board");
+//    NSLog(@"cells placed on board");
   }
 }
 
@@ -319,7 +343,7 @@
         [cell updatePCLabel];
       }
     }
-    NSLog(@"cells removed from board");
+//    NSLog(@"cells removed from board");
   }
 }
 
@@ -384,7 +408,7 @@
   
     // if it's the first dyadmino
   if ([self.delegate isFirstDyadmino:dyadmino]) {
-    NSLog(@"first dyadmino!");
+//    NSLog(@"first dyadmino!");
     return kNoError;
   } else {
     // otherwise, it's a lone dyadmino
@@ -519,7 +543,7 @@
       degree -= 360.f;
     }
     
-    NSLog(@"show pivot guide %@", pivotGuide.name);
+//    NSLog(@"show pivot guide %@", pivotGuide.name);
     pivotGuide.zRotation = [self getRadiansFromDegree:degree];
     
     [self addChild:pivotGuide];
