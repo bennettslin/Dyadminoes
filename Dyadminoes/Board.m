@@ -68,7 +68,9 @@
 }
 
 -(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSMutableSet *)boardDyadminoes {
-
+    // to save time, initial layout adds cells directly,
+    // without checking to see if they're already in allCells
+  
   [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
   
     // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
@@ -78,7 +80,7 @@
 
       if (xHex >= self.cellsLeft && xHex <= self.cellsRight &&
           yHex <= self.cellsTop - (xHex / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f)) {
-        Cell *cell = [self addCellWithXHex:xHex andYHex:yHex];
+        Cell *cell = [self initiallyAddCellWithXHex:xHex andYHex:yHex];
         [cell addSnapPointsToBoard];
       }
     }
@@ -86,12 +88,7 @@
   [self determineBoardPositionBounds];
 }
 
-#pragma mark - cell methods
-
--(Cell *)addCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
-    // to save time, initial layout adds cells directly,
-    // without checking to see if they're already in allCells
-  
+-(Cell *)initiallyAddCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
   Cell *cell = [[Cell alloc] initWithBoard:self
                                 andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
                                andHexCoord:[self hexCoordFromX:xHex andY:yHex]];
@@ -101,6 +98,8 @@
   [self addChild:cell];
   return cell;
 }
+
+#pragma mark - cell methods
 
 -(Cell *)findCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
   for (Cell *cell in self.allCells) {
@@ -137,8 +136,7 @@
 -(Cell *)ignoreCell:(Cell *)cell {
     // cells do *not* get deallocated or taken out of allCells array when ignored,
     // they are only removed from parent
-
-    //// do stuff here to officially remove cell
+    // not sure if this is the best approach, but do this for now...
   
   cell.hidden = YES;
   [cell removeFromParent];
@@ -156,9 +154,9 @@
 }
 
 -(void)determineOutermostCellsBasedOnDyadmino:(Dyadmino *)dyadmino {
-    /// test this
   
     // ridiculously high numbers arbitrarily chosen to force limits
+    // not sure if this is the best approach...
   NSInteger cellsTop = -99999;
   NSInteger cellsRight = -99999;
   NSInteger cellsBottom = 99999;
@@ -168,7 +166,7 @@
   HexCoord hexCoord[2] = {dyadmino.homeNode.myCell.hexCoord,
     [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:dyadmino.homeNode]};
   
-  NSLog(@"dyadmino homeNode is %@", dyadmino.homeNode.myCell.name);
+//  NSLog(@"dyadmino homeNode is %@", dyadmino.homeNode.myCell.name);
   
   for (int i = 0; i < 2; i++) {
     NSInteger xHex = hexCoord[i].x;
@@ -182,32 +180,32 @@
       cellsLeft = xHex;
     }
     
-      // check y span
-    if (xHex >= 0) {
-      if (yHex > cellsTop - xHex / 2) {
-        cellsTop = yHex + xHex / 2;
-      }
-      if (yHex < cellsBottom - xHex / 2) {
-        cellsBottom = yHex + xHex / 2;
-      }
-    } else if (xHex < 0) {
-      if (yHex >= cellsTop - (xHex - 1) / 2) {
-        cellsTop = yHex + (xHex - 1) / 2;
-      }
-      if (yHex <= cellsBottom - (xHex - 1) / 2) {
-        cellsBottom = yHex + (xHex - 1) / 2;
-      }
+      // now check y span, which means...
+      // first, add cell to odd y values so that it staggers properly
+      // (actually, this one isn't so important because it's staggered weird on one end)
+    if (abs(xHex) % 2 == 1) {
+      yHex++;
     }
     
-  NSLog(@"yHex is %i, this value is %.1f", yHex, cellsTop - (xHex / 2.f));
-  NSLog(@"yHex %i, cellsTop %i, xHex / 2 is %.1f", yHex, cellsTop, xHex / 2.f);
-  NSLog(@"xHex is %i, yHex is %i", xHex, yHex);
+      // next, subtract cell when x is negative to compensate for rounding down
+      // and yes, it has to be in this order!
+    if (xHex < 0) {
+      xHex--;
+    }
+
+    if (yHex > cellsTop - xHex / 2) {
+      cellsTop = yHex + xHex / 2;
+    }
+    if (yHex < cellsBottom - xHex / 2) {
+      cellsBottom = yHex + xHex / 2;
+    }
+    
+//  NSLog(@"yHex is %i, this value is %.1f", yHex, cellsTop - (xHex / 2.f));
+//  NSLog(@"yHex %i, cellsTop %i, xHex / 2 is %.1f", yHex, cellsTop, xHex / 2.f);
+//  NSLog(@"xHex is %i, yHex is %i", xHex, yHex);
   }
   
-
-  
     // this creates four cells, plus one buffer cell, beyond outermost dyadmino
-  
   NSUInteger extraCells = 5;
   self.cellsTop = cellsTop + extraCells;
   self.cellsRight = cellsRight + extraCells;

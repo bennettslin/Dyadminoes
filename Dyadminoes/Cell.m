@@ -29,6 +29,8 @@
   if (self) {
     self.board = board;
     self.texture = texture;
+//    [self addChild:[self createCellImage]];
+    
     self.hexCoord = hexCoord;
     self.name = [NSString stringWithFormat:@"cell %li-%li", (long)self.hexCoord.x, (long)self.hexCoord.y];
     self.zPosition = kZPositionBoardCell;
@@ -61,6 +63,33 @@
     [self updatePCLabel];
   }
   return self;
+}
+
+-(SKNode *)createCellImage {
+  SKNode *cellImage = [SKNode new];
+  
+  SKShapeNode *shapeNode = [SKShapeNode new];
+  CGMutablePathRef shapePath = CGPathCreateMutable();
+  
+  CGFloat cellSize = 0.85f;
+  
+  CGPoint point1 = CGPointMake(kDyadminoFaceWideRadius * cellSize / 2, kDyadminoFaceRadius * cellSize);
+  CGPoint point2 = CGPointMake(kDyadminoFaceWideRadius * cellSize, 0);
+  CGPoint point3 = CGPointMake(kDyadminoFaceWideRadius * cellSize / 2, -kDyadminoFaceRadius * cellSize);
+  CGPoint point4 = CGPointMake(-kDyadminoFaceWideRadius * cellSize / 2, -kDyadminoFaceRadius * cellSize);
+  CGPoint point5 = CGPointMake(-kDyadminoFaceWideRadius * cellSize, 0);
+  CGPoint point6 = CGPointMake(-kDyadminoFaceWideRadius * cellSize / 2, kDyadminoFaceRadius * cellSize);
+  CGPoint points[7] = {point1, point2, point3, point4, point5, point6, point1};
+  
+  CGPathAddLines(shapePath, NULL, points, 7);
+
+  shapeNode.path = shapePath;
+  shapeNode.lineWidth = 2.f;
+  shapeNode.alpha = 1.f;
+  shapeNode.strokeColor = [SKColor blackColor];
+  shapeNode.fillColor = [SKColor whiteColor];
+  [cellImage addChild:shapeNode];
+  return cellImage;
 }
 
 -(void)createSnapPoints {
