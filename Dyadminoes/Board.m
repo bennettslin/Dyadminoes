@@ -20,6 +20,8 @@
 @implementation Board {
   CGFloat _cellsInVertRange;
   CGFloat _cellsInHorzRange;
+  BOOL _cellsTopXIsEven;
+  BOOL _cellsBottomXIsEven;
 }
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size
@@ -44,6 +46,7 @@
     self.snapPointsTwoOClock = [NSMutableSet new];
     self.snapPointsTenOClock = [NSMutableSet new];
     self.occupiedCells = [NSMutableSet new];
+    self.allCells = [NSMutableSet new];
     
       // these values are necessary for board movement
       // see determineBoardPositionBounds method for explanation
@@ -68,9 +71,6 @@
 }
 
 -(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSMutableSet *)boardDyadminoes {
-    // to save time, initial layout adds cells directly,
-    // without checking to see if they're already in allCells
-  
   [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
   
     // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
@@ -80,24 +80,24 @@
 
       if (xHex >= self.cellsLeft && xHex <= self.cellsRight &&
           yHex <= self.cellsTop - (xHex / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f)) {
-        Cell *cell = [self initiallyAddCellWithXHex:xHex andYHex:yHex];
-        [cell addSnapPointsToBoard];
+          // might be faster in the initial layout to add cells directly
+          // without checking to see if they're already in allCells
+        [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
       }
     }
   }
   [self determineBoardPositionBounds];
 }
 
--(Cell *)initiallyAddCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
-  Cell *cell = [[Cell alloc] initWithBoard:self
-                                andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
-                               andHexCoord:[self hexCoordFromX:xHex andY:yHex]];
-  cell.color = [SKColor orangeColor];
-  cell.colorBlendFactor = 0.5f;
-  cell.hidden = NO;
-  [self addChild:cell];
-  return cell;
-}
+//-(Cell *)initiallyAddCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
+//  Cell *cell = [[Cell alloc] initWithBoard:self
+//                                andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
+//                               andHexCoord:[self hexCoordFromX:xHex andY:yHex]];
+//  cell.hidden = NO;
+//  [self addChild:cell];
+//  [cell addSnapPointsToBoard];
+//  return cell;
+//}
 
 #pragma mark - cell methods
 
@@ -111,8 +111,7 @@
 }
 
 -(Cell *)acknowledgeOrAddCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
-    // this method only gets called during play, after initial layout
-    // it first checks to see if cell exists in allCells array
+    // this method first checks to see if cell exists in allCells array
     // if not, it instantiates it
 
     // first check to see if cell already exists
@@ -121,39 +120,36 @@
     // if cell does not exist, create and add it
   if (!cell) {
     cell = [[Cell alloc] initWithBoard:self
-                                    andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
-                                   andHexCoord:[self hexCoordFromX:xHex andY:yHex]];
+                            andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
+                           andHexCoord:[self hexCoordFromX:xHex andY:yHex]];
+    
+    cell.color = [SKColor orangeColor];
+    cell.colorBlendFactor = 0.5f;
+    cell.hidden = NO;
+    [self addChild:cell];
+    [self.allCells addObject:cell];
+    [cell addSnapPointsToBoard];
   }
-    //// do stuff here to officially acknowledge cell
   
-  cell.hidden = NO;
-  [self addChild:cell];
-  [cell addSnapPointsToBoard];
-  [self determineBoardPositionBounds];
+//  [self determineBoardPositionBounds];
   return cell;
 }
 
--(Cell *)ignoreCell:(Cell *)cell {
-    // cells do *not* get deallocated or taken out of allCells array when ignored,
-    // they are only removed from parent
-    // not sure if this is the best approach, but do this for now...
-  
-  cell.hidden = YES;
-  [cell removeFromParent];
-  [cell removeSnapPointsFromBoard];
-  [self determineBoardPositionBounds];
-  return cell;
-}
+//-(Cell *)ignoreCell:(Cell *)cell {
+//    // cells do *not* get deallocated or taken out of allCells array when ignored,
+//    // they are only removed from parent
+//    // not sure if this is the best approach, but do this for now...
+//  
+//  cell.hidden = YES;
+//  [cell removeFromParent];
+//  [cell removeSnapPointsFromBoard];
+//  [self determineBoardPositionBounds];
+//  return cell;
+//}
 
 #pragma mark - board span methods
 
 -(void)determineOutermostCellsBasedOnDyadminoes:(NSMutableSet *)boardDyadminoes {
-  for (Dyadmino *dyadmino in boardDyadminoes) {
-    [self determineOutermostCellsBasedOnDyadmino:dyadmino];
-  }
-}
-
--(void)determineOutermostCellsBasedOnDyadmino:(Dyadmino *)dyadmino {
   
     // ridiculously high numbers arbitrarily chosen to force limits
     // not sure if this is the best approach...
@@ -162,49 +158,74 @@
   NSInteger cellsBottom = 99999;
   NSInteger cellsLeft = 99999;
   
-    // check hexCoords of both cells of dyadmino
-  HexCoord hexCoord[2] = {dyadmino.homeNode.myCell.hexCoord,
-    [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:dyadmino.homeNode]};
-  
-//  NSLog(@"dyadmino homeNode is %@", dyadmino.homeNode.myCell.name);
-  
-  for (int i = 0; i < 2; i++) {
-    NSInteger xHex = hexCoord[i].x;
-    NSInteger yHex = hexCoord[i].y;
+  for (Dyadmino *dyadmino in boardDyadminoes) {
     
-      // check x span
-    if (xHex > cellsRight) {
-      cellsRight = xHex;
-    }
-    if (xHex < cellsLeft) {
-      cellsLeft = xHex;
+      // different board nodes, depending on whether dyadmino belongs in rack
+    SnapPoint *boardNode;
+    if ([dyadmino belongsInRack]) {
+      boardNode = dyadmino.tempBoardNode;
+    } else {
+      boardNode = dyadmino.homeNode;
     }
     
-      // now check y span, which means...
-      // first, add cell to odd y values so that it staggers properly
-      // (actually, this one isn't so important because it's staggered weird on one end)
-    if (abs(xHex) % 2 == 1) {
-      yHex++;
-    }
+      // check hexCoords of both cells of dyadmino
+    HexCoord hexCoord[2] = {boardNode.myCell.hexCoord,
+      [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:boardNode]};
     
-      // next, subtract cell when x is negative to compensate for rounding down
-      // and yes, it has to be in this order!
-    if (xHex < 0) {
-      xHex--;
-    }
+      //  NSLog(@"dyadmino homeNode is %@", dyadmino.homeNode.myCell.name);
+    
+    for (int i = 0; i < 2; i++) {
+      NSInteger xHex = hexCoord[i].x;
+      NSInteger yHex = hexCoord[i].y;
+      
+        // check x span
+      if (xHex > cellsRight) {
+        cellsRight = xHex;
+      }
+      if (xHex < cellsLeft) {
+        cellsLeft = xHex;
+      }
+      
+        // now check y span, which means...
+        // first, add cell to odd y values so that it staggers properly
+        // (actually, this one isn't so important because it's staggered weird on one end)
+      if (abs(xHex) % 2 == 1) {
+        yHex++;
+      }
+      
+        // next, subtract cell when x is negative to compensate for rounding down
+        // and yes, it has to be in this order!
+      NSInteger workingXHex = xHex;
+      if (xHex < 0) {
+        workingXHex = xHex - 1;
+      }
+      
+      if (yHex > cellsTop - workingXHex / 2) {
+        cellsTop = yHex + workingXHex / 2;
 
-    if (yHex > cellsTop - xHex / 2) {
-      cellsTop = yHex + xHex / 2;
+          // board y-coord bounds will be different depending on whether x is odd or even
+        if (abs(xHex) % 2 == 0) {
+          _cellsTopXIsEven = YES;
+        } else {
+          _cellsTopXIsEven = NO;
+        }
+      }
+      
+      if (yHex < cellsBottom - workingXHex / 2) {
+        cellsBottom = yHex + workingXHex / 2;
+        
+        if (abs(xHex) % 2 == 0) {
+          _cellsBottomXIsEven = YES;
+        } else {
+          _cellsBottomXIsEven = NO;
+        }
+      }
+      
+        //  NSLog(@"yHex is %i, this value is %.1f", yHex, cellsTop - (xHex / 2.f));
+        //  NSLog(@"yHex %i, cellsTop %i, xHex / 2 is %.1f", yHex, cellsTop, xHex / 2.f);
+        //  NSLog(@"xHex is %i, yHex is %i", xHex, yHex);
     }
-    if (yHex < cellsBottom - xHex / 2) {
-      cellsBottom = yHex + xHex / 2;
-    }
-    
-//  NSLog(@"yHex is %i, this value is %.1f", yHex, cellsTop - (xHex / 2.f));
-//  NSLog(@"yHex %i, cellsTop %i, xHex / 2 is %.1f", yHex, cellsTop, xHex / 2.f);
-//  NSLog(@"xHex is %i, yHex is %i", xHex, yHex);
   }
-  
     // this creates four cells, plus one buffer cell, beyond outermost dyadmino
   NSUInteger extraCells = 5;
   self.cellsTop = cellsTop + extraCells;
@@ -216,9 +237,21 @@
 -(void)determineBoardPositionBounds {
     // this should get called after every method that adds cells or removes them
   
-  self.lowestYPos = self.origin.y - (self.cellsTop - 1 - _cellsInVertRange) * kDyadminoFaceDiameter;
+    // board y-coord bounds will be different depending on whether x is odd or even
+  if (_cellsTopXIsEven) {
+    self.lowestYPos = self.origin.y - (self.cellsTop - 1 - _cellsInVertRange) * kDyadminoFaceDiameter;
+  } else {
+    self.lowestYPos = self.origin.y - (self.cellsTop - 1.5 - _cellsInVertRange) * kDyadminoFaceDiameter;
+  }
+  
   self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange) * kDyadminoFaceWideDiameter;
-  self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange) * kDyadminoFaceDiameter;
+  
+  if (_cellsBottomXIsEven) {
+    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange) * kDyadminoFaceDiameter;
+  } else {
+    self.highestYPos = self.origin.y - (self.cellsBottom - 0.5 + _cellsInVertRange) * kDyadminoFaceDiameter;
+  }
+  
   self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange) * kDyadminoFaceWideDiameter;
   
   /*

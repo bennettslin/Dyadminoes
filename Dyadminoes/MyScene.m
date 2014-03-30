@@ -644,6 +644,10 @@
 
   [self updateCellsForRemovedDyadmino:dyadmino];
   
+    // this is one of two places where board bounds are updated
+    // the other is when dyadmino is eased into board node
+  [self updateBoardBoundsWithDyadmino:nil];
+  
   [dyadmino endTouchThenHoverResize];
     // this makes nil tempBoardNode
   [dyadmino goHomeByPoppingIn:poppingIn];
@@ -1004,10 +1008,12 @@
           // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
         dyadmino.homeNode = dyadmino.tempBoardNode;
         NSLog(@"dyadmino's homeNode is now its tempBoardNode");
-        
-          // this is the only place where board bounds are updated
-        [self updateBoardBoundsWithDyadmino:dyadmino];
       }
+      
+        // this is one of two places where board bounds are updated
+        // the other is when rack dyadmino is sent home
+      [self updateBoardBoundsWithDyadmino:dyadmino];
+      
       [_boardField hideAllPivotGuides];
       [dyadmino animateEaseIntoNodeAfterHover];
       _hoveringDyadmino = nil;
@@ -1065,9 +1071,16 @@
 }
 
 -(void)updateBoardBoundsWithDyadmino:(Dyadmino *)dyadmino {
-//  NSLog(@"board bounds updated");
-  [_boardField determineOutermostCellsBasedOnDyadmino:dyadmino];
-  [_boardField determineBoardPositionBounds];
+//  NSLog(@"board bounds updated with dyadmino %@", dyadmino.name);
+  NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.ourGameEngine.dyadminoesOnBoard];
+  
+    // add dyadmino to set if dyadmino is a rack dyadmino
+  if (dyadmino && ![dyadminoesOnBoard containsObject:dyadmino]) {
+    [dyadminoesOnBoard addObject:dyadmino];
+  }
+  
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard];
+  
   [_topBar updateLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
                                              _boardField.cellsTop - 5, _boardField.cellsRight - 5, _boardField.cellsBottom + 5, _boardField.cellsLeft + 5]];
   NSLog(@"board bounds are %.1f, %.1f, %.1f, %.1f", _boardField.lowestYPos, _boardField.lowestXPos, _boardField.highestYPos, _boardField.highestXPos);

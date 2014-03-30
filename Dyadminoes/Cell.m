@@ -21,7 +21,6 @@
 
 @end
 
-
 @implementation Cell
 
 -(id)initWithBoard:(Board *)board andTexture:(SKTexture *)texture andHexCoord:(HexCoord)hexCoord {

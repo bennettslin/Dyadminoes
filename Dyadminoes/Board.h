@@ -81,7 +81,7 @@
 #pragma mark - board span methods
 
 -(void)determineOutermostCellsBasedOnDyadminoes:(NSMutableSet *)boardDyadminoes;
--(void)determineOutermostCellsBasedOnDyadmino:(Dyadmino *)dyadmino;
+//-(void)determineOutermostCellsBasedOnDyadmino:(Dyadmino *)dyadmino;
 -(void)determineBoardPositionBounds;
 
 #pragma mark - legality methods
