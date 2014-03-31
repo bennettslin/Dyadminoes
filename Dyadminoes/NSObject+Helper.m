@@ -13,9 +13,14 @@
 
 #pragma mark - math methods
 
--(NSUInteger)randomValueUpTo:(NSUInteger)high {
+-(NSUInteger)randomIntegerUpTo:(NSUInteger)high {
   NSUInteger randInteger = ((int) arc4random() % high);
   return randInteger;
+}
+
+-(CGFloat)randomFloatUpTo:(CGFloat)high {
+  CGFloat randFloat = arc4random() * high;
+  return randFloat;
 }
 
 -(CGFloat)getDistanceFromThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2 {

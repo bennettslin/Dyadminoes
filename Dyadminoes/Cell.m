@@ -60,6 +60,21 @@
     [self createHexCoordLabel];
     [self createPCLabel];
     [self updatePCLabel];
+    
+//      // test doesn't seem to work!
+//    CGFloat randomTime1 = [self randomFloatUpTo:0.6f];
+//    CGFloat randomTime2 = [self randomFloatUpTo:0.6f];
+//    SKAction *orangeColour = [SKAction runBlock:^{
+//      self.color = [SKColor orangeColor];
+//    }];
+////    SKAction *wait1 = [SKAction waitForDuration:randomTime1];
+//    SKAction *blueColour = [SKAction runBlock:^{
+//      self.color = [SKColor blueColor];
+//      NSLog(@"blue");
+//    }];
+////    SKAction *wait2 = [SKAction waitForDuration:randomTime2];
+//    SKAction *repeatAction = [SKAction repeatActionForever:[SKAction sequence:@[orangeColour, blueColour]]];
+//    [self runAction:repeatAction];
   }
   return self;
 }

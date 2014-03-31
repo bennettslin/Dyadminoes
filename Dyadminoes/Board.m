@@ -71,6 +71,7 @@
 }
 
 -(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSMutableSet *)boardDyadminoes {
+  
   [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
   
     // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
@@ -125,13 +126,13 @@
     
     cell.color = [SKColor orangeColor];
     cell.colorBlendFactor = 0.5f;
+    
     cell.hidden = NO;
     [self addChild:cell];
     [self.allCells addObject:cell];
     [cell addSnapPointsToBoard];
   }
   
-//  [self determineBoardPositionBounds];
   return cell;
 }
 
@@ -178,7 +179,7 @@
       NSInteger xHex = hexCoord[i].x;
       NSInteger yHex = hexCoord[i].y;
       
-        // check x span
+        // check x span - this one is easy enough
       if (xHex > cellsRight) {
         cellsRight = xHex;
       }
@@ -187,11 +188,6 @@
       }
       
         // now check y span, which means...
-        // first, add cell to odd y values so that it staggers properly
-        // (actually, this one isn't so important because it's staggered weird on one end)
-      if (abs(xHex) % 2 == 1) {
-        yHex++;
-      }
       
         // next, subtract cell when x is negative to compensate for rounding down
         // and yes, it has to be in this order!
@@ -200,9 +196,16 @@
         workingXHex = xHex - 1;
       }
       
-      if (yHex > cellsTop - workingXHex / 2) {
+        // this compensates for the fact that when x is odd, y is offset by half a cell
+      CGFloat workingYHex = yHex;
+      if (abs(xHex) % 2 == 1) {
+        workingYHex = yHex + 0.5;
+      }
+      
+      
+      if (workingYHex > cellsTop - workingXHex / 2) {
         cellsTop = yHex + workingXHex / 2;
-
+        NSLog(@"cellsTop gets called");
           // board y-coord bounds will be different depending on whether x is odd or even
         if (abs(xHex) % 2 == 0) {
           _cellsTopXIsEven = YES;
@@ -211,9 +214,9 @@
         }
       }
       
-      if (yHex < cellsBottom - workingXHex / 2) {
+      if (workingYHex < cellsBottom - workingXHex / 2) {
         cellsBottom = yHex + workingXHex / 2;
-        
+        NSLog(@"cellsBottom gets called");
         if (abs(xHex) % 2 == 0) {
           _cellsBottomXIsEven = YES;
         } else {
@@ -241,7 +244,7 @@
   if (_cellsTopXIsEven) {
     self.lowestYPos = self.origin.y - (self.cellsTop - 1 - _cellsInVertRange) * kDyadminoFaceDiameter;
   } else {
-    self.lowestYPos = self.origin.y - (self.cellsTop - 1.5 - _cellsInVertRange) * kDyadminoFaceDiameter;
+    self.lowestYPos = self.origin.y - (self.cellsTop - .5 - _cellsInVertRange) * kDyadminoFaceDiameter;
   }
   
   self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange) * kDyadminoFaceWideDiameter;
@@ -249,7 +252,7 @@
   if (_cellsBottomXIsEven) {
     self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange) * kDyadminoFaceDiameter;
   } else {
-    self.highestYPos = self.origin.y - (self.cellsBottom - 0.5 + _cellsInVertRange) * kDyadminoFaceDiameter;
+    self.highestYPos = self.origin.y - (self.cellsBottom + .5 + _cellsInVertRange) * kDyadminoFaceDiameter;
   }
   
   self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange) * kDyadminoFaceWideDiameter;

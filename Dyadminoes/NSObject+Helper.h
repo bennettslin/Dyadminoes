@@ -145,7 +145,8 @@ typedef enum physicalPlacementResult {
 @interface NSObject (Helper)
 
   // math stuff
--(NSUInteger)randomValueUpTo:(NSUInteger)high;
+-(NSUInteger)randomIntegerUpTo:(NSUInteger)high;
+-(CGFloat)randomFloatUpTo:(CGFloat)high;
 -(CGFloat)getDistanceFromThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
 -(CGPoint)addToThisPoint:(CGPoint)point1 thisPoint:(CGPoint)point2;
 -(CGPoint)subtractFromThisPoint:(CGPoint)point1 thisPoint:(CGPoint)point2;

@@ -45,7 +45,7 @@
 }
 
 -(void)randomiseRackOrientation { // only gets called before sprite is reloaded
-  NSUInteger zeroOrOne = [self randomValueUpTo:2]; // randomise rackOrientation
+  NSUInteger zeroOrOne = [self randomIntegerUpTo:2]; // randomise rackOrientation
   if (zeroOrOne == 0) {
     self.orientation = kPC1atTwelveOClock;
   } else if (zeroOrOne == 1) {

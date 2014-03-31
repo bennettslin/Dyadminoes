@@ -143,7 +143,7 @@
   NSUInteger dyadminoesLeftInPile = self.dyadminoesInCommonPile.count;
     // if dyadminoes left...
   if (dyadminoesLeftInPile >= 1) {
-    NSUInteger randIndex = [self randomValueUpTo:dyadminoesLeftInPile];
+    NSUInteger randIndex = [self randomIntegerUpTo:dyadminoesLeftInPile];
     NSArray *tempArray = [self.dyadminoesInCommonPile allObjects];
     Dyadmino *dyadmino = (Dyadmino *)tempArray[randIndex];
     [self.dyadminoesInCommonPile removeObject:dyadmino];
