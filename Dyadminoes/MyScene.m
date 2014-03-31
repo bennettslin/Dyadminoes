@@ -45,6 +45,7 @@
   BOOL _rackExchangeInProgress;
   BOOL _swapFieldActionInProgress;
   BOOL _boardBeingMoved;
+  BOOL _boardBeingCorrectedWithinBounds;
   BOOL _canDoubleTap;
   CFTimeInterval _doubleTapTime;
   
@@ -438,36 +439,44 @@
 #pragma mark - board methods
 
 -(void)moveBoard {
-    // first get new board position, after applying touch offset
-  CGPoint touchOffset = [self subtractFromThisPoint:_beganTouchLocation thisPoint:_currentTouchLocation];
-  CGPoint newPosition = [self subtractFromThisPoint:_boardField.homePosition thisPoint:touchOffset];
   
-  CGFloat newX = newPosition.x;
-  CGFloat newY = newPosition.y;
-  
-  CGFloat swapBuffer = 0.f;
-  if (_swapMode) {
-    swapBuffer = kRackHeight; // the height of the swap field
+    // if board isn't being corrected within bounds
+  if (!_boardBeingCorrectedWithinBounds) {
+      // first get new board position, after applying touch offset
+    CGPoint touchOffset = [self subtractFromThisPoint:_beganTouchLocation thisPoint:_currentTouchLocation];
+    CGPoint newPosition = [self subtractFromThisPoint:_boardField.homePosition thisPoint:touchOffset];
+    
+    CGFloat newX = newPosition.x;
+    CGFloat newY = newPosition.y;
+    
+    CGFloat swapBuffer = 0.f;
+    if (_swapMode) {
+      swapBuffer = kRackHeight; // the height of the swap field
+    }
+    
+    if (newPosition.y < _boardField.lowestYPos) {
+      newY = _boardField.lowestYPos;
+  //    newY = _boardField.position.y;
+    } else if (newPosition.y > (_boardField.highestYPos + swapBuffer)) {
+      newY = _boardField.highestYPos + swapBuffer;
+  //    newY = _boardField.position.y + swapBuffer;
+    }
+    
+    if (newPosition.x < _boardField.lowestXPos) {
+      newX = _boardField.lowestXPos;
+  //    newX = _boardField.position.x;
+    } else if (newPosition.x > _boardField.highestXPos) {
+      newX = _boardField.highestXPos;
+  //    newX = _boardField.position.x;
+    }
+    
+    NSLog(@"board position is %.1f, %.1f", _boardField.position.x, _boardField.position.y);
+    
+      // move board to new position
+    _boardField.position = CGPointMake(newX, newY);
+      // move home position to board position, after applying touch offset
+    _boardField.homePosition = [self addToThisPoint:_boardField.position thisPoint:touchOffset];
   }
-  
-  if (newPosition.y < _boardField.lowestYPos) {
-    newY = _boardField.lowestYPos;
-  } else if (newPosition.y > (_boardField.highestYPos + swapBuffer)) {
-    newY = _boardField.highestYPos + swapBuffer;
-  }
-  
-  if (newPosition.x < _boardField.lowestXPos) {
-    newX = _boardField.lowestXPos;
-  } else if (newPosition.x > _boardField.highestXPos) {
-    newX = _boardField.highestXPos;
-  }
-  
-  NSLog(@"board position is %.1f, %.1f", _boardField.position.x, _boardField.position.y);
-  
-    // move board to new position
-  _boardField.position = CGPointMake(newX, newY);
-    // move home position to board position, after applying touch offset
-  _boardField.homePosition = [self addToThisPoint:_boardField.position thisPoint:touchOffset];
 }
 
 #pragma mark - dyadmino methods
@@ -863,7 +872,7 @@
   
     // snap back somewhat from board bounds
     // TODO: this works, but it feels jumpy
-  [self updateForBoardSnapBack];
+  [self updateForBoardBeingCorrectedWithinBounds];
   
   [self updateForButtons];
   
@@ -933,36 +942,80 @@
   }
 }
 
--(void)updateForBoardSnapBack {
-  if (!_currentTouch) {
+-(void)updateForBoardBeingCorrectedWithinBounds {
+  if (!_boardBeingMoved && !_hoveringDyadmino) {
     
-      // tweak with this number, maybe make it dynamic so that it "snaps" more
-    CGFloat thisDistance = 1.f;
+    CGFloat thisDistance;
+      // this number can be tweaked, but it seems fine for now
+    CGFloat distanceDivisor = 8.f;
     
     CGFloat swapBuffer = 0.f;
     if (_swapMode) {
       swapBuffer = kRackHeight; // the height of the swap field
     }
     
-    CGFloat lowestXBuffer = _boardField.lowestXPos + kDyadminoFaceWideRadius * 0.5;
+    NSUInteger alreadyCorrect = 0;
+    
+    CGFloat lowestXBuffer = _boardField.lowestXPos + kDyadminoFaceWideRadius;
     if (_boardField.position.x < lowestXBuffer) {
+        // only prevents board move from touch if it's truly out of bounds
+        // it's fine if it's still within the buffer
+      if (_boardField.position.x < _boardField.lowestXPos) {
+        _boardBeingCorrectedWithinBounds = YES;
+      }
+      
+      thisDistance = 1.f + (lowestXBuffer - _boardField.position.x) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
+      
+    } else {
+      alreadyCorrect++;
     }
-    CGFloat lowestYBuffer = _boardField.lowestYPos + kDyadminoFaceRadius * 0.5;
+    CGFloat lowestYBuffer = _boardField.lowestYPos + kDyadminoFaceRadius;
     if (_boardField.position.y < lowestYBuffer) {
+      
+      if (_boardField.position.y < _boardField.lowestYPos) {
+        _boardBeingCorrectedWithinBounds = YES;
+      }
+
+      thisDistance = 1.f + (lowestYBuffer - _boardField.position.y) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y + thisDistance);
       _boardField.homePosition = _boardField.position;
+      
+    } else {
+      alreadyCorrect++;
     }
-    CGFloat highestXBuffer = _boardField.highestXPos - kDyadminoFaceWideRadius * 0.5;
+    CGFloat highestXBuffer = _boardField.highestXPos - kDyadminoFaceWideRadius;
     if (_boardField.position.x > highestXBuffer) {
+
+      if (_boardField.position.x > _boardField.highestXPos) {
+        _boardBeingCorrectedWithinBounds = YES;
+      }
+      
+      thisDistance = 1.f + (_boardField.position.x - highestXBuffer) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x - thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
+      
+    } else {
+      alreadyCorrect++;
     }
-    CGFloat highestYBuffer = _boardField.highestYPos - kDyadminoFaceRadius * 0.5;
+    CGFloat highestYBuffer = _boardField.highestYPos - kDyadminoFaceRadius;
     if (_boardField.position.y > highestYBuffer + swapBuffer) {
+
+      if (_boardField.position.y > _boardField.highestYPos) {
+        _boardBeingCorrectedWithinBounds = YES;
+      }
+      
+      thisDistance = 1.f + (_boardField.position.y - highestYBuffer) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
       _boardField.homePosition = _boardField.position;
+      
+    } else {
+      alreadyCorrect++;
+    }
+    
+    if (alreadyCorrect == 4) {
+      _boardBeingCorrectedWithinBounds = NO;
     }
   }
 }

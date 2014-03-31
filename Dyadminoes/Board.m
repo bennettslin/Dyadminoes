@@ -154,10 +154,10 @@
   
     // ridiculously high numbers arbitrarily chosen to force limits
     // not sure if this is the best approach...
-  NSInteger cellsTop = -99999;
-  NSInteger cellsRight = -99999;
-  NSInteger cellsBottom = 99999;
-  NSInteger cellsLeft = 99999;
+  NSInteger cellsTop = -99999999;
+  NSInteger cellsRight = -99999999;
+  NSInteger cellsBottom = 99999999;
+  NSInteger cellsLeft = 99999999;
   
   for (Dyadmino *dyadmino in boardDyadminoes) {
     
@@ -242,20 +242,20 @@
   
     // board y-coord bounds will be different depending on whether x is odd or even
   if (_cellsTopXIsEven) {
-    self.lowestYPos = self.origin.y - (self.cellsTop - 1 - _cellsInVertRange) * kDyadminoFaceDiameter;
+    self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange - 0.5) * kDyadminoFaceDiameter;
   } else {
-    self.lowestYPos = self.origin.y - (self.cellsTop - .5 - _cellsInVertRange) * kDyadminoFaceDiameter;
+    self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange) * kDyadminoFaceDiameter;
   }
   
-  self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange) * kDyadminoFaceWideDiameter;
+  self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange + 0.25) * kDyadminoFaceWideDiameter;
   
   if (_cellsBottomXIsEven) {
-    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange) * kDyadminoFaceDiameter;
+    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange - 0.5) * kDyadminoFaceDiameter;
   } else {
-    self.highestYPos = self.origin.y - (self.cellsBottom + .5 + _cellsInVertRange) * kDyadminoFaceDiameter;
+    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange) * kDyadminoFaceDiameter;
   }
   
-  self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange) * kDyadminoFaceWideDiameter;
+  self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange - 0.25) * kDyadminoFaceWideDiameter;
   
   /*
     cellsTop determines lowest Y position
