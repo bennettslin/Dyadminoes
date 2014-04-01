@@ -67,7 +67,7 @@
 
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
-    self.backgroundColor = [SKColor darkGrayColor];
+    self.backgroundColor = [SKColor blackColor];
     self.name = @"scene";
     self.ourGameEngine = [GameEngine new];
     self.myPlayer = [self.ourGameEngine getAssignedAsPlayer];
@@ -744,7 +744,7 @@
   if (_swapMode) { // swap mode on, so turn off
     _swapFieldActionInProgress = YES;
     
-    SKAction *moveAction = [SKAction moveTo:CGPointMake(0.f, 0.f) duration:kConstantTime];
+    SKAction *moveAction = [SKAction moveToY:0.f duration:kConstantTime];
     SKAction *completionAction = [SKAction runBlock:^{
       _swapFieldActionInProgress = NO;
       _swapField.hidden = YES;
@@ -764,7 +764,7 @@
     _swapFieldActionInProgress = YES;
     
     _swapField.hidden = NO;
-    SKAction *moveAction = [SKAction moveTo:CGPointMake(0.f, kRackHeight) duration:kConstantTime];
+    SKAction *moveAction = [SKAction moveToY:kRackHeight duration:kConstantTime];
     SKAction *completionAction = [SKAction runBlock:^{
       _swapFieldActionInProgress = NO;
       _swapMode = YES;
@@ -945,6 +945,16 @@
 
 -(void)updateForBoardBeingCorrectedWithinBounds {
   
+  if (_swapFieldActionInProgress) {
+    _boardField.homePosition = _boardField.position;
+    return;
+  }
+  
+  CGFloat swapBuffer = 0.f;
+  if (_swapMode) {
+    swapBuffer = kRackHeight; // the height of the swap field
+  }
+  
     // only prevents board move from touch if it's truly out of bounds
     // it's fine if it's still within the buffer
   if (_boardField.position.x < _boardField.lowestXPos) {
@@ -956,7 +966,7 @@
   if (_boardField.position.x > _boardField.highestXPos) {
     _boardBeingCorrectedWithinBounds = YES;
   }
-  if (_boardField.position.y > _boardField.highestYPos) {
+  if (_boardField.position.y > _boardField.highestYPos + swapBuffer) {
     _boardBeingCorrectedWithinBounds = YES;
   }
   
@@ -966,32 +976,20 @@
       // this number can be tweaked, but it seems fine for now
     CGFloat distanceDivisor = 8.f;
     
-    CGFloat swapBuffer = 0.f;
-    if (_swapMode) {
-      swapBuffer = kRackHeight; // the height of the swap field
-    }
-    
       // this establishes that board is no longer being corrected within bounds
     NSUInteger alreadyCorrect = 0;
+
+    CGFloat lowestXBuffer = _boardField.lowestXPos + kDyadminoFaceWideRadius;
+    CGFloat lowestYBuffer = _boardField.lowestYPos + kDyadminoFaceRadius;
+    CGFloat highestXBuffer = _boardField.highestXPos - kDyadminoFaceWideRadius;
+    CGFloat highestYBuffer = _boardField.highestYPos - kDyadminoFaceRadius + swapBuffer;
     
-    CGFloat lowestXBuffer;
-    CGFloat lowestYBuffer;
-    CGFloat highestXBuffer;
-    CGFloat highestYBuffer;
-    
-      // if board being corrected, then no extra buffer
-    if (_boardBeingCorrectedWithinBounds) {
-      lowestXBuffer = _boardField.lowestXPos;
-      lowestYBuffer = _boardField.lowestYPos;
-      highestXBuffer = _boardField.highestXPos;
-      highestYBuffer = _boardField.highestYPos;
-    } else {
-      lowestXBuffer = _boardField.lowestXPos + kDyadminoFaceWideRadius;
-      lowestYBuffer = _boardField.lowestYPos + kDyadminoFaceRadius;
-      highestXBuffer = _boardField.highestXPos - kDyadminoFaceWideRadius;
-      highestYBuffer = _boardField.highestYPos - kDyadminoFaceRadius;
+      // this way when the board is being corrected,
+      // it doesn't jump afterwards
+    if (_boardBeingMoved) {
+      _beganTouchLocation = _currentTouchLocation;
     }
-    
+  
     if (_boardField.position.x < lowestXBuffer) {
       thisDistance = 1.f + (lowestXBuffer - _boardField.position.x) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
@@ -1016,7 +1014,7 @@
       alreadyCorrect++;
     }
 
-    if (_boardField.position.y > highestYBuffer + swapBuffer) {
+    if (_boardField.position.y > highestYBuffer) {
       thisDistance = 1.f + (_boardField.position.y - highestYBuffer) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
       _boardField.homePosition = _boardField.position;
@@ -1340,8 +1338,12 @@ if (!_swapMode && [dyadmino isOnBoard]) {
     if ([cell isKindOfClass:[Cell class]]) {
       if (!_dyadminoesHidden) {
         cell.hexCoordLabel.hidden = YES;
+        cell.color = [SKColor orangeColor];
+        cell.colorBlendFactor = 0.5f;
       } else {
         cell.hexCoordLabel.hidden = NO;
+        cell.color = [SKColor whiteColor];
+        cell.colorBlendFactor = 0.5f;
       }
     }
   }

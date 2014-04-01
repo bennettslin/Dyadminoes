@@ -124,9 +124,6 @@
                             andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
                            andHexCoord:[self hexCoordFromX:xHex andY:yHex]];
     
-    cell.color = [SKColor orangeColor];
-    cell.colorBlendFactor = 0.5f;
-    
     cell.hidden = NO;
     [self addChild:cell];
     [self.allCells addObject:cell];
