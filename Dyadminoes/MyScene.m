@@ -38,7 +38,7 @@
   CGPoint _beganTouchLocation;
   CGPoint _currentTouchLocation;
   CGPoint _touchOffsetVector;
-  CGPoint _boardOffsetAfterTouch;
+//  CGPoint _boardOffsetAfterTouch;
   
     // bools and modes
   BOOL _swapMode;
@@ -67,7 +67,7 @@
 
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
-    self.backgroundColor = [SKColor lightGrayColor];
+    self.backgroundColor = [SKColor darkGrayColor];
     self.name = @"scene";
     self.ourGameEngine = [GameEngine new];
     self.myPlayer = [self.ourGameEngine getAssignedAsPlayer];
@@ -105,7 +105,7 @@
   [self addChild:_boardField];
   
     // initialise this as zero
-  _boardOffsetAfterTouch = CGPointZero;
+//  _boardOffsetAfterTouch = CGPointZero;
 }
 
 -(void)layoutBoardCover {
@@ -470,7 +470,7 @@
   //    newX = _boardField.position.x;
     }
     
-    NSLog(@"board position is %.1f, %.1f", _boardField.position.x, _boardField.position.y);
+//    NSLog(@"board position is %.1f, %.1f", _boardField.position.x, _boardField.position.y);
     
       // move board to new position
     _boardField.position = CGPointMake(newX, newY);
@@ -639,6 +639,7 @@
     // start hovering
   [dyadmino removeActionsAndEstablishNotRotating];
   [dyadmino startHovering];
+  
   [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
 }
 
@@ -943,7 +944,23 @@
 }
 
 -(void)updateForBoardBeingCorrectedWithinBounds {
-  if (!_boardBeingMoved && !_hoveringDyadmino) {
+  
+    // only prevents board move from touch if it's truly out of bounds
+    // it's fine if it's still within the buffer
+  if (_boardField.position.x < _boardField.lowestXPos) {
+    _boardBeingCorrectedWithinBounds = YES;
+  }
+  if (_boardField.position.y < _boardField.lowestYPos) {
+    _boardBeingCorrectedWithinBounds = YES;
+  }
+  if (_boardField.position.x > _boardField.highestXPos) {
+    _boardBeingCorrectedWithinBounds = YES;
+  }
+  if (_boardField.position.y > _boardField.highestYPos) {
+    _boardBeingCorrectedWithinBounds = YES;
+  }
+  
+  if (!_boardBeingMoved || _boardBeingCorrectedWithinBounds) {
     
     CGFloat thisDistance;
       // this number can be tweaked, but it seems fine for now
@@ -954,62 +971,55 @@
       swapBuffer = kRackHeight; // the height of the swap field
     }
     
+      // this establishes that board is no longer being corrected within bounds
     NSUInteger alreadyCorrect = 0;
     
-    CGFloat lowestXBuffer = _boardField.lowestXPos + kDyadminoFaceWideRadius;
+    CGFloat lowestXBuffer;
+    CGFloat lowestYBuffer;
+    CGFloat highestXBuffer;
+    CGFloat highestYBuffer;
+    
+      // if board being corrected, then no extra buffer
+    if (_boardBeingCorrectedWithinBounds) {
+      lowestXBuffer = _boardField.lowestXPos;
+      lowestYBuffer = _boardField.lowestYPos;
+      highestXBuffer = _boardField.highestXPos;
+      highestYBuffer = _boardField.highestYPos;
+    } else {
+      lowestXBuffer = _boardField.lowestXPos + kDyadminoFaceWideRadius;
+      lowestYBuffer = _boardField.lowestYPos + kDyadminoFaceRadius;
+      highestXBuffer = _boardField.highestXPos - kDyadminoFaceWideRadius;
+      highestYBuffer = _boardField.highestYPos - kDyadminoFaceRadius;
+    }
+    
     if (_boardField.position.x < lowestXBuffer) {
-        // only prevents board move from touch if it's truly out of bounds
-        // it's fine if it's still within the buffer
-      if (_boardField.position.x < _boardField.lowestXPos) {
-        _boardBeingCorrectedWithinBounds = YES;
-      }
-      
       thisDistance = 1.f + (lowestXBuffer - _boardField.position.x) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
-      
     } else {
       alreadyCorrect++;
     }
-    CGFloat lowestYBuffer = _boardField.lowestYPos + kDyadminoFaceRadius;
+    
     if (_boardField.position.y < lowestYBuffer) {
-      
-      if (_boardField.position.y < _boardField.lowestYPos) {
-        _boardBeingCorrectedWithinBounds = YES;
-      }
-
       thisDistance = 1.f + (lowestYBuffer - _boardField.position.y) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y + thisDistance);
       _boardField.homePosition = _boardField.position;
-      
     } else {
       alreadyCorrect++;
     }
-    CGFloat highestXBuffer = _boardField.highestXPos - kDyadminoFaceWideRadius;
-    if (_boardField.position.x > highestXBuffer) {
 
-      if (_boardField.position.x > _boardField.highestXPos) {
-        _boardBeingCorrectedWithinBounds = YES;
-      }
-      
+    if (_boardField.position.x > highestXBuffer) {
       thisDistance = 1.f + (_boardField.position.x - highestXBuffer) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x - thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
-      
     } else {
       alreadyCorrect++;
     }
-    CGFloat highestYBuffer = _boardField.highestYPos - kDyadminoFaceRadius;
-    if (_boardField.position.y > highestYBuffer + swapBuffer) {
 
-      if (_boardField.position.y > _boardField.highestYPos) {
-        _boardBeingCorrectedWithinBounds = YES;
-      }
-      
+    if (_boardField.position.y > highestYBuffer + swapBuffer) {
       thisDistance = 1.f + (_boardField.position.y - highestYBuffer) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
       _boardField.homePosition = _boardField.position;
-      
     } else {
       alreadyCorrect++;
     }
@@ -1060,7 +1070,7 @@
       if ([dyadmino belongsOnBoard]) {
           // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
         dyadmino.homeNode = dyadmino.tempBoardNode;
-        NSLog(@"dyadmino's homeNode is now its tempBoardNode");
+//        NSLog(@"dyadmino's homeNode is now its tempBoardNode");
       }
       
         // this is one of two places where board bounds are updated
@@ -1136,7 +1146,7 @@
   
   [_topBar updateLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
                                              _boardField.cellsTop - 5, _boardField.cellsRight - 5, _boardField.cellsBottom + 5, _boardField.cellsLeft + 5]];
-  NSLog(@"board bounds are %.1f, %.1f, %.1f, %.1f", _boardField.lowestYPos, _boardField.lowestXPos, _boardField.highestYPos, _boardField.highestXPos);
+//  NSLog(@"board bounds are %.1f, %.1f, %.1f, %.1f", _boardField.lowestYPos, _boardField.lowestXPos, _boardField.highestYPos, _boardField.highestXPos);
 }
 
 #pragma mark - touch helper methods
@@ -1326,6 +1336,16 @@ if (!_swapMode && [dyadmino isOnBoard]) {
     _dyadminoesHidden = NO;
   }
 
+  for (Cell *cell in _boardField.children) {
+    if ([cell isKindOfClass:[Cell class]]) {
+      if (!_dyadminoesHidden) {
+        cell.hexCoordLabel.hidden = YES;
+      } else {
+        cell.hexCoordLabel.hidden = NO;
+      }
+    }
+  }
+  
   NSLog(@"number of dyadminoes on board is %i, number of occupied cells is %i", self.ourGameEngine.dyadminoesOnBoard.count, _boardField.occupiedCells.count);
   
   NSLog(@"touched dyadmino %@, recent rack dyadmino %@, hovering dyadmino %@", _touchedDyadmino.name, _recentRackDyadmino.name, _hoveringDyadmino.name);

@@ -17,7 +17,9 @@
 @property (nonatomic) HexCoord hexCoord;
 @property (strong, nonatomic) Dyadmino *myDyadmino;
 @property (nonatomic) NSInteger myPC; // signed integer because myPC is -1 if no PC
-//@property (nonatomic) dyadminoPCOnCell pcOnCell;
+
+@property (strong, nonatomic) SKLabelNode *hexCoordLabel;
+@property (strong, nonatomic) SKLabelNode *pcLabel;
 
 -(id)initWithBoard:(Board *)board
         andTexture:(SKTexture *)texture

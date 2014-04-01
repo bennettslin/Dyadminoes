@@ -16,9 +16,6 @@
 @property (strong, nonatomic) SnapPoint *boardSnapPointTwoOClock;
 @property (strong, nonatomic) SnapPoint *boardSnapPointTenOClock;
 
-@property (strong, nonatomic) SKLabelNode *hexCoordLabel;
-@property (strong, nonatomic) SKLabelNode *pcLabel;
-
 @end
 
 @implementation Cell
@@ -310,6 +307,7 @@
   self.hexCoordLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;
   self.hexCoordLabel.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
   self.hexCoordLabel.position = CGPointMake(0, 5.f);
+  self.hexCoordLabel.hidden = YES;
   [self addChild:self.hexCoordLabel];
 }
 

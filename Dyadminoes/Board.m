@@ -80,7 +80,7 @@
     for (NSInteger yHex = self.cellsBottom - self.cellsRight / 2; yHex <= self.cellsTop - self.cellsLeft / 2; yHex++) {
 
       if (xHex >= self.cellsLeft && xHex <= self.cellsRight &&
-          yHex <= self.cellsTop - (xHex / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f)) {
+          yHex <= self.cellsTop - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f)) {
           // might be faster in the initial layout to add cells directly
           // without checking to see if they're already in allCells
         [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
@@ -205,7 +205,7 @@
       
       if (workingYHex > cellsTop - workingXHex / 2) {
         cellsTop = yHex + workingXHex / 2;
-        NSLog(@"cellsTop gets called");
+//        NSLog(@"cellsTop gets called");
           // board y-coord bounds will be different depending on whether x is odd or even
         if (abs(xHex) % 2 == 0) {
           _cellsTopXIsEven = YES;
@@ -216,7 +216,7 @@
       
       if (workingYHex < cellsBottom - workingXHex / 2) {
         cellsBottom = yHex + workingXHex / 2;
-        NSLog(@"cellsBottom gets called");
+//        NSLog(@"cellsBottom gets called");
         if (abs(xHex) % 2 == 0) {
           _cellsBottomXIsEven = YES;
         } else {
@@ -284,10 +284,10 @@
    //  NSLog(@"bottom range is this number of cells %.1f", _cellsInHorzRange);
    */
   
-  NSLog(@"cells top %i, right %i, bottom %i, left %i",
-        self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
-  NSLog(@"bounds is lowestY %.1f, lowestX %.1f, highestY %.1f, highestX %.1f",
-        self.lowestYPos, self.lowestXPos, self.highestYPos, self.highestXPos);
+//  NSLog(@"cells top %i, right %i, bottom %i, left %i",
+//        self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
+//  NSLog(@"bounds is lowestY %.1f, lowestX %.1f, highestY %.1f, highestX %.1f",
+//        self.lowestYPos, self.lowestXPos, self.highestYPos, self.highestXPos);
 }
 
 #pragma mark - distance methods
