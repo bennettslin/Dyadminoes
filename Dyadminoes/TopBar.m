@@ -10,11 +10,6 @@
 #import "Button.h"
 #import "Label.h"
 
-#define kLabelYPosition 5.f
-#define kButtonWidth 45.f
-#define kButtonSize CGSizeMake(kButtonWidth, kButtonWidth)
-#define kButtonYPosition 30.f
-
 @implementation TopBar
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size
@@ -80,9 +75,11 @@
 
 -(void)populateWithLabels {
   
+  CGFloat labelFontSize = kIsIPhone ? 14.f : 18.f;
+
   self.scoreLabel = [[Label alloc] initWithName:@"score"
                                    andFontColor:[SKColor whiteColor]
-                                    andFontSize:14.f
+                                    andFontSize:labelFontSize
                                     andPosition:CGPointMake(self.size.width - 5.f, 45.f)
                                    andZPosition:kZPositionTopBarLabel
                          andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
@@ -90,7 +87,7 @@
   
   self.pileCountLabel = [[Label alloc] initWithName:@"pileCount"
                                        andFontColor:[SKColor whiteColor]
-                                        andFontSize:14.f
+                                        andFontSize:labelFontSize
                                         andPosition:CGPointMake(self.size.width - 5.f, 30.f)
                                        andZPosition:kZPositionTopBarLabel
                              andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
@@ -98,25 +95,25 @@
   
   self.messageLabel = [[Label alloc] initWithName:@"message"
                                      andFontColor:kTestRed
-                                      andFontSize:14.f
+                                      andFontSize:labelFontSize
                                       andPosition:CGPointMake(5.f, -kLabelYPosition * 3)
-                                     andZPosition:kZPositionMessage
+                                     andZPosition:kZPositionLogMessage
                            andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [self.allLabels setValue:self.messageLabel forKey:self.messageLabel.name];
   
   self.logLabel = [[Label alloc] initWithName:@"log"
                                  andFontColor:[SKColor whiteColor]
-                                  andFontSize:14.f
+                                  andFontSize:labelFontSize
                                   andPosition:CGPointMake(self.size.width - 5.f, -kLabelYPosition * 3)
-                                 andZPosition:kZPositionMessage
+                                 andZPosition:kZPositionLogMessage
                        andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
   [self.allLabels setValue:self.logLabel forKey:self.logLabel.name];
   
   self.chordLabel = [[Label alloc] initWithName:@"chord"
                                  andFontColor:[SKColor yellowColor]
-                                  andFontSize:16.f
+                                  andFontSize:labelFontSize
                                   andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 6)
-                                 andZPosition:kZPositionMessage
+                                 andZPosition:kZPositionLogMessage
                        andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
   [self.allLabels setValue:self.chordLabel forKey:self.chordLabel.name];
 }

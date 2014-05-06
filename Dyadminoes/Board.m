@@ -90,16 +90,6 @@
   [self determineBoardPositionBounds];
 }
 
-//-(Cell *)initiallyAddCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
-//  Cell *cell = [[Cell alloc] initWithBoard:self
-//                                andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
-//                               andHexCoord:[self hexCoordFromX:xHex andY:yHex]];
-//  cell.hidden = NO;
-//  [self addChild:cell];
-//  [cell addSnapPointsToBoard];
-//  return cell;
-//}
-
 #pragma mark - cell methods
 
 -(Cell *)findCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
@@ -227,7 +217,9 @@
     }
   }
     // this creates four cells, plus one buffer cell, beyond outermost dyadmino
-  NSUInteger extraCells = 5;
+
+  NSUInteger extraCells = kIsIPhone ? 5 : 8;
+
   self.cellsTop = cellsTop + extraCells;
   self.cellsRight = cellsRight + extraCells;
   self.cellsBottom = cellsBottom - extraCells;
@@ -239,20 +231,24 @@
   
     // board y-coord bounds will be different depending on whether x is odd or even
   if (_cellsTopXIsEven) {
-    self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange - 0.5) * kDyadminoFaceDiameter;
+    CGFloat lowYBufferValue = kIsIPhone ? -0.5 : -1.5;
+    self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange + lowYBufferValue) * kDyadminoFaceDiameter;
   } else {
-    self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange) * kDyadminoFaceDiameter;
+    CGFloat lowYBufferValue = kIsIPhone ? 0 : -1.0;
+    self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange + lowYBufferValue) * kDyadminoFaceDiameter;
   }
-  
-  self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange + 0.25) * kDyadminoFaceWideDiameter;
+  CGFloat lowXBufferValue = kIsIPhone ? 0.25 : -.25;
+  self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange + lowXBufferValue) * kDyadminoFaceWideDiameter;
   
   if (_cellsBottomXIsEven) {
-    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange - 0.5) * kDyadminoFaceDiameter;
+    CGFloat highYBufferValue = kIsIPhone ? -0.5 : 0.5;
+    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange + highYBufferValue) * kDyadminoFaceDiameter;
   } else {
-    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange) * kDyadminoFaceDiameter;
+    CGFloat highYBufferValue = kIsIPhone ? 0: 1.0;
+    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange + highYBufferValue) * kDyadminoFaceDiameter;
   }
-  
-  self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange - 0.25) * kDyadminoFaceWideDiameter;
+  CGFloat highXBufferValue = kIsIPhone ? -0.25 : 0.25;
+  self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange + highXBufferValue) * kDyadminoFaceWideDiameter;
   
   /*
     cellsTop determines lowest Y position
@@ -514,7 +510,7 @@
   
   SKNode *pivotGuide = [SKNode new];
   pivotGuide.name = name;
-  pivotGuide.zPosition = kZPositionBoardRestingDyadmino + 1.f; // for now
+  pivotGuide.zPosition = kZPositionPivotGuide; // for now
   
     // this will have to change substantially...
   NSUInteger initialNumber;
@@ -630,7 +626,6 @@
   
     // this is the only place where prePivotGuide is hidden
     // and pivotAround or pivotRotate guides are then made visible
-  
   [self hideAllPivotGuides];
   
   if (offsetAngle > 210 && offsetAngle <= 330) {

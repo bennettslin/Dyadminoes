@@ -22,7 +22,7 @@
     
     SKLabelNode *labelNode = [SKLabelNode new];
     labelNode.text = self.name;
-    labelNode.fontSize = 10.f;
+    labelNode.fontSize = kIsIPhone ? 10.f : 14.f;
     labelNode.position = CGPointMake(0, -self.size.height * 0.5);
     [self addChild:labelNode];
   }

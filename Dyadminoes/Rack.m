@@ -12,7 +12,6 @@
 #import "Board.h"
 
 @implementation Rack {
-//  CGFloat _nodeYPosition;
   SnapPointType _snapNodeType;
   Board *_board;
   BOOL _exchangeInProgress;
@@ -80,7 +79,6 @@
     // this has to be reset after turn
     dyadmino.homeNode = self.rackNodes[index];
     dyadmino.tempBoardNode = nil;
-//    dyadmino.withinSection = kWithinRack;
 
     //--------------------------------------------------------------------------
   
@@ -169,9 +167,9 @@
 
 -(CGPoint)getNodePositionAtIndex:(NSUInteger)nodeIndex withCountNumber:(NSUInteger)countNumber {
   
-  CGFloat screenEdgeMarginFactor = 0.125f;
+  CGFloat screenEdgeMarginFactor = kIsIPhone ? 0.125f : 2.25f;
   CGFloat dyadminoesLeftFactor = .875f * (kNumDyadminoesInRack - countNumber);
-  
+
     // margins will vary based on number of dyadminoes in rack
   CGFloat xEdgeMargin = kDyadminoFaceRadius * (screenEdgeMarginFactor + dyadminoesLeftFactor);
   self.xIncrementInRack = (self.size.width / 2.f - xEdgeMargin) / countNumber;

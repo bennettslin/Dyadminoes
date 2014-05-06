@@ -240,6 +240,7 @@
 }
 
 -(void)goHomeByPoppingIn:(BOOL)poppingIn {
+//  NSLog(@"dyadmino's go home by popping in method called");
     // move these into a completion block for animation
 
   if (poppingIn) {
@@ -258,11 +259,13 @@
 }
 
 -(void)goToBoardNode {
+//  NSLog(@"dyadmino's go to board node method called");
   [self endTouchThenHoverResize];
   if ([self belongsInRack]) {
     [self orientBySnapNode:self.tempBoardNode];
     [self animateMoveToPoint:self.tempBoardNode.position];
   } else {
+//    NSLog(@"this is called because it's a board dyadmino");
     [self orientBySnapNode:self.homeNode];
     [self animateMoveToPoint:self.homeNode.position];
   }
@@ -461,7 +464,6 @@
     finishAction = [SKAction runBlock:^{
       self.isRotating = NO;
       [self keepHovering];
-//      NSLog(@"animate flip, now prepare for hover");
       [self.delegate prepareForHoverThisDyadmino:self];
       self.canFlip = NO;
     }];

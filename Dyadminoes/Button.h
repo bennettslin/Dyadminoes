@@ -7,6 +7,7 @@
 //
 
 #import <SpriteKit/SpriteKit.h>
+#import "NSObject+Helper.h"
 
 @interface Button : SKSpriteNode
 

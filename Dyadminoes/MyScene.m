@@ -38,7 +38,6 @@
   CGPoint _beganTouchLocation;
   CGPoint _currentTouchLocation;
   CGPoint _touchOffsetVector;
-//  CGPoint _boardOffsetAfterTouch;
   
     // bools and modes
   BOOL _swapMode;
@@ -47,6 +46,10 @@
   BOOL _boardBeingMoved;
   BOOL _boardBeingCorrectedWithinBounds;
   BOOL _canDoubleTap;
+  BOOL _hoveringDyadminoToStayFixedWhileBoardMoves;
+  BOOL _boardJustShiftedNotCorrected;
+  NSUInteger _hoveringDyadminoBeingCorrected;
+  NSUInteger _hoveringDyadminoFinishedCorrecting;
   CFTimeInterval _doubleTapTime;
   
     // pointers
@@ -73,6 +76,8 @@
     self.myPlayer = [self.ourGameEngine getAssignedAsPlayer];
     _rackExchangeInProgress = NO;
     _buttonPressed = nil;
+    _hoveringDyadminoBeingCorrected = 0;
+    _hoveringDyadminoFinishedCorrecting = 0;
   }
   return self;
 }
@@ -260,7 +265,19 @@
     if (_touchNode == _boardField || _touchNode == _boardCover ||
         (_touchNode.parent == _boardField && ![_touchNode isKindOfClass:[Dyadmino class]]) ||
         [_touchNode.parent isKindOfClass:[Cell class]]) { // this one is necessary only for testing purposes
+//      NSLog(@"board about to be moved");
       _boardBeingMoved = YES;
+      
+        // check to see if hovering dyadmino should stay with board or not
+      if (_hoveringDyadmino) {
+        [_boardField hideAllPivotGuides];
+        _hoveringDyadminoToStayFixedWhileBoardMoves = NO;
+        if ([_boardField validatePlacingDyadmino:_hoveringDyadmino onBoardNode:_hoveringDyadmino.tempBoardNode] != kNoError) {
+          _hoveringDyadminoToStayFixedWhileBoardMoves = YES;
+          [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
+        }
+      }
+
       return;
     }
   }
@@ -305,14 +322,7 @@
   if (_boardBeingMoved) {
     [self moveBoard];
       //testing purposes
-//    NSLog(@"board wants to be %.1f, %.1f", newPosition.x, newPosition.y);
-//    NSLog(@"bounds must be within top %.1f, right %.1f, bottom %.1f, left %.1f",
-//          _boardField.highestYPos, _boardField.highestXPos, _boardField.lowestYPos, _boardField.lowestXPos);
-//    NSLog(@"board home position is %.1f, %.1f", _boardField.homePosition.x, _boardField.homePosition.y);
-//    NSLog(@"board position is %.1f, %.1f", _boardField.position.x, _boardField.position.y);
-//    NSLog(@"board origin of course is %.1f, %.1f", self.view.frame.size.width * 0.5,
-//          (self.view.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
-//    NSLog(@"boardField position x is %.1f, lowest x possible is %.1f", _boardField.position.x, _boardField.lowestXPos);
+//    NSLog(@"board is being moved");
     return;
   }
   
@@ -416,6 +426,19 @@
     // board no longer being moved
   if (_boardBeingMoved) {
     _boardBeingMoved = NO;
+    
+      // take care of hovering dyadmino
+    if (_hoveringDyadmino) {
+//      if (_boardBeingCorrectedWithinBounds == NO) {
+//        [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
+//      }
+    }
+    if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
+      _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
+//      NSLog(@"touches ended");
+      [self updateCellsForPlacedDyadmino:_hoveringDyadmino];
+    }
+    
     _boardField.homePosition = _boardField.position;
   }
   
@@ -442,6 +465,7 @@
   
     // if board isn't being corrected within bounds
   if (!_boardBeingCorrectedWithinBounds) {
+//    NSLog(@"board being corrected within bounds");
       // first get new board position, after applying touch offset
     CGPoint touchOffset = [self subtractFromThisPoint:_beganTouchLocation thisPoint:_currentTouchLocation];
     CGPoint newPosition = [self subtractFromThisPoint:_boardField.homePosition thisPoint:touchOffset];
@@ -472,8 +496,17 @@
     
 //    NSLog(@"board position is %.1f, %.1f", _boardField.position.x, _boardField.position.y);
     
+    CGPoint adjustedNewPosition = CGPointMake(newX, newY);
+    
+    if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
+      _hoveringDyadmino.position = [self addToThisPoint:_hoveringDyadmino.position
+                                              thisPoint:[self subtractFromThisPoint:_boardField.position
+                                                                          thisPoint:adjustedNewPosition]];
+    }
+    
       // move board to new position
-    _boardField.position = CGPointMake(newX, newY);
+    _boardField.position = adjustedNewPosition;
+    
       // move home position to board position, after applying touch offset
     _boardField.homePosition = [self addToThisPoint:_boardField.position thisPoint:touchOffset];
   }
@@ -486,8 +519,12 @@
   
     // board dyadmino sends recent rack home upon touch
     // rack dyadmino will do so upon move out of rack
-  if ([dyadmino isOnBoard] && [dyadmino belongsOnBoard] && dyadmino != _hoveringDyadmino) {
-    [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES];
+  if ([dyadmino isOnBoard] && dyadmino != _hoveringDyadmino) {
+    if ([_hoveringDyadmino belongsOnBoard]) {
+      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:NO];
+    } else if ([_hoveringDyadmino belongsInRack]) {
+      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES];
+    }
   }
   
     // record tempReturnOrientation only if it's settled and not hovering
@@ -565,17 +602,21 @@
         // or if dyadmino is in top bar...
     } else if ([dyadmino isInTopBar]) {;
       
-        // if it's on the board, regardless of whether it belongs in rack or on board
-      if (dyadmino.tempBoardNode) {
+        // if it's a board dyadmino
+      NSLog(@"touch ended, and dyadmino is in top bar");
+      if ([dyadmino.homeNode isBoardNode]) {
+        NSLog(@"its home node is board node");
+        dyadmino.tempBoardNode = nil;
         [self sendDyadminoToBoardNode:dyadmino];
         
-          // if it's a rack dyadmino
+          // if it's a rack dyadmino (even if it was just recently on the board)
       } else {
         [self sendDyadminoHome:dyadmino byPoppingIn:YES];
       }
       
         // or if dyadmino is in rack but belongs on board (this seems to work)
     } else if ([dyadmino belongsOnBoard] && [dyadmino isInRack]) {
+      dyadmino.tempBoardNode = nil;
       [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
       dyadmino.position = [_boardField getOffsetFromPoint:dyadmino.position];
       [self sendDyadminoToBoardNode:dyadmino];
@@ -633,7 +674,7 @@
   dyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:dyadmino];
 
     // update cells for placement
-//  NSLog(@"update cells for placed dyadmino");
+//        NSLog(@"assign touch ended pointer");
   [self updateCellsForPlacedDyadmino:dyadmino];
   
     // start hovering
@@ -678,13 +719,18 @@
     // this ensures that dyadmino is properly oriented and positioned before
     // re-updating the cells of its original home node
   if ([dyadmino belongsOnBoard]) {
+    NSLog(@"send dyadmino home called");
     [self updateCellsForPlacedDyadmino:dyadmino];
   }
 }
 
 -(void)sendDyadminoToBoardNode:(Dyadmino *)dyadmino {
-  [self updateCellsForPlacedDyadmino:dyadmino];
+  NSLog(@"send dyadmino to board node");
   [dyadmino goToBoardNode];
+  if (dyadmino == _hoveringDyadmino) {
+    _hoveringDyadmino = nil;
+  }
+  [self updateCellsForPlacedDyadmino:dyadmino];
 }
 
 #pragma mark - button methods
@@ -874,6 +920,7 @@
     // snap back somewhat from board bounds
     // TODO: this works, but it feels jumpy
   [self updateForBoardBeingCorrectedWithinBounds];
+  [self updateForHoveringDyadminoBeingCorrectedWithinBounds];
   
   [self updateForButtons];
   
@@ -905,8 +952,8 @@
     }
     
       // done button is enabled only when no recent rack dyadmino
-      // and no dyadmino is touched or hovering
-    if (!_touchedDyadmino && !_recentRackDyadmino && !_hoveringDyadmino) {
+      // and no dyadmino is hovering
+    if (!_recentRackDyadmino && !_hoveringDyadmino) {
       [_topBar enableButton:_topBar.doneTurnButton];
     } else {
       [_topBar disableButton:_topBar.doneTurnButton];
@@ -943,6 +990,63 @@
   }
 }
 
+-(void)updateForHoveringDyadminoBeingCorrectedWithinBounds {
+  if (![_hoveringDyadmino isRotating] && !_boardBeingMoved &&
+      !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected &&
+      _hoveringDyadmino && _hoveringDyadmino != _touchedDyadmino &&
+      ![_hoveringDyadmino isInRack] && ![_hoveringDyadmino isInTopBar]) {
+    
+    CGFloat xLowLimit = -_boardField.position.x;
+    CGFloat xHighLimit = self.view.frame.size.width - _boardField.position.x;
+    
+    CGFloat thisDistance;
+    CGFloat distanceDivisor = 5.333f; // tweak this number if desired
+    CGFloat dyadminoBuffer;
+    
+    switch (_hoveringDyadmino.orientation) {
+      case kPC1atTwelveOClock:
+      case kPC1atSixOClock:
+        dyadminoBuffer = kDyadminoFaceWideRadius * 1.5;
+        break;
+        
+      default: // all other cases
+        dyadminoBuffer = kDyadminoFaceWideDiameter * 1.5;
+        break;
+    }
+    
+    if (_hoveringDyadmino.position.x - dyadminoBuffer < xLowLimit) {
+      _hoveringDyadminoBeingCorrected++;
+//      NSLog(@"position x is %.1f, xlowlimit is %.1f", _hoveringDyadmino.position.x + dyadminoBuffer, xLowLimit);
+      thisDistance = 1.f + (xLowLimit - (_hoveringDyadmino.position.x - dyadminoBuffer)) / distanceDivisor;
+      _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x + thisDistance, _hoveringDyadmino.position.y);
+      
+    } else if (_hoveringDyadmino.position.x + dyadminoBuffer > xHighLimit) {
+      _hoveringDyadminoBeingCorrected++;
+//      NSLog(@"position x is %.1f, xhighlimit is %.1f", _hoveringDyadmino.position.x - dyadminoBuffer, xHighLimit);
+      thisDistance = 1.f + ((_hoveringDyadmino.position.x + dyadminoBuffer) - xHighLimit) / distanceDivisor;
+      _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x - thisDistance, _hoveringDyadmino.position.y);
+      
+    } else {
+      _hoveringDyadminoFinishedCorrecting++;
+    }
+    
+      // only goes through one time
+    if (_hoveringDyadminoBeingCorrected == 1) {
+      [_boardField hideAllPivotGuides];
+      [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
+      _hoveringDyadminoFinishedCorrecting = 0;
+      
+    } else if (_hoveringDyadminoFinishedCorrecting == 1) {
+      [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
+      [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
+      _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
+//      NSLog(@"update for dyadmino corrected");
+      [self updateCellsForPlacedDyadmino:_hoveringDyadmino];
+      _hoveringDyadminoBeingCorrected = 0;
+    }
+  }
+}
+
 -(void)updateForBoardBeingCorrectedWithinBounds {
   
   if (_swapFieldActionInProgress) {
@@ -972,11 +1076,16 @@
   
   if (!_boardBeingMoved || _boardBeingCorrectedWithinBounds) {
     
+    if (_hoveringDyadmino && _boardBeingCorrectedWithinBounds) {
+      [_boardField hideAllPivotGuides];
+      [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
+    }
+    
     CGFloat thisDistance;
       // this number can be tweaked, but it seems fine for now
     CGFloat distanceDivisor = 8.f;
     
-      // this establishes that board is no longer being corrected within bounds
+      // this establishes when board is no longer being corrected within bounds
     NSUInteger alreadyCorrect = 0;
 
     CGFloat lowestXBuffer = _boardField.lowestXPos + kDyadminoFaceWideRadius;
@@ -990,39 +1099,81 @@
       _beganTouchLocation = _currentTouchLocation;
     }
   
+      // establishes the board is being shifted away from hard edge, not as a correction
+    
     if (_boardField.position.x < lowestXBuffer) {
+      _boardJustShiftedNotCorrected = YES;
+//      NSLog(@"boardField position x is %.2f, lowest x buffer is %.2f", _boardField.position.x, lowestXBuffer);
       thisDistance = 1.f + (lowestXBuffer - _boardField.position.x) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
+      
+      if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
+        _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x - thisDistance, _hoveringDyadmino.position.y);
+      }
+      
     } else {
       alreadyCorrect++;
     }
     
     if (_boardField.position.y < lowestYBuffer) {
+      _boardJustShiftedNotCorrected = YES;
+//      NSLog(@"boardField position y is %.2f, lowest y buffer is %.2f", _boardField.position.y, lowestYBuffer);
       thisDistance = 1.f + (lowestYBuffer - _boardField.position.y) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y + thisDistance);
       _boardField.homePosition = _boardField.position;
+      
+      if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
+        _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x, _hoveringDyadmino.position.y - thisDistance);
+      }
+      
     } else {
       alreadyCorrect++;
     }
 
     if (_boardField.position.x > highestXBuffer) {
+      _boardJustShiftedNotCorrected = YES;
+//      NSLog(@"boardField position x is %.2f, highest x buffer is %.2f", _boardField.position.x, highestXBuffer);
       thisDistance = 1.f + (_boardField.position.x - highestXBuffer) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x - thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
+      
+      if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
+        _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x + thisDistance, _hoveringDyadmino.position.y);
+      }
+      
     } else {
       alreadyCorrect++;
     }
 
     if (_boardField.position.y > highestYBuffer) {
+      _boardJustShiftedNotCorrected = YES;
+//      NSLog(@"boardField position y is %.2f, highest y buffer is %.2f", _boardField.position.y, highestYBuffer);
       thisDistance = 1.f + (_boardField.position.y - highestYBuffer) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
       _boardField.homePosition = _boardField.position;
+      
+      if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
+        _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x, _hoveringDyadmino.position.y + thisDistance);
+      }
+      
     } else {
       alreadyCorrect++;
     }
-    
+
+      // this one is constantly being called even when board is motionless
     if (alreadyCorrect == 4) {
+
+      if (_boardJustShiftedNotCorrected &&
+          _hoveringDyadmino && _hoveringDyadmino != _touchedDyadmino) {
+        [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
+        _boardJustShiftedNotCorrected = NO;
+        [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
+        _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
+//        NSLog(@"update for board being corrected");
+        [self updateCellsForPlacedDyadmino:_hoveringDyadmino];
+      }
+      
       _boardBeingCorrectedWithinBounds = NO;
     }
   }
@@ -1044,9 +1195,6 @@
   if (_hoverTime != 0.f && currentTime > _hoverTime + kAnimateHoverTime) {
     _hoverTime = 0.f;
     
-      // finish status
-    [dyadmino setToHomeZPosition];
-    
     [dyadmino finishHovering];
 //    dyadmino.tempReturnOrientation = dyadmino.orientation;
   }
@@ -1057,37 +1205,39 @@
       _touchedDyadmino != dyadmino) {
     
       // finish hovering only if placement is legal
-    PhysicalPlacementResult placementResult =
-    [_boardField validatePlacingDyadmino:dyadmino
-                             onBoardNode:dyadmino.tempBoardNode];
-    
-      // handle placement results:
-    
-      // no error
-    if (placementResult == kNoError) {
-      if ([dyadmino belongsOnBoard]) {
-          // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
-        dyadmino.homeNode = dyadmino.tempBoardNode;
-//        NSLog(@"dyadmino's homeNode is now its tempBoardNode");
+    if (dyadmino.tempBoardNode) { // ensures that validation takes place only if placement is uncertain
+                                  // will not get called if returning to homeNode from top bar
+      PhysicalPlacementResult placementResult = [_boardField validatePlacingDyadmino:dyadmino
+                                                                         onBoardNode:dyadmino.tempBoardNode];
+
+        // handle placement results:
+      
+        // no error
+      if (placementResult == kNoError) {
+        if ([dyadmino belongsOnBoard]) {
+            // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
+          dyadmino.homeNode = dyadmino.tempBoardNode;
+  //        NSLog(@"dyadmino's homeNode is now its tempBoardNode");
+        }
+        
+          // this is one of two places where board bounds are updated
+          // the other is when rack dyadmino is sent home
+        [self updateBoardBoundsWithDyadmino:dyadmino];
+        
+        [_boardField hideAllPivotGuides];
+        [dyadmino animateEaseIntoNodeAfterHover];
+        _hoveringDyadmino = nil;
+       
+          // lone dyadmino
+      } else if (placementResult == kErrorLoneDyadmino) {
+        [_topBar flashLabelNamed:@"message" withText:@"no lone dyadminoes!"];
+        [dyadmino keepHovering];
+        
+          // stacked dyadminoes
+      } else if (placementResult == kErrorStackedDyadminoes) {
+        [_topBar flashLabelNamed:@"message" withText:@"can't stack dyadminoes!"];
+        [dyadmino keepHovering];
       }
-      
-        // this is one of two places where board bounds are updated
-        // the other is when rack dyadmino is sent home
-      [self updateBoardBoundsWithDyadmino:dyadmino];
-      
-      [_boardField hideAllPivotGuides];
-      [dyadmino animateEaseIntoNodeAfterHover];
-      _hoveringDyadmino = nil;
-     
-        // lone dyadmino
-    } else if (placementResult == kErrorLoneDyadmino) {
-      [_topBar flashLabelNamed:@"message" withText:@"no lone dyadminoes!"];
-      [dyadmino keepHovering];
-      
-        // stacked dyadminoes
-    } else if (placementResult == kErrorStackedDyadminoes) {
-      [_topBar flashLabelNamed:@"message" withText:@"can't stack dyadminoes!"];
-      [dyadmino keepHovering];
     }
   }
 }
@@ -1119,6 +1269,7 @@
   if (dyadmino.tempBoardNode) {
     [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.tempBoardNode];
   } else {
+    NSLog(@"update cells for placed dyadmino on board dyadmino's home node");
     [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode];
   }
 }
@@ -1143,7 +1294,7 @@
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard];
   
   [_topBar updateLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
-                                             _boardField.cellsTop - 5, _boardField.cellsRight - 5, _boardField.cellsBottom + 5, _boardField.cellsLeft + 5]];
+                                             _boardField.cellsTop - 0, _boardField.cellsRight - 0, _boardField.cellsBottom + 0, _boardField.cellsLeft + 0]];
 //  NSLog(@"board bounds are %.1f, %.1f, %.1f, %.1f", _boardField.lowestYPos, _boardField.lowestXPos, _boardField.highestYPos, _boardField.highestXPos);
 }
 
@@ -1269,7 +1420,20 @@
 -(SnapPoint *)findSnapPointClosestToDyadmino:(Dyadmino *)dyadmino {
   id arrayOrSetToSearch;
   
-if (!_swapMode && [dyadmino isOnBoard]) {
+//  NSUInteger cellCount = 0;
+//  CGFloat averageHexX = 0;
+//  CGFloat averageHexY = 0;
+//  NSArray *nodeArray = [_boardField nodesAtPoint:dyadmino.position];
+//  for (SKNode *node in nodeArray) {
+//    if ([node isKindOfClass:[Cell class]]) {
+//      Cell *cell = (Cell *)node;
+//      cellCount++;
+//      averageHexX = (averageHexX + cell.hexCoord.x) / cellCount;
+//      averageHexY = (averageHexY + cell.hexCoord.y) / cellCount;
+//    }
+//  }
+  
+  if (!_swapMode && [dyadmino isOnBoard]) {
     if (dyadmino.orientation == kPC1atTwelveOClock || dyadmino.orientation == kPC1atSixOClock) {
       arrayOrSetToSearch = _boardField.snapPointsTwelveOClock;
     } else if (dyadmino.orientation == kPC1atTwoOClock || dyadmino.orientation == kPC1atEightOClock) {
@@ -1286,14 +1450,21 @@ if (!_swapMode && [dyadmino isOnBoard]) {
   SnapPoint *closestSnapPoint;
   CGFloat shortestDistance = self.frame.size.height;
   
+//  NSUInteger tempCounter = 0;
   for (SnapPoint *snapPoint in arrayOrSetToSearch) {
-    CGFloat thisDistance = [self getDistanceFromThisPoint:dyadmino.position
-                                              toThisPoint:snapPoint.position];
-    if (thisDistance < shortestDistance) {
-      shortestDistance = thisDistance;
-      closestSnapPoint = snapPoint;
+//    if (abs(snapPoint.myCell.hexCoord.x - averageHexX) < 2 &&
+//        abs(snapPoint.myCell.hexCoord.y - averageHexY) < 2) {
+//      tempCounter++;
+      CGFloat thisDistance = [self getDistanceFromThisPoint:dyadmino.position
+                                                toThisPoint:snapPoint.position];
+      if (thisDistance < shortestDistance) {
+        shortestDistance = thisDistance;
+        closestSnapPoint = snapPoint;
+      }
     }
-  }
+//  }
+//  NSLog(@"tempCounter is %i", tempCounter);
+  
   return closestSnapPoint;
 }
 
@@ -1338,20 +1509,23 @@ if (!_swapMode && [dyadmino isOnBoard]) {
     if ([cell isKindOfClass:[Cell class]]) {
       if (!_dyadminoesHidden) {
         cell.hexCoordLabel.hidden = YES;
-        cell.color = [SKColor orangeColor];
-        cell.colorBlendFactor = 0.5f;
+//        cell.color = [SKColor orangeColor];
+//        cell.colorBlendFactor = 0.5f;
       } else {
         cell.hexCoordLabel.hidden = NO;
-        cell.color = [SKColor whiteColor];
-        cell.colorBlendFactor = 0.5f;
+//        cell.color = [SKColor whiteColor];
+//        cell.colorBlendFactor = 0.5f;
       }
     }
   }
   
-  NSLog(@"number of dyadminoes on board is %i, number of occupied cells is %i", self.ourGameEngine.dyadminoesOnBoard.count, _boardField.occupiedCells.count);
-  
-  NSLog(@"touched dyadmino %@, recent rack dyadmino %@, hovering dyadmino %@", _touchedDyadmino.name, _recentRackDyadmino.name, _hoveringDyadmino.name);
-  
+//  NSLog(@"number of dyadminoes on board is %lu, number of occupied cells is %lu", (unsigned long)self.ourGameEngine.dyadminoesOnBoard.count, (unsigned long)_boardField.occupiedCells.count);
+//  
+//  NSLog(@"touched dyadmino %@, recent rack dyadmino %@, hovering dyadmino %@", _touchedDyadmino.name, _recentRackDyadmino.name, _hoveringDyadmino.name);
+  NSLog(@"board being corrected within bounds is %i", _boardBeingCorrectedWithinBounds);
+  if (_hoveringDyadmino.tempBoardNode) {
+    NSLog(@"hovering dyadmino has temp board node");
+  }
 }
 
 @end

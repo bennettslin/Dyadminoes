@@ -9,19 +9,46 @@
 #import <Foundation/Foundation.h>
 @class Dyadmino;
 
-  // animation constants
-#define kRotateWait 0.05f
-#define kConstantTime 0.15f
-#define kConstantSpeed 0.002f
-#define kAnimateHoverTime 0.4f
-#define kDoubleTapTime 0.25f
+// constants that differ between iPhone and iPad
+//------------------------------------------------------------------------------
+
+  // iPad constants are iPhone constants times 1.5
+#define kIsIPhone (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
 
   // dyadmino size constants
   // one constant rules them all (literally, haha)
-#define kDyadminoFaceRadius 21.75f // for now, perfectly reflects image size
+#define kDyadminoFaceRadius (kIsIPhone ? 21.75f : 32.625f) // for now, perfectly reflects image size
+
+  // view constants
+#define kTopBarHeight (kIsIPhone ? 80.f : 120.f)
+#define kRackHeight (kIsIPhone ? 108.f : 162.f)
+
+  // label constants
+#define kLabelYPosition (kIsIPhone ? 5.f : 7.5f)
+#define kButtonWidth (kIsIPhone ? 45.f : 67.5)
+#define kButtonYPosition (kIsIPhone ? 30.f : 45.f)
+
+  // animation constants
+#define kConstantSpeed (kIsIPhone ? 0.002f : 0.0013333f)
+
+//------------------------------------------------------------------------------
+
+  // dyadmino size constants
 #define kDyadminoFaceDiameter (kDyadminoFaceRadius * 2)
 #define kDyadminoFaceWideRadius (kDyadminoFaceRadius * kTwoOverSquareRootOfThree)
 #define kDyadminoFaceWideDiameter (kDyadminoFaceWideRadius * 3 / 2)
+
+  // view constants
+#define kBoardCoverAlpha 0.4f
+
+  // label constants (maybe temp)
+#define kButtonSize CGSizeMake(kButtonWidth, kButtonWidth)
+
+  // animation constants
+#define kRotateWait 0.05f
+#define kConstantTime 0.15f
+#define kAnimateHoverTime 0.4f
+#define kDoubleTapTime 0.25f
 
   // dyadmino state constants
 #define kDyadminoResizedFactor 1.17f
@@ -31,44 +58,46 @@
 #define kSquareRootOfThree 1.73205081f
 #define kTwoOverSquareRootOfThree 1.15470054f
 
-  // view constants
-#define kTopBarHeight 80.f
-#define kRackHeight 108.f
-#define kBoardCoverAlpha 0.4f
-
   // game logic constants
 #define kNumDyadminoesInRack 6
 
   // distance constants
 #define kAngleForSnapToPivot 0.1f
-
 #define kDistanceForTouchingHoveringDyadmino (kDyadminoFaceRadius * kDyadminoResizedFactor) // was 32.f
 #define kDistanceForTouchingRestingDyadmino (kDyadminoFaceRadius * 0.8f) // was 25.f
-
 #define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
-#define kMaxDistanceForPivot kDyadminoFaceRadius * 3.5f
+#define kMaxDistanceForPivot (kDyadminoFaceRadius * 3.5f)
 #define kPivotGuideAlpha 0.7f
+#define kGapForHighlight (kRackHeight / 3.6f)
 
-#define kGapForHighlight 30.f
+  //----------------------------------------------------------------------------
 
   // z positions
-#define kZPositionBoardCoverHidden 5.f
-#define kZPositionBoard 10.f
-#define kZPositionBoardCell 20.f
-#define kZPositionBoardCover 25.f
-#define kZPositionBoardNode 30.f
-#define kZPositionBoardRestingDyadmino 40.f
-#define kZPositionTopBar 100.f
-#define kZPositionTopBarButton 110.f
-#define kZPositionTopBarLabel 120.f
-#define kZPositionSwapField 200.f
-#define kZPositionSwapNode 210.f
-#define kZPositionRackField 300.f
-#define kZPositionRackNode 310.f
-#define kZPositionRackMovedDyadmino 320.f
-#define kZPositionRackRestingDyadmino 330.f
-#define kZPositionHoveredDyadmino 400.f
-#define kZPositionMessage 500.f
+  // children of scene
+#define kZPositionBoardCoverHidden 25.f
+#define kZPositionBoard 50.f
+#define kZPositionBoardCover 100.f
+#define kZPositionSwapField 110.f
+
+#define kZPositionTopBar 120.f
+#define kZPositionRackField 130.f
+
+  // children of board
+#define kZPositionBoardCell 10.f
+#define kZPositionBoardRestingDyadmino 20.f
+#define kZPositionPivotGuide 450.f
+#define kZPositionHoveredDyadmino 500.f
+
+  // children of top bar
+#define kZPositionTopBarButton 10.f
+#define kZPositionTopBarLabel 20.f
+#define kZPositionLogMessage 30.f
+
+  // children of rack
+#define kZPositionRackMovedDyadmino 10.f
+#define kZPositionRackRestingDyadmino 20.f
+
+  //----------------------------------------------------------------------------
 
   // colours
 #define kDarkBlue [SKColor colorWithRed:.29f green:.4f blue:.63f alpha:1.f]
