@@ -16,6 +16,7 @@
 @property (strong, nonatomic) NSMutableSet *allButtons;
 @property (strong, nonatomic) NSMutableDictionary *allLabels;
 
+@property (strong, nonatomic) Button *gamesButton;
 @property (strong, nonatomic) Button *togglePCModeButton;
 @property (strong, nonatomic) Button *swapButton;
 @property (strong, nonatomic) Button *cancelButton;

@@ -97,6 +97,10 @@
 #define kZPositionRackMovedDyadmino 10.f
 #define kZPositionRackRestingDyadmino 20.f
 
+  // data key constants
+
+#define kMatchesKey @"myMatches"
+
   //----------------------------------------------------------------------------
 
   // colours
@@ -113,6 +117,19 @@
 #define kWhite [SKColor colorWithRed:1.f green:1.f blue:1.f alpha:1.f]
 #define kYellow [SKColor colorWithRed:1.f green:0.96f blue:.62f alpha:1.f]
 #define kCyanBlue [SKColor colorWithRed:.62f green:.96f blue:1.f alpha:1.f]
+
+  //----------------------------------------------------------------------------
+
+typedef enum mainPageButtonType {
+  kSoloGameButton,
+  kPassNPlayButton,
+  kGameCenterMatchButton,
+  kHelpButton,
+  kStoreButton,
+  kLeaderboardButton,
+  kOptionsButton,
+  kAboutButton
+} MainPageButtonType;
 
 typedef struct HexCoord {
   NSInteger x;
@@ -185,5 +202,8 @@ typedef enum physicalPlacementResult {
 
   // struct stuff
 -(HexCoord)hexCoordFromX:(NSInteger)x andY:(NSInteger)y;
+
+  // date stuff
+-(NSString *)returnStringFromDate:(NSDate *)date;
 
 @end

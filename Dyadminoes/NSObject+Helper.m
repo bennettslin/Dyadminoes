@@ -63,4 +63,13 @@
   return newHexCoord;
 }
 
+#pragma mark - date stuff
+
+-(NSString *)returnStringFromDate:(NSDate *)date {
+  NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+  [dateFormatter setDateStyle:NSDateFormatterShortStyle];
+  [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
+  return [dateFormatter stringFromDate:date];
+}
+
 @end

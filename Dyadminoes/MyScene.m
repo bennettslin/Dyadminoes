@@ -7,6 +7,7 @@
 //
 
 #import "MyScene.h"
+#import "SceneViewController.h"
 #import "GameEngine.h"
 #import "Dyadmino.h"
 #import "NSObject+Helper.h"
@@ -733,12 +734,30 @@
   [self updateCellsForPlacedDyadmino:dyadmino];
 }
 
+#pragma mark - view controller methods
+
+-(void)goBackToMainViewController {
+  [self.delegate presentMainView];
+//  [self.mySceneVC.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+//  NSLog(@"will move to parent view controller");
+//  [self.mySceneVC willMoveToParentViewController:nil];
+//  NSLog(@"removed from superview");
+//  [self.mySceneVC.view removeFromSuperview];
+//  NSLog(@"removed from parent vc");
+//  [self.mySceneVC removeFromParentViewController];
+}
+
 #pragma mark - button methods
 
 -(void)handleButtonPressed {
   
-      /// swap button
-  if (_buttonPressed == _topBar.swapButton) {
+      /// games button
+  if (_buttonPressed == _topBar.gamesButton) {
+    
+    NSLog(@"games button pressed!");
+    [self goBackToMainViewController];
+    
+  } else if (_buttonPressed == _topBar.swapButton) {
     if (!_swapMode) {
       [self toggleSwapField];
     }
@@ -1037,11 +1056,11 @@
       _hoveringDyadminoFinishedCorrecting = 0;
       
     } else if (_hoveringDyadminoFinishedCorrecting == 1) {
-      [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
       [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
       _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
 //      NSLog(@"update for dyadmino corrected");
       [self updateCellsForPlacedDyadmino:_hoveringDyadmino];
+      [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
       _hoveringDyadminoBeingCorrected = 0;
     }
   }
@@ -1166,12 +1185,15 @@
 
       if (_boardJustShiftedNotCorrected &&
           _hoveringDyadmino && _hoveringDyadmino != _touchedDyadmino) {
-        [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
         _boardJustShiftedNotCorrected = NO;
         [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
         _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
 //        NSLog(@"update for board being corrected");
         [self updateCellsForPlacedDyadmino:_hoveringDyadmino];
+        
+        if (!_hoveringDyadminoBeingCorrected) {
+          [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
+        }
       }
       
       _boardBeingCorrectedWithinBounds = NO;

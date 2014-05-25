@@ -30,44 +30,52 @@
 }
 
 -(void)populateWithButtons {
-  self.togglePCModeButton = [[Button alloc] initWithName:@"toggle" andColor:[SKColor orangeColor]
+
+  self.gamesButton = [[Button alloc] initWithName:@"games" andColor:[SKColor grayColor]
                                                  andSize:kButtonSize
                                              andPosition:CGPointMake(kButtonWidth, kButtonYPosition)
+                                            andZPosition:kZPositionTopBarButton];
+  [self.allButtons addObject:self.gamesButton];
+  [self enableButton:self.gamesButton];
+  
+  self.togglePCModeButton = [[Button alloc] initWithName:@"toggle" andColor:[SKColor orangeColor]
+                                                 andSize:kButtonSize
+                                             andPosition:CGPointMake(kButtonWidth*2, kButtonYPosition)
                                             andZPosition:kZPositionTopBarButton];
   [self.allButtons addObject:self.togglePCModeButton];
   [self enableButton:self.togglePCModeButton];
   
   self.swapButton = [[Button alloc] initWithName:@"swap" andColor:[SKColor brownColor]
                                          andSize:kButtonSize
-                                     andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition)
+                                     andPosition:CGPointMake(kButtonWidth*3, kButtonYPosition)
                                     andZPosition:kZPositionTopBarButton];
   [self.allButtons addObject:self.swapButton];
   [self enableButton:self.swapButton];
   
   self.cancelButton = [[Button alloc] initWithName:@"cancel" andColor:[SKColor redColor]
                                            andSize:kButtonSize
-                                       andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition)
+                                       andPosition:CGPointMake(kButtonWidth*3, kButtonYPosition)
                                       andZPosition:kZPositionTopBarButton];
   [self.allButtons addObject:self.cancelButton];
   [self disableButton:_cancelButton];
   
   self.playDyadminoButton = [[Button alloc] initWithName:@"play" andColor:kDarkGreen
                                                  andSize:kButtonSize
-                                             andPosition:CGPointMake(kButtonWidth * 3, kButtonYPosition)
+                                             andPosition:CGPointMake(kButtonWidth*4, kButtonYPosition)
                                             andZPosition:kZPositionTopBarButton];
   [self.allButtons addObject:self.playDyadminoButton];
   [self disableButton:_playDyadminoButton];
   
   self.doneTurnButton = [[Button alloc] initWithName:@"done" andColor:[SKColor blueColor]
                                              andSize:kButtonSize
-                                         andPosition:CGPointMake(kButtonWidth * 3, kButtonYPosition)
+                                         andPosition:CGPointMake(kButtonWidth*4, kButtonYPosition)
                                         andZPosition:kZPositionTopBarButton];
   [self.allButtons addObject:self.doneTurnButton];
   [self enableButton:self.doneTurnButton];
   
   self.debugButton = [[Button alloc] initWithName:@"debug" andColor:[SKColor blackColor]
                                         andSize:kButtonSize
-                                    andPosition:CGPointMake(kButtonWidth * 4, kButtonYPosition)
+                                    andPosition:CGPointMake(kButtonWidth*5, kButtonYPosition)
                                    andZPosition:kZPositionTopBarButton];
   [self.allButtons addObject:self.debugButton];
   [self enableButton:self.debugButton];

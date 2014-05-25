@@ -12,6 +12,11 @@
 		3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3116CD18CEFC5D0015CC2A /* Rack.m */; };
 		3F55E1FD18D7A8520048E67E /* Button.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F55E1FC18D7A8520048E67E /* Button.m */; };
 		3F6AE50E18D4D1E7000528C1 /* TopBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F6AE50D18D4D1E7000528C1 /* TopBar.m */; };
+		3F7BD7C9192AF45D009274DE /* Match.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7C8192AF45D009274DE /* Match.m */; };
+		3F7BD7D5192B09D6009274DE /* MainTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7D4192B09D6009274DE /* MainTableViewController.m */; };
+		3F7BD7D8192B09FE009274DE /* DebugViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7D7192B09FE009274DE /* DebugViewController.m */; };
+		3F7BD7DB192B0A37009274DE /* MatchTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */; };
+		3F7BD7DE192B0AA8009274DE /* Model.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7DD192B0AA8009274DE /* Model.m */; };
 		3F87AAAB188DEE4B008C4A0D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAA188DEE4B008C4A0D /* Foundation.framework */; };
 		3F87AAAD188DEE4B008C4A0D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAC188DEE4B008C4A0D /* CoreGraphics.framework */; };
 		3F87AAAF188DEE4B008C4A0D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAE188DEE4B008C4A0D /* UIKit.framework */; };
@@ -21,7 +26,7 @@
 		3F87AABD188DEE4B008C4A0D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F87AABC188DEE4B008C4A0D /* AppDelegate.m */; };
 		3F87AAC0188DEE4B008C4A0D /* Main_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3F87AABE188DEE4B008C4A0D /* Main_iPhone.storyboard */; };
 		3F87AAC3188DEE4B008C4A0D /* Main_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3F87AAC1188DEE4B008C4A0D /* Main_iPad.storyboard */; };
-		3F87AAC6188DEE4B008C4A0D /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F87AAC5188DEE4B008C4A0D /* ViewController.m */; };
+		3F87AAC6188DEE4B008C4A0D /* SceneViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F87AAC5188DEE4B008C4A0D /* SceneViewController.m */; };
 		3F87AAC9188DEE4B008C4A0D /* MyScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F87AAC8188DEE4B008C4A0D /* MyScene.m */; };
 		3F87AACD188DEE4B008C4A0D /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3F87AACC188DEE4B008C4A0D /* Images.xcassets */; };
 		3F87AAD4188DEE4C008C4A0D /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAD3188DEE4C008C4A0D /* XCTest.framework */; };
@@ -60,6 +65,16 @@
 		3F55E1FC18D7A8520048E67E /* Button.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Button.m; sourceTree = "<group>"; };
 		3F6AE50C18D4D1E7000528C1 /* TopBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TopBar.h; sourceTree = "<group>"; };
 		3F6AE50D18D4D1E7000528C1 /* TopBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TopBar.m; sourceTree = "<group>"; };
+		3F7BD7C7192AF45D009274DE /* Match.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Match.h; sourceTree = "<group>"; };
+		3F7BD7C8192AF45D009274DE /* Match.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Match.m; sourceTree = "<group>"; };
+		3F7BD7D3192B09D6009274DE /* MainTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainTableViewController.h; sourceTree = "<group>"; };
+		3F7BD7D4192B09D6009274DE /* MainTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainTableViewController.m; sourceTree = "<group>"; };
+		3F7BD7D6192B09FE009274DE /* DebugViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DebugViewController.h; path = ../DebugViewController.h; sourceTree = "<group>"; };
+		3F7BD7D7192B09FE009274DE /* DebugViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DebugViewController.m; path = ../DebugViewController.m; sourceTree = "<group>"; };
+		3F7BD7D9192B0A37009274DE /* MatchTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MatchTableViewCell.h; sourceTree = "<group>"; };
+		3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MatchTableViewCell.m; sourceTree = "<group>"; };
+		3F7BD7DC192B0AA8009274DE /* Model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Model.h; sourceTree = "<group>"; };
+		3F7BD7DD192B0AA8009274DE /* Model.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Model.m; sourceTree = "<group>"; };
 		3F87AAA7188DEE4B008C4A0D /* Dyadminoes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dyadminoes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F87AAAA188DEE4B008C4A0D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		3F87AAAC188DEE4B008C4A0D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -73,8 +88,8 @@
 		3F87AABC188DEE4B008C4A0D /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		3F87AABF188DEE4B008C4A0D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main_iPhone.storyboard; sourceTree = "<group>"; };
 		3F87AAC2188DEE4B008C4A0D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main_iPad.storyboard; sourceTree = "<group>"; };
-		3F87AAC4188DEE4B008C4A0D /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
-		3F87AAC5188DEE4B008C4A0D /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		3F87AAC4188DEE4B008C4A0D /* SceneViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneViewController.h; sourceTree = "<group>"; };
+		3F87AAC5188DEE4B008C4A0D /* SceneViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneViewController.m; sourceTree = "<group>"; };
 		3F87AAC7188DEE4B008C4A0D /* MyScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MyScene.h; sourceTree = "<group>"; };
 		3F87AAC8188DEE4B008C4A0D /* MyScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MyScene.m; sourceTree = "<group>"; };
 		3F87AACC188DEE4B008C4A0D /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
@@ -174,12 +189,19 @@
 				3FFD6CA218B40A83000D2DA4 /* DyadminoImages.atlas */,
 				3F87AABB188DEE4B008C4A0D /* AppDelegate.h */,
 				3F87AABC188DEE4B008C4A0D /* AppDelegate.m */,
-				3F87AAC4188DEE4B008C4A0D /* ViewController.h */,
-				3F87AAC5188DEE4B008C4A0D /* ViewController.m */,
+				3F7BD7D3192B09D6009274DE /* MainTableViewController.h */,
+				3F7BD7D4192B09D6009274DE /* MainTableViewController.m */,
+				3F7BD7D9192B0A37009274DE /* MatchTableViewCell.h */,
+				3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */,
+				3F7BD7D6192B09FE009274DE /* DebugViewController.h */,
+				3F7BD7D7192B09FE009274DE /* DebugViewController.m */,
+				3F87AAC4188DEE4B008C4A0D /* SceneViewController.h */,
+				3F87AAC5188DEE4B008C4A0D /* SceneViewController.m */,
 				3F87AAC7188DEE4B008C4A0D /* MyScene.h */,
 				3F87AAC8188DEE4B008C4A0D /* MyScene.m */,
 				3FCCA71C18948B0500E0E4B5 /* GameEngine.h */,
 				3FCCA71D18948B0500E0E4B5 /* GameEngine.m */,
+				3FFBE2251931B959002A1EDC /* Data Objects */,
 				3FFD6BE518B3CCE7000D2DA4 /* Objects */,
 				3F4C06B318CC5F12003C4265 /* Logic and Helpers */,
 				3F87AACC188DEE4B008C4A0D /* Images.xcassets */,
@@ -226,6 +248,19 @@
 			name = Storyboards;
 			sourceTree = "<group>";
 		};
+		3FFBE2251931B959002A1EDC /* Data Objects */ = {
+			isa = PBXGroup;
+			children = (
+				3F7BD7DC192B0AA8009274DE /* Model.h */,
+				3F7BD7DD192B0AA8009274DE /* Model.m */,
+				3F7BD7C7192AF45D009274DE /* Match.h */,
+				3F7BD7C8192AF45D009274DE /* Match.m */,
+				3F18924518CDB43300BEE276 /* Player.h */,
+				3F18924618CDB43300BEE276 /* Player.m */,
+			);
+			name = "Data Objects";
+			sourceTree = "<group>";
+		};
 		3FFD6BE518B3CCE7000D2DA4 /* Objects */ = {
 			isa = PBXGroup;
 			children = (
@@ -233,20 +268,18 @@
 				3FDD7FD818D4C89B0029DB7D /* Board.m */,
 				3FD06E2118D6544F00E2FF04 /* Cell.h */,
 				3FD06E2218D6544F00E2FF04 /* Cell.m */,
-				3F55E1FB18D7A8520048E67E /* Button.h */,
-				3F55E1FC18D7A8520048E67E /* Button.m */,
-				3F28A6CE18DA86BA0092B9B2 /* Label.h */,
-				3F28A6CF18DA86BA0092B9B2 /* Label.m */,
 				3F8F045918BFEF3300853C4C /* SnapPoint.h */,
 				3F8F045A18BFEF3300853C4C /* SnapPoint.m */,
 				3F6AE50C18D4D1E7000528C1 /* TopBar.h */,
 				3F6AE50D18D4D1E7000528C1 /* TopBar.m */,
 				3F3116CC18CEFC5D0015CC2A /* Rack.h */,
 				3F3116CD18CEFC5D0015CC2A /* Rack.m */,
+				3F55E1FB18D7A8520048E67E /* Button.h */,
+				3F55E1FC18D7A8520048E67E /* Button.m */,
+				3F28A6CE18DA86BA0092B9B2 /* Label.h */,
+				3F28A6CF18DA86BA0092B9B2 /* Label.m */,
 				3FCCA71918948AF200E0E4B5 /* Dyadmino.h */,
 				3FCCA71A18948AF200E0E4B5 /* Dyadmino.m */,
-				3F18924518CDB43300BEE276 /* Player.h */,
-				3F18924618CDB43300BEE276 /* Player.m */,
 			);
 			name = Objects;
 			sourceTree = "<group>";
@@ -353,15 +386,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3F7BD7D5192B09D6009274DE /* MainTableViewController.m in Sources */,
 				3FCCA71B18948AF200E0E4B5 /* Dyadmino.m in Sources */,
+				3F7BD7D8192B09FE009274DE /* DebugViewController.m in Sources */,
 				3F8F045B18BFEF3300853C4C /* SnapPoint.m in Sources */,
 				3F28A6D018DA86BA0092B9B2 /* Label.m in Sources */,
+				3F7BD7DB192B0A37009274DE /* MatchTableViewCell.m in Sources */,
 				3F8F045818BFB1B300853C4C /* NSObject+Helper.m in Sources */,
 				3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */,
 				3F87AAC9188DEE4B008C4A0D /* MyScene.m in Sources */,
-				3F87AAC6188DEE4B008C4A0D /* ViewController.m in Sources */,
+				3F87AAC6188DEE4B008C4A0D /* SceneViewController.m in Sources */,
 				3FDD7FD918D4C89B0029DB7D /* Board.m in Sources */,
+				3F7BD7C9192AF45D009274DE /* Match.m in Sources */,
 				3F18924718CDB43300BEE276 /* Player.m in Sources */,
+				3F7BD7DE192B0AA8009274DE /* Model.m in Sources */,
 				3FCCA71E18948B0500E0E4B5 /* GameEngine.m in Sources */,
 				3F6AE50E18D4D1E7000528C1 /* TopBar.m in Sources */,
 				3F9923091895ECCA00FC9392 /* SonorityLogic.m in Sources */,

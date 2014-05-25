@@ -7,7 +7,6 @@
 //
 
 #import "GameEngine.h"
-//#import "NSObject+Helper.h"
 #import "Dyadmino.h"
 #import "Player.h"
 
@@ -39,7 +38,7 @@
       // FIXME: eventually change this to reflect how many players are playing
     self.dyadminoesInPlayer1Rack = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
       //    self.dyadminoesInPlayer2Rack = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
-    self.player1 = [[Player alloc] initWithPlayerNumber:1 andDyadminoesInRack:[self getInitiallyPopulatedRack]];
+//    self.player1 = [[Player alloc] initWithPlayerNumber:1 andDyadminoesInRack:[self getInitiallyPopulatedRack]];
   }
   return self;
 }

@@ -10,10 +10,19 @@
 
 @interface Player : NSObject
 
-@property (nonatomic) NSUInteger playerNumber;
-@property (strong, nonatomic) NSMutableArray *dyadminoesInRack;
+  // permanent properties
+@property (nonatomic) NSUInteger uniqueID;
+//@property (nonatomic) NSUInteger playerNumber;
+@property (strong, nonatomic) NSString *playerName;
+@property (strong, nonatomic) UIImage *playerPicture;
 
--(id)initWithPlayerNumber:(NSUInteger)playerNumber
-      andDyadminoesInRack:(NSMutableArray *)dyadminoesInRack;
+  // game state properties
+@property (nonatomic) NSUInteger playerScore;
+@property (strong, nonatomic) NSMutableArray *dyadminoesInRack;
+@property (nonatomic) BOOL resigned;
+
+-(id)initWithUniqueID:(NSUInteger)uniqueID
+        andPlayerName:(NSString *)playerName
+     andPlayerPicture:(UIImage *)playerPicture;
 
 @end
