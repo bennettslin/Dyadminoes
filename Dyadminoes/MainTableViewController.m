@@ -43,6 +43,7 @@
 }
 
 -(void)viewWillAppear:(BOOL)animated {
+  [self.myModel sortMyMatches];
   [self.tableView reloadData];
 }
 

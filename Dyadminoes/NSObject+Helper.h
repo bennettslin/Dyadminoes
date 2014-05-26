@@ -204,6 +204,7 @@ typedef enum physicalPlacementResult {
 -(HexCoord)hexCoordFromX:(NSInteger)x andY:(NSInteger)y;
 
   // date stuff
--(NSString *)returnStringFromDate:(NSDate *)date;
+-(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date;
+-(NSString *)returnLastPlayedStringFromDate:(NSDate *)date;
 
 @end

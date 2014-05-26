@@ -34,25 +34,26 @@
 @implementation MatchTableViewCell
 
 -(void)awakeFromNib {
+  
   self.playerLabelsArray = @[self.player1Label, self.player2Label, self.player3Label, self.player4Label];
   self.scoreLabelsArray = @[self.score1Label, self.score2Label, self.score3Label, self.score4Label];
-  self.winnerLabel.text = @"";
+  
   [self setProperties];
 }
 
 -(void)setProperties {
   
+  self.winnerLabel.text = @"";
+  
+    // because some matches will have less than four players
   for (UILabel *label in self.playerLabelsArray) {
     label.text = @"";
   }
-  
   for (UILabel *label in self.scoreLabelsArray) {
     label.text = @"";
   }
   
   if (self.myMatch) {
-    
-    self.lastPlayedLabel.text = [self returnStringFromDate:self.myMatch.lastPlayed];
     
     for (Player *player in self.myMatch.players) {
       UILabel *playerLabel = self.playerLabelsArray[[self.myMatch.players indexOfObject:player]];
@@ -73,18 +74,33 @@
       scoreLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
     }
     
-    if (self.myMatch.wonPlayers.count > 0) {
-      NSMutableArray *wonPlayerNames = [[NSMutableArray alloc] initWithCapacity:self.myMatch.wonPlayers.count];
-      for (Player *player in self.myMatch.wonPlayers) {
-        [wonPlayerNames addObject:player.playerName];
-      }
+    if (self.myMatch.gameHasEnded) {
+//      NSLog(@"game has ended");
       
-      NSString *wonPlayers = [wonPlayerNames componentsJoinedByString:@" and "];
-      self.winnerLabel.text = [NSString stringWithFormat:@"%@ won!", wonPlayers];
+      self.backgroundColor = [UIColor colorWithRed:1.f green:0.9f blue:0.9f alpha:1.f];
+      
+        // game ended, so lastPlayed label shows date
+      self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed];
+      
+      if (self.myMatch.wonPlayers.count > 0) {
+        NSMutableArray *wonPlayerNames = [[NSMutableArray alloc] initWithCapacity:self.myMatch.wonPlayers.count];
+        
+        for (Player *player in self.myMatch.wonPlayers) {
+          [wonPlayerNames addObject:player.playerName];
+        }
+        
+        NSString *wonPlayers = [wonPlayerNames componentsJoinedByString:@" and "];
+        self.winnerLabel.text = [NSString stringWithFormat:@"%@ won!", wonPlayers];
+      } else {
+        self.winnerLabel.text = @"Draw game.";
+      }
     } else {
-      self.winnerLabel.text = @"";
+      
+      self.backgroundColor = [UIColor clearColor];
+      
+        // game still in play, so lastPlayed label shows time since last played
+      self.lastPlayedLabel.text = [self returnLastPlayedStringFromDate:self.myMatch.lastPlayed];
     }
-    
   }
 }
 

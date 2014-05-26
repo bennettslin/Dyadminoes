@@ -54,4 +54,25 @@
   }
 }
 
+-(void)sortMyMatches {
+  
+  NSMutableArray *endedGames = [[NSMutableArray alloc] init];
+  NSMutableArray *openGames = [[NSMutableArray alloc] init];
+  
+  for (Match *match in self.myMatches) {
+    if (match.gameHasEnded) {
+      [endedGames addObject:match];
+    } else {
+      [openGames addObject:match];
+    }
+  }
+  
+  NSSortDescriptor *dateSortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"lastPlayed" ascending:YES];
+  [openGames sortUsingDescriptors:@[dateSortDescriptor]];
+  [endedGames sortUsingDescriptors:@[dateSortDescriptor]];
+  
+  [openGames addObjectsFromArray:endedGames];
+  self.myMatches = openGames;
+}
+
 @end

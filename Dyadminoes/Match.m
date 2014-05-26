@@ -12,6 +12,8 @@
 
 @interface Match ()
 
+@property (nonatomic) NSUInteger numberOfConsecutivePasses;
+
 @end
 
 @implementation Match
@@ -22,7 +24,9 @@
   self = [super init];
   if (self) {
     self.lastPlayed = [NSDate date];
-    self.wonPlayers = [[NSArray alloc] init];
+//    self.wonPlayers = [[NSArray alloc] init];
+    self.gameHasEnded = NO;
+    self.numberOfConsecutivePasses = 0;
     
     self.players = players;
     self.currentPlayer = players[0];
@@ -62,6 +66,7 @@
 }
 
 -(Player *)switchToNextPlayer {
+  
   NSUInteger index = [self.players indexOfObject:self.currentPlayer];
   if ([self checkNumberOfPlayersStillInGame] > 1) {
 
@@ -81,21 +86,49 @@
 
 -(void)recordDyadminoes:(NSMutableArray *)dyadminoes fromPlayer:(Player *)player {
   
-    // obviously scorekeeping will be more sophisticated
-    // and will consider chords formed
-  player.playerScore += dyadminoes.count;
-  
-  [self.board addObjectsFromArray:dyadminoes];
-  
-  for (NSNumber *number in dyadminoes) {
-    if ([player.dyadminoesInRack containsObject:number]) {
-      [player.dyadminoesInRack removeObject:number];
+    // player passes
+  if (dyadminoes.count == 0) {
+    self.numberOfConsecutivePasses++;
+    
+      // enough players passed to end game
+      // 1. two rotations if there are dyadminoes left in pile
+      // 2. one rotation if no dyadminoes are left in pile
+    if ((self.pile.count > 0 && self.numberOfConsecutivePasses >= self.players.count * 2) ||
+        (self.pile.count == 0 && self.numberOfConsecutivePasses >= self.players.count)) {
+      [self endGame];
+      return;
     }
+    
+      // player submitted dyadminoes
+  } else {
+    
+      // reset number of consecutive passes
+    self.numberOfConsecutivePasses = 0;
+      /// obviously scorekeeping will be more sophisticated
+      /// and will consider chords formed
+    player.playerScore += dyadminoes.count;
+    
+    [self.board addObjectsFromArray:dyadminoes];
+    
+    for (NSNumber *number in dyadminoes) {
+      if ([player.dyadminoesInRack containsObject:number]) {
+        [player.dyadminoesInRack removeObject:number];
+      }
+    }
+    
+      // if player ran out and pile is empty, then end game
+    if ([self checkPlayerFirstToRunOut]) {
+      [self endGame];
+      return;
+        // else just refill the rack
+    } else {
+      [self addFromPileToRackOfPlayer:player];
+    }
+      // sort the board and pile
+    [self sortBoardAndPileArrays];
   }
   
-  [self addFromPileToRackOfPlayer:player];
-  [self sortArrays];
-  
+    // whether pass or not, game continues
   self.lastPlayed = [NSDate date];
   [self switchToNextPlayer];
 }
@@ -103,7 +136,7 @@
 -(void)resignPlayer:(Player *)player {
   player.resigned = YES;
   [self.pile addObjectsFromArray:player.dyadminoesInRack];
-  [self sortArrays];
+  [self sortBoardAndPileArrays];
   
   [player.dyadminoesInRack removeAllObjects];
   if (![self switchToNextPlayer]) {
@@ -113,7 +146,9 @@
 
 -(void)endGame {
   self.currentPlayer = nil;
-  NSUInteger maxScore = 0;
+  
+    // rules out that players with no points can win
+  NSUInteger maxScore = 1;
   NSMutableArray *tempArray = [[NSMutableArray alloc] initWithCapacity:self.players.count];
   
   for (Player *player in self.players) {
@@ -129,10 +164,19 @@
   }
 
   self.wonPlayers = [NSArray arrayWithArray:tempArray];
+  self.gameHasEnded = YES;
   [self.delegate handleEndGame];
 }
 
 #pragma mark - helper methods
+
+-(BOOL)checkPlayerFirstToRunOut {
+  if (self.currentPlayer.dyadminoesInRack.count == 0 && self.pile.count == 0) {
+    return YES;
+  } else {
+    return NO;
+  }
+}
 
 -(NSUInteger)checkNumberOfPlayersStillInGame {
   NSUInteger numberOfPlayersInGame = 0;
@@ -144,7 +188,7 @@
   return numberOfPlayersInGame;
 }
 
--(void)sortArrays {
+-(void)sortBoardAndPileArrays {
     // this will have to change when dyadminoes
   [self.pile sortUsingSelector:@selector(compare:)];
   [self.board sortUsingSelector:@selector(compare:)];

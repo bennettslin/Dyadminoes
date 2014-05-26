@@ -98,24 +98,29 @@
 -(void)setProperties {
   
     // does this adequately hide buttons when rack is less than full?
-  if (self.myMatch.wonPlayers.count == 0) {
+  if (!self.myMatch.gameHasEnded) {
     Player *currentPlayer = self.myMatch.currentPlayer;
     for (int i = 0; i < currentPlayer.dyadminoesInRack.count; i++) {
       UIButton *button = self.dyadminoButtonsArray[i];
-      NSString *title = [NSString stringWithFormat:@"%i", [currentPlayer.dyadminoesInRack[i] integerValue]];
+      NSString *title = [NSString stringWithFormat:@"%li", (long)[currentPlayer.dyadminoesInRack[i] integerValue]];
       [button setTitle:title forState:UIControlStateNormal];
       button.enabled = YES;
       button.hidden = NO;
     }
-  } else {
+  } else { // game has ended
     [self hideAllDyadminoButtons];
-    NSMutableArray *wonPlayerNames = [[NSMutableArray alloc] initWithCapacity:self.myMatch.wonPlayers.count];
-    for (Player *player in self.myMatch.wonPlayers) {
-      [wonPlayerNames addObject:player.playerName];
+    if (self.myMatch.wonPlayers.count > 0) {
+      
+      NSMutableArray *wonPlayerNames = [[NSMutableArray alloc] initWithCapacity:self.myMatch.wonPlayers.count];
+      for (Player *player in self.myMatch.wonPlayers) {
+        [wonPlayerNames addObject:player.playerName];
+      }
+      
+      NSString *wonPlayers = [wonPlayerNames componentsJoinedByString:@" and "];
+      self.winnerLabel.text = [NSString stringWithFormat:@"%@ won!", wonPlayers];
+    } else {
+      self.winnerLabel.text = @"Game ended in draw.";
     }
-    
-    NSString *wonPlayers = [wonPlayerNames componentsJoinedByString:@" and "];
-    self.winnerLabel.text = [NSString stringWithFormat:@"%@ won!", wonPlayers];
   }
 
   self.dyadminoesInPileLabel.text = [self.myMatch.pile componentsJoinedByString:@", "];

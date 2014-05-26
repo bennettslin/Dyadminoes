@@ -13,5 +13,6 @@
 @property (strong, nonatomic) NSMutableArray *myMatches;
 
 -(void)instantiateHardCodedMatchesForDebugPurposes;
+-(void)sortMyMatches;
 
 @end

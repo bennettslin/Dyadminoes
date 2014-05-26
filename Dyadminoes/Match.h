@@ -18,6 +18,7 @@
 @property (strong, nonatomic) NSArray *players;
 @property (strong, nonatomic) Player *currentPlayer;
 @property (strong, nonatomic) NSArray *wonPlayers;
+@property (nonatomic) BOOL gameHasEnded;
 
 @property (strong, nonatomic) NSMutableArray *pile;
 @property (strong, nonatomic) NSMutableArray *board;

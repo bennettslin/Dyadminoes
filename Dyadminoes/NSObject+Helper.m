@@ -65,11 +65,64 @@
 
 #pragma mark - date stuff
 
--(NSString *)returnStringFromDate:(NSDate *)date {
+-(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date {
   NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
   [dateFormatter setDateStyle:NSDateFormatterShortStyle];
-  [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
-  return [dateFormatter stringFromDate:date];
+//  [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
+  return [NSString stringWithFormat:@"Game ended %@.", [dateFormatter stringFromDate:date]];
+}
+
+-(NSString *)returnLastPlayedStringFromDate:(NSDate *)date {
+  NSDate *startDate = date;
+  NSDate *endDate = [NSDate date];
+  
+  NSCalendar *gregorian = [[NSCalendar alloc]
+                           initWithCalendarIdentifier:NSGregorianCalendar];
+  
+  NSUInteger unitFlags = NSYearCalendarUnit | NSMonthCalendarUnit | NSWeekCalendarUnit |
+      NSDayCalendarUnit | NSHourCalendarUnit | NSMinuteCalendarUnit;
+  
+  NSDateComponents *components = [gregorian components:unitFlags
+                                              fromDate:startDate
+                                                toDate:endDate options:0];
+  NSInteger years = [components year];
+  NSInteger months = [components month];
+  NSInteger weeks = [components week];
+  NSInteger days = [components day];
+  NSInteger hours = [components hour];
+  NSInteger minutes = [components minute];
+  
+  NSLog(@"years %i, months %i, weeks %i, days %i, hours %i", years, months, weeks, days, hours);
+  
+  NSInteger componentQuantity = 0;
+  NSString *dateComponent;
+  
+  if (years > 0) {
+    componentQuantity = years;
+    dateComponent = years > 1 ? @"years" : @"year";
+  } else if (months > 0) {
+    componentQuantity = months;
+    dateComponent = months > 1 ? @"months" : @"month";
+  } else if (weeks > 0) {
+    componentQuantity = weeks;
+    dateComponent = weeks > 1 ? @"weeks" : @"week";
+  } else if (days > 0) {
+    componentQuantity = days;
+    dateComponent = days > 1 ? @"days" : @"day";
+  } else if (hours > 0) {
+    componentQuantity = hours;
+    dateComponent = hours > 1 ? @"hours" : @"hour";
+  } else if (minutes > 0) {
+    dateComponent = minutes > 1 ? @"minutes" : @"a minute";
+  } else {
+    dateComponent = @"seconds";
+  }
+  
+  if (componentQuantity > 0) {
+    dateComponent = [NSString stringWithFormat:@"%i %@", componentQuantity, dateComponent];
+  }
+  
+  return [NSString stringWithFormat:@"Last played %@ ago.", dateComponent];
 }
 
 @end
