@@ -23,6 +23,9 @@
 -(id)initWithPlayers:(NSArray *)players {
   self = [super init];
   if (self) {
+    
+    self.undoManager = [[NSUndoManager alloc] init];
+    
     self.lastPlayed = [NSDate date];
 //    self.wonPlayers = [[NSArray alloc] init];
     self.gameHasEnded = NO;
@@ -30,6 +33,8 @@
     
     self.players = players;
     self.currentPlayer = players[0];
+    
+    self.holdingContainer = @[];
     
     self.pile = [[NSMutableArray alloc] initWithCapacity:66];
     self.board = [[NSMutableArray alloc] initWithCapacity:66];
@@ -84,10 +89,12 @@
   return nil;
 }
 
--(void)recordDyadminoes:(NSMutableArray *)dyadminoes fromPlayer:(Player *)player {
+#pragma mark - game state change methods
+
+-(void)recordDyadminoesFromPlayer:(Player *)player {
   
     // player passes
-  if (dyadminoes.count == 0) {
+  if (self.holdingContainer.count == 0) {
     self.numberOfConsecutivePasses++;
     
       // enough players passed to end game
@@ -106,11 +113,11 @@
     self.numberOfConsecutivePasses = 0;
       /// obviously scorekeeping will be more sophisticated
       /// and will consider chords formed
-    player.playerScore += dyadminoes.count;
+    player.playerScore += self.holdingContainer.count;
     
-    [self.board addObjectsFromArray:dyadminoes];
+    [self.board addObjectsFromArray:self.holdingContainer];
     
-    for (NSNumber *number in dyadminoes) {
+    for (NSNumber *number in self.holdingContainer) {
       if ([player.dyadminoesInRack containsObject:number]) {
         [player.dyadminoesInRack removeObject:number];
       }
@@ -128,15 +135,22 @@
     [self sortBoardAndPileArrays];
   }
   
+  self.holdingContainer = @[];
+  [self.undoManager removeAllActions];
+  
     // whether pass or not, game continues
   self.lastPlayed = [NSDate date];
   [self switchToNextPlayer];
 }
 
 -(void)resignPlayer:(Player *)player {
+
   player.resigned = YES;
   [self.pile addObjectsFromArray:player.dyadminoesInRack];
   [self sortBoardAndPileArrays];
+  
+  self.holdingContainer = @[];
+  [self.undoManager removeAllActions];
   
   [player.dyadminoesInRack removeAllObjects];
   if (![self switchToNextPlayer]) {
@@ -146,6 +160,9 @@
 
 -(void)endGame {
   self.currentPlayer = nil;
+  
+  self.holdingContainer = @[];
+  [self.undoManager removeAllActions];
   
     // rules out that players with no points can win
   NSUInteger maxScore = 1;
@@ -192,6 +209,35 @@
     // this will have to change when dyadminoes
   [self.pile sortUsingSelector:@selector(compare:)];
   [self.board sortUsingSelector:@selector(compare:)];
+}
+
+#pragma mark - undo manager
+
+-(void)addToHoldingContainer:(NSNumber *)dyadmino {
+  
+  if (![self.holdingContainer containsObject:dyadmino]) {
+    NSMutableArray *tempContainer = [NSMutableArray arrayWithArray:self.holdingContainer];
+    [tempContainer addObject:dyadmino];
+    self.holdingContainer = [NSArray arrayWithArray:tempContainer];
+  }
+}
+
+-(void)setHoldingContainer:(NSArray *)newHoldingContainer {
+  
+  if (!_holdingContainer || !newHoldingContainer) {
+    _holdingContainer = newHoldingContainer;
+  } else if (_holdingContainer != newHoldingContainer) {
+    [self.undoManager registerUndoWithTarget:self selector:@selector(setHoldingContainer:) object:_holdingContainer];
+    _holdingContainer = newHoldingContainer;
+  }
+}
+
+-(void)undoDyadminoToHoldingContainer {
+  [self.undoManager undo];
+}
+
+-(void)redoDyadminoToHoldingContainer {
+  [self.undoManager redo];
 }
 
 @end

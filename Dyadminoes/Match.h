@@ -23,6 +23,9 @@
 @property (strong, nonatomic) NSMutableArray *pile;
 @property (strong, nonatomic) NSMutableArray *board;
 
+@property (strong, nonatomic) NSArray *holdingContainer;
+@property (strong, nonatomic) NSUndoManager *undoManager;
+
 @property (weak, nonatomic) id <MatchDelegate> delegate;
 
   // init methods
@@ -30,8 +33,13 @@
 
   // game state change methods
 -(Player *)switchToNextPlayer;
--(void)recordDyadminoes:(NSMutableArray *)dyadminoes fromPlayer:(Player *)player;
+-(void)recordDyadminoesFromPlayer:(Player *)player;
 -(void)resignPlayer:(Player *)player;
+
+  // undo methods
+-(void)addToHoldingContainer:(NSNumber *)dyadmino;
+-(void)undoDyadminoToHoldingContainer;
+-(void)redoDyadminoToHoldingContainer;
 
 @end
 

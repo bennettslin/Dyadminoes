@@ -53,8 +53,6 @@
 @property (strong, nonatomic) NSArray *rackLabelsArray;
 @property (strong, nonatomic) NSArray *dyadminoButtonsArray;
 
-@property (strong, nonatomic) NSMutableArray *holdingContainer;
-
 @end
 
 @implementation DebugViewController
@@ -63,8 +61,7 @@
   [super viewDidLoad];
   self.myMatch.delegate = self;
     
-  self.holdingContainer = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
-  [self updateHoldingContainerLabel];
+  [self updateThisTurnDyadminoesLabel];
 
   self.dyadminoButtonsArray = @[self.dyadmino1Button, self.dyadmino2Button, self.dyadmino3Button, self.dyadmino4Button, self.dyadmino5Button, self.dyadmino6Button];
   
@@ -101,11 +98,18 @@
   if (!self.myMatch.gameHasEnded) {
     Player *currentPlayer = self.myMatch.currentPlayer;
     for (int i = 0; i < currentPlayer.dyadminoesInRack.count; i++) {
+      NSNumber *dyadmino = currentPlayer.dyadminoesInRack[i];
       UIButton *button = self.dyadminoButtonsArray[i];
-      NSString *title = [NSString stringWithFormat:@"%li", (long)[currentPlayer.dyadminoesInRack[i] integerValue]];
+      NSString *title = [NSString stringWithFormat:@"%li", (long)[dyadmino integerValue]];
       [button setTitle:title forState:UIControlStateNormal];
-      button.enabled = YES;
-      button.hidden = NO;
+      
+      if ([self.myMatch.holdingContainer containsObject:dyadmino]) {
+        button.enabled = NO;
+        button.hidden = YES;
+      } else {
+        button.enabled = YES;
+        button.hidden = NO;
+      }
     }
   } else { // game has ended
     [self hideAllDyadminoButtons];
@@ -123,6 +127,22 @@
     }
   }
 
+    // undo and redo buttons
+  if ([self.myMatch.undoManager canUndo]) {
+    self.undoButton.enabled = YES;
+    self.undoButton.hidden = NO;
+  } else {
+    self.undoButton.enabled = NO;
+    self.undoButton.hidden = YES;
+  }
+  if ([self.myMatch.undoManager canRedo]) {
+    self.redoButton.enabled = YES;
+    self.redoButton.hidden = NO;
+  } else {
+    self.redoButton.enabled = NO;
+    self.redoButton.hidden = YES;
+  }
+  
   self.dyadminoesInPileLabel.text = [self.myMatch.pile componentsJoinedByString:@", "];
   self.dyadminoesOnBoardLabel.text = [self.myMatch.board componentsJoinedByString:@", "];
   
@@ -149,9 +169,9 @@
   }
 }
 
--(void)updateHoldingContainerLabel {
-  if (self.holdingContainer.count > 0) {
-    self.thisTurnDyadminoes.text = [NSString stringWithFormat:@"Dyadminoes to play: %@", [self.holdingContainer componentsJoinedByString:@", "]];
+-(void)updateThisTurnDyadminoesLabel {
+  if (self.myMatch.holdingContainer.count > 0) {
+    self.thisTurnDyadminoes.text = [NSString stringWithFormat:@"Dyadminoes to play: %@", [self.myMatch.holdingContainer componentsJoinedByString:@", "]];
   } else {
     self.thisTurnDyadminoes.text = @"";
   }
@@ -176,33 +196,37 @@
   }
   
   NSUInteger index = [self.dyadminoButtonsArray indexOfObject:senderButton];
-  if (![self.holdingContainer containsObject:self.myMatch.currentPlayer.dyadminoesInRack[index]]) {
-    [self.holdingContainer addObject:self.myMatch.currentPlayer.dyadminoesInRack[index]];
-    senderButton.hidden = YES;
-    senderButton.enabled = NO;
-    [self updateHoldingContainerLabel];
+  if (![self.myMatch.holdingContainer containsObject:self.myMatch.currentPlayer.dyadminoesInRack[index]]) {
+    [self.myMatch addToHoldingContainer:self.myMatch.currentPlayer.dyadminoesInRack[index]];
+    [self setProperties];
+    [self updateThisTurnDyadminoesLabel];
   }
 }
 
 -(IBAction)undoTapped:(id)sender {
+  [self.myMatch undoDyadminoToHoldingContainer];
+  [self setProperties];
+  [self updateThisTurnDyadminoesLabel];
 }
 
 -(IBAction)redoTapped:(id)sender {
+  [self.myMatch redoDyadminoToHoldingContainer];
+  [self setProperties];
+  [self updateThisTurnDyadminoesLabel];
 }
 
 -(IBAction)swapAllTapped:(id)sender {
 }
 
 -(IBAction)doneTapped:(id)sender {
-  [self.myMatch recordDyadminoes:self.holdingContainer fromPlayer:self.myMatch.currentPlayer];
-  [self.holdingContainer removeAllObjects];
-  [self updateHoldingContainerLabel];
+  [self.myMatch recordDyadminoesFromPlayer:self.myMatch.currentPlayer];
+  [self updateThisTurnDyadminoesLabel];
   [self setProperties];
 }
 
 - (IBAction)resignButton:(id)sender {
   [self.myMatch resignPlayer:self.myMatch.currentPlayer];
-  [self.holdingContainer removeAllObjects];
+  [self updateThisTurnDyadminoesLabel];
   [self setProperties];
 }
 
