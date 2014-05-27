@@ -737,14 +737,7 @@
 #pragma mark - view controller methods
 
 -(void)goBackToMainViewController {
-  [self.delegate presentMainView];
-//  [self.mySceneVC.presentingViewController dismissViewControllerAnimated:YES completion:nil];
-//  NSLog(@"will move to parent view controller");
-//  [self.mySceneVC willMoveToParentViewController:nil];
-//  NSLog(@"removed from superview");
-//  [self.mySceneVC.view removeFromSuperview];
-//  NSLog(@"removed from parent vc");
-//  [self.mySceneVC removeFromParentViewController];
+  [self.delegate backToMainMenu];
 }
 
 #pragma mark - button methods
@@ -753,8 +746,6 @@
   
       /// games button
   if (_buttonPressed == _topBar.gamesButton) {
-    
-    NSLog(@"games button pressed!");
     [self goBackToMainViewController];
     
   } else if (_buttonPressed == _topBar.swapButton) {

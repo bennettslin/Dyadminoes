@@ -27,6 +27,6 @@
 
 @protocol SceneDelegate <NSObject>
 
--(void)presentMainView;
+-(void)backToMainMenu;
 
 @end

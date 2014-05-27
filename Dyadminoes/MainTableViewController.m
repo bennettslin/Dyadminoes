@@ -80,6 +80,8 @@
   cell.myMatch = self.myModel.myMatches[indexPath.row];
   [cell setProperties];
   
+  cell.accessoryType = UITableViewCellAccessoryNone;
+  
   return cell;
 }
 

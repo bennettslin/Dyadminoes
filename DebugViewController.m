@@ -14,6 +14,7 @@
 @interface DebugViewController () <MatchDelegate>
 
 @property (weak, nonatomic) IBOutlet UIButton *homeButton;
+@property (weak, nonatomic) IBOutlet UIButton *sceneButton;
 
 @property (weak, nonatomic) IBOutlet UILabel *player1Name;
 @property (weak, nonatomic) IBOutlet UILabel *player2Name;
