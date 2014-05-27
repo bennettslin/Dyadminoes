@@ -92,7 +92,7 @@
   NSInteger hours = [components hour];
   NSInteger minutes = [components minute];
   
-  NSLog(@"years %i, months %i, weeks %i, days %i, hours %i", years, months, weeks, days, hours);
+//  NSLog(@"years %i, months %i, weeks %i, days %i, hours %i", years, months, weeks, days, hours);
   
   NSInteger componentQuantity = 0;
   NSString *dateComponent;

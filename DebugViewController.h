@@ -20,6 +20,4 @@
 
 @protocol DebugDelegate <NSObject>
 
-  //
-
 @end

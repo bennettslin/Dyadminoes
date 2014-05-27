@@ -26,6 +26,8 @@
 @property (weak, nonatomic) IBOutlet UILabel *lastPlayedLabel;
 @property (weak, nonatomic) IBOutlet UILabel *winnerLabel;
 
+@property (weak, nonatomic) IBOutlet UIButton *removeGameButton;
+
 @property (strong, nonatomic) NSArray *playerLabelsArray;
 @property (strong, nonatomic) NSArray *scoreLabelsArray;
 
@@ -75,7 +77,6 @@
     }
     
     if (self.myMatch.gameHasEnded) {
-//      NSLog(@"game has ended");
       
       self.backgroundColor = [UIColor colorWithRed:1.f green:0.9f blue:0.9f alpha:1.f];
       
@@ -94,13 +95,26 @@
       } else {
         self.winnerLabel.text = @"Draw game.";
       }
+      
+      self.removeGameButton.hidden = NO;
+      self.removeGameButton.enabled = YES;
+      
     } else {
       
       self.backgroundColor = [UIColor clearColor];
       
         // game still in play, so lastPlayed label shows time since last played
       self.lastPlayedLabel.text = [self returnLastPlayedStringFromDate:self.myMatch.lastPlayed];
+      
+      self.removeGameButton.hidden = YES;
+      self.removeGameButton.enabled = NO;
     }
+  }
+}
+
+- (IBAction)removeGameTapped:(id)sender {
+  if (self.myMatch.gameHasEnded) {
+    [self.delegate removeMatch:self.myMatch];
   }
 }
 

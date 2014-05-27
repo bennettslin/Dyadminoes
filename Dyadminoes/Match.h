@@ -26,6 +26,9 @@
 @property (strong, nonatomic) NSArray *holdingContainer;
 @property (strong, nonatomic) NSUndoManager *undoManager;
 
+@property (nonatomic) NSUInteger replayCounter;
+@property (strong, nonatomic) NSMutableArray *turns;
+
 @property (weak, nonatomic) id <MatchDelegate> delegate;
 
   // init methods
@@ -34,12 +37,20 @@
   // game state change methods
 -(Player *)switchToNextPlayer;
 -(void)recordDyadminoesFromPlayer:(Player *)player;
+-(void)swapDyadminoesFromPlayer:(Player *)player;
 -(void)resignPlayer:(Player *)player;
 
   // undo methods
 -(void)addToHoldingContainer:(NSNumber *)dyadmino;
 -(void)undoDyadminoToHoldingContainer;
 -(void)redoDyadminoToHoldingContainer;
+-(void)resetHoldingContainer; // for swap purposes
+
+  // replay methods
+-(void)first;
+-(BOOL)previous;
+-(BOOL)next;
+-(void)lastOrLeaveReplay;
 
 @end
 

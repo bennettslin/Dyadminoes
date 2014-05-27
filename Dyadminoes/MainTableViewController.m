@@ -12,7 +12,7 @@
 #import "MatchTableViewCell.h"
 #import "DebugViewController.h"
 
-@interface MainTableViewController () <DebugDelegate>
+@interface MainTableViewController () <DebugDelegate, MatchCellDelegate>
 
 @property (strong, nonatomic) Model *myModel;
 
@@ -69,10 +69,18 @@
   MatchTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
   [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
   
+  cell.delegate = self;
   cell.myMatch = self.myModel.myMatches[indexPath.row];
   [cell setProperties];
   
   return cell;
+}
+
+#pragma mark - cell delegate methods
+
+-(void)removeMatch:(Match *)match {
+  [self.myModel.myMatches removeObject:match];
+  [self.tableView reloadData];
 }
 
 #pragma mark - Navigation

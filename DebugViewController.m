@@ -44,14 +44,27 @@
 
 @property (weak, nonatomic) IBOutlet UIButton *undoButton;
 @property (weak, nonatomic) IBOutlet UIButton *redoButton;
-@property (weak, nonatomic) IBOutlet UIButton *swapAllButton;
+@property (weak, nonatomic) IBOutlet UIButton *swapModeButton;
+@property (weak, nonatomic) IBOutlet UIButton *replayModeButton;
 @property (weak, nonatomic) IBOutlet UIButton *doneButton;
 @property (weak, nonatomic) IBOutlet UIButton *resignButton;
+
+@property (weak, nonatomic) IBOutlet UIButton *firstButton;
+@property (weak, nonatomic) IBOutlet UIButton *backButton;
+@property (weak, nonatomic) IBOutlet UIButton *forwardButton;
+@property (weak, nonatomic) IBOutlet UIButton *lastButton;
 
 @property (strong, nonatomic) NSArray *playerLabelsArray;
 @property (strong, nonatomic) NSArray *scoreLabelsArray;
 @property (strong, nonatomic) NSArray *rackLabelsArray;
 @property (strong, nonatomic) NSArray *dyadminoButtonsArray;
+@property (strong, nonatomic) NSArray *gamePlayButtonsArray;
+@property (strong, nonatomic) NSArray *replayButtonsArray;
+
+@property (nonatomic) BOOL swapMode;
+@property (nonatomic) BOOL replayMode;
+
+@property (weak, nonatomic) IBOutlet UILabel *turnLabel;
 
 @end
 
@@ -60,12 +73,18 @@
 -(void)viewDidLoad {
   [super viewDidLoad];
   self.myMatch.delegate = self;
+  
+  self.swapMode = YES;
+  self.replayMode = YES;
+  [self swapModeTapped:self.swapModeButton];
+  [self replayModeTapped:self.replayModeButton];
     
   [self updateThisTurnDyadminoesLabel];
 
   self.dyadminoButtonsArray = @[self.dyadmino1Button, self.dyadmino2Button, self.dyadmino3Button, self.dyadmino4Button, self.dyadmino5Button, self.dyadmino6Button];
-  
-  [self hideAllDyadminoButtons];
+
+  self.gamePlayButtonsArray = @[self.undoButton, self.redoButton, self.swapModeButton, self.replayModeButton, self.resignButton, self.doneButton];
+  self.replayButtonsArray = @[self.firstButton, self.backButton, self.forwardButton, self.lastButton];
   
   self.playerLabelsArray = @[self.player1Name, self.player2Name, self.player3Name, self.player4Name];
   self.scoreLabelsArray = @[self.score1Label, self.score2Label, self.score3Label, self.score4Label];
@@ -74,28 +93,86 @@
   for (UILabel *label in self.playerLabelsArray) {
     label.text = @"";
   }
-  
   for (UILabel *label in self.scoreLabelsArray) {
     label.text = @"";
   }
-  
   for (UILabel *label in self.rackLabelsArray) {
     label.text = @"";
   }
-  
   self.winnerLabel.text = @"";
-  
-  if (self.myMatch.wonPlayers.count > 0) {
-    [self hideAllButtonsForEndGame];
-  }
   
   [self setProperties];
 }
 
 -(void)setProperties {
   
-    // does this adequately hide buttons when rack is less than full?
-  if (!self.myMatch.gameHasEnded) {
+    // show turn
+  if (self.myMatch.turns.count > 0) {
+    Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"player"];
+    NSArray *dyadminoesPlayed = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"container"];
+    NSString *dyadminoesPlayedString;
+    if (dyadminoesPlayed.count > 0) {
+      NSString *componentsString = [dyadminoesPlayed componentsJoinedByString:@", "];
+      dyadminoesPlayedString = [NSString stringWithFormat:@"played %@", componentsString];
+    } else {
+      dyadminoesPlayedString = @"passed";
+    }
+    self.turnLabel.text = [NSString stringWithFormat:@"%@ %@ for turn %i of %i", turnPlayer.playerName, dyadminoesPlayedString, self.myMatch.replayCounter, self.myMatch.turns.count];
+  }
+  
+    // game is still in play and not in replay mode
+  if (!self.myMatch.gameHasEnded && !self.replayMode) {
+    
+      // not in swap mode
+    if (!self.swapMode) {
+      
+        // initially, they're all to be shown
+      [self showAllButtonsInArray:self.gamePlayButtonsArray];
+      
+        // hide swap mode button if holding container contains dyadminoes
+      if (self.myMatch.holdingContainer.count > 0) {
+        self.swapModeButton.hidden = YES;
+        self.swapModeButton.enabled = NO;
+      } else {
+        self.swapModeButton.hidden = NO;
+        self.swapModeButton.enabled = YES;
+      }
+      
+        // undo and redo buttons
+      if ([self.myMatch.undoManager canUndo]) {
+        self.undoButton.enabled = YES;
+        self.undoButton.hidden = NO;
+      } else {
+        self.undoButton.enabled = NO;
+        self.undoButton.hidden = YES;
+      }
+      if ([self.myMatch.undoManager canRedo]) {
+        self.redoButton.enabled = YES;
+        self.redoButton.hidden = NO;
+      } else {
+        self.redoButton.enabled = NO;
+        self.redoButton.hidden = YES;
+      }
+
+        //----------------------------------------------------------------------
+      
+        // in swap mode
+    } else {      
+      self.resignButton.enabled = NO;
+      self.resignButton.hidden = YES;
+      self.replayModeButton.enabled = NO;
+      self.replayModeButton.hidden = YES;
+      self.undoButton.enabled = NO;
+      self.undoButton.hidden = YES;
+      self.redoButton.enabled = NO;
+      self.redoButton.hidden = YES;
+    }
+    
+        //----------------------------------------------------------------------
+    
+      // either in swap mode or not
+    
+      // set whether dyadminoes are displayed
     Player *currentPlayer = self.myMatch.currentPlayer;
     for (int i = 0; i < currentPlayer.dyadminoesInRack.count; i++) {
       NSNumber *dyadmino = currentPlayer.dyadminoesInRack[i];
@@ -111,39 +188,69 @@
         button.hidden = NO;
       }
     }
-  } else { // game has ended
-    [self hideAllDyadminoButtons];
-    if (self.myMatch.wonPlayers.count > 0) {
-      
-      NSMutableArray *wonPlayerNames = [[NSMutableArray alloc] initWithCapacity:self.myMatch.wonPlayers.count];
-      for (Player *player in self.myMatch.wonPlayers) {
-        [wonPlayerNames addObject:player.playerName];
-      }
-      
-      NSString *wonPlayers = [wonPlayerNames componentsJoinedByString:@" and "];
-      self.winnerLabel.text = [NSString stringWithFormat:@"%@ won!", wonPlayers];
+    
+      // done or pass or swap
+    if (self.myMatch.holdingContainer.count > 0 && !self.swapMode) {
+      [self.doneButton setTitle:@"DONE!" forState:UIControlStateNormal];
+    } else if (self.swapMode) {
+      [self.doneButton setTitle:@"Swap!" forState:UIControlStateNormal];
     } else {
-      self.winnerLabel.text = @"Game ended in draw.";
+      [self.doneButton setTitle:@"Pass" forState:UIControlStateNormal];
+    }
+    
+      // hide replay buttons
+    [self hideAllButtonsInArray:self.replayButtonsArray];
+    
+    self.dyadminoesInPileLabel.text = [self.myMatch.pile componentsJoinedByString:@", "];
+    
+    //--------------------------------------------------------------------------
+    
+  } else { // game has ended or is in replay mode
+    
+      // regardless of whether game has ended or is just in replay mode
+    [self hideAllButtonsInArray:self.dyadminoButtonsArray];
+    [self hideAllButtonsInArray:self.gamePlayButtonsArray];
+    
+      // show replay buttons
+    [self showAllButtonsInArray:self.replayButtonsArray];
+    
+    self.dyadminoesInPileLabel.text = @"";
+    
+        //----------------------------------------------------------------------
+    
+      // game is in play, just in replay mode
+    if (!self.myMatch.gameHasEnded) {
+      
+        // allow replay mode button
+      if (!self.myMatch.gameHasEnded) {
+        self.replayModeButton.enabled = YES;
+        self.replayModeButton.hidden = NO;
+      }
+
+        //----------------------------------------------------------------------
+      
+        // game has ended
+    } else {
+      
+        // show winner information
+      if (self.myMatch.wonPlayers.count > 0) {
+        
+        NSMutableArray *wonPlayerNames = [[NSMutableArray alloc] initWithCapacity:self.myMatch.wonPlayers.count];
+        for (Player *player in self.myMatch.wonPlayers) {
+          [wonPlayerNames addObject:player.playerName];
+        }
+        
+        NSString *wonPlayers = [wonPlayerNames componentsJoinedByString:@" and "];
+        self.winnerLabel.text = [NSString stringWithFormat:@"%@ won!", wonPlayers];
+      } else {
+        self.winnerLabel.text = @"Game ended in draw.";
+      }
     }
   }
-
-    // undo and redo buttons
-  if ([self.myMatch.undoManager canUndo]) {
-    self.undoButton.enabled = YES;
-    self.undoButton.hidden = NO;
-  } else {
-    self.undoButton.enabled = NO;
-    self.undoButton.hidden = YES;
-  }
-  if ([self.myMatch.undoManager canRedo]) {
-    self.redoButton.enabled = YES;
-    self.redoButton.hidden = NO;
-  } else {
-    self.redoButton.enabled = NO;
-    self.redoButton.hidden = YES;
-  }
   
-  self.dyadminoesInPileLabel.text = [self.myMatch.pile componentsJoinedByString:@", "];
+    //--------------------------------------------------------------------------
+
+    // regardless of whether game has ended
   self.dyadminoesOnBoardLabel.text = [self.myMatch.board componentsJoinedByString:@", "];
   
   for (Player *player in self.myMatch.players) {
@@ -170,7 +277,7 @@
 }
 
 -(void)updateThisTurnDyadminoesLabel {
-  if (self.myMatch.holdingContainer.count > 0) {
+  if (self.myMatch.holdingContainer.count > 0 && !self.replayMode) {
     self.thisTurnDyadminoes.text = [NSString stringWithFormat:@"Dyadminoes to play: %@", [self.myMatch.holdingContainer componentsJoinedByString:@", "]];
   } else {
     self.thisTurnDyadminoes.text = @"";
@@ -183,13 +290,18 @@
 }
 
 -(void)handleEndGame {
-  [self hideAllButtonsForEndGame];
+  self.replayMode = NO;
+  self.swapMode = NO;
   [self setProperties];
 }
 
 #pragma mark - button methods
 
 -(IBAction)dyadminoTapped:(id)sender {
+  
+    // doesn't matter whether in swap mode, whether swapped or played
+    // will depend on done button method
+  
   UIButton *senderButton = (UIButton *)sender;
   if (![self.dyadminoButtonsArray containsObject:senderButton]) {
     return;
@@ -201,6 +313,7 @@
     [self setProperties];
     [self updateThisTurnDyadminoesLabel];
   }
+
 }
 
 -(IBAction)undoTapped:(id)sender {
@@ -215,39 +328,95 @@
   [self updateThisTurnDyadminoesLabel];
 }
 
--(IBAction)swapAllTapped:(id)sender {
+-(IBAction)swapModeTapped:(id)sender {
+  self.swapMode ^= YES;
+  NSString *title = self.swapMode ? @"swap on" : @"swap off";
+  UIColor *color = self.swapMode ? [UIColor orangeColor] : [UIColor lightGrayColor];
+  [self.swapModeButton setTitle:title forState:UIControlStateNormal];
+  [self.swapModeButton setBackgroundColor:color];
+  [self.myMatch resetHoldingContainer];
+  
+  [self setProperties];
+  [self updateThisTurnDyadminoesLabel];
+}
+
+-(IBAction)replayModeTapped:(id)sender {
+  self.replayMode ^= YES;
+  NSString *title = self.replayMode ? @"replay on" : @"replay off";
+  UIColor *color = self.replayMode ? [UIColor orangeColor] : [UIColor lightGrayColor];
+  [self.replayModeButton setTitle:title forState:UIControlStateNormal];
+  [self.replayModeButton setBackgroundColor:color];
+  
+    // restore state
+  if (!self.replayMode) {
+    [self.myMatch lastOrLeaveReplay];
+  }
+
+  [self setProperties];
+  [self updateThisTurnDyadminoesLabel];
 }
 
 -(IBAction)doneTapped:(id)sender {
-  [self.myMatch recordDyadminoesFromPlayer:self.myMatch.currentPlayer];
+  
+    // submit for play
+  if (!self.swapMode) {
+    [self.myMatch recordDyadminoesFromPlayer:self.myMatch.currentPlayer];
+
+  } else { // swap mode
+      // not enough in pile!
+    if (self.myMatch.holdingContainer.count > self.myMatch.pile.count) {
+      UIAlertView *pileNotEnoughAlertView = [[UIAlertView alloc] initWithTitle:@"Low pile count" message:@"There aren't enough dyadminoes in the pile." delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+      [pileNotEnoughAlertView show];
+        // swap!
+    } else {
+      [self.myMatch swapDyadminoesFromPlayer:self.myMatch.currentPlayer];
+      [self swapModeTapped:self.swapModeButton];
+    }
+  }
+  
   [self updateThisTurnDyadminoesLabel];
   [self setProperties];
 }
 
-- (IBAction)resignButton:(id)sender {
+-(IBAction)resignButton:(id)sender {
   [self.myMatch resignPlayer:self.myMatch.currentPlayer];
   [self updateThisTurnDyadminoesLabel];
   [self setProperties];
 }
 
--(void)hideAllButtonsForEndGame {
-  self.undoButton.hidden = YES;
-  self.undoButton.enabled = NO;
-  self.redoButton.hidden = YES;
-  self.redoButton.enabled = NO;
-  self.swapAllButton.hidden = YES;
-  self.swapAllButton.enabled = NO;
-  self.doneButton.hidden = YES;
-  self.doneButton.enabled = NO;
-  self.resignButton.hidden = YES;
-  self.resignButton.enabled = NO;
+-(IBAction)firstTapped:(id)sender {
+  [self.myMatch first];
+  [self setProperties];
 }
 
--(void)hideAllDyadminoButtons {
-  for (UIButton *button in self.dyadminoButtonsArray) {
-    [button setTitle:@"" forState:UIControlStateNormal];
+-(IBAction)backTapped:(id)sender {
+  [self.myMatch previous];
+  [self setProperties];
+}
+
+-(IBAction)forwardTapped:(id)sender {
+  [self.myMatch next];
+  [self setProperties];
+}
+
+-(IBAction)lastTapped:(id)sender {
+  [self.myMatch lastOrLeaveReplay];
+  [self setProperties];
+}
+
+#pragma mark - button show/hide methods
+
+-(void)hideAllButtonsInArray:(NSArray *)array {
+  for (UIButton *button in array) {
     button.hidden = YES;
     button.enabled = NO;
+  }
+}
+
+-(void)showAllButtonsInArray:(NSArray *)array {
+  for (UIButton *button in array) {
+    button.hidden = NO;
+    button.enabled = YES;
   }
 }
 
