@@ -13,6 +13,8 @@
 
 @interface DebugViewController () <MatchDelegate>
 
+@property (weak, nonatomic) IBOutlet UIButton *homeButton;
+
 @property (weak, nonatomic) IBOutlet UILabel *player1Name;
 @property (weak, nonatomic) IBOutlet UILabel *player2Name;
 @property (weak, nonatomic) IBOutlet UILabel *player3Name;
@@ -296,6 +298,10 @@
 }
 
 #pragma mark - button methods
+
+-(IBAction)homeTapped:(id)sender {
+  [self dismissViewControllerAnimated:YES completion:nil];
+}
 
 -(IBAction)dyadminoTapped:(id)sender {
   

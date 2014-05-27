@@ -16,20 +16,25 @@
 
 @property (strong, nonatomic) Model *myModel;
 
+@property (weak, nonatomic) IBOutlet UIButton *selfGameButton;
+@property (weak, nonatomic) IBOutlet UIButton *PnPGameButton;
+@property (weak, nonatomic) IBOutlet UIButton *GCGameButton;
+
+@property (weak, nonatomic) IBOutlet UIButton *helpButton;
+@property (weak, nonatomic) IBOutlet UIButton *storeButton;
+@property (weak, nonatomic) IBOutlet UIButton *rankButton;
+@property (weak, nonatomic) IBOutlet UIButton *optionsButton;
+@property (weak, nonatomic) IBOutlet UIButton *aboutButton;
+
 @end
 
 @implementation MainTableViewController
 
--(id)initWithStyle:(UITableViewStyle)style {
-  self = [super initWithStyle:style];
-  if (self) {
-
-  }
-  return self;
-}
-
 -(void)viewDidLoad {
   [super viewDidLoad];
+  
+  self.tableView.delegate = self;
+  self.tableView.dataSource = self;
   
     // instantiates matches only on very first launch
   NSString *path = [self dataFilePath];
@@ -38,7 +43,6 @@
   } else { // no file present, instantiate with hard code for now
     self.myModel = [[Model alloc] init];
     [self.myModel instantiateHardCodedMatchesForDebugPurposes];
-//    NSLog(@"myMatches %@", self.myModel.myMatches);
   }
 }
 
@@ -52,7 +56,7 @@
   
 }
 
-#pragma mark - Table view data source
+#pragma mark - Table view delegate and data source
 
 -(NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
   return 1;
@@ -62,6 +66,9 @@
   return self.myModel.myMatches.count;
 }
 
+-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+  return 90;
+}
 
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
   
@@ -121,5 +128,32 @@
   self.myModel.myMatches = [unarchiver decodeObjectForKey:kMatchesKey];
   [unarchiver finishDecoding];
 }
+
+#pragma mark - button methods
+
+-(IBAction)selfGameTapped:(id)sender {
+}
+
+-(IBAction)pnpGameTapped:(id)sender {
+}
+
+-(IBAction)gcGameTapped:(id)sender {
+}
+
+-(IBAction)helpTapped:(id)sender {
+}
+
+-(IBAction)storeTapped:(id)sender {
+}
+
+-(IBAction)rankTapped:(id)sender {
+}
+
+-(IBAction)optionsTapped:(id)sender {
+}
+
+-(IBAction)aboutTapped:(id)sender {
+}
+
 
 @end
