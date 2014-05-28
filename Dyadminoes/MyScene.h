@@ -11,14 +11,16 @@
 @class GameEngine;
 @class Player;
 @class Dyadmino;
+@class Match;
 
 @protocol SceneDelegate;
 
 @interface MyScene : SKScene
 
+@property (strong, nonatomic) Match *myMatch;
+
 @property (strong, nonatomic) GameEngine *ourGameEngine;
 @property (strong, nonatomic) Player *myPlayer;
-//@property (strong, nonatomic) SceneViewController *mySceneVC;
 @property (weak, nonatomic) id <SceneDelegate> delegate;
 
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;

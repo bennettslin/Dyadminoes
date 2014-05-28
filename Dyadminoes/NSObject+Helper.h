@@ -33,6 +33,10 @@
 
 //------------------------------------------------------------------------------
 
+  // view controller constants
+#define kViewControllerSpeed 0.2f
+#define kCornerRadius 25.f
+
   // dyadmino size constants
 #define kDyadminoFaceDiameter (kDyadminoFaceRadius * 2)
 #define kDyadminoFaceWideRadius (kDyadminoFaceRadius * kTwoOverSquareRootOfThree)

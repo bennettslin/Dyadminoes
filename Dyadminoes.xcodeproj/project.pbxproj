@@ -41,6 +41,12 @@
 		3FCCA71E18948B0500E0E4B5 /* GameEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCA71D18948B0500E0E4B5 /* GameEngine.m */; };
 		3FD06E2318D6544F00E2FF04 /* Cell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FD06E2218D6544F00E2FF04 /* Cell.m */; };
 		3FDD7FD918D4C89B0029DB7D /* Board.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FDD7FD818D4C89B0029DB7D /* Board.m */; };
+		3FECDE0719355B0200D774AB /* HelpViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FECDE0619355B0200D774AB /* HelpViewController.m */; };
+		3FECDE0A19355B1600D774AB /* StoreViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FECDE0919355B1600D774AB /* StoreViewController.m */; };
+		3FECDE0D19355B2F00D774AB /* RankViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FECDE0C19355B2F00D774AB /* RankViewController.m */; };
+		3FECDE1019355B3A00D774AB /* OptionsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FECDE0F19355B3A00D774AB /* OptionsViewController.m */; };
+		3FECDE1319355B4400D774AB /* AboutViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FECDE1219355B4400D774AB /* AboutViewController.m */; };
+		3FECDE1619355B8A00D774AB /* PnPViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FECDE1519355B8A00D774AB /* PnPViewController.m */; };
 		3FFD6CA318B40A83000D2DA4 /* DyadminoImages.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 3FFD6CA218B40A83000D2DA4 /* DyadminoImages.atlas */; };
 /* End PBXBuildFile section */
 
@@ -112,6 +118,18 @@
 		3FD06E2218D6544F00E2FF04 /* Cell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Cell.m; sourceTree = "<group>"; };
 		3FDD7FD718D4C89B0029DB7D /* Board.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Board.h; sourceTree = "<group>"; };
 		3FDD7FD818D4C89B0029DB7D /* Board.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Board.m; sourceTree = "<group>"; };
+		3FECDE0519355B0200D774AB /* HelpViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HelpViewController.h; sourceTree = "<group>"; };
+		3FECDE0619355B0200D774AB /* HelpViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HelpViewController.m; sourceTree = "<group>"; };
+		3FECDE0819355B1600D774AB /* StoreViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StoreViewController.h; sourceTree = "<group>"; };
+		3FECDE0919355B1600D774AB /* StoreViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StoreViewController.m; sourceTree = "<group>"; };
+		3FECDE0B19355B2F00D774AB /* RankViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RankViewController.h; sourceTree = "<group>"; };
+		3FECDE0C19355B2F00D774AB /* RankViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RankViewController.m; sourceTree = "<group>"; };
+		3FECDE0E19355B3A00D774AB /* OptionsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OptionsViewController.h; sourceTree = "<group>"; };
+		3FECDE0F19355B3A00D774AB /* OptionsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OptionsViewController.m; sourceTree = "<group>"; };
+		3FECDE1119355B4400D774AB /* AboutViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AboutViewController.h; sourceTree = "<group>"; };
+		3FECDE1219355B4400D774AB /* AboutViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AboutViewController.m; sourceTree = "<group>"; };
+		3FECDE1419355B8A00D774AB /* PnPViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PnPViewController.h; sourceTree = "<group>"; };
+		3FECDE1519355B8A00D774AB /* PnPViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PnPViewController.m; sourceTree = "<group>"; };
 		3FFD6CA218B40A83000D2DA4 /* DyadminoImages.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; name = DyadminoImages.atlas; path = ../DyadminoImages.atlas; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -185,22 +203,11 @@
 		3F87AAB2188DEE4B008C4A0D /* Dyadminoes */ = {
 			isa = PBXGroup;
 			children = (
-				3F8DC8EC18C151170004B063 /* Storyboards */,
-				3FFD6CA218B40A83000D2DA4 /* DyadminoImages.atlas */,
 				3F87AABB188DEE4B008C4A0D /* AppDelegate.h */,
 				3F87AABC188DEE4B008C4A0D /* AppDelegate.m */,
-				3F7BD7D3192B09D6009274DE /* MainTableViewController.h */,
-				3F7BD7D4192B09D6009274DE /* MainTableViewController.m */,
-				3F7BD7D9192B0A37009274DE /* MatchTableViewCell.h */,
-				3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */,
-				3F7BD7D6192B09FE009274DE /* DebugViewController.h */,
-				3F7BD7D7192B09FE009274DE /* DebugViewController.m */,
-				3F87AAC4188DEE4B008C4A0D /* SceneViewController.h */,
-				3F87AAC5188DEE4B008C4A0D /* SceneViewController.m */,
-				3F87AAC7188DEE4B008C4A0D /* MyScene.h */,
-				3F87AAC8188DEE4B008C4A0D /* MyScene.m */,
-				3FCCA71C18948B0500E0E4B5 /* GameEngine.h */,
-				3FCCA71D18948B0500E0E4B5 /* GameEngine.m */,
+				3F8DC8EC18C151170004B063 /* Storyboards */,
+				3FFD6CA218B40A83000D2DA4 /* DyadminoImages.atlas */,
+				3FB357CB1935368F0064761C /* View Controllers */,
 				3FFBE2251931B959002A1EDC /* Data Objects */,
 				3FFD6BE518B3CCE7000D2DA4 /* Objects */,
 				3F4C06B318CC5F12003C4265 /* Logic and Helpers */,
@@ -248,9 +255,40 @@
 			name = Storyboards;
 			sourceTree = "<group>";
 		};
+		3FB357CB1935368F0064761C /* View Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				3F7BD7D3192B09D6009274DE /* MainTableViewController.h */,
+				3F7BD7D4192B09D6009274DE /* MainTableViewController.m */,
+				3F7BD7D9192B0A37009274DE /* MatchTableViewCell.h */,
+				3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */,
+				3F7BD7D6192B09FE009274DE /* DebugViewController.h */,
+				3F7BD7D7192B09FE009274DE /* DebugViewController.m */,
+				3F87AAC4188DEE4B008C4A0D /* SceneViewController.h */,
+				3F87AAC5188DEE4B008C4A0D /* SceneViewController.m */,
+				3F87AAC7188DEE4B008C4A0D /* MyScene.h */,
+				3F87AAC8188DEE4B008C4A0D /* MyScene.m */,
+				3FECDE1419355B8A00D774AB /* PnPViewController.h */,
+				3FECDE1519355B8A00D774AB /* PnPViewController.m */,
+				3FECDE0519355B0200D774AB /* HelpViewController.h */,
+				3FECDE0619355B0200D774AB /* HelpViewController.m */,
+				3FECDE0819355B1600D774AB /* StoreViewController.h */,
+				3FECDE0919355B1600D774AB /* StoreViewController.m */,
+				3FECDE0B19355B2F00D774AB /* RankViewController.h */,
+				3FECDE0C19355B2F00D774AB /* RankViewController.m */,
+				3FECDE0E19355B3A00D774AB /* OptionsViewController.h */,
+				3FECDE0F19355B3A00D774AB /* OptionsViewController.m */,
+				3FECDE1119355B4400D774AB /* AboutViewController.h */,
+				3FECDE1219355B4400D774AB /* AboutViewController.m */,
+			);
+			name = "View Controllers";
+			sourceTree = "<group>";
+		};
 		3FFBE2251931B959002A1EDC /* Data Objects */ = {
 			isa = PBXGroup;
 			children = (
+				3FCCA71C18948B0500E0E4B5 /* GameEngine.h */,
+				3FCCA71D18948B0500E0E4B5 /* GameEngine.m */,
 				3F7BD7DC192B0AA8009274DE /* Model.h */,
 				3F7BD7DD192B0AA8009274DE /* Model.m */,
 				3F7BD7C7192AF45D009274DE /* Match.h */,
@@ -387,6 +425,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				3F7BD7D5192B09D6009274DE /* MainTableViewController.m in Sources */,
+				3FECDE0719355B0200D774AB /* HelpViewController.m in Sources */,
+				3FECDE0D19355B2F00D774AB /* RankViewController.m in Sources */,
 				3FCCA71B18948AF200E0E4B5 /* Dyadmino.m in Sources */,
 				3F7BD7D8192B09FE009274DE /* DebugViewController.m in Sources */,
 				3F8F045B18BFEF3300853C4C /* SnapPoint.m in Sources */,
@@ -394,18 +434,22 @@
 				3F7BD7DB192B0A37009274DE /* MatchTableViewCell.m in Sources */,
 				3F8F045818BFB1B300853C4C /* NSObject+Helper.m in Sources */,
 				3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */,
+				3FECDE0A19355B1600D774AB /* StoreViewController.m in Sources */,
 				3F87AAC9188DEE4B008C4A0D /* MyScene.m in Sources */,
 				3F87AAC6188DEE4B008C4A0D /* SceneViewController.m in Sources */,
 				3FDD7FD918D4C89B0029DB7D /* Board.m in Sources */,
 				3F7BD7C9192AF45D009274DE /* Match.m in Sources */,
 				3F18924718CDB43300BEE276 /* Player.m in Sources */,
 				3F7BD7DE192B0AA8009274DE /* Model.m in Sources */,
+				3FECDE1019355B3A00D774AB /* OptionsViewController.m in Sources */,
+				3FECDE1619355B8A00D774AB /* PnPViewController.m in Sources */,
 				3FCCA71E18948B0500E0E4B5 /* GameEngine.m in Sources */,
 				3F6AE50E18D4D1E7000528C1 /* TopBar.m in Sources */,
 				3F9923091895ECCA00FC9392 /* SonorityLogic.m in Sources */,
 				3F87AABD188DEE4B008C4A0D /* AppDelegate.m in Sources */,
 				3F55E1FD18D7A8520048E67E /* Button.m in Sources */,
 				3F87AAB9188DEE4B008C4A0D /* main.m in Sources */,
+				3FECDE1319355B4400D774AB /* AboutViewController.m in Sources */,
 				3FD06E2318D6544F00E2FF04 /* Cell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
