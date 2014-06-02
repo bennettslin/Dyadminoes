@@ -122,7 +122,7 @@
     } else {
       dyadminoesPlayedString = @"passed";
     }
-    self.turnLabel.text = [NSString stringWithFormat:@"%@ %@ for turn %i of %lu", turnPlayer.playerName, dyadminoesPlayedString, self.myMatch.replayCounter, (unsigned long)self.myMatch.turns.count];
+    self.turnLabel.text = [NSString stringWithFormat:@"%@ %@ for turn %lu of %lu", turnPlayer.playerName, dyadminoesPlayedString, (unsigned long)self.myMatch.replayCounter, (unsigned long)self.myMatch.turns.count];
   }
   
     // game is still in play and not in replay mode
@@ -135,42 +135,20 @@
       [self showAllButtonsInArray:self.gamePlayButtonsArray];
       
         // hide swap mode button if holding container contains dyadminoes
-      if (self.myMatch.holdingContainer.count > 0) {
-        self.swapModeButton.hidden = YES;
-        self.swapModeButton.enabled = NO;
-      } else {
-        self.swapModeButton.hidden = NO;
-        self.swapModeButton.enabled = YES;
-      }
+      self.myMatch.holdingContainer.count > 0 ? [self disableAndHide:self.swapModeButton] : [self enableAndShow:self.swapModeButton];
       
         // undo and redo buttons
-      if ([self.myMatch.undoManager canUndo]) {
-        self.undoButton.enabled = YES;
-        self.undoButton.hidden = NO;
-      } else {
-        self.undoButton.enabled = NO;
-        self.undoButton.hidden = YES;
-      }
-      if ([self.myMatch.undoManager canRedo]) {
-        self.redoButton.enabled = YES;
-        self.redoButton.hidden = NO;
-      } else {
-        self.redoButton.enabled = NO;
-        self.redoButton.hidden = YES;
-      }
+      [self.myMatch.undoManager canUndo] ? [self enableAndShow:self.undoButton] : [self disableAndHide:self.undoButton];
+      [self.myMatch.undoManager canRedo] ? [self enableAndShow:self.redoButton] : [self disableAndHide:self.redoButton];
 
         //----------------------------------------------------------------------
       
         // in swap mode
     } else {      
-      self.resignButton.enabled = NO;
-      self.resignButton.hidden = YES;
-      self.replayModeButton.enabled = NO;
-      self.replayModeButton.hidden = YES;
-      self.undoButton.enabled = NO;
-      self.undoButton.hidden = YES;
-      self.redoButton.enabled = NO;
-      self.redoButton.hidden = YES;
+      [self disableAndHide:self.resignButton];
+      [self disableAndHide:self.replayModeButton];
+      [self disableAndHide:self.undoButton];
+      [self disableAndHide:self.redoButton];
     }
     
         //----------------------------------------------------------------------
@@ -185,13 +163,7 @@
       NSString *title = [NSString stringWithFormat:@"%li", (unsigned long)dyadmino.myID];
       [button setTitle:title forState:UIControlStateNormal];
       
-      if ([self.myMatch.holdingContainer containsObject:dyadmino]) {
-        button.enabled = NO;
-        button.hidden = YES;
-      } else {
-        button.enabled = YES;
-        button.hidden = NO;
-      }
+      [self.myMatch.holdingContainer containsObject:dyadmino] ? [self disableAndHide:button] : [self enableAndShow:button];
     }
     
       // done or pass or swap
@@ -275,8 +247,11 @@
     } else {
       playerLabel.textColor = [UIColor blackColor];
     }
+    
+    scoreLabel.text = self.myMatch.tempScore > 0 && player == self.myMatch.currentPlayer ?
+      [NSString stringWithFormat:@"%lu + %lu", (unsigned long)player.playerScore, (unsigned long)self.myMatch.tempScore] :
+      [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
 
-    scoreLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
     rackLabel.text = [[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "];
   }
 }
@@ -351,7 +326,7 @@
   UIColor *color = self.swapMode ? [UIColor orangeColor] : [UIColor lightGrayColor];
   [self.swapModeButton setTitle:title forState:UIControlStateNormal];
   [self.swapModeButton setBackgroundColor:color];
-  [self.myMatch resetHoldingContainer];
+  [self.myMatch resetHoldingContainerAndUndo];
   
   [self setProperties];
   [self updateThisTurnDyadminoesLabel];
@@ -423,17 +398,25 @@
 
 #pragma mark - button show/hide methods
 
+-(void)enableAndShow:(UIButton *)button {
+  button.enabled = YES;
+  button.hidden = NO;
+}
+
+-(void)disableAndHide:(UIButton *)button {
+  button.enabled = NO;
+  button.hidden = YES;
+}
+
 -(void)hideAllButtonsInArray:(NSArray *)array {
   for (UIButton *button in array) {
-    button.hidden = YES;
-    button.enabled = NO;
+    [self disableAndHide:button];
   }
 }
 
 -(void)showAllButtonsInArray:(NSArray *)array {
   for (UIButton *button in array) {
-    button.hidden = NO;
-    button.enabled = YES;
+    [self enableAndShow:button];
   }
 }
 

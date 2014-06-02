@@ -122,7 +122,7 @@
   [self fillRackFromPileForPlayer:player];
   [self.pile addObjectsFromArray:self.holdingContainer];
   
-  [self resetHoldingContainer];
+  [self resetHoldingContainerAndUndo];
   [self recordDyadminoesFromPlayer:player]; // this records turn as a pass
                                             // sort the board and pile
   [self sortBoardAndPileArrays];
@@ -155,7 +155,7 @@
     self.numberOfConsecutivePasses = 0;
       /// obviously scorekeeping will be more sophisticated
       /// and will consider chords formed
-    player.playerScore += self.holdingContainer.count;
+    player.playerScore += self.tempScore;
     
     [self.board addObjectsFromArray:self.holdingContainer];
     
@@ -178,10 +178,7 @@
   }
   
       // whether pass or not, game continues
-  
-  self.holdingContainer = @[];
-  [self.undoManager removeAllActions];
-  
+  [self resetHoldingContainerAndUndo];
   self.lastPlayed = [NSDate date];
   [self switchToNextPlayer];
 }
@@ -192,9 +189,7 @@
   [self.pile addObjectsFromArray:player.dataDyadminoesThisTurn];
   [self sortBoardAndPileArrays];
   
-  self.holdingContainer = @[];
-  [self.undoManager removeAllActions];
-  
+  [self resetHoldingContainerAndUndo];
   [player.dataDyadminoesThisTurn removeAllObjects];
   if (![self switchToNextPlayer]) {
     [self endGame];
@@ -203,8 +198,7 @@
 
 -(void)endGame {
   self.currentPlayer = nil;
-  
-  [self resetHoldingContainer];
+  [self resetHoldingContainerAndUndo];
   
     // rules out that players with no points can win
   NSUInteger maxScore = 1;
@@ -262,6 +256,9 @@
 
 -(void)addToHoldingContainer:(DataDyadmino *)dyadmino {
   
+    // modify scorekeeping methods, of course
+  self.tempScore++;
+  
   if (![self.holdingContainer containsObject:dyadmino]) {
     NSMutableArray *tempContainer = [NSMutableArray arrayWithArray:self.holdingContainer];
     [tempContainer addObject:dyadmino];
@@ -280,15 +277,20 @@
 }
 
 -(void)undoDyadminoToHoldingContainer {
+  
+  self.tempScore--;
   [self.undoManager undo];
 }
 
 -(void)redoDyadminoToHoldingContainer {
+  
+  self.tempScore++;
   [self.undoManager redo];
 }
 
--(void)resetHoldingContainer {
+-(void)resetHoldingContainerAndUndo {
   self.holdingContainer = @[];
+  self.tempScore = 0;
   [self.undoManager removeAllActions];
 }
 
