@@ -26,16 +26,14 @@
 }
 
 -(void)encodeWithCoder:(NSCoder *)aCoder {
-  
   [aCoder encodeObject:self.myMatches forKey:kMatchesKey];
-  
 }
 
 -(void)instantiateHardCodedMatchesForDebugPurposes {
   
     //hard coded values
   NSArray *names = @[@"Julia", @"Pamela", @"Darcy", @"Mary"];
-  int ids[4] = {12345, 23456, 34567, 45678};
+  NSArray *ids = @[@"12345", @"23456", @"34567", @"45678"];
 
   self.myMatches = [[NSMutableArray alloc] initWithCapacity:5];
   for (int i = 0; i < 8; i++) {
@@ -44,18 +42,24 @@
     
     NSMutableArray *mutablePlayers = [[NSMutableArray alloc] initWithCapacity:randValue];
     for (int j = 0; j < randValue; j++) {
-      Player *player = [[Player alloc] initWithUniqueID:ids[(i + j) % randValue] andPlayerName:names[(i + j) % randValue] andPlayerPicture:nil];
+        // hard-coded player properties
+      NSString *playerID = ids[(i + j) % randValue];
+      NSString *playerName = names[(i + j) % randValue];
+      Player *player = [[Player alloc] initWithUniqueID:playerID andPlayerName:playerName andPlayerPicture:nil];
       [mutablePlayers addObject:player];
     }
     
+      // add players to match
     NSArray *players = [NSArray arrayWithArray:mutablePlayers];
-    Match *match = [[Match alloc] initWithPlayers:players];
+      // hard-coded match properties for now
+    Match *match = [[Match alloc] initWithPlayers:players andRules:kGameRulesPostTonal andSkill:kBeginner andType:kPnPGame];
+    
+      // add match to data
     [self.myMatches addObject:match];
   }
 }
 
 -(void)sortMyMatches {
-  
   NSMutableArray *endedGames = [[NSMutableArray alloc] init];
   NSMutableArray *openGames = [[NSMutableArray alloc] init];
   

@@ -8,7 +8,7 @@
 
 #import "MyScene.h"
 #import "SceneViewController.h"
-#import "GameEngine.h"
+#import "SceneEngine.h"
 #import "Dyadmino.h"
 #import "NSObject+Helper.h"
 #import "SnapPoint.h"
@@ -19,8 +19,13 @@
 #import "Cell.h"
 #import "Button.h"
 #import "Label.h"
+#import "Match.h"
+#import "DataDyadmino.h"
 
 @interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate>
+
+@property (strong, nonatomic) NSMutableArray *playerRackDyadminoes;
+@property (strong, nonatomic) NSMutableSet *boardDyadminoes;
 
 @end
 
@@ -73,8 +78,7 @@
   if (self = [super initWithSize:size]) {
     self.backgroundColor = [SKColor blackColor];
     self.name = @"scene";
-    self.ourGameEngine = [GameEngine new];
-    self.myPlayer = [self.ourGameEngine getAssignedAsPlayer];
+    self.mySceneEngine = [SceneEngine new];
     _rackExchangeInProgress = NO;
     _buttonPressed = nil;
     _hoveringDyadminoBeingCorrected = 0;
@@ -84,6 +88,9 @@
 }
 
 -(void)didMoveToView:(SKView *)view {
+  [self populateRackArray];
+  [self populateBoardSet];
+  
   [self layoutBoard];
   [self layoutBoardCover];
   [self populateBoardWithCells];
@@ -94,6 +101,31 @@
 }
 
 #pragma mark - layout methods
+
+-(void)populateRackArray {
+  self.playerRackDyadminoes = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
+  
+  for (DataDyadmino *dataDyad in self.myPlayer.dataDyadminoesThisTurn) {
+    Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
+    dyadmino.orientation = dataDyad.myOrientation;
+      // not the best place to set tempReturnOrientation for dyadmino
+    dyadmino.tempReturnOrientation = dyadmino.orientation;
+    [self.playerRackDyadminoes addObject:dyadmino];
+  }
+}
+
+-(void)populateBoardSet {
+  self.boardDyadminoes = [[NSMutableSet alloc] initWithCapacity:self.myMatch.board.count];
+  
+  for (DataDyadmino *dataDyad in self.myMatch.board) {
+    Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
+    dyadmino.myHexCoord = dataDyad.myHexCoord;
+    dyadmino.orientation = dataDyad.myOrientation;
+      // not the best place to set tempReturnOrientation here either
+    dyadmino.tempReturnOrientation = dyadmino.orientation;
+    [self.boardDyadminoes addObject:dyadmino];
+  }
+}
 
 -(void)layoutBoard {
   CGSize size = CGSizeMake(self.frame.size.width,
@@ -109,9 +141,6 @@
                                 andZPosition:kZPositionBoard];
   _boardField.delegate = self;
   [self addChild:_boardField];
-  
-    // initialise this as zero
-//  _boardOffsetAfterTouch = CGPointZero;
 }
 
 -(void)layoutBoardCover {
@@ -128,18 +157,36 @@
 
 -(void)populateBoardWithCells {
     // this method only needs the board dyadminoes to determine the board's cells ranges
-    /// seems to work so far with one dyadmino, will have to keep testing with more
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.ourGameEngine.dyadminoesOnBoard];
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes];
 }
 
 -(void)populateBoardWithDyadminoes {
-  for (Dyadmino *dyadmino in self.ourGameEngine.dyadminoesOnBoard) {
+  for (Dyadmino *dyadmino in self.boardDyadminoes) {
     dyadmino.delegate = self;
     
       // this is for the first dyadmino, which doesn't have a boardNode
+      // and also other dyadminoes when reloading
     if (!dyadmino.homeNode) {
-      for (SnapPoint *snapPoint in _boardField.snapPointsTwelveOClock) {
-        if ( snapPoint.myCell.hexCoord.x == 0 && snapPoint.myCell.hexCoord.y == 0) {
+      NSMutableSet *snapPointsToSearch;
+      switch (dyadmino.orientation) {
+        case kPC1atTwelveOClock:
+        case kPC1atSixOClock:
+          snapPointsToSearch = _boardField.snapPointsTwelveOClock;
+          break;
+        case kPC1atTwoOClock:
+        case kPC1atEightOClock:
+          snapPointsToSearch = _boardField.snapPointsTwoOClock;
+          break;
+        case kPC1atFourOClock:
+        case kPC1atTenOClock:
+          snapPointsToSearch = _boardField.snapPointsTenOClock;
+          break;
+        default:
+          break;
+      }
+      
+      for (SnapPoint *snapPoint in snapPointsToSearch) {
+        if ( snapPoint.myCell.hexCoord.x == dyadmino.myHexCoord.x && snapPoint.myCell.hexCoord.y == dyadmino.myHexCoord.y) {
           dyadmino.homeNode = snapPoint;
         }
       }
@@ -197,10 +244,10 @@
     _rackField.name = @"rack";
     [self addChild:_rackField];
   }
-  [_rackField layoutOrRefreshNodesWithCount:self.myPlayer.dyadminoesInRack.count];
-  [_rackField repositionDyadminoes:self.myPlayer.dyadminoesInRack];
+  [_rackField layoutOrRefreshNodesWithCount:self.playerRackDyadminoes.count];
+  [_rackField repositionDyadminoes:self.playerRackDyadminoes];
   
-  for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
+  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     dyadmino.delegate = self;
   }
 }
@@ -391,7 +438,7 @@
     SnapPoint *rackNode = [self findSnapPointClosestToDyadmino:_touchedDyadmino];
     
     [_rackField handleRackExchangeOfTouchedDyadmino:_touchedDyadmino
-                                           withDyadminoes:(NSMutableArray *)self.myPlayer.dyadminoesInRack
+                                           withDyadminoes:(NSMutableArray *)self.playerRackDyadminoes
                                        andClosestRackNode:rackNode];
   }
 }
@@ -755,7 +802,7 @@
     
       /// togglePC button
   } else if (_buttonPressed == _topBar.togglePCModeButton) {
-    [self.ourGameEngine toggleBetweenLetterAndNumberMode];
+    [self.mySceneEngine toggleBetweenLetterAndNumberMode];
     
       /// play button
   } else if (_buttonPressed == _topBar.playDyadminoButton) {
@@ -834,7 +881,7 @@
 }
 
 -(void)cancelSwappedDyadminoes {
-  for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
+  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
       dyadmino.belongsInSwap = NO;
       [dyadmino goHomeByPoppingIn:NO];
@@ -847,14 +894,14 @@
 -(BOOL)finaliseSwap {
   NSMutableArray *toPile = [NSMutableArray new];
   
-  for (Dyadmino *dyadmino in self.myPlayer.dyadminoesInRack) {
+  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if ([dyadmino belongsInSwap]) {
       [toPile addObject:dyadmino];
     }
   }
   
     // if swapped dyadminoes is greater than pile count, cancel
-  if (toPile.count > [self.ourGameEngine getCommonPileCount]) {
+  if (toPile.count > self.myMatch.pile.count) {
     [_topBar flashLabelNamed:@"message" withText:@"this is more than the pile count"];
     return NO;
     
@@ -873,7 +920,9 @@
     }
     
       // then swap in the logic
-    [self.ourGameEngine swapTheseDyadminoes:toPile fromPlayer:self.myPlayer];
+    
+      // FIXME: swap
+//    [self.mySceneEngine swapTheseDyadminoes:toPile fromPlayer:self.myPlayer];
     
     [self layoutOrRefreshRackFieldAndDyadminoes];
       // update views
@@ -888,8 +937,10 @@
   if ([dyadmino belongsInRack] && [dyadmino isOnBoard]) {
     
       // confirm that the dyadmino was successfully played before proceeding with anything else
-    if ([self.ourGameEngine playOnBoardThisDyadmino:dyadmino fromRackOfPlayer:self.myPlayer]) {
-      
+    
+      // FIXME: playDyadmino
+//    if ([self.mySceneEngine playOnBoardThisDyadmino:dyadmino fromRackOfPlayer:self.myPlayer]) {
+    
         // do cleanup, dyadmino's home node is now the board node
       dyadmino.homeNode = dyadmino.tempBoardNode;
       dyadmino.tempBoardNode = nil;
@@ -898,7 +949,7 @@
         // empty pointers
       _recentRackDyadmino = nil;
       _hoveringDyadmino = nil;
-    }
+//    }
   }
   [self layoutOrRefreshRackFieldAndDyadminoes];
 }
@@ -906,9 +957,11 @@
 -(void)finalisePlayerTurn {
     // no recent rack dyadmino on board
   if (!_recentRackDyadmino) {
-    while ([self.ourGameEngine getCommonPileCount] >= 1 && self.myPlayer.dyadminoesInRack.count < 6) {
-      [self.ourGameEngine putDyadminoFromPileIntoRackOfPlayer:self.myPlayer];
-    }
+    
+      // FIXME: finalise player turn
+//    while ([self.mySceneEngine getCommonPileCount] >= 1 && self.myPlayer.dataDyadminoesInRack.count < 6) {
+//      [self.mySceneEngine putDyadminoFromPileIntoRackOfPlayer:self.myPlayer];
+//    }
 
   [self layoutOrRefreshRackFieldAndDyadminoes];
   
@@ -1260,7 +1313,7 @@
 -(void)updatePileCountLabel {
   [_topBar updateLabelNamed:@"pileCount"
                    withText:[NSString stringWithFormat:@"in pile: %lu",
-                             (unsigned long)[self.ourGameEngine getCommonPileCount]]];
+                             (unsigned long)self.myMatch.pile.count]];
 }
 
 #pragma mark - board cover methods
@@ -1297,7 +1350,7 @@
 
 -(void)updateBoardBoundsWithDyadmino:(Dyadmino *)dyadmino {
 //  NSLog(@"board bounds updated with dyadmino %@", dyadmino.name);
-  NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.ourGameEngine.dyadminoesOnBoard];
+  NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
   
     // add dyadmino to set if dyadmino is a rack dyadmino
   if (dyadmino && ![dyadminoesOnBoard containsObject:dyadmino]) {
@@ -1491,8 +1544,8 @@
 #pragma mark - delegate methods
 
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino {
-  if (self.ourGameEngine.dyadminoesOnBoard.count == 1 &&
-      dyadmino == [self.ourGameEngine.dyadminoesOnBoard anyObject] &&
+  if (self.boardDyadminoes.count == 1 &&
+      dyadmino == [self.boardDyadminoes anyObject] &&
       !_recentRackDyadmino) {
     return YES;
   } else {
@@ -1535,10 +1588,10 @@
 //  NSLog(@"number of dyadminoes on board is %lu, number of occupied cells is %lu", (unsigned long)self.ourGameEngine.dyadminoesOnBoard.count, (unsigned long)_boardField.occupiedCells.count);
 //  
 //  NSLog(@"touched dyadmino %@, recent rack dyadmino %@, hovering dyadmino %@", _touchedDyadmino.name, _recentRackDyadmino.name, _hoveringDyadmino.name);
-  NSLog(@"board being corrected within bounds is %i", _boardBeingCorrectedWithinBounds);
-  if (_hoveringDyadmino.tempBoardNode) {
-    NSLog(@"hovering dyadmino has temp board node");
-  }
+//  NSLog(@"board being corrected within bounds is %i", _boardBeingCorrectedWithinBounds);
+//  if (_hoveringDyadmino.tempBoardNode) {
+//    NSLog(@"hovering dyadmino has temp board node");
+//  }
 }
 
 @end

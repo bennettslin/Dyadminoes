@@ -10,6 +10,8 @@
 #import "NSObject+Helper.h"
 #import "Match.h"
 #import "Player.h"
+#import "DataDyadmino.h"
+#import "SceneViewController.h"
 
 @interface DebugViewController () <MatchDelegate>
 
@@ -115,12 +117,12 @@
     NSArray *dyadminoesPlayed = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"container"];
     NSString *dyadminoesPlayedString;
     if (dyadminoesPlayed.count > 0) {
-      NSString *componentsString = [dyadminoesPlayed componentsJoinedByString:@", "];
+      NSString *componentsString = [[dyadminoesPlayed valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "];
       dyadminoesPlayedString = [NSString stringWithFormat:@"played %@", componentsString];
     } else {
       dyadminoesPlayedString = @"passed";
     }
-    self.turnLabel.text = [NSString stringWithFormat:@"%@ %@ for turn %i of %i", turnPlayer.playerName, dyadminoesPlayedString, self.myMatch.replayCounter, self.myMatch.turns.count];
+    self.turnLabel.text = [NSString stringWithFormat:@"%@ %@ for turn %i of %lu", turnPlayer.playerName, dyadminoesPlayedString, self.myMatch.replayCounter, (unsigned long)self.myMatch.turns.count];
   }
   
     // game is still in play and not in replay mode
@@ -177,10 +179,10 @@
     
       // set whether dyadminoes are displayed
     Player *currentPlayer = self.myMatch.currentPlayer;
-    for (int i = 0; i < currentPlayer.dyadminoesInRack.count; i++) {
-      NSNumber *dyadmino = currentPlayer.dyadminoesInRack[i];
+    for (int i = 0; i < currentPlayer.dataDyadminoesThisTurn.count; i++) {
+      DataDyadmino *dyadmino = currentPlayer.dataDyadminoesThisTurn[i];
       UIButton *button = self.dyadminoButtonsArray[i];
-      NSString *title = [NSString stringWithFormat:@"%li", (long)[dyadmino integerValue]];
+      NSString *title = [NSString stringWithFormat:@"%li", (unsigned long)dyadmino.myID];
       [button setTitle:title forState:UIControlStateNormal];
       
       if ([self.myMatch.holdingContainer containsObject:dyadmino]) {
@@ -204,7 +206,7 @@
       // hide replay buttons
     [self hideAllButtonsInArray:self.replayButtonsArray];
     
-    self.dyadminoesInPileLabel.text = [self.myMatch.pile componentsJoinedByString:@", "];
+    self.dyadminoesInPileLabel.text = [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "];
     
     //--------------------------------------------------------------------------
     
@@ -254,7 +256,7 @@
     //--------------------------------------------------------------------------
 
     // regardless of whether game has ended
-  self.dyadminoesOnBoardLabel.text = [self.myMatch.board componentsJoinedByString:@", "];
+  self.dyadminoesOnBoardLabel.text = [[self.myMatch.board valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "];
   
   for (Player *player in self.myMatch.players) {
     NSUInteger playerIndex = [self.myMatch.players indexOfObject:player];
@@ -275,13 +277,13 @@
     }
 
     scoreLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
-    rackLabel.text = [player.dyadminoesInRack componentsJoinedByString:@", "];
+    rackLabel.text = [[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "];
   }
 }
 
 -(void)updateThisTurnDyadminoesLabel {
   if (self.myMatch.holdingContainer.count > 0 && !self.replayMode) {
-    self.thisTurnDyadminoes.text = [NSString stringWithFormat:@"Dyadminoes to play: %@", [self.myMatch.holdingContainer componentsJoinedByString:@", "]];
+    self.thisTurnDyadminoes.text = [NSString stringWithFormat:@"Dyadminoes to play: %@", [[self.myMatch.holdingContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
   } else {
     self.thisTurnDyadminoes.text = @"";
   }
@@ -296,6 +298,14 @@
   self.replayMode = NO;
   self.swapMode = NO;
   [self setProperties];
+}
+
+-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+  if ([segue.identifier isEqualToString:@"realSceneSegue"]) {
+    SceneViewController *sceneVC = [segue destinationViewController];
+    sceneVC.myMatch = self.myMatch;
+    sceneVC.myPlayer = self.myMatch.currentPlayer;
+  }
 }
 
 #pragma mark - button methods
@@ -315,8 +325,8 @@
   }
   
   NSUInteger index = [self.dyadminoButtonsArray indexOfObject:senderButton];
-  if (![self.myMatch.holdingContainer containsObject:self.myMatch.currentPlayer.dyadminoesInRack[index]]) {
-    [self.myMatch addToHoldingContainer:self.myMatch.currentPlayer.dyadminoesInRack[index]];
+  if (![self.myMatch.holdingContainer containsObject:self.myMatch.currentPlayer.dataDyadminoesThisTurn[index]]) {
+    [self.myMatch addToHoldingContainer:self.myMatch.currentPlayer.dataDyadminoesThisTurn[index]];
     [self setProperties];
     [self updateThisTurnDyadminoesLabel];
   }

@@ -64,6 +64,7 @@
 
   // game logic constants
 #define kNumDyadminoesInRack 6
+#define kPileCount 66
 
   // distance constants
 #define kAngleForSnapToPivot 0.1f
@@ -102,12 +103,13 @@
 #define kZPositionRackRestingDyadmino 20.f
 
   // data key constants
-
 #define kMatchesKey @"myMatches"
+#define kDyadminoIDKey @"myID"
 
   //----------------------------------------------------------------------------
 
   // colours
+
 #define kDarkBlue [SKColor colorWithRed:.29f green:.4f blue:.63f alpha:1.f]
 #define kSkyBlue [SKColor colorWithRed:.7f green:.8f blue:.9f alpha:1.f]
 #define kFieldPurple [SKColor colorWithRed:.3f green:.2f blue:.4f alpha:1.f]
@@ -124,21 +126,61 @@
 
   //----------------------------------------------------------------------------
 
-typedef enum mainPageButtonType {
-  kSoloGameButton,
-  kPassNPlayButton,
-  kGameCenterMatchButton,
-  kHelpButton,
-  kStoreButton,
-  kLeaderboardButton,
-  kOptionsButton,
-  kAboutButton
-} MainPageButtonType;
-
 typedef struct HexCoord {
   NSInteger x;
   NSInteger y;
 } HexCoord;
+
+  // this might be unnecessary
+//typedef enum dyadminoLocation {
+//  kBoardDyadmino,
+//  kRackDyadmino,
+//  kPileDyadmino
+//} DyadminoLocation;
+
+typedef enum dyadminoOrientation {
+  kPC1atTwelveOClock,
+  kPC1atTwoOClock,
+  kPC1atFourOClock,
+  kPC1atSixOClock,
+  kPC1atEightOClock,
+  kPC1atTenOClock
+} DyadminoOrientation;
+
+//typedef struct PersistDyadmino {
+//  HexCoord myCoord;
+//  int dyadminoID;
+//  DyadminoLocation dyadminoLocation;
+//  DyadminoOrientation dyadminoOrient;
+//} PersistDyadmino;
+
+typedef enum gameRules {
+  kGameRulesTonal,
+  kGameRulesPostTonal
+} GameRules;
+
+typedef enum gameType {
+  kSelfGame,
+  kPnPGame,
+  kGCGame
+} GameType;
+
+typedef enum gameSkill {
+  kBeginner,
+  kIntermediate,
+  kExpert
+} GameSkill;
+
+//typedef enum mainPageButtonType {
+//  kSoloGameButton,
+//  kPassNPlayButton,
+//  kGameCenterMatchButton,
+//  kHelpButton,
+//  kStoreButton,
+//  kLeaderboardButton,
+//  kOptionsButton,
+//  kAboutButton
+//} MainPageButtonType;
 
 typedef enum pcMode {
   kPCModeLetter,
@@ -157,15 +199,6 @@ typedef enum snapPointType {
   kSnapPointBoardTwoOClock,
   kSnapPointBoardTenOClock
 } SnapPointType;
-
-typedef enum dyadminoOrientation {
-  kPC1atTwelveOClock,
-  kPC1atTwoOClock,
-  kPC1atFourOClock,
-  kPC1atSixOClock,
-  kPC1atEightOClock,
-  kPC1atTenOClock
-} DyadminoOrientation;
 
 typedef enum dyadminoHoveringStatus {
   kDyadminoNoHoverStatus,

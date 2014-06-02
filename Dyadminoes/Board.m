@@ -147,20 +147,33 @@
   NSInteger cellsLeft = 99999999;
   
   for (Dyadmino *dyadmino in boardDyadminoes) {
+
+    HexCoord hexCoord1;
+    HexCoord hexCoord2;
+
+    if (dyadmino.homeNode) {
+      SnapPoint *boardNode;
+      
+        // different board nodes, depending on whether dyadmino belongs in rack
+      if ([dyadmino belongsInRack]) {
+        boardNode = dyadmino.tempBoardNode;
+      } else {
+        boardNode = dyadmino.homeNode;
+      }
+      struct HexCoord tempHexCoord1 = boardNode.myCell.hexCoord;
+      struct HexCoord tempHexCoord2 = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:boardNode];
+      hexCoord1 = tempHexCoord1;
+      hexCoord2 = tempHexCoord2;
     
-      // different board nodes, depending on whether dyadmino belongs in rack
-    SnapPoint *boardNode;
-    if ([dyadmino belongsInRack]) {
-      boardNode = dyadmino.tempBoardNode;
+        // if instantiating, dyadmino does not have boardNode
     } else {
-      boardNode = dyadmino.homeNode;
+      struct HexCoord tempHexCoord1 = dyadmino.myHexCoord;
+      struct HexCoord tempHexCoord2 = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil];
+      hexCoord1 = tempHexCoord1;
+      hexCoord2 = tempHexCoord2;
     }
     
-      // check hexCoords of both cells of dyadmino
-    HexCoord hexCoord[2] = {boardNode.myCell.hexCoord,
-      [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:boardNode]};
-    
-      //  NSLog(@"dyadmino homeNode is %@", dyadmino.homeNode.myCell.name);
+    HexCoord hexCoord[2] = {hexCoord1, hexCoord2};
     
     for (int i = 0; i < 2; i++) {
       NSInteger xHex = hexCoord[i].x;
@@ -375,8 +388,16 @@
 }
 
 -(HexCoord)getHexCoordOfOtherCellGivenDyadmino:(Dyadmino *)dyadmino andBoardNode:(SnapPoint *)snapPoint {
-  NSInteger xHex = snapPoint.myCell.hexCoord.x;
-  NSInteger yHex = snapPoint.myCell.hexCoord.y;
+  
+  NSInteger xHex;
+  NSInteger yHex;
+  if (snapPoint) {
+    xHex = snapPoint.myCell.hexCoord.x;
+    yHex = snapPoint.myCell.hexCoord.y;
+  } else {
+    xHex = dyadmino.myHexCoord.x;
+    yHex = dyadmino.myHexCoord.y;
+  }
   
   switch (dyadmino.orientation) {
     case kPC1atTwelveOClock:

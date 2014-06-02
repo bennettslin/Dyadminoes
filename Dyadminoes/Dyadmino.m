@@ -38,21 +38,21 @@
     self.pc1NumberSprite = pc1NumberSprite;
     self.pc2NumberSprite = pc2NumberSprite;
     self.hoveringStatus = kDyadminoNoHoverStatus;
-    [self randomiseRackOrientation];
+//    [self randomiseRackOrientation];
     [self selectAndPositionSprites];
   }
   return self;
 }
 
--(void)randomiseRackOrientation { // only gets called before sprite is reloaded
-  NSUInteger zeroOrOne = [self randomIntegerUpTo:2]; // randomise rackOrientation
-  if (zeroOrOne == 0) {
-    self.orientation = kPC1atTwelveOClock;
-  } else if (zeroOrOne == 1) {
-    self.orientation = kPC1atSixOClock;
-  }
-  self.tempReturnOrientation = self.orientation;
-}
+//-(void)randomiseRackOrientation { // only gets called before sprite is reloaded
+//  NSUInteger zeroOrOne = [self randomIntegerUpTo:2]; // randomise rackOrientation
+//  if (zeroOrOne == 0) {
+//    self.orientation = kPC1atTwelveOClock;
+//  } else if (zeroOrOne == 1) {
+//    self.orientation = kPC1atSixOClock;
+//  }
+//  self.tempReturnOrientation = self.orientation;
+//}
 
 #pragma mark - orient, position, and size methods
 

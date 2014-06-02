@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
-#import "MainTableViewController.h"
+#import "MatchesTableViewController.h"
 #import "Model.h"
 #import "NSObject+Helper.h"
 #import "MatchTableViewCell.h"
@@ -24,10 +24,16 @@
 #define kTableViewTopMargin (kIsIPhone ? 122.f : 122.f)
 #define kTableViewBottomMargin (kIsIPhone ? 90.f : 90.f)
 
-@interface MainTableViewController () <DebugDelegate, MatchCellDelegate>
+#define kMainTopBarHeight (kIsIPhone ? 86.f : 86.f)
+
+@interface MatchesTableViewController () <DebugDelegate, MatchCellDelegate>
 
 @property (strong, nonatomic) Model *myModel;
 
+@property (weak, nonatomic) IBOutlet UIView *topBar;
+@property (weak, nonatomic) IBOutlet UIView *bottomBar;
+
+//@property (weak, nonatomic) IBOutlet UIView *tableParentView;
 @property (weak, nonatomic) IBOutlet UIButton *selfGameButton;
 @property (weak, nonatomic) IBOutlet UIButton *PnPGameButton;
 @property (weak, nonatomic) IBOutlet UIButton *GCGameButton;
@@ -54,24 +60,26 @@
 
 @end
 
-@implementation MainTableViewController {
+@implementation MatchesTableViewController {
   CGFloat _screenWidth;
   CGFloat _screenHeight;
 }
 
 -(void)viewDidLoad {
-  NSLog(@"view did load");
   
   [super viewDidLoad];
   
   _screenWidth = [UIScreen mainScreen].bounds.size.width;
   _screenHeight = [UIScreen mainScreen].bounds.size.height;
   
+  self.bottomBar.backgroundColor = [UIColor brownColor];
+  self.topBar.backgroundColor = [UIColor brownColor];
+  
   self.pnpVC = [[PnPViewController alloc] init];
   self.pnpVC.view.backgroundColor = [UIColor lightGrayColor];
 //  [self addChildViewController:self.pnpVC];
   
-  self.helpVC = [[HelpViewController alloc] init];
+  self.helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
   self.helpVC.view.backgroundColor = [UIColor redColor];
 //  [self addChildViewController:self.helpVC];
   
@@ -91,7 +99,7 @@
   self.aboutVC.view.backgroundColor = [UIColor blueColor];
 //  [self addChildViewController:self.aboutVC];
   
-  self.darkOverlay = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height * 7 / 8)];
+  self.darkOverlay = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, _screenWidth, _screenHeight)];
   [self.darkOverlay addTarget:self action:@selector(matchesTapped:) forControlEvents:UIControlEventTouchDown];
   self.vcIsAnimating = NO;
   [self highlightBottomButton:self.matchesButton];
@@ -228,6 +236,7 @@
       // overlay fade in and tableview slide out go together
     if (![self.darkOverlay superview]) {
       [self fadeInOverlay];
+      [self slideUpTopBar];
       [self slideOutTableview];
     }
     
@@ -267,9 +276,23 @@
   [self setNeedsStatusBarAppearanceUpdate];
 }
 
+-(void)slideUpTopBar {
+  [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    self.topBar.frame = CGRectMake(0, -kMainTopBarHeight, _screenWidth, kMainTopBarHeight);
+  } completion:^(BOOL finished) {
+  }];
+}
+
+-(void)slideDownTopBar {
+  [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+    self.topBar.frame = CGRectMake(0, 0, _screenWidth, kMainTopBarHeight);
+  } completion:^(BOOL finished) {
+  }];
+}
+
 -(void)fadeInOverlay {
   self.darkOverlay.backgroundColor = [UIColor clearColor];
-  [self.view addSubview:self.darkOverlay];
+  [self.view insertSubview:self.darkOverlay belowSubview:self.bottomBar];
   [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
     self.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:0.3f];
   } completion:^(BOOL finished) {
@@ -322,9 +345,12 @@
 
 -(IBAction)matchesTapped:(id)sender {
   if (!self.vcIsAnimating && self.childVC) {
-    [self highlightBottomButton:self.matchesButton];
+    
     [self fadeOutOverlay];
+    [self slideDownTopBar];
     [self slideInTableview];
+    
+    [self highlightBottomButton:self.matchesButton];
     [self removeChildViewController:self.childVC];
     self.childVC = nil;
   }
@@ -381,7 +407,5 @@
   }
   return NO;
 }
-
-
 
 @end

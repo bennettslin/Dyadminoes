@@ -44,6 +44,8 @@
     // Create and configure the scene
   self.myScene = [MyScene sceneWithSize:self.mySceneView.bounds.size];
   self.myScene.scaleMode = SKSceneScaleModeAspectFill;
+  self.myScene.myMatch = self.myMatch;
+  self.myScene.myPlayer = self.myPlayer;
   self.myScene.delegate = self;
   
   [self.mySceneView presentScene:self.myScene];

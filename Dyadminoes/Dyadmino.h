@@ -14,11 +14,12 @@
 @protocol DyadminoDelegate <NSObject>
 
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
-//-(void)hideAllPivotGuides;
 
 @end
 
 @interface Dyadmino : SKSpriteNode
+
+@property (nonatomic) NSUInteger myID;
 @property (weak, nonatomic) id<DyadminoDelegate> delegate;
 
   // pcs
@@ -29,6 +30,7 @@
   // nodes and touches
 @property (strong, nonatomic) SnapPoint *homeNode;
 @property (strong, nonatomic) SnapPoint *tempBoardNode;
+@property (nonatomic) HexCoord myHexCoord;
 
   // orientations
 @property (nonatomic) DyadminoOrientation orientation;
@@ -70,7 +72,7 @@
                      andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite
                      andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite;
 
--(void)randomiseRackOrientation;
+//-(void)randomiseRackOrientation;
 
 #pragma mark - orient, position, and size methods
 

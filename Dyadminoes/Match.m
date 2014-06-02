@@ -7,13 +7,13 @@
 //
 
 #import "Match.h"
-#import "NSObject+Helper.h"
 #import "Player.h"
+#import "DataDyadmino.h"
 
 @interface Match ()
 
 @property (nonatomic) NSUInteger numberOfConsecutivePasses;
-@property (strong, nonatomic) NSNumber *firstDyadmino;
+@property (strong, nonatomic) DataDyadmino *firstDyadmino;
 
 @end
 
@@ -21,9 +21,13 @@
 
 #pragma mark - init methods
 
--(id)initWithPlayers:(NSArray *)players {
+-(id)initWithPlayers:(NSArray *)players andRules:(GameRules)rules andSkill:(GameSkill)skill andType:(GameType)type {
   self = [super init];
   if (self) {
+    
+    self.rules = rules;
+    self.skill = skill;
+    self.type = type;
     
     self.undoManager = [[NSUndoManager alloc] init];
     
@@ -36,8 +40,8 @@
     
     self.holdingContainer = @[];
     
-    self.pile = [[NSMutableArray alloc] initWithCapacity:66];
-    self.board = [[NSMutableArray alloc] initWithCapacity:66];
+    self.pile = [[NSMutableArray alloc] initWithCapacity:kPileCount];
+    self.board = [[NSMutableArray alloc] initWithCapacity:kPileCount];
     self.turns = [NSMutableArray new];
     self.replayCounter = 0;
     
@@ -49,9 +53,9 @@
 }
 
 -(void)generatePile {
-  for (int i = 1; i <= 66; i++) {
-    NSNumber *dyadNumber = [NSNumber numberWithInt:i];
-    [self.pile addObject:dyadNumber];
+  for (int i = 1; i <= kPileCount; i++) {
+    DataDyadmino *dataDyad = [[DataDyadmino alloc] initWithID:i];
+    [self.pile addObject:dataDyad];
   }
 }
 
@@ -60,7 +64,7 @@
     [self fillRackFromPileForPlayer:player];
     
       // this won't be here in real game, should keep player's desired order
-    [player.dyadminoesInRack sortUsingSelector:@selector(compare:)];
+    [self sortDyadminoes:player.dataDyadminoesThisTurn];
   }
 }
 
@@ -68,6 +72,8 @@
   while (self.board.count == 0 && self.pile.count > 0) {
     NSUInteger randIndex = [self randomIntegerUpTo:self.pile.count];
     self.firstDyadmino = [self.pile objectAtIndex:randIndex];
+    struct HexCoord myHex = {0, 0};
+    self.firstDyadmino.myHexCoord = myHex;
     [self.pile removeObjectAtIndex:randIndex];
     [self.board addObject:self.firstDyadmino];
   }
@@ -76,11 +82,11 @@
 #pragma mark - game play methods
 
 -(void)fillRackFromPileForPlayer:(Player *)player {
-  while (player.dyadminoesInRack.count < kNumDyadminoesInRack && self.pile.count > 0) {
+  while (player.dataDyadminoesThisTurn.count < kNumDyadminoesInRack && self.pile.count > 0) {
     NSUInteger randIndex = [self randomIntegerUpTo:self.pile.count];
-    NSNumber *dyadmino = [self.pile objectAtIndex:randIndex];
+    DataDyadmino *dyadmino = [self.pile objectAtIndex:randIndex];
     [self.pile removeObjectAtIndex:randIndex];
-    [player.dyadminoesInRack addObject:dyadmino];
+    [player.dataDyadminoesThisTurn addObject:dyadmino];
   }
 }
 
@@ -107,9 +113,9 @@
 
 -(void)swapDyadminoesFromPlayer:(Player *)player {
   
-  for (NSNumber *dyadmino in self.holdingContainer) {
-    if ([player.dyadminoesInRack containsObject:dyadmino]) {
-      [player.dyadminoesInRack removeObject:dyadmino];
+  for (DataDyadmino *dyadmino in self.holdingContainer) {
+    if ([player.dataDyadminoesThisTurn containsObject:dyadmino]) {
+      [player.dataDyadminoesThisTurn removeObject:dyadmino];
     }
   }
   
@@ -153,9 +159,9 @@
     
     [self.board addObjectsFromArray:self.holdingContainer];
     
-    for (NSNumber *dyadmino in self.holdingContainer) {
-      if ([player.dyadminoesInRack containsObject:dyadmino]) {
-        [player.dyadminoesInRack removeObject:dyadmino];
+    for (DataDyadmino *dyadmino in self.holdingContainer) {
+      if ([player.dataDyadminoesThisTurn containsObject:dyadmino]) {
+        [player.dataDyadminoesThisTurn removeObject:dyadmino];
       }
     }
     
@@ -183,13 +189,13 @@
 -(void)resignPlayer:(Player *)player {
 
   player.resigned = YES;
-  [self.pile addObjectsFromArray:player.dyadminoesInRack];
+  [self.pile addObjectsFromArray:player.dataDyadminoesThisTurn];
   [self sortBoardAndPileArrays];
   
   self.holdingContainer = @[];
   [self.undoManager removeAllActions];
   
-  [player.dyadminoesInRack removeAllObjects];
+  [player.dataDyadminoesThisTurn removeAllObjects];
   if (![self switchToNextPlayer]) {
     [self endGame];
   }
@@ -224,7 +230,7 @@
 #pragma mark - helper methods
 
 -(BOOL)checkPlayerFirstToRunOut {
-  if (self.currentPlayer.dyadminoesInRack.count == 0 && self.pile.count == 0) {
+  if (self.currentPlayer.dataDyadminoesThisTurn.count == 0 && self.pile.count == 0) {
     return YES;
   } else {
     return NO;
@@ -243,13 +249,18 @@
 
 -(void)sortBoardAndPileArrays {
     // this will have to change when dyadminoes
-  [self.pile sortUsingSelector:@selector(compare:)];
-  [self.board sortUsingSelector:@selector(compare:)];
+  [self sortDyadminoes:self.pile];
+  [self sortDyadminoes:self.board];
+}
+
+-(void)sortDyadminoes:(NSMutableArray *)array {
+  NSSortDescriptor *sortByID = [[NSSortDescriptor alloc] initWithKey:@"myID" ascending:YES];
+  [array sortedArrayUsingDescriptors:@[sortByID]];
 }
 
 #pragma mark - undo manager
 
--(void)addToHoldingContainer:(NSNumber *)dyadmino {
+-(void)addToHoldingContainer:(DataDyadmino *)dyadmino {
   
   if (![self.holdingContainer containsObject:dyadmino]) {
     NSMutableArray *tempContainer = [NSMutableArray arrayWithArray:self.holdingContainer];
@@ -293,7 +304,7 @@
   [self.board removeAllObjects];
   [self.board addObject:self.firstDyadmino];
   NSArray *container = [self.turns[self.replayCounter - 1] objectForKey:@"container"];
-  for (NSNumber *dyadmino in container) {
+  for (DataDyadmino *dyadmino in container) {
     if (![self.board containsObject:dyadmino]) {
       [self.board addObject:dyadmino];
     }
@@ -307,7 +318,7 @@
     
   } else {
       NSArray *container = [self.turns[self.replayCounter - 1] objectForKey:@"container"];
-      for (NSNumber *dyadmino in container) {
+      for (DataDyadmino *dyadmino in container) {
         if ([self.board containsObject:dyadmino]) {
           [self.board removeObject:dyadmino];
         }
@@ -325,7 +336,7 @@
   } else {
     self.replayCounter++;
       NSArray *container = [self.turns[self.replayCounter - 1] objectForKey:@"container"];
-      for (NSNumber *dyadmino in container) {
+      for (DataDyadmino *dyadmino in container) {
         if (![self.board containsObject:dyadmino]) {
           [self.board addObject:dyadmino];
         }
@@ -338,7 +349,7 @@
   self.replayCounter = self.turns.count;
   for (int i = 0; i < self.turns.count; i++) {
     NSArray *container = [self.turns[i] objectForKey:@"container"];
-    for (NSNumber *dyadmino in container) {
+    for (DataDyadmino *dyadmino in container) {
       if (![self.board containsObject:dyadmino]) {
         [self.board addObject:dyadmino];
       }

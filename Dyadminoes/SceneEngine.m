@@ -6,37 +6,35 @@
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
-#import "GameEngine.h"
+#import "SceneEngine.h"
 #import "Dyadmino.h"
 #import "Player.h"
 
-@interface GameEngine ()
+@interface SceneEngine ()
 
   // players
-@property (strong, nonatomic) Player *player1;
+//@property (strong, nonatomic) Player *player1;
 
   // dyadminoes
-@property (strong, nonatomic) NSMutableSet *allDyadminoes;
-@property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer1Rack;
-@property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer2Rack;
+//@property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer1Rack;
+//@property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer2Rack;
 @property (strong, nonatomic) NSMutableSet *dyadminoesInCommonPile;
 
 @end
 
-@implementation GameEngine
+@implementation SceneEngine
 
 -(id)init {
   self = [super init];
   if (self) {
       // initial setup
-    self.allDyadminoes = [[NSMutableSet alloc] initWithCapacity:66];
-    self.dyadminoesInCommonPile = [[NSMutableSet alloc] initWithCapacity:66];
-    self.dyadminoesOnBoard = [NSMutableSet new];
+    self.dyadminoesInCommonPile = [[NSMutableSet alloc] initWithCapacity:kPileCount];
+//    self.dyadminoesOnBoard = [NSMutableSet new];
     [self createPile];
-    [self putFirstDyadminoOnBoard];
+//    [self putFirstDyadminoOnBoard];
     
       // FIXME: eventually change this to reflect how many players are playing
-    self.dyadminoesInPlayer1Rack = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
+//    self.dyadminoesInPlayer1Rack = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
       //    self.dyadminoesInPlayer2Rack = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
 //    self.player1 = [[Player alloc] initWithPlayerNumber:1 andDyadminoesInRack:[self getInitiallyPopulatedRack]];
   }
@@ -45,6 +43,8 @@
 
 -(void)createPile {
   
+  NSMutableArray *tempAllDyadminoes = [[NSMutableArray alloc] initWithCapacity:kPileCount];
+  
     // get dyadmino textures
   SKTextureAtlas *textureAtlas = [SKTextureAtlas atlasNamed:@"DyadminoImages"];
   NSMutableArray *tempRotationArray = [[NSMutableArray alloc] initWithCapacity:3];
@@ -52,6 +52,8 @@
   [tempRotationArray addObject:[textureAtlas textureNamed:@"blankTileSwNe"]];
   [tempRotationArray addObject:[textureAtlas textureNamed:@"blankTileNwSe"]];
   NSArray *rotationFrameArray = [NSArray arrayWithArray:tempRotationArray];
+  
+  NSUInteger myID = 1;
   
   for (int pc1 = 0; pc1 < 12; pc1++) {
     for (int pc2 = 0; pc2 < 12; pc2++) {
@@ -70,8 +72,15 @@
           // instantiate dyadmino
         Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1 andPC2:pc2 andPCMode:kPCModeLetter andRotationFrameArray:rotationFrameArray andPC1LetterSprite:pc1LetterSprite andPC2LetterSprite:pc2LetterSprite andPC1NumberSprite:pc1NumberSprite andPC2NumberSprite:pc2NumberSprite];
         
+        dyadmino.myID = myID;
+        
+//        NSLog(@"dyadmino myID is %i, %i-%i", dyadmino.myID, pc1, pc2);
+        
+        myID++;
+        
+        
           // initially put them all in the common pile
-        [self.allDyadminoes addObject:dyadmino];
+        [tempAllDyadminoes addObject:dyadmino];
         [self.dyadminoesInCommonPile addObject:dyadmino];
         
           // testing purposes
@@ -87,97 +96,98 @@
     }
   }
   
+  self.allDyadminoes = [NSArray arrayWithArray:tempAllDyadminoes];
+  
     // FIXME: temporary, for testing purposes, eventually remove
     // 58 is good
-  NSUInteger getRidOfNumber = 50;
-  for (int i = 0; i < getRidOfNumber; i++) {
-    Dyadmino *dyadmino = [self.allDyadminoes anyObject];
-    [self.allDyadminoes removeObject:dyadmino];
-    [self.dyadminoesInCommonPile removeObject:dyadmino];
-  }
+//  NSUInteger getRidOfNumber = 50;
+//  for (int i = 0; i < getRidOfNumber; i++) {
+//    Dyadmino *dyadmino = [self.allDyadminoes anyObject];
+//    [self.allDyadminoes removeObject:dyadmino];
+//    [self.dyadminoesInCommonPile removeObject:dyadmino];
+//  }
 }
 
--(void)putFirstDyadminoOnBoard {
-    // board will have method for positioning dyadmino without boardNode
-  Dyadmino *dyadmino = [self removeRandomDyadminoFromPile];
-  [dyadmino randomiseRackOrientation];
-  [self.dyadminoesOnBoard addObject:dyadmino];
-}
+//-(void)putFirstDyadminoOnBoard {
+//    // board will have method for positioning dyadmino without boardNode
+//  Dyadmino *dyadmino = [self removeRandomDyadminoFromPile];
+////  [dyadmino randomiseRackOrientation];
+//  [self.dyadminoesOnBoard addObject:dyadmino];
+//}
 
--(NSMutableArray *)getInitiallyPopulatedRack {
-  NSMutableArray *playerRack = [NSMutableArray new];
-  for (int i = 0; i < kNumDyadminoesInRack; i++) {
-    Dyadmino *dyadmino = [self removeRandomDyadminoFromPile];
-    if (dyadmino) {
-      [playerRack addObject:dyadmino];
-    }
-  }
-  return playerRack;
-}
+//-(NSMutableArray *)getInitiallyPopulatedRack {
+//  NSMutableArray *playerRack = [NSMutableArray new];
+//  for (int i = 0; i < kNumDyadminoesInRack; i++) {
+//    Dyadmino *dyadmino = [self removeRandomDyadminoFromPile];
+//    if (dyadmino) {
+//      [playerRack addObject:dyadmino];
+//    }
+//  }
+//  return playerRack;
+//}
 
--(NSUInteger)getCommonPileCount {
-  return [self.dyadminoesInCommonPile count];
-}
+//-(NSUInteger)getCommonPileCount {
+//  return [self.dyadminoesInCommonPile count];
+//}
 
   // FIXME: obviously, this will asign players more wisely...
 
--(Player *)getAssignedAsPlayer {
-  return self.player1;
-}
+//-(Player *)getAssignedAsPlayer {
+//  return self.player1;
+//}
 
 #pragma mark - player interaction methods
 
--(void)swapTheseDyadminoes:(NSMutableArray *)fromPlayer fromPlayer:(Player *)player {
-    // dyadminoes taken out of pile
-  for (NSUInteger i = 0; i < fromPlayer.count; i++) {
-    [player.dyadminoesInRack addObject:[self removeRandomDyadminoFromPile]];
-  }
-  
-    // put player dyadminoes back in pile
-  for (Dyadmino *dyadmino in fromPlayer) {
-    [self.dyadminoesInCommonPile addObject:dyadmino];
-    [player.dyadminoesInRack removeObject:dyadmino];
-  }
-}
+//-(void)swapTheseDyadminoes:(NSMutableArray *)fromPlayer fromPlayer:(Player *)player {
+//    // dyadminoes taken out of pile
+//  for (NSUInteger i = 0; i < fromPlayer.count; i++) {
+//    [player.dataDyadminoesThisTurn addObject:[self removeRandomDyadminoFromPile]];
+//  }
+//  
+//    // put player dyadminoes back in pile
+//  for (Dyadmino *dyadmino in fromPlayer) {
+//    [self.dyadminoesInCommonPile addObject:dyadmino];
+//    [player.dataDyadminoesThisTurn removeObject:dyadmino];
+//  }
+//}
 
--(Dyadmino *)removeRandomDyadminoFromPile {
-  NSUInteger dyadminoesLeftInPile = self.dyadminoesInCommonPile.count;
-    // if dyadminoes left...
-  if (dyadminoesLeftInPile >= 1) {
-    NSUInteger randIndex = [self randomIntegerUpTo:dyadminoesLeftInPile];
-    NSArray *tempArray = [self.dyadminoesInCommonPile allObjects];
-    Dyadmino *dyadmino = (Dyadmino *)tempArray[randIndex];
-    [self.dyadminoesInCommonPile removeObject:dyadmino];
-    return dyadmino;
-  } else {
-    return nil;
-  }
-}
-
--(BOOL)putDyadminoFromPileIntoRackOfPlayer:(Player *)player {
-  Dyadmino *dyadmino = [self removeRandomDyadminoFromPile];
-  if (dyadmino) {
-    [player.dyadminoesInRack addObject:dyadmino];
-    return YES;
-  } else {
-    return NO;
-  }
-}
-
--(BOOL)playOnBoardThisDyadmino:(Dyadmino *)dyadmino fromRackOfPlayer:(Player *)player {
-  if ([player.dyadminoesInRack containsObject:dyadmino]) {
-    [self.dyadminoesOnBoard addObject:dyadmino];
-    [player.dyadminoesInRack removeObject:dyadmino];
-    return YES;
-  }
-  return NO;
-}
+//-(Dyadmino *)removeRandomDyadminoFromPile {
+//  NSUInteger dyadminoesLeftInPile = self.dyadminoesInCommonPile.count;
+//    // if dyadminoes left...
+//  if (dyadminoesLeftInPile >= 1) {
+//    NSUInteger randIndex = [self randomIntegerUpTo:dyadminoesLeftInPile];
+//    NSArray *tempArray = [self.dyadminoesInCommonPile allObjects];
+//    Dyadmino *dyadmino = (Dyadmino *)tempArray[randIndex];
+//    [self.dyadminoesInCommonPile removeObject:dyadmino];
+//    return dyadmino;
+//  } else {
+//    return nil;
+//  }
+//}
+//
+//-(BOOL)putDyadminoFromPileIntoRackOfPlayer:(Player *)player {
+//  Dyadmino *dyadmino = [self removeRandomDyadminoFromPile];
+//  if (dyadmino) {
+//    [player.dataDyadminoesThisTurn addObject:dyadmino];
+//    return YES;
+//  } else {
+//    return NO;
+//  }
+//}
+//
+//-(BOOL)playOnBoardThisDyadmino:(Dyadmino *)dyadmino fromRackOfPlayer:(Player *)player {
+//  if ([player.dataDyadminoesThisTurn containsObject:dyadmino]) {
+//    [self.dyadminoesOnBoard addObject:dyadmino];
+//    [player.dataDyadminoesThisTurn removeObject:dyadmino];
+//    return YES;
+//  }
+//  return NO;
+//}
 
 #pragma mark = player preference methods
 
 -(void)toggleBetweenLetterAndNumberMode {
-  
-    // FIXME: will this affect other player's view of dyadminoes?
+
   for (Dyadmino *dyadmino in self.allDyadminoes) {
     if (dyadmino.pcMode == kPCModeLetter) {
       dyadmino.pcMode = kPCModeNumber;
@@ -190,11 +200,11 @@
 
 #pragma mark - singleton method
 
-+(GameEngine *)gameEngine {
++(SceneEngine *)sceneEngine {
   static dispatch_once_t pred;
-  static GameEngine *shared = nil;
+  static SceneEngine *shared = nil;
   dispatch_once(&pred, ^{
-    shared = [[GameEngine alloc] init];
+    shared = [[SceneEngine alloc] init];
   });
   return shared;
 }

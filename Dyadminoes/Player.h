@@ -11,17 +11,16 @@
 @interface Player : NSObject
 
   // permanent properties
-@property (nonatomic) NSUInteger uniqueID;
-//@property (nonatomic) NSUInteger playerNumber;
+@property (strong, nonatomic) NSString *uniqueID;
 @property (strong, nonatomic) NSString *playerName;
 @property (strong, nonatomic) UIImage *playerPicture;
 
   // game state properties
 @property (nonatomic) NSUInteger playerScore;
-@property (strong, nonatomic) NSMutableArray *dyadminoesInRack;
+@property (strong, nonatomic) NSMutableArray *dataDyadminoesThisTurn;
 @property (nonatomic) BOOL resigned;
 
--(id)initWithUniqueID:(NSUInteger)uniqueID
+-(id)initWithUniqueID:(NSString *)uniqueID
         andPlayerName:(NSString *)playerName
      andPlayerPicture:(UIImage *)playerPicture;
 

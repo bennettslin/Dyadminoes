@@ -8,7 +8,7 @@
 
 #import <SpriteKit/SpriteKit.h>
 @class SceneViewController;
-@class GameEngine;
+@class SceneEngine;
 @class Player;
 @class Dyadmino;
 @class Match;
@@ -17,9 +17,8 @@
 
 @interface MyScene : SKScene
 
+@property (strong, nonatomic) SceneEngine *mySceneEngine;
 @property (strong, nonatomic) Match *myMatch;
-
-@property (strong, nonatomic) GameEngine *ourGameEngine;
 @property (strong, nonatomic) Player *myPlayer;
 @property (weak, nonatomic) id <SceneDelegate> delegate;
 

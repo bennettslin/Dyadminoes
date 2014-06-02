@@ -7,32 +7,42 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "NSObject+Helper.h"
 @class Player;
+@class DataDyadmino;
 
 @protocol MatchDelegate;
 
 @interface Match : NSObject
 
+  // match properties
+@property (nonatomic) GameRules rules;
+@property (nonatomic) GameSkill skill;
+@property (nonatomic) GameType type;
+
+  // date
 @property (strong, nonatomic) NSDate *lastPlayed;
 
+  // player properties
 @property (strong, nonatomic) NSArray *players;
 @property (strong, nonatomic) Player *currentPlayer;
 @property (strong, nonatomic) NSArray *wonPlayers;
 @property (nonatomic) BOOL gameHasEnded;
 
+  // dyadmino arrays
 @property (strong, nonatomic) NSMutableArray *pile;
 @property (strong, nonatomic) NSMutableArray *board;
 
+  // turns and undo
 @property (strong, nonatomic) NSArray *holdingContainer;
 @property (strong, nonatomic) NSUndoManager *undoManager;
-
 @property (nonatomic) NSUInteger replayCounter;
 @property (strong, nonatomic) NSMutableArray *turns;
 
 @property (weak, nonatomic) id <MatchDelegate> delegate;
 
   // init methods
--(id)initWithPlayers:(NSArray *)players;
+-(id)initWithPlayers:(NSArray *)players andRules:(GameRules)rules andSkill:(GameSkill)skill andType:(GameType)type;
 
   // game state change methods
 -(Player *)switchToNextPlayer;
@@ -41,7 +51,7 @@
 -(void)resignPlayer:(Player *)player;
 
   // undo methods
--(void)addToHoldingContainer:(NSNumber *)dyadmino;
+-(void)addToHoldingContainer:(DataDyadmino *)dyadmino;
 -(void)undoDyadminoToHoldingContainer;
 -(void)redoDyadminoToHoldingContainer;
 -(void)resetHoldingContainer; // for swap purposes

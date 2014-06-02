@@ -15,7 +15,7 @@
 
 @implementation Player
 
--(id)initWithUniqueID:(NSUInteger)uniqueID
+-(id)initWithUniqueID:(NSString *)uniqueID
         andPlayerName:(NSString *)playerName
      andPlayerPicture:(UIImage *)playerPicture  {
   
@@ -23,13 +23,11 @@
   
   if (self) {
     self.uniqueID = uniqueID;
-//    self.playerNumber = playerNumber;
     self.playerName = playerName;
-    
     self.playerPicture = playerPicture;
     
       // game state
-    self.dyadminoesInRack = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
+    self.dataDyadminoesThisTurn = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
     self.resigned = NO;
   }
   
@@ -37,5 +35,3 @@
 }
 
 @end
-
-  /// player class should know what's in each player's rack
