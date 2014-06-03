@@ -231,6 +231,34 @@
   [_topBar populateWithLabels];
   [self addChild:_topBar];
   [self updatePileCountLabel];
+  
+  for (int i = 0; i < self.myMatch.players.count; i++) {
+    Player *player = self.myMatch.players[i];
+    Label *nameLabel = _topBar.playerNameLabels[i];
+    Label *scoreLabel = _topBar.playerScoreLabels[i];
+    Label *rackLabel = _topBar.playerRackLabels[i];
+    nameLabel.fontColor = (player == self.myMatch.currentPlayer) ? [UIColor yellowColor] : [UIColor whiteColor];
+    [_topBar updateLabelNamed:nameLabel.name withText:player.playerName];
+    
+    NSString *scoreText = self.myMatch.tempScore > 0 && player == self.myMatch.currentPlayer ?
+      [NSString stringWithFormat:@"%lu + %lu", (unsigned long)player.playerScore, (unsigned long)self.myMatch.tempScore] :
+      [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
+    [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
+    
+    [_topBar updateLabelNamed:rackLabel.name withText:[[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+  }
+  
+  NSString *pileText = [NSString stringWithFormat:@"in pile: %@", [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+  NSString *boardText = [NSString stringWithFormat:@"on board: %@", [[self.myMatch.board valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+  NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+  
+  [_topBar updateLabelNamed:_topBar.pileDyadminoesLabel.name withText:pileText];
+  [_topBar updateLabelNamed:_topBar.boardDyadminoesLabel.name withText:boardText];
+  [_topBar updateLabelNamed:_topBar.holdingContainerLabel.name withText:holdingContainerText];
+  
+  _topBar.pileDyadminoesLabel.hidden = YES;
+  _topBar.boardDyadminoesLabel.hidden = YES;
+  _topBar.holdingContainerLabel.hidden = YES;
 }
 
 -(void)layoutOrRefreshRackFieldAndDyadminoes {
@@ -253,7 +281,7 @@
 }
 
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation {
-    ////
+  [self.mySceneEngine rotateDyadminoesBasedOnDeviceOrientation:deviceOrientation];
 }
 
 #pragma mark - touch methods
@@ -1462,6 +1490,16 @@
 
 -(void)debugButtonPressed {
 
+  if (_topBar.pileDyadminoesLabel.hidden) {
+    _topBar.pileDyadminoesLabel.hidden = NO;
+    _topBar.boardDyadminoesLabel.hidden = NO;
+    _topBar.holdingContainerLabel.hidden = NO;
+  } else {
+    _topBar.pileDyadminoesLabel.hidden = YES;
+    _topBar.boardDyadminoesLabel.hidden = YES;
+    _topBar.holdingContainerLabel.hidden = YES;
+  }
+  
   if (!_dyadminoesHidden) {
     for (Dyadmino *dyadmino in _boardField.children) {
       if ([dyadmino isKindOfClass:[Dyadmino class]])

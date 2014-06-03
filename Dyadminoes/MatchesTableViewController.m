@@ -75,6 +75,9 @@
   self.bottomBar.backgroundColor = [UIColor brownColor];
   self.topBar.backgroundColor = [UIColor brownColor];
   
+//  NSArray *tempVCArray = @[self.pnpVC, self.helpVC, self.storeVC, self.rankVC, self.optionsVC, self.aboutVC];
+//  NSArray *tempColourArray = @[[UIColor lightGrayColor], [UIColor redColor], [UIColor orangeColor], [UIColor yellowColor], [UIColor greenColor], [UIColor blueColor]];
+  
   self.pnpVC = [[PnPViewController alloc] init];
   self.pnpVC.view.backgroundColor = [UIColor lightGrayColor];
 //  [self addChildViewController:self.pnpVC];

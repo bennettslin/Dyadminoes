@@ -305,7 +305,6 @@
     [self setProperties];
     [self updateThisTurnDyadminoesLabel];
   }
-
 }
 
 -(IBAction)undoTapped:(id)sender {

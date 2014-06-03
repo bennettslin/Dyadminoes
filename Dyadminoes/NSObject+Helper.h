@@ -25,8 +25,8 @@
 
   // label constants
 #define kLabelYPosition (kIsIPhone ? 5.f : 7.5f)
-#define kButtonWidth (kIsIPhone ? 45.f : 67.5)
-#define kButtonYPosition (kIsIPhone ? 30.f : 45.f)
+#define kButtonWidth (kIsIPhone ? 45.f : 60.f)
+#define kButtonYPosition (kIsIPhone ? 20.f : 30.f)
 
   // animation constants
 #define kConstantSpeed (kIsIPhone ? 0.002f : 0.0013333f)
@@ -46,7 +46,7 @@
 #define kBoardCoverAlpha 0.4f
 
   // label constants (maybe temp)
-#define kButtonSize CGSizeMake(kButtonWidth, kButtonWidth)
+#define kButtonSize CGSizeMake(kButtonWidth, kButtonWidth * 2 / 3)
 
   // animation constants
 #define kRotateWait 0.05f

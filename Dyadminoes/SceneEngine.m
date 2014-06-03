@@ -22,11 +22,14 @@
 
 @end
 
-@implementation SceneEngine
+@implementation SceneEngine {
+  NSUInteger _rotationFromDevice;
+}
 
 -(id)init {
   self = [super init];
   if (self) {
+    _rotationFromDevice = 0;
       // initial setup
     self.dyadminoesInCommonPile = [[NSMutableSet alloc] initWithCapacity:kPileCount];
 //    self.dyadminoesOnBoard = [NSMutableSet new];
@@ -185,6 +188,37 @@
 //}
 
 #pragma mark = player preference methods
+
+-(void)rotateDyadminoesBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation {
+  
+  NSUInteger rotation = _rotationFromDevice;
+  switch (deviceOrientation) {
+    case UIDeviceOrientationPortrait:
+      rotation = 0;
+      break;
+    case UIDeviceOrientationLandscapeRight:
+      rotation = 90;
+      break;
+    case UIDeviceOrientationPortraitUpsideDown:
+      rotation = 180;
+      break;
+    case UIDeviceOrientationLandscapeLeft:
+      rotation = 270;
+      break;
+    default:
+      break;
+  }
+  
+  if (rotation != _rotationFromDevice) {
+    for (Dyadmino *dyadmino in self.allDyadminoes) {
+      dyadmino.pc1LetterSprite.zRotation = [self getRadiansFromDegree:rotation];
+      dyadmino.pc2LetterSprite.zRotation = [self getRadiansFromDegree:rotation];
+      dyadmino.pc1NumberSprite.zRotation = [self getRadiansFromDegree:rotation];
+      dyadmino.pc2NumberSprite.zRotation = [self getRadiansFromDegree:rotation];
+    }
+    _rotationFromDevice = rotation;
+  }
+}
 
 -(void)toggleBetweenLetterAndNumberMode {
 

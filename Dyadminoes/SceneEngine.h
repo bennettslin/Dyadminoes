@@ -26,6 +26,7 @@
 
 #pragma mark - player preference methods
 
+-(void)rotateDyadminoesBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation;
 -(void)toggleBetweenLetterAndNumberMode;
 
 @end

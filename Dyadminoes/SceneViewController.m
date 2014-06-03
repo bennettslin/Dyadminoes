@@ -17,12 +17,12 @@
 
 @end
 
-@implementation SceneViewController {
-  UIDeviceOrientation _deviceOrientation;
-}
+@implementation SceneViewController
 
 -(void)viewDidLoad {
   [super viewDidLoad];
+  
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
 
     /// this seems to work better for scene transitions
     /// but does it get screwed up with different screen dimensions?
@@ -57,24 +57,8 @@
 }
 
 -(void)orientationChanged:(NSNotification *)note {
-  UIDevice *device = note.object;
-  switch (device.orientation) {
-    case UIDeviceOrientationPortrait:
-      break;
-    case UIDeviceOrientationLandscapeLeft:
-      break;
-    case UIDeviceOrientationLandscapeRight:
-      break;
-    case UIDeviceOrientationPortraitUpsideDown:
-      break;
-    case UIDeviceOrientationFaceDown:
-      break;
-    case UIDeviceOrientationFaceUp:
-      break;
-    case UIDeviceOrientationUnknown:
-      break;
-  }
-  
+  UIDevice *device = note.object;;
+  [self.myScene handleDeviceOrientationChange:device.orientation];
 }
 
 -(BOOL)shouldAutorotate {

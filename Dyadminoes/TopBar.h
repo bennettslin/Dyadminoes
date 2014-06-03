@@ -13,8 +13,17 @@
 
 @interface TopBar : SKSpriteNode
 
-@property (strong, nonatomic) NSMutableSet *allButtons;
-@property (strong, nonatomic) NSMutableDictionary *allLabels;
+@property (strong, nonatomic) NSSet *allButtons;
+@property (strong, nonatomic) NSDictionary *allLabels;
+@property (strong, nonatomic) NSArray *playerNameLabels;
+@property (strong, nonatomic) NSArray *playerScoreLabels;
+
+  // debugger labels
+@property (strong, nonatomic) NSArray *playerRackLabels;
+@property (strong, nonatomic) Label *pileDyadminoesLabel;
+@property (strong, nonatomic) Label *boardDyadminoesLabel;
+@property (strong, nonatomic) Label *holdingContainerLabel;
+@property (strong, nonatomic) Label *lastActionLabel;
 
 @property (strong, nonatomic) Button *gamesButton;
 @property (strong, nonatomic) Button *togglePCModeButton;
@@ -24,11 +33,31 @@
 @property (strong, nonatomic) Button *doneTurnButton;
 @property (strong, nonatomic) Button *debugButton;
 
+@property (strong, nonatomic) Button *undoButton;
+@property (strong, nonatomic) Button *redoButton;
+@property (strong, nonatomic) Button *replayButton;
+@property (strong, nonatomic) Button *resignButton;
+
 @property (strong, nonatomic) Label *pileCountLabel;
 @property (strong, nonatomic) Label *messageLabel;
 @property (strong, nonatomic) Label *logLabel;
 @property (strong, nonatomic) Label *chordLabel;
-@property (strong, nonatomic) Label *scoreLabel;
+//@property (strong, nonatomic) Label *scoreLabel;
+
+@property (strong, nonatomic) Label *player1Name;
+@property (strong, nonatomic) Label *player2Name;
+@property (strong, nonatomic) Label *player3Name;
+@property (strong, nonatomic) Label *player4Name;
+
+@property (strong, nonatomic) Label *player1Score;
+@property (strong, nonatomic) Label *player2Score;
+@property (strong, nonatomic) Label *player3Score;
+@property (strong, nonatomic) Label *player4Score;
+
+@property (strong, nonatomic) Label *player1Rack;
+@property (strong, nonatomic) Label *player2Rack;
+@property (strong, nonatomic) Label *player3Rack;
+@property (strong, nonatomic) Label *player4Rack;
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size
     andAnchorPoint:(CGPoint)anchorPoint
