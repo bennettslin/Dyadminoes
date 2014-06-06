@@ -34,10 +34,10 @@
 
 #pragma mark - reposition methods
 
--(void)repositionDyadminoes:(NSMutableArray *)dyadminoesInArray;
+-(void)repositionDyadminoes:(NSArray *)dyadminoesInArray;
 
--(void)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
-                            withDyadminoes:(NSMutableArray *)dyadminoesInArray
+-(NSArray *)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
+                            withDyadminoes:(NSArray *)dyadminoesInArray
                         andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode;
 
 @end

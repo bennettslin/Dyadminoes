@@ -8,10 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
-@interface Model : NSObject
+@interface Model : NSObject <NSCoding>
 
 @property (strong, nonatomic) NSMutableArray *myMatches;
 
++(void)saveMyModel:(Model *)myModel;
++(Model *)getMyModel;
 -(void)instantiateHardCodedMatchesForDebugPurposes;
 -(void)sortMyMatches;
 

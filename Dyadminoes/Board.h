@@ -55,7 +55,7 @@
          andOrigin:(CGPoint)origin
       andZPosition:(CGFloat)zPosition;
 
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSMutableSet *)boardDyadminoes;
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes;
 
 #pragma mark - pivot guide methods
 
@@ -80,7 +80,7 @@
 
 #pragma mark - board span methods
 
--(void)determineOutermostCellsBasedOnDyadminoes:(NSMutableSet *)boardDyadminoes;
+-(void)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes;
 //-(void)determineOutermostCellsBasedOnDyadmino:(Dyadmino *)dyadmino;
 -(void)determineBoardPositionBounds;
 

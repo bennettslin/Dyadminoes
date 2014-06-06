@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface Player : NSObject
+@interface Player : NSObject <NSCoding>
 
   // permanent properties
 @property (strong, nonatomic) NSString *uniqueID;

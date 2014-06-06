@@ -23,14 +23,12 @@
   [super viewDidLoad];
   
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
-
+//  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(enteredBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
+//  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(enteringForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
+  
     /// this seems to work better for scene transitions
     /// but does it get screwed up with different screen dimensions?
   [self createAndConfigureScene];
-}
-
--(void)viewWillLayoutSubviews {
-
 }
 
 -(void)createAndConfigureScene {
@@ -45,13 +43,14 @@
   self.myScene = [MyScene sceneWithSize:self.mySceneView.bounds.size];
   self.myScene.scaleMode = SKSceneScaleModeAspectFill;
   self.myScene.myMatch = self.myMatch;
-  self.myScene.myPlayer = self.myPlayer;
+//  self.myScene.myPlayer = self.myPlayer;
   self.myScene.delegate = self;
   
   [self.mySceneView presentScene:self.myScene];
 }
 
 -(void)backToMainMenu {
+  [self.delegate saveModel];
   [self.mySceneView presentScene:nil];
   [self dismissViewControllerAnimated:YES completion:nil];
 }

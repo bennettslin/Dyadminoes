@@ -9,10 +9,9 @@
 #import <Foundation/Foundation.h>
 #import "NSObject+Helper.h"
 
-@interface DataDyadmino : NSObject
+@interface DataDyadmino : NSObject <NSCoding>
 
 @property (nonatomic) NSUInteger myID;
-//@property (nonatomic) DyadminoLocation myLocation;
 @property (nonatomic) DyadminoOrientation myOrientation;
 @property (nonatomic) HexCoord myHexCoord;
 

@@ -70,7 +70,7 @@
   return self;
 }
 
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSMutableSet *)boardDyadminoes {
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
   
   [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
   
@@ -137,7 +137,7 @@
 
 #pragma mark - board span methods
 
--(void)determineOutermostCellsBasedOnDyadminoes:(NSMutableSet *)boardDyadminoes {
+-(void)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes {
   
     // ridiculously high numbers arbitrarily chosen to force limits
     // not sure if this is the best approach...

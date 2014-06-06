@@ -19,6 +19,80 @@
 
 @implementation Match
 
+#pragma mark - archiver methods
+
+-(id)initWithCoder:(NSCoder *)aDecoder {
+  self = [super init];
+  if (self) {
+    self.rules = [[aDecoder decodeObjectForKey:@"rules"] unsignedIntValue];
+    self.skill = [[aDecoder decodeObjectForKey:@"skill"] unsignedIntValue];
+    self.type = [[aDecoder decodeObjectForKey:@"type"] unsignedIntValue];
+    
+    self.lastPlayed = [aDecoder decodeObjectForKey:@"lastPlayed"];
+    
+    self.players = [aDecoder decodeObjectForKey:@"players"];
+    self.currentPlayer = [aDecoder decodeObjectForKey:@"currentPlayer"];
+    self.wonPlayers = [aDecoder decodeObjectForKey:@"wonPlayers"];
+    self.gameHasEnded = [aDecoder decodeBoolForKey:@"gameHasEnded"];
+    
+    self.pile = [aDecoder decodeObjectForKey:@"pile"];
+    self.board = [aDecoder decodeObjectForKey:@"board"];
+    
+    self.tempScore = [[aDecoder decodeObjectForKey:@"tempScore"] unsignedIntegerValue];
+    self.holdingContainer = [aDecoder decodeObjectForKey:@"holdingContainer"];
+    self.swapContainer = [aDecoder decodeObjectForKey:@"swapContainer"];
+//    self.undoManager = [aDecoder decodeObjectForKey:@"undoManager"];
+    self.replayCounter = [[aDecoder decodeObjectForKey:@"replayCounter"] unsignedIntegerValue];
+    self.turns = [aDecoder decodeObjectForKey:@"turns"];
+    
+    self.numberOfConsecutivePasses = [[aDecoder decodeObjectForKey:@"consecutivePasses"] unsignedIntegerValue];
+    self.firstDyadmino = [aDecoder decodeObjectForKey:@"firstDyadmino"];
+  }
+  return self;
+}
+
+-(void)encodeWithCoder:(NSCoder *)aCoder {
+  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.rules] forKey:@"rules"];
+  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.skill] forKey:@"skill"];
+  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.type] forKey:@"type"];
+
+  [aCoder encodeObject:self.lastPlayed forKey:@"lastPlayed"];
+  
+  [aCoder encodeObject:self.players forKey:@"players"];
+  [aCoder encodeObject:self.currentPlayer forKey:@"currentPlayer"];
+  [aCoder encodeObject:self.wonPlayers forKey:@"wonPlayers"];
+  [aCoder encodeBool:self.gameHasEnded forKey:@"gameHasEnded"];
+  
+  [aCoder encodeObject:self.pile forKey:@"pile"];
+  [aCoder encodeObject:self.board forKey:@"board"];
+  
+  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.tempScore] forKey:@"tempScore"];
+  [aCoder encodeObject:self.holdingContainer forKey:@"holdingContainer"];
+  [aCoder encodeObject:self.swapContainer forKey:@"swapContainer"];
+//  [aCoder encodeObject:self.undoManager forKey:@"undoManager"];
+  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.replayCounter] forKey:@"replayCounter"];
+  [aCoder encodeObject:self.turns forKey:@"turns"];
+  
+  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.numberOfConsecutivePasses] forKey:@"consecutivePasses"];
+  [aCoder encodeObject:self.firstDyadmino forKey:@"firstDyadmino"];
+}
+
+//+(void)saveMyMatch:(Match *)myMatch {
+//  [NSKeyedArchiver archiveRootObject:myMatch toFile:[self getPathToArchive]];
+//}
+//
+//+(Match *)getMyMatch {
+//  return [NSKeyedUnarchiver unarchiveObjectWithFile:[self getPathToArchive]];
+//}
+//
+//+(NSString *)getPathToArchive {
+//  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+//  NSString *directory = [paths objectAtIndex:0];
+//  NSString *pathString = [directory stringByAppendingPathComponent:@"match.plist"];
+//  NSLog(@"the archive path is %@", pathString);
+//  return pathString;
+//}
+
 #pragma mark - init methods
 
 -(id)initWithPlayers:(NSArray *)players andRules:(GameRules)rules andSkill:(GameSkill)skill andType:(GameType)type {
@@ -39,6 +113,7 @@
     self.currentPlayer = players[0];
     
     self.holdingContainer = @[];
+    self.swapContainer = [NSMutableArray new];
     
     self.pile = [[NSMutableArray alloc] initWithCapacity:kPileCount];
     self.board = [[NSMutableArray alloc] initWithCapacity:kPileCount];
@@ -91,6 +166,7 @@
 }
 
 -(Player *)switchToNextPlayer {
+  [self.delegate handleSwitchToNextPlayer];
   
   NSUInteger index = [self.players indexOfObject:self.currentPlayer];
   if ([self checkNumberOfPlayersStillInGame] > 1) {
@@ -105,26 +181,28 @@
       }
     }
   }
-  
   return nil;
 }
 
 #pragma mark - game state change methods
 
--(void)swapDyadminoesFromPlayer:(Player *)player {
-  
-  for (DataDyadmino *dyadmino in self.holdingContainer) {
+
+
+-(void)swapDyadminoesFromCurrentPlayer {
+  Player *player = self.currentPlayer;
+  for (DataDyadmino *dyadmino in self.swapContainer) {
     if ([player.dataDyadminoesThisTurn containsObject:dyadmino]) {
       [player.dataDyadminoesThisTurn removeObject:dyadmino];
     }
   }
   
   [self fillRackFromPileForPlayer:player];
-  [self.pile addObjectsFromArray:self.holdingContainer];
+  [self.pile addObjectsFromArray:self.swapContainer];
+  [self.swapContainer removeAllObjects];
   
   [self resetHoldingContainerAndUndo];
   [self recordDyadminoesFromPlayer:player]; // this records turn as a pass
-                                            // sort the board and pile
+    // sort the board and pile
   [self sortBoardAndPileArrays];
 }
 
@@ -194,6 +272,8 @@
   if (![self switchToNextPlayer]) {
     [self endGame];
   }
+  
+  self.lastPlayed = [NSDate date];
 }
 
 -(void)endGame {
@@ -257,6 +337,7 @@
 -(void)addToHoldingContainer:(DataDyadmino *)dyadmino {
   
     // modify scorekeeping methods, of course
+    // especially since this will be used to call swap as well
   self.tempScore++;
   
   if (![self.holdingContainer containsObject:dyadmino]) {

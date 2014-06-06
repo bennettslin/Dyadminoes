@@ -19,7 +19,8 @@
 
 @property (strong, nonatomic) SceneEngine *mySceneEngine;
 @property (strong, nonatomic) Match *myMatch;
-@property (strong, nonatomic) Player *myPlayer;
+//@property (strong, nonatomic) NSUndoManager *undoManager;
+//@property (strong, nonatomic) Player *myPlayer;
 @property (weak, nonatomic) id <SceneDelegate> delegate;
 
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;

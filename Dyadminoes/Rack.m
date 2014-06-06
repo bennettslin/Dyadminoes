@@ -68,7 +68,7 @@
 
 #pragma mark - reposition methods
 
--(void)repositionDyadminoes:(NSMutableArray *)dyadminoesInArray {
+-(void)repositionDyadminoes:(NSArray *)dyadminoesInArray {
     // dyadminoes are already in array, this method manages the sprite views
     
   for (NSUInteger index = 0; index < dyadminoesInArray.count; index++) {
@@ -95,19 +95,21 @@
     } else {
       dyadmino.position = CGPointMake(self.size.width + self.xIncrementInRack, shouldBePosition.y);
       dyadmino.zPosition = kZPositionRackRestingDyadmino;
+      NSLog(@"Dyadmino parent is %@", dyadmino.parent.name);
+      
       [self addChild:dyadmino];
       [dyadmino animateMoveToPoint:shouldBePosition];
     }
   }
 }
 
--(void)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
-                            withDyadminoes:(NSMutableArray *)dyadminoesInArray
+-(NSArray *)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
+                            withDyadminoes:(NSArray *)dyadminoesInArray
                         andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode {
   
     // touchedDyadmino is in the rack, eligible for exchange
   if ([touchedDyadmino isInRack] || [touchedDyadmino isOrBelongsInSwap]) {
-
+    
       // touchedDyadmino is closer to another dyadmino's rackNode
     if (touchedDyadminoNewRackNode != touchedDyadmino.homeNode) {
       
@@ -148,10 +150,14 @@
       
         // everything scooted, now do it for the touched dyadmino
       touchedDyadmino.homeNode = touchedDyadminoNewRackNode;
-      [dyadminoesInArray removeObject:touchedDyadmino];
-      [dyadminoesInArray insertObject:touchedDyadmino atIndex:newRackNodeIndex];
+      
+      NSMutableArray *tempArray = [NSMutableArray arrayWithArray:dyadminoesInArray];
+      [tempArray removeObject:touchedDyadmino];
+      [tempArray insertObject:touchedDyadmino atIndex:newRackNodeIndex];
+      return [NSArray arrayWithArray:tempArray];
     }
   }
+  return dyadminoesInArray;
 }
 
 -(void)addRackNodeAtIndex:(NSUInteger)nodeIndex withCountNumber:(NSUInteger)countNumber {

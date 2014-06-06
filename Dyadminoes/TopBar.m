@@ -225,7 +225,6 @@
   [tempDictionary setValue:self.player4Rack forKey:self.player4Rack.name];
   self.playerRackLabels = @[self.player1Rack, self.player2Rack, self.player3Rack, self.player4Rack];
   
-  
   self.holdingContainerLabel = [[Label alloc] initWithName:@"holdingContainer"
                                               andFontColor:[SKColor whiteColor]
                                                andFontSize:labelFontSize
@@ -233,6 +232,13 @@
                                               andZPosition:kZPositionTopBarLabel
                                     andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
   [tempDictionary setValue:self.holdingContainerLabel forKey:self.holdingContainerLabel.name];
+  self.swapContainerLabel = [[Label alloc] initWithName:@"swapContainer"
+                                              andFontColor:[SKColor whiteColor]
+                                               andFontSize:labelFontSize
+                                               andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 15)
+                                              andZPosition:kZPositionTopBarLabel
+                                    andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
+  [tempDictionary setValue:self.swapContainerLabel forKey:self.swapContainerLabel.name];
   self.boardDyadminoesLabel = [[Label alloc] initWithName:@"boardDyadminoes"
                                    andFontColor:[SKColor whiteColor]
                                     andFontSize:labelFontSize

@@ -11,7 +11,7 @@
 #import "Player.h"
 #import "NSObject+Helper.h"
 
-@interface Model () <NSCoding>
+@interface Model ()
 
 @end
 
@@ -29,8 +29,24 @@
   [aCoder encodeObject:self.myMatches forKey:kMatchesKey];
 }
 
++(void)saveMyModel:(Model *)myModel {
+  [NSKeyedArchiver archiveRootObject:myModel toFile:[self getPathToArchive]];
+}
+
++(Model *)getMyModel {
+  return [NSKeyedUnarchiver unarchiveObjectWithFile:[self getPathToArchive]];
+}
+
++(NSString *)getPathToArchive {
+  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+  NSString *directory = [paths objectAtIndex:0];
+  NSString *pathString = [directory stringByAppendingPathComponent:@"model.plist"];
+  NSLog(@"the archive path is %@", pathString);
+  return pathString;
+}
+
 -(void)instantiateHardCodedMatchesForDebugPurposes {
-  
+  NSLog(@"hard coded matches");
     //hard coded values
   NSArray *names = @[@"Julia", @"Pamela", @"Darcy", @"Mary"];
   NSArray *ids = @[@"12345", @"23456", @"34567", @"45678"];

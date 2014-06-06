@@ -75,8 +75,8 @@
 
 @implementation DebugViewController
 
--(void)viewDidLoad {
-  [super viewDidLoad];
+-(void)viewWillAppear:(BOOL)animated {
+  [super viewWillAppear:animated];
   self.myMatch.delegate = self;
   
   self.swapMode = YES;
@@ -269,6 +269,10 @@
     // Dispose of any resources that can be recreated.
 }
 
+-(void)handleSwitchToNextPlayer {
+  
+}
+
 -(void)handleEndGame {
   self.replayMode = NO;
   self.swapMode = NO;
@@ -360,7 +364,7 @@
       [pileNotEnoughAlertView show];
         // swap!
     } else {
-      [self.myMatch swapDyadminoesFromPlayer:self.myMatch.currentPlayer];
+      [self.myMatch swapDyadminoesFromCurrentPlayer];
       [self swapModeTapped:self.swapModeButton];
     }
   }

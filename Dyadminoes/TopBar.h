@@ -23,6 +23,7 @@
 @property (strong, nonatomic) Label *pileDyadminoesLabel;
 @property (strong, nonatomic) Label *boardDyadminoesLabel;
 @property (strong, nonatomic) Label *holdingContainerLabel;
+@property (strong, nonatomic) Label *swapContainerLabel;
 @property (strong, nonatomic) Label *lastActionLabel;
 
 @property (strong, nonatomic) Button *gamesButton;

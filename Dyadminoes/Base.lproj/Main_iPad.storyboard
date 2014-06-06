@@ -139,7 +139,7 @@
                                             <outlet property="score3Label" destination="QyF-O5-59i" id="Q91-KC-Ba0"/>
                                             <outlet property="score4Label" destination="vDx-fr-Acq" id="BiP-cm-N46"/>
                                             <outlet property="winnerLabel" destination="bTY-oP-CxY" id="wPo-BH-mfd"/>
-                                            <segue destination="Mj3-g1-PlO" kind="modal" identifier="sceneSegue" modalTransitionStyle="crossDissolve" id="g4y-P3-44P"/>
+                                            <segue destination="BV1-FR-VrT" kind="modal" identifier="sceneSegue" modalTransitionStyle="crossDissolve" id="KBw-hV-fie"/>
                                         </connections>
                                     </tableViewCell>
                                 </prototypes>
@@ -688,7 +688,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SZV-WD-TEh" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1495" y="-561"/>
+            <point key="canvasLocation" x="561" y="-1825"/>
         </scene>
         <!--Help View Controller-->
         <scene sceneID="Uu4-7i-U60">
@@ -756,4 +756,7 @@
         <simulatedOrientationMetrics key="orientation"/>
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
+    <inferredMetricsTieBreakers>
+        <segue reference="KBw-hV-fie"/>
+    </inferredMetricsTieBreakers>
 </document>

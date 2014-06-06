@@ -13,7 +13,7 @@
 
 @protocol MatchDelegate;
 
-@interface Match : NSObject
+@interface Match : NSObject <NSCoding>
 
   // match properties
 @property (nonatomic) GameRules rules;
@@ -36,6 +36,7 @@
   // turns and undo
 @property (nonatomic) NSUInteger tempScore;
 @property (strong, nonatomic) NSArray *holdingContainer;
+@property (strong, nonatomic) NSMutableArray *swapContainer;
 @property (strong, nonatomic) NSUndoManager *undoManager;
 @property (nonatomic) NSUInteger replayCounter;
 @property (strong, nonatomic) NSMutableArray *turns;
@@ -48,7 +49,7 @@
   // game state change methods
 -(Player *)switchToNextPlayer;
 -(void)recordDyadminoesFromPlayer:(Player *)player;
--(void)swapDyadminoesFromPlayer:(Player *)player;
+-(void)swapDyadminoesFromCurrentPlayer;
 -(void)resignPlayer:(Player *)player;
 
   // undo methods
@@ -67,6 +68,7 @@
 
 @protocol MatchDelegate <NSObject>
 
+-(void)handleSwitchToNextPlayer;
 -(void)handleEndGame;
 
 @end

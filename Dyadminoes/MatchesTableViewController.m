@@ -11,6 +11,7 @@
 #import "NSObject+Helper.h"
 #import "MatchTableViewCell.h"
 #import "DebugViewController.h"
+#import "SceneViewController.h"
 
 #import "PnPViewController.h"
 #import "HelpViewController.h"
@@ -26,7 +27,7 @@
 
 #define kMainTopBarHeight (kIsIPhone ? 86.f : 86.f)
 
-@interface MatchesTableViewController () <DebugDelegate, MatchCellDelegate>
+@interface MatchesTableViewController () <SceneViewDelegate, DebugDelegate, MatchCellDelegate>
 
 @property (strong, nonatomic) Model *myModel;
 
@@ -110,17 +111,37 @@
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
   
-    // instantiates matches only on very first launch
-  NSString *path = [self dataFilePath];
-  if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
-    [self loadSettingsFromPath:path];
-  } else { // no file present, instantiate with hard code for now
-    self.myModel = [[Model alloc] init];
-    [self.myModel instantiateHardCodedMatchesForDebugPurposes];
-  }
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
+  
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(getModel) name:UIApplicationWillEnterForegroundNotification object:nil];
+}
+
+-(void)saveModel {
+  [Model saveMyModel:self.myModel];
+}
+
+-(void)getModel {
+  self.myModel = [Model getMyModel];
 }
 
 -(void)viewWillAppear:(BOOL)animated {
+  
+  if (![Model getMyModel]) {
+    self.myModel = [Model new];
+    [self.myModel instantiateHardCodedMatchesForDebugPurposes];
+  } else {
+    [self getModel];
+  }
+  
+//    // instantiates matches only on very first launch
+//  NSString *path = [self dataFilePath];
+//  if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+//    [self loadSettingsFromPath:path];
+//  } else { // no file present, instantiate with hard code for now
+//    self.myModel = [[Model alloc] init];
+//    [self.myModel instantiateHardCodedMatchesForDebugPurposes];
+//  }
+  
   [self.myModel sortMyMatches];
   [self.tableView reloadData];
 }
@@ -185,40 +206,45 @@
   if ([segue.identifier isEqualToString:@"sceneSegue"]) {
     NSIndexPath *indexPath = [self.tableView indexPathForCell:sender];
     Match *match = self.myModel.myMatches[indexPath.row];
-    DebugViewController *debugVC = [segue destinationViewController];
-    debugVC.myMatch = match;
-    debugVC.delegate = self;
+
+      //    DebugViewController *debugVC = [segue destinationViewController];
+      //    debugVC.myMatch = match;
+      //    debugVC.delegate = self;
+    
+    SceneViewController *sceneVC = [segue destinationViewController];
+    sceneVC.myMatch = match;
+    sceneVC.delegate = self;
   }
   
 //  [self removeAllChildVCs];
 }
 
 #pragma mark - archiver methods
-
--(NSString *)documentsDirectory {
-  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-  return [paths firstObject];
-}
-
--(NSString *)dataFilePath {
-  return [[self documentsDirectory] stringByAppendingPathComponent:@"Dyadminoes.plist"];
-}
-
--(void)saveSettings {
-  NSMutableData *data = [[NSMutableData alloc] init];
-  NSKeyedArchiver *archiver = [[NSKeyedArchiver alloc] initForWritingWithMutableData:data];
-  [archiver encodeObject:self.myModel.myMatches forKey:kMatchesKey];
-  [archiver finishEncoding];
-  [data writeToFile:[self dataFilePath] atomically:YES];
-}
-
--(void)loadSettingsFromPath:(NSString *)path {
-//  NSLog(@"file path is %@", path);
-  NSData *data = [[NSData alloc] initWithContentsOfFile:path];
-  NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingWithData:data];
-  self.myModel.myMatches = [unarchiver decodeObjectForKey:kMatchesKey];
-  [unarchiver finishDecoding];
-}
+//
+//-(NSString *)documentsDirectory {
+//  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+//  return [paths firstObject];
+//}
+//
+//-(NSString *)dataFilePath {
+//  return [[self documentsDirectory] stringByAppendingPathComponent:@"Dyadminoes.plist"];
+//}
+//
+//-(void)saveSettings {
+//  NSMutableData *data = [[NSMutableData alloc] init];
+//  NSKeyedArchiver *archiver = [[NSKeyedArchiver alloc] initForWritingWithMutableData:data];
+//  [archiver encodeObject:self.myModel.myMatches forKey:kMatchesKey];
+//  [archiver finishEncoding];
+//  [data writeToFile:[self dataFilePath] atomically:YES];
+//}
+//
+//-(void)loadSettingsFromPath:(NSString *)path {
+////  NSLog(@"file path is %@", path);
+//  NSData *data = [[NSData alloc] initWithContentsOfFile:path];
+//  NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingWithData:data];
+//  self.myModel.myMatches = [unarchiver decodeObjectForKey:kMatchesKey];
+//  [unarchiver finishDecoding];
+//}
 
 #pragma mark - view controller methods
 

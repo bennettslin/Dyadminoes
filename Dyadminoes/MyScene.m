@@ -22,10 +22,10 @@
 #import "Match.h"
 #import "DataDyadmino.h"
 
-@interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate>
+@interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIAlertViewDelegate, MatchDelegate>
 
-@property (strong, nonatomic) NSMutableArray *playerRackDyadminoes;
-@property (strong, nonatomic) NSMutableSet *boardDyadminoes;
+@property (strong, nonatomic) NSArray *playerRackDyadminoes;
+@property (strong, nonatomic) NSSet *boardDyadminoes;
 
 @end
 
@@ -70,6 +70,8 @@
   
     // test
   BOOL _dyadminoesHidden;
+  
+  Player *_myPlayer;
 }
 
 #pragma mark - init methods
@@ -79,6 +81,8 @@
     self.backgroundColor = [SKColor blackColor];
     self.name = @"scene";
     self.mySceneEngine = [SceneEngine new];
+//    self.undoManager = [[NSUndoManager alloc] init];
+  
     _rackExchangeInProgress = NO;
     _buttonPressed = nil;
     _hoveringDyadminoBeingCorrected = 0;
@@ -88,6 +92,7 @@
 }
 
 -(void)didMoveToView:(SKView *)view {
+  _myPlayer = self.myMatch.currentPlayer;
   [self populateRackArray];
   [self populateBoardSet];
   
@@ -103,19 +108,20 @@
 #pragma mark - layout methods
 
 -(void)populateRackArray {
-  self.playerRackDyadminoes = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
+  NSMutableArray *tempArray = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
   
-  for (DataDyadmino *dataDyad in self.myPlayer.dataDyadminoesThisTurn) {
+  for (DataDyadmino *dataDyad in _myPlayer.dataDyadminoesThisTurn) {
     Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
     dyadmino.orientation = dataDyad.myOrientation;
       // not the best place to set tempReturnOrientation for dyadmino
     dyadmino.tempReturnOrientation = dyadmino.orientation;
-    [self.playerRackDyadminoes addObject:dyadmino];
+    [tempArray addObject:dyadmino];
   }
+  self.playerRackDyadminoes = [NSArray arrayWithArray:tempArray];
 }
 
 -(void)populateBoardSet {
-  self.boardDyadminoes = [[NSMutableSet alloc] initWithCapacity:self.myMatch.board.count];
+  NSMutableSet *tempSet = [[NSMutableSet alloc] initWithCapacity:self.myMatch.board.count];
   
   for (DataDyadmino *dataDyad in self.myMatch.board) {
     Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
@@ -123,8 +129,9 @@
     dyadmino.orientation = dataDyad.myOrientation;
       // not the best place to set tempReturnOrientation here either
     dyadmino.tempReturnOrientation = dyadmino.orientation;
-    [self.boardDyadminoes addObject:dyadmino];
+    [tempSet addObject:dyadmino];
   }
+  self.boardDyadminoes = [NSSet setWithSet:tempSet];
 }
 
 -(void)layoutBoard {
@@ -163,6 +170,8 @@
 -(void)populateBoardWithDyadminoes {
   for (Dyadmino *dyadmino in self.boardDyadminoes) {
     dyadmino.delegate = self;
+    
+    NSLog(@"dyadmino coord is %i, %i", dyadmino.myHexCoord.x, dyadmino.myHexCoord.y);
     
       // this is for the first dyadmino, which doesn't have a boardNode
       // and also other dyadminoes when reloading
@@ -230,38 +239,17 @@
   [_topBar populateWithButtons];
   [_topBar populateWithLabels];
   [self addChild:_topBar];
-  [self updatePileCountLabel];
-  
-  for (int i = 0; i < self.myMatch.players.count; i++) {
-    Player *player = self.myMatch.players[i];
-    Label *nameLabel = _topBar.playerNameLabels[i];
-    Label *scoreLabel = _topBar.playerScoreLabels[i];
-    Label *rackLabel = _topBar.playerRackLabels[i];
-    nameLabel.fontColor = (player == self.myMatch.currentPlayer) ? [UIColor yellowColor] : [UIColor whiteColor];
-    [_topBar updateLabelNamed:nameLabel.name withText:player.playerName];
-    
-    NSString *scoreText = self.myMatch.tempScore > 0 && player == self.myMatch.currentPlayer ?
-      [NSString stringWithFormat:@"%lu + %lu", (unsigned long)player.playerScore, (unsigned long)self.myMatch.tempScore] :
-      [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
-    [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
-    
-    [_topBar updateLabelNamed:rackLabel.name withText:[[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-  }
-  
-  NSString *pileText = [NSString stringWithFormat:@"in pile: %@", [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-  NSString *boardText = [NSString stringWithFormat:@"on board: %@", [[self.myMatch.board valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-  NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-  
-  [_topBar updateLabelNamed:_topBar.pileDyadminoesLabel.name withText:pileText];
-  [_topBar updateLabelNamed:_topBar.boardDyadminoesLabel.name withText:boardText];
-  [_topBar updateLabelNamed:_topBar.holdingContainerLabel.name withText:holdingContainerText];
+  [self updateLabels];
+  [self updateButtonsForStaticState];
   
   _topBar.pileDyadminoesLabel.hidden = YES;
   _topBar.boardDyadminoesLabel.hidden = YES;
   _topBar.holdingContainerLabel.hidden = YES;
+  _topBar.swapContainerLabel.hidden = YES;
 }
 
 -(void)layoutOrRefreshRackFieldAndDyadminoes {
+  
   if (!_rackField) {
     _rackField = [[Rack alloc] initWithBoard:_boardField
                                    andColour:kFieldPurple
@@ -307,6 +295,7 @@
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
+  NSLog(@"%@", _touchNode.name);
 
     //--------------------------------------------------------------------------
     /// 3a. button pressed
@@ -454,9 +443,9 @@
     
     SnapPoint *rackNode = [self findSnapPointClosestToDyadmino:_touchedDyadmino];
     
-    [_rackField handleRackExchangeOfTouchedDyadmino:_touchedDyadmino
-                                           withDyadminoes:(NSMutableArray *)self.playerRackDyadminoes
-                                       andClosestRackNode:rackNode];
+    self.playerRackDyadminoes = [_rackField handleRackExchangeOfTouchedDyadmino:_touchedDyadmino
+                                     withDyadminoes:self.playerRackDyadminoes
+                                 andClosestRackNode:rackNode];
   }
 }
 
@@ -793,9 +782,13 @@
   if (_buttonPressed == _topBar.gamesButton) {
     [self goBackToMainViewController];
     
+      /// swap button
   } else if (_buttonPressed == _topBar.swapButton) {
     if (!_swapMode) {
       [self toggleSwapField];
+      _swapMode = YES;
+      [self updateButtonsForStaticState];
+      [self.myMatch resetHoldingContainerAndUndo];
     }
     
       /// togglePC button
@@ -810,8 +803,10 @@
   } else if (_buttonPressed == _topBar.cancelButton) {
       // if in swap mode, cancel swap
     if (_swapMode) {
-      [self cancelSwappedDyadminoes];
       [self toggleSwapField];
+      [self cancelSwappedDyadminoes];
+      [self updateButtonsForStaticState];
+      [self.myMatch resetHoldingContainerAndUndo];
       
         // else send dyadmino home
     } else if (_hoveringDyadmino) {
@@ -829,56 +824,70 @@
     } else if (_swapMode) {
       if ([self finaliseSwap]) {
         [self toggleSwapField];
+        _swapMode = NO;
+        [self updateLabels];
+        [self updateButtonsForStaticState];
       }
     }
     
       /// debug button
   } else if (_buttonPressed == _topBar.debugButton) {
     [self debugButtonPressed];
+    
+      /// resign button
+  } else if (_buttonPressed == _topBar.resignButton) {
+    [self handleResign];
+    
+      /// undo button
+  } else if (_buttonPressed == _topBar.undoButton) {
+    [self handleUndo];
+  
+      /// redo button
+  } else if (_buttonPressed == _topBar.redoButton) {
+    [self handleRedo];
   }
 }
 
--(void)toggleSwapField {
-    // TODO: move animations at some point
-    // FIXME: make better animation
-    // otherwise toggle
-  if (_swapMode) { // swap mode on, so turn off
-    _swapFieldActionInProgress = YES;
-    
-    SKAction *moveAction = [SKAction moveToY:0.f duration:kConstantTime];
-    SKAction *completionAction = [SKAction runBlock:^{
-      _swapFieldActionInProgress = NO;
-      _swapField.hidden = YES;
-      _swapMode = NO;
-      [self hideBoardCover];
-    }];
-    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
-    [_swapField runAction:sequenceAction];
-    
-    if (_boardField.position.y > _boardField.highestYPos) {
-      CGFloat swapBuffer = _boardField.position.y - _boardField.highestYPos;
-      SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y - swapBuffer duration:kConstantTime];
-      [_boardField runAction:moveBoardAction];
-    }
-    
-  } else { // swap mode off, turn on
-    _swapFieldActionInProgress = YES;
-    
-    _swapField.hidden = NO;
-    SKAction *moveAction = [SKAction moveToY:kRackHeight duration:kConstantTime];
-    SKAction *completionAction = [SKAction runBlock:^{
-      _swapFieldActionInProgress = NO;
-      _swapMode = YES;
-      [self revealBoardCover];
-    }];
-    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
-    [_swapField runAction:sequenceAction];
-    SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y + kRackHeight duration:kConstantTime];
-    [_boardField runAction:moveBoardAction];
-  }
+#pragma mark - match interaction methods
+
+-(void)handleUndo {
+//  [self.myMatch undoDyadminoToHoldingContainer];
+//    // get data dyadmino of undone dyadmino
+//  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
+//    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+//    if ([dyadmino belongsOnBoard] && ![self.myMatch.holdingContainer containsObject:dataDyad]) {
+//      [dyadmino removeFromParent];
+//      [self addToPlayerRackDyadminoes:dyadmino];
+//      [self layoutOrRefreshRackFieldAndDyadminoes];
+//      [self sendDyadminoHome:dyadmino byPoppingIn:NO];
+//    }
+//  }
+  
+  [self updateLabels];
+  [self updateButtonsForStaticState];
+}
+
+-(void)handleRedo {
+//  [self.myMatch redoDyadminoToHoldingContainer];
+//  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
+//    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+//    if ([dyadmino belongsInRack] && ![self.myMatch.holdingContainer containsObject:dataDyad]) {
+//      [dyadmino removeFromParent];
+//      [self addToPlayerRackDyadminoes:dyadmino];
+//      [self layoutOrRefreshRackFieldAndDyadminoes];
+//      [self sendDyadminoHome:dyadmino byPoppingIn:NO];
+//    }
+//  }
+  
+  
+  [self updateLabels];
+  [self updateButtonsForStaticState];
 }
 
 -(void)cancelSwappedDyadminoes {
+  _swapMode = NO;
+  [self.myMatch.swapContainer removeAllObjects];
+  [self.myMatch resetHoldingContainerAndUndo];
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
       dyadmino.belongsInSwap = NO;
@@ -886,8 +895,6 @@
     }
   }
 }
-
-#pragma mark - engine interaction methods
 
 -(BOOL)finaliseSwap {
   NSMutableArray *toPile = [NSMutableArray new];
@@ -899,7 +906,7 @@
   }
   
     // if swapped dyadminoes is greater than pile count, cancel
-  if (toPile.count > self.myMatch.pile.count) {
+  if (self.myMatch.holdingContainer.count > self.myMatch.pile.count) {
     [_topBar flashLabelNamed:@"message" withText:@"this is more than the pile count"];
     return NO;
     
@@ -918,13 +925,13 @@
     }
     
       // then swap in the logic
+    [self.myMatch swapDyadminoesFromCurrentPlayer];
     
-      // FIXME: swap
-//    [self.mySceneEngine swapTheseDyadminoes:toPile fromPlayer:self.myPlayer];
+      // this was the original logic, can be deleted
+      //    [self.mySceneEngine swapTheseDyadminoes:toPile fromPlayer:self.myPlayer];
     
+    [self populateRackArray];
     [self layoutOrRefreshRackFieldAndDyadminoes];
-      // update views
-    [self updatePileCountLabel];
     [_topBar flashLabelNamed:@"log" withText:@"swapped"];
     return YES;
   }
@@ -935,43 +942,68 @@
   if ([dyadmino belongsInRack] && [dyadmino isOnBoard]) {
     
       // confirm that the dyadmino was successfully played before proceeding with anything else
+    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+    [self.myMatch addToHoldingContainer:dataDyad];
+    [self removeFromPlayerRackDyadminoes:dyadmino];
     
-      // FIXME: playDyadmino
+      // this was the original logic
 //    if ([self.mySceneEngine playOnBoardThisDyadmino:dyadmino fromRackOfPlayer:self.myPlayer]) {
     
-        // do cleanup, dyadmino's home node is now the board node
-      dyadmino.homeNode = dyadmino.tempBoardNode;
-      dyadmino.tempBoardNode = nil;
-      [dyadmino unhighlightOutOfPlay];
-      
-        // empty pointers
-      _recentRackDyadmino = nil;
-      _hoveringDyadmino = nil;
-//    }
+      // do cleanup, dyadmino's home node is now the board node
+    dyadmino.homeNode = dyadmino.tempBoardNode;
+    dyadmino.myHexCoord = dyadmino.homeNode.myCell.hexCoord;
+    dyadmino.tempBoardNode = nil;
+    [dyadmino unhighlightOutOfPlay];
+    
+      // empty pointers
+    _recentRackDyadmino = nil;
+    _hoveringDyadmino = nil;
+    
+      // establish data dyadmino properties
+    dataDyad.myHexCoord = dyadmino.myHexCoord;
+    dataDyad.myOrientation = dyadmino.orientation;
   }
   [self layoutOrRefreshRackFieldAndDyadminoes];
+  [self updateLabels];
+  [self updateButtonsForStaticState];
 }
 
 -(void)finalisePlayerTurn {
     // no recent rack dyadmino on board
   if (!_recentRackDyadmino) {
     
-      // FIXME: finalise player turn
+    [self.myMatch recordDyadminoesFromPlayer:_myPlayer];
+    
+      // this was the original logic
 //    while ([self.mySceneEngine getCommonPileCount] >= 1 && self.myPlayer.dataDyadminoesInRack.count < 6) {
 //      [self.mySceneEngine putDyadminoFromPileIntoRackOfPlayer:self.myPlayer];
 //    }
 
+    [self populateRackArray];
     [self layoutOrRefreshRackFieldAndDyadminoes];
     
       // update views
-    [self updatePileCountLabel];
+    [self updateLabels];
     [_topBar flashLabelNamed:@"chord" withText:@"C major triad"];
     [_topBar updateLabelNamed:@"score" withText:@"score: 3"];
     [_topBar flashLabelNamed:@"log" withText:@"turn done"];
   }
 }
 
-#pragma mark - update methods
+-(void)handleSwitchToNextPlayer {
+  
+}
+
+-(void)handleResign {
+  UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Resign" message:@"Are you sure you want to resign?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK", nil];
+  [alertView show];
+}
+
+-(void) handleEndGame {
+  
+}
+
+#pragma mark - realtime update methods
 
 -(void)update:(CFTimeInterval)currentTime {
   
@@ -1258,6 +1290,11 @@
       if (placementResult == kNoError) {
         if ([dyadmino belongsOnBoard]) {
             // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
+          
+//            // this method will record a dyadmino that's already in the match's board
+//            // this method also gets called if a recently played dyadmino
+//            // has been moved, but data will not be submitted until the turn is officially done.
+//          [self recordDataDyadminoStateChangeForBoardDyadmino:dyadmino];
           dyadmino.homeNode = dyadmino.tempBoardNode;
         }
         
@@ -1283,15 +1320,137 @@
   }
 }
 
-#pragma mark - label methods
+#pragma mark - update label and button methods
 
--(void)updatePileCountLabel {
+-(void)updateLabels {
+  
+    // pile count
   [_topBar updateLabelNamed:@"pileCount"
                    withText:[NSString stringWithFormat:@"in pile: %lu",
                              (unsigned long)self.myMatch.pile.count]];
+  
+  for (int i = 0; i < self.myMatch.players.count; i++) {
+    Player *player = self.myMatch.players[i];
+    Label *nameLabel = _topBar.playerNameLabels[i];
+    Label *scoreLabel = _topBar.playerScoreLabels[i];
+    Label *rackLabel = _topBar.playerRackLabels[i];
+    
+  
+    if (player.resigned) {
+      nameLabel.fontColor = [SKColor darkGrayColor];
+    } else if (player == _myPlayer) {
+      nameLabel.fontColor = (player == self.myMatch.currentPlayer) ? [SKColor orangeColor] : [SKColor yellowColor];
+    } else if (player == self.myMatch.currentPlayer) {
+      nameLabel.fontColor = [SKColor orangeColor];
+    } else if ([self.myMatch.wonPlayers containsObject:self.myMatch.currentPlayer]) {
+      nameLabel.fontColor = [SKColor greenColor];
+    } else {
+      nameLabel.fontColor = [SKColor whiteColor];
+    }
+
+    [_topBar updateLabelNamed:nameLabel.name withText:player.playerName];
+    
+    NSString *scoreText = self.myMatch.tempScore > 0 && player == _myPlayer ?
+    [NSString stringWithFormat:@"%lu + %lu", (unsigned long)player.playerScore, (unsigned long)self.myMatch.tempScore] :
+    [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
+    [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
+    
+    [_topBar updateLabelNamed:rackLabel.name withText:[[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+    
+    NSString *pileText = [NSString stringWithFormat:@"in pile: %@", [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+    NSString *boardText = [NSString stringWithFormat:@"on board: %@", [[self.myMatch.board valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+    NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+    NSString *swapContainerText = [NSString stringWithFormat:@"in swap container: %@", [[self.myMatch.swapContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+    
+    [_topBar updateLabelNamed:_topBar.pileDyadminoesLabel.name withText:pileText];
+    [_topBar updateLabelNamed:_topBar.boardDyadminoesLabel.name withText:boardText];
+    [_topBar updateLabelNamed:_topBar.holdingContainerLabel.name withText:holdingContainerText];
+    [_topBar updateLabelNamed:_topBar.swapContainerLabel.name withText:swapContainerText];
+  }
 }
 
-#pragma mark - board cover methods
+-(void)updateButtonsForStaticState {
+  
+  if (_myPlayer.resigned || self.myMatch.gameHasEnded) { // only games, replay, and toggle (and debug)
+    [_topBar disableButton:_topBar.undoButton];
+    [_topBar disableButton:_topBar.redoButton];
+    [_topBar disableButton:_topBar.resignButton];
+    [_topBar disableButton:_topBar.swapButton];
+    [_topBar disableButton:_topBar.playDyadminoButton];
+    [_topBar disableButton:_topBar.doneTurnButton];
+  } else { // game still active for player
+    if (_swapMode) { // only games, toggle, cancel, and done (and debug)
+      [_topBar disableButton:_topBar.undoButton];
+      [_topBar disableButton:_topBar.redoButton];
+      [_topBar disableButton:_topBar.replayButton];
+      [_topBar disableButton:_topBar.resignButton];
+      [_topBar disableButton:_topBar.swapButton];
+      [_topBar disableButton:_topBar.playDyadminoButton];
+    } else {
+      [_topBar enableButton:_topBar.undoButton];
+      [_topBar enableButton:_topBar.redoButton];
+      [_topBar enableButton:_topBar.replayButton];
+      [_topBar enableButton:_topBar.resignButton];
+      [_topBar enableButton:_topBar.swapButton];
+      [_topBar enableButton:_topBar.playDyadminoButton];
+    }
+  }
+  
+  if (_myPlayer != self.myMatch.currentPlayer) {
+      // TODO: obviously, do this
+  }
+  
+  if (self.myMatch.holdingContainer > 0) {
+    [_topBar disableButton:_topBar.swapButton];
+  } else {
+    [_topBar enableButton:_topBar.swapButton];
+  }
+  
+    // undo and redo buttons
+  [self.myMatch.undoManager canUndo] ? [_topBar enableButton:_topBar.undoButton] : [_topBar disableButton:_topBar.undoButton];
+  [self.myMatch.undoManager canRedo] ? [_topBar enableButton:_topBar.redoButton] : [_topBar disableButton:_topBar.redoButton];
+
+}
+
+#pragma mark - field animation methods
+
+-(void)toggleSwapField {
+    // TODO: move animations at some point
+    // FIXME: make better animation
+    // otherwise toggle
+  if (_swapMode) { // swap mode on, so turn off
+    _swapFieldActionInProgress = YES;
+    
+    SKAction *moveAction = [SKAction moveToY:0.f duration:kConstantTime];
+    SKAction *completionAction = [SKAction runBlock:^{
+      _swapFieldActionInProgress = NO;
+      _swapField.hidden = YES;
+      [self hideBoardCover];
+    }];
+    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
+    [_swapField runAction:sequenceAction];
+    
+    if (_boardField.position.y > _boardField.highestYPos) {
+      CGFloat swapBuffer = _boardField.position.y - _boardField.highestYPos;
+      SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y - swapBuffer duration:kConstantTime];
+      [_boardField runAction:moveBoardAction];
+    }
+    
+  } else { // swap mode off, turn on
+    _swapFieldActionInProgress = YES;
+    
+    _swapField.hidden = NO;
+    SKAction *moveAction = [SKAction moveToY:kRackHeight duration:kConstantTime];
+    SKAction *completionAction = [SKAction runBlock:^{
+      _swapFieldActionInProgress = NO;
+      [self revealBoardCover];
+    }];
+    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
+    [_swapField runAction:sequenceAction];
+    SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y + kRackHeight duration:kConstantTime];
+    [_boardField runAction:moveBoardAction];
+  }
+}
 
 -(void)revealBoardCover {
     // TODO: make this animated
@@ -1304,7 +1463,34 @@
   _boardCover.zPosition = kZPositionBoardCoverHidden;
 }
 
-#pragma mark - board interaction methods
+#pragma mark - match helper methods
+
+-(void)addDataDyadminoToSwapContainerForDyadmino:(Dyadmino *)dyadmino {
+  DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+  if (![self.myMatch.swapContainer containsObject:dataDyad]) {
+    [self.myMatch.swapContainer addObject:dataDyad];
+  }
+}
+
+-(void)removeDataDyadminoFromSwapContainerForDyadmino:(Dyadmino *)dyadmino {
+  DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+  if ([self.myMatch.swapContainer containsObject:dataDyad]) {
+    [self.myMatch.swapContainer removeObject:dataDyad];
+  }
+}
+
+//-(void)recordDataDyadminoStateChangeForBoardDyadmino:(Dyadmino *)dyadmino {
+//  if ([dyadmino belongsOnBoard]) {
+//    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+//    if ([self.myMatch.board containsObject:dataDyad]) {
+//      NSLog(@"new data recorded");
+//      dataDyad.myHexCoord = dyadmino.myHexCoord;
+//      dataDyad.myOrientation = dyadmino.orientation;
+//    }
+//  }
+//}
+
+#pragma mark - board helper methods
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino {
   dyadmino.tempBoardNode ?
@@ -1345,6 +1531,23 @@
 
 #pragma mark - dyadmino helper methods
 
+-(DataDyadmino *)getDataDyadminoFromDyadmino:(Dyadmino *)dyadmino {
+  if ([dyadmino belongsInSwap] || [dyadmino belongsInRack]) {
+    for (DataDyadmino *dataDyad in _myPlayer.dataDyadminoesThisTurn) {
+      if (dataDyad.myID == dyadmino.myID) {
+        return dataDyad;
+      }
+    }
+  } else if ([dyadmino belongsOnBoard]) {
+    for (DataDyadmino *dataDyad in self.myMatch.board) {
+      if (dataDyad.myID == dyadmino.myID) {
+        return dataDyad;
+      }
+    }
+  }
+  return nil;
+}
+
 -(void)determineCurrentSectionOfDyadmino:(Dyadmino *)dyadmino {
     // this the ONLY place that determines current section of dyadmino
     // this is the ONLY place that sets dyadmino's belongsInSwap to YES
@@ -1359,12 +1562,15 @@
       // it's in swap
   } else if (_swapMode && _currentTouchLocation.y - _touchOffsetVector.y > kRackHeight) {
     dyadmino.belongsInSwap = YES;
+    [self addDataDyadminoToSwapContainerForDyadmino:dyadmino];
+    
     dyadmino.isInTopBar = NO;
 
     // if in rack field, doesn't matter if it's in swap
   } else if (_currentTouchLocation.y - _touchOffsetVector.y <= kRackHeight) {
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
     dyadmino.belongsInSwap = NO;
+    [self removeDataDyadminoFromSwapContainerForDyadmino:dyadmino];
     dyadmino.isInTopBar = NO;
 
       // else it's in the top bar, but this is a clumsy workaround, so be careful!
@@ -1480,24 +1686,90 @@
   }
 }
 
+#pragma mark - undo manager
+
+-(void)addToPlayerRackDyadminoes:(Dyadmino *)dyadmino {
+  if (![self.playerRackDyadminoes containsObject:dyadmino]) {
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
+    [tempArray addObject:dyadmino];
+    self.playerRackDyadminoes = [NSArray arrayWithArray:tempArray];
+  }
+}
+
+-(void)removeFromPlayerRackDyadminoes:(Dyadmino *)dyadmino {
+  if ([self.playerRackDyadminoes containsObject:dyadmino]) {
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
+    [tempArray removeObject:dyadmino];
+    self.playerRackDyadminoes = [NSArray arrayWithArray:tempArray];
+  }
+}
+
+-(void)setPlayerRackDyadminoes:(NSArray *)playerRackDyadminoes {
+  if (!_playerRackDyadminoes || !playerRackDyadminoes) {
+    _playerRackDyadminoes = playerRackDyadminoes;
+  } else if (_playerRackDyadminoes != playerRackDyadminoes) {
+    [self.myMatch.undoManager registerUndoWithTarget:self selector:@selector(setPlayerRackDyadminoes:) object:_playerRackDyadminoes];
+    _playerRackDyadminoes = playerRackDyadminoes;
+  }
+}
+
+-(void)addToSceneBoardDyadminoes:(Dyadmino *)dyadmino {
+  if (![self.boardDyadminoes containsObject:dyadmino]) {
+    NSMutableSet *tempSet = [NSMutableSet setWithSet:self.boardDyadminoes];
+    [tempSet addObject:dyadmino];
+    self.boardDyadminoes = [NSSet setWithSet:tempSet];
+  }
+}
+
+-(void)removeFromSceneBoardDyadminoes:(Dyadmino *)dyadmino {
+  if ([self.boardDyadminoes containsObject:dyadmino]) {
+    NSMutableSet *tempSet = [NSMutableSet setWithSet:self.boardDyadminoes];
+    [tempSet removeObject:dyadmino];
+    self.boardDyadminoes = [NSSet setWithSet:tempSet];
+  }
+}
+
+//-(void)setBoardDyadminoes:(NSSet *)boardDyadminoes {
+//  
+//  if (!_boardDyadminoes || !boardDyadminoes) {
+//    _boardDyadminoes = boardDyadminoes;
+//  } else if (_boardDyadminoes != boardDyadminoes) {
+//    [self.myMatch.undoManager registerUndoWithTarget:self selector:@selector(setBoardDyadminoes:) object:_boardDyadminoes];
+//    _boardDyadminoes = boardDyadminoes;
+//  }
+//}
+
 #pragma mark - delegate methods
 
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino {
   return (self.boardDyadminoes.count == 1 && dyadmino == [self.boardDyadminoes anyObject] && !_recentRackDyadmino) ? YES : NO;
 }
 
+-(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    // for resign alert view
+  NSString *buttonText = [alertView buttonTitleAtIndex:buttonIndex];
+  if ([buttonText isEqualToString:@"OK"]) {
+    [self.myMatch resignPlayer:_myPlayer];
+    [self updateLabels];
+    [self updateButtonsForStaticState];
+  }
+}
+
 #pragma mark - debugging methods
 
 -(void)debugButtonPressed {
+  [self updateLabels];
 
   if (_topBar.pileDyadminoesLabel.hidden) {
     _topBar.pileDyadminoesLabel.hidden = NO;
     _topBar.boardDyadminoesLabel.hidden = NO;
     _topBar.holdingContainerLabel.hidden = NO;
+    _topBar.swapContainerLabel.hidden = NO;
   } else {
     _topBar.pileDyadminoesLabel.hidden = YES;
     _topBar.boardDyadminoesLabel.hidden = YES;
     _topBar.holdingContainerLabel.hidden = YES;
+    _topBar.swapContainerLabel.hidden = YES;
   }
   
   if (!_dyadminoesHidden) {
@@ -1535,6 +1807,9 @@
 //  if (_hoveringDyadmino.tempBoardNode) {
 //    NSLog(@"hovering dyadmino has temp board node");
 //  }
+  
+  [self updateLabels];
+  [self updateButtonsForStaticState];
 }
 
 @end
