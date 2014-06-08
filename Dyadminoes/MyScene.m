@@ -475,17 +475,6 @@
   }
 }
 
--(void)recordChangedDataForRackDyadminoes:(NSMutableArray *)rackArray {
-  for (int i = 0; i < rackArray.count; i++) {
-    if ([rackArray[i] isKindOfClass:[Dyadmino class]]) {
-      NSLog(@"my rack order changed");
-      Dyadmino *dyadmino = (Dyadmino *)rackArray[i];
-      dyadmino.myRackOrder = i;
-      [self persistDataForDyadmino:dyadmino];
-    }
-  }
-}
-
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     /// 1. first check whether to even register the touch ended
 
@@ -885,6 +874,16 @@
 }
 
 #pragma mark - match interaction methods
+
+-(void)recordChangedDataForRackDyadminoes:(NSMutableArray *)rackArray {
+  for (int i = 0; i < rackArray.count; i++) {
+    if ([rackArray[i] isKindOfClass:[Dyadmino class]]) {
+      Dyadmino *dyadmino = (Dyadmino *)rackArray[i];
+      dyadmino.myRackOrder = i;
+      [self persistDataForDyadmino:dyadmino];
+    }
+  }
+}
 
 -(void)persistDataForDyadmino:(Dyadmino *)dyadmino {
   DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
