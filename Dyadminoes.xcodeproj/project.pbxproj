@@ -345,6 +345,8 @@
 			children = (
 				3FCCA71C18948B0500E0E4B5 /* SceneEngine.h */,
 				3FCCA71D18948B0500E0E4B5 /* SceneEngine.m */,
+				3FCCA71918948AF200E0E4B5 /* Dyadmino.h */,
+				3FCCA71A18948AF200E0E4B5 /* Dyadmino.m */,
 				3FDD7FD718D4C89B0029DB7D /* Board.h */,
 				3FDD7FD818D4C89B0029DB7D /* Board.m */,
 				3FD06E2118D6544F00E2FF04 /* Cell.h */,
@@ -359,8 +361,6 @@
 				3F55E1FC18D7A8520048E67E /* Button.m */,
 				3F28A6CE18DA86BA0092B9B2 /* Label.h */,
 				3F28A6CF18DA86BA0092B9B2 /* Label.m */,
-				3FCCA71918948AF200E0E4B5 /* Dyadmino.h */,
-				3FCCA71A18948AF200E0E4B5 /* Dyadmino.m */,
 			);
 			name = "Scene Objects";
 			sourceTree = "<group>";

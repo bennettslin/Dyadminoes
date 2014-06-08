@@ -24,6 +24,7 @@
 @property (weak, nonatomic) id <SceneDelegate> delegate;
 
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;
+-(void)persistAllSceneDataDyadminoes;
 
 @end
 

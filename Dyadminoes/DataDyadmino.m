@@ -20,6 +20,8 @@
     NSInteger yCoord = [aDecoder decodeIntegerForKey:@"hexY"];
     struct HexCoord hexCoord = {xCoord, yCoord};
     self.myHexCoord = hexCoord;
+    
+    self.myRackOrder = [aDecoder decodeIntegerForKey:@"myRackOrder"];
   }
   return self;
 }
@@ -29,7 +31,7 @@
   [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.myOrientation] forKey:@"myOrientation"];
   [aCoder encodeInteger:self.myHexCoord.x forKey:@"hexX"];
   [aCoder encodeInteger:self.myHexCoord.y forKey:@"hexY"];
-
+  [aCoder encodeInteger:self.myRackOrder forKey:@"myRackOrder"];
 }
 
 -(id)initWithID:(NSUInteger)id {

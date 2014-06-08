@@ -77,10 +77,9 @@
         
         dyadmino.myID = myID;
         
-//        NSLog(@"dyadmino myID is %i, %i-%i", dyadmino.myID, pc1, pc2);
+        NSLog(@"%i: %i-%i", dyadmino.myID, pc1, pc2);
         
         myID++;
-        
         
           // initially put them all in the common pile
         [tempAllDyadminoes addObject:dyadmino];

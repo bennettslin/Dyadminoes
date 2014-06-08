@@ -13,6 +13,8 @@
 
 @protocol FieldNodeDelegate <NSObject>
 
+-(void)recordChangedDataForRackDyadminoes:(NSMutableArray *)rackArray;
+
 @end
 
 @interface Rack : SKSpriteNode
@@ -41,4 +43,6 @@
                         andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode;
 
 @end
+
+
 

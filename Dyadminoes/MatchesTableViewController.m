@@ -110,17 +110,12 @@
   
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
-  
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
-  
+
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(getModel) name:UIApplicationWillEnterForegroundNotification object:nil];
 }
 
--(void)saveModel {
-  [Model saveMyModel:self.myModel];
-}
-
 -(void)getModel {
+  NSLog(@"getModel");
   self.myModel = [Model getMyModel];
 }
 
@@ -212,6 +207,7 @@
       //    debugVC.delegate = self;
     
     SceneViewController *sceneVC = [segue destinationViewController];
+    sceneVC.myModel = self.myModel;
     sceneVC.myMatch = match;
     sceneVC.delegate = self;
   }

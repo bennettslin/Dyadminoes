@@ -14,6 +14,7 @@
 @property (nonatomic) NSUInteger myID;
 @property (nonatomic) DyadminoOrientation myOrientation;
 @property (nonatomic) HexCoord myHexCoord;
+@property (nonatomic) NSInteger myRackOrder;
 
 -(id)initWithID:(NSUInteger)id;
 

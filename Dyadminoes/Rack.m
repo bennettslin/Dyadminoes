@@ -95,7 +95,7 @@
     } else {
       dyadmino.position = CGPointMake(self.size.width + self.xIncrementInRack, shouldBePosition.y);
       dyadmino.zPosition = kZPositionRackRestingDyadmino;
-      NSLog(@"Dyadmino parent is %@", dyadmino.parent.name);
+//      NSLog(@"Dyadmino parent is %@", dyadmino.parent.name);
       
       [self addChild:dyadmino];
       [dyadmino animateMoveToPoint:shouldBePosition];
@@ -154,6 +154,10 @@
       NSMutableArray *tempArray = [NSMutableArray arrayWithArray:dyadminoesInArray];
       [tempArray removeObject:touchedDyadmino];
       [tempArray insertObject:touchedDyadmino atIndex:newRackNodeIndex];
+      
+        // delegate method makes it easier to call only if there was indeed a rack exchange
+      [self.delegate recordChangedDataForRackDyadminoes:tempArray];
+      
       return [NSArray arrayWithArray:tempArray];
     }
   }

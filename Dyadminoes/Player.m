@@ -24,6 +24,9 @@
     self.playerScore = [[aDecoder decodeObjectForKey:@"playerScore"] unsignedIntegerValue];
     self.dataDyadminoesThisTurn = [aDecoder decodeObjectForKey:@"dataDyadsThisTurn"];
     self.resigned = [aDecoder decodeBoolForKey:@"resigned"];
+    
+//    self.tempBoard = [aDecoder decodeObjectForKey:@"tempBoard"];
+//    self.tempRack = [aDecoder decodeObjectForKey:@"tempRack"];
   }
   return self;
 }
@@ -35,6 +38,9 @@
   [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.playerScore] forKey:@"playerScore"];
   [aCoder encodeObject:self.dataDyadminoesThisTurn forKey:@"dataDyadsThisTurn"];
   [aCoder encodeBool:self.resigned forKey:@"resigned"];
+  
+//  [aCoder encodeObject:self.tempRack forKey:@"tempRack"];
+//  [aCoder encodeObject:self.tempBoard forKey:@"tempBoard"];
 }
 
 -(id)initWithUniqueID:(NSString *)uniqueID

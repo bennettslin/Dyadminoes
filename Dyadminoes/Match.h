@@ -29,9 +29,9 @@
 @property (strong, nonatomic) NSArray *wonPlayers;
 @property (nonatomic) BOOL gameHasEnded;
 
-  // dyadmino arrays
+  // data dyadmino arrays
 @property (strong, nonatomic) NSMutableArray *pile;
-@property (strong, nonatomic) NSMutableArray *board;
+@property (strong, nonatomic) NSMutableSet *board;
 
   // turns and undo
 @property (nonatomic) NSUInteger tempScore;

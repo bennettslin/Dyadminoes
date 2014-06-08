@@ -9,6 +9,8 @@
 #import "SceneViewController.h"
 #import "NSObject+Helper.h"
 #import "MyScene.h"
+#import "Match.h"
+#import "Model.h"
 
 @interface SceneViewController () <SceneDelegate>
 
@@ -23,12 +25,18 @@
   [super viewDidLoad];
   
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
-//  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(enteredBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
-//  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(enteringForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
   
     /// this seems to work better for scene transitions
     /// but does it get screwed up with different screen dimensions?
   [self createAndConfigureScene];
+}
+
+-(void)saveModel {
+  NSLog(@"persisting all scene dyadminoes on returning to main menu");
+  [self.myScene persistAllSceneDataDyadminoes];
+  NSLog(@"saveModel");
+  [Model saveMyModel:self.myModel];
 }
 
 -(void)createAndConfigureScene {
@@ -50,13 +58,13 @@
 }
 
 -(void)backToMainMenu {
-  [self.delegate saveModel];
+  [self saveModel];
   [self.mySceneView presentScene:nil];
   [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 -(void)orientationChanged:(NSNotification *)note {
-  UIDevice *device = note.object;;
+  UIDevice *device = note.object;
   [self.myScene handleDeviceOrientationChange:device.orientation];
 }
 

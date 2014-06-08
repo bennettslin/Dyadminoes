@@ -167,6 +167,7 @@
     
         // if instantiating, dyadmino does not have boardNode
     } else {
+      NSLog(@"dyadmino %i does not have board node", dyadmino.myID);
       struct HexCoord tempHexCoord1 = dyadmino.myHexCoord;
       struct HexCoord tempHexCoord2 = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil];
       hexCoord1 = tempHexCoord1;

@@ -41,12 +41,12 @@
   NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
   NSString *directory = [paths objectAtIndex:0];
   NSString *pathString = [directory stringByAppendingPathComponent:@"model.plist"];
-  NSLog(@"the archive path is %@", pathString);
+//  NSLog(@"the archive path is %@", pathString);
   return pathString;
 }
 
 -(void)instantiateHardCodedMatchesForDebugPurposes {
-  NSLog(@"hard coded matches");
+//  NSLog(@"hard coded matches");
     //hard coded values
   NSArray *names = @[@"Julia", @"Pamela", @"Darcy", @"Mary"];
   NSArray *ids = @[@"12345", @"23456", @"34567", @"45678"];
@@ -93,6 +93,17 @@
   
   [openGames addObjectsFromArray:endedGames];
   self.myMatches = openGames;
+}
+
+#pragma mark - singleton method
+
++(Model *)model {
+  static dispatch_once_t pred;
+  static Model *shared = nil;
+  dispatch_once(&pred, ^{
+    shared = [[Model alloc] init];
+  });
+  return shared;
 }
 
 @end

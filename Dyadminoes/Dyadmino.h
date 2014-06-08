@@ -31,6 +31,7 @@
 @property (strong, nonatomic) SnapPoint *homeNode;
 @property (strong, nonatomic) SnapPoint *tempBoardNode;
 @property (nonatomic) HexCoord myHexCoord;
+@property (nonatomic) NSInteger myRackOrder;
 
   // orientations
 @property (nonatomic) DyadminoOrientation orientation;

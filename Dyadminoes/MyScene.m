@@ -24,6 +24,7 @@
 
 @interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIAlertViewDelegate, MatchDelegate>
 
+  // the dyadminoes that the player sees
 @property (strong, nonatomic) NSArray *playerRackDyadminoes;
 @property (strong, nonatomic) NSSet *boardDyadminoes;
 
@@ -108,28 +109,52 @@
 #pragma mark - layout methods
 
 -(void)populateRackArray {
-  NSMutableArray *tempArray = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
+    // keep player's order and orientation of dyadminoes until turn is submitted
+  
+  NSMutableArray *tempDyadminoArray = [[NSMutableArray alloc] initWithCapacity:_myPlayer.dataDyadminoesThisTurn.count];
   
   for (DataDyadmino *dataDyad in _myPlayer.dataDyadminoesThisTurn) {
-    Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
-    dyadmino.orientation = dataDyad.myOrientation;
-      // not the best place to set tempReturnOrientation for dyadmino
-    dyadmino.tempReturnOrientation = dyadmino.orientation;
-    [tempArray addObject:dyadmino];
+      // only add if it's not in the holding container
+      // if it is, then don't add because holding container is added to board set instead
+    if (![self.myMatch.holdingContainer containsObject:dataDyad]) {
+      Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
+      dyadmino.myHexCoord = dataDyad.myHexCoord;
+      dyadmino.orientation = dataDyad.myOrientation;
+      dyadmino.myRackOrder = dataDyad.myRackOrder;
+      NSLog(@"this rack order is %i", dyadmino.myRackOrder);
+        // not the best place to set tempReturnOrientation for dyadmino
+      dyadmino.tempReturnOrientation = dyadmino.orientation;
+      
+      [dyadmino selectAndPositionSprites];
+      [tempDyadminoArray addObject:dyadmino];
+    }
   }
-  self.playerRackDyadminoes = [NSArray arrayWithArray:tempArray];
+  
+    // make sure dyadminoes are sorted
+  NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
+  self.playerRackDyadminoes = [tempDyadminoArray sortedArrayUsingDescriptors:@[sortByRackOrder]];
 }
 
 -(void)populateBoardSet {
-  NSMutableSet *tempSet = [[NSMutableSet alloc] initWithCapacity:self.myMatch.board.count];
+
+    // board must enumerate over both board and holding container dyadminoes
+  NSMutableSet *tempDataEnumerationSet = [NSMutableSet setWithSet:self.myMatch.board];
+  [tempDataEnumerationSet addObjectsFromArray:self.myMatch.holdingContainer];
   
-  for (DataDyadmino *dataDyad in self.myMatch.board) {
+  NSMutableSet *tempSet = [[NSMutableSet alloc] initWithCapacity:tempDataEnumerationSet.count];
+  
+  for (DataDyadmino *dataDyad in tempDataEnumerationSet) {
     Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
     dyadmino.myHexCoord = dataDyad.myHexCoord;
     dyadmino.orientation = dataDyad.myOrientation;
+    dyadmino.myRackOrder = -1; // signifies it's not in rack
       // not the best place to set tempReturnOrientation here either
     dyadmino.tempReturnOrientation = dyadmino.orientation;
-    [tempSet addObject:dyadmino];
+    if (![tempSet containsObject:dyadmino]) {
+      
+      [dyadmino selectAndPositionSprites];
+      [tempSet addObject:dyadmino];
+    }
   }
   self.boardDyadminoes = [NSSet setWithSet:tempSet];
 }
@@ -257,6 +282,7 @@
                               andAnchorPoint:CGPointZero
                                  andPosition:CGPointZero
                                 andZPosition:kZPositionRackField];
+    _rackField.delegate = self;
     _rackField.name = @"rack";
     [self addChild:_rackField];
   }
@@ -446,6 +472,17 @@
     self.playerRackDyadminoes = [_rackField handleRackExchangeOfTouchedDyadmino:_touchedDyadmino
                                      withDyadminoes:self.playerRackDyadminoes
                                  andClosestRackNode:rackNode];
+  }
+}
+
+-(void)recordChangedDataForRackDyadminoes:(NSMutableArray *)rackArray {
+  for (int i = 0; i < rackArray.count; i++) {
+    if ([rackArray[i] isKindOfClass:[Dyadmino class]]) {
+      NSLog(@"my rack order changed");
+      Dyadmino *dyadmino = (Dyadmino *)rackArray[i];
+      dyadmino.myRackOrder = i;
+      [self persistDataForDyadmino:dyadmino];
+    }
   }
 }
 
@@ -709,7 +746,6 @@
   dyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:dyadmino];
 
     // update cells for placement
-//        NSLog(@"assign touch ended pointer");
   [self updateCellsForPlacedDyadmino:dyadmino];
   
     // start hovering
@@ -850,6 +886,27 @@
 
 #pragma mark - match interaction methods
 
+-(void)persistDataForDyadmino:(Dyadmino *)dyadmino {
+  DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+  if ([dyadmino belongsOnBoard]) {
+    dataDyad.myHexCoord = dyadmino.homeNode.myCell.hexCoord;
+  }
+  
+//  dataDyad.myHexCoord = dyadmino.myHexCoord;
+  dataDyad.myOrientation = dyadmino.orientation;
+  dataDyad.myRackOrder = dyadmino.myRackOrder;
+}
+
+-(void)persistAllSceneDataDyadminoes {
+  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
+    [self persistDataForDyadmino:dyadmino];
+  }
+  
+  for (Dyadmino *dyadmino in self.boardDyadminoes) {
+    [self persistDataForDyadmino:dyadmino];
+  }
+}
+ 
 -(void)handleUndo {
 //  [self.myMatch undoDyadminoToHoldingContainer];
 //    // get data dyadmino of undone dyadmino
@@ -927,9 +984,6 @@
       // then swap in the logic
     [self.myMatch swapDyadminoesFromCurrentPlayer];
     
-      // this was the original logic, can be deleted
-      //    [self.mySceneEngine swapTheseDyadminoes:toPile fromPlayer:self.myPlayer];
-    
     [self populateRackArray];
     [self layoutOrRefreshRackFieldAndDyadminoes];
     [_topBar flashLabelNamed:@"log" withText:@"swapped"];
@@ -945,9 +999,6 @@
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     [self.myMatch addToHoldingContainer:dataDyad];
     [self removeFromPlayerRackDyadminoes:dyadmino];
-    
-      // this was the original logic
-//    if ([self.mySceneEngine playOnBoardThisDyadmino:dyadmino fromRackOfPlayer:self.myPlayer]) {
     
       // do cleanup, dyadmino's home node is now the board node
     dyadmino.homeNode = dyadmino.tempBoardNode;
@@ -971,13 +1022,8 @@
 -(void)finalisePlayerTurn {
     // no recent rack dyadmino on board
   if (!_recentRackDyadmino) {
-    
+    [self persistAllSceneDataDyadminoes];
     [self.myMatch recordDyadminoesFromPlayer:_myPlayer];
-    
-      // this was the original logic
-//    while ([self.mySceneEngine getCommonPileCount] >= 1 && self.myPlayer.dataDyadminoesInRack.count < 6) {
-//      [self.mySceneEngine putDyadminoFromPileIntoRackOfPlayer:self.myPlayer];
-//    }
 
     [self populateRackArray];
     [self layoutOrRefreshRackFieldAndDyadminoes];
@@ -1295,6 +1341,7 @@
 //            // this method also gets called if a recently played dyadmino
 //            // has been moved, but data will not be submitted until the turn is officially done.
 //          [self recordDataDyadminoStateChangeForBoardDyadmino:dyadmino];
+          [self persistDataForDyadmino:dyadmino];
           dyadmino.homeNode = dyadmino.tempBoardNode;
         }
         
@@ -1358,7 +1405,8 @@
     [_topBar updateLabelNamed:rackLabel.name withText:[[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
     
     NSString *pileText = [NSString stringWithFormat:@"in pile: %@", [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-    NSString *boardText = [NSString stringWithFormat:@"on board: %@", [[self.myMatch.board valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+    NSMutableArray *tempBoard = [NSMutableArray arrayWithArray:[self.myMatch.board allObjects]];
+    NSString *boardText = [NSString stringWithFormat:@"on board: %@", [[tempBoard valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
     NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
     NSString *swapContainerText = [NSString stringWithFormat:@"in swap container: %@", [[self.myMatch.swapContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
     
@@ -1479,23 +1527,17 @@
   }
 }
 
-//-(void)recordDataDyadminoStateChangeForBoardDyadmino:(Dyadmino *)dyadmino {
-//  if ([dyadmino belongsOnBoard]) {
-//    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-//    if ([self.myMatch.board containsObject:dataDyad]) {
-//      NSLog(@"new data recorded");
-//      dataDyad.myHexCoord = dyadmino.myHexCoord;
-//      dataDyad.myOrientation = dyadmino.orientation;
-//    }
-//  }
-//}
-
 #pragma mark - board helper methods
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino {
+  
+    // experiment to see if this is a good place to set the tempArrays for placed dyadmino
+  
+//  /*
   dyadmino.tempBoardNode ?
     [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.tempBoardNode] :
     [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode];
+//   */
 }
 
 -(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino {
@@ -1532,19 +1574,16 @@
 #pragma mark - dyadmino helper methods
 
 -(DataDyadmino *)getDataDyadminoFromDyadmino:(Dyadmino *)dyadmino {
-  if ([dyadmino belongsInSwap] || [dyadmino belongsInRack]) {
-    for (DataDyadmino *dataDyad in _myPlayer.dataDyadminoesThisTurn) {
-      if (dataDyad.myID == dyadmino.myID) {
-        return dataDyad;
-      }
-    }
-  } else if ([dyadmino belongsOnBoard]) {
-    for (DataDyadmino *dataDyad in self.myMatch.board) {
-      if (dataDyad.myID == dyadmino.myID) {
-        return dataDyad;
-      }
+  
+  NSMutableSet *tempDataDyadSet = [NSMutableSet setWithSet:self.myMatch.board];
+  [tempDataDyadSet addObjectsFromArray:_myPlayer.dataDyadminoesThisTurn];
+
+  for (DataDyadmino *dataDyad in tempDataDyadSet) {
+    if (dataDyad.myID == dyadmino.myID) {
+      return dataDyad;
     }
   }
+  
   return nil;
 }
 
