@@ -50,9 +50,10 @@
   BOOL _swapMode;
   BOOL _rackExchangeInProgress;
   BOOL _swapFieldActionInProgress;
-  BOOL _boardBeingMoved;
+  BOOL _boardToBeMovedOrBeingMoved;
   BOOL _boardBeingCorrectedWithinBounds;
-  BOOL _canDoubleTap;
+  BOOL _canDoubleTapForBoardZoom;
+  BOOL _canDoubleTapForDyadminoFlip;
   BOOL _hoveringDyadminoToStayFixedWhileBoardMoves;
   BOOL _boardJustShiftedNotCorrected;
   NSUInteger _hoveringDyadminoBeingCorrected;
@@ -354,7 +355,13 @@
     if (_touchNode == _boardField || _touchNode == _boardCover ||
         (_touchNode.parent == _boardField && ![_touchNode isKindOfClass:[Dyadmino class]]) ||
         [_touchNode.parent isKindOfClass:[Cell class]]) { // this one is necessary only for testing purposes
-      _boardBeingMoved = YES;
+      
+      if (_canDoubleTapForBoardZoom) {
+        NSLog(@"board has been double tapped");
+      }
+      
+      _boardToBeMovedOrBeingMoved = YES;
+      _canDoubleTapForBoardZoom = YES;
       
         // check to see if hovering dyadmino should stay with board or not
       if (_hoveringDyadmino) {
@@ -401,7 +408,7 @@
     /// 3a. board is being moved
   
     // if board is being moved, handle and return
-  if (_boardBeingMoved) {
+  if (_boardToBeMovedOrBeingMoved) {
     [self moveBoard];
     return;
   }
@@ -504,8 +511,8 @@
   }
   
     // board no longer being moved
-  if (_boardBeingMoved) {
-    _boardBeingMoved = NO;
+  if (_boardToBeMovedOrBeingMoved) {
+    _boardToBeMovedOrBeingMoved = NO;
     
       // take care of hovering dyadmino
     if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
@@ -614,7 +621,7 @@
       // 1. it's not hovering, so make it hover
     if (!_touchedDyadmino.canFlip) {
       _touchedDyadmino.canFlip = YES;
-      _canDoubleTap = YES;
+      _canDoubleTapForDyadminoFlip = YES;
       
         // 2. it's already hovering, so tap inside to flip
     } else {
@@ -1102,21 +1109,22 @@
 }
 
 -(void)updateForDoubleTap:(CFTimeInterval)currentTime {
-  if (_canDoubleTap) {
+  if (_canDoubleTapForDyadminoFlip || _canDoubleTapForBoardZoom) {
     if (_doubleTapTime == 0.f) {
       _doubleTapTime = currentTime;
     }
   }
   
   if (_doubleTapTime != 0.f && currentTime > _doubleTapTime + kDoubleTapTime) {
-    _canDoubleTap = NO;
+    _canDoubleTapForBoardZoom = NO;
+    _canDoubleTapForDyadminoFlip = NO;
     _hoveringDyadmino.canFlip = NO;
     _doubleTapTime = 0.f;
   }
 }
 
 -(void)updateForHoveringDyadminoBeingCorrectedWithinBounds {
-  if (![_hoveringDyadmino isRotating] && !_boardBeingMoved &&
+  if (![_hoveringDyadmino isRotating] && !_boardToBeMovedOrBeingMoved &&
       !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected &&
       _hoveringDyadmino && _hoveringDyadmino != _touchedDyadmino &&
       ![_hoveringDyadmino isInRack] && ![_hoveringDyadmino isInTopBar]) {
@@ -1196,7 +1204,7 @@
     _boardBeingCorrectedWithinBounds = YES;
   }
   
-  if (!_boardBeingMoved || _boardBeingCorrectedWithinBounds) {
+  if (!_boardToBeMovedOrBeingMoved || _boardBeingCorrectedWithinBounds) {
     
     if (_hoveringDyadmino && _boardBeingCorrectedWithinBounds) {
       [_boardField hideAllPivotGuides];
@@ -1217,7 +1225,7 @@
     
       // this way when the board is being corrected,
       // it doesn't jump afterwards
-    if (_boardBeingMoved) {
+    if (_boardToBeMovedOrBeingMoved) {
       _beganTouchLocation = _currentTouchLocation;
     }
   

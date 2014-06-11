@@ -233,13 +233,13 @@
 
 #pragma mark - singleton method
 
-+(SceneEngine *)sceneEngine {
-  static dispatch_once_t pred;
-  static SceneEngine *shared = nil;
-  dispatch_once(&pred, ^{
-    shared = [[SceneEngine alloc] init];
-  });
-  return shared;
-}
+//+(SceneEngine *)sceneEngine {
+//  static dispatch_once_t pred;
+//  static SceneEngine *shared = nil;
+//  dispatch_once(&pred, ^{
+//    shared = [[SceneEngine alloc] init];
+//  });
+//  return shared;
+//}
 
 @end

@@ -24,7 +24,6 @@
 #define kTableViewXMargin (kIsIPhone ? 20.f : 20.f)
 #define kTableViewTopMargin (kIsIPhone ? 122.f : 122.f)
 #define kTableViewBottomMargin (kIsIPhone ? 90.f : 90.f)
-
 #define kMainTopBarHeight (kIsIPhone ? 86.f : 86.f)
 
 @interface MatchesTableViewController () <SceneViewDelegate, DebugDelegate, MatchCellDelegate>
@@ -252,38 +251,32 @@
   }
   
   self.childVC = childVC;
+    
+    // overlay fade in and tableview slide out go together
+  if (![self.darkOverlay superview]) {
+    [self fadeInOverlay];
+    [self slideUpTopBar];
+    [self slideOutTableview];
+  }
   
-  if (kIsIPhone) {
-    
-      // for now, just iPad view
-  } else {
-    
-      // overlay fade in and tableview slide out go together
-    if (![self.darkOverlay superview]) {
-      [self fadeInOverlay];
-      [self slideUpTopBar];
-      [self slideOutTableview];
-    }
-    
-    CGFloat viewWidth = _screenWidth * 4 / 5;
-    CGFloat viewHeight = _screenHeight * 4 / 5;
-    
-    childVC.view.frame = CGRectMake(0, 0, viewWidth, viewHeight);
-    childVC.view.center = CGPointMake(self.view.center.x - _screenWidth, self.view.center.y);
-    childVC.view.layer.cornerRadius = kCornerRadius;
-    childVC.view.layer.masksToBounds = YES;
+  CGFloat viewWidth = _screenWidth * 4 / 5;
+  CGFloat viewHeight = _screenHeight * 4 / 5;
+  
+  childVC.view.frame = CGRectMake(0, 0, viewWidth, viewHeight);
+  childVC.view.center = CGPointMake(self.view.center.x - _screenWidth, self.view.center.y);
+  childVC.view.layer.cornerRadius = kCornerRadius;
+  childVC.view.layer.masksToBounds = YES;
 
-    [self.view addSubview:childVC.view];
-    
-    [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-      childVC.view.center = self.view.center;
-    } completion:^(BOOL finished) {
-      self.vcIsAnimating = NO;
-    }];
+  [self.view addSubview:childVC.view];
+  
+  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+    childVC.view.center = self.view.center;
+  } completion:^(BOOL finished) {
+    self.vcIsAnimating = NO;
+  }];
   
 //  [self addChildViewController:childVC];
 //  [childVC didMoveToParentViewController:self];
-  }
   
   [self setNeedsStatusBarAppearanceUpdate];
 }

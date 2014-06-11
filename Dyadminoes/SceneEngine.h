@@ -16,7 +16,7 @@
 @property (strong, nonatomic) NSArray *allDyadminoes;
 //@property (strong, nonatomic) NSMutableSet *dyadminoesOnBoard;
 
-+(SceneEngine *)sceneEngine;
+//+(SceneEngine *)sceneEngine;
 //-(Player *)getAssignedAsPlayer;
 //-(NSUInteger)getCommonPileCount;
 
