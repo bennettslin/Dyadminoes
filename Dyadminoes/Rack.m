@@ -32,6 +32,8 @@
     self.position = position;
     self.zPosition = zPosition;
     _board = board;
+    
+//    [self addGradientToView:self WithColour:self.color andUpsideDown:NO];
   }
   return self;
 }

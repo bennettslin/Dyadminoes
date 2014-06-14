@@ -248,4 +248,7 @@ typedef enum physicalPlacementResult {
 -(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date;
 -(NSString *)returnLastPlayedStringFromDate:(NSDate *)date;
 
+  // view stuff
+-(void)addGradientToView:(UIView *)thisView WithColour:(UIColor *)colour andUpsideDown:(BOOL)upsideDown;
+
 @end

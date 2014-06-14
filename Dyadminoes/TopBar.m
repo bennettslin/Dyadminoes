@@ -23,6 +23,7 @@
     self.anchorPoint = anchorPoint;
     self.position = position;
     self.zPosition = zPosition;
+//    [self addGradientToView:self WithColour:self.color andUpsideDown:YES];
   }
   return self;
 }

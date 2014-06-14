@@ -1853,15 +1853,23 @@
   [self updateLabels];
 
   if (_topBar.pileDyadminoesLabel.hidden) {
-    _topBar.pileDyadminoesLabel.hidden = NO;
-    _topBar.boardDyadminoesLabel.hidden = NO;
-    _topBar.holdingContainerLabel.hidden = NO;
-    _topBar.swapContainerLabel.hidden = NO;
+//    _topBar.pileDyadminoesLabel.hidden = NO;
+    _topBar.pileDyadminoesLabel.zPosition = kZPositionTopBarLabel;
+//    _topBar.boardDyadminoesLabel.hidden = NO;
+    _topBar.boardDyadminoesLabel.zPosition = kZPositionTopBarLabel;
+//    _topBar.holdingContainerLabel.hidden = NO;
+    _topBar.holdingContainerLabel.zPosition = kZPositionTopBarLabel;
+//    _topBar.swapContainerLabel.hidden = NO;
+    _topBar.swapContainerLabel.zPosition = kZPositionTopBarLabel;
   } else {
     _topBar.pileDyadminoesLabel.hidden = YES;
+//    _topBar.pileDyadminoesLabel.zPosition = -1000;
     _topBar.boardDyadminoesLabel.hidden = YES;
+//    _topBar.pileDyadminoesLabel.zPosition = -1000;
     _topBar.holdingContainerLabel.hidden = YES;
+//    _topBar.holdingContainerLabel.zPosition = -1000;
     _topBar.swapContainerLabel.hidden = YES;
+//    _topBar.swapContainerLabel.zPosition = -1000;
   }
   
   if (!_dyadminoesHidden) {

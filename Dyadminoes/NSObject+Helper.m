@@ -125,4 +125,41 @@
   return [NSString stringWithFormat:@"Last played %@ ago.", dateComponent];
 }
 
+#pragma mark - view stuff
+
+-(void)addGradientToView:(UIView *)thisView WithColour:(UIColor *)colour andUpsideDown:(BOOL)upsideDown {
+  
+  CGFloat redValue, greenValue, blueValue, alpha;
+  [colour getRed:&redValue green:&greenValue blue:&blueValue alpha:&alpha];
+  
+  CGFloat gradientRed;
+  CGFloat gradientGreen;
+  CGFloat gradientBlue;
+  UIColor *topGradient;
+  UIColor *bottomGradient;
+  
+    // no colour gradient lightens up, colour gradient darkens up
+
+    gradientRed = redValue + ((1.f - redValue) / 3.f);
+    gradientGreen = greenValue + ((1.f - greenValue) / 3.f);
+    gradientBlue = blueValue + ((1.f - blueValue) / 3.f);
+
+  if (!upsideDown) {
+    topGradient = [UIColor colorWithRed:gradientRed green:gradientGreen blue:gradientBlue alpha:1.f];
+    bottomGradient = [UIColor colorWithRed:redValue green:greenValue blue:blueValue alpha:1.f];
+  } else {
+    topGradient = [UIColor colorWithRed:redValue green:greenValue blue:blueValue alpha:1.f];
+    bottomGradient = [UIColor colorWithRed:gradientRed green:gradientGreen blue:gradientBlue alpha:1.f];
+  }
+
+  
+  CAGradientLayer *gradientLayer = [CAGradientLayer layer];
+  gradientLayer.frame = thisView.layer.bounds;
+  gradientLayer.colors = @[(id)topGradient.CGColor, (id)bottomGradient.CGColor];
+  gradientLayer.locations = @[@0.f, @1.f];
+  
+  [thisView.layer addSublayer:gradientLayer];
+  gradientLayer.zPosition = -1;
+}
+
 @end

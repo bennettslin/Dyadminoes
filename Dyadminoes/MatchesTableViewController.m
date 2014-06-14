@@ -73,7 +73,9 @@
   _screenHeight = [UIScreen mainScreen].bounds.size.height;
   
   self.bottomBar.backgroundColor = [UIColor brownColor];
+  [self addGradientToView:self.bottomBar WithColour:self.bottomBar.backgroundColor andUpsideDown:NO];
   self.topBar.backgroundColor = [UIColor brownColor];
+  [self addGradientToView:self.topBar WithColour:self.topBar.backgroundColor andUpsideDown:YES];
   
 //  NSArray *tempVCArray = @[self.pnpVC, self.helpVC, self.storeVC, self.rankVC, self.optionsVC, self.aboutVC];
 //  NSArray *tempColourArray = @[[UIColor lightGrayColor], [UIColor redColor], [UIColor orangeColor], [UIColor yellowColor], [UIColor greenColor], [UIColor blueColor]];
