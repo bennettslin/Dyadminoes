@@ -44,6 +44,9 @@
 		3F8F045818BFB1B300853C4C /* NSObject+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F8F045718BFB1B300853C4C /* NSObject+Helper.m */; };
 		3F8F045B18BFEF3300853C4C /* SnapPoint.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F8F045A18BFEF3300853C4C /* SnapPoint.m */; };
 		3F9923091895ECCA00FC9392 /* SonorityLogic.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F9923081895ECCA00FC9392 /* SonorityLogic.m */; };
+		3FC65D54194CC7F8003FBE10 /* MaryGray.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3FC65D53194CC7F8003FBE10 /* MaryGray.jpg */; };
+		3FC65D56194CC82F003FBE10 /* MaryFloral.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 3FC65D55194CC82F003FBE10 /* MaryFloral.jpeg */; };
+		3FC65D58194CD317003FBE10 /* MaryFloralUpsideDown.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3FC65D57194CD317003FBE10 /* MaryFloralUpsideDown.jpg */; };
 		3FCCA71B18948AF200E0E4B5 /* Dyadmino.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCA71A18948AF200E0E4B5 /* Dyadmino.m */; };
 		3FCCA71E18948B0500E0E4B5 /* SceneEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCA71D18948B0500E0E4B5 /* SceneEngine.m */; };
 		3FD06E2318D6544F00E2FF04 /* Cell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FD06E2218D6544F00E2FF04 /* Cell.m */; };
@@ -127,6 +130,9 @@
 		3F8F045A18BFEF3300853C4C /* SnapPoint.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SnapPoint.m; sourceTree = "<group>"; };
 		3F9923071895ECCA00FC9392 /* SonorityLogic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SonorityLogic.h; sourceTree = "<group>"; };
 		3F9923081895ECCA00FC9392 /* SonorityLogic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SonorityLogic.m; sourceTree = "<group>"; };
+		3FC65D53194CC7F8003FBE10 /* MaryGray.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = MaryGray.jpg; sourceTree = "<group>"; };
+		3FC65D55194CC82F003FBE10 /* MaryFloral.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = MaryFloral.jpeg; sourceTree = "<group>"; };
+		3FC65D57194CD317003FBE10 /* MaryFloralUpsideDown.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = MaryFloralUpsideDown.jpg; sourceTree = "<group>"; };
 		3FCCA71918948AF200E0E4B5 /* Dyadmino.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dyadmino.h; sourceTree = "<group>"; };
 		3FCCA71A18948AF200E0E4B5 /* Dyadmino.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Dyadmino.m; sourceTree = "<group>"; };
 		3FCCA71C18948B0500E0E4B5 /* SceneEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SceneEngine.h; sourceTree = "<group>"; };
@@ -178,6 +184,9 @@
 		3F0526C21936CE92003D3C04 /* Tutorial Images */ = {
 			isa = PBXGroup;
 			children = (
+				3FC65D57194CD317003FBE10 /* MaryFloralUpsideDown.jpg */,
+				3FC65D55194CC82F003FBE10 /* MaryFloral.jpeg */,
+				3FC65D53194CC7F8003FBE10 /* MaryGray.jpg */,
 				3F0526C31936CE9F003D3C04 /* page4.png */,
 				3F0526C41936CE9F003D3C04 /* page3.png */,
 				3F0526C51936CE9F003D3C04 /* page2.png */,
@@ -444,8 +453,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3FC65D56194CC82F003FBE10 /* MaryFloral.jpeg in Resources */,
 				3FFD6CA318B40A83000D2DA4 /* DyadminoImages.atlas in Resources */,
+				3FC65D58194CD317003FBE10 /* MaryFloralUpsideDown.jpg in Resources */,
 				3F87AACD188DEE4B008C4A0D /* Images.xcassets in Resources */,
+				3FC65D54194CC7F8003FBE10 /* MaryGray.jpg in Resources */,
 				3F87AAC3188DEE4B008C4A0D /* Main_iPad.storyboard in Resources */,
 				3F0526C91936CE9F003D3C04 /* page2.png in Resources */,
 				3F87AAC0188DEE4B008C4A0D /* Main_iPhone.storyboard in Resources */,

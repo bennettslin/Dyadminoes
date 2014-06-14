@@ -23,6 +23,7 @@
 #import "DataDyadmino.h"
 
 #define kBackgroundBoardColour [SKColor lightGrayColor]
+//#define kBackgroundBoardColour [SKColor colorWithPatternImage:[UIImage imageNamed:@"MaryFloral.jpeg"]]
 
 @interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIAlertViewDelegate, MatchDelegate>
 
@@ -82,7 +83,9 @@
 
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
-    self.backgroundColor = kBackgroundBoardColour;
+    self.backgroundColor = [SKColor clearColor];
+//    self.backgroundColor = kBackgroundBoardColour;
+//    self.backgroundColor = [SKColor colorWithPatternImage:[UIImage imageNamed:@"page4.png"]];
     self.name = @"scene";
     self.mySceneEngine = [[SceneEngine alloc] init];
 //    self.undoManager = [[NSUndoManager alloc] init];
@@ -205,7 +208,7 @@
   CGPoint homePosition = CGPointMake(self.view.frame.size.width * 0.5,
                                      (self.view.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
 
-  _boardField = [[Board alloc] initWithColor:kBackgroundBoardColour
+  _boardField = [[Board alloc] initWithColor:[SKColor clearColor]
                                      andSize:size
                               andAnchorPoint:CGPointMake(0.5, 0.5)
                              andHomePosition:homePosition // this is changed with board movement

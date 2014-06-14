@@ -81,7 +81,29 @@
   return self;
 }
 
+-(void)reloadBackgroundImage {
+  
+    // don't know why it renders the image upside down
+  UIImage *backgroundImage = [UIImage imageNamed:@"MaryFloralUpsideDown.jpg"];
+  CGImageRef backgroundCGImage = backgroundImage.CGImage;
+//  CGAffineTransform transform = CGAffineTransformRotate(CGAffineTransformIdentity, M_PI);
+//  backgroundImage.CGImage->transform = transform;
+  CGRect textureSize = CGRectMake(self.origin.x, self.origin.y, backgroundImage.size.width, backgroundImage.size.height);
+  
+  UIGraphicsBeginImageContext(self.size); // use WithOptions to set scale for retina display
+  CGContextRef context = UIGraphicsGetCurrentContext();
+  CGContextDrawTiledImage(context, textureSize, backgroundCGImage);
+  UIImage *tiledBackground = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+  
+  SKTexture *backgroundTexture = [SKTexture textureWithCGImage:tiledBackground.CGImage];
+  SKSpriteNode *backgroundNode = [SKSpriteNode spriteNodeWithTexture:backgroundTexture];
+  [self addChild:backgroundNode];
+}
+
 -(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
+  
+  [self reloadBackgroundImage];
   
     // hex origin is only set once
   if (!_hexOriginSet) {

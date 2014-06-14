@@ -27,6 +27,7 @@
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
   
+//  self.view.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"MaryFloral.jpeg"]];
     /// this seems to work better for scene transitions
     /// but does it get screwed up with different screen dimensions?
   [self createAndConfigureScene];
