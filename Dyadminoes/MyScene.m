@@ -22,6 +22,8 @@
 #import "Match.h"
 #import "DataDyadmino.h"
 
+#define kBackgroundBoardColour [SKColor lightGrayColor]
+
 @interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIAlertViewDelegate, MatchDelegate>
 
   // the dyadminoes that the player sees
@@ -80,9 +82,9 @@
 
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
-    self.backgroundColor = [SKColor blackColor];
+    self.backgroundColor = kBackgroundBoardColour;
     self.name = @"scene";
-    self.mySceneEngine = [SceneEngine new];
+    self.mySceneEngine = [[SceneEngine alloc] init];
 //    self.undoManager = [[NSUndoManager alloc] init];
   
     _rackExchangeInProgress = NO;
@@ -93,18 +95,33 @@
   return self;
 }
 
--(void)didMoveToView:(SKView *)view {
+-(void)preLoad {
+  NSLog(@"preload called from scene");
   _myPlayer = self.myMatch.currentPlayer;
   [self populateRackArray];
   [self populateBoardSet];
-  
+}
+
+-(void)didMoveToView:(SKView *)view {
+  NSLog(@"did move to view");
   [self layoutBoard];
+  NSLog(@"board laid out");
   [self layoutBoardCover];
-  [self populateBoardWithCells];
+
+    // this only needs the board dyadminoes to determine the board's cells ranges
+    // this populates the board cells
+  
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes];
+  NSLog(@"cells and snap points laid out");
+  
   [self populateBoardWithDyadminoes];
+  NSLog(@"board populated with dyadminoes");
   [self layoutSwapField];
+  NSLog(@"swap field laid out");
   [self layoutTopBar];
+  NSLog(@"top bar laid out");
   [self layoutOrRefreshRackFieldAndDyadminoes];
+  NSLog(@"rack field and dyadminoes laid out and refreshed");
 }
 
 #pragma mark - layout methods
@@ -122,7 +139,7 @@
       dyadmino.myHexCoord = dataDyad.myHexCoord;
       dyadmino.orientation = dataDyad.myOrientation;
       dyadmino.myRackOrder = dataDyad.myRackOrder;
-      NSLog(@"this rack order is %i", dyadmino.myRackOrder);
+//      NSLog(@"this rack order is %i", dyadmino.myRackOrder);
         // not the best place to set tempReturnOrientation for dyadmino
       dyadmino.tempReturnOrientation = dyadmino.orientation;
       
@@ -138,6 +155,13 @@
 
 -(void)populateBoardSet {
 
+    // figure out what the last turn was, and who played it, to set highlighting and animation
+  NSDictionary *lastTurn = (NSDictionary *)[self.myMatch.turns lastObject];
+  Player *lastPlayer = (Player *)[lastTurn valueForKey:@"player"];
+  NSArray *lastContainer = (NSArray *)[lastTurn valueForKey:@"container"];
+    // animate last played only if current player does not have dyadminoes in holding container
+  BOOL animateLastPlayedDyadminoes = self.myMatch.holdingContainer.count == 0 ? YES : NO;
+  
     // board must enumerate over both board and holding container dyadminoes
   NSMutableSet *tempDataEnumerationSet = [NSMutableSet setWithSet:self.myMatch.board];
   [tempDataEnumerationSet addObjectsFromArray:self.myMatch.holdingContainer];
@@ -151,6 +175,21 @@
     dyadmino.myRackOrder = -1; // signifies it's not in rack
       // not the best place to set tempReturnOrientation here either
     dyadmino.tempReturnOrientation = dyadmino.orientation;
+    
+      // highlighting and animation
+    
+      // either animate last played dyadminoes, or highlight dyadminoes currently in holding container
+    if (animateLastPlayedDyadminoes) {
+      if ([lastContainer containsObject:dataDyad]) {
+        [dyadmino animateDyadminoesRecentlyPlayed:(lastPlayer == _myPlayer)];
+      }
+    } else {
+      if ([self.myMatch.holdingContainer containsObject:dataDyad]) {
+        [dyadmino highlightBoardDyadmino];
+      }
+    }
+    
+    
     if (![tempSet containsObject:dyadmino]) {
       
       [dyadmino selectAndPositionSprites];
@@ -166,12 +205,13 @@
   CGPoint homePosition = CGPointMake(self.view.frame.size.width * 0.5,
                                      (self.view.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
 
-  _boardField = [[Board alloc] initWithColor:[SKColor clearColor]
+  _boardField = [[Board alloc] initWithColor:kBackgroundBoardColour
                                      andSize:size
                               andAnchorPoint:CGPointMake(0.5, 0.5)
                              andHomePosition:homePosition // this is changed with board movement
                                    andOrigin:(CGPoint)homePosition // origin *never* changes
                                 andZPosition:kZPositionBoard];
+
   _boardField.delegate = self;
   [self addChild:_boardField];
 }
@@ -186,12 +226,6 @@
   _boardCover.alpha = kBoardCoverAlpha;
   _boardCover.hidden = YES;
   [self addChild:_boardCover];
-}
-
--(void)populateBoardWithCells {
-    // this method only needs the board dyadminoes to determine the board's cells ranges
-  NSLog(@"called from populate board with cells");
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes];
 }
 
 -(void)populateBoardWithDyadminoes {
@@ -431,7 +465,7 @@
     // if rack dyadmino is moved to board, send home recentRack dyadmino
   if (_recentRackDyadmino && _touchedDyadmino != _recentRackDyadmino &&
       [_touchedDyadmino belongsInRack] && [_touchedDyadmino isOnBoard]) {
-    [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES];
+    [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
   }
   
     // continue to reset hover count
@@ -596,9 +630,9 @@
     // rack dyadmino will do so upon move out of rack
   if ([dyadmino isOnBoard] && dyadmino != _hoveringDyadmino) {
     if ([_hoveringDyadmino belongsOnBoard]) {
-      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:NO];
+      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:NO andUpdatingBoardBounds:YES];
     } else if ([_hoveringDyadmino belongsInRack]) {
-      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES];
+      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
     }
   }
   
@@ -666,11 +700,11 @@
     
       // if dyadmino belongs in rack (or swap) and *isn't* on board...
     if (([dyadmino belongsInRack] || [dyadmino belongsInSwap]) && ![dyadmino isOnBoard]) {
-      
+      NSLog(@"touch ended of dyadmino belong in rack");
         // ...flip if possible, or send it home
       dyadmino.canFlip ?
         [dyadmino animateFlip] :
-        [self sendDyadminoHome:dyadmino byPoppingIn:NO];
+      [self sendDyadminoHome:dyadmino byPoppingIn:NO andUpdatingBoardBounds:YES];
       
         // or if dyadmino is in top bar...
     } else if ([dyadmino isInTopBar]) {;
@@ -684,7 +718,7 @@
         
           // if it's a rack dyadmino (even if it was just recently on the board)
       } else {
-        [self sendDyadminoHome:dyadmino byPoppingIn:YES];
+        [self sendDyadminoHome:dyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
       }
       
         // or if dyadmino is in rack but belongs on board (this seems to work)
@@ -752,7 +786,7 @@
   [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
 }
 
--(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingIn:(BOOL)poppingIn {
+-(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingIn:(BOOL)poppingIn andUpdatingBoardBounds:(BOOL)updateBoardBounds {
   
       // reposition if dyadmino is rack dyadmino
   if (dyadmino.parent == _boardField && [dyadmino belongsInRack]) {
@@ -765,7 +799,9 @@
   
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
-  [self updateBoardBounds];
+  if (updateBoardBounds) {
+    [self updateBoardBounds];
+  }
   
   [dyadmino endTouchThenHoverResize];
     // this makes nil tempBoardNode
@@ -843,11 +879,11 @@
       
         // else send dyadmino home
     } else if (_hoveringDyadmino) {
-      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:NO];
+      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:NO andUpdatingBoardBounds:YES];
 
         // recent rack dyadmino is sent home
     } else if (_recentRackDyadmino) {
-      [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES];
+      [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
     }
     
       /// done button
@@ -1012,7 +1048,7 @@
     dyadmino.homeNode = dyadmino.tempBoardNode;
     dyadmino.myHexCoord = dyadmino.homeNode.myCell.hexCoord;
     dyadmino.tempBoardNode = nil;
-    [dyadmino unhighlightOutOfPlay];
+    [dyadmino highlightBoardDyadmino];
     
       // empty pointers
     _recentRackDyadmino = nil;
@@ -1357,6 +1393,7 @@
             // this is one of two places where board bounds are updated
             // the other is when rack dyadmino is sent home
           
+          NSLog(@"updateBoardBounds called from updateDyadmino:forHover");
           [self updateBoardBounds];
           
           [_boardField hideAllPivotGuides];
@@ -1566,7 +1603,7 @@
       [dyadminoesOnBoard addObject:_recentRackDyadmino];
     }
   }
-
+  NSLog(@"layoutboardcells called from updateboardbounds");
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard];
   
   [_topBar updateLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",

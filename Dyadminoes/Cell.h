@@ -13,6 +13,11 @@
 
 @interface Cell : SKSpriteNode
 
+/*
+@property (nonatomic) BOOL hidden;
+@property (strong, nonatomic) NSString *name;
+*/
+ 
 @property (strong, nonatomic) Board *board;
 @property (nonatomic) HexCoord hexCoord;
 @property (strong, nonatomic) Dyadmino *myDyadmino;
@@ -23,7 +28,8 @@
 
 -(id)initWithBoard:(Board *)board
         andTexture:(SKTexture *)texture
-       andHexCoord:(HexCoord)hexCoord;
+       andHexCoord:(HexCoord)hexCoord
+      andVectorOrigin:(CGVector)vectorOrigin;
 
 -(void)addSnapPointsToBoard;
 -(void)removeSnapPointsFromBoard;

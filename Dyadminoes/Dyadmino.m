@@ -26,7 +26,7 @@
   self = [super init];
   if (self) {
       // constants
-    self.color = [UIColor yellowColor]; // for color blend factor
+    self.color = kHighlightedDyadminoYellow; // for color blend factor
     self.zPosition = kZPositionRackRestingDyadmino;
     self.name = [NSString stringWithFormat:@"dyadmino %lu-%lu", (unsigned long)pc1, (unsigned long)pc2];
     self.pc1 = pc1;
@@ -222,6 +222,11 @@
 -(void)unhighlightOutOfPlay {
 // TODO: possibly some animation here
   self.colorBlendFactor = 0.f;
+}
+
+-(void)highlightBoardDyadmino {
+  self.color = kPlayedDyadminoBlue;
+  self.colorBlendFactor = kDyadminoColorBlendFactor;
 }
 
 -(void)adjustHighlightGivenDyadminoOffsetPosition:(CGPoint)dyadminoOffsetPosition {
@@ -491,6 +496,15 @@
     self.initialPivotPosition = self.position;
   }];
   SKAction *sequence = [SKAction sequence:@[moveAction, finishAction]];
+  [self runAction:sequence];
+}
+
+-(void)animateDyadminoesRecentlyPlayed:(BOOL)playedByMyPlayer {
+  
+  self.color = playedByMyPlayer ? kPlayedDyadminoBlue : kEnemyDyadminoRed;
+  SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:kDyadminoColorBlendFactor * 1.333 duration:1.5f];
+  SKAction *highlightOut = [SKAction colorizeWithColorBlendFactor:0.f duration:1.5f];
+  SKAction *sequence = [SKAction sequence:@[highlightIn, highlightOut]];
   [self runAction:sequence];
 }
 

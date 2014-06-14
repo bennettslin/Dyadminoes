@@ -22,6 +22,7 @@
 //@property (strong, nonatomic) NSUndoManager *undoManager;
 @property (weak, nonatomic) id <SceneDelegate> delegate;
 
+-(void)preLoad;
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;
 -(void)persistAllSceneDataDyadminoes;
 

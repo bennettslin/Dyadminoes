@@ -9,6 +9,7 @@
 #import "SceneEngine.h"
 #import "Dyadmino.h"
 #import "Player.h"
+#import "AppDelegate.h"
 
 @interface SceneEngine ()
 
@@ -36,7 +37,8 @@
   NSMutableArray *tempAllDyadminoes = [[NSMutableArray alloc] initWithCapacity:kPileCount];
   
     // get dyadmino textures
-  SKTextureAtlas *textureAtlas = [SKTextureAtlas atlasNamed:@"DyadminoImages"];
+  AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+  SKTextureAtlas *textureAtlas = appDelegate.myAtlas;
   NSMutableArray *tempRotationArray = [[NSMutableArray alloc] initWithCapacity:3];
   [tempRotationArray addObject:[textureAtlas textureNamed:@"blankTileNoSo"]];
   [tempRotationArray addObject:[textureAtlas textureNamed:@"blankTileSwNe"]];
@@ -64,7 +66,7 @@
         
         dyadmino.myID = myID;
         
-        NSLog(@"%i: %i-%i", dyadmino.myID, pc1, pc2);
+//        NSLog(@"%i: %i-%i", dyadmino.myID, pc1, pc2);
         
         myID++;
         

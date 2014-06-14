@@ -88,7 +88,8 @@
 -(void)startHovering;
 -(void)keepHovering;
 -(void)finishHovering;
--(void)unhighlightOutOfPlay;
+//-(void)unhighlightOutOfPlay;
+-(void)highlightBoardDyadmino;
 -(void)adjustHighlightGivenDyadminoOffsetPosition:(CGPoint)dyadminoOffsetPosition;
 
 #pragma mark - change state methods
@@ -107,6 +108,7 @@
 -(void)animateMoveToPoint:(CGPoint)point;
 -(void)animateFlip;
 -(void)animateEaseIntoNodeAfterHover;
+-(void)animateDyadminoesRecentlyPlayed:(BOOL)playedByMyPlayer;
 
 #pragma mark - bool methods
 

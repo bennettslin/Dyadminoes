@@ -9,8 +9,11 @@
 #import <Foundation/Foundation.h>
 @class Dyadmino;
 @class Player;
+@class SKTextureAtlas;
 
 @interface SceneEngine : NSObject
+
+@property (strong, nonatomic) SKTextureAtlas *myAtlas;
 
   // dyadminoes
 @property (strong, nonatomic) NSArray *allDyadminoes;

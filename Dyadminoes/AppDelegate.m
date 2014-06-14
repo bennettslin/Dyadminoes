@@ -7,10 +7,16 @@
 //
 
 #import "AppDelegate.h"
+#import <SpriteKit/SpriteKit.h>
 
 @implementation AppDelegate
 
 -(BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+  
+  self.myAtlas = [SKTextureAtlas atlasNamed:@"DyadminoImages"];
+  [self.myAtlas preloadWithCompletionHandler:^{
+    NSLog(@"texture atlas loaded");
+  }];
   
   UIPageControl *pageControl = [UIPageControl appearance];
   pageControl.pageIndicatorTintColor = [UIColor yellowColor];
