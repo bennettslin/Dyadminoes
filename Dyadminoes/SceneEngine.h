@@ -14,15 +14,6 @@
 
   // dyadminoes
 @property (strong, nonatomic) NSArray *allDyadminoes;
-//@property (strong, nonatomic) NSMutableSet *dyadminoesOnBoard;
-
-//+(SceneEngine *)sceneEngine;
-//-(Player *)getAssignedAsPlayer;
-//-(NSUInteger)getCommonPileCount;
-
-//-(BOOL)playOnBoardThisDyadmino:(Dyadmino *)dyadmino fromRackOfPlayer:(Player *)player;
-//-(BOOL)putDyadminoFromPileIntoRackOfPlayer:(Player *)player;
-//-(void)swapTheseDyadminoes:(NSMutableArray *)fromPlayer fromPlayer:(Player *)player;
 
 #pragma mark - player preference methods
 

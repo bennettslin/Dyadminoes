@@ -190,6 +190,7 @@
 
 -(void)populateBoardWithCells {
     // this method only needs the board dyadminoes to determine the board's cells ranges
+  NSLog(@"called from populate board with cells");
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes];
 }
 
@@ -764,7 +765,7 @@
   
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
-  [self updateBoardBoundsWithDyadmino:nil];
+  [self updateBoardBounds];
   
   [dyadmino endTouchThenHoverResize];
     // this makes nil tempBoardNode
@@ -1005,6 +1006,7 @@
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     [self.myMatch addToHoldingContainer:dataDyad];
     [self removeFromPlayerRackDyadminoes:dyadmino];
+    [self addToSceneBoardDyadminoes:dyadmino];
     
       // do cleanup, dyadmino's home node is now the board node
     dyadmino.homeNode = dyadmino.tempBoardNode;
@@ -1308,67 +1310,69 @@
 }
 
 -(void)updateDyadmino:(Dyadmino *)dyadmino forHover:(CFTimeInterval)currentTime {
-  if ([dyadmino isHovering]) {
-    if (_hoverTime == 0.f) {
-      _hoverTime = currentTime;
+  if (!_swapMode) {
+    if ([dyadmino isHovering]) {
+      if (_hoverTime == 0.f) {
+        _hoverTime = currentTime;
+      }
     }
-  }
-  
-    // reset hover time if continues to hover
-  if ([dyadmino continuesToHover]) {
-    _hoverTime = currentTime;
-    dyadmino.hoveringStatus = kDyadminoHovering;
-  }
-  
-  if (_hoverTime != 0.f && currentTime > _hoverTime + kAnimateHoverTime) {
-    _hoverTime = 0.f;
     
-    [dyadmino finishHovering];
-  }
-  
-    // if finished hovering
-  if ([dyadmino isOnBoard] &&
-      [dyadmino isFinishedHovering] &&
-      _touchedDyadmino != dyadmino) {
+      // reset hover time if continues to hover
+    if ([dyadmino continuesToHover]) {
+      _hoverTime = currentTime;
+      dyadmino.hoveringStatus = kDyadminoHovering;
+    }
     
-      // finish hovering only if placement is legal
-    if (dyadmino.tempBoardNode) { // ensures that validation takes place only if placement is uncertain
-                                  // will not get called if returning to homeNode from top bar
-      PhysicalPlacementResult placementResult = [_boardField validatePlacingDyadmino:dyadmino
-                                                                         onBoardNode:dyadmino.tempBoardNode];
-
-        // handle placement results:
+    if (_hoverTime != 0.f && currentTime > _hoverTime + kAnimateHoverTime) {
+      _hoverTime = 0.f;
       
-        // no error
-      if (placementResult == kNoError) {
-        if ([dyadmino belongsOnBoard]) {
-            // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
+      [dyadmino finishHovering];
+    }
+    
+      // if finished hovering
+    if ([dyadmino isOnBoard] &&
+        [dyadmino isFinishedHovering] &&
+        _touchedDyadmino != dyadmino) {
+      
+        // finish hovering only if placement is legal
+      if (dyadmino.tempBoardNode) { // ensures that validation takes place only if placement is uncertain
+                                    // will not get called if returning to homeNode from top bar
+        PhysicalPlacementResult placementResult = [_boardField validatePlacingDyadmino:dyadmino
+                                                                           onBoardNode:dyadmino.tempBoardNode];
+
+          // handle placement results:
+        
+          // no error
+        if (placementResult == kNoError) {
+          if ([dyadmino belongsOnBoard]) {
+              // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
+            
+              // this method will record a dyadmino that's already in the match's board
+              // this method also gets called if a recently played dyadmino
+              // has been moved, but data will not be submitted until the turn is officially done.
+            [self persistDataForDyadmino:dyadmino];
+            dyadmino.homeNode = dyadmino.tempBoardNode;
+          }
           
-//            // this method will record a dyadmino that's already in the match's board
-//            // this method also gets called if a recently played dyadmino
-//            // has been moved, but data will not be submitted until the turn is officially done.
-//          [self recordDataDyadminoStateChangeForBoardDyadmino:dyadmino];
-          [self persistDataForDyadmino:dyadmino];
-          dyadmino.homeNode = dyadmino.tempBoardNode;
+            // this is one of two places where board bounds are updated
+            // the other is when rack dyadmino is sent home
+          
+          [self updateBoardBounds];
+          
+          [_boardField hideAllPivotGuides];
+          [dyadmino animateEaseIntoNodeAfterHover];
+          _hoveringDyadmino = nil;
+         
+            // lone dyadmino
+        } else if (placementResult == kErrorLoneDyadmino) {
+          [_topBar flashLabelNamed:@"message" withText:@"no lone dyadminoes!"];
+          [dyadmino keepHovering];
+          
+            // stacked dyadminoes
+        } else if (placementResult == kErrorStackedDyadminoes) {
+          [_topBar flashLabelNamed:@"message" withText:@"can't stack dyadminoes!"];
+          [dyadmino keepHovering];
         }
-        
-          // this is one of two places where board bounds are updated
-          // the other is when rack dyadmino is sent home
-        [self updateBoardBoundsWithDyadmino:dyadmino];
-        
-        [_boardField hideAllPivotGuides];
-        [dyadmino animateEaseIntoNodeAfterHover];
-        _hoveringDyadmino = nil;
-       
-          // lone dyadmino
-      } else if (placementResult == kErrorLoneDyadmino) {
-        [_topBar flashLabelNamed:@"message" withText:@"no lone dyadminoes!"];
-        [dyadmino keepHovering];
-        
-          // stacked dyadminoes
-      } else if (placementResult == kErrorStackedDyadminoes) {
-        [_topBar flashLabelNamed:@"message" withText:@"can't stack dyadminoes!"];
-        [dyadmino keepHovering];
       }
     }
   }
@@ -1553,14 +1557,16 @@
   [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.homeNode];
 }
 
--(void)updateBoardBoundsWithDyadmino:(Dyadmino *)dyadmino {
+-(void)updateBoardBounds {
   NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
-  
-    // add dyadmino to set if dyadmino is a rack dyadmino
-  if (dyadmino && ![dyadminoesOnBoard containsObject:dyadmino]) {
-    [dyadminoesOnBoard addObject:dyadmino];
+
+    // add dyadmino to set if dyadmino is a recent rack dyadmino
+  if ([_recentRackDyadmino isOnBoard]) {
+    if (![dyadminoesOnBoard containsObject:_recentRackDyadmino]) {
+      [dyadminoesOnBoard addObject:_recentRackDyadmino];
+    }
   }
-  
+
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard];
   
   [_topBar updateLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",

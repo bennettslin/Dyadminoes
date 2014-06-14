@@ -12,12 +12,6 @@
 
 @interface SceneEngine ()
 
-  // players
-//@property (strong, nonatomic) Player *player1;
-
-  // dyadminoes
-//@property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer1Rack;
-//@property (strong, nonatomic) NSMutableArray *dyadminoesInPlayer2Rack;
 @property (strong, nonatomic) NSMutableSet *dyadminoesInCommonPile;
 
 @end
@@ -32,14 +26,7 @@
     _rotationFromDevice = 0;
       // initial setup
     self.dyadminoesInCommonPile = [[NSMutableSet alloc] initWithCapacity:kPileCount];
-//    self.dyadminoesOnBoard = [NSMutableSet new];
     [self createPile];
-//    [self putFirstDyadminoOnBoard];
-    
-      // FIXME: eventually change this to reflect how many players are playing
-//    self.dyadminoesInPlayer1Rack = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
-      //    self.dyadminoesInPlayer2Rack = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
-//    self.player1 = [[Player alloc] initWithPlayerNumber:1 andDyadminoesInRack:[self getInitiallyPopulatedRack]];
   }
   return self;
 }
@@ -110,82 +97,6 @@
 //  }
 }
 
-//-(void)putFirstDyadminoOnBoard {
-//    // board will have method for positioning dyadmino without boardNode
-//  Dyadmino *dyadmino = [self removeRandomDyadminoFromPile];
-////  [dyadmino randomiseRackOrientation];
-//  [self.dyadminoesOnBoard addObject:dyadmino];
-//}
-
-//-(NSMutableArray *)getInitiallyPopulatedRack {
-//  NSMutableArray *playerRack = [NSMutableArray new];
-//  for (int i = 0; i < kNumDyadminoesInRack; i++) {
-//    Dyadmino *dyadmino = [self removeRandomDyadminoFromPile];
-//    if (dyadmino) {
-//      [playerRack addObject:dyadmino];
-//    }
-//  }
-//  return playerRack;
-//}
-
-//-(NSUInteger)getCommonPileCount {
-//  return [self.dyadminoesInCommonPile count];
-//}
-
-  // FIXME: obviously, this will asign players more wisely...
-
-//-(Player *)getAssignedAsPlayer {
-//  return self.player1;
-//}
-
-#pragma mark - player interaction methods
-
-//-(void)swapTheseDyadminoes:(NSMutableArray *)fromPlayer fromPlayer:(Player *)player {
-//    // dyadminoes taken out of pile
-//  for (NSUInteger i = 0; i < fromPlayer.count; i++) {
-//    [player.dataDyadminoesThisTurn addObject:[self removeRandomDyadminoFromPile]];
-//  }
-//  
-//    // put player dyadminoes back in pile
-//  for (Dyadmino *dyadmino in fromPlayer) {
-//    [self.dyadminoesInCommonPile addObject:dyadmino];
-//    [player.dataDyadminoesThisTurn removeObject:dyadmino];
-//  }
-//}
-
-//-(Dyadmino *)removeRandomDyadminoFromPile {
-//  NSUInteger dyadminoesLeftInPile = self.dyadminoesInCommonPile.count;
-//    // if dyadminoes left...
-//  if (dyadminoesLeftInPile >= 1) {
-//    NSUInteger randIndex = [self randomIntegerUpTo:dyadminoesLeftInPile];
-//    NSArray *tempArray = [self.dyadminoesInCommonPile allObjects];
-//    Dyadmino *dyadmino = (Dyadmino *)tempArray[randIndex];
-//    [self.dyadminoesInCommonPile removeObject:dyadmino];
-//    return dyadmino;
-//  } else {
-//    return nil;
-//  }
-//}
-//
-//-(BOOL)putDyadminoFromPileIntoRackOfPlayer:(Player *)player {
-//  Dyadmino *dyadmino = [self removeRandomDyadminoFromPile];
-//  if (dyadmino) {
-//    [player.dataDyadminoesThisTurn addObject:dyadmino];
-//    return YES;
-//  } else {
-//    return NO;
-//  }
-//}
-//
-//-(BOOL)playOnBoardThisDyadmino:(Dyadmino *)dyadmino fromRackOfPlayer:(Player *)player {
-//  if ([player.dataDyadminoesThisTurn containsObject:dyadmino]) {
-//    [self.dyadminoesOnBoard addObject:dyadmino];
-//    [player.dataDyadminoesThisTurn removeObject:dyadmino];
-//    return YES;
-//  }
-//  return NO;
-//}
-
 #pragma mark = player preference methods
 
 -(void)rotateDyadminoesBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation {
@@ -230,16 +141,5 @@
     [dyadmino selectAndPositionSprites];
   }
 }
-
-#pragma mark - singleton method
-
-//+(SceneEngine *)sceneEngine {
-//  static dispatch_once_t pred;
-//  static SceneEngine *shared = nil;
-//  dispatch_once(&pred, ^{
-//    shared = [[SceneEngine alloc] init];
-//  });
-//  return shared;
-//}
 
 @end
