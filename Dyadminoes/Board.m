@@ -103,7 +103,7 @@
 
 -(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
   
-  [self reloadBackgroundImage];
+//  [self reloadBackgroundImage];
   
     // hex origin is only set once
   if (!_hexOriginSet) {

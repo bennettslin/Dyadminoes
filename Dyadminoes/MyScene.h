@@ -12,11 +12,13 @@
 @class Player;
 @class Dyadmino;
 @class Match;
+@class SoundEngine;
 
 @protocol SceneDelegate;
 
 @interface MyScene : SKScene
 
+@property (strong, nonatomic) SoundEngine *mySoundEngine;
 @property (strong, nonatomic) SceneEngine *mySceneEngine;
 @property (strong, nonatomic) Match *myMatch;
 //@property (strong, nonatomic) NSUndoManager *undoManager;

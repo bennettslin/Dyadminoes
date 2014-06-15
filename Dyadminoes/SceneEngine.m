@@ -60,6 +60,10 @@
         SKSpriteNode *pc1NumberSprite = [SKSpriteNode spriteNodeWithTexture:[textureAtlas textureNamed:pc1NumberString]];
         SKSpriteNode *pc2LetterSprite = [SKSpriteNode spriteNodeWithTexture:[textureAtlas textureNamed:pc2LetterString]];
         SKSpriteNode *pc2NumberSprite = [SKSpriteNode spriteNodeWithTexture:[textureAtlas textureNamed:pc2NumberString]];
+        pc1LetterSprite.name = [NSString stringWithFormat:@"%i", pc1];
+        pc1NumberSprite.name = [NSString stringWithFormat:@"%i", pc1];
+        pc2LetterSprite.name = [NSString stringWithFormat:@"%i", pc2];
+        pc2NumberSprite.name = [NSString stringWithFormat:@"%i", pc2];
         
           // instantiate dyadmino
         Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1 andPC2:pc2 andPCMode:kPCModeLetter andRotationFrameArray:rotationFrameArray andPC1LetterSprite:pc1LetterSprite andPC2LetterSprite:pc2LetterSprite andPC1NumberSprite:pc1NumberSprite andPC2NumberSprite:pc2NumberSprite];

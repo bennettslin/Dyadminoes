@@ -228,29 +228,29 @@
   
   self.holdingContainerLabel = [[Label alloc] initWithName:@"holdingContainer"
                                               andFontColor:[SKColor whiteColor]
-                                               andFontSize:labelFontSize
-                                               andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 10)
+                                               andFontSize:labelFontSize * 0.8f
+                                               andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition)
                                               andZPosition:kZPositionTopBarLabel
                                     andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
   [tempDictionary setValue:self.holdingContainerLabel forKey:self.holdingContainerLabel.name];
   self.swapContainerLabel = [[Label alloc] initWithName:@"swapContainer"
                                               andFontColor:[SKColor whiteColor]
-                                               andFontSize:labelFontSize
-                                               andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 15)
+                                               andFontSize:labelFontSize * 0.8f
+                                               andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 4)
                                               andZPosition:kZPositionTopBarLabel
                                     andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
   [tempDictionary setValue:self.swapContainerLabel forKey:self.swapContainerLabel.name];
   self.boardDyadminoesLabel = [[Label alloc] initWithName:@"boardDyadminoes"
                                    andFontColor:[SKColor whiteColor]
-                                    andFontSize:labelFontSize
-                                    andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 20)
+                                    andFontSize:labelFontSize * 0.8f
+                                    andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 7)
                                    andZPosition:kZPositionTopBarLabel
                          andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
   [tempDictionary setValue:self.boardDyadminoesLabel forKey:self.boardDyadminoesLabel.name];
   self.pileDyadminoesLabel = [[Label alloc] initWithName:@"pileDyadminoes"
                                   andFontColor:[SKColor whiteColor]
-                                   andFontSize:labelFontSize
-                                   andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 30)
+                                   andFontSize:labelFontSize / 2
+                                   andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 10)
                                   andZPosition:kZPositionTopBarLabel
                         andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
   [tempDictionary setValue:self.pileDyadminoesLabel forKey:self.pileDyadminoesLabel.name];

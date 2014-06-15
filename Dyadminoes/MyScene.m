@@ -21,6 +21,7 @@
 #import "Label.h"
 #import "Match.h"
 #import "DataDyadmino.h"
+#import "SoundEngine.h"
 
 #define kBackgroundBoardColour [SKColor lightGrayColor]
 //#define kBackgroundBoardColour [SKColor colorWithPatternImage:[UIImage imageNamed:@"MaryFloral.jpeg"]]
@@ -59,6 +60,7 @@
   BOOL _canDoubleTapForDyadminoFlip;
   BOOL _hoveringDyadminoToStayFixedWhileBoardMoves;
   BOOL _boardJustShiftedNotCorrected;
+  SKSpriteNode *_soundedDyadminoFace;
   NSUInteger _hoveringDyadminoBeingCorrected;
   NSUInteger _hoveringDyadminoFinishedCorrecting;
   CFTimeInterval _doubleTapTime;
@@ -83,10 +85,11 @@
 
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
-    self.backgroundColor = [SKColor clearColor];
-//    self.backgroundColor = kBackgroundBoardColour;
+//    self.backgroundColor = [SKColor clearColor];
+    self.backgroundColor = kBackgroundBoardColour;
 //    self.backgroundColor = [SKColor colorWithPatternImage:[UIImage imageNamed:@"page4.png"]];
     self.name = @"scene";
+    self.mySoundEngine = [[SoundEngine alloc] init];
     self.mySceneEngine = [[SceneEngine alloc] init];
 //    self.undoManager = [[NSUndoManager alloc] init];
   
@@ -101,6 +104,7 @@
 -(void)preLoad {
   NSLog(@"preload called from scene");
   _myPlayer = self.myMatch.currentPlayer;
+  [self addChild:self.mySoundEngine];
   [self populateRackArray];
   [self populateBoardSet];
 }
@@ -360,7 +364,7 @@
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
-  NSLog(@"%@", _touchNode.name);
+//  NSLog(@"%@", _touchNode.name);
 
     //--------------------------------------------------------------------------
     /// 3a. button pressed
@@ -378,6 +382,14 @@
   
   Dyadmino *dyadmino = [self selectDyadminoFromTouchNode:_touchNode
                                            andTouchPoint:_currentTouchLocation];
+  
+    // register as a sound
+  if (dyadmino) {
+    [self.mySoundEngine soundTouchedDyadmino:dyadmino];
+  } else if ([_touchNode.parent isKindOfClass:[Dyadmino class]]) {
+    [self.mySoundEngine soundTouchedDyadminoFace:(SKSpriteNode *)_touchNode];
+    _soundedDyadminoFace = (SKSpriteNode *)_touchNode;
+  }
   
   if (dyadmino && !dyadmino.isRotating && !_touchedDyadmino) {
     _touchedDyadmino = dyadmino;
@@ -423,6 +435,18 @@
   UITouch *thisTouch = [touches anyObject];
   if (thisTouch != _currentTouch) {
     return;
+  }
+
+    // if touch hits a dyadmino face, sound and continue...
+  if (!_touchedDyadmino) {
+    SKNode *node = [self nodeAtPoint:[_currentTouch locationInNode:self]];
+    if (node != _soundedDyadminoFace && [node.parent isKindOfClass:[Dyadmino class]]) {
+      [self.mySoundEngine soundTouchedDyadminoFace:(SKSpriteNode *)node];
+    }
+      // ensures that touch must leave entire dyadmino before re-sounding dyadmino face
+    if (![node isKindOfClass:[Dyadmino class]]) {
+      _soundedDyadminoFace = (SKSpriteNode *)node;
+    }
   }
   
     // if the touch started on a button, do nothing and return
@@ -576,6 +600,7 @@
     // cleanup
   _pivotInProgress = NO;
   _touchOffsetVector = CGPointZero;
+  _soundedDyadminoFace = nil;
 }
 
 #pragma mark - board methods
@@ -1730,7 +1755,7 @@
       // if dyadmino is in rack...
   } else if ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap]) {
     if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
-        _rackField.xIncrementInRack) {
+        kDistanceForTouchingRestingDyadmino) { // was _rackField.xIncrementInRack
       return dyadmino;
     }
   }
@@ -1853,23 +1878,23 @@
   [self updateLabels];
 
   if (_topBar.pileDyadminoesLabel.hidden) {
-//    _topBar.pileDyadminoesLabel.hidden = NO;
+    _topBar.pileDyadminoesLabel.hidden = NO;
     _topBar.pileDyadminoesLabel.zPosition = kZPositionTopBarLabel;
-//    _topBar.boardDyadminoesLabel.hidden = NO;
+    _topBar.boardDyadminoesLabel.hidden = NO;
     _topBar.boardDyadminoesLabel.zPosition = kZPositionTopBarLabel;
-//    _topBar.holdingContainerLabel.hidden = NO;
+    _topBar.holdingContainerLabel.hidden = NO;
     _topBar.holdingContainerLabel.zPosition = kZPositionTopBarLabel;
-//    _topBar.swapContainerLabel.hidden = NO;
+    _topBar.swapContainerLabel.hidden = NO;
     _topBar.swapContainerLabel.zPosition = kZPositionTopBarLabel;
   } else {
     _topBar.pileDyadminoesLabel.hidden = YES;
-//    _topBar.pileDyadminoesLabel.zPosition = -1000;
+    _topBar.pileDyadminoesLabel.zPosition = -1000;
     _topBar.boardDyadminoesLabel.hidden = YES;
-//    _topBar.pileDyadminoesLabel.zPosition = -1000;
+    _topBar.pileDyadminoesLabel.zPosition = -1000;
     _topBar.holdingContainerLabel.hidden = YES;
-//    _topBar.holdingContainerLabel.zPosition = -1000;
+    _topBar.holdingContainerLabel.zPosition = -1000;
     _topBar.swapContainerLabel.hidden = YES;
-//    _topBar.swapContainerLabel.zPosition = -1000;
+    _topBar.swapContainerLabel.zPosition = -1000;
   }
   
   if (!_dyadminoesHidden) {
