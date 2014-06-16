@@ -68,6 +68,8 @@
 
   // distance constants
 #define kAngleForSnapToPivot 0.1f
+#define kDistanceAfterCannotRotate (kDyadminoFaceRadius * 0.25f)
+#define kDistanceForTouchingFace (kDyadminoFaceRadius * 0.7f)
 #define kDistanceForTouchingHoveringDyadmino (kDyadminoFaceRadius * kDyadminoResizedFactor) // was 32.f
 #define kDistanceForTouchingRestingDyadmino (kDyadminoFaceRadius * 0.8f) // was 25.f
 #define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
@@ -101,6 +103,7 @@
   // children of rack
 #define kZPositionRackMovedDyadmino 10.f
 #define kZPositionRackRestingDyadmino 20.f
+#define kZPositionDyadminoFace 400.f
 
   // data key constants
 #define kMatchesKey @"myMatches"
@@ -121,6 +124,8 @@
 #define kGold [SKColor colorWithRed:.64f green:.57f blue:.38f alpha:1.f]
 #define kTestRed [SKColor colorWithRed:1.f green:.7f blue:.7f alpha:1.f]
 #define kDarkGreen [SKColor colorWithRed:0.f green:.6f blue:.2f alpha:1.f]
+#define kBarBrown [SKColor colorWithRed:0.3f green:0.15f blue:0.1f alpha:1.f]
+#define kPianoBlack [SKColor colorWithRed:0.1f green:0.05f blue:0.f alpha:1.f]
 
 #define kPivotRed [SKColor colorWithRed:1.f green:.8f blue:.8f alpha:1.f]
 #define kVanilla [SKColor colorWithRed:1.f green:1.f blue:.92f alpha:1.f]

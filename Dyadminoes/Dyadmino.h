@@ -109,6 +109,7 @@
 -(void)animateFlip;
 -(void)animateEaseIntoNodeAfterHover;
 -(void)animateDyadminoesRecentlyPlayed:(BOOL)playedByMyPlayer;
+-(void)animateFace:(SKSpriteNode *)face;
 
 #pragma mark - bool methods
 

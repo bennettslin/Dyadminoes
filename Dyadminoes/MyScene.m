@@ -298,7 +298,7 @@
 
 -(void)layoutTopBar {
     // background
-  _topBar = [[TopBar alloc] initWithColor:kDarkBlue
+  _topBar = [[TopBar alloc] initWithColor:kBarBrown
                                   andSize:CGSizeMake(self.frame.size.width, kTopBarHeight)
                            andAnchorPoint:CGPointZero
                               andPosition:CGPointMake(0, self.frame.size.height - kTopBarHeight)
@@ -320,7 +320,7 @@
   
   if (!_rackField) {
     _rackField = [[Rack alloc] initWithBoard:_boardField
-                                   andColour:kFieldPurple
+                                   andColour:kPianoBlack
                                      andSize:CGSizeMake(self.frame.size.width, kRackHeight)
                               andAnchorPoint:CGPointZero
                                  andPosition:CGPointZero
@@ -344,9 +344,8 @@
 #pragma mark - touch methods
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    /// 1. first, easy checks to determine whether to even register the touch
+    /// 1. first, make sure there's only one current touch
   
-    // this ensures no more than one touch at a time
   if (!_currentTouch) {
     _currentTouch = [touches anyObject];
   } else {
@@ -370,7 +369,7 @@
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
-//  NSLog(@"%@", _touchNode.name);
+  NSLog(@"%@, zPosition %.2f", _touchNode.name, _touchNode.zPosition);
 
     //--------------------------------------------------------------------------
     /// 3a. button pressed
@@ -386,15 +385,19 @@
     //--------------------------------------------------------------------------
     /// 3b. dyadmino touched
   
-  Dyadmino *dyadmino = [self selectDyadminoFromTouchNode:_touchNode
-                                           andTouchPoint:_currentTouchLocation];
+  Dyadmino *dyadmino = [self selectDyadminoFromTouchPoint:_currentTouchLocation];
   
-    // register as a sound
+    // register sound if dyadmino tapped
   if (dyadmino) {
     [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
-  } else if ([_touchNode.parent isKindOfClass:[Dyadmino class]]) {
-    [self.mySoundEngine soundTouchedDyadminoFace:(SKSpriteNode *)_touchNode plucked:YES];
-    _soundedDyadminoFace = (SKSpriteNode *)_touchNode;
+    
+      // register sound if face tapped
+  } else {
+    SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
+    if (face) {
+      [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
+      _soundedDyadminoFace = face;
+    }
   }
   
   if (dyadmino && !dyadmino.isRotating && !_touchedDyadmino) {
@@ -442,18 +445,6 @@
   if (thisTouch != _currentTouch) {
     return;
   }
-
-    // if touch hits a dyadmino face, sound and continue...
-  if (!_touchedDyadmino) {
-    SKNode *node = [self nodeAtPoint:[_currentTouch locationInNode:self]];
-    if (node != _soundedDyadminoFace && [node.parent isKindOfClass:[Dyadmino class]]) {
-      [self.mySoundEngine soundTouchedDyadminoFace:(SKSpriteNode *)node plucked:NO];
-    }
-      // ensures that touch must leave entire dyadmino before re-sounding dyadmino face
-    if (![node isKindOfClass:[Dyadmino class]]) {
-      _soundedDyadminoFace = (SKSpriteNode *)node;
-    }
-  }
   
     // if the touch started on a button, do nothing and return
   if (_buttonPressed) {
@@ -471,6 +462,22 @@
     /// 2. next, update the touch location
 
   _currentTouchLocation = [self findTouchLocationFromTouches:touches];
+  
+    // if touch hits a dyadmino face, sound and continue...
+  if (!_boardToBeMovedOrBeingMoved && !_touchedDyadmino) {
+    SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
+    
+    if (face) {
+      if (!_soundedDyadminoFace) {
+        [self.mySoundEngine soundTouchedDyadminoFace:face plucked:NO];
+        _soundedDyadminoFace = face;
+      } else {
+        
+      }
+    } else {
+      _soundedDyadminoFace = nil;
+    }
+  }
   
     //--------------------------------------------------------------------------
     /// 3a. board is being moved
@@ -492,8 +499,10 @@
     // update currently touched dyadmino's section
   [self determineCurrentSectionOfDyadmino:_touchedDyadmino];
   
-    // if it moved at all, it can no longer flip
-  _touchedDyadmino.canFlip = NO;
+    // if it moved beyond certain distance, it can no longer flip
+  if ([self getDistanceFromThisPoint:_touchedDyadmino.position toThisPoint:_touchedDyadmino.homeNode.position] > kDistanceAfterCannotRotate) {
+    _touchedDyadmino.canFlip = NO;
+  }
   
     // if rack dyadmino is moved to board, send home recentRack dyadmino
   if (_recentRackDyadmino && _touchedDyadmino != _recentRackDyadmino &&
@@ -1715,7 +1724,36 @@
     [self subtractFromThisPoint:touchPoint thisPoint:_touchOffsetVector];
 }
 
--(Dyadmino *)selectDyadminoFromTouchNode:(SKNode *)touchNode andTouchPoint:(CGPoint)touchPoint {
+-(SKSpriteNode *)selectFaceFromTouchPoint:(CGPoint)touchPoint {
+  NSArray *touchNodes = [self nodesAtPoint:touchPoint];
+  for (SKSpriteNode *touchNode in touchNodes) {
+    if ([touchNode.parent isKindOfClass:[Dyadmino class]]) {
+      NSLog(@"yes, it's a dyadmino");
+      Dyadmino *dyadmino = (Dyadmino *)touchNode.parent;
+      CGPoint relativeToDyadmino = [self addToThisPoint:touchNode.position thisPoint:dyadmino.position];
+      
+      
+      if (dyadmino && [dyadmino isOnBoard] && !_swapMode) {
+        
+          // accommodate the fact that dyadmino's position is now relative to board
+        CGPoint relativeToBoardPoint = [_boardField getOffsetFromPoint:touchPoint];
+        if ([self getDistanceFromThisPoint:relativeToBoardPoint toThisPoint:relativeToDyadmino] < kDistanceForTouchingFace) {
+          NSLog(@"yes, we got the distance");
+          return touchNode;
+        }
+          // if dyadmino is in rack...
+      } else if (dyadmino && ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap])) {
+        if ([self getDistanceFromThisPoint:touchPoint toThisPoint:relativeToDyadmino] <
+            kDistanceForTouchingFace) {
+          return touchNode;
+        }
+      }
+    }
+  }
+  return nil;
+}
+
+-(Dyadmino *)selectDyadminoFromTouchPoint:(CGPoint)touchPoint {
     // also establishes if pivot is in progress; touchOffset isn't relevant for this method
 
     // if we're in hovering mode...
@@ -1741,37 +1779,41 @@
     //--------------------------------------------------------------------------
   
     // otherwise, first restriction is that the node being touched is the dyadmino
-  Dyadmino *dyadmino;
-  if ([touchNode isKindOfClass:[Dyadmino class]]) {
-    dyadmino = (Dyadmino *)touchNode;
-  } else if ([touchNode.parent isKindOfClass:[Dyadmino class]]) {
-    dyadmino = (Dyadmino *)touchNode.parent;
-  } else if ([touchNode.parent.parent isKindOfClass:[Dyadmino class]]) {
-    dyadmino = (Dyadmino *)touchNode.parent.parent;
-  } else {
-    return nil;
-  }
-    
-    // second restriction is that touch point is close enough based on following criteria:
-    // if dyadmino is on board, not hovering and thus locked in a node, and we're not in swap mode...
-  [self determineCurrentSectionOfDyadmino:dyadmino];
-
-  if ([dyadmino isOnBoard] && !_swapMode) {
-
-      // accommodate the fact that dyadmino's position is now relative to board
-    CGPoint relativeToBoardPoint = [_boardField getOffsetFromPoint:touchPoint];
-    if ([self getDistanceFromThisPoint:relativeToBoardPoint toThisPoint:dyadmino.position] <
-        kDistanceForTouchingRestingDyadmino) {
-      return dyadmino;
-    }
-      // if dyadmino is in rack...
-  } else if ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap]) {
-    if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
-        kDistanceForTouchingRestingDyadmino) { // was _rackField.xIncrementInRack
-      return dyadmino;
-    }
-  }
   
+  NSArray *touchNodes = [self nodesAtPoint:touchPoint];
+  for (SKNode *touchNode in touchNodes) {
+    Dyadmino *dyadmino;
+    if ([touchNode isKindOfClass:[Dyadmino class]]) {
+      dyadmino = (Dyadmino *)touchNode;
+    } else if ([touchNode.parent isKindOfClass:[Dyadmino class]]) {
+      dyadmino = (Dyadmino *)touchNode.parent;
+    } else if ([touchNode.parent.parent isKindOfClass:[Dyadmino class]]) {
+      dyadmino = (Dyadmino *)touchNode.parent.parent;
+    }
+  //  else {
+  //    return nil;
+  //  }
+      
+      // second restriction is that touch point is close enough based on following criteria:
+      // if dyadmino is on board, not hovering and thus locked in a node, and we're not in swap mode...
+    [self determineCurrentSectionOfDyadmino:dyadmino];
+
+    if (dyadmino && [dyadmino isOnBoard] && !_swapMode) {
+
+        // accommodate the fact that dyadmino's position is now relative to board
+      CGPoint relativeToBoardPoint = [_boardField getOffsetFromPoint:touchPoint];
+      if ([self getDistanceFromThisPoint:relativeToBoardPoint toThisPoint:dyadmino.position] <
+          kDistanceForTouchingRestingDyadmino) {
+        return dyadmino;
+      }
+        // if dyadmino is in rack...
+    } else if (dyadmino && ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap])) {
+      if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
+          kDistanceForTouchingRestingDyadmino) { // was _rackField.xIncrementInRack
+        return dyadmino;
+      }
+    }
+  }
     // otherwise, dyadmino is not close enough
   return nil;
 }
@@ -1885,7 +1927,8 @@
 }
 
 -(void)soundRackExchangedDyadmino:(Dyadmino *)dyadmino {
-  [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:NO];
+    // this will be a click clack sound
+//  [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:NO];
 }
 
 #pragma mark - debugging methods

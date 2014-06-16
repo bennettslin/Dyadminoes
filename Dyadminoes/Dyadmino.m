@@ -34,9 +34,13 @@
     self.pcMode = pcMode;
     self.rotationFrameArray = rotationFrameArray;
     self.pc1LetterSprite = pc1LetterSprite;
+    self.pc1LetterSprite.zPosition = kZPositionDyadminoFace;
     self.pc2LetterSprite = pc2LetterSprite;
+    self.pc2LetterSprite.zPosition = kZPositionDyadminoFace;
     self.pc1NumberSprite = pc1NumberSprite;
+    self.pc1NumberSprite.zPosition = kZPositionDyadminoFace;
     self.pc2NumberSprite = pc2NumberSprite;
+    self.pc2NumberSprite.zPosition = kZPositionDyadminoFace;
     self.hoveringStatus = kDyadminoNoHoverStatus;
 //    [self randomiseRackOrientation];
     [self selectAndPositionSprites];
@@ -278,6 +282,8 @@
 
 -(void)removeActionsAndEstablishNotRotating {
   self.colorBlendFactor = 0.f;
+  [self.pc1Sprite setScale:1.f];
+  [self.pc2Sprite setScale:1.f];
   [self removeAllActions];
   self.isRotating = NO;
 }
@@ -503,10 +509,19 @@
 -(void)animateDyadminoesRecentlyPlayed:(BOOL)playedByMyPlayer {
   
   self.color = playedByMyPlayer ? kPlayedDyadminoBlue : kEnemyDyadminoRed;
-  SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:kDyadminoColorBlendFactor * 1.333 duration:1.5f];
-  SKAction *highlightOut = [SKAction colorizeWithColorBlendFactor:0.f duration:1.5f];
+  SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:kDyadminoColorBlendFactor * 1.333 duration:0.75f];
+  SKAction *highlightOut = [SKAction colorizeWithColorBlendFactor:0.f duration:0.75f];
   SKAction *sequence = [SKAction sequence:@[highlightIn, highlightOut]];
   [self runAction:sequence];
+}
+
+-(void)animateFace:(SKSpriteNode *)face {
+  if (face.parent == self) {
+    SKAction *scaleIn = [SKAction scaleTo:1.5f duration:.05f];
+    SKAction *scaleOut = [SKAction scaleTo:1.f duration:.125f];
+    SKAction *sequence = [SKAction sequence:@[scaleIn, scaleOut]];
+    [face runAction:sequence];
+  }
 }
 
 #pragma mark - bool methods

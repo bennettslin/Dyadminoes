@@ -33,14 +33,17 @@
   NSLog(@"sounding %@", dyadmino.name);
   
   SKAction *sound = plucked ?
-    [SKAction playSoundFileNamed:@"hitCat.wav" waitForCompletion:NO] : // plucked
-    [SKAction playSoundFileNamed:@"hitCat.wav" waitForCompletion:NO]; // resonated
+    [SKAction playSoundFileNamed:@"hitCatLady.wav" waitForCompletion:NO] : // plucked
+    [SKAction playSoundFileNamed:@"hitCatLady.wav" waitForCompletion:NO]; // resonated
   [self runAction:sound];
+//  [dyadmino animateFace:dyadmino.pc1Sprite];
+//  [dyadmino animateFace:dyadmino.pc2Sprite];
 }
 
 -(void)soundTouchedDyadminoFace:(SKSpriteNode *)dyadminoFace plucked:(BOOL)plucked {
     // find out hexcoord
-  HexCoord faceHexCoord = [(Dyadmino *)dyadminoFace.parent getHexCoordOfFace:dyadminoFace];
+  Dyadmino *dyadmino = (Dyadmino *)dyadminoFace.parent;
+  HexCoord faceHexCoord = [dyadmino getHexCoordOfFace:dyadminoFace];
   NSLog(@"sounding note %@ on hexcoord %i, %i", dyadminoFace.name, faceHexCoord.x, faceHexCoord.y);
   
   [self recordFaceHexCoord:faceHexCoord];
@@ -49,6 +52,7 @@
     [SKAction playSoundFileNamed:@"hitCatLady.wav" waitForCompletion:NO] : // plucked
     [SKAction playSoundFileNamed:@"hitCatLady.wav" waitForCompletion:NO]; // resonated
   [self runAction:sound];
+  [dyadmino animateFace:dyadminoFace];
 }
 
 -(void)recordFaceHexCoord:(HexCoord)faceHexCoord {
