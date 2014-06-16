@@ -350,7 +350,13 @@
   if (!_currentTouch) {
     _currentTouch = [touches anyObject];
   } else {
-    return;
+    
+      // handles ending previous touch
+    [self endTouchFromTouches:nil];
+    _currentTouch = [touches anyObject];
+    
+      // originally
+//    return;
   }
     
   if (_swapFieldActionInProgress) {
@@ -553,7 +559,10 @@
     return;
   }
   _currentTouch = nil;
-  
+  [self endTouchFromTouches:touches];
+}
+
+-(void)endTouchFromTouches:(NSSet *)touches {
   if (_swapFieldActionInProgress) {
     return;
   }
@@ -562,7 +571,7 @@
     /// 2a and b. handle button pressed or board moved
   
     // handle button that was pressed, ensure that touch is still on button when it ends
-  if (_buttonPressed) {
+  if (_buttonPressed && touches) {
     SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
     if (node == _buttonPressed) {
       [self handleButtonPressed];
@@ -594,7 +603,7 @@
   
   [self determineCurrentSectionOfDyadmino:_touchedDyadmino];
   Dyadmino *dyadmino = [self assignTouchEndedPointerToDyadmino:_touchedDyadmino];
-
+  
   [self handleTouchEndOfDyadmino:dyadmino];
   
     // cleanup
