@@ -388,7 +388,7 @@
   Dyadmino *dyadmino = [self selectDyadminoFromTouchPoint:_currentTouchLocation];
   
     // register sound if dyadmino tapped
-  if (dyadmino) {
+  if ((dyadmino && !_swapMode) || [dyadmino isInRack]) { // not sure if not being in swapMode is necessary
     [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
     
       // register sound if face tapped
@@ -1728,7 +1728,7 @@
   NSArray *touchNodes = [self nodesAtPoint:touchPoint];
   for (SKSpriteNode *touchNode in touchNodes) {
     if ([touchNode.parent isKindOfClass:[Dyadmino class]]) {
-      NSLog(@"yes, it's a dyadmino");
+//      NSLog(@"yes, it's a dyadmino");
       Dyadmino *dyadmino = (Dyadmino *)touchNode.parent;
       CGPoint relativeToDyadmino = [self addToThisPoint:touchNode.position thisPoint:dyadmino.position];
       
@@ -1738,7 +1738,7 @@
           // accommodate the fact that dyadmino's position is now relative to board
         CGPoint relativeToBoardPoint = [_boardField getOffsetFromPoint:touchPoint];
         if ([self getDistanceFromThisPoint:relativeToBoardPoint toThisPoint:relativeToDyadmino] < kDistanceForTouchingFace) {
-          NSLog(@"yes, we got the distance");
+//          NSLog(@"yes, we got the distance");
           return touchNode;
         }
           // if dyadmino is in rack...
@@ -1793,24 +1793,28 @@
   //  else {
   //    return nil;
   //  }
+
+    if (dyadmino) {
       
-      // second restriction is that touch point is close enough based on following criteria:
-      // if dyadmino is on board, not hovering and thus locked in a node, and we're not in swap mode...
-    [self determineCurrentSectionOfDyadmino:dyadmino];
-
-    if (dyadmino && [dyadmino isOnBoard] && !_swapMode) {
-
-        // accommodate the fact that dyadmino's position is now relative to board
-      CGPoint relativeToBoardPoint = [_boardField getOffsetFromPoint:touchPoint];
-      if ([self getDistanceFromThisPoint:relativeToBoardPoint toThisPoint:dyadmino.position] <
-          kDistanceForTouchingRestingDyadmino) {
-        return dyadmino;
-      }
-        // if dyadmino is in rack...
-    } else if (dyadmino && ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap])) {
-      if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
-          kDistanceForTouchingRestingDyadmino) { // was _rackField.xIncrementInRack
-        return dyadmino;
+        // second restriction is that touch point is close enough based on following criteria:
+        // if dyadmino is on board, not hovering and thus locked in a node, and we're not in swap mode...
+      NSLog(@"determine current section of dyadmino from selectDyadminoFromTouchPoint");
+      [self determineCurrentSectionOfDyadmino:dyadmino];
+      
+      if ([dyadmino isOnBoard] && !_swapMode) {
+        
+          // accommodate the fact that dyadmino's position is now relative to board
+        CGPoint relativeToBoardPoint = [_boardField getOffsetFromPoint:touchPoint];
+        if ([self getDistanceFromThisPoint:relativeToBoardPoint toThisPoint:dyadmino.position] <
+            kDistanceForTouchingRestingDyadmino) {
+          return dyadmino;
+        }
+          // if dyadmino is in rack...
+      } else if (dyadmino && ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap])) {
+        if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
+            kDistanceForTouchingRestingDyadmino) { // was _rackField.xIncrementInRack
+          return dyadmino;
+        }
       }
     }
   }

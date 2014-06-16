@@ -9,6 +9,12 @@
 #import <Foundation/Foundation.h>
 @class Dyadmino;
 
+  // temporary sounds
+#define kPop @"hitCatLady.wav"
+#define kClick @"Click2-Sebastian-759472264.wav"
+#define kRing @"Electronic_Chime-KevanGC-495939803.wav"
+#define kSlide @"Slide Closed-SoundBible.com-1521580537"
+
 // constants that differ between iPhone and iPad
 //------------------------------------------------------------------------------
 
@@ -103,7 +109,7 @@
   // children of rack
 #define kZPositionRackMovedDyadmino 10.f
 #define kZPositionRackRestingDyadmino 20.f
-#define kZPositionDyadminoFace 400.f
+#define kZPositionDyadminoFace 30.f
 
   // data key constants
 #define kMatchesKey @"myMatches"
