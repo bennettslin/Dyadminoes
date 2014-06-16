@@ -142,6 +142,13 @@ typedef struct HexCoord {
 //  kPileDyadmino
 //} DyadminoLocation;
 
+typedef enum faceVector {
+  kFaceVectorNone,
+  kFaceVectorUpLeft,
+  kFaceVectorVertical,
+  kFaceVectorUpRight
+} FaceVector;
+
 typedef enum dyadminoOrientation {
   kPC1atTwelveOClock,
   kPC1atTwoOClock,

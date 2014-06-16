@@ -588,7 +588,6 @@
 -(SKNode *)createPivotGuideNamed:(NSString *)name {
   
     // first four are prePivot, next is pivotRotate, next two are pivotAround
-  
   float startAngle[9] = {212.5, 32.5, 212.5, 32.5, // prePivot around
                          332.5, 152.5, // prePivot rotate
                          300, // rotate
@@ -675,8 +674,7 @@
     while (degree > 360.f) {
       degree -= 360.f;
     }
-    
-//    NSLog(@"show pivot guide %@", pivotGuide.name);
+
     pivotGuide.zRotation = [self getRadiansFromDegree:degree];
     
     [self addChild:pivotGuide];

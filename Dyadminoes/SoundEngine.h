@@ -13,7 +13,7 @@
 
 @interface SoundEngine : SKNode
 
--(void)soundTouchedDyadmino:(Dyadmino *)dyadmino;
--(void)soundTouchedDyadminoFace:(SKSpriteNode *)dyadminoFace;
+-(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked;
+-(void)soundTouchedDyadminoFace:(SKSpriteNode *)dyadminoFace plucked:(BOOL)plucked;
 
 @end

@@ -277,6 +277,7 @@
 }
 
 -(void)removeActionsAndEstablishNotRotating {
+  self.colorBlendFactor = 0.f;
   [self removeAllActions];
   self.isRotating = NO;
 }
@@ -575,6 +576,34 @@
   } else {
     return 0.f;
   }
+}
+
+-(HexCoord)getHexCoordOfFace:(SKSpriteNode *)face {
+  BOOL faceIsPC1 = [face.name integerValue] == self.pc1 ? YES : NO;
+  
+  if (face.parent == self) {
+    switch (self.orientation) {
+      case kPC1atTwelveOClock:
+        return faceIsPC1 ? [self hexCoordFromX:self.myHexCoord.x andY:self.myHexCoord.y + 1] : self.myHexCoord;
+        break;
+      case kPC1atTwoOClock:
+        return faceIsPC1 ? [self hexCoordFromX:self.myHexCoord.x + 1 andY:self.myHexCoord.y] : self.myHexCoord;
+        break;
+      case kPC1atFourOClock:
+        return faceIsPC1 ? self.myHexCoord : [self hexCoordFromX:self.myHexCoord.x - 1 andY:self.myHexCoord.y + 1];
+        break;
+      case kPC1atSixOClock:
+        return faceIsPC1 ? self.myHexCoord : [self hexCoordFromX:self.myHexCoord.x andY:self.myHexCoord.y + 1];
+        break;
+      case kPC1atEightOClock:
+        return faceIsPC1 ? self.myHexCoord : [self hexCoordFromX:self.myHexCoord.x + 1 andY:self.myHexCoord.y];
+        break;
+      case kPC1atTenOClock:
+        return faceIsPC1 ? [self hexCoordFromX:self.myHexCoord.x - 1 andY:self.myHexCoord.y + 1] : self.myHexCoord;
+        break;
+    }
+  }
+  return self.myHexCoord;
 }
 
 #pragma mark - debugging methods

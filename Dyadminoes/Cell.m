@@ -30,7 +30,7 @@
     self.hexCoord = hexCoord;
     self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
     self.zPosition = kZPositionBoardCell;
-    self.alpha = 0.3f;
+    self.alpha = 0.9f;
     
       // establish cell size
     CGFloat paddingBetweenCells = kIsIPhone ? 0 : 0; // 5.f : 7.5f;

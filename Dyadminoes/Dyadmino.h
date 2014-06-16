@@ -126,6 +126,7 @@
 #pragma mark - helper methods
 
 -(CGPoint)determinePivotAroundPointBasedOnPivotOnPC:(PivotOnPC)pivotOnPC;
+-(HexCoord)getHexCoordOfFace:(SKSpriteNode *)face;
 
 #pragma mark - debugging methods
 

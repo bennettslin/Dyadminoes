@@ -9,18 +9,114 @@
 #import "SoundEngine.h"
 #import "Dyadmino.h"
 
-@implementation SoundEngine
+@implementation SoundEngine {
+  FaceVector _faceVector;
+  int _xOrigin;
+  int _yOrigin;
+  int32_t _xBits;
+  int32_t _yBits;
+}
 
--(void)soundTouchedDyadmino:(Dyadmino *)dyadmino {
+-(id)init {
+  self = [super init];
+  if (self) {
+    _faceVector = kFaceVectorNone;
+    _xOrigin = 0;
+    _yOrigin = 0;
+    _xBits = 0;
+    _yBits = 0;
+  }
+  return self;
+}
+
+-(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked {
   NSLog(@"sounding %@", dyadmino.name);
-  SKAction *sound = [SKAction playSoundFileNamed:@"hitCat.wav" waitForCompletion:NO];
+  
+  SKAction *sound = plucked ?
+    [SKAction playSoundFileNamed:@"hitCat.wav" waitForCompletion:NO] : // plucked
+    [SKAction playSoundFileNamed:@"hitCat.wav" waitForCompletion:NO]; // resonated
   [self runAction:sound];
 }
 
--(void)soundTouchedDyadminoFace:(SKSpriteNode *)dyadminoFace {
-  NSLog(@"sounding note %@", dyadminoFace.name);
-  SKAction *sound = [SKAction playSoundFileNamed:@"hitCatLady.wav" waitForCompletion:NO];
+-(void)soundTouchedDyadminoFace:(SKSpriteNode *)dyadminoFace plucked:(BOOL)plucked {
+    // find out hexcoord
+  HexCoord faceHexCoord = [(Dyadmino *)dyadminoFace.parent getHexCoordOfFace:dyadminoFace];
+  NSLog(@"sounding note %@ on hexcoord %i, %i", dyadminoFace.name, faceHexCoord.x, faceHexCoord.y);
+  
+  [self recordFaceHexCoord:faceHexCoord];
+  
+  SKAction *sound = plucked ?
+    [SKAction playSoundFileNamed:@"hitCatLady.wav" waitForCompletion:NO] : // plucked
+    [SKAction playSoundFileNamed:@"hitCatLady.wav" waitForCompletion:NO]; // resonated
   [self runAction:sound];
+}
+
+-(void)recordFaceHexCoord:(HexCoord)faceHexCoord {
+  
+    // nothing yet touched
+  if (_faceVector == kFaceVectorNone && _xBits == 0 && _yBits == 0) {
+    NSLog(@"first touched");
+    [self establishFirstFaceBitsWithHexCoord:faceHexCoord];
+
+  } else {
+      // make sure it's not the exact same face
+    if (_xOrigin == faceHexCoord.x && _yOrigin == faceHexCoord.y) {
+      return;
+    }
+      // get distances between origin and new face
+    int xDistance = faceHexCoord.x - _xOrigin;
+    int yDistance = faceHexCoord.y - _yOrigin;
+    
+    if (abs(xDistance) <= 3 && abs(yDistance) <= 3) {
+      if (xDistance == 0 &&
+          (_faceVector == kFaceVectorNone || _faceVector == kFaceVectorVertical)) {
+        _faceVector = kFaceVectorVertical;
+        _yBits |= 1 << (3 + yDistance);
+        [self checkTriadOrSeventh];
+      } else if (yDistance == 0 &&
+          (_faceVector == kFaceVectorNone || _faceVector == kFaceVectorUpRight)) {
+        _faceVector = kFaceVectorUpRight;
+        _xBits |= 1 << (3 + xDistance);
+        [self checkTriadOrSeventh];
+      } else if (xDistance == yDistance * -1 &&
+          (_faceVector == kFaceVectorNone || _faceVector == kFaceVectorUpLeft)) {
+        _faceVector = kFaceVectorUpLeft;
+        _yBits |= 1 << (3 + yDistance);
+        _xBits |= 1 << (3 + xDistance);
+        [self checkTriadOrSeventh];
+      } else { // not on same axis
+        [self establishFirstFaceBitsWithHexCoord:faceHexCoord];
+      }
+    } else { // too far
+      [self establishFirstFaceBitsWithHexCoord:faceHexCoord];
+    }
+  }
+}
+
+-(void)establishFirstFaceBitsWithHexCoord:(HexCoord)faceHexCoord {
+    // first bits is 00001000
+  _faceVector = kFaceVectorNone;
+  _xOrigin = faceHexCoord.x;
+  _yOrigin = faceHexCoord.y;
+  _xBits = 1 << 3;
+  _yBits = 1 << 3;
+}
+
+  // probably won't be this complicated
+-(void)checkTriadOrSeventh {
+  NSLog(@"checking that it's a triad or seventh");
+  if (_faceVector == kFaceVectorVertical && _xBits == 1 << 3 &&
+      (_yBits == 15 || _yBits == 30 || _yBits == 60 || _yBits == 120 || _yBits == 14 || _yBits == 28 || _yBits == 56)) {
+    NSLog(@"vertical");
+  } else if (_faceVector == kFaceVectorUpRight && _yBits == 1 << 3 &&
+             (_xBits == 15 || _xBits == 30 || _xBits == 60 || _xBits == 120 || _xBits == 14 || _xBits == 28 || _xBits == 56)) {
+    NSLog(@"upright");
+  } else if (_faceVector == kFaceVectorUpLeft &&
+             ((_xBits == 15 && _yBits == 120) || (_xBits == 30 && _yBits == 60) ||
+             (_xBits == 60 && _yBits == 60) || (_xBits == 120 && _yBits == 15) ||
+             (_xBits == 14 && _yBits == 56) || (_xBits == 28 && _yBits == 28) || (_xBits == 56 && _yBits == 14))) {
+    NSLog(@"upleft");
+  }
 }
 
 @end

@@ -144,6 +144,9 @@
           scootedDyadmino.zPosition = kZPositionRackMovedDyadmino;
           [scootedDyadmino animateMoveToPoint:[scootedDyadmino getHomeNodePosition]];
           scootedDyadmino.zPosition = kZPositionRackRestingDyadmino;
+          
+            // sound it
+          [self.delegate soundRackExchangedDyadmino:scootedDyadmino];
         }
           // make the displacedDyadmino the new scootedDyadmino
         displacedDyadmino.homeNode = scootedDyadmino.homeNode;

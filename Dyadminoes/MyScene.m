@@ -239,7 +239,7 @@
   for (Dyadmino *dyadmino in self.boardDyadminoes) {
     dyadmino.delegate = self;
     
-    NSLog(@"dyadmino coord is %i, %i", dyadmino.myHexCoord.x, dyadmino.myHexCoord.y);
+//    NSLog(@"dyadmino coord is %i, %i", dyadmino.myHexCoord.x, dyadmino.myHexCoord.y);
     
       // this is for the first dyadmino, which doesn't have a boardNode
       // and also other dyadminoes when reloading
@@ -385,9 +385,9 @@
   
     // register as a sound
   if (dyadmino) {
-    [self.mySoundEngine soundTouchedDyadmino:dyadmino];
+    [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
   } else if ([_touchNode.parent isKindOfClass:[Dyadmino class]]) {
-    [self.mySoundEngine soundTouchedDyadminoFace:(SKSpriteNode *)_touchNode];
+    [self.mySoundEngine soundTouchedDyadminoFace:(SKSpriteNode *)_touchNode plucked:YES];
     _soundedDyadminoFace = (SKSpriteNode *)_touchNode;
   }
   
@@ -441,7 +441,7 @@
   if (!_touchedDyadmino) {
     SKNode *node = [self nodeAtPoint:[_currentTouch locationInNode:self]];
     if (node != _soundedDyadminoFace && [node.parent isKindOfClass:[Dyadmino class]]) {
-      [self.mySoundEngine soundTouchedDyadminoFace:(SKSpriteNode *)node];
+      [self.mySoundEngine soundTouchedDyadminoFace:(SKSpriteNode *)node plucked:NO];
     }
       // ensures that touch must leave entire dyadmino before re-sounding dyadmino face
     if (![node isKindOfClass:[Dyadmino class]]) {
@@ -1606,20 +1606,23 @@
 #pragma mark - board helper methods
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino {
-  
-    // experiment to see if this is a good place to set the tempArrays for placed dyadmino
-  
-//  /*
-  dyadmino.tempBoardNode ?
-    [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.tempBoardNode] :
-    [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode];
-//   */
+  if (![dyadmino isRotating]) {
+      // experiment to see if this is a good place to set the tempArrays for placed dyadmino
+    
+  //  /*
+    dyadmino.tempBoardNode ?
+      [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.tempBoardNode] :
+      [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode];
+  //   */
+  }
 }
 
 -(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino {
-  dyadmino.tempBoardNode ?
-  [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.tempBoardNode] :
-  [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.homeNode];
+  if (![dyadmino isRotating]) {
+    dyadmino.tempBoardNode ?
+    [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.tempBoardNode] :
+    [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.homeNode];
+  }
 }
 
 -(void)updateBoardBounds {
@@ -1870,6 +1873,10 @@
     [self updateLabels];
     [self updateButtonsForStaticState];
   }
+}
+
+-(void)soundRackExchangedDyadmino:(Dyadmino *)dyadmino {
+  [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:NO];
 }
 
 #pragma mark - debugging methods
