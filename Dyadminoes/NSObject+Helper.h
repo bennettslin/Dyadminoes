@@ -10,10 +10,10 @@
 @class Dyadmino;
 
   // temporary sounds
-#define kPop @"hitCatLady.wav"
-#define kClick @"Click2-Sebastian-759472264.wav"
-#define kRing @"Electronic_Chime-KevanGC-495939803.wav"
-#define kSlide @"Slide Closed-SoundBible.com-1521580537"
+#define kSoundPop @"hitCatLady.wav"
+#define kSoundClick @"Click2-Sebastian-759472264.wav"
+#define kSoundRing @"Electronic_Chime-KevanGC-495939803.wav"
+#define kSoundSwoosh @"Slide_Closed_SoundBible_com_1521580537.wav"
 
 // constants that differ between iPhone and iPad
 //------------------------------------------------------------------------------
@@ -109,7 +109,7 @@
   // children of rack
 #define kZPositionRackMovedDyadmino 10.f
 #define kZPositionRackRestingDyadmino 20.f
-#define kZPositionDyadminoFace 30.f
+#define kZPositionDyadminoFace 5.f
 
   // data key constants
 #define kMatchesKey @"myMatches"

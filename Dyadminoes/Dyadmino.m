@@ -196,9 +196,20 @@
 #pragma mark - change status methods
 
 -(void)startTouchThenHoverResize {
-  self.isTouchThenHoverResized = YES;
-  [self resizeBasedOnHoveringStatus];
-  [self selectAndPositionSprites];
+  
+    // FIXME: actions conflict
+//  SKAction *bounceScaleIn = [SKAction scaleTo:kDyadminoResizedFactor * 1.1f duration:0.125f];
+//  SKAction *bounceScaleOut = [SKAction scaleTo:kDyadminoResizedFactor duration:0.25f];
+//  SKAction *complete = [SKAction runBlock:^{
+    self.isTouchThenHoverResized = YES;
+    [self resizeBasedOnHoveringStatus];
+    [self selectAndPositionSprites];
+//  }];
+//  SKAction *faceSequence = [SKAction sequence:@[bounceScaleIn, bounceScaleOut]];
+//  SKAction *dyadminoSequence = [SKAction sequence:@[bounceScaleIn, bounceScaleOut, complete]];
+//  [self runAction:dyadminoSequence];
+//  [self.pc1Sprite runAction:faceSequence];
+//  [self.pc2Sprite runAction:faceSequence];
 }
 
 -(void)endTouchThenHoverResize {
@@ -268,13 +279,13 @@
 }
 
 -(void)goToBoardNode {
-//  NSLog(@"dyadmino's go to board node method called");
+  NSLog(@"dyadmino's go to board node method called");
   [self endTouchThenHoverResize];
   if ([self belongsInRack]) {
     [self orientBySnapNode:self.tempBoardNode];
     [self animateMoveToPoint:self.tempBoardNode.position];
   } else {
-//    NSLog(@"this is called because it's a board dyadmino");
+    NSLog(@"this is called because it's a board dyadmino");
     [self orientBySnapNode:self.homeNode];
     [self animateMoveToPoint:self.homeNode.position];
   }
@@ -357,6 +368,9 @@
         // if orientation hasn't changed, just return
       if (self.orientation != newOrientation) {
         self.orientation = newOrientation;
+        
+          // sound dyadmino click
+        [self.delegate soundDyadminoPivotClick];
         
           // if it pivots on center, just go straight to positioning sprites
         if (pivotOnPC != kPivotCentre) {
@@ -464,6 +478,7 @@
     // rotation
   if ([self isInRack] || [self isOrBelongsInSwap]) {
     finishAction = [SKAction runBlock:^{
+      [self.delegate soundDyadminoSettleClick];
       [self finishHovering];
       [self setToHomeZPosition];
       [self endTouchThenHoverResize];
@@ -495,6 +510,8 @@
   
   SKAction *moveAction = [SKAction moveTo:settledPosition duration:kConstantTime];
   SKAction *finishAction = [SKAction runBlock:^{
+    
+    [self.delegate soundDyadminoSettleClick];
     [self endTouchThenHoverResize];
     [self setToHomeZPosition];
     

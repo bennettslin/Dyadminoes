@@ -29,12 +29,29 @@
   return self;
 }
 
+-(void)soundClickedDyadmino {
+  SKAction *sound = [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
+  [self runAction:sound];
+}
+
+-(void)soundButton:(BOOL)tap {
+  SKAction *sound = tap ?
+    [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO] :
+    [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
+  [self runAction:sound];
+}
+
+-(void)soundSwapFieldSwoosh {
+  SKAction *sound = [SKAction playSoundFileNamed:kSoundSwoosh waitForCompletion:NO];
+  [self runAction:sound];
+}
+
 -(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked {
   NSLog(@"sounding %@", dyadmino.name);
   
   SKAction *sound = plucked ?
-    [SKAction playSoundFileNamed:kRing waitForCompletion:NO] : // plucked
-    [SKAction playSoundFileNamed:kRing waitForCompletion:NO]; // resonated
+    [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO] : // plucked
+    [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO]; // resonated
   [self runAction:sound];
 //  [dyadmino animateFace:dyadmino.pc1Sprite];
 //  [dyadmino animateFace:dyadmino.pc2Sprite];
@@ -49,8 +66,8 @@
   [self recordFaceHexCoord:faceHexCoord];
   
   SKAction *sound = plucked ?
-    [SKAction playSoundFileNamed:kRing waitForCompletion:NO] : // plucked
-    [SKAction playSoundFileNamed:kRing waitForCompletion:NO]; // resonated
+    [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO] : // plucked
+    [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO]; // resonated
   [self runAction:sound];
   [dyadmino animateFace:dyadminoFace];
 }

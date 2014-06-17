@@ -14,6 +14,8 @@
 @protocol DyadminoDelegate <NSObject>
 
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
+-(void)soundDyadminoSettleClick;
+-(void)soundDyadminoPivotClick;
 
 @end
 
@@ -110,6 +112,7 @@
 -(void)animateEaseIntoNodeAfterHover;
 -(void)animateDyadminoesRecentlyPlayed:(BOOL)playedByMyPlayer;
 -(void)animateFace:(SKSpriteNode *)face;
+//-(void)animateInitialTouch;
 
 #pragma mark - bool methods
 

@@ -20,7 +20,7 @@
 		3F55E1FD18D7A8520048E67E /* Button.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F55E1FC18D7A8520048E67E /* Button.m */; };
 		3F580BDC194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */; };
 		3F580BDE194F710F0040B5D0 /* Click2-Sebastian-759472264.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */; };
-		3F580BE0194F71DF0040B5D0 /* Slide Closed-SoundBible.com-1521580537.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDF194F71DF0040B5D0 /* Slide Closed-SoundBible.com-1521580537.wav */; };
+		3F580BE0194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDF194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav */; };
 		3F6AE50E18D4D1E7000528C1 /* TopBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F6AE50D18D4D1E7000528C1 /* TopBar.m */; };
 		3F7BD7C9192AF45D009274DE /* Match.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7C8192AF45D009274DE /* Match.m */; };
 		3F7BD7D5192B09D6009274DE /* MatchesTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7D4192B09D6009274DE /* MatchesTableViewController.m */; };
@@ -98,7 +98,7 @@
 		3F55E1FC18D7A8520048E67E /* Button.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Button.m; sourceTree = "<group>"; };
 		3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Electronic_Chime-KevanGC-495939803.wav"; sourceTree = "<group>"; };
 		3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Click2-Sebastian-759472264.wav"; sourceTree = "<group>"; };
-		3F580BDF194F71DF0040B5D0 /* Slide Closed-SoundBible.com-1521580537.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Slide Closed-SoundBible.com-1521580537.wav"; sourceTree = "<group>"; };
+		3F580BDF194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Slide_Closed_SoundBible_com_1521580537.wav; sourceTree = "<group>"; };
 		3F6AE50C18D4D1E7000528C1 /* TopBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TopBar.h; sourceTree = "<group>"; };
 		3F6AE50D18D4D1E7000528C1 /* TopBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TopBar.m; sourceTree = "<group>"; };
 		3F7BD7C7192AF45D009274DE /* Match.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Match.h; sourceTree = "<group>"; };
@@ -200,7 +200,7 @@
 		3F0526C21936CE92003D3C04 /* Tutorial Images */ = {
 			isa = PBXGroup;
 			children = (
-				3F580BDF194F71DF0040B5D0 /* Slide Closed-SoundBible.com-1521580537.wav */,
+				3F580BDF194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav */,
 				3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */,
 				3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */,
 				3FBC6AD5194E208300420CB8 /* hitCat.wav */,
@@ -488,7 +488,7 @@
 				3FC65D54194CC7F8003FBE10 /* MaryGray.jpg in Resources */,
 				3F87AAC3188DEE4B008C4A0D /* Main_iPad.storyboard in Resources */,
 				3F0526C91936CE9F003D3C04 /* page2.png in Resources */,
-				3F580BE0194F71DF0040B5D0 /* Slide Closed-SoundBible.com-1521580537.wav in Resources */,
+				3F580BE0194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav in Resources */,
 				3F87AAC0188DEE4B008C4A0D /* Main_iPhone.storyboard in Resources */,
 				3F580BDC194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav in Resources */,
 				3F0526CA1936CE9F003D3C04 /* page1.png in Resources */,

@@ -703,22 +703,23 @@
 
 #pragma mark - pivot methods
 
--(void)orientDyadmino:(Dyadmino *)dyadmino basedOnSextantChange:(CGFloat)sextantChange {
-  for (NSUInteger i = 0; i < 12; i++) {
-    if (sextantChange >= 0.f + i && sextantChange < 1.f + i) {
-      NSUInteger dyadminoOrientationShouldBe = (dyadmino.prePivotDyadminoOrientation + i) % 6;
-      if (dyadmino.orientation == dyadminoOrientationShouldBe) {
-        return;
-      } else {
-        dyadmino.orientation = dyadminoOrientationShouldBe;
-        
-          // or else put this in an animation
-        [dyadmino selectAndPositionSprites];
-        return;
-      }
-    }
-  }
-}
+//-(void)orientDyadmino:(Dyadmino *)dyadmino basedOnSextantChange:(CGFloat)sextantChange {
+//  for (NSUInteger i = 0; i < 12; i++) {
+//    if (sextantChange >= 0.f + i && sextantChange < 1.f + i) {
+//      NSUInteger dyadminoOrientationShouldBe = (dyadmino.prePivotDyadminoOrientation + i) % 6;
+//      if (dyadmino.orientation == dyadminoOrientationShouldBe) {
+//        return;
+//      } else {
+//        
+//        dyadmino.orientation = dyadminoOrientationShouldBe;
+//        
+//          // or else put this in an animation
+//        [dyadmino selectAndPositionSprites];
+//        return;
+//      }
+//    }
+//  }
+//}
 
 -(PivotOnPC)determinePivotOnPCForDyadmino:(Dyadmino *)dyadmino {
   

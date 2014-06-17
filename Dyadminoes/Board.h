@@ -13,6 +13,7 @@
 @protocol BoardDelegate <NSObject>
 
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino;
+//-(void)soundDyadminoPivotClick;
 
 @end
 

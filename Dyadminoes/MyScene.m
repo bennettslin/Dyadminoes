@@ -376,6 +376,9 @@
   
     // if it's a button, take care of it when touch ended
   if ([_topBar.allButtons containsObject:_touchNode]) {
+    
+      // sound of button tapped
+    [self.mySoundEngine soundButton:YES];
     _buttonPressed = (Button *)_touchNode;
       // TODO: make distinction of button pressed better, of course
     _buttonPressed.alpha = 0.3f;
@@ -388,13 +391,13 @@
   Dyadmino *dyadmino = [self selectDyadminoFromTouchPoint:_currentTouchLocation];
   
     // register sound if dyadmino tapped
-  if ((dyadmino && !_swapMode) || [dyadmino isInRack]) { // not sure if not being in swapMode is necessary
+  if (!_hoveringDyadmino && ((dyadmino && !_swapMode) || [dyadmino isInRack])) { // not sure if not being in swapMode is necessary
     [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
     
       // register sound if face tapped
   } else {
     SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
-    if (face) {
+    if (face && face.parent != _hoveringDyadmino) {
       [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
       _soundedDyadminoFace = face;
     }
@@ -467,7 +470,7 @@
   if (!_boardToBeMovedOrBeingMoved && !_touchedDyadmino) {
     SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
     
-    if (face) {
+    if (face && face.parent != _hoveringDyadmino) {
       if (!_soundedDyadminoFace) {
         [self.mySoundEngine soundTouchedDyadminoFace:face plucked:NO];
         _soundedDyadminoFace = face;
@@ -583,6 +586,9 @@
   if (_buttonPressed && touches) {
     SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
     if (node == _buttonPressed) {
+      
+        // sound of button release
+      [self.mySoundEngine soundButton:NO];
       [self handleButtonPressed];
     }
     _buttonPressed.alpha = 1.f;
@@ -748,9 +754,12 @@
     if (([dyadmino belongsInRack] || [dyadmino belongsInSwap]) && ![dyadmino isOnBoard]) {
       NSLog(@"touch ended of dyadmino belong in rack");
         // ...flip if possible, or send it home
-      dyadmino.canFlip ?
-        [dyadmino animateFlip] :
-      [self sendDyadminoHome:dyadmino byPoppingIn:NO andUpdatingBoardBounds:YES];
+      if (dyadmino.canFlip) {
+        [dyadmino animateFlip];
+      } else {
+        [self sendDyadminoHome:dyadmino byPoppingIn:NO andUpdatingBoardBounds:YES];
+        [self soundDyadminoSettleClick];
+      }
       
         // or if dyadmino is in top bar...
     } else if ([dyadmino isInTopBar]) {;
@@ -892,6 +901,7 @@
 #pragma mark - button methods
 
 -(void)handleButtonPressed {
+  
   
       /// games button
   if (_buttonPressed == _topBar.gamesButton) {
@@ -1475,7 +1485,6 @@
     Label *nameLabel = _topBar.playerNameLabels[i];
     Label *scoreLabel = _topBar.playerScoreLabels[i];
     Label *rackLabel = _topBar.playerRackLabels[i];
-    
   
     if (player.resigned) {
       nameLabel.fontColor = [SKColor darkGrayColor];
@@ -1561,6 +1570,7 @@
     // FIXME: make better animation
     // otherwise toggle
   if (_swapMode) { // swap mode on, so turn off
+    [self.mySoundEngine soundSwapFieldSwoosh];
     _swapFieldActionInProgress = YES;
     
     SKAction *moveAction = [SKAction moveToY:0.f duration:kConstantTime];
@@ -1579,6 +1589,7 @@
     }
     
   } else { // swap mode off, turn on
+    [self.mySoundEngine soundSwapFieldSwoosh];
     _swapFieldActionInProgress = YES;
     
     _swapField.hidden = NO;
@@ -1932,7 +1943,17 @@
 
 -(void)soundRackExchangedDyadmino:(Dyadmino *)dyadmino {
     // this will be a click clack sound
-//  [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:NO];
+  [self.mySoundEngine soundClickedDyadmino];
+}
+
+  // these methods might be different later, so keep them separate
+-(void)soundDyadminoPivotClick {
+  NSLog(@"sound dyadmino pivot click");
+  [self.mySoundEngine soundClickedDyadmino];
+}
+
+-(void)soundDyadminoSettleClick {
+  [self.mySoundEngine soundClickedDyadmino];
 }
 
 #pragma mark - debugging methods
