@@ -1982,18 +1982,19 @@
   }
   
   if (!_dyadminoesHidden) {
-    for (Dyadmino *dyadmino in _boardField.children) {
-      if ([dyadmino isKindOfClass:[Dyadmino class]])
-      dyadmino.hidden = YES;
-    }
+//    for (Dyadmino *dyadmino in _boardField.children) {
+//      if ([dyadmino isKindOfClass:[Dyadmino class]])
+//      dyadmino.hidden = YES;
+//    }
     _dyadminoesHidden = YES;
   } else {
-    for (Dyadmino *dyadmino in _boardField.children) {
-      if ([dyadmino isKindOfClass:[Dyadmino class]])
-      dyadmino.hidden = NO;
-    }
+//    for (Dyadmino *dyadmino in _boardField.children) {
+//      if ([dyadmino isKindOfClass:[Dyadmino class]])
+//      dyadmino.hidden = NO;
+//    }
     _dyadminoesHidden = NO;
   }
+
 
   for (Cell *cell in _boardField.children) {
     if ([cell isKindOfClass:[Cell class]]) {
