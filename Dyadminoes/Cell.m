@@ -33,7 +33,7 @@
     self.alpha = 0.9f;
     
       // establish cell size
-    CGFloat paddingBetweenCells = kIsIPhone ? 0 : 0; // 5.f : 7.5f;
+    CGFloat paddingBetweenCells = kIsIPhone ? 1.f : 2.f; // 5.f : 7.5f;
     
     CGFloat ySize = kDyadminoFaceRadius * 2 - paddingBetweenCells;
     CGFloat widthToHeightRatio = self.texture.size.width / self.texture.size.height;

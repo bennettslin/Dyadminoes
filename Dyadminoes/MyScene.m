@@ -96,7 +96,7 @@
     _rackExchangeInProgress = NO;
     _buttonPressed = nil;
     _hoveringDyadminoBeingCorrected = 0;
-    _hoveringDyadminoFinishedCorrecting = 0;
+    _hoveringDyadminoFinishedCorrecting = 1;
   }
   return self;
 }
@@ -129,6 +129,7 @@
   NSLog(@"top bar laid out");
   [self layoutOrRefreshRackFieldAndDyadminoes];
   NSLog(@"rack field and dyadminoes laid out and refreshed");
+  [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
 }
 
 #pragma mark - layout methods
@@ -195,7 +196,6 @@
         [dyadmino highlightBoardDyadmino];
       }
     }
-    
     
     if (![tempSet containsObject:dyadmino]) {
       
@@ -836,9 +836,15 @@
   
     // start hovering
   [dyadmino removeActionsAndEstablishNotRotating];
-  [dyadmino startHovering];
   
-  [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
+  [self checkWhetherToEaseOrKeepHovering:dyadmino];
+//  [dyadmino startHovering];
+  
+  NSLog(@"prepare for hover");
+  if (dyadmino.isHovering || dyadmino.continuesToHover) {
+    NSLog(@"dyadmino hovering status is %i", dyadmino.hoveringStatus);
+    [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
+  }
 }
 
 -(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingIn:(BOOL)poppingIn andUpdatingBoardBounds:(BOOL)updateBoardBounds {
@@ -884,12 +890,11 @@
 }
 
 -(void)sendDyadminoToBoardNode:(Dyadmino *)dyadmino {
-  NSLog(@"send dyadmino to board node");
-  [dyadmino goToBoardNode];
+    // cells will be updated in callback
+  [dyadmino animatePopBackIntoBoardNode];
   if (dyadmino == _hoveringDyadmino) {
     _hoveringDyadmino = nil;
   }
-  [self updateCellsForPlacedDyadmino:dyadmino];
 }
 
 #pragma mark - view controller methods
@@ -1160,7 +1165,7 @@
     // TODO: this works, but it feels jumpy
   [self updateForBoardBeingCorrectedWithinBounds];
   [self updateForHoveringDyadminoBeingCorrectedWithinBounds];
-  
+  [self updatePivotForDyadminoMoveWithoutBoardCorrected];
   [self updateForButtons];
 }
 
@@ -1265,6 +1270,7 @@
       [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
       _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
       [self updateCellsForPlacedDyadmino:_hoveringDyadmino];
+      NSLog(@"update for hovering");
       [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
       _hoveringDyadminoBeingCorrected = 0;
     }
@@ -1386,18 +1392,28 @@
 
       if (_boardJustShiftedNotCorrected &&
           _hoveringDyadmino && _hoveringDyadmino != _touchedDyadmino) {
+        NSLog(@"hovering dyadmino is %@, touched dyadmino is %@", _hoveringDyadmino.name, _touchedDyadmino.name);
+        
         _boardJustShiftedNotCorrected = NO;
         [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
         _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
         [self updateCellsForPlacedDyadmino:_hoveringDyadmino];
         
-        if (!_hoveringDyadminoBeingCorrected) {
+        if (_hoveringDyadminoBeingCorrected == 0) {
+          NSLog(@"update for board");
           [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
         }
       }
       
       _boardBeingCorrectedWithinBounds = NO;
     }
+  }
+}
+
+-(void)updatePivotForDyadminoMoveWithoutBoardCorrected {
+    // if board not shifted or corrected, show prepivot guide
+  if (_hoveringDyadmino && _hoveringDyadminoBeingCorrected == 0 && !_touchedDyadmino && !_currentTouch && !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected && ![_boardField.children containsObject:_boardField.prePivotGuide]) {
+    [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
   }
 }
 
@@ -1421,51 +1437,58 @@
       [dyadmino finishHovering];
     }
     
-      // if finished hovering
-    if ([dyadmino isOnBoard] &&
-        [dyadmino isFinishedHovering] &&
-        _touchedDyadmino != dyadmino) {
-      
-        // finish hovering only if placement is legal
-      if (dyadmino.tempBoardNode) { // ensures that validation takes place only if placement is uncertain
-                                    // will not get called if returning to homeNode from top bar
-        PhysicalPlacementResult placementResult = [_boardField validatePlacingDyadmino:dyadmino
-                                                                           onBoardNode:dyadmino.tempBoardNode];
+    if ([dyadmino isFinishedHovering]) {
+      [self checkWhetherToEaseOrKeepHovering:dyadmino];
+    }
+  }
+}
 
-          // handle placement results:
-        
-          // no error
-        if (placementResult == kNoError) {
-          if ([dyadmino belongsOnBoard]) {
-              // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
-            
-              // this method will record a dyadmino that's already in the match's board
-              // this method also gets called if a recently played dyadmino
-              // has been moved, but data will not be submitted until the turn is officially done.
-            [self persistDataForDyadmino:dyadmino];
-            dyadmino.homeNode = dyadmino.tempBoardNode;
-          }
+-(void)checkWhetherToEaseOrKeepHovering:(Dyadmino *)dyadmino {
+  
+    // if finished hovering
+  if ([dyadmino isOnBoard] && _touchedDyadmino != dyadmino) {
+    
+      // finish hovering only if placement is legal
+    if (dyadmino.tempBoardNode) { // ensures that validation takes place only if placement is uncertain
+                                  // will not get called if returning to homeNode from top bar
+      PhysicalPlacementResult placementResult = [_boardField validatePlacingDyadmino:dyadmino
+                                                                         onBoardNode:dyadmino.tempBoardNode];
+      
+        // handle placement results:
+      
+        // no error
+      if (placementResult == kNoError) {
+        if ([dyadmino belongsOnBoard]) {
+          [dyadmino finishHovering];
           
-            // this is one of two places where board bounds are updated
-            // the other is when rack dyadmino is sent home
+            // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
           
-          NSLog(@"updateBoardBounds called from updateDyadmino:forHover");
-          [self updateBoardBounds];
-          
-          [_boardField hideAllPivotGuides];
-          [dyadmino animateEaseIntoNodeAfterHover];
-          _hoveringDyadmino = nil;
-         
-            // lone dyadmino
-        } else if (placementResult == kErrorLoneDyadmino) {
-          [_topBar flashLabelNamed:@"message" withText:@"no lone dyadminoes!"];
-          [dyadmino keepHovering];
-          
-            // stacked dyadminoes
-        } else if (placementResult == kErrorStackedDyadminoes) {
-          [_topBar flashLabelNamed:@"message" withText:@"can't stack dyadminoes!"];
-          [dyadmino keepHovering];
+            // this method will record a dyadmino that's already in the match's board
+            // this method also gets called if a recently played dyadmino
+            // has been moved, but data will not be submitted until the turn is officially done.
+          [self persistDataForDyadmino:dyadmino];
+          dyadmino.homeNode = dyadmino.tempBoardNode;
         }
+        
+          // this is one of two places where board bounds are updated
+          // the other is when rack dyadmino is sent home
+        
+        NSLog(@"updateBoardBounds called from updateDyadmino:forHover");
+        [self updateBoardBounds];
+        
+        [_boardField hideAllPivotGuides];
+        [dyadmino animateEaseIntoNodeAfterHover];
+        _hoveringDyadmino = nil;
+        
+          // lone dyadmino
+      } else if (placementResult == kErrorLoneDyadmino) {
+        [_topBar flashLabelNamed:@"message" withText:@"no lone dyadminoes!"];
+        [dyadmino keepHovering];
+        
+          // stacked dyadminoes
+      } else if (placementResult == kErrorStackedDyadminoes) {
+        [_topBar flashLabelNamed:@"message" withText:@"can't stack dyadminoes!"];
+        [dyadmino keepHovering];
       }
     }
   }
@@ -1954,6 +1977,10 @@
 
 -(void)soundDyadminoSettleClick {
   [self.mySoundEngine soundClickedDyadmino];
+}
+
+-(void)soundDyadminoSuck {
+  [self.mySoundEngine soundSuckedDyadmino];
 }
 
 #pragma mark - debugging methods

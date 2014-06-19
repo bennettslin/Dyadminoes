@@ -13,9 +13,11 @@
 
 @protocol DyadminoDelegate <NSObject>
 
+-(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino;
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
 -(void)soundDyadminoSettleClick;
 -(void)soundDyadminoPivotClick;
+-(void)soundDyadminoSuck;
 
 @end
 
@@ -87,7 +89,7 @@
 
 -(void)startTouchThenHoverResize;
 -(void)endTouchThenHoverResize;
--(void)startHovering;
+//-(void)startHovering;
 -(void)keepHovering;
 -(void)finishHovering;
 //-(void)unhighlightOutOfPlay;
@@ -98,7 +100,7 @@
 
 -(void)setToHomeZPosition;
 -(void)goHomeByPoppingIn:(BOOL)poppingIn;
--(void)goToBoardNode;
+-(void)animatePopBackIntoBoardNode;
 -(void)removeActionsAndEstablishNotRotating;
 
 #pragma mark - pivot methods

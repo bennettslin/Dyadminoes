@@ -9,7 +9,14 @@
 #import "SoundEngine.h"
 #import "Dyadmino.h"
 
+#define kActionSuck @"suck"
+#define kActionClick @"click"
+#define kActionButton @"button"
+#define kActionSwoosh @"swoosh"
+
 @implementation SoundEngine {
+  
+  NSUInteger _noteCount;
   FaceVector _faceVector;
   int _xOrigin;
   int _yOrigin;
@@ -20,6 +27,7 @@
 -(id)init {
   self = [super init];
   if (self) {
+    _noteCount = 0;
     _faceVector = kFaceVectorNone;
     _xOrigin = 0;
     _yOrigin = 0;
@@ -29,21 +37,26 @@
   return self;
 }
 
+-(void)soundSuckedDyadmino {
+  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
+  [self runAction:sound withKey:kActionSuck];
+}
+
 -(void)soundClickedDyadmino {
   SKAction *sound = [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
-  [self runAction:sound];
+  [self runAction:sound withKey:kActionClick];
 }
 
 -(void)soundButton:(BOOL)tap {
   SKAction *sound = tap ?
     [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO] :
     [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
-  [self runAction:sound];
+  [self runAction:sound withKey:kActionButton];
 }
 
 -(void)soundSwapFieldSwoosh {
   SKAction *sound = [SKAction playSoundFileNamed:kSoundSwoosh waitForCompletion:NO];
-  [self runAction:sound];
+  [self runAction:sound withKey:kActionSwoosh];
 }
 
 -(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked {
@@ -52,9 +65,18 @@
   SKAction *sound = plucked ?
     [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO] : // plucked
     [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO]; // resonated
-  [self runAction:sound];
-//  [dyadmino animateFace:dyadmino.pc1Sprite];
-//  [dyadmino animateFace:dyadmino.pc2Sprite];
+  
+  NSString *noteActionKey1 = [self returnNoteActionKey];
+  NSLog(@"%@", noteActionKey1);
+  [self removeActionForKey:noteActionKey1];
+  [self runAction:sound withKey:noteActionKey1];
+  [self incrementNoteCount];
+  
+  NSString *noteActionKey2 = [self returnNoteActionKey];
+  NSLog(@"%@", noteActionKey2);
+  [self removeActionForKey:noteActionKey2];
+  [self runAction:sound withKey:noteActionKey2];
+  [self incrementNoteCount];
 }
 
 -(void)soundTouchedDyadminoFace:(SKSpriteNode *)dyadminoFace plucked:(BOOL)plucked {
@@ -68,7 +90,13 @@
   SKAction *sound = plucked ?
     [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO] : // plucked
     [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO]; // resonated
-  [self runAction:sound];
+
+  NSString *noteActionKey = [self returnNoteActionKey];
+  NSLog(@"%@", noteActionKey);
+  [self removeActionForKey:noteActionKey];
+  [self runAction:sound withKey:noteActionKey];
+  [self incrementNoteCount];
+  
   [dyadmino animateFace:dyadminoFace];
 }
 
@@ -137,6 +165,18 @@
              (_xBits == 60 && _yBits == 60) || (_xBits == 120 && _yBits == 15) ||
              (_xBits == 14 && _yBits == 56) || (_xBits == 28 && _yBits == 28) || (_xBits == 56 && _yBits == 14))) {
     NSLog(@"upleft");
+  }
+}
+
+-(NSString *)returnNoteActionKey {
+  NSString *noteActionKey = [NSString stringWithFormat:@"note %i", _noteCount];
+  return noteActionKey;
+}
+
+-(void)incrementNoteCount {
+  _noteCount++;
+  if (_noteCount > 3) {
+    _noteCount = 0;
   }
 }
 

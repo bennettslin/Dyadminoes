@@ -595,9 +595,9 @@
   float endAngle[9] = {327.5, 147.5, 327.5, 147.5,
                        27.5, 207.5,
                        60, 60, 60};
-  NSArray *colourArray = @[kPivotRed, kPivotRed, kPivotRed, kPivotRed,
+  NSArray *colourArray = @[kPivotOrange, kPivotOrange, kPivotOrange, kPivotOrange,
                            kYellow, kYellow,
-                           kYellow, kPivotRed, kPivotRed];
+                           kYellow, kPivotOrange, kPivotOrange];
   
   CGFloat outerMin = kMaxDistanceForPivot + 5.f;
   CGFloat outerMax = kMaxDistanceForPivot + kMaxDistanceForPivot - kMinDistanceForPivot;
@@ -614,6 +614,7 @@
                           kMaxDistanceForPivot + kDyadminoFaceRadius, outerMax + kDyadminoFaceRadius}; // around
   
   SKNode *pivotGuide = [SKNode new];
+  pivotGuide.hidden = YES;
   pivotGuide.name = name;
   pivotGuide.zPosition = kZPositionPivotGuide; // for now
   
@@ -655,7 +656,7 @@
       shapeNode.lineWidth = 0.75;
       shapeNode.alpha = kPivotGuideAlpha;
       shapeNode.strokeColor = colourArray[i];
-//      shapeNode.fillColor = colourArray[i];
+      shapeNode.fillColor = colourArray[i];
       [pivotGuide addChild:shapeNode];
     }
   }
@@ -678,7 +679,14 @@
     pivotGuide.zRotation = [self getRadiansFromDegree:degree];
     
     [self addChild:pivotGuide];
-    pivotGuide.hidden = NO;
+    SKAction *scaleStart = [SKAction scaleTo:0.f duration:0.f];
+    SKAction *unhide = [SKAction runBlock:^{
+      pivotGuide.hidden = NO;
+    }];
+    SKAction *scaleUp = [SKAction scaleTo:1.f duration:.08f];
+    SKAction *sequence = [SKAction sequence:@[scaleStart, unhide, scaleUp]];
+    NSLog(@"pivot guide scaling now");
+    [pivotGuide runAction:sequence withKey:@"pivotGuideScale"];
   }
 }
 
@@ -690,6 +698,7 @@
 }
 
 -(void)hidePivotGuideAndShowPrePivotGuideForDyadmino:(Dyadmino *)dyadmino {
+  NSLog(@"hide pivot guide and show prepivot guide");
   [self showPivotGuide:self.prePivotGuide forDyadmino:dyadmino];
   [self hidePivotGuide:self.pivotRotateGuide];
   [self hidePivotGuide:self.pivotAroundGuide];
@@ -702,24 +711,6 @@
 }
 
 #pragma mark - pivot methods
-
-//-(void)orientDyadmino:(Dyadmino *)dyadmino basedOnSextantChange:(CGFloat)sextantChange {
-//  for (NSUInteger i = 0; i < 12; i++) {
-//    if (sextantChange >= 0.f + i && sextantChange < 1.f + i) {
-//      NSUInteger dyadminoOrientationShouldBe = (dyadmino.prePivotDyadminoOrientation + i) % 6;
-//      if (dyadmino.orientation == dyadminoOrientationShouldBe) {
-//        return;
-//      } else {
-//        
-//        dyadmino.orientation = dyadminoOrientationShouldBe;
-//        
-//          // or else put this in an animation
-//        [dyadmino selectAndPositionSprites];
-//        return;
-//      }
-//    }
-//  }
-//}
 
 -(PivotOnPC)determinePivotOnPCForDyadmino:(Dyadmino *)dyadmino {
   

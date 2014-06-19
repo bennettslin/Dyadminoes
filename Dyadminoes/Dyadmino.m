@@ -9,6 +9,14 @@
 #import "Dyadmino.h"
 #import "Board.h"
 
+#define kActionMoveToPoint @"moveToPoint"
+#define kActionPopIntoBoard @"popIntoBoard"
+#define kActionPopIntoRack @"popIntoRack"
+#define kActionFlip @"flip"
+#define kActionEaseIntoNode @"easeIntoNode"
+#define kActionShowRecentlyPlayed @"recentlyPlayed"
+#define kActionSoundFace @"animateFace"
+
 @implementation Dyadmino {
   BOOL _alreadyAddedChildren;
   CGSize _touchSize;
@@ -42,21 +50,10 @@
     self.pc2NumberSprite = pc2NumberSprite;
     self.pc2NumberSprite.zPosition = kZPositionDyadminoFace;
     self.hoveringStatus = kDyadminoNoHoverStatus;
-//    [self randomiseRackOrientation];
     [self selectAndPositionSprites];
   }
   return self;
 }
-
-//-(void)randomiseRackOrientation { // only gets called before sprite is reloaded
-//  NSUInteger zeroOrOne = [self randomIntegerUpTo:2]; // randomise rackOrientation
-//  if (zeroOrOne == 0) {
-//    self.orientation = kPC1atTwelveOClock;
-//  } else if (zeroOrOne == 1) {
-//    self.orientation = kPC1atSixOClock;
-//  }
-//  self.tempReturnOrientation = self.orientation;
-//}
 
 #pragma mark - orient, position, and size methods
 
@@ -218,13 +215,14 @@
   [self selectAndPositionSprites];
 }
 
--(void)startHovering {
-    // this is the only place where prePivot guide is made visible
-    // starting from no pivot guides
-  
-//  NSLog(@"start hovering?!");
-  self.hoveringStatus = kDyadminoHovering;
-}
+  // only update method sets to kDyadminoHovering
+//-(void)startHovering {
+//    // this is the only place where prePivot guide is made visible
+//    // starting from no pivot guides
+//  
+////  NSLog(@"start hovering?!");
+//  self.hoveringStatus = kDyadminoHovering;
+//}
 
 -(void)keepHovering {
   self.hoveringStatus = kDyadminoContinuesHovering;
@@ -269,7 +267,7 @@
   } else {
     [self orientBySnapNode:self.homeNode];
     [self animateMoveToPoint:[self getHomeNodePosition]];
-    [self unhighlightOutOfPlay];
+//    [self unhighlightOutOfPlay];
     self.zPosition = kZPositionRackMovedDyadmino;
   }
   
@@ -278,24 +276,13 @@
   [self finishHovering];
 }
 
--(void)goToBoardNode {
-  NSLog(@"dyadmino's go to board node method called");
-  [self endTouchThenHoverResize];
-  if ([self belongsInRack]) {
-    [self orientBySnapNode:self.tempBoardNode];
-    [self animateMoveToPoint:self.tempBoardNode.position];
-  } else {
-    NSLog(@"this is called because it's a board dyadmino");
-    [self orientBySnapNode:self.homeNode];
-    [self animateMoveToPoint:self.homeNode.position];
-  }
-}
-
 -(void)removeActionsAndEstablishNotRotating {
-  self.colorBlendFactor = 0.f;
   [self.pc1Sprite setScale:1.f];
   [self.pc2Sprite setScale:1.f];
-  [self removeAllActions];
+  [self removeActionForKey:kActionMoveToPoint];
+  [self removeActionForKey:kActionPopIntoRack];
+  [self removeActionForKey:kActionFlip];
+  [self removeActionForKey:kActionEaseIntoNode];
   self.isRotating = NO;
 }
 
@@ -447,13 +434,37 @@
   [self removeActionsAndEstablishNotRotating];
   CGFloat distance = [self getDistanceFromThisPoint:self.position toThisPoint:point];
   SKAction *moveAction = [SKAction moveTo:point duration:kConstantSpeed * distance];
-  [self runAction:moveAction];
+  [self runAction:moveAction withKey:kActionMoveToPoint];
+}
+
+-(void)animatePopBackIntoBoardNode {
+//  NSLog(@"dyadmino's animate to board node method called");
+  [self endTouchThenHoverResize];
+  [self removeActionsAndEstablishNotRotating];
+  SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
+  SKAction *repositionAction = [SKAction runBlock:^{
+    [self.delegate soundDyadminoSuck];
+    if ([self belongsInRack]) {
+      [self orientBySnapNode:self.tempBoardNode];
+      self.position = self.tempBoardNode.position;
+    } else {
+//      NSLog(@"this is called because it's a board dyadmino");
+      [self orientBySnapNode:self.homeNode];
+      self.position = self.homeNode.position;
+    }
+    self.zPosition = kZPositionBoardRestingDyadmino;
+    [self.delegate updateCellsForPlacedDyadmino:self];
+  }];
+  SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
+  SKAction *sequenceAction = [SKAction sequence:@[shrinkAction, repositionAction, growAction]];
+  [self runAction:sequenceAction withKey:kActionPopIntoBoard];
 }
 
 -(void)animatePopBackIntoRackNode {
   [self removeActionsAndEstablishNotRotating];
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
+    [self.delegate soundDyadminoSuck];
     [self unhighlightOutOfPlay];
     [self orientBySnapNode:self.homeNode];
     self.zPosition = kZPositionRackMovedDyadmino;
@@ -461,7 +472,7 @@
   }];
   SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
   SKAction *sequenceAction = [SKAction sequence:@[shrinkAction, repositionAction, growAction]];
-  [self runAction:sequenceAction];
+  [self runAction:sequenceAction withKey:kActionPopIntoRack];
 }
 
 -(void)animateFlip {
@@ -497,7 +508,7 @@
   }
   
   SKAction *completeAction = [SKAction sequence:@[nextFrame, waitTime, nextFrame, waitTime, nextFrame, finishAction]];
-  [self runAction:completeAction];
+  [self runAction:completeAction withKey:kActionFlip];
 }
 
 -(void)animateEaseIntoNodeAfterHover {
@@ -520,16 +531,16 @@
     self.initialPivotPosition = self.position;
   }];
   SKAction *sequence = [SKAction sequence:@[moveAction, finishAction]];
-  [self runAction:sequence];
+  [self runAction:sequence withKey:kActionEaseIntoNode];
 }
 
 -(void)animateDyadminoesRecentlyPlayed:(BOOL)playedByMyPlayer {
   
   self.color = playedByMyPlayer ? kPlayedDyadminoBlue : kEnemyDyadminoRed;
-  SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:kDyadminoColorBlendFactor * 1.333 duration:0.75f];
-  SKAction *highlightOut = [SKAction colorizeWithColorBlendFactor:0.f duration:0.75f];
+  SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:kDyadminoColorBlendFactor * 1.333 duration:.75f];
+  SKAction *highlightOut = [SKAction colorizeWithColorBlendFactor:0.f duration:1.5f];
   SKAction *sequence = [SKAction sequence:@[highlightIn, highlightOut]];
-  [self runAction:sequence];
+  [self runAction:sequence withKey:kActionShowRecentlyPlayed];
 }
 
 -(void)animateFace:(SKSpriteNode *)face {
@@ -537,7 +548,7 @@
     SKAction *scaleIn = [SKAction scaleTo:1.5f duration:.05f];
     SKAction *scaleOut = [SKAction scaleTo:1.f duration:.125f];
     SKAction *sequence = [SKAction sequence:@[scaleIn, scaleOut]];
-    [face runAction:sequence];
+    [face runAction:sequence withKey:kActionSoundFace];
   }
 }
 

@@ -216,33 +216,6 @@
 //  [self removeAllChildVCs];
 }
 
-#pragma mark - archiver methods
-//
-//-(NSString *)documentsDirectory {
-//  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-//  return [paths firstObject];
-//}
-//
-//-(NSString *)dataFilePath {
-//  return [[self documentsDirectory] stringByAppendingPathComponent:@"Dyadminoes.plist"];
-//}
-//
-//-(void)saveSettings {
-//  NSMutableData *data = [[NSMutableData alloc] init];
-//  NSKeyedArchiver *archiver = [[NSKeyedArchiver alloc] initForWritingWithMutableData:data];
-//  [archiver encodeObject:self.myModel.myMatches forKey:kMatchesKey];
-//  [archiver finishEncoding];
-//  [data writeToFile:[self dataFilePath] atomically:YES];
-//}
-//
-//-(void)loadSettingsFromPath:(NSString *)path {
-////  NSLog(@"file path is %@", path);
-//  NSData *data = [[NSData alloc] initWithContentsOfFile:path];
-//  NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingWithData:data];
-//  self.myModel.myMatches = [unarchiver decodeObjectForKey:kMatchesKey];
-//  [unarchiver finishDecoding];
-//}
-
 #pragma mark - view controller methods
 
 -(void)presentChildViewController:(UIViewController *)childVC {
