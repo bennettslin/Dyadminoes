@@ -8,6 +8,8 @@
 
 #import "Dyadmino.h"
 #import "Board.h"
+//#import <CoreGraphics/CoreGraphics.h>
+//#import <CoreImage/CoreImage.h>
 
 #define kActionMoveToPoint @"moveToPoint"
 #define kActionPopIntoBoard @"popIntoBoard"
@@ -52,8 +54,33 @@
     self.hoveringStatus = kDyadminoNoHoverStatus;
     [self selectAndPositionSprites];
   }
+//  [self addShadow];
   return self;
 }
+
+/*
+-(void)addShadow {
+  SKEffectNode *shadowEffect = [[SKEffectNode alloc] init];
+  shadowEffect.shouldEnableEffects = YES;
+  shadowEffect.shouldRasterize = YES;
+  
+  SKSpriteNode *shadow = [self copy];
+  shadow.color = [SKColor blackColor];
+  shadow.colorBlendFactor = 0.9;
+  shadow.blendMode = SKBlendModeAlpha;
+  [shadow setAlpha:0.7];
+  
+  shadowEffect.filter = [CIFilter filterWithName:@"CIBloom"];
+  [shadowEffect.filter setValue:@1.0f forKey:kCIInputRadiusKey];
+  [shadowEffect.filter setValue:@0.5f forKey:kCIInputIntensityKey];
+  shadow.position = self.position;
+  shadow.zPosition = -10;
+  shadowEffect.name = @"shadow";
+  shadowEffect.blendMode = SKBlendModeAlpha;
+  [shadowEffect addChild:shadow];
+  [self addChild:shadowEffect];
+}
+ */
 
 #pragma mark - orient, position, and size methods
 

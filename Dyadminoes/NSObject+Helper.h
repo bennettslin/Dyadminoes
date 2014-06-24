@@ -118,7 +118,6 @@
   //----------------------------------------------------------------------------
 
   // colours
-
 #define kHighlightedDyadminoYellow [SKColor yellowColor]
 #define kPlayedDyadminoBlue [SKColor colorWithRed:.4f green:.35f blue:1.f alpha:1.f]
 #define kEnemyDyadminoRed [SKColor colorWithRed:1.f green:.3f blue:.3f alpha:1.f]
@@ -147,13 +146,6 @@ typedef struct HexCoord {
   NSInteger y;
 } HexCoord;
 
-  // this might be unnecessary
-//typedef enum dyadminoLocation {
-//  kBoardDyadmino,
-//  kRackDyadmino,
-//  kPileDyadmino
-//} DyadminoLocation;
-
 typedef enum faceVector {
   kFaceVectorNone,
   kFaceVectorUpLeft,
@@ -169,13 +161,6 @@ typedef enum dyadminoOrientation {
   kPC1atEightOClock,
   kPC1atTenOClock
 } DyadminoOrientation;
-
-//typedef struct PersistDyadmino {
-//  HexCoord myCoord;
-//  int dyadminoID;
-//  DyadminoLocation dyadminoLocation;
-//  DyadminoOrientation dyadminoOrient;
-//} PersistDyadmino;
 
 typedef enum gameRules {
   kGameRulesTonal,
@@ -210,11 +195,6 @@ typedef enum pcMode {
   kPCModeNumber
 } PCMode;
 
-//typedef struct playerDyadminoSettings {
-//  PCMode pcMode;
-//  UIDeviceOrientation deviceOrientation;
-//} PlayerDyadminoSettings;
-
 typedef enum snapPointType {
   kSnapPointRack,
   kSnapPointSwap,
@@ -241,16 +221,6 @@ typedef enum physicalPlacementResult {
   kErrorStackedDyadminoes,
   kErrorLoneDyadmino
 } PhysicalPlacementResult;
-
-//typedef enum chordType {
-//  
-//};
-
-//typedef enum dyadminoPCOnCell {
-//  kNoPCsOnCell,
-//  kPCOneOnCell,
-//  kPCTwoOnCell
-//} dyadminoPCOnCell;
 
 @interface NSObject (Helper)
 

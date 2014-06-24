@@ -27,6 +27,7 @@
 -(void)preLoad;
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;
 -(void)persistAllSceneDataDyadminoes;
+-(void)deviceShaken;
 
 @end
 

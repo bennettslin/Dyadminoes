@@ -926,8 +926,11 @@
 
 #pragma mark - button methods
 
+-(void)deviceShaken {
+  [self.mySceneEngine toggleBetweenLetterAndNumberMode];
+}
+
 -(void)handleButtonPressed {
-  
   
       /// games button
   if (_buttonPressed == _topBar.gamesButton) {

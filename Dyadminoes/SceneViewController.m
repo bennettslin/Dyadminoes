@@ -33,13 +33,6 @@
   [self createAndConfigureScene];
 }
 
--(void)saveModel {
-  NSLog(@"persisting all scene dyadminoes on returning to main menu");
-  [self.myScene persistAllSceneDataDyadminoes];
-  NSLog(@"saveModel");
-  [Model saveMyModel:self.myModel];
-}
-
 -(void)createAndConfigureScene {
     // Configure the scene view
   self.mySceneView = (SKView *)self.view;
@@ -66,6 +59,30 @@
   [self dismissViewControllerAnimated:YES completion:nil];
 }
 
+#pragma mark - event handling methods
+
+-(void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event {
+  if (motion == UIEventSubtypeMotionShake) {
+    NSLog(@"began motion is %d", motion);
+      //      // User was shaking the device. Post a notification named "shake."
+      //    [[NSNotificationCenter defaultCenter] postNotificationName:@"shake" object:self];
+      //    [self.myScene deviceShaken];
+  }
+}
+
+-(void)motionEnded:(UIEventSubtype)motion withEvent:(UIEvent *)event {
+    //  if (event.subtype == UIEventSubtypeMotionShake) {
+    //    NSLog(@"event subtype is %d", event.subtype);
+    //  }
+  
+  if (motion == UIEventSubtypeMotionShake) {
+    NSLog(@"ended motion is %d", motion);
+      // User was shaking the device. Post a notification named "shake."
+      //    [[NSNotificationCenter defaultCenter] postNotificationName:@"shake" object:self];
+    [self.myScene deviceShaken];
+  }
+}
+
 -(void)orientationChanged:(NSNotification *)note {
   UIDevice *device = note.object;
   [self.myScene handleDeviceOrientationChange:device.orientation];
@@ -81,6 +98,15 @@
   } else {
       return UIInterfaceOrientationMaskAll;
   }
+}
+
+#pragma mark - model methods
+
+-(void)saveModel {
+  NSLog(@"persisting all scene dyadminoes on returning to main menu");
+  [self.myScene persistAllSceneDataDyadminoes];
+  NSLog(@"saveModel");
+  [Model saveMyModel:self.myModel];
 }
 
 -(void)didReceiveMemoryWarning {
