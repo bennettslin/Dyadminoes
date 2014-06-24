@@ -45,7 +45,6 @@
   self.myScene = [MyScene sceneWithSize:self.mySceneView.bounds.size];
   self.myScene.scaleMode = SKSceneScaleModeAspectFill;
   self.myScene.myMatch = self.myMatch;
-//  self.myScene.myPlayer = self.myPlayer;
   self.myScene.delegate = self;
   [self.myScene preLoad];
   NSLog(@"about to present scene");
@@ -64,21 +63,12 @@
 -(void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event {
   if (motion == UIEventSubtypeMotionShake) {
     NSLog(@"began motion is %d", motion);
-      //      // User was shaking the device. Post a notification named "shake."
-      //    [[NSNotificationCenter defaultCenter] postNotificationName:@"shake" object:self];
-      //    [self.myScene deviceShaken];
   }
 }
 
 -(void)motionEnded:(UIEventSubtype)motion withEvent:(UIEvent *)event {
-    //  if (event.subtype == UIEventSubtypeMotionShake) {
-    //    NSLog(@"event subtype is %d", event.subtype);
-    //  }
-  
   if (motion == UIEventSubtypeMotionShake) {
     NSLog(@"ended motion is %d", motion);
-      // User was shaking the device. Post a notification named "shake."
-      //    [[NSNotificationCenter defaultCenter] postNotificationName:@"shake" object:self];
     [self.myScene deviceShaken];
   }
 }

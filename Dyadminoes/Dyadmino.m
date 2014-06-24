@@ -293,9 +293,9 @@
   } else {
     [self orientBySnapNode:self.homeNode];
     [self animateMoveToPoint:[self getHomeNodePosition]];
+    [self setToHomeZPosition];
   }
   self.tempBoardNode = nil;
-  [self setToHomeZPosition];
   [self finishHovering];
 }
 
@@ -306,8 +306,8 @@
   } else {
     [self orientBySnapNode:self.homeNode];
     [self animateMoveToPoint:[self getHomeNodePosition]];
+    [self setToHomeZPosition];
   }
-  [self setToHomeZPosition];
   [self finishHovering];
 }
 
@@ -479,6 +479,7 @@
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
     [self.delegate soundDyadminoSuck];
+    [self setToHomeZPosition];
     if ([self belongsInRack]) {
       [self orientBySnapNode:self.tempBoardNode];
       self.position = self.tempBoardNode.position;
@@ -499,6 +500,7 @@
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
     [self.delegate soundDyadminoSuck];
+    [self setToHomeZPosition];
     [self unhighlightOutOfPlay];
     [self orientBySnapNode:self.homeNode];
     self.position = [self getHomeNodePosition];

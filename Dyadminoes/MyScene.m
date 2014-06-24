@@ -506,6 +506,7 @@
     /// 3b part i: dyadmino is being moved, take care of the prepwork
   
     // update currently touched dyadmino's section
+  NSLog(@"determine current section from touches moved");
   [self determineCurrentSectionOfDyadmino:_touchedDyadmino];
   
     // if it moved beyond certain distance, it can no longer flip
@@ -628,7 +629,7 @@
   }
     //--------------------------------------------------------------------------
     /// 2c. handle touched dyadmino
-  
+  NSLog(@"determine currect section from end touch from touches");
   [self determineCurrentSectionOfDyadmino:_touchedDyadmino];
   Dyadmino *dyadmino = [self assignTouchEndedPointerToDyadmino:_touchedDyadmino];
   
@@ -728,11 +729,11 @@
       [_touchedDyadmino animateFlip];
     }
   }
-
 }
 
 -(void)getReadyToMoveCurrentDyadmino:(Dyadmino *)dyadmino {
-  [self determineCurrentSectionOfDyadmino:dyadmino];
+//  NSLog(@"determine current section from get ready to move");
+//  [self determineCurrentSectionOfDyadmino:dyadmino];
   
   if ([dyadmino isInRack]) {
     _touchOffsetVector = [self subtractFromThisPoint:_beganTouchLocation thisPoint:dyadmino.position];
@@ -782,7 +783,7 @@
       if ([dyadmino.homeNode isBoardNode]) {
 //        NSLog(@"its home node is board node");
         dyadmino.tempBoardNode = nil;
-        [self sendDyadminoToBoardNode:dyadmino];
+        [self sendDyadminoHome:dyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
         
           // if it's a rack dyadmino (even if it was just recently on the board)
       } else {
@@ -794,7 +795,7 @@
       dyadmino.tempBoardNode = nil;
       [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
       dyadmino.position = [_boardField getOffsetFromPoint:dyadmino.position];
-      [self sendDyadminoToBoardNode:dyadmino];
+      [self sendDyadminoHome:dyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
       
         // otherwise, prepare it for hover
     } else {
@@ -815,6 +816,7 @@
     // start hovering
   [dyadmino removeActionsAndEstablishNotRotating];
   
+  NSLog(@"prepare for hover, check");
   [self checkWhetherToEaseOrKeepHovering:dyadmino afterTouchJustEnded:YES];
 //  [dyadmino startHovering];
   
@@ -1183,7 +1185,11 @@
 -(void)update:(CFTimeInterval)currentTime {
   
   [self updateForDoubleTap:currentTime];
-  [self updateDyadmino:_hoveringDyadmino forHover:currentTime];
+//  NSLog(@"hovering dyadmino is %@", _hoveringDyadmino.name);
+  if (_hoveringDyadmino) {
+//    NSLog(@"hovering dyadmino is %@", _hoveringDyadmino.name);
+    [self updateDyadmino:_hoveringDyadmino forHover:currentTime];
+  }
   
     // snap back somewhat from board bounds
     // TODO: this works, but it feels jumpy
@@ -1462,6 +1468,7 @@
       dyadmino.hoveringStatus = kDyadminoHovering;
     }
     
+      // 
     if (_hoverTime != 0.f && currentTime > _hoverTime + kAnimateHoverTime) {
       _hoverTime = 0.f;
       
@@ -1470,15 +1477,16 @@
     }
     
     if ([dyadmino isFinishedHovering]) {
+//      NSLog(@"update dyadmino, finished hovering, check");
       [self checkWhetherToEaseOrKeepHovering:dyadmino afterTouchJustEnded:NO];
     }
   }
 }
 
   // touch just ended doesn't really make a difference
--(void)checkWhetherToEaseOrKeepHovering:(Dyadmino *)dyadmino afterTouchJustEnded:(BOOL)touchJustEnded{
-  
-  NSLog(@"touch just ended %i", touchJustEnded);
+-(void)checkWhetherToEaseOrKeepHovering:(Dyadmino *)dyadmino afterTouchJustEnded:(BOOL)touchJustEnded {
+//  NSLog(@"dyadmino name is %@, %i, %i", dyadmino.name, [dyadmino belongsInRack], [dyadmino isInRack]);
+//  NSLog(@"touch just ended %i", touchJustEnded);
 //  NSLog(@"dyadmino home node %@, tempboard node %@, orientation %i, tempreturnorientation %i, candoubletap %i", dyadmino.homeNode.name, dyadmino.tempBoardNode.name, dyadmino.orientation, dyadmino.tempReturnOrientation, _canDoubleTapForDyadminoFlip);
   
     // if finished hovering
@@ -1518,6 +1526,7 @@
         [_boardField hideAllPivotGuides];
         [dyadmino animateEaseIntoNodeAfterHover];
         _hoveringDyadmino = nil;
+        NSLog(@"hovering dyadmino is %@", _hoveringDyadmino.name);
         
       } else {
         NSLog(@"will keep hovering");
@@ -1770,11 +1779,13 @@
     // it's also on board, if not in swap and above rack and below top bar
   if (_pivotInProgress || (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
       _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight)) {
+    NSLog(@"it's on the board");
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
     dyadmino.isInTopBar = NO;
     
       // it's in swap
   } else if (_swapMode && _currentTouchLocation.y - _touchOffsetVector.y > kRackHeight) {
+    NSLog(@"it's in swap");
     dyadmino.belongsInSwap = YES;
     [self addDataDyadminoToSwapContainerForDyadmino:dyadmino];
     
@@ -1782,6 +1793,7 @@
 
     // if in rack field, doesn't matter if it's in swap
   } else if (_currentTouchLocation.y - _touchOffsetVector.y <= kRackHeight) {
+    NSLog(@"it's in the rack field");
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
     dyadmino.belongsInSwap = NO;
     [self removeDataDyadminoFromSwapContainerForDyadmino:dyadmino];
@@ -1790,7 +1802,10 @@
       // else it's in the top bar, but this is a clumsy workaround, so be careful!
   } else if (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >=
              self.frame.size.height - kTopBarHeight) {
+    NSLog(@"it's in the top bar");
     dyadmino.isInTopBar = YES;
+  } else {
+    NSLog(@"it's nowhere!");
   }
 }
 
@@ -1874,7 +1889,8 @@
       
         // second restriction is that touch point is close enough based on following criteria:
         // if dyadmino is on board, not hovering and thus locked in a node, and we're not in swap mode...
-//      NSLog(@"determine current section of dyadmino from selectDyadminoFromTouchPoint");
+      NSLog(@"determine current section of dyadmino from selectDyadminoFromTouchPoint");
+      
       [self determineCurrentSectionOfDyadmino:dyadmino];
       
       if ([dyadmino isOnBoard] && !_swapMode) {
@@ -2086,7 +2102,7 @@
 //  if (_hoveringDyadmino.tempBoardNode) {
 //    NSLog(@"hovering dyadmino has temp board node");
 //  }
-  
+  NSLog(@"hovering dyadmino is on board %i", [_hoveringDyadmino isOnBoard]);
   [self updateLabels];
   [self updateButtonsForStaticState];
 }
