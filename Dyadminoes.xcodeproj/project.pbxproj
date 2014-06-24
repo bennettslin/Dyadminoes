@@ -14,6 +14,7 @@
 		3F0526CA1936CE9F003D3C04 /* page1.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F0526C61936CE9F003D3C04 /* page1.png */; };
 		3F0526CD1936D12A003D3C04 /* HelpContentViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F0526CC1936D12A003D3C04 /* HelpContentViewController.m */; };
 		3F0526D01937308F003D3C04 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F0526CF1937308F003D3C04 /* MainViewController.m */; };
+		3F0B477D1953C7B700BDE0BA /* Chord.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F0B477C1953C7B700BDE0BA /* Chord.m */; };
 		3F18924718CDB43300BEE276 /* Player.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F18924618CDB43300BEE276 /* Player.m */; };
 		3F28A6D018DA86BA0092B9B2 /* Label.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F28A6CF18DA86BA0092B9B2 /* Label.m */; };
 		3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3116CD18CEFC5D0015CC2A /* Rack.m */; };
@@ -88,6 +89,8 @@
 		3F0526CC1936D12A003D3C04 /* HelpContentViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HelpContentViewController.m; sourceTree = "<group>"; };
 		3F0526CE1937308F003D3C04 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 		3F0526CF1937308F003D3C04 /* MainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
+		3F0B477B1953C7B700BDE0BA /* Chord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Chord.h; sourceTree = "<group>"; };
+		3F0B477C1953C7B700BDE0BA /* Chord.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Chord.m; sourceTree = "<group>"; };
 		3F18924518CDB43300BEE276 /* Player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Player.h; sourceTree = "<group>"; };
 		3F18924618CDB43300BEE276 /* Player.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Player.m; sourceTree = "<group>"; };
 		3F28A6CE18DA86BA0092B9B2 /* Label.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Label.h; sourceTree = "<group>"; };
@@ -223,6 +226,8 @@
 				3F8F045718BFB1B300853C4C /* NSObject+Helper.m */,
 				3F9923071895ECCA00FC9392 /* SonorityLogic.h */,
 				3F9923081895ECCA00FC9392 /* SonorityLogic.m */,
+				3F0B477B1953C7B700BDE0BA /* Chord.h */,
+				3F0B477C1953C7B700BDE0BA /* Chord.m */,
 			);
 			name = "Logic and Helpers";
 			sourceTree = "<group>";
@@ -522,6 +527,7 @@
 				3F7BD7DB192B0A37009274DE /* MatchTableViewCell.m in Sources */,
 				3FBC6AD4194E1BBD00420CB8 /* SoundEngine.m in Sources */,
 				3F8F045818BFB1B300853C4C /* NSObject+Helper.m in Sources */,
+				3F0B477D1953C7B700BDE0BA /* Chord.m in Sources */,
 				3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */,
 				3FECDE0A19355B1600D774AB /* StoreViewController.m in Sources */,
 				3F87AAC9188DEE4B008C4A0D /* MyScene.m in Sources */,
