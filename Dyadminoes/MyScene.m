@@ -695,11 +695,7 @@
     // board dyadmino sends recent rack home upon touch
     // rack dyadmino will do so upon move out of rack
   if ([dyadmino isOnBoard] && dyadmino != _hoveringDyadmino) {
-    if ([_hoveringDyadmino belongsOnBoard]) {
-      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:NO andUpdatingBoardBounds:YES];
-    } else if ([_hoveringDyadmino belongsInRack]) {
-      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
-    }
+    [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
   }
   
     // record tempReturnOrientation only if it's settled and not hovering
@@ -850,7 +846,13 @@
   
   [dyadmino endTouchThenHoverResize];
     // this makes nil tempBoardNode
-  [dyadmino goHomeByPoppingIn:poppingIn];
+  
+  if ([dyadmino belongsInRack]) {
+    [dyadmino goHomeToRackByPoppingIn:poppingIn];
+  } else {
+    dyadmino.tempBoardNode = dyadmino.homeNode;
+    [dyadmino goHomeToBoardByPoppingIn:poppingIn];
+  }
 
     // this ensures that pivot guide doesn't disappear if rack exchange
   if (dyadmino == _hoveringDyadmino) {
@@ -1071,7 +1073,7 @@
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
       dyadmino.belongsInSwap = NO;
-      [dyadmino goHomeByPoppingIn:NO];
+      [dyadmino goHomeToRackByPoppingIn:NO];
     }
   }
 }
@@ -1100,7 +1102,7 @@
         // TODO: this should be a better animation
         // dyadmino is already a child of rackField,
         // so no need to send dyadmino home through myScene's sendDyadmino method
-      [dyadmino goHomeByPoppingIn:NO];
+      [dyadmino goHomeToRackByPoppingIn:NO];
       [dyadmino removeFromParent];
     }
     

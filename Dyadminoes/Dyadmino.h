@@ -99,7 +99,8 @@
 #pragma mark - change state methods
 
 -(void)setToHomeZPosition;
--(void)goHomeByPoppingIn:(BOOL)poppingIn;
+-(void)goHomeToRackByPoppingIn:(BOOL)poppingIn;
+-(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn;
 -(void)animatePopBackIntoBoardNode;
 -(void)removeActionsAndEstablishNotRotating;
 

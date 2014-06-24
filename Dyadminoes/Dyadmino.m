@@ -243,6 +243,7 @@
 }
 
 -(void)adjustHighlightGivenDyadminoOffsetPosition:(CGPoint)dyadminoOffsetPosition {
+  NSLog(@"adjust highlight given dyadmino offset");
   CGFloat inPlayFloat = [self getHeightFloatGivenGap:kGapForHighlight andDyadminoPosition:dyadminoOffsetPosition];
   self.colorBlendFactor = kDyadminoColorBlendFactor * inPlayFloat;
 }
@@ -257,21 +258,28 @@
   }
 }
 
--(void)goHomeByPoppingIn:(BOOL)poppingIn {
+-(void)goHomeToRackByPoppingIn:(BOOL)poppingIn {
 //  NSLog(@"dyadmino's go home by popping in method called");
     // move these into a completion block for animation
-
   if (poppingIn) {
     [self animatePopBackIntoRackNode];
-    
   } else {
     [self orientBySnapNode:self.homeNode];
     [self animateMoveToPoint:[self getHomeNodePosition]];
-//    [self unhighlightOutOfPlay];
-    self.zPosition = kZPositionRackMovedDyadmino;
   }
-  
   self.tempBoardNode = nil;
+  [self setToHomeZPosition];
+  [self finishHovering];
+}
+
+  // this should be combined into one method with goHomeToRack
+-(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn {
+  if (poppingIn) {
+    [self animatePopBackIntoBoardNode];
+  } else {
+    [self orientBySnapNode:self.homeNode];
+    [self animateMoveToPoint:[self getHomeNodePosition]];
+  }
   [self setToHomeZPosition];
   [self finishHovering];
 }
@@ -438,8 +446,8 @@
 }
 
 -(void)animatePopBackIntoBoardNode {
-//  NSLog(@"dyadmino's animate to board node method called");
-  [self endTouchThenHoverResize];
+  NSLog(@"dyadmino's animate to board node method called");
+//  [self endTouchThenHoverResize];
   [self removeActionsAndEstablishNotRotating];
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
@@ -452,7 +460,6 @@
       [self orientBySnapNode:self.homeNode];
       self.position = self.homeNode.position;
     }
-    self.zPosition = kZPositionBoardRestingDyadmino;
     [self.delegate updateCellsForPlacedDyadmino:self];
   }];
   SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
@@ -467,7 +474,6 @@
     [self.delegate soundDyadminoSuck];
     [self unhighlightOutOfPlay];
     [self orientBySnapNode:self.homeNode];
-    self.zPosition = kZPositionRackMovedDyadmino;
     self.position = [self getHomeNodePosition];
   }];
   SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
