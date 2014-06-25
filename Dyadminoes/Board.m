@@ -161,7 +161,9 @@
                           andVectorOrigin:_vectorOrigin];
     
     cell.cellNode.hidden = NO;
-    [self addChild:cell.cellNode];
+    if (cell.cellNode) {
+      [self addChild:cell.cellNode];
+    }
     [self.allCells addObject:cell];
     [cell addSnapPointsToBoard];
   }

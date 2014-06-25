@@ -13,9 +13,8 @@
 
 @interface Cell : NSObject
 
-//@property (nonatomic) BOOL hidden;
-//@property (nonatomic) CGPoint nodePosition;
-//@property (nonatomic) CGSize nodeSize;
+@property (nonatomic) CGPoint cellNodePosition;
+@property (nonatomic) CGSize cellNodeSize;
 @property (strong, nonatomic) NSString *name;
 
 @property (strong, nonatomic) SKSpriteNode *cellNode;

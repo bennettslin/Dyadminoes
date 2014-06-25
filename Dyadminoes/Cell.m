@@ -24,33 +24,38 @@
   self = [super init];
   if (self) {
     
-    self.cellNode = [[SKSpriteNode alloc] init];
-    
     self.board = board;
-//    [self addChild:[self createCellShape]];
-    
     self.hexCoord = hexCoord;
     self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
     
       // establish cell size
     CGFloat paddingBetweenCells = kIsIPhone ? 1.5f : 3.f; // 5.f : 7.5f;
     
-    self.cellNode.texture = texture;
-    self.cellNode.zPosition = kZPositionBoardCell;
-    self.cellNode.alpha = 0.8f; // was 0.8 before board patterning attempt
-    
     CGFloat ySize = kDyadminoFaceRadius * 2 - paddingBetweenCells;
-    CGFloat widthToHeightRatio = self.cellNode.texture.size.width / self.cellNode.texture.size.height;
+    CGFloat widthToHeightRatio = texture.size.width / texture.size.height;
     CGFloat xSize = widthToHeightRatio * ySize;
-    self.cellNode.size = CGSizeMake(xSize, ySize);
+
+    self.cellNodeSize = CGSizeMake(xSize, ySize);
     
       // establish cell position
     CGFloat yOffset = kDyadminoFaceRadius; // to make node between two faces the center
-    CGFloat cellWidth = self.cellNode.size.width;
-    CGFloat cellHeight = self.cellNode.size.height;
+    CGFloat cellWidth = self.cellNodeSize.width;
+    CGFloat cellHeight = self.cellNodeSize.height;
     CGFloat newX = (self.hexCoord.x - vectorOrigin.dx) * (0.75 * cellWidth + paddingBetweenCells);
     CGFloat newY = (self.hexCoord.y - vectorOrigin.dy + self.hexCoord.x * 0.5) * (cellHeight + paddingBetweenCells) - yOffset;
+    
+    self.cellNodePosition = CGPointMake(newX, newY);
+    
+      // cellNode properties
+      // comment out this block to not instantiate cellNode (about one second faster)
+///*
+    self.cellNode = [[SKSpriteNode alloc] init];
+    self.cellNode.texture = texture;
+    self.cellNode.zPosition = kZPositionBoardCell;
+    self.cellNode.alpha = 0.8f; // was 0.8 before board patterning attempt
+    self.cellNode.size = CGSizeMake(xSize, ySize);
     self.cellNode.position = CGPointMake(newX, newY);
+// */
     
       // establish logic default
     self.myPC = -1;
@@ -59,9 +64,12 @@
     [self createSnapPoints];
 
       //// for testing purposes
-    [self createHexCoordLabel];
-    [self createPCLabel];
-    [self updatePCLabel];
+    
+    if (self.cellNode) {
+      [self createHexCoordLabel];
+      [self createPCLabel];
+      [self updatePCLabel];
+    }
   }
   return self;
 }
@@ -77,11 +85,11 @@
   self.boardSnapPointTwoOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwoOClock];
   self.boardSnapPointTenOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTenOClock];
   
-  self.boardSnapPointTwelveOClock.position = [self addToThisPoint:self.cellNode.position
+  self.boardSnapPointTwelveOClock.position = [self addToThisPoint:self.cellNodePosition
                                                         thisPoint:CGPointMake(0.f, faceOffset)];
-  self.boardSnapPointTwoOClock.position = [self addToThisPoint:self.cellNode.position
+  self.boardSnapPointTwoOClock.position = [self addToThisPoint:self.cellNodePosition
                                                      thisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
-  self.boardSnapPointTenOClock.position = [self addToThisPoint:self.cellNode.position
+  self.boardSnapPointTenOClock.position = [self addToThisPoint:self.cellNodePosition
                                                      thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
   
   self.boardSnapPointTwelveOClock.name = @"snap 12";

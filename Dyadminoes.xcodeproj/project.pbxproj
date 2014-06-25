@@ -55,7 +55,6 @@
 		3FC65D54194CC7F8003FBE10 /* MaryGray.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3FC65D53194CC7F8003FBE10 /* MaryGray.jpg */; };
 		3FC65D56194CC82F003FBE10 /* MaryFloral.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 3FC65D55194CC82F003FBE10 /* MaryFloral.jpeg */; };
 		3FC65D58194CD317003FBE10 /* MaryFloralUpsideDown.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3FC65D57194CD317003FBE10 /* MaryFloralUpsideDown.jpg */; };
-		3FC65D5B194CE098003FBE10 /* CellObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FC65D5A194CE098003FBE10 /* CellObject.m */; };
 		3FCCA71B18948AF200E0E4B5 /* Dyadmino.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCA71A18948AF200E0E4B5 /* Dyadmino.m */; };
 		3FCCA71E18948B0500E0E4B5 /* SceneEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCA71D18948B0500E0E4B5 /* SceneEngine.m */; };
 		3FD06E2318D6544F00E2FF04 /* Cell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FD06E2218D6544F00E2FF04 /* Cell.m */; };
@@ -152,8 +151,6 @@
 		3FC65D53194CC7F8003FBE10 /* MaryGray.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = MaryGray.jpg; sourceTree = "<group>"; };
 		3FC65D55194CC82F003FBE10 /* MaryFloral.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = MaryFloral.jpeg; sourceTree = "<group>"; };
 		3FC65D57194CD317003FBE10 /* MaryFloralUpsideDown.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = MaryFloralUpsideDown.jpg; sourceTree = "<group>"; };
-		3FC65D59194CE098003FBE10 /* CellObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CellObject.h; sourceTree = "<group>"; };
-		3FC65D5A194CE098003FBE10 /* CellObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CellObject.m; sourceTree = "<group>"; };
 		3FCCA71918948AF200E0E4B5 /* Dyadmino.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dyadmino.h; sourceTree = "<group>"; };
 		3FCCA71A18948AF200E0E4B5 /* Dyadmino.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Dyadmino.m; sourceTree = "<group>"; };
 		3FCCA71C18948B0500E0E4B5 /* SceneEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SceneEngine.h; sourceTree = "<group>"; };
@@ -389,8 +386,6 @@
 				3FCCA71A18948AF200E0E4B5 /* Dyadmino.m */,
 				3FDD7FD718D4C89B0029DB7D /* Board.h */,
 				3FDD7FD818D4C89B0029DB7D /* Board.m */,
-				3FC65D59194CE098003FBE10 /* CellObject.h */,
-				3FC65D5A194CE098003FBE10 /* CellObject.m */,
 				3FD06E2118D6544F00E2FF04 /* Cell.h */,
 				3FD06E2218D6544F00E2FF04 /* Cell.m */,
 				3F8F045918BFEF3300853C4C /* SnapPoint.h */,
@@ -553,7 +548,6 @@
 				3F55E1FD18D7A8520048E67E /* Button.m in Sources */,
 				3F87AAB9188DEE4B008C4A0D /* main.m in Sources */,
 				3FECDE1319355B4400D774AB /* AboutViewController.m in Sources */,
-				3FC65D5B194CE098003FBE10 /* CellObject.m in Sources */,
 				3FD06E2318D6544F00E2FF04 /* Cell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
