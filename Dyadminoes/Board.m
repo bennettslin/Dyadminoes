@@ -40,7 +40,7 @@
     
     self.name = @"board";
     self.color = color;
-    self.size = size;
+    self.size = CGSizeMake(size.width * 2, size.height * 2);
     self.anchorPoint = anchorPoint;
     self.homePosition = homePosition;
     self.origin = origin;
@@ -85,24 +85,28 @@
 
 -(void)reloadBackgroundImage {
   
-  NSLog(@"reload background image");
-  UIImage *backgroundImage = [UIImage imageNamed:@"Bennett_Lin.jpg"];
-  CGImageRef backgroundCGImage = backgroundImage.CGImage;
-  CGRect textureSize = CGRectMake(self.position.x, self.position.y, backgroundImage.size.width, backgroundImage.size.height);
-  
-  UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
-  CGContextRef context = UIGraphicsGetCurrentContext();
-    // Core Graphics coordinates are upside down from Sprite Kit's
-  CGContextScaleCTM(context, 1.0, -1.0);
-  CGContextDrawTiledImage(context, textureSize, backgroundCGImage);
-  UIImage *tiledBackground = UIGraphicsGetImageFromCurrentImageContext();
-  UIGraphicsEndImageContext();
-  
-  SKTexture *backgroundTexture = [SKTexture textureWithCGImage:tiledBackground.CGImage];
-  self.backgroundNode.size = self.size;
-  self.backgroundNode.texture = backgroundTexture;
-  
-  self.backgroundNode.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
+//  dispatch_queue_t aQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+//  dispatch_queue_t aQueue = dispatch_queue_create("whatever", NULL);
+//  dispatch_async(aQueue, ^{
+    NSLog(@"reload background image");
+    UIImage *backgroundImage = [UIImage imageNamed:@"Bennett_Lin.jpg"];
+    CGImageRef backgroundCGImage = backgroundImage.CGImage;
+    CGRect textureSize = CGRectMake(self.position.x, self.position.y, backgroundImage.size.width, backgroundImage.size.height);
+    
+    UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
+    CGContextRef context = UIGraphicsGetCurrentContext();
+      // Core Graphics coordinates are upside down from Sprite Kit's
+    CGContextScaleCTM(context, 1.0, -1.0);
+    CGContextDrawTiledImage(context, textureSize, backgroundCGImage);
+    UIImage *tiledBackground = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    SKTexture *backgroundTexture = [SKTexture textureWithCGImage:tiledBackground.CGImage];
+    self.backgroundNode.size = self.size;
+    self.backgroundNode.texture = backgroundTexture;
+    
+    self.backgroundNode.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
+//  });
 }
 
 -(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes forReplay:(BOOL)replay {
@@ -132,14 +136,15 @@
     for (NSInteger xHex = self.cellsLeft; xHex <= self.cellsRight; xHex++) {
       for (NSInteger yHex = self.cellsBottom - self.cellsRight / 2; yHex <= self.cellsTop - self.cellsLeft / 2; yHex++) {
 
-        if (xHex >= self.cellsLeft && xHex <= self.cellsRight &&
-            yHex <= self.cellsTop - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f)) {
-            // might be faster in the initial layout to add cells directly
-            // without checking to see if they're already in allCells
-          [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
-  //        _cellCount++;
-        } else {
+        if (!(xHex >= self.cellsLeft && xHex <= self.cellsRight &&
+            yHex <= self.cellsTop - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f))) {
+          
           [self ignoreCellWithXHex:xHex andYHex:yHex];
+
+        } else {
+          
+          [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
+          
         }
       }
     }
@@ -171,16 +176,14 @@
                            andHexCoord:[self hexCoordFromX:xHex andY:yHex]
                           andVectorOrigin:_vectorOrigin];
     
+///*
     if (!cell.cellNode) {
-//      dispatch_queue_t aQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0);
-//      dispatch_queue_t aQueue = dispatch_queue_create("cellNode", NULL);
-//      dispatch_async(aQueue, ^{
-//        NSLog(@"running code in queue");
-        [cell instantiateCellNode];
-        [self addChild:cell.cellNode];
-        cell.cellNode.hidden = NO;
-//      });
+      [cell instantiateCellNode];
+      [self addChild:cell.cellNode];
+      cell.cellNode.hidden = NO;
     }
+//*/
+    
     [self.allCells addObject:cell];
     [cell addSnapPointsToBoard];
   }

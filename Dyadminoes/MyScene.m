@@ -124,6 +124,7 @@
     // this populates the board cells
   
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes forReplay:NO];
+//  [_boardField reloadBackgroundImage];
   NSLog(@"cells and snap points laid out");
   
   [self populateBoardWithDyadminoes];
@@ -857,6 +858,7 @@
     // this makes nil tempBoardNode
   
   if ([dyadmino belongsInRack]) {
+    _uponTouchDyadminoNode = nil;
     [dyadmino goHomeToRackByPoppingIn:poppingIn];
   } else {
     dyadmino.tempBoardNode = dyadmino.homeNode;
@@ -1716,6 +1718,8 @@
 #pragma mark - board helper methods
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino {
+//  [_boardField reloadBackgroundImage];
+  
   if (![dyadmino isRotating]) {
       // experiment to see if this is a good place to set the tempArrays for placed dyadmino
     
@@ -1746,10 +1750,6 @@
   }
   NSLog(@"layoutboardcells called from updateboardbounds");
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard forReplay:NO];
-//  dispatch_queue_t aQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0);
-//  dispatch_async(aQueue, ^{
-//    [_boardField reloadBackgroundImage];
-//  });
   
   [_topBar updateLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
                                              _boardField.cellsTop - 0, _boardField.cellsRight - 0, _boardField.cellsBottom + 0, _boardField.cellsLeft + 0]];
