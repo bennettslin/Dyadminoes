@@ -14,6 +14,7 @@
 @interface Board ()
 
 @property (strong, nonatomic) SKSpriteNode *backgroundNode;
+@property (strong, nonatomic) NSMutableSet *dequeuedCells;
 
 @end
 
@@ -55,6 +56,7 @@
     self.snapPointsTenOClock = [NSMutableSet new];
     self.occupiedCells = [NSMutableSet new];
     self.allCells = [NSMutableSet new];
+    self.dequeuedCells = [NSMutableSet new];
     
       // testing
     _cellCount = 0;
@@ -111,6 +113,8 @@
 
 -(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes forReplay:(BOOL)replay {
   
+  NSLog(@"dequeued cells %i", self.dequeuedCells.count);
+  
     // hex origin is only set once
   if (!_hexOriginSet) {
     _vectorOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
@@ -151,7 +155,7 @@
   }
   [self determineBoardPositionBounds];
 //  NSLog(@"cell count is %i", _cellCount);
-  NSLog(@"would have called reload background image");
+//  NSLog(@"would have called reload background image");
 }
 
 #pragma mark - cell methods
@@ -171,16 +175,26 @@
   
     // if cell does not exist, create and add it
   if (!cell) {
-    cell = [[Cell alloc] initWithBoard:self
-                            andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
-                           andHexCoord:[self hexCoordFromX:xHex andY:yHex]
-                          andVectorOrigin:_vectorOrigin];
-    
+    Cell *poppedCell = [self popDequeuedCell];
+    if (poppedCell) {
+      cell = poppedCell;
+      [cell initCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex] andVectorOrigin:_vectorOrigin];
+    } else {
+      cell = [[Cell alloc] initWithBoard:self
+                              andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
+                             andHexCoord:[self hexCoordFromX:xHex andY:yHex]
+                         andVectorOrigin:_vectorOrigin];
+    }
 ///*
     if (!cell.cellNode) {
       [cell instantiateCellNode];
+    } else {
+      [cell initPositionCellNode];
+    }
+    
+//    cell.cellNode.hidden = NO;
+    if (!cell.cellNode.parent) {
       [self addChild:cell.cellNode];
-      cell.cellNode.hidden = NO;
     }
 //*/
     
@@ -195,12 +209,28 @@
   if (cell) {
 //    NSLog(@"cell %@ removed", cell.name);
     if (cell.cellNode) {
-      cell.cellNode.hidden = YES;
+//      cell.cellNode.hidden = YES;
       [cell.cellNode removeFromParent];
     }
     [self.allCells removeObject:cell];
+    [self pushDequeuedCell:cell];
     [cell removeSnapPointsFromBoard];
   }
+}
+
+-(void)pushDequeuedCell:(Cell *)cell {
+  if (![self.dequeuedCells containsObject:cell]) {
+    [self.dequeuedCells addObject:cell];
+  }
+  NSLog(@"pushed cell %@, dequeued cells is %i", cell.name, self.dequeuedCells.count);
+}
+
+-(Cell *)popDequeuedCell {
+  Cell *cell = [self.dequeuedCells anyObject];
+  if ([cell isKindOfClass:[Cell class]]) {
+    [self.dequeuedCells removeObject:cell];
+  }
+  return cell;
 }
 
 #pragma mark - board span methods

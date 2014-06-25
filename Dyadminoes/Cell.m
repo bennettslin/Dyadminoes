@@ -10,6 +10,8 @@
 #import "SnapPoint.h"
 #import "Board.h"
 
+#define kPaddingBetweenCells (kIsIPhone ? 1.5f : 3.f)
+
 @interface Cell ()
 
 @property (strong, nonatomic) SnapPoint *boardSnapPointTwelveOClock;
@@ -25,36 +27,38 @@
   if (self) {
     
     self.board = board;
-    self.hexCoord = hexCoord;
-    self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
-    
     self.cellNodeTexture = texture;
     
       // establish cell size
-    CGFloat paddingBetweenCells = kIsIPhone ? 1.5f : 3.f; // 5.f : 7.5f;
-    
-    CGFloat ySize = kDyadminoFaceRadius * 2 - paddingBetweenCells;
+    CGFloat ySize = kDyadminoFaceRadius * 2 - kPaddingBetweenCells;
     CGFloat widthToHeightRatio = kTwoOverSquareRootOfThree;
     CGFloat xSize = widthToHeightRatio * ySize;
 
     self.cellNodeSize = CGSizeMake(xSize, ySize);
     
-      // establish cell position
-    CGFloat yOffset = kDyadminoFaceRadius; // to make node between two faces the center
-    CGFloat cellWidth = self.cellNodeSize.width;
-    CGFloat cellHeight = self.cellNodeSize.height;
-    CGFloat newX = (self.hexCoord.x - vectorOrigin.dx) * (0.75 * cellWidth + paddingBetweenCells);
-    CGFloat newY = (self.hexCoord.y - vectorOrigin.dy + self.hexCoord.x * 0.5) * (cellHeight + paddingBetweenCells) - yOffset;
-    
-    self.cellNodePosition = CGPointMake(newX, newY);
-
-      // establish logic default
-    self.myPC = -1;
-
-      // create snap points
-    [self createSnapPoints];
+    [self initCellWithHexCoord:hexCoord andVectorOrigin:vectorOrigin];
   }
   return self;
+}
+
+-(void)initCellWithHexCoord:(HexCoord)hexCoord andVectorOrigin:(CGVector)vectorOrigin {
+  self.hexCoord = hexCoord;
+  self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
+  
+    // establish cell position
+  CGFloat yOffset = kDyadminoFaceRadius; // to make node between two faces the center
+  CGFloat cellWidth = self.cellNodeSize.width;
+  CGFloat cellHeight = self.cellNodeSize.height;
+  CGFloat newX = (self.hexCoord.x - vectorOrigin.dx) * (0.75 * cellWidth + kPaddingBetweenCells);
+  CGFloat newY = (self.hexCoord.y - vectorOrigin.dy + self.hexCoord.x * 0.5) * (cellHeight + kPaddingBetweenCells) - yOffset;
+  
+  self.cellNodePosition = CGPointMake(newX, newY);
+  
+    // establish logic default
+  self.myPC = -1;
+  
+    // create snap points
+  [self createSnapPoints];
 }
 
 -(void)instantiateCellNode {
@@ -66,15 +70,22 @@
   self.cellNode.zPosition = kZPositionBoardCell;
   self.cellNode.alpha = 0.8f; // was 0.8 before board patterning attempt
   self.cellNode.size = self.cellNodeSize;
-  self.cellNode.position = self.cellNodePosition;
+  [self initPositionCellNode];
   
     //// for testing purposes
   if (self.cellNode) {
     [self createHexCoordLabel];
+    [self updateHexCoordLabel];
     [self createPCLabel];
     [self updatePCLabel];
   }
     // */
+}
+
+-(void)initPositionCellNode {
+  self.cellNode.position = self.cellNodePosition;
+  [self updateHexCoordLabel];
+  [self updatePCLabel];
 }
 
 -(void)createSnapPoints {
@@ -130,17 +141,8 @@
 #pragma mark - testing methods
 
 -(void)createHexCoordLabel {
-  NSString *boardXYString = [NSString stringWithFormat:@"%li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
   self.hexCoordLabel = [[SKLabelNode alloc] init];
-  self.hexCoordLabel.name = boardXYString;
-  self.hexCoordLabel.text = boardXYString;
-  self.hexCoordLabel.fontColor = [SKColor whiteColor];
-  
-  if (self.hexCoord.x == 0 || self.hexCoord.y == 0 || self.hexCoord.x + self.hexCoord.y == 0)
-    self.hexCoordLabel.fontColor = [SKColor yellowColor];
-  
-  if (self.hexCoord.x == 0 && (self.hexCoord.y == 0 || self.hexCoord.y == 1))
-    self.hexCoordLabel.fontColor = [SKColor greenColor];
+
   
   self.hexCoordLabel.fontSize = 12.f;
   self.hexCoordLabel.alpha = 0.7f;
@@ -149,6 +151,19 @@
   self.hexCoordLabel.position = CGPointMake(0, 5.f);
   self.hexCoordLabel.hidden = YES;
   [self.cellNode addChild:self.hexCoordLabel];
+}
+
+-(void)updateHexCoordLabel {
+  NSString *boardXYString = [NSString stringWithFormat:@"%li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
+  self.hexCoordLabel.name = boardXYString;
+  self.hexCoordLabel.text = boardXYString;
+  
+    // determine font colour
+  self.hexCoordLabel.fontColor = [SKColor whiteColor];
+  if (self.hexCoord.x == 0 || self.hexCoord.y == 0 || self.hexCoord.x + self.hexCoord.y == 0)
+    self.hexCoordLabel.fontColor = [SKColor yellowColor];
+  if (self.hexCoord.x == 0 && (self.hexCoord.y == 0 || self.hexCoord.y == 1))
+    self.hexCoordLabel.fontColor = [SKColor greenColor];
 }
 
 -(void)createPCLabel {

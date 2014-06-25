@@ -28,12 +28,17 @@
 @property (strong, nonatomic) SKLabelNode *hexCoordLabel;
 @property (strong, nonatomic) SKLabelNode *pcLabel;
 
+  // called for new cell
 -(id)initWithBoard:(Board *)board
         andTexture:(SKTexture *)texture
        andHexCoord:(HexCoord)hexCoord
       andVectorOrigin:(CGVector)vectorOrigin;
-
 -(void)instantiateCellNode;
+
+  // called for dequeued cell
+-(void)initCellWithHexCoord:(HexCoord)hexCoord andVectorOrigin:(CGVector)vectorOrigin;
+-(void)initPositionCellNode;
+
 -(void)addSnapPointsToBoard;
 -(void)removeSnapPointsFromBoard;
 
