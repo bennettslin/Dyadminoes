@@ -105,7 +105,7 @@
   self.backgroundNode.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
 }
 
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes forReplay:(BOOL)replay {
   
     // hex origin is only set once
   if (!_hexOriginSet) {
@@ -115,17 +115,31 @@
     [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
   }
   
-    // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
-    // use this to get the range to iterate over y, and to keep the board square
-  for (NSInteger xHex = self.cellsLeft; xHex <= self.cellsRight; xHex++) {
-    for (NSInteger yHex = self.cellsBottom - self.cellsRight / 2; yHex <= self.cellsTop - self.cellsLeft / 2; yHex++) {
+    // no need to add other cells in replay mode
+  if (replay) {
+    [self determineBoardPositionBounds];
+    for (Dyadmino *dyadmino in boardDyadminoes) {
+      [self acknowledgeOrAddCellWithXHex:dyadmino.myHexCoord.x andYHex:dyadmino.myHexCoord.y];
+      HexCoord hexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:dyadmino.tempBoardNode];
+      [self acknowledgeOrAddCellWithXHex:hexCoord.x andYHex:hexCoord.y];
+    }
 
-      if (xHex >= self.cellsLeft && xHex <= self.cellsRight &&
-          yHex <= self.cellsTop - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f)) {
-          // might be faster in the initial layout to add cells directly
-          // without checking to see if they're already in allCells
-        [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
-//        _cellCount++;
+      // regular mode
+  } else {
+
+    
+      // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
+      // use this to get the range to iterate over y, and to keep the board square
+    for (NSInteger xHex = self.cellsLeft; xHex <= self.cellsRight; xHex++) {
+      for (NSInteger yHex = self.cellsBottom - self.cellsRight / 2; yHex <= self.cellsTop - self.cellsLeft / 2; yHex++) {
+
+        if (xHex >= self.cellsLeft && xHex <= self.cellsRight &&
+            yHex <= self.cellsTop - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f)) {
+            // might be faster in the initial layout to add cells directly
+            // without checking to see if they're already in allCells
+          [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
+  //        _cellCount++;
+        }
       }
     }
   }

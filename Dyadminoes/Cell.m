@@ -32,7 +32,7 @@
     CGFloat paddingBetweenCells = kIsIPhone ? 1.5f : 3.f; // 5.f : 7.5f;
     
     CGFloat ySize = kDyadminoFaceRadius * 2 - paddingBetweenCells;
-    CGFloat widthToHeightRatio = texture.size.width / texture.size.height;
+    CGFloat widthToHeightRatio = kTwoOverSquareRootOfThree;
     CGFloat xSize = widthToHeightRatio * ySize;
 
     self.cellNodeSize = CGSizeMake(xSize, ySize);

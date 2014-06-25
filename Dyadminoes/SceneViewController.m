@@ -12,7 +12,7 @@
 #import "Match.h"
 #import "Model.h"
 
-@interface SceneViewController () <SceneDelegate>
+@interface SceneViewController () <SceneDelegate, UIGestureRecognizerDelegate>
 
 @property (strong, nonatomic) SKView *mySceneView;
 @property (strong, nonatomic) MyScene *myScene;
@@ -31,6 +31,7 @@
     /// this seems to work better for scene transitions
     /// but does it get screwed up with different screen dimensions?
   [self createAndConfigureScene];
+  [self setUpGestureRecogniser];
 }
 
 -(void)createAndConfigureScene {
@@ -59,6 +60,17 @@
 }
 
 #pragma mark - event handling methods
+
+-(void)setUpGestureRecogniser {
+  UIPinchGestureRecognizer *pinchGestureRecogniser = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinched:)];
+  pinchGestureRecogniser.delegate = self;
+  [self.mySceneView addGestureRecognizer:pinchGestureRecogniser];
+}
+
+-(void)pinched:(UIPinchGestureRecognizer *)sender {
+//  UIPinchGestureRecognizer *gesture = (UIPinchGestureRecognizer *)sender;
+  NSLog(@"pinch scale %.2f, velocity %.2f", sender.scale, sender.velocity);
+}
 
 -(void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event {
   if (motion == UIEventSubtypeMotionShake) {

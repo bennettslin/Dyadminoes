@@ -123,7 +123,7 @@
     // this only needs the board dyadminoes to determine the board's cells ranges
     // this populates the board cells
   
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes];
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes forReplay:NO];
   NSLog(@"cells and snap points laid out");
   
   [self populateBoardWithDyadminoes];
@@ -1745,7 +1745,7 @@
     }
   }
   NSLog(@"layoutboardcells called from updateboardbounds");
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard];
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard forReplay:NO];
   
   [_topBar updateLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
                                              _boardField.cellsTop - 0, _boardField.cellsRight - 0, _boardField.cellsBottom + 0, _boardField.cellsLeft + 0]];
