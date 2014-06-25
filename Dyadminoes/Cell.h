@@ -11,15 +11,14 @@
 @class Board;
 @class Dyadmino;
 
-@interface Cell : SKSpriteNode
+@interface Cell : NSObject
 
-/*
-@property (nonatomic) BOOL hidden;
-@property (nonatomic) CGPoint position;
-@property (nonatomic) CGSize size;
+//@property (nonatomic) BOOL hidden;
+//@property (nonatomic) CGPoint nodePosition;
+//@property (nonatomic) CGSize nodeSize;
 @property (strong, nonatomic) NSString *name;
- */
- 
+
+@property (strong, nonatomic) SKSpriteNode *cellNode;
 @property (strong, nonatomic) Board *board;
 @property (nonatomic) HexCoord hexCoord;
 @property (strong, nonatomic) Dyadmino *myDyadmino;

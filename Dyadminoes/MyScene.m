@@ -2078,7 +2078,7 @@
   }
 
 
-  for (Cell *cell in _boardField.children) {
+  for (Cell *cell in _boardField.allCells) {
     if ([cell isKindOfClass:[Cell class]]) {
       if (!_dyadminoesHidden) {
         cell.hexCoordLabel.hidden = YES;

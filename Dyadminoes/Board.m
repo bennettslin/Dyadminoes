@@ -13,7 +13,6 @@
 
 @interface Board ()
 
-@property (strong, nonatomic) NSMutableSet *allCells;
 @property (strong, nonatomic) SKSpriteNode *backgroundNode;
 
 @end
@@ -161,8 +160,8 @@
                            andHexCoord:[self hexCoordFromX:xHex andY:yHex]
                           andVectorOrigin:_vectorOrigin];
     
-    cell.hidden = NO;
-    [self addChild:cell];
+    cell.cellNode.hidden = NO;
+    [self addChild:cell.cellNode];
     [self.allCells addObject:cell];
     [cell addSnapPointsToBoard];
   }
@@ -497,7 +496,7 @@
 }
 
 -(Cell *)getCellWithHexCoord:(HexCoord)hexCoord {
-  for (Cell *cell in self.children) {
+  for (Cell *cell in self.allCells) {
     if ([cell isKindOfClass:[Cell class]]) {
       if (cell.hexCoord.x == hexCoord.x && cell.hexCoord.y == hexCoord.y) {
         return cell;

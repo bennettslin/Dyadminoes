@@ -38,6 +38,7 @@
 @property (strong, nonatomic) NSMutableSet *snapPointsTwoOClock;
 @property (strong, nonatomic) NSMutableSet *snapPointsTenOClock;
 
+@property (strong, nonatomic) NSMutableSet *allCells;
 @property (strong, nonatomic) NSMutableSet *occupiedCells;
 
   // pivot properties
