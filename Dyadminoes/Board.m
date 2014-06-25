@@ -127,7 +127,6 @@
       // regular mode
   } else {
 
-    
       // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
       // use this to get the range to iterate over y, and to keep the board square
     for (NSInteger xHex = self.cellsLeft; xHex <= self.cellsRight; xHex++) {
@@ -139,6 +138,8 @@
             // without checking to see if they're already in allCells
           [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
   //        _cellCount++;
+        } else {
+          [self ignoreCellWithXHex:xHex andYHex:yHex];
         }
       }
     }
@@ -160,10 +161,6 @@
 }
 
 -(Cell *)acknowledgeOrAddCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
-//  NSLog(@"acknowledge or add cell being called?!");
-    // this method first checks to see if cell exists in allCells array
-    // if not, it instantiates it
-
     // first check to see if cell already exists
   Cell *cell = [self findCellWithXHex:xHex andYHex:yHex];
   
@@ -174,28 +171,34 @@
                            andHexCoord:[self hexCoordFromX:xHex andY:yHex]
                           andVectorOrigin:_vectorOrigin];
     
-    cell.cellNode.hidden = NO;
-    if (cell.cellNode) {
-      [self addChild:cell.cellNode];
+    if (!cell.cellNode) {
+//      dispatch_queue_t aQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0);
+//      dispatch_queue_t aQueue = dispatch_queue_create("cellNode", NULL);
+//      dispatch_async(aQueue, ^{
+//        NSLog(@"running code in queue");
+        [cell instantiateCellNode];
+        [self addChild:cell.cellNode];
+        cell.cellNode.hidden = NO;
+//      });
     }
     [self.allCells addObject:cell];
     [cell addSnapPointsToBoard];
   }
-//  NSLog(@"cell %@ added", cell.name);
   return cell;
 }
 
-//-(Cell *)ignoreCell:(Cell *)cell {
-//    // cells do *not* get deallocated or taken out of allCells array when ignored,
-//    // they are only removed from parent
-//    // not sure if this is the best approach, but do this for now...
-//  
-//  cell.hidden = YES;
-//  [cell removeFromParent];
-//  [cell removeSnapPointsFromBoard];
-//  [self determineBoardPositionBounds];
-//  return cell;
-//}
+-(void)ignoreCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
+  Cell *cell = [self findCellWithXHex:xHex andYHex:yHex];
+  if (cell) {
+//    NSLog(@"cell %@ removed", cell.name);
+    if (cell.cellNode) {
+      cell.cellNode.hidden = YES;
+      [cell.cellNode removeFromParent];
+    }
+    [self.allCells removeObject:cell];
+    [cell removeSnapPointsFromBoard];
+  }
+}
 
 #pragma mark - board span methods
 
@@ -251,7 +254,6 @@
       }
       
         // now check y span, which means...
-      
         // next, subtract cell when x is negative to compensate for rounding down
         // and yes, it has to be in this order!
       NSInteger workingXHex = xHex;
@@ -264,7 +266,6 @@
       if (abs(xHex) % 2 == 1) {
         workingYHex = yHex + 0.5;
       }
-      
       
       if (workingYHex > cellsTop - workingXHex / 2) {
         cellsTop = yHex + workingXHex / 2;
@@ -284,14 +285,11 @@
           _cellsBottomXIsEven = NO;
         }
       }
-      
         //  NSLog(@"yHex is %i, this value is %.1f", yHex, cellsTop - (xHex / 2.f));
         //  NSLog(@"yHex %i, cellsTop %i, xHex / 2 is %.1f", yHex, cellsTop, xHex / 2.f);
         //  NSLog(@"xHex is %i, yHex is %i", xHex, yHex);
     }
   }
-  
-  
       // buffer cells beyond outermost dyadmino
   NSInteger extraYCells;
   switch (cellsTop - cellsBottom) {
@@ -338,8 +336,6 @@
   self.cellsLeft = cellsLeft - extraXCells;
   
     // returns general center
-  
-  
   return CGVectorMake(((self.cellsRight - self.cellsLeft) / 2) + self.cellsLeft, ((self.cellsTop - self.cellsBottom - 1) / 2) + self.cellsBottom);
 }
 

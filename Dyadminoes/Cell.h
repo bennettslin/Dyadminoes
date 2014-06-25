@@ -13,8 +13,10 @@
 
 @interface Cell : NSObject
 
+@property (nonatomic) SKTexture *cellNodeTexture;
 @property (nonatomic) CGPoint cellNodePosition;
 @property (nonatomic) CGSize cellNodeSize;
+
 @property (strong, nonatomic) NSString *name;
 
 @property (strong, nonatomic) SKSpriteNode *cellNode;
@@ -31,6 +33,7 @@
        andHexCoord:(HexCoord)hexCoord
       andVectorOrigin:(CGVector)vectorOrigin;
 
+-(void)instantiateCellNode;
 -(void)addSnapPointsToBoard;
 -(void)removeSnapPointsFromBoard;
 

@@ -28,6 +28,8 @@
     self.hexCoord = hexCoord;
     self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
     
+    self.cellNodeTexture = texture;
+    
       // establish cell size
     CGFloat paddingBetweenCells = kIsIPhone ? 1.5f : 3.f; // 5.f : 7.5f;
     
@@ -45,33 +47,34 @@
     CGFloat newY = (self.hexCoord.y - vectorOrigin.dy + self.hexCoord.x * 0.5) * (cellHeight + paddingBetweenCells) - yOffset;
     
     self.cellNodePosition = CGPointMake(newX, newY);
-    
-      // cellNode properties
-      // comment out this block to not instantiate cellNode (about one second faster)
-///*
-    self.cellNode = [[SKSpriteNode alloc] init];
-    self.cellNode.texture = texture;
-    self.cellNode.zPosition = kZPositionBoardCell;
-    self.cellNode.alpha = 0.8f; // was 0.8 before board patterning attempt
-    self.cellNode.size = CGSizeMake(xSize, ySize);
-    self.cellNode.position = CGPointMake(newX, newY);
-// */
-    
+
       // establish logic default
     self.myPC = -1;
 
       // create snap points
     [self createSnapPoints];
-
-      //// for testing purposes
-    
-    if (self.cellNode) {
-      [self createHexCoordLabel];
-      [self createPCLabel];
-      [self updatePCLabel];
-    }
   }
   return self;
+}
+
+-(void)instantiateCellNode {
+    // cellNode properties
+    // comment out this block to not instantiate cellNode (about one second faster)
+    ///*
+  self.cellNode = [[SKSpriteNode alloc] init];
+  self.cellNode.texture = self.cellNodeTexture;
+  self.cellNode.zPosition = kZPositionBoardCell;
+  self.cellNode.alpha = 0.8f; // was 0.8 before board patterning attempt
+  self.cellNode.size = self.cellNodeSize;
+  self.cellNode.position = self.cellNodePosition;
+  
+    //// for testing purposes
+  if (self.cellNode) {
+    [self createHexCoordLabel];
+    [self createPCLabel];
+    [self updatePCLabel];
+  }
+    // */
 }
 
 -(void)createSnapPoints {

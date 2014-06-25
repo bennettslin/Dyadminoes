@@ -378,7 +378,7 @@
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
-//  NSLog(@"%@, zPosition %.2f", _touchNode.name, _touchNode.zPosition);
+  NSLog(@"%@, zPosition %.2f", _touchNode.name, _touchNode.zPosition);
 
     //--------------------------------------------------------------------------
     /// 3a. button pressed
@@ -417,23 +417,23 @@
   
   if (dyadmino && !dyadmino.isRotating && !_touchedDyadmino) {
     _touchedDyadmino = dyadmino;
+    NSLog(@"begin touch or pivot of dyadmino");
     [self beginTouchOrPivotOfDyadmino:dyadmino];
-  }
   
     //--------------------------------------------------------------------------
     /// 3c. board about to be moved
   
     // if pivot not in progress, or pivot in progress but dyadmino is not close enough
     // then the board is touched and being moved
-  if (!_pivotInProgress || (_pivotInProgress && !_touchedDyadmino)) {
+  } else if (!_pivotInProgress || (_pivotInProgress && !_touchedDyadmino)) {
     if (_touchNode == _boardField || _touchNode == _boardCover ||
         (_touchNode.parent == _boardField && ![_touchNode isKindOfClass:[Dyadmino class]]) ||
-        [_touchNode.parent isKindOfClass:[Cell class]]) { // this one is necessary only for testing purposes
+        _touchNode.parent.parent == _boardField) { // cell label, this one is necessary only for testing purposes
       
       if (_canDoubleTapForBoardZoom) {
 //        NSLog(@"board has been double tapped");
       }
-      
+      NSLog(@"board to be moved or being moved");
       _boardToBeMovedOrBeingMoved = YES;
       _canDoubleTapForBoardZoom = YES;
       
@@ -1746,6 +1746,10 @@
   }
   NSLog(@"layoutboardcells called from updateboardbounds");
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard forReplay:NO];
+//  dispatch_queue_t aQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0);
+//  dispatch_async(aQueue, ^{
+//    [_boardField reloadBackgroundImage];
+//  });
   
   [_topBar updateLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
                                              _boardField.cellsTop - 0, _boardField.cellsRight - 0, _boardField.cellsBottom + 0, _boardField.cellsLeft + 0]];

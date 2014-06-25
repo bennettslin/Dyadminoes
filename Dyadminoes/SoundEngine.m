@@ -103,7 +103,7 @@
     // find out hexcoord
   Dyadmino *dyadmino = (Dyadmino *)dyadminoFace.parent;
   HexCoord faceHexCoord = [dyadmino getHexCoordOfFace:dyadminoFace];
-  NSLog(@"sounding note %@ on hexcoord %i, %i", dyadminoFace.name, faceHexCoord.x, faceHexCoord.y);
+//  NSLog(@"sounding note %@ on hexcoord %i, %i", dyadminoFace.name, faceHexCoord.x, faceHexCoord.y);
   
   [self recordFaceHexCoord:faceHexCoord];
   
@@ -112,7 +112,7 @@
     [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO]; // resonated
 
   NSString *noteActionKey = [self returnNoteActionKey];
-  NSLog(@"%@", noteActionKey);
+//  NSLog(@"%@", noteActionKey);
   [self removeActionForKey:noteActionKey];
   [self runAction:sound withKey:noteActionKey];
   [self incrementNoteCount];
