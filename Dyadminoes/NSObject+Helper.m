@@ -162,4 +162,169 @@
   gradientLayer.zPosition = -1;
 }
 
+#pragma mark - chord label methods
+-(NSString *)stringForChord:(ChordType)chordType {
+  switch (chordType) {
+    case kChordMinorTriad:
+      return @"minor triad";
+      break;
+    case kChordMajorTriad:
+      return @"major triad";
+      break;
+    case kChordHalfDiminishedSeventh:
+      return @"half-diminished seventh";
+      break;
+    case kChordMinorSeventh:
+      return @"minor seventh";
+      break;
+    case kChordDominantSeventh:
+      return @"dominant seventh";
+      break;
+    case kChordDiminishedTriad:
+      return @"diminished triad";
+      break;
+    case kChordAugmentedTriad:
+      return @"augmented triad";
+      break;
+    case kChordFullyDiminishedSeventh:
+      return @"fully diminished seventh";
+      break;
+    case kChordMinorMajorSeventh:
+      return @"minor-major seventh";
+      break;
+    case kChordMajorSeventh:
+      return @"major seventh";
+      break;
+    case kChordAugmentedMajorSeventh:
+      return @"augmented major seventh";
+      break;
+    case kChordItalianSixth:
+      return @"Italian sixth";
+      break;
+    case kChordFrenchSixth:
+      return @"French sixth";
+      break;
+    case kChordNoChord:
+      return nil;
+      break;
+  }
+}
+
+-(NSString *)stringForRoot:(NSUInteger)root andChordType:(ChordType)chordType {
+  if (chordType == kChordFullyDiminishedSeventh) {
+    switch (root) {
+      case 0:
+      case 3:
+      case 6:
+      case 9:
+        return @"C-D\u266f/E\u266d-F\u266f/G\u266d-A";
+        break;
+      case 1:
+      case 4:
+      case 7:
+      case 10:
+        return @"C\u266f/D\u266d-E-G-A\u266f/B\u266d";
+        break;
+      case 2:
+      case 5:
+      case 8:
+      case 11:
+        return @"D-F-G\u266f/A\u266d-B";
+        break;
+    }
+    
+  } else if (chordType == kChordAugmentedTriad) {
+    switch (root) {
+      case 0:
+      case 4:
+      case 8:
+        return @"C-E-G\u266f/A\u266d";
+        break;
+      case 1:
+      case 5:
+      case 9:
+        return @"C\u266f/D\u266d-F-A";
+        break;
+      case 2:
+      case 6:
+      case 10:
+        return @"D-F\u266f/G\u266d-A\u266f/B\u266d";
+        break;
+      case 3:
+      case 7:
+      case 11:
+        return @"D\u266f/E\u266d-G-B";
+        break;
+    }
+    
+  } else if (chordType == kChordFrenchSixth) {
+    switch (root) {
+      case 0:
+      case 6:
+        return @"C-F\u266f/G\u266d";
+        break;
+      case 1:
+      case 7:
+        return @"C\u266f/D\u266d-G";
+        break;
+      case 2:
+      case 8:
+        return @"D-G\u266f/A\u266d";
+        break;
+      case 3:
+      case 9:
+        return @"D\u266f/E\u266d-A";
+        break;
+      case 4:
+      case 10:
+        return @"E-A\u266f/B\u266d";
+        break;
+      case 5:
+      case 11:
+        return @"F-B";
+        break;
+    }
+  } else if (chordType != kChordNoChord) {
+    switch (root) {
+      case 0:
+        return @"C";
+        break;
+      case 1:
+        return @"C\u266f/D\u266d";
+        break;
+      case 2:
+        return @"D";
+        break;
+      case 3:
+        return @"D\u266f/E\u266d";
+        break;
+      case 4:
+        return @"E";
+        break;
+      case 5:
+        return @"F";
+        break;
+      case 6:
+        return @"F\u266f/G\u266d";
+        break;
+      case 7:
+        return @"G";
+        break;
+      case 8:
+        return @"G\u266f/A\u266d";
+        break;
+      case 9:
+        return @"A";
+        break;
+      case 10:
+        return @"A\u266f/B\u266d";
+        break;
+      case 11:
+        return @"B";
+        break;
+    }
+  }
+  return nil;
+}
+
 @end

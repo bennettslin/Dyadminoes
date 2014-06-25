@@ -18,6 +18,7 @@
 		3F18924718CDB43300BEE276 /* Player.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F18924618CDB43300BEE276 /* Player.m */; };
 		3F28A6D018DA86BA0092B9B2 /* Label.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F28A6CF18DA86BA0092B9B2 /* Label.m */; };
 		3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3116CD18CEFC5D0015CC2A /* Rack.m */; };
+		3F4432DB195AA1C60006C9F6 /* Bennett_Lin.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3F4432DA195AA1C60006C9F6 /* Bennett_Lin.jpg */; };
 		3F55E1FD18D7A8520048E67E /* Button.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F55E1FC18D7A8520048E67E /* Button.m */; };
 		3F580BDC194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */; };
 		3F580BDE194F710F0040B5D0 /* Click2-Sebastian-759472264.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */; };
@@ -97,6 +98,7 @@
 		3F28A6CF18DA86BA0092B9B2 /* Label.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Label.m; sourceTree = "<group>"; };
 		3F3116CC18CEFC5D0015CC2A /* Rack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rack.h; sourceTree = "<group>"; };
 		3F3116CD18CEFC5D0015CC2A /* Rack.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Rack.m; sourceTree = "<group>"; };
+		3F4432DA195AA1C60006C9F6 /* Bennett_Lin.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Bennett_Lin.jpg; sourceTree = "<group>"; };
 		3F55E1FB18D7A8520048E67E /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
 		3F55E1FC18D7A8520048E67E /* Button.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Button.m; sourceTree = "<group>"; };
 		3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Electronic_Chime-KevanGC-495939803.wav"; sourceTree = "<group>"; };
@@ -208,6 +210,7 @@
 				3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */,
 				3FBC6AD5194E208300420CB8 /* hitCat.wav */,
 				3FBC6AD6194E208300420CB8 /* hitCatLady.wav */,
+				3F4432DA195AA1C60006C9F6 /* Bennett_Lin.jpg */,
 				3FC65D57194CD317003FBE10 /* MaryFloralUpsideDown.jpg */,
 				3FC65D55194CC82F003FBE10 /* MaryFloral.jpeg */,
 				3FC65D53194CC7F8003FBE10 /* MaryGray.jpg */,
@@ -485,6 +488,7 @@
 			files = (
 				3FC65D56194CC82F003FBE10 /* MaryFloral.jpeg in Resources */,
 				3FFD6CA318B40A83000D2DA4 /* DyadminoImages.atlas in Resources */,
+				3F4432DB195AA1C60006C9F6 /* Bennett_Lin.jpg in Resources */,
 				3FC65D58194CD317003FBE10 /* MaryFloralUpsideDown.jpg in Resources */,
 				3FBC6AD7194E208300420CB8 /* hitCat.wav in Resources */,
 				3F580BDE194F710F0040B5D0 /* Click2-Sebastian-759472264.wav in Resources */,

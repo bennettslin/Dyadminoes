@@ -37,12 +37,22 @@
   return self;
 }
 
+-(void)soundRackExchangedDyadmino {
+  SKAction *sound = [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
+  [self runAction:sound withKey:kActionClick];
+}
+
 -(void)soundSuckedDyadmino {
   SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
   [self runAction:sound withKey:kActionSuck];
 }
 
--(void)soundClickedDyadmino {
+-(void)soundPivotClickedDyadmino {
+  SKAction *sound = [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
+  [self runAction:sound withKey:kActionClick];
+}
+
+-(void)soundSettledDyadmino {
   SKAction *sound = [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
   [self runAction:sound withKey:kActionClick];
 }
@@ -52,6 +62,16 @@
     [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO] :
     [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
   [self runAction:sound withKey:kActionButton];
+}
+
+-(void)soundPCToggle {
+  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
+  [self runAction:sound withKey:kActionSuck];
+}
+
+-(void)soundDeviceOrientation {
+  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
+  [self runAction:sound withKey:kActionSuck];
 }
 
 -(void)soundSwapFieldSwoosh {

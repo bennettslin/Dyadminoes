@@ -70,7 +70,7 @@
 
 #pragma mark - reposition methods
 
--(void)repositionDyadminoes:(NSArray *)dyadminoesInArray {
+-(void)repositionDyadminoes:(NSArray *)dyadminoesInArray withAnimation:(BOOL)animation {
     // dyadminoes are already in array, this method manages the sprite views
     
   for (NSUInteger index = 0; index < dyadminoesInArray.count; index++) {
@@ -100,7 +100,12 @@
 //      NSLog(@"Dyadmino parent is %@", dyadmino.parent.name);
       
       [self addChild:dyadmino];
-      [dyadmino animateMoveToPoint:shouldBePosition];
+      
+      if (animation) {
+        [dyadmino animateMoveToPoint:shouldBePosition];
+      } else {
+        dyadmino.position = shouldBePosition;
+      }
     }
   }
 }

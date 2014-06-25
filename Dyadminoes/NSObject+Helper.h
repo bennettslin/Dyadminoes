@@ -52,7 +52,7 @@
 #define kBoardCoverAlpha 0.4f
 
   // label constants (maybe temp)
-#define kButtonSize CGSizeMake(kButtonWidth, kButtonWidth * 2 / 3)
+#define kButtonSize CGSizeMake(kButtonWidth, kButtonWidth)
 
   // animation constants
 #define kRotateWait 0.05f
@@ -222,6 +222,23 @@ typedef enum physicalPlacementResult {
   kErrorLoneDyadmino
 } PhysicalPlacementResult;
 
+typedef enum chordType {
+  kChordMinorTriad,
+  kChordMajorTriad,
+  kChordHalfDiminishedSeventh,
+  kChordMinorSeventh,
+  kChordDominantSeventh,
+  kChordDiminishedTriad,
+  kChordAugmentedTriad,
+  kChordFullyDiminishedSeventh,
+  kChordMinorMajorSeventh,
+  kChordMajorSeventh,
+  kChordAugmentedMajorSeventh,
+  kChordItalianSixth,
+  kChordFrenchSixth,
+  kChordNoChord
+} ChordType;
+
 @interface NSObject (Helper)
 
   // math stuff
@@ -243,5 +260,9 @@ typedef enum physicalPlacementResult {
 
   // view stuff
 -(void)addGradientToView:(UIView *)thisView WithColour:(UIColor *)colour andUpsideDown:(BOOL)upsideDown;
+
+  // chord label stuff
+-(NSString *)stringForChord:(ChordType)chordType;
+-(NSString *)stringForRoot:(NSUInteger)root andChordType:(ChordType)chordType;
 
 @end

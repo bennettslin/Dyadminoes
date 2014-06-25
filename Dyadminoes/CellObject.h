@@ -36,6 +36,6 @@
 
 #pragma mark - testing methods
 
--(void)updatePCLabel;
+//-(void)updatePCLabel;
 
 @end

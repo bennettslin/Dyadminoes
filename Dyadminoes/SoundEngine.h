@@ -16,7 +16,11 @@
 -(void)soundSuckedDyadmino;
 -(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked;
 -(void)soundTouchedDyadminoFace:(SKSpriteNode *)dyadminoFace plucked:(BOOL)plucked;
--(void)soundClickedDyadmino;
+-(void)soundRackExchangedDyadmino;
+-(void)soundPivotClickedDyadmino;
+-(void)soundSettledDyadmino;
+-(void)soundPCToggle;
+-(void)soundDeviceOrientation;
 -(void)soundSwapFieldSwoosh;
 -(void)soundButton:(BOOL)tap;
 

@@ -7,11 +7,18 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "NSObject+Helper.h"
+@class DataDyadmino;
 
 @interface Chord : NSObject
 
-@property (strong, nonatomic) NSArray *dyadminoes;
+  // musical characteristics
+@property (strong, nonatomic) NSArray *dataDyads;
 @property (strong, nonatomic) NSString *chordType;
 @property (strong, nonatomic) NSString *rootPC;
+
+  // physical characteristics
+@property (nonatomic) HexCoord origin;
+@property (nonatomic) NSUInteger cardinality;
 
 @end

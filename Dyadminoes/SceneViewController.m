@@ -62,13 +62,13 @@
 
 -(void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event {
   if (motion == UIEventSubtypeMotionShake) {
-    NSLog(@"began motion is %d", motion);
+//    NSLog(@"began motion is %d", motion);
   }
 }
 
 -(void)motionEnded:(UIEventSubtype)motion withEvent:(UIEvent *)event {
   if (motion == UIEventSubtypeMotionShake) {
-    NSLog(@"ended motion is %d", motion);
+//    NSLog(@"ended motion is %d", motion);
     [self.myScene deviceShaken];
   }
 }

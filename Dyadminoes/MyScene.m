@@ -223,7 +223,6 @@
                              andHomePosition:homePosition // this is changed with board movement
                                    andOrigin:(CGPoint)homePosition // origin *never* changes
                                 andZPosition:kZPositionBoard];
-
   _boardField.delegate = self;
   [self addChild:_boardField];
 }
@@ -336,7 +335,7 @@
     [self addChild:_rackField];
   }
   [_rackField layoutOrRefreshNodesWithCount:self.playerRackDyadminoes.count];
-  [_rackField repositionDyadminoes:self.playerRackDyadminoes];
+  [_rackField repositionDyadminoes:self.playerRackDyadminoes withAnimation:NO];
   
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     dyadmino.delegate = self;
@@ -344,7 +343,11 @@
 }
 
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation {
-  [self.mySceneEngine rotateDyadminoesBasedOnDeviceOrientation:deviceOrientation];
+  if ([self.mySceneEngine rotateDyadminoesBasedOnDeviceOrientation:deviceOrientation]) {
+    [self.mySoundEngine soundDeviceOrientation];
+  }
+  
+  [_topBar rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
 }
 
 #pragma mark - touch methods
@@ -396,16 +399,19 @@
   
   Dyadmino *dyadmino = [self selectDyadminoFromTouchPoint:_currentTouchLocation];
   
-    // register sound if dyadmino tapped
-  if (!_hoveringDyadmino && ((dyadmino && !_swapMode) || [dyadmino isInRack])) { // not sure if not being in swapMode is necessary
-    [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
+  if (!_hoveringDyadmino) {
     
-      // register sound if face tapped
-  } else {
-    SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
-    if (face && face.parent != _hoveringDyadmino) {
-      [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
-      _soundedDyadminoFace = face;
+        // register sound if dyadmino tapped
+    if ((dyadmino && !_swapMode) || [dyadmino isInRack]) { // not sure if not being in swapMode is necessary
+      [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
+      
+        // register sound if face tapped
+    } else {
+      SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
+      if (face && face.parent != _hoveringDyadmino) {
+        [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
+        _soundedDyadminoFace = face;
+      }
     }
   }
   
@@ -506,7 +512,7 @@
     /// 3b part i: dyadmino is being moved, take care of the prepwork
   
     // update currently touched dyadmino's section
-  NSLog(@"determine current section from touches moved");
+//  NSLog(@"determine current section from touches moved");
   [self determineCurrentSectionOfDyadmino:_touchedDyadmino];
   
     // if it moved beyond certain distance, it can no longer flip
@@ -629,7 +635,7 @@
   }
     //--------------------------------------------------------------------------
     /// 2c. handle touched dyadmino
-  NSLog(@"determine currect section from end touch from touches");
+//  NSLog(@"determine currect section from end touch from touches");
   [self determineCurrentSectionOfDyadmino:_touchedDyadmino];
   Dyadmino *dyadmino = [self assignTouchEndedPointerToDyadmino:_touchedDyadmino];
   
@@ -816,13 +822,13 @@
     // start hovering
   [dyadmino removeActionsAndEstablishNotRotating];
   
-  NSLog(@"prepare for hover, check");
+//  NSLog(@"prepare for hover, check");
   [self checkWhetherToEaseOrKeepHovering:dyadmino afterTouchJustEnded:YES];
 //  [dyadmino startHovering];
   
-  NSLog(@"prepare for hover");
+//  NSLog(@"prepare for hover");
   if (dyadmino.isHovering || dyadmino.continuesToHover) {
-    NSLog(@"dyadmino hovering status is %i", dyadmino.hoveringStatus);
+//    NSLog(@"dyadmino hovering status is %i", dyadmino.hoveringStatus);
     if (!_canDoubleTapForDyadminoFlip && ![dyadmino isRotating]) {
       [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
     }
@@ -843,6 +849,7 @@
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
   if (updateBoardBounds) {
+    NSLog(@"update board bounds from send dyadmino home");
     [self updateBoardBounds];
   }
   
@@ -929,6 +936,7 @@
 #pragma mark - button methods
 
 -(void)deviceShaken {
+  [self.mySoundEngine soundPCToggle];
   [self.mySceneEngine toggleBetweenLetterAndNumberMode];
 }
 
@@ -947,9 +955,9 @@
       [self.myMatch resetHoldingContainerAndUndo];
     }
     
-      /// togglePC button
-  } else if (_buttonPressed == _topBar.togglePCModeButton) {
-    [self.mySceneEngine toggleBetweenLetterAndNumberMode];
+//      /// togglePC button
+//  } else if (_buttonPressed == _topBar.togglePCModeButton) {
+//    [self.mySceneEngine toggleBetweenLetterAndNumberMode];
     
       /// play button
   } else if (_buttonPressed == _topBar.playDyadminoButton) {
@@ -1432,7 +1440,7 @@
         [self updateCellsForPlacedDyadmino:_hoveringDyadmino];
         
         if (_hoveringDyadminoBeingCorrected == 0) {
-          NSLog(@"update for board");
+//          NSLog(@"update for board");
           if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
             [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
           }
@@ -1447,7 +1455,7 @@
 -(void)updatePivotForDyadminoMoveWithoutBoardCorrected {
     // if board not shifted or corrected, show prepivot guide
   if (_hoveringDyadmino && _hoveringDyadminoBeingCorrected == 0 && !_touchedDyadmino && !_currentTouch && !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected && ![_boardField.children containsObject:_boardField.prePivotGuide]) {
-    NSLog(@"update pivot for dyadmino move without board corrected");
+//    NSLog(@"update pivot for dyadmino move without board corrected");
     if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
       [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
     }
@@ -1520,16 +1528,15 @@
           // this is one of two places where board bounds are updated
           // the other is when rack dyadmino is sent home
         
-//        NSLog(@"updateBoardBounds called from updateDyadmino:forHover");
+        NSLog(@"updateBoardBounds called from check whether to ease");
         [self updateBoardBounds];
         
         [_boardField hideAllPivotGuides];
         [dyadmino animateEaseIntoNodeAfterHover];
         _hoveringDyadmino = nil;
-        NSLog(@"hovering dyadmino is %@", _hoveringDyadmino.name);
-        
+//        NSLog(@"hovering dyadmino is %@", _hoveringDyadmino.name);
       } else {
-        NSLog(@"will keep hovering");
+//        NSLog(@"will keep hovering");
         [dyadmino keepHovering];
         
             // lone dyadmino
@@ -1737,7 +1744,7 @@
       [dyadminoesOnBoard addObject:_recentRackDyadmino];
     }
   }
-//  NSLog(@"layoutboardcells called from updateboardbounds");
+  NSLog(@"layoutboardcells called from updateboardbounds");
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard];
   
   [_topBar updateLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
@@ -1779,13 +1786,13 @@
     // it's also on board, if not in swap and above rack and below top bar
   if (_pivotInProgress || (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
       _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight)) {
-    NSLog(@"it's on the board");
+//    NSLog(@"it's on the board");
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
     dyadmino.isInTopBar = NO;
     
       // it's in swap
   } else if (_swapMode && _currentTouchLocation.y - _touchOffsetVector.y > kRackHeight) {
-    NSLog(@"it's in swap");
+//    NSLog(@"it's in swap");
     dyadmino.belongsInSwap = YES;
     [self addDataDyadminoToSwapContainerForDyadmino:dyadmino];
     
@@ -1793,7 +1800,7 @@
 
     // if in rack field, doesn't matter if it's in swap
   } else if (_currentTouchLocation.y - _touchOffsetVector.y <= kRackHeight) {
-    NSLog(@"it's in the rack field");
+//    NSLog(@"it's in the rack field");
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
     dyadmino.belongsInSwap = NO;
     [self removeDataDyadminoFromSwapContainerForDyadmino:dyadmino];
@@ -1802,10 +1809,10 @@
       // else it's in the top bar, but this is a clumsy workaround, so be careful!
   } else if (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >=
              self.frame.size.height - kTopBarHeight) {
-    NSLog(@"it's in the top bar");
+//    NSLog(@"it's in the top bar");
     dyadmino.isInTopBar = YES;
   } else {
-    NSLog(@"it's nowhere!");
+//    NSLog(@"it's nowhere!");
   }
 }
 
@@ -1889,7 +1896,7 @@
       
         // second restriction is that touch point is close enough based on following criteria:
         // if dyadmino is on board, not hovering and thus locked in a node, and we're not in swap mode...
-      NSLog(@"determine current section of dyadmino from selectDyadminoFromTouchPoint");
+//      NSLog(@"determine current section of dyadmino from selectDyadminoFromTouchPoint");
       
       [self determineCurrentSectionOfDyadmino:dyadmino];
       
@@ -1996,16 +2003,6 @@
   }
 }
 
-//-(void)setBoardDyadminoes:(NSSet *)boardDyadminoes {
-//  
-//  if (!_boardDyadminoes || !boardDyadminoes) {
-//    _boardDyadminoes = boardDyadminoes;
-//  } else if (_boardDyadminoes != boardDyadminoes) {
-//    [self.myMatch.undoManager registerUndoWithTarget:self selector:@selector(setBoardDyadminoes:) object:_boardDyadminoes];
-//    _boardDyadminoes = boardDyadminoes;
-//  }
-//}
-
 #pragma mark - delegate methods
 
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino {
@@ -2024,17 +2021,17 @@
 
 -(void)soundRackExchangedDyadmino:(Dyadmino *)dyadmino {
     // this will be a click clack sound
-  [self.mySoundEngine soundClickedDyadmino];
+  [self.mySoundEngine soundRackExchangedDyadmino];
 }
 
   // these methods might be different later, so keep them separate
 -(void)soundDyadminoPivotClick {
 //  NSLog(@"sound dyadmino pivot click");
-  [self.mySoundEngine soundClickedDyadmino];
+  [self.mySoundEngine soundPivotClickedDyadmino];
 }
 
 -(void)soundDyadminoSettleClick {
-  [self.mySoundEngine soundClickedDyadmino];
+  [self.mySoundEngine soundSettledDyadmino];
 }
 
 -(void)soundDyadminoSuck {
@@ -2102,7 +2099,7 @@
 //  if (_hoveringDyadmino.tempBoardNode) {
 //    NSLog(@"hovering dyadmino has temp board node");
 //  }
-  NSLog(@"hovering dyadmino is on board %i", [_hoveringDyadmino isOnBoard]);
+//  NSLog(@"hovering dyadmino is on board %i", [_hoveringDyadmino isOnBoard]);
   [self updateLabels];
   [self updateButtonsForStaticState];
 }

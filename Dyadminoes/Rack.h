@@ -37,7 +37,7 @@
 
 #pragma mark - reposition methods
 
--(void)repositionDyadminoes:(NSArray *)dyadminoesInArray;
+-(void)repositionDyadminoes:(NSArray *)dyadminoesInArray withAnimation:(BOOL)animation;
 
 -(NSArray *)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
                             withDyadminoes:(NSArray *)dyadminoesInArray

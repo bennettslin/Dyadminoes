@@ -14,6 +14,7 @@
 @interface Board ()
 
 @property (strong, nonatomic) NSMutableSet *allCells;
+@property (strong, nonatomic) SKSpriteNode *backgroundNode;
 
 @end
 
@@ -46,6 +47,8 @@
     self.origin = origin;
     self.position = self.homePosition;
     self.zPosition = zPosition;
+    self.backgroundNode = [[SKSpriteNode alloc] init];
+    [self addChild:self.backgroundNode];
 
       // instantiate node and cell arrays to be searched
     self.snapPointsTwelveOClock = [NSMutableSet new];
@@ -83,27 +86,27 @@
 
 -(void)reloadBackgroundImage {
   
-    // don't know why it renders the image upside down
-  UIImage *backgroundImage = [UIImage imageNamed:@"MaryFloralUpsideDown.jpg"];
+  NSLog(@"reload background image");
+  UIImage *backgroundImage = [UIImage imageNamed:@"Bennett_Lin.jpg"];
   CGImageRef backgroundCGImage = backgroundImage.CGImage;
-//  CGAffineTransform transform = CGAffineTransformRotate(CGAffineTransformIdentity, M_PI);
-//  backgroundImage.CGImage->transform = transform;
-  CGRect textureSize = CGRectMake(self.origin.x, self.origin.y, backgroundImage.size.width, backgroundImage.size.height);
+  CGRect textureSize = CGRectMake(self.position.x, self.position.y, backgroundImage.size.width, backgroundImage.size.height);
   
-  UIGraphicsBeginImageContext(self.size); // use WithOptions to set scale for retina display
+  UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
   CGContextRef context = UIGraphicsGetCurrentContext();
+    // Core Graphics coordinates are upside down from Sprite Kit's
+  CGContextScaleCTM(context, 1.0, -1.0);
   CGContextDrawTiledImage(context, textureSize, backgroundCGImage);
   UIImage *tiledBackground = UIGraphicsGetImageFromCurrentImageContext();
   UIGraphicsEndImageContext();
   
   SKTexture *backgroundTexture = [SKTexture textureWithCGImage:tiledBackground.CGImage];
-  SKSpriteNode *backgroundNode = [SKSpriteNode spriteNodeWithTexture:backgroundTexture];
-  [self addChild:backgroundNode];
+  self.backgroundNode.size = self.size;
+  self.backgroundNode.texture = backgroundTexture;
+  
+  self.backgroundNode.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
 }
 
 -(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
-  
-//  [self reloadBackgroundImage];
   
     // hex origin is only set once
   if (!_hexOriginSet) {
@@ -129,6 +132,7 @@
   }
   [self determineBoardPositionBounds];
 //  NSLog(@"cell count is %i", _cellCount);
+  NSLog(@"would have called reload background image");
 }
 
 #pragma mark - cell methods
@@ -368,17 +372,7 @@
    
     of course, on iPad, these numbers may be different
     origin on iPhone 4-inch is 160, 298
-   
-
-   //  NSLog(@"origin is %f, %f", self.origin.x, self.origin.y);
-   //  NSLog(@"vert range is this number of cells %.1f", _cellsInVertRange);
-   //  NSLog(@"bottom range is this number of cells %.1f", _cellsInHorzRange);
    */
-  
-//  NSLog(@"cells top %i, right %i, bottom %i, left %i",
-//        self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
-//  NSLog(@"bounds is lowestY %.1f, lowestX %.1f, highestY %.1f, highestX %.1f",
-//        self.lowestYPos, self.lowestXPos, self.highestYPos, self.highestXPos);
 }
 
 #pragma mark - distance methods

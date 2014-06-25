@@ -78,9 +78,9 @@
   self.boardSnapPointTwelveOClock.name = @"snap 12";
   self.boardSnapPointTwoOClock.name = @"snap 2";
   self.boardSnapPointTenOClock.name = @"snap 10";
-  self.boardSnapPointTwelveOClock.myCell = self;
-  self.boardSnapPointTwoOClock.myCell = self;
-  self.boardSnapPointTenOClock.myCell = self;
+//  self.boardSnapPointTwelveOClock.myCell = self;
+//  self.boardSnapPointTwoOClock.myCell = self;
+//  self.boardSnapPointTenOClock.myCell = self;
 }
 
 -(void)addSnapPointsToBoard {

@@ -30,10 +30,10 @@
     self.hexCoord = hexCoord;
     self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
     self.zPosition = kZPositionBoardCell;
-    self.alpha = 0.9f;
+    self.alpha = 0.5f; // was 0.8 before board patterning attempt
     
       // establish cell size
-    CGFloat paddingBetweenCells = kIsIPhone ? 1.f : 2.f; // 5.f : 7.5f;
+    CGFloat paddingBetweenCells = kIsIPhone ? 1.5f : 3.f; // 5.f : 7.5f;
     
     CGFloat ySize = kDyadminoFaceRadius * 2 - paddingBetweenCells;
     CGFloat widthToHeightRatio = self.texture.size.width / self.texture.size.height;

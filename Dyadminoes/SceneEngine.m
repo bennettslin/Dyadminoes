@@ -105,7 +105,7 @@
 
 #pragma mark = player preference methods
 
--(void)rotateDyadminoesBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation {
+-(BOOL)rotateDyadminoesBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation {
   
   NSUInteger rotation = _rotationFromDevice;
   switch (deviceOrientation) {
@@ -133,6 +133,9 @@
       dyadmino.pc2NumberSprite.zRotation = [self getRadiansFromDegree:rotation];
     }
     _rotationFromDevice = rotation;
+    return YES;
+  } else {
+    return NO;
   }
 }
 

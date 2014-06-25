@@ -10,7 +10,9 @@
 #import "Button.h"
 #import "Label.h"
 
-@implementation TopBar
+@implementation TopBar {
+  NSUInteger _rotationFromDevice;
+}
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size
     andAnchorPoint:(CGPoint)anchorPoint
@@ -23,6 +25,7 @@
     self.anchorPoint = anchorPoint;
     self.position = position;
     self.zPosition = zPosition;
+    _rotationFromDevice = 0;
 //    [self addGradientToView:self WithColour:self.color andUpsideDown:YES];
   }
   return self;
@@ -54,18 +57,6 @@
                                     andZPosition:kZPositionTopBarButton];
   [tempButtons addObject:self.redoButton];
   [self enableButton:self.redoButton];
-  self.replayButton = [[Button alloc] initWithName:@"replay" andColor:[SKColor yellowColor]
-                                         andSize:kButtonSize
-                                     andPosition:CGPointMake(kButtonWidth * 3, kButtonYPosition * 3)
-                                    andZPosition:kZPositionTopBarButton];
-  [tempButtons addObject:self.replayButton];
-  [self enableButton:self.replayButton];
-  self.resignButton = [[Button alloc] initWithName:@"resign" andColor:[SKColor brownColor]
-                                           andSize:kButtonSize
-                                       andPosition:CGPointMake(kButtonWidth * 5, kButtonYPosition * 3)
-                                      andZPosition:kZPositionTopBarButton];
-  [tempButtons addObject:self.resignButton];
-  [self enableButton:self.resignButton];
   
   self.gamesButton = [[Button alloc] initWithName:@"games" andColor:[SKColor grayColor]
                                                  andSize:kButtonSize
@@ -74,12 +65,19 @@
   [tempButtons addObject:self.gamesButton];
   [self enableButton:self.gamesButton];
   
-  self.togglePCModeButton = [[Button alloc] initWithName:@"toggle" andColor:[SKColor orangeColor]
-                                                 andSize:kButtonSize
-                                             andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition)
-                                            andZPosition:kZPositionTopBarButton];
-  [tempButtons addObject:self.togglePCModeButton];
-  [self enableButton:self.togglePCModeButton];
+  self.replayButton = [[Button alloc] initWithName:@"replay" andColor:[SKColor orangeColor]
+                                           andSize:kButtonSize
+                                       andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition)
+                                      andZPosition:kZPositionTopBarButton];
+  [tempButtons addObject:self.replayButton];
+  [self enableButton:self.replayButton];
+  
+//  self.togglePCModeButton = [[Button alloc] initWithName:@"toggle" andColor:[SKColor orangeColor]
+//                                                 andSize:kButtonSize
+//                                             andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition)
+//                                            andZPosition:kZPositionTopBarButton];
+//  [tempButtons addObject:self.togglePCModeButton];
+//  [self enableButton:self.togglePCModeButton];
   
   self.swapButton = [[Button alloc] initWithName:@"swap" andColor:[SKColor brownColor]
                                          andSize:kButtonSize
@@ -109,10 +107,17 @@
   [tempButtons addObject:self.doneTurnButton];
   [self enableButton:self.doneTurnButton];
   
-  self.debugButton = [[Button alloc] initWithName:@"debug" andColor:[SKColor blackColor]
-                                        andSize:kButtonSize
-                                    andPosition:CGPointMake(kButtonWidth * 5, kButtonYPosition)
-                                   andZPosition:kZPositionTopBarButton];
+  self.resignButton = [[Button alloc] initWithName:@"resign" andColor:[SKColor blackColor]
+                                           andSize:kButtonSize
+                                       andPosition:CGPointMake(kButtonWidth * 5, kButtonYPosition)
+                                      andZPosition:kZPositionTopBarButton];
+  [tempButtons addObject:self.resignButton];
+  [self enableButton:self.resignButton];
+  
+  self.debugButton = [[Button alloc] initWithName:@"debug" andColor:[SKColor brownColor]
+                                          andSize:kButtonSize
+                                      andPosition:CGPointMake(kButtonWidth * 5, kButtonYPosition * 3)
+                                     andZPosition:kZPositionTopBarButton];
   [tempButtons addObject:self.debugButton];
   [self enableButton:self.debugButton];
   
@@ -295,6 +300,39 @@
   button.hidden = YES;
   if (button.parent) {
     [button removeFromParent];
+  }
+}
+
+-(BOOL)rotateButtonsBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation {
+  
+  NSUInteger rotation = _rotationFromDevice;
+  switch (deviceOrientation) {
+    case UIDeviceOrientationPortrait:
+      rotation = 0;
+      break;
+    case UIDeviceOrientationLandscapeRight:
+      rotation = 90;
+      break;
+    case UIDeviceOrientationPortraitUpsideDown:
+      rotation = 180;
+      break;
+    case UIDeviceOrientationLandscapeLeft:
+      rotation = 270;
+      break;
+    default:
+      break;
+  }
+  
+  if (rotation != _rotationFromDevice) {
+
+    for (Button *button in self.allButtons) {
+      button.zRotation = [self getRadiansFromDegree:rotation];
+    }
+    
+    _rotationFromDevice = rotation;
+    return YES;
+  } else {
+    return NO;
   }
 }
 

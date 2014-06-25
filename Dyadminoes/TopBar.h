@@ -27,7 +27,7 @@
 @property (strong, nonatomic) Label *lastActionLabel;
 
 @property (strong, nonatomic) Button *gamesButton;
-@property (strong, nonatomic) Button *togglePCModeButton;
+//@property (strong, nonatomic) Button *togglePCModeButton;
 @property (strong, nonatomic) Button *swapButton;
 @property (strong, nonatomic) Button *cancelButton;
 @property (strong, nonatomic) Button *playDyadminoButton;
@@ -72,6 +72,8 @@
 
 -(void)enableButton:(SKSpriteNode *)button;
 -(void)disableButton:(SKSpriteNode *)button;
+
+-(BOOL)rotateButtonsBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation;
 
 #pragma mark - label methods
 

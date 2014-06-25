@@ -57,6 +57,7 @@
       andZPosition:(CGFloat)zPosition;
 
 -(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes;
+-(void)reloadBackgroundImage;
 
 #pragma mark - pivot guide methods
 
