@@ -193,7 +193,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		3F0526C21936CE92003D3C04 /* Tutorial Images */ = {
+		3F0526C21936CE92003D3C04 /* Images and Sounds */ = {
 			isa = PBXGroup;
 			children = (
 				3F580BDF194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav */,
@@ -207,7 +207,8 @@
 				3F0526C51936CE9F003D3C04 /* page2.png */,
 				3F0526C61936CE9F003D3C04 /* page1.png */,
 			);
-			name = "Tutorial Images";
+			name = "Images and Sounds";
+			path = ..;
 			sourceTree = "<group>";
 		};
 		3F4C06B318CC5F12003C4265 /* Logic and Helpers */ = {
@@ -226,7 +227,6 @@
 		3F87AA9E188DEE4B008C4A0D = {
 			isa = PBXGroup;
 			children = (
-				3F0526C21936CE92003D3C04 /* Tutorial Images */,
 				3F87AAB2188DEE4B008C4A0D /* Dyadminoes */,
 				3F87AAD9188DEE4C008C4A0D /* DyadminoesTests */,
 				3F87AAA9188DEE4B008C4A0D /* Frameworks */,
@@ -260,13 +260,16 @@
 			children = (
 				3F87AABB188DEE4B008C4A0D /* AppDelegate.h */,
 				3F87AABC188DEE4B008C4A0D /* AppDelegate.m */,
+				3F87AAC7188DEE4B008C4A0D /* MyScene.h */,
+				3F87AAC8188DEE4B008C4A0D /* MyScene.m */,
 				3F8DC8EC18C151170004B063 /* Storyboards */,
-				3FFD6CA218B40A83000D2DA4 /* DyadminoImages.atlas */,
 				3FB357CB1935368F0064761C /* Game View Controllers */,
 				3FEBC8EE193BBCA100DA3560 /* Other View Controllers */,
 				3FFBE2251931B959002A1EDC /* Data Objects */,
 				3FFD6BE518B3CCE7000D2DA4 /* Scene Objects */,
 				3F4C06B318CC5F12003C4265 /* Logic and Helpers */,
+				3F0526C21936CE92003D3C04 /* Images and Sounds */,
+				3FFD6CA218B40A83000D2DA4 /* DyadminoImages.atlas */,
 				3F87AACC188DEE4B008C4A0D /* Images.xcassets */,
 				3F87AAB3188DEE4B008C4A0D /* Supporting Files */,
 			);
@@ -324,8 +327,6 @@
 				3F7BD7D7192B09FE009274DE /* DebugViewController.m */,
 				3F87AAC4188DEE4B008C4A0D /* SceneViewController.h */,
 				3F87AAC5188DEE4B008C4A0D /* SceneViewController.m */,
-				3F87AAC7188DEE4B008C4A0D /* MyScene.h */,
-				3F87AAC8188DEE4B008C4A0D /* MyScene.m */,
 			);
 			name = "Game View Controllers";
 			sourceTree = "<group>";

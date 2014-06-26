@@ -27,7 +27,7 @@
   self.helpPageImages = @[@"page1.png", @"page2.png", @"page3.png", @"page4.png"];
   
     // Create page view controller
-  self.helpPageVC = [self.storyboard instantiateViewControllerWithIdentifier:@"PageViewController"];
+  self.helpPageVC = [[UIPageViewController alloc] initWithTransitionStyle:UIPageViewControllerTransitionStyleScroll navigationOrientation:UIPageViewControllerNavigationOrientationHorizontal options:nil];
   self.helpPageVC.dataSource = self;
 
   if ([self viewControllerAtIndex:0]) {

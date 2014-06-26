@@ -4,24 +4,6 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733"/>
     </dependencies>
     <scenes>
-        <!--View Controller-->
-        <scene sceneID="275-3i-IwU">
-            <objects>
-                <viewController id="Qf5-UQ-D2W" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="r5i-bb-OSk"/>
-                        <viewControllerLayoutGuide type="bottom" id="TtO-hH-kOY"/>
-                    </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="N5y-HG-4hE">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                    </view>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="o1T-Zt-Fls" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-2182" y="699"/>
-        </scene>
         <!--Matches Table View Controller-->
         <scene sceneID="5Wl-i5-2X9">
             <objects>
@@ -667,7 +649,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="3eh-zI-Bzu" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-2182" y="-561"/>
+            <point key="canvasLocation" x="-1302" y="59"/>
         </scene>
         <!--Scene View Controller-->
         <scene sceneID="tXr-a1-R10">
@@ -690,6 +672,7 @@
         <!--Help View Controller-->
         <scene sceneID="Uu4-7i-U60">
             <objects>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="10k-v6-40U" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <viewController storyboardIdentifier="HelpViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="umk-Kr-SQX" customClass="HelpViewController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="FLW-Qx-e5w"/>
@@ -701,17 +684,8 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                 </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="10k-v6-40U" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-373" y="699"/>
-        </scene>
-        <!--Page View Controller-->
-        <scene sceneID="3iW-MX-FG6">
-            <objects>
-                <pageViewController storyboardIdentifier="PageViewController" autoresizesArchivedViewToFullSize="NO" useStoryboardIdentifierAsRestorationIdentifier="YES" transitionStyle="scroll" navigationOrientation="horizontal" spineLocation="none" id="QbW-MR-3AZ" sceneMemberID="viewController"/>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="CgA-fY-NKX" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="561" y="699"/>
         </scene>
         <!--Help Content View Controller-->
         <scene sceneID="PbB-L0-z99">
@@ -745,7 +719,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="C1g-4U-LmF" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1495" y="699"/>
+            <point key="canvasLocation" x="561" y="699"/>
         </scene>
     </scenes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">

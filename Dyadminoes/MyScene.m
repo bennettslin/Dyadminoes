@@ -279,7 +279,7 @@
       //------------------------------------------------------------------------
     
       // update cells
-    [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode];
+    [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode andColour:YES];
     dyadmino.position = dyadmino.homeNode.position;
     [dyadmino orientBySnapNode:dyadmino.homeNode];
     [dyadmino selectAndPositionSprites];
@@ -364,9 +364,6 @@
       // handles ending previous touch
     [self endTouchFromTouches:nil];
     _currentTouch = [touches anyObject];
-    
-      // originally
-//    return;
   }
     
   if (_swapFieldActionInProgress) {
@@ -556,7 +553,6 @@
     [self handlePivotOfDyadmino:_hoveringDyadmino];
     return;
   }
-  
   
     // this ensures that pivot guides are not hidden if rack exchange
   if (_touchedDyadmino == _hoveringDyadmino && !_touchedDyadmino.isRotating) {
@@ -1719,24 +1715,20 @@
 #pragma mark - board helper methods
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino {
-//  [_boardField reloadBackgroundImage];
-  
+  NSLog(@"update cells for placed dyadmino");
   if (![dyadmino isRotating]) {
-      // experiment to see if this is a good place to set the tempArrays for placed dyadmino
-    
-  //  /*
     dyadmino.tempBoardNode ?
-      [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.tempBoardNode] :
-      [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode];
-  //   */
+      [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.tempBoardNode andColour:YES] :
+      [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode andColour:YES];
   }
 }
 
 -(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino {
+  NSLog(@"update cells for removed dyadmino");
   if (![dyadmino isRotating]) {
     dyadmino.tempBoardNode ?
-    [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.tempBoardNode] :
-    [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.homeNode];
+      [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.tempBoardNode andColour:YES] :
+      [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.homeNode andColour:YES];
   }
 }
 
