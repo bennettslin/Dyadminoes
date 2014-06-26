@@ -48,9 +48,9 @@
   self.myScene.myMatch = self.myMatch;
   self.myScene.delegate = self;
   [self.myScene preLoad];
-  NSLog(@"about to present scene");
+//  NSLog(@"about to present scene");
   [self.mySceneView presentScene:self.myScene];
-  NSLog(@"scene presented");
+//  NSLog(@"scene presented");
 }
 
 -(void)backToMainMenu {

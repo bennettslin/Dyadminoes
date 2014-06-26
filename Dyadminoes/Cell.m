@@ -89,22 +89,11 @@
 }
 
 -(void)createSnapPoints {
-  CGFloat faceOffset = kDyadminoFaceRadius;
-  
-    // based on a 30-60-90 degree triangle
-  CGFloat faceOffsetX = faceOffset * 0.5 * kSquareRootOfThree;
-  CGFloat faceOffsetY = faceOffset * 0.5;
-  
   self.boardSnapPointTwelveOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwelveOClock];
   self.boardSnapPointTwoOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwoOClock];
   self.boardSnapPointTenOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTenOClock];
   
-  self.boardSnapPointTwelveOClock.position = [self addToThisPoint:self.cellNodePosition
-                                                        thisPoint:CGPointMake(0.f, faceOffset)];
-  self.boardSnapPointTwoOClock.position = [self addToThisPoint:self.cellNodePosition
-                                                     thisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
-  self.boardSnapPointTenOClock.position = [self addToThisPoint:self.cellNodePosition
-                                                     thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
+  [self positionSnapPoints];
   
   self.boardSnapPointTwelveOClock.name = @"snap 12";
   self.boardSnapPointTwoOClock.name = @"snap 2";
@@ -114,7 +103,23 @@
   self.boardSnapPointTenOClock.myCell = self;
 }
 
+-(void)positionSnapPoints {
+  CGFloat faceOffset = kDyadminoFaceRadius;
+  
+    // based on a 30-60-90 degree triangle
+  CGFloat faceOffsetX = faceOffset * 0.5 * kSquareRootOfThree;
+  CGFloat faceOffsetY = faceOffset * 0.5;
+  self.boardSnapPointTwelveOClock.position = [self addToThisPoint:self.cellNodePosition
+                                                        thisPoint:CGPointMake(0.f, faceOffset)];
+  self.boardSnapPointTwoOClock.position = [self addToThisPoint:self.cellNodePosition
+                                                     thisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
+  self.boardSnapPointTenOClock.position = [self addToThisPoint:self.cellNodePosition
+                                                     thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
+}
+
 -(void)addSnapPointsToBoard {
+  [self positionSnapPoints];
+  
   if (![self.board.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
     [self.board.snapPointsTwelveOClock addObject:self.boardSnapPointTwelveOClock];
   }
@@ -130,10 +135,10 @@
   if ([self.board.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
     [self.board.snapPointsTwelveOClock removeObject:self.boardSnapPointTwelveOClock];
   }
-  if ([self.board.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
+  if ([self.board.snapPointsTwoOClock containsObject:self.boardSnapPointTwoOClock]) {
     [self.board.snapPointsTwoOClock removeObject:self.boardSnapPointTwoOClock];
   }
-  if ([self.board.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
+  if ([self.board.snapPointsTenOClock containsObject:self.boardSnapPointTenOClock]) {
     [self.board.snapPointsTenOClock removeObject:self.boardSnapPointTenOClock];
   }
 }
@@ -143,7 +148,6 @@
 -(void)createHexCoordLabel {
   self.hexCoordLabel = [[SKLabelNode alloc] init];
 
-  
   self.hexCoordLabel.fontSize = 12.f;
   self.hexCoordLabel.alpha = 0.7f;
   self.hexCoordLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;

@@ -29,6 +29,11 @@
   BOOL _cellsBottomXIsEven;
   BOOL _hexOriginSet;
   CGVector _vectorOrigin;
+  
+  NSInteger _oldCellsTop;
+  NSInteger _oldCellsBottom;
+  NSInteger _oldCellsLeft;
+  NSInteger _oldCellsRight;
 }
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size
@@ -81,40 +86,41 @@
     self.pivotAroundGuide.name = @"pivotAroundGuide";
     
     _hexOriginSet = NO;
+    
+//    [self initLoadBackgroundImage];
   }
   return self;
 }
 
--(void)reloadBackgroundImage {
+-(void)initLoadBackgroundImage {
+  UIImage *backgroundImage = [UIImage imageNamed:@"MaryFloral.jpeg"];
+  CGImageRef backgroundCGImage = backgroundImage.CGImage;
+  CGRect textureSize = CGRectMake(self.position.x, self.position.y, backgroundImage.size.width / 2, backgroundImage.size.height / 2);
   
+  UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
+  CGContextRef context = UIGraphicsGetCurrentContext();
+    // Core Graphics coordinates are upside down from Sprite Kit's
+  CGContextScaleCTM(context, 1.0, -1.0);
+  CGContextDrawTiledImage(context, textureSize, backgroundCGImage);
+  UIImage *tiledBackground = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+  
+  SKTexture *backgroundTexture = [SKTexture textureWithCGImage:tiledBackground.CGImage];
+  self.backgroundNode.texture = backgroundTexture;
+}
+
+-(void)reloadBackgroundImage {
 //  dispatch_queue_t aQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-//  dispatch_queue_t aQueue = dispatch_queue_create("whatever", NULL);
-//  dispatch_async(aQueue, ^{
-    NSLog(@"reload background image");
-    UIImage *backgroundImage = [UIImage imageNamed:@"Bennett_Lin.jpg"];
-    CGImageRef backgroundCGImage = backgroundImage.CGImage;
-    CGRect textureSize = CGRectMake(self.position.x, self.position.y, backgroundImage.size.width, backgroundImage.size.height);
-    
-    UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
-    CGContextRef context = UIGraphicsGetCurrentContext();
-      // Core Graphics coordinates are upside down from Sprite Kit's
-    CGContextScaleCTM(context, 1.0, -1.0);
-    CGContextDrawTiledImage(context, textureSize, backgroundCGImage);
-    UIImage *tiledBackground = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    
-    SKTexture *backgroundTexture = [SKTexture textureWithCGImage:tiledBackground.CGImage];
+  dispatch_queue_t aQueue = dispatch_queue_create("whatever", NULL);
+  dispatch_async(aQueue, ^{
     self.backgroundNode.size = self.size;
-    self.backgroundNode.texture = backgroundTexture;
-    
     self.backgroundNode.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
-//  });
+  });
 }
 
 -(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes forReplay:(BOOL)replay {
-  
-  NSLog(@"dequeued cells %i", self.dequeuedCells.count);
-  
+//  NSLog(@"layout called");
+
     // hex origin is only set once
   if (!_hexOriginSet) {
     _vectorOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
@@ -135,27 +141,34 @@
       // regular mode
   } else {
 
+      // covers all cells in old range plus new range
+    NSInteger maxCellsTop = _oldCellsTop > self.cellsTop ? _oldCellsTop : self.cellsTop;
+    NSInteger minCellsBottom = _oldCellsBottom < self.cellsBottom ? _oldCellsBottom : self.cellsBottom;
+    NSInteger maxCellsRight = _oldCellsRight > self.cellsRight ? _oldCellsRight : self.cellsRight;
+    NSInteger minCellsLeft = _oldCellsLeft < self.cellsLeft ? _oldCellsLeft : self.cellsLeft;
+    
       // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
       // use this to get the range to iterate over y, and to keep the board square
-    for (NSInteger xHex = self.cellsLeft; xHex <= self.cellsRight; xHex++) {
-      for (NSInteger yHex = self.cellsBottom - self.cellsRight / 2; yHex <= self.cellsTop - self.cellsLeft / 2; yHex++) {
+    for (NSInteger xHex = minCellsLeft; xHex <= maxCellsRight; xHex++) {
+      for (NSInteger yHex = minCellsBottom - maxCellsRight / 2; yHex <= maxCellsTop - minCellsLeft / 2; yHex++) {
 
-        if (!(xHex >= self.cellsLeft && xHex <= self.cellsRight &&
-            yHex <= self.cellsTop - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f))) {
-          
-          [self ignoreCellWithXHex:xHex andYHex:yHex];
-
-        } else {
-          
+        if (xHex >= self.cellsLeft && xHex <= self.cellsRight &&
+            yHex <= self.cellsTop - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f)) {
           [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
           
+        } else {
+//          NSLog(@"ignoring cell from layout board");
+          [self ignoreCellWithXHex:xHex andYHex:yHex];
         }
       }
     }
   }
+  
+  NSLog(@"self.allCells count %i", self.allCells.count);
   [self determineBoardPositionBounds];
-//  NSLog(@"cell count is %i", _cellCount);
-//  NSLog(@"would have called reload background image");
+  
+  NSLog(@"self.allCells %i, self.occupiedCells %i, self.dequeuedCells %i", self.allCells.count, self.occupiedCells.count, self.dequeuedCells.count);
+  NSLog(@"board nodes %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
 }
 
 #pragma mark - cell methods
@@ -198,8 +211,13 @@
     }
 //*/
     
-    [self.allCells addObject:cell];
-    [cell addSnapPointsToBoard];
+//    NSLog(@"cell %@ added, self.allCells count %i", cell.name, self.allCells.count);
+    
+    if (![self.allCells containsObject:cell]) {
+      [self.allCells addObject:cell];
+//      NSLog(@"now self.allCells count %i", self.allCells.count);
+      [cell addSnapPointsToBoard];
+    }
   }
   return cell;
 }
@@ -207,14 +225,18 @@
 -(void)ignoreCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
   Cell *cell = [self findCellWithXHex:xHex andYHex:yHex];
   if (cell) {
-//    NSLog(@"cell %@ removed", cell.name);
     if (cell.cellNode) {
 //      cell.cellNode.hidden = YES;
       [cell.cellNode removeFromParent];
     }
-    [self.allCells removeObject:cell];
+//    NSLog(@"cell %@ removed, self.allCells count %i", cell.name, self.allCells.count);
+    
+    if ([self.allCells containsObject:cell]) {
+      [self.allCells removeObject:cell];
+//      NSLog(@"now self.allCells count %i", self.allCells.count);
+      [cell removeSnapPointsFromBoard];
+    }
     [self pushDequeuedCell:cell];
-    [cell removeSnapPointsFromBoard];
   }
 }
 
@@ -222,7 +244,7 @@
   if (![self.dequeuedCells containsObject:cell]) {
     [self.dequeuedCells addObject:cell];
   }
-  NSLog(@"pushed cell %@, dequeued cells is %i", cell.name, self.dequeuedCells.count);
+//  NSLog(@"pushed cell %@, dequeued cells is %i", cell.name, self.dequeuedCells.count);
 }
 
 -(Cell *)popDequeuedCell {
@@ -363,10 +385,17 @@
       break;
   }
   
+  _oldCellsTop = self.cellsTop;
+  _oldCellsBottom = self.cellsBottom;
+  _oldCellsRight = self.cellsRight;
+  _oldCellsLeft = self.cellsLeft;
+
   self.cellsTop = cellsTop + extraYCells;
   self.cellsRight = cellsRight + extraXCells;
   self.cellsBottom = cellsBottom - extraYCells;
   self.cellsLeft = cellsLeft - extraXCells;
+  
+//  NSLog(@"top %i, right %i, bottom %i, left %i", self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
   
     // returns general center
   return CGVectorMake(((self.cellsRight - self.cellsLeft) / 2) + self.cellsLeft, ((self.cellsTop - self.cellsBottom - 1) / 2) + self.cellsBottom);

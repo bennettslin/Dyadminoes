@@ -80,20 +80,20 @@
 }
 
 -(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked {
-  NSLog(@"sounding %@", dyadmino.name);
+//  NSLog(@"sounding %@", dyadmino.name);
   
   SKAction *sound = plucked ?
     [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO] : // plucked
     [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO]; // resonated
   
   NSString *noteActionKey1 = [self returnNoteActionKey];
-  NSLog(@"%@", noteActionKey1);
+//  NSLog(@"%@", noteActionKey1);
   [self removeActionForKey:noteActionKey1];
   [self runAction:sound withKey:noteActionKey1];
   [self incrementNoteCount];
   
   NSString *noteActionKey2 = [self returnNoteActionKey];
-  NSLog(@"%@", noteActionKey2);
+//  NSLog(@"%@", noteActionKey2);
   [self removeActionForKey:noteActionKey2];
   [self runAction:sound withKey:noteActionKey2];
   [self incrementNoteCount];

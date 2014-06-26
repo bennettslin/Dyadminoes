@@ -107,7 +107,7 @@
 }
 
 -(void)preLoad {
-  NSLog(@"preload called from scene");
+//  NSLog(@"preload called from scene");
   _myPlayer = self.myMatch.currentPlayer;
   [self addChild:self.mySoundEngine];
   [self populateRackArray];
@@ -115,26 +115,27 @@
 }
 
 -(void)didMoveToView:(SKView *)view {
-  NSLog(@"did move to view");
+//  NSLog(@"did move to view");
   [self layoutBoard];
-  NSLog(@"board laid out");
+//  NSLog(@"board laid out");
   [self layoutBoardCover];
 
     // this only needs the board dyadminoes to determine the board's cells ranges
     // this populates the board cells
   
+  NSLog(@"layoutboard cells called from did move to view");
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes forReplay:NO];
 //  [_boardField reloadBackgroundImage];
-  NSLog(@"cells and snap points laid out");
+//  NSLog(@"cells and snap points laid out");
   
   [self populateBoardWithDyadminoes];
-  NSLog(@"board populated with dyadminoes");
+//  NSLog(@"board populated with dyadminoes");
   [self layoutSwapField];
-  NSLog(@"swap field laid out");
+//  NSLog(@"swap field laid out");
   [self layoutTopBar];
-  NSLog(@"top bar laid out");
+//  NSLog(@"top bar laid out");
   [self layoutOrRefreshRackFieldAndDyadminoes];
-  NSLog(@"rack field and dyadminoes laid out and refreshed");
+//  NSLog(@"rack field and dyadminoes laid out and refreshed");
   [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
 }
 
@@ -418,7 +419,7 @@
   
   if (dyadmino && !dyadmino.isRotating && !_touchedDyadmino) {
     _touchedDyadmino = dyadmino;
-    NSLog(@"begin touch or pivot of dyadmino");
+//    NSLog(@"begin touch or pivot of dyadmino");
     [self beginTouchOrPivotOfDyadmino:dyadmino];
   
     //--------------------------------------------------------------------------
@@ -850,8 +851,8 @@
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
   if (updateBoardBounds) {
-    NSLog(@"update board bounds from send dyadmino home");
-    [self updateBoardBounds];
+//    NSLog(@"update board bounds from send dyadmino home");
+    [self updateBoardBoundsWithLayoutCells:NO];
   }
   
   [dyadmino endTouchThenHoverResize];
@@ -1530,8 +1531,8 @@
           // this is one of two places where board bounds are updated
           // the other is when rack dyadmino is sent home
         
-        NSLog(@"updateBoardBounds called from check whether to ease");
-        [self updateBoardBounds];
+//        NSLog(@"updateBoardBounds called from check whether to ease");
+        [self updateBoardBoundsWithLayoutCells:YES];
         
         [_boardField hideAllPivotGuides];
         [dyadmino animateEaseIntoNodeAfterHover];
@@ -1739,7 +1740,7 @@
   }
 }
 
--(void)updateBoardBounds {
+-(void)updateBoardBoundsWithLayoutCells:(BOOL)layoutCells {
   NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
 
     // add dyadmino to set if dyadmino is a recent rack dyadmino
@@ -1748,8 +1749,11 @@
       [dyadminoesOnBoard addObject:_recentRackDyadmino];
     }
   }
-  NSLog(@"layoutboardcells called from updateboardbounds");
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard forReplay:NO];
+  
+  if (layoutCells) {
+    NSLog(@"layoutboardcells called from updateboardbounds");
+    [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard forReplay:NO];
+  }
   
   [_topBar updateLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
                                              _boardField.cellsTop - 0, _boardField.cellsRight - 0, _boardField.cellsBottom + 0, _boardField.cellsLeft + 0]];
