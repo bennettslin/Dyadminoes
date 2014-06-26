@@ -14,10 +14,6 @@
 
 @interface Cell ()
 
-@property (strong, nonatomic) SnapPoint *boardSnapPointTwelveOClock;
-@property (strong, nonatomic) SnapPoint *boardSnapPointTwoOClock;
-@property (strong, nonatomic) SnapPoint *boardSnapPointTenOClock;
-
 @end
 
 @implementation Cell

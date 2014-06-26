@@ -852,7 +852,7 @@
     // the other is when dyadmino is eased into board node
   if (updateBoardBounds) {
 //    NSLog(@"update board bounds from send dyadmino home");
-    [self updateBoardBoundsWithLayoutCells:NO];
+    [self updateBoardBoundsWithLayoutCells:YES];
   }
   
   [dyadmino endTouchThenHoverResize];
@@ -1931,6 +1931,24 @@
 
 -(SnapPoint *)findSnapPointClosestToDyadmino:(Dyadmino *)dyadmino {
   id arrayOrSetToSearch;
+  
+  if ([self isFirstDyadmino:dyadmino]) {
+    Cell *homeCell = dyadmino.tempBoardNode.myCell;
+    switch (dyadmino.orientation) {
+      case kPC1atTwelveOClock:
+      case kPC1atSixOClock:
+        return homeCell.boardSnapPointTwelveOClock;
+        break;
+      case kPC1atTwoOClock:
+      case kPC1atEightOClock:
+        return homeCell.boardSnapPointTwoOClock;
+        break;
+      case kPC1atFourOClock:
+      case kPC1atTenOClock:
+        return homeCell.boardSnapPointTenOClock;
+        break;
+    }
+  }
   
   if (!_swapMode && [dyadmino isOnBoard]) {
     if (dyadmino.orientation == kPC1atTwelveOClock || dyadmino.orientation == kPC1atSixOClock) {

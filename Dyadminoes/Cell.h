@@ -10,6 +10,7 @@
 #import "NSObject+Helper.h"
 @class Board;
 @class Dyadmino;
+@class SnapPoint;
 
 @interface Cell : NSObject
 
@@ -18,6 +19,10 @@
 @property (nonatomic) CGSize cellNodeSize;
 
 @property (strong, nonatomic) NSString *name;
+
+@property (strong, nonatomic) SnapPoint *boardSnapPointTwelveOClock;
+@property (strong, nonatomic) SnapPoint *boardSnapPointTwoOClock;
+@property (strong, nonatomic) SnapPoint *boardSnapPointTenOClock;
 
 @property (strong, nonatomic) SKSpriteNode *cellNode;
 @property (strong, nonatomic) Board *board;
