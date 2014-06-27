@@ -1,7 +1,7 @@
 Dyadminoes
 ==========
 
-A musical tile game that I created. It's perhaps best described as a cross between dominoes and Scrabble, using musical notes to form chords. Release planned for September 2014.
+A musical tile game I created that is best described as a cross between dominoes and Scrabble, using musical notes to form chords. Release planned for September 2014.
 
 Major tasks left to complete:
 -----------------------------
