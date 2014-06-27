@@ -398,10 +398,10 @@
   
   Dyadmino *dyadmino = [self selectDyadminoFromTouchPoint:_currentTouchLocation];
   
-  if (!_hoveringDyadmino) {
+  if (!_canDoubleTapForDyadminoFlip && ![dyadmino isRotating]) {
     
         // register sound if dyadmino tapped
-    if ((dyadmino && !_swapMode) || [dyadmino isInRack]) { // not sure if not being in swapMode is necessary
+    if ((dyadmino && !_swapMode && !_pivotInProgress) || [dyadmino isInRack]) { // not sure if not being in swapMode is necessary
       [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
       
         // register sound if face tapped
@@ -427,7 +427,7 @@
   } else if (!_pivotInProgress || (_pivotInProgress && !_touchedDyadmino)) {
     if (_touchNode == _boardField || _touchNode == _boardCover ||
         (_touchNode.parent == _boardField && ![_touchNode isKindOfClass:[Dyadmino class]]) ||
-        _touchNode.parent.parent == _boardField) { // cell label, this one is necessary only for testing purposes
+        (_touchNode.parent.parent == _boardField && ![_touchNode.parent isKindOfClass:[Dyadmino class]])) { // cell label, this one is necessary only for testing purposes
       
       if (_canDoubleTapForBoardZoom) {
 //        NSLog(@"board has been double tapped");
@@ -1157,7 +1157,6 @@
       // do cleanup, dyadmino's home node is now the board node
     dyadmino.homeNode = dyadmino.tempBoardNode;
     dyadmino.myHexCoord = dyadmino.homeNode.myCell.hexCoord;
-//    dyadmino.tempBoardNode = nil;
     [dyadmino highlightBoardDyadmino];
     
       // empty pointers
