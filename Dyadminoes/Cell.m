@@ -10,7 +10,7 @@
 #import "SnapPoint.h"
 #import "Board.h"
 
-#define kPaddingBetweenCells (kIsIPhone ? 1.5f : 3.f)
+#define kPaddingBetweenCells (kIsIPhone ? 0.f : 0.f)
 
 @interface Cell ()
 
@@ -38,6 +38,8 @@
 }
 
 -(void)initCellWithHexCoord:(HexCoord)hexCoord andVectorOrigin:(CGVector)vectorOrigin {
+  
+  self.currentlyColouringNeighbouringCells = NO;
   self.hexCoord = hexCoord;
   self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
   
@@ -64,7 +66,7 @@
   self.cellNode = [[SKSpriteNode alloc] init];
   self.cellNode.texture = self.cellNodeTexture;
   self.cellNode.zPosition = kZPositionBoardCell;
-  self.cellNode.alpha = 0.8f; // was 0.8 before board patterning attempt
+  self.cellNode.alpha = 0.2f; // was 0.8 before board patterning attempt
   self.cellNode.size = self.cellNodeSize;
   [self initPositionCellNode];
   
@@ -145,7 +147,7 @@
   self.hexCoordLabel = [[SKLabelNode alloc] init];
 
   self.hexCoordLabel.fontSize = 12.f;
-  self.hexCoordLabel.alpha = 0.7f;
+  self.hexCoordLabel.alpha = 1.f;
   self.hexCoordLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;
   self.hexCoordLabel.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
   self.hexCoordLabel.position = CGPointMake(0, 5.f);

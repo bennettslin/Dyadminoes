@@ -488,7 +488,7 @@
       [self orientBySnapNode:self.homeNode];
       self.position = self.homeNode.position;
     }
-    [self.delegate updateCellsForPlacedDyadmino:self];
+    [self.delegate changeColoursAroundDyadmino:self withSign:+1];
   }];
   SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
   SKAction *sequenceAction = [SKAction sequence:@[shrinkAction, repositionAction, growAction]];
@@ -564,7 +564,10 @@
     self.canFlip = NO;
     self.hoveringStatus = kDyadminoNoHoverStatus;
     self.initialPivotPosition = self.position;
+    
+    [self.delegate changeColoursAroundDyadmino:self withSign:+1];
   }];
+  
   SKAction *sequence = [SKAction sequence:@[moveAction, finishAction]];
   [self runAction:sequence withKey:kActionEaseIntoNode];
 }

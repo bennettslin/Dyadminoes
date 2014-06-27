@@ -33,6 +33,8 @@
 @property (strong, nonatomic) SKLabelNode *hexCoordLabel;
 @property (strong, nonatomic) SKLabelNode *pcLabel;
 
+@property (nonatomic) BOOL currentlyColouringNeighbouringCells;
+
   // called for new cell
 -(id)initWithBoard:(Board *)board
         andTexture:(SKTexture *)texture

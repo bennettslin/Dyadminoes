@@ -509,71 +509,6 @@
   }
 }
 
-  // cell knows pc
--(void)changeColoursAroundCell:(Cell *)cell withSign:(NSInteger)sign {
-//  NSInteger pc = cell.myPC;
-  NSInteger xHex;
-  NSInteger yHex;
-  
-    // each iteration goes around the cell
-  
-  NSInteger range = 6;
-  for (int i = 1; i < range; i++) {
-    xHex = cell.hexCoord.x;
-    yHex = cell.hexCoord.y + i;
-    
-      // start with cell at 12 o'clock
-    [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
-    
-      // going from 12 to 2...
-    do {
-      yHex--;
-      xHex++;
-      [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
-    } while (yHex > cell.hexCoord.y);
-    
-      // now 2 to 4...
-    do {
-      yHex--;
-      [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
-    } while (yHex > cell.hexCoord.y - i);
-    
-      // now 4 to 6...
-    do {
-      xHex--;
-      [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
-    } while (xHex > cell.hexCoord.x);
-    
-      // now 6 to 8...
-    do {
-      xHex--;
-      yHex++;
-      [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
-    } while (yHex < cell.hexCoord.y);
-    
-      // now 8 to 10...
-    do {
-      yHex++;
-      [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
-    } while (yHex < cell.hexCoord.y + i);
-    
-      // now 10 to 12, but stop *before* the very top cell
-    while (xHex < cell.hexCoord.x - 1) {
-      xHex++;
-      [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
-    };
-  }
-}
-
--(void)colourCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex andFactor:(CGFloat)factor andSign:(NSInteger)sign {
-  
-  Cell *cellToColour = [self getCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex]];
-  if (cellToColour) {
-      // just changing alpha for now
-    cellToColour.cellNode.alpha -= (sign * factor * .05f);
-  }
-}
-
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour {
     // don't call if it's a rack node
   if ([snapPoint isBoardNode]) {
@@ -598,7 +533,7 @@
 //        NSLog(@"cell.myDyadmino is %@", cell.myDyadmino.name);
         
         [self.occupiedCells removeObject:cell];
-        
+       
         if (colour) {
           [self changeColoursAroundCell:cell withSign:-1];
         }
@@ -650,6 +585,94 @@
     }
   }
   return nil;
+}
+
+#pragma mark - cell colour methods
+
+-(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign {
+  
+  SnapPoint *snapPoint = dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode;
+  
+  Cell *bottomCell = snapPoint.myCell;
+  HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
+  Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
+  NSArray *cells = @[topCell, bottomCell];
+  for (Cell *cell in cells) {
+    [self changeColoursAroundCell:cell withSign:sign];
+  }
+}
+
+  // cell knows pc
+-(void)changeColoursAroundCell:(Cell *)cell withSign:(NSInteger)sign {
+  
+  if ((sign == -1 && cell.currentlyColouringNeighbouringCells) || (sign == 1 && !cell.currentlyColouringNeighbouringCells)) {
+    cell.currentlyColouringNeighbouringCells = cell.currentlyColouringNeighbouringCells == YES ? NO : YES;
+    
+    NSInteger xHex;
+    NSInteger yHex;
+    
+      // each iteration goes around the cell
+    
+    NSInteger range = 6;
+    for (int i = 1; i < range; i++) {
+      xHex = cell.hexCoord.x;
+      yHex = cell.hexCoord.y + i;
+      
+        // start with cell at 12 o'clock
+      [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
+      
+        // going from 12 to 2...
+      do {
+        yHex--;
+        xHex++;
+        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
+      } while (yHex > cell.hexCoord.y);
+      
+        // now 2 to 4...
+      do {
+        yHex--;
+        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
+      } while (yHex > cell.hexCoord.y - i);
+      
+        // now 4 to 6...
+      do {
+        xHex--;
+        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
+      } while (xHex > cell.hexCoord.x);
+      
+        // now 6 to 8...
+      do {
+        xHex--;
+        yHex++;
+        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
+      } while (yHex < cell.hexCoord.y);
+      
+        // now 8 to 10...
+      do {
+        yHex++;
+        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
+      } while (yHex < cell.hexCoord.y + i);
+      
+        // now 10 to 12, but stop *before* the very top cell
+      while (xHex < cell.hexCoord.x - 1) {
+        xHex++;
+        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
+      };
+    }
+  }
+}
+
+-(void)colourCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex andFactor:(CGFloat)factor andSign:(NSInteger)sign {
+  
+  Cell *cellToColour = [self getCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex]];
+  if (cellToColour) {
+      // just changing alpha for now
+    cellToColour.cellNode.alpha += (sign * factor * .08f);
+    
+      // ensures it never passes limit
+//    cellToColour.cellNode.alpha = cellToColour.cellNode.alpha > 1.f ? 1.f : cellToColour.cellNode.alpha;
+//    cellToColour.cellNode.alpha = cellToColour.cellNode.alpha < 0.f ? 0.f : cellToColour.cellNode.alpha;
+  }
 }
 
 #pragma mark - legality methods

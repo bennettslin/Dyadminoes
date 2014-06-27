@@ -23,7 +23,7 @@
 #import "DataDyadmino.h"
 #import "SoundEngine.h"
 
-#define kBackgroundBoardColour [SKColor lightGrayColor]
+#define kBackgroundBoardColour [SKColor darkGrayColor]
 //#define kBackgroundBoardColour [SKColor colorWithPatternImage:[UIImage imageNamed:@"MaryFloral.jpeg"]]
 
 @interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIAlertViewDelegate, MatchDelegate>
@@ -279,7 +279,7 @@
       //------------------------------------------------------------------------
     
       // update cells
-    [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode andColour:YES];
+    [self updateCellsForPlacedDyadmino:dyadmino andColour:YES];
     dyadmino.position = dyadmino.homeNode.position;
     [dyadmino orientBySnapNode:dyadmino.homeNode];
     [dyadmino selectAndPositionSprites];
@@ -442,7 +442,8 @@
         _hoveringDyadminoToStayFixedWhileBoardMoves = NO;
         if ([_boardField validatePlacingDyadmino:_hoveringDyadmino onBoardNode:_hoveringDyadmino.tempBoardNode] != kNoError) {
           _hoveringDyadminoToStayFixedWhileBoardMoves = YES;
-          [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
+          NSLog(@"update cells for removed called from touches began");
+          [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
         }
       }
 
@@ -522,6 +523,7 @@
     // if rack dyadmino is moved to board, send home recentRack dyadmino
   if (_recentRackDyadmino && _touchedDyadmino != _recentRackDyadmino &&
       [_touchedDyadmino belongsInRack] && [_touchedDyadmino isOnBoard]) {
+    [self changeColoursAroundDyadmino:_recentRackDyadmino withSign:-1];
     [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
     
       // or same thing with hovering dyadmino (it will only ever be one or the other)
@@ -621,7 +623,7 @@
       // take care of hovering dyadmino
     if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
       _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
-      [self updateCellsForPlacedDyadmino:_hoveringDyadmino];
+      [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
     }
     
     _boardField.homePosition = _boardField.position;
@@ -695,17 +697,24 @@
 
 -(void)beginTouchOrPivotOfDyadmino:(Dyadmino *)dyadmino {
   
-  [self updateCellsForRemovedDyadmino:dyadmino];
-  
-    // board dyadmino sends recent rack home upon touch
-    // rack dyadmino will do so upon move out of rack
-  if ([dyadmino isOnBoard] && dyadmino != _hoveringDyadmino) {
-    [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
+  NSLog(@"update cells for removed dyadmino from begin touch");
+  if ([dyadmino isOnBoard]) {
+    if (dyadmino != _hoveringDyadmino && ![dyadmino isRotating]) {
+      [self updateCellsForRemovedDyadmino:dyadmino andColour:YES];
+    } else {
+      [self updateCellsForRemovedDyadmino:dyadmino andColour:NO];
+    }
   }
   
     // record tempReturnOrientation only if it's settled and not hovering
   if (dyadmino != _hoveringDyadmino) {
     dyadmino.tempReturnOrientation = dyadmino.orientation;
+    
+      // board dyadmino sends recent rack dyadmino home upon touch
+      // rack dyadmino will do so upon move out of rack
+    if (_hoveringDyadmino && [dyadmino isOnBoard]) {
+      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
+    }
   }
   
   [dyadmino startTouchThenHoverResize];
@@ -815,7 +824,7 @@
   dyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:dyadmino];
 
     // update cells for placement
-  [self updateCellsForPlacedDyadmino:dyadmino];
+  [self updateCellsForPlacedDyadmino:dyadmino andColour:NO];
   
     // start hovering
   [dyadmino removeActionsAndEstablishNotRotating];
@@ -841,8 +850,8 @@
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
     dyadmino.position = newPosition;
   }
-
-  [self updateCellsForRemovedDyadmino:dyadmino];
+  NSLog(@"update cells for removed dyadmino called from send dyadmino home");
+  [self updateCellsForRemovedDyadmino:dyadmino andColour:NO];
   
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
@@ -879,7 +888,7 @@
     // re-updating the cells of its original home node
   if ([dyadmino belongsOnBoard]) {
     dyadmino.orientation = dyadmino.tempReturnOrientation;
-    [self updateCellsForPlacedDyadmino:dyadmino];
+    [self updateCellsForPlacedDyadmino:dyadmino andColour:NO];
   }
 }
 
@@ -1297,16 +1306,19 @@
       _hoveringDyadminoFinishedCorrecting++;
     }
     
+
       // only goes through one time
     if (_hoveringDyadminoBeingCorrected == 1) {
       [_boardField hideAllPivotGuides];
-      [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
+      NSLog(@"update cells for removed dyadmino called from update for hovering dyadmino being corrected");
+      [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
       _hoveringDyadminoFinishedCorrecting = 0;
       
     } else if (_hoveringDyadminoFinishedCorrecting == 1) {
-      [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
+      [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
       _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
-      [self updateCellsForPlacedDyadmino:_hoveringDyadmino];
+      NSLog(@"update cells for removed dyadmino called from update for hovering dyadmino being corrected, finished correcting");
+      [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
       NSLog(@"update for hovering");
       if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
         [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
@@ -1347,7 +1359,8 @@
     
     if (_hoveringDyadmino && _boardBeingCorrectedWithinBounds) {
       [_boardField hideAllPivotGuides];
-      [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
+      NSLog(@"update cells for removed dyadmino called from update for board being corrected within bounds, hovering dyadmino removed");
+      [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
     }
     
     CGFloat thisDistance;
@@ -1434,9 +1447,10 @@
 //        NSLog(@"hovering dyadmino is %@, touched dyadmino is %@", _hoveringDyadmino.name, _touchedDyadmino.name);
         
         _boardJustShiftedNotCorrected = NO;
-        [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
+        NSLog(@"update cells for removed dyadmino called from update for board being corrected within bounds, board just shifted not corrected");
+        [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
         _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
-        [self updateCellsForPlacedDyadmino:_hoveringDyadmino];
+        [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
         
         if (_hoveringDyadminoBeingCorrected == 0) {
 //          NSLog(@"update for board");
@@ -1714,21 +1728,21 @@
 
 #pragma mark - board helper methods
 
--(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino {
+-(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour {
   NSLog(@"update cells for placed dyadmino");
   if (![dyadmino isRotating]) {
     dyadmino.tempBoardNode ?
-      [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.tempBoardNode andColour:YES] :
-      [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode andColour:YES];
+      [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.tempBoardNode andColour:colour] :
+      [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode andColour:colour];
   }
 }
 
--(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino {
+-(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour {
   NSLog(@"update cells for removed dyadmino");
   if (![dyadmino isRotating]) {
     dyadmino.tempBoardNode ?
-      [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.tempBoardNode andColour:YES] :
-      [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.homeNode andColour:YES];
+      [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.tempBoardNode andColour:colour] :
+      [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.homeNode andColour:colour];
   }
 }
 
@@ -2054,6 +2068,10 @@
 
 -(void)soundDyadminoSuck {
   [self.mySoundEngine soundSuckedDyadmino];
+}
+
+-(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign {
+  [_boardField changeColoursAroundDyadmino:dyadmino withSign:sign];
 }
 
 #pragma mark - debugging methods

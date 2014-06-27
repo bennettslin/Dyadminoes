@@ -13,7 +13,6 @@
 @protocol BoardDelegate <NSObject>
 
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino;
-//-(void)soundDyadminoPivotClick;
 
 @end
 
@@ -80,6 +79,8 @@
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
+
+-(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign;
 
 #pragma mark - board span methods
 

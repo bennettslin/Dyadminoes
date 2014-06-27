@@ -13,11 +13,13 @@
 
 @protocol DyadminoDelegate <NSObject>
 
--(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino;
+-(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour;
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
 -(void)soundDyadminoSettleClick;
 -(void)soundDyadminoPivotClick;
 -(void)soundDyadminoSuck;
+
+-(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign;
 
 @end
 
