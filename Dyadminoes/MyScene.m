@@ -523,12 +523,15 @@
     // if rack dyadmino is moved to board, send home recentRack dyadmino
   if (_recentRackDyadmino && _touchedDyadmino != _recentRackDyadmino &&
       [_touchedDyadmino belongsInRack] && [_touchedDyadmino isOnBoard]) {
+  
     [self changeColoursAroundDyadmino:_recentRackDyadmino withSign:-1];
+    NSLog(@"send dyadmino home if rack dyadmino is moved to board");
     [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
     
       // or same thing with hovering dyadmino (it will only ever be one or the other)
   } else if (_hoveringDyadmino && _touchedDyadmino != _hoveringDyadmino &&
       [_touchedDyadmino belongsInRack] && [_touchedDyadmino isOnBoard]) {
+    NSLog(@"send dyadmino home if hovering dyadmino");
     [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
   }
   
@@ -697,8 +700,8 @@
 
 -(void)beginTouchOrPivotOfDyadmino:(Dyadmino *)dyadmino {
   
-  NSLog(@"update cells for removed dyadmino from begin touch");
   if ([dyadmino isOnBoard]) {
+    NSLog(@"update cells for removed dyadmino from begin touch");
     if (dyadmino != _hoveringDyadmino && ![dyadmino isRotating]) {
       [self updateCellsForRemovedDyadmino:dyadmino andColour:YES];
     } else {
@@ -713,6 +716,7 @@
       // board dyadmino sends recent rack dyadmino home upon touch
       // rack dyadmino will do so upon move out of rack
     if (_hoveringDyadmino && [dyadmino isOnBoard]) {
+      NSLog(@"send dyadmino home if hovering dyadmino");
       [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
     }
   }
@@ -784,7 +788,8 @@
       if (dyadmino.canFlip) {
         [dyadmino animateFlip];
       } else {
-        [self sendDyadminoHome:dyadmino byPoppingIn:NO andUpdatingBoardBounds:YES];
+        NSLog(@"handle touch end of dyadmino and send dyadmino home");
+        [self sendDyadminoHome:dyadmino byPoppingIn:NO andUpdatingBoardBounds:NO];
         [self soundDyadminoSettleClick];
       }
       
@@ -794,7 +799,7 @@
         // if it's a board dyadmino
 //      NSLog(@"touch ended, and dyadmino is in top bar");
       if ([dyadmino.homeNode isBoardNode]) {
-//        NSLog(@"its home node is board node");
+        NSLog(@"its home node is board node, send dyadmino home");
         dyadmino.tempBoardNode = nil;
         [self sendDyadminoHome:dyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
         
@@ -856,7 +861,7 @@
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
   if (updateBoardBounds) {
-//    NSLog(@"update board bounds from send dyadmino home");
+    NSLog(@"update board bounds from send dyadmino home");
     [self updateBoardBoundsWithLayoutCells:YES];
   }
   
@@ -982,10 +987,12 @@
       
         // else send dyadmino home
     } else if (_hoveringDyadmino) {
+      NSLog(@"send dyadmino home if hovering dyadmino and cancel button pressed");
       [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
 
         // recent rack dyadmino is sent home
     } else if (_recentRackDyadmino) {
+      NSLog(@"send dyadmino home if recent rack dyadmino and cancel button pressed");
       [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
     }
     
@@ -1150,7 +1157,7 @@
       // do cleanup, dyadmino's home node is now the board node
     dyadmino.homeNode = dyadmino.tempBoardNode;
     dyadmino.myHexCoord = dyadmino.homeNode.myCell.hexCoord;
-    dyadmino.tempBoardNode = nil;
+//    dyadmino.tempBoardNode = nil;
     [dyadmino highlightBoardDyadmino];
     
       // empty pointers
@@ -1239,7 +1246,13 @@
       // ...these are the criteria by which swap button is enabled
       // swap button cannot have any rack dyadminoes on board
       // FIXME: swap button also is disabled when any dyadmino has been played
-    if ([_touchedDyadmino isOnBoard] || _recentRackDyadmino) {
+//    if ([_touchedDyadmino isOnBoard] || _recentRackDyadmino) {
+//      [_topBar disableButton:_topBar.swapButton];
+//    } else if (!_touchedDyadmino || [_touchedDyadmino isInRack]) {
+//      [_topBar enableButton:_topBar.swapButton];
+//    }
+    
+    if (self.myMatch.holdingContainer.count > 0) {
       [_topBar disableButton:_topBar.swapButton];
     } else if (!_touchedDyadmino || [_touchedDyadmino isInRack]) {
       [_topBar enableButton:_topBar.swapButton];
@@ -1541,7 +1554,7 @@
           // this is one of two places where board bounds are updated
           // the other is when rack dyadmino is sent home
         
-//        NSLog(@"updateBoardBounds called from check whether to ease");
+        NSLog(@"updateBoardBounds called from check whether to ease");
         [self updateBoardBoundsWithLayoutCells:YES];
         
         [_boardField hideAllPivotGuides];
@@ -1636,7 +1649,9 @@
       [_topBar enableButton:_topBar.redoButton];
       [_topBar enableButton:_topBar.replayButton];
       [_topBar enableButton:_topBar.resignButton];
-      [_topBar enableButton:_topBar.swapButton];
+      if (self.myMatch.holdingContainer.count == 0) {
+        [_topBar enableButton:_topBar.swapButton];
+      }
       [_topBar enableButton:_topBar.playDyadminoButton];
     }
   }
@@ -1645,11 +1660,11 @@
       // TODO: obviously, do this
   }
   
-  if (self.myMatch.holdingContainer > 0) {
-    [_topBar disableButton:_topBar.swapButton];
-  } else {
-    [_topBar enableButton:_topBar.swapButton];
-  }
+//  if (self.myMatch.holdingContainer > 0) {
+//    [_topBar disableButton:_topBar.swapButton];
+//  } else {
+//    [_topBar enableButton:_topBar.swapButton];
+//  }
   
     // undo and redo buttons
   [self.myMatch.undoManager canUndo] ? [_topBar enableButton:_topBar.undoButton] : [_topBar disableButton:_topBar.undoButton];
@@ -1747,6 +1762,8 @@
 }
 
 -(void)updateBoardBoundsWithLayoutCells:(BOOL)layoutCells {
+  
+  NSLog(@"updateBoardBounds called");
   NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
 
     // add dyadmino to set if dyadmino is a recent rack dyadmino

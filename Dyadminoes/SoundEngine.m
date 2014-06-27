@@ -80,7 +80,7 @@
 }
 
 -(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked {
-//  NSLog(@"sounding %@", dyadmino.name);
+  NSLog(@"sounding %@", dyadmino.name);
   
   SKAction *sound = plucked ?
     [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO] : // plucked

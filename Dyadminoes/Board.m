@@ -588,6 +588,9 @@
 }
 
 #pragma mark - cell colour methods
+  // five places that call cell colour methods:
+  // add: scene's populateBoard, dyadmino's animatePopBackIntoBoardNode, animateEaseIntoNode
+  // remove: scene's beginTouchOfDyadmino (for touched board dyadmino) and touchesMoved (for removing rack dyadmino)
 
 -(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign {
   
@@ -667,7 +670,7 @@
   Cell *cellToColour = [self getCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex]];
   if (cellToColour) {
       // just changing alpha for now
-    cellToColour.cellNode.alpha += (sign * factor * .08f);
+    cellToColour.cellNode.alpha += (sign * factor * .04f);
     
       // ensures it never passes limit
 //    cellToColour.cellNode.alpha = cellToColour.cellNode.alpha > 1.f ? 1.f : cellToColour.cellNode.alpha;
