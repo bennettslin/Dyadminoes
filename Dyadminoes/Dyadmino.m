@@ -270,7 +270,7 @@
 }
 
 -(void)adjustHighlightGivenDyadminoOffsetPosition:(CGPoint)dyadminoOffsetPosition {
-  NSLog(@"adjust highlight given dyadmino offset");
+//  NSLog(@"adjust highlight given dyadmino offset");
   CGFloat inPlayFloat = [self getHeightFloatGivenGap:kGapForHighlight andDyadminoPosition:dyadminoOffsetPosition];
   self.colorBlendFactor = kDyadminoColorBlendFactor * inPlayFloat;
 }

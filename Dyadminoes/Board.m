@@ -622,59 +622,87 @@
       yHex = cell.hexCoord.y + i;
       
         // start with cell at 12 o'clock
-      [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
+      [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign andPC:cell.myPC];
       
         // going from 12 to 2...
       do {
         yHex--;
         xHex++;
-        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
+        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign andPC:cell.myPC];
       } while (yHex > cell.hexCoord.y);
       
         // now 2 to 4...
       do {
         yHex--;
-        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
+        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign andPC:cell.myPC];
       } while (yHex > cell.hexCoord.y - i);
       
         // now 4 to 6...
       do {
         xHex--;
-        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
+        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign andPC:cell.myPC];
       } while (xHex > cell.hexCoord.x);
       
         // now 6 to 8...
       do {
         xHex--;
         yHex++;
-        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
+        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign andPC:cell.myPC];
       } while (yHex < cell.hexCoord.y);
       
         // now 8 to 10...
       do {
         yHex++;
-        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
+        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign andPC:cell.myPC];
       } while (yHex < cell.hexCoord.y + i);
       
         // now 10 to 12, but stop *before* the very top cell
       while (xHex < cell.hexCoord.x - 1) {
         xHex++;
-        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign];
+        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign andPC:cell.myPC];
       };
     }
   }
 }
 
--(void)colourCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex andFactor:(CGFloat)factor andSign:(NSInteger)sign {
-  
+-(void)colourCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex andFactor:(CGFloat)factor andSign:(NSInteger)sign andPC:(NSInteger)pc {
+
   Cell *cellToColour = [self getCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex]];
   if (cellToColour) {
-      // just changing alpha for now
-    cellToColour.cellNode.alpha += (sign * factor * .04f);
     
-      // ensures it never passes limit
-//    cellToColour.cellNode.alpha = cellToColour.cellNode.alpha > 1.f ? 1.f : cellToColour.cellNode.alpha;
-//    cellToColour.cellNode.alpha = cellToColour.cellNode.alpha < 0.f ? 0.f : cellToColour.cellNode.alpha;
+    CGFloat multiplier = .01f;
+    cellToColour.cellNode.alpha += sign * factor * 4 * multiplier;
+    
+    /*
+    if (pc != -1) {
+
+      NSInteger redMult, greenMult, blueMult;
+        // returns the opposite colour. So for example, pc 0 returns red 0, green 4, blue 4
+      redMult = 6 - abs(6 - pc);
+      redMult = redMult >= 4 ? 4 : redMult;
+      greenMult = 6 - abs(6 - ((pc + 4) % 12));
+      greenMult = greenMult >= 4 ? 4 : greenMult;
+      blueMult = 6 - abs(6 - ((pc + 8) % 12));
+      blueMult = blueMult >= 4 ? 4 : blueMult;
+    
+      NSLog(@"for pc %i, redMult %i, greenMult %i, blueMult %i", pc, redMult, greenMult, blueMult);
+      
+      CGFloat redVal, greenVal, blueVal, alphaVal;
+      BOOL okay = [cellToColour.cellNode.color getRed:&redVal green:&greenVal blue:&blueVal alpha:&alphaVal];
+      
+      NSLog(@"for pc %i, redVal %.2f, greenVal %.2f, blueVal %.2f", pc, redVal, greenVal, blueVal);
+      
+      if (okay) {
+        
+        redVal += (sign * factor * redMult * multiplier);
+        greenVal += (sign * factor * greenMult * multiplier);
+        blueVal += (sign * factor * blueMult * multiplier);
+        alphaVal += (sign * factor * 4 * multiplier);
+        
+        cellToColour.cellNode.color = [SKColor colorWithRed:redVal green:greenVal blue:blueVal alpha:alphaVal];
+      }
+    }
+    */
   }
 }
 

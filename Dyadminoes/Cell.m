@@ -66,6 +66,9 @@
   self.cellNode = [[SKSpriteNode alloc] init];
   self.cellNode.texture = self.cellNodeTexture;
   self.cellNode.zPosition = kZPositionBoardCell;
+  
+//  self.cellNode.color = [SKColor colorWithRed:.2f green:.2f blue:.2f alpha:1.f];
+//  self.cellNode.colorBlendFactor = .5f;
   self.cellNode.alpha = 0.2f; // was 0.8 before board patterning attempt
   self.cellNode.size = self.cellNodeSize;
   [self initPositionCellNode];
