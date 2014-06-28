@@ -1046,7 +1046,11 @@
   }
   
 //  dataDyad.myHexCoord = dyadmino.myHexCoord;
-  dataDyad.myOrientation = dyadmino.orientation;
+  if ([dyadmino isOnBoard] && [dyadmino belongsInRack]) {
+    dataDyad.myOrientation = dyadmino.tempReturnOrientation;
+  } else {
+    dataDyad.myOrientation = dyadmino.orientation;
+  }
   dataDyad.myRackOrder = dyadmino.myRackOrder;
 }
 
