@@ -789,7 +789,11 @@
         [dyadmino animateFlip];
       } else {
         NSLog(@"handle touch end of dyadmino and send dyadmino home");
-        [self sendDyadminoHome:dyadmino byPoppingIn:NO andUpdatingBoardBounds:NO];
+        if (dyadmino == _recentRackDyadmino) {
+          [self sendDyadminoHome:dyadmino byPoppingIn:NO andUpdatingBoardBounds:YES];
+        } else { // dyadmino never left rack, or is hovering
+          [self sendDyadminoHome:dyadmino byPoppingIn:NO andUpdatingBoardBounds:NO];
+        }
         [self soundDyadminoSettleClick];
       }
       
@@ -855,8 +859,13 @@
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
     dyadmino.position = newPosition;
   }
-  NSLog(@"update cells for removed dyadmino called from send dyadmino home");
-  [self updateCellsForRemovedDyadmino:dyadmino andColour:NO];
+  
+  if (dyadmino == _recentRackDyadmino) {
+    [self updateCellsForRemovedDyadmino:dyadmino andColour:YES];
+  } else { // otherwise it's a hovering dyadmino
+//  NSLog(@"update cells for removed dyadmino called from send dyadmino home");
+    [self updateCellsForRemovedDyadmino:dyadmino andColour:NO];
+  }
   
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
