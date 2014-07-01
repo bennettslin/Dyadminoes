@@ -25,4 +25,6 @@
 
 @protocol SceneViewDelegate <NSObject>
 
+-(void)stopActivityIndicator;
+
 @end

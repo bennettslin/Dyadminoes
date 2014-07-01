@@ -11,6 +11,7 @@
 #import "Board.h"
 
 #define kPaddingBetweenCells (kIsIPhone ? 0.f : 0.f)
+#define kResizeFactor 0.5
 
 @interface Cell ()
 
@@ -26,11 +27,7 @@
     self.cellNodeTexture = texture;
     
       // establish cell size
-    CGFloat ySize = kDyadminoFaceRadius * 2 - kPaddingBetweenCells;
-    CGFloat widthToHeightRatio = kTwoOverSquareRootOfThree;
-    CGFloat xSize = widthToHeightRatio * ySize;
-
-    self.cellNodeSize = CGSizeMake(xSize, ySize);
+    self.cellNodeSize = [self establishCellSizeForResize:NO];
     
     [self initCellWithHexCoord:hexCoord andVectorOrigin:vectorOrigin];
   }
@@ -44,19 +41,46 @@
   self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
   
     // establish cell position
-  CGFloat yOffset = kDyadminoFaceRadius; // to make node between two faces the center
-  CGFloat cellWidth = self.cellNodeSize.width;
-  CGFloat cellHeight = self.cellNodeSize.height;
-  CGFloat newX = (self.hexCoord.x - vectorOrigin.dx) * (0.75 * cellWidth + kPaddingBetweenCells);
-  CGFloat newY = (self.hexCoord.y - vectorOrigin.dy + self.hexCoord.x * 0.5) * (cellHeight + kPaddingBetweenCells) - yOffset;
-  
-  self.cellNodePosition = CGPointMake(newX, newY);
+  self.cellNodePosition = [self establishCellPositionWithVectorOrigin:vectorOrigin forResize:NO];
   
     // establish logic default
   self.myPC = -1;
   
     // create snap points
   [self createSnapPoints];
+}
+
+-(void)resizeCell:(BOOL)resize withVectorOrigin:(CGVector)vectorOrigin {
+  if (resize) {
+    self.cellNode.size = [self establishCellSizeForResize:YES];
+    self.cellNode.position = [self establishCellPositionWithVectorOrigin:vectorOrigin forResize:YES];
+  } else {
+    self.cellNode.size = self.cellNodeSize;
+    self.cellNode.position = self.cellNodePosition;
+  }
+}
+
+-(CGSize)establishCellSizeForResize:(BOOL)resize {
+  
+  CGFloat factor = resize ? kResizeFactor : 1.f;
+  CGFloat ySize = (kDyadminoFaceRadius * 2 - kPaddingBetweenCells) * factor;
+  CGFloat widthToHeightRatio = kTwoOverSquareRootOfThree;
+  CGFloat xSize = widthToHeightRatio * ySize;
+  return CGSizeMake(xSize, ySize);
+}
+
+-(CGPoint)establishCellPositionWithVectorOrigin:(CGVector)vectorOrigin forResize:(BOOL)resize {
+  
+    // to make node between two faces the center
+  CGFloat factor = resize ? kResizeFactor : 1.f;
+  CGFloat yOffset = kDyadminoFaceRadius * factor;
+  CGFloat padding = kPaddingBetweenCells * factor;
+  CGFloat cellWidth = self.cellNode ? self.cellNode.size.width : self.cellNodeSize.width * factor;
+  CGFloat cellHeight = self.cellNode ? self.cellNode.size.height : self.cellNodeSize.height * factor;
+  CGFloat newX = (self.hexCoord.x - vectorOrigin.dx) * (0.75 * cellWidth + padding);
+  CGFloat newY = (self.hexCoord.y - vectorOrigin.dy + self.hexCoord.x * 0.5) * (cellHeight + padding) - yOffset;
+  
+  return CGPointMake(newX, newY);
 }
 
 -(void)instantiateCellNode {

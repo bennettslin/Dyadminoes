@@ -58,6 +58,8 @@
 @property (strong, nonatomic) OptionsViewController *optionsVC;
 @property (strong, nonatomic) AboutViewController *aboutVC;
 
+@property (strong, nonatomic) UIActivityIndicatorView *activityIndicator;
+
 @end
 
 @implementation MatchesTableViewController {
@@ -68,6 +70,15 @@
 -(void)viewDidLoad {
   
   [super viewDidLoad];
+  
+  self.activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+  self.activityIndicator.color = [UIColor darkGrayColor];
+  self.activityIndicator.frame = CGRectMake(0, 0, 100, 100);
+  self.activityIndicator.layer.borderColor = [UIColor redColor].CGColor;
+  self.activityIndicator.layer.borderWidth = 5.f;
+  self.activityIndicator.center = self.view.center;
+  [self.view insertSubview:self.activityIndicator aboveSubview:self.topBar];
+//  [self.activityIndicator startAnimating];
   
   _screenWidth = [UIScreen mainScreen].bounds.size.width;
   _screenHeight = [UIScreen mainScreen].bounds.size.height;
@@ -129,15 +140,6 @@
     [self getModel];
   }
   
-//    // instantiates matches only on very first launch
-//  NSString *path = [self dataFilePath];
-//  if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
-//    [self loadSettingsFromPath:path];
-//  } else { // no file present, instantiate with hard code for now
-//    self.myModel = [[Model alloc] init];
-//    [self.myModel instantiateHardCodedMatchesForDebugPurposes];
-//  }
-  
   [self.myModel sortMyMatches];
   [self.tableView reloadData];
 }
@@ -189,6 +191,10 @@
   return cell;
 }
 
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+  [self.activityIndicator startAnimating];
+}
+
 #pragma mark - cell delegate methods
 
 -(void)removeMatch:(Match *)match {
@@ -199,7 +205,10 @@
 #pragma mark - Navigation
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+  
   if ([segue.identifier isEqualToString:@"sceneSegue"]) {
+    [self startActivityIndicator];
+    
     NSIndexPath *indexPath = [self.tableView indexPathForCell:sender];
     Match *match = self.myModel.myMatches[indexPath.row];
 
@@ -214,6 +223,18 @@
   }
   
 //  [self removeAllChildVCs];
+}
+
+-(void)startActivityIndicator {
+  NSLog(@"activity indicator starts");
+
+  [self.activityIndicator startAnimating];
+}
+
+-(void)stopActivityIndicator {
+  [self.activityIndicator stopAnimating];
+  [self.activityIndicator removeFromSuperview];
+  NSLog(@"activity indicator stops");
 }
 
 #pragma mark - view controller methods
@@ -323,13 +344,22 @@
 #pragma mark - button methods
 
 -(IBAction)selfGameTapped:(id)sender {
-  [self slideInTableview];
+//  [self slideInTableview];
+  if (!self.vcIsAnimating && ![self.childVC isKindOfClass:[PnPViewController class]]) {
+    [self presentChildViewController:self.pnpVC];
+  }
+  [self.myModel instantiateHardCodededSoloMatchForDebugPurposes];
+  [self.myModel sortMyMatches];
+  [self.tableView reloadData];
 }
 
 -(IBAction)pnpGameTapped:(id)sender {
   if (!self.vcIsAnimating && ![self.childVC isKindOfClass:[PnPViewController class]]) {
     [self presentChildViewController:self.pnpVC];
   }
+  [self.myModel instantiateHardCodededPassNPlayMatchForDebugPurposes];
+  [self.myModel sortMyMatches];
+  [self.tableView reloadData];
 }
 
 -(IBAction)gcGameTapped:(id)sender {

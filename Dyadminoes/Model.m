@@ -45,6 +45,22 @@
   return pathString;
 }
 
+-(void)instantiateHardCodededSoloMatchForDebugPurposes {
+  Player *player1 = [[Player alloc] initWithUniqueID:@"12345" andPlayerName:@"Julia" andPlayerPicture:nil];
+  Match *newSoloMatch = [[Match alloc] initWithPlayers:@[player1] andRules:kGameRulesTonal andSkill:kBeginner andType:kSelfGame];
+  [self.myMatches addObject:newSoloMatch];
+  [Model saveMyModel:self];
+}
+
+-(void)instantiateHardCodededPassNPlayMatchForDebugPurposes {
+
+  Player *player1 = [[Player alloc] initWithUniqueID:@"12345" andPlayerName:@"Julia" andPlayerPicture:nil];
+  Player *player2 = [[Player alloc] initWithUniqueID:@"23456" andPlayerName:@"Pamela" andPlayerPicture:nil];
+  Match *newPnPMatch = [[Match alloc] initWithPlayers:@[player1, player2] andRules:kGameRulesTonal andSkill:kBeginner andType:kPnPGame];
+  [self.myMatches addObject:newPnPMatch];
+  [Model saveMyModel:self];
+}
+
 -(void)instantiateHardCodedMatchesForDebugPurposes {
 //  NSLog(@"hard coded matches");
     //hard coded values
@@ -68,11 +84,12 @@
       // add players to match
     NSArray *players = [NSArray arrayWithArray:mutablePlayers];
       // hard-coded match properties for now
-    Match *match = [[Match alloc] initWithPlayers:players andRules:kGameRulesPostTonal andSkill:kBeginner andType:kPnPGame];
+    Match *match = [[Match alloc] initWithPlayers:players andRules:kGameRulesTonal andSkill:kBeginner andType:kPnPGame];
     
       // add match to data
     [self.myMatches addObject:match];
   }
+  [Model saveMyModel:self];
 }
 
 -(void)sortMyMatches {

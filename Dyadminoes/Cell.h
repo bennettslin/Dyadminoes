@@ -49,6 +49,8 @@
 -(void)addSnapPointsToBoard;
 -(void)removeSnapPointsFromBoard;
 
+-(void)resizeCell:(BOOL)resize withVectorOrigin:(CGVector)vectorOrigin;
+
 #pragma mark - testing methods
 
 -(void)updatePCLabel;

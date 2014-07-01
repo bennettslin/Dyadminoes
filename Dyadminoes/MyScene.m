@@ -26,7 +26,7 @@
 #define kBackgroundBoardColour [SKColor darkGrayColor]
 //#define kBackgroundBoardColour [SKColor colorWithPatternImage:[UIImage imageNamed:@"MaryFloral.jpeg"]]
 
-@interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIAlertViewDelegate, MatchDelegate>
+@interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIAlertViewDelegate, UIActionSheetDelegate, MatchDelegate>
 
   // the dyadminoes that the player sees
 @property (strong, nonatomic) NSArray *playerRackDyadminoes;
@@ -61,6 +61,7 @@
   BOOL _canDoubleTapForDyadminoFlip;
   BOOL _hoveringDyadminoToStayFixedWhileBoardMoves;
   BOOL _boardJustShiftedNotCorrected;
+  BOOL _boardZoomedOut;
   
   SnapPoint *_uponTouchDyadminoNode;
   DyadminoOrientation _uponTouchDyadminoOrientation;
@@ -102,6 +103,7 @@
     _buttonPressed = nil;
     _hoveringDyadminoBeingCorrected = 0;
     _hoveringDyadminoFinishedCorrecting = 1;
+    _boardZoomedOut = NO;
   }
   return self;
 }
@@ -124,7 +126,7 @@
     // this populates the board cells
   
   NSLog(@"layoutboard cells called from did move to view");
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes forReplay:NO];
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes forReplay:NO forResize:NO];
 //  [_boardField reloadBackgroundImage];
 //  NSLog(@"cells and snap points laid out");
   
@@ -430,7 +432,7 @@
         (_touchNode.parent.parent == _boardField && ![_touchNode.parent isKindOfClass:[Dyadmino class]])) { // cell label, this one is necessary only for testing purposes
       
       if (_canDoubleTapForBoardZoom) {
-//        NSLog(@"board has been double tapped");
+        [self toggleBoardZoom];
       }
       NSLog(@"board to be moved or being moved");
       _boardToBeMovedOrBeingMoved = YES;
@@ -696,6 +698,12 @@
   }
 }
 
+-(void)toggleBoardZoom {
+  NSLog(@"board zoomed");
+  _boardZoomedOut = _boardZoomedOut ? NO : YES;
+  [_boardField repositionCellsAndDyadminoesForZoomOut:_boardZoomedOut];
+}
+
 #pragma mark - dyadmino methods
 
 -(void)beginTouchOrPivotOfDyadmino:(Dyadmino *)dyadmino {
@@ -788,7 +796,7 @@
       if (dyadmino.canFlip) {
         [dyadmino animateFlip];
       } else {
-        NSLog(@"handle touch end of dyadmino and send dyadmino home");
+//        NSLog(@"handle touch end of dyadmino and send dyadmino home");
         if (dyadmino == _recentRackDyadmino) {
           [self sendDyadminoHome:dyadmino byPoppingIn:NO andUpdatingBoardBounds:YES];
         } else { // dyadmino never left rack, or is hovering
@@ -803,7 +811,7 @@
         // if it's a board dyadmino
 //      NSLog(@"touch ended, and dyadmino is in top bar");
       if ([dyadmino.homeNode isBoardNode]) {
-        NSLog(@"its home node is board node, send dyadmino home");
+//        NSLog(@"its home node is board node, send dyadmino home");
         dyadmino.tempBoardNode = nil;
         [self sendDyadminoHome:dyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
         
@@ -840,7 +848,6 @@
   
 //  NSLog(@"prepare for hover, check");
   [self checkWhetherToEaseOrKeepHovering:dyadmino afterTouchJustEnded:YES];
-//  [dyadmino startHovering];
   
 //  NSLog(@"prepare for hover");
   if (dyadmino.isHovering || dyadmino.continuesToHover) {
@@ -1207,8 +1214,17 @@
 }
 
 -(void)handleResign {
+  
+  NSString *resignString = @"Are you sure? This will count as a loss in Game Center.";
+  
+  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:resignString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Resign" otherButtonTitles:nil, nil];
+  actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
+  [actionSheet showInView:self.view];
+  
+  /*
   UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Resign" message:@"Are you sure you want to resign?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK", nil];
   [alertView show];
+  */
 }
 
 -(void) handleEndGame {
@@ -1787,7 +1803,7 @@
   
   if (layoutCells) {
     NSLog(@"layoutboardcells called from updateboardbounds");
-    [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard forReplay:NO];
+    [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard forReplay:NO forResize:NO];
   }
   
   [_topBar updateLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
@@ -2068,6 +2084,16 @@
 
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino {
   return (self.boardDyadminoes.count == 1 && dyadmino == [self.boardDyadminoes anyObject] && !_recentRackDyadmino) ? YES : NO;
+}
+
+-(void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    // for resign alert view
+  NSString *buttonText = [actionSheet buttonTitleAtIndex:buttonIndex];
+  if ([buttonText isEqualToString:@"Resign"]) {
+    [self.myMatch resignPlayer:_myPlayer];
+    [self updateLabels];
+    [self updateButtonsForStaticState];
+  }
 }
 
 -(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {

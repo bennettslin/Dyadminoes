@@ -50,6 +50,7 @@
   [self.myScene preLoad];
 //  NSLog(@"about to present scene");
   [self.mySceneView presentScene:self.myScene];
+  [self.delegate stopActivityIndicator];
 //  NSLog(@"scene presented");
 }
 
@@ -96,9 +97,9 @@
 
 -(NSUInteger)supportedInterfaceOrientations {
   if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-      return UIInterfaceOrientationMaskAllButUpsideDown;
+    return UIInterfaceOrientationMaskAllButUpsideDown;
   } else {
-      return UIInterfaceOrientationMaskAll;
+    return UIInterfaceOrientationMaskAll;
   }
 }
 

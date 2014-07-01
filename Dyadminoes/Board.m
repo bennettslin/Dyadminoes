@@ -92,35 +92,39 @@
   return self;
 }
 
--(void)initLoadBackgroundImage {
-  UIImage *backgroundImage = [UIImage imageNamed:@"MaryFloral.jpeg"];
-  CGImageRef backgroundCGImage = backgroundImage.CGImage;
-  CGRect textureSize = CGRectMake(self.position.x, self.position.y, backgroundImage.size.width / 2, backgroundImage.size.height / 2);
+#pragma mark - cell methods
+
+-(void)repositionCellsAndDyadminoesForZoomOut:(BOOL)resize {
   
-  UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
-  CGContextRef context = UIGraphicsGetCurrentContext();
-    // Core Graphics coordinates are upside down from Sprite Kit's
-  CGContextScaleCTM(context, 1.0, -1.0);
-  CGContextDrawTiledImage(context, textureSize, backgroundCGImage);
-  UIImage *tiledBackground = UIGraphicsGetImageFromCurrentImageContext();
-  UIGraphicsEndImageContext();
-  
-  SKTexture *backgroundTexture = [SKTexture textureWithCGImage:tiledBackground.CGImage];
-  self.backgroundNode.texture = backgroundTexture;
+    // zoom out
+  if (resize) {
+    for (Cell *cell in self.allCells) {
+      if ([self.occupiedCells containsObject:cell]) {
+        [cell resizeCell:YES withVectorOrigin:_vectorOrigin];
+      } else {
+        cell.cellNode.hidden = YES;
+      }
+    }
+    
+      // zoom back in
+  } else {
+    for (Cell *cell in self.allCells) {
+      if ([self.occupiedCells containsObject:cell]) {
+        [cell resizeCell:NO withVectorOrigin:_vectorOrigin];
+      } else {
+        cell.cellNode.hidden = NO;
+      }
+    }
+  }
 }
 
--(void)reloadBackgroundImage {
-//  dispatch_queue_t aQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-  dispatch_queue_t aQueue = dispatch_queue_create("whatever", NULL);
-  dispatch_async(aQueue, ^{
-    self.backgroundNode.size = self.size;
-    self.backgroundNode.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
-  });
-}
-
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes forReplay:(BOOL)replay {
-//  NSLog(@"layout called");
-
+  // replay and resize functionality may need their own methods
+  // FIXME: remove replay and resize bools from this method
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes
+                                       forReplay:(BOOL)replay
+                                       forResize:(BOOL)resize {
+    //  NSLog(@"layout called");
+  
     // hex origin is only set once
   if (!_hexOriginSet) {
     _vectorOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
@@ -130,38 +134,50 @@
   }
   
     // no need to add other cells in replay mode
-  if (replay) {
-    [self determineBoardPositionBounds];
-    for (Dyadmino *dyadmino in boardDyadminoes) {
-      [self acknowledgeOrAddCellWithXHex:dyadmino.myHexCoord.x andYHex:dyadmino.myHexCoord.y];
-      HexCoord hexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:dyadmino.tempBoardNode];
-      [self acknowledgeOrAddCellWithXHex:hexCoord.x andYHex:hexCoord.y];
-    }
-
-      // regular mode
-  } else {
-
-      // covers all cells in old range plus new range
-    NSInteger maxCellsTop = _oldCellsTop > self.cellsTop ? _oldCellsTop : self.cellsTop;
-    NSInteger minCellsBottom = _oldCellsBottom < self.cellsBottom ? _oldCellsBottom : self.cellsBottom;
-    NSInteger maxCellsRight = _oldCellsRight > self.cellsRight ? _oldCellsRight : self.cellsRight;
-    NSInteger minCellsLeft = _oldCellsLeft < self.cellsLeft ? _oldCellsLeft : self.cellsLeft;
+//  if (replay || resize) {
+//    [self.snapPointsTwelveOClock removeAllObjects];
+//    [self.snapPointsTwoOClock removeAllObjects];
+//    [self.snapPointsTenOClock removeAllObjects];
+//    for (Cell *cell in self.allCells) {
+//      if (![self.occupiedCells containsObject:cell]) {
+//        cell.cellNode.hidden = YES;
+//      }
+//    }
+      // keep record of occupied cells
+//    [self.allCells removeAllObjects];
     
-      // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
-      // use this to get the range to iterate over y, and to keep the board square
-    for (NSInteger xHex = minCellsLeft; xHex <= maxCellsRight; xHex++) {
-      for (NSInteger yHex = minCellsBottom - maxCellsRight / 2; yHex <= maxCellsTop - minCellsLeft / 2; yHex++) {
-
-        if (xHex >= self.cellsLeft && xHex <= self.cellsRight &&
-            yHex <= self.cellsTop - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f)) {
-          [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
-          
-        } else {
-//          NSLog(@"ignoring cell from layout board");
-          [self ignoreCellWithXHex:xHex andYHex:yHex];
-        }
+//    NSLog(@"board laid out with replay or resize");
+//    [self determineBoardPositionBounds];
+//    for (Dyadmino *dyadmino in boardDyadminoes) {
+//      [self acknowledgeOrAddCellWithXHex:dyadmino.myHexCoord.x andYHex:dyadmino.myHexCoord.y];
+//      HexCoord hexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:dyadmino.tempBoardNode];
+//      [self acknowledgeOrAddCellWithXHex:hexCoord.x andYHex:hexCoord.y];
+//    }
+    
+      // regular mode
+//  } else {
+//  NSLog(@"board laid out in regular mode");
+    // covers all cells in old range plus new range
+  NSInteger maxCellsTop = _oldCellsTop > self.cellsTop ? _oldCellsTop : self.cellsTop;
+  NSInteger minCellsBottom = _oldCellsBottom < self.cellsBottom ? _oldCellsBottom : self.cellsBottom;
+  NSInteger maxCellsRight = _oldCellsRight > self.cellsRight ? _oldCellsRight : self.cellsRight;
+  NSInteger minCellsLeft = _oldCellsLeft < self.cellsLeft ? _oldCellsLeft : self.cellsLeft;
+  
+    // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
+    // use this to get the range to iterate over y, and to keep the board square
+  for (NSInteger xHex = minCellsLeft; xHex <= maxCellsRight; xHex++) {
+    for (NSInteger yHex = minCellsBottom - maxCellsRight / 2; yHex <= maxCellsTop - minCellsLeft / 2; yHex++) {
+      
+      if (xHex >= self.cellsLeft && xHex <= self.cellsRight &&
+          yHex <= self.cellsTop - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f)) {
+        [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
+        
+      } else {
+          //          NSLog(@"ignoring cell from layout board");
+        [self ignoreCellWithXHex:xHex andYHex:yHex];
       }
     }
+//    }
   }
   
   NSLog(@"self.allCells count %i", self.allCells.count);
@@ -170,8 +186,6 @@
   NSLog(@"self.allCells %i, self.occupiedCells %i, self.dequeuedCells %i", self.allCells.count, self.occupiedCells.count, self.dequeuedCells.count);
   NSLog(@"board nodes %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
 }
-
-#pragma mark - cell methods
 
 -(Cell *)findCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
   for (Cell *cell in self.allCells) {
@@ -942,6 +956,35 @@
   self.pivotRotateGuide.position = dyadmino.pivotAroundPoint;
   self.pivotAroundGuide.zRotation = [self getRadiansFromDegree:touchAngle];
   self.pivotRotateGuide.zRotation = [self getRadiansFromDegree:touchAngle];
+}
+
+  // these might be used for replay mode
+#pragma mark - background image methods
+
+-(void)initLoadBackgroundImage {
+  UIImage *backgroundImage = [UIImage imageNamed:@"MaryFloral.jpeg"];
+  CGImageRef backgroundCGImage = backgroundImage.CGImage;
+  CGRect textureSize = CGRectMake(self.position.x, self.position.y, backgroundImage.size.width / 2, backgroundImage.size.height / 2);
+  
+  UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
+  CGContextRef context = UIGraphicsGetCurrentContext();
+    // Core Graphics coordinates are upside down from Sprite Kit's
+  CGContextScaleCTM(context, 1.0, -1.0);
+  CGContextDrawTiledImage(context, textureSize, backgroundCGImage);
+  UIImage *tiledBackground = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+  
+  SKTexture *backgroundTexture = [SKTexture textureWithCGImage:tiledBackground.CGImage];
+  self.backgroundNode.texture = backgroundTexture;
+}
+
+-(void)reloadBackgroundImage {
+    //  dispatch_queue_t aQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+  dispatch_queue_t aQueue = dispatch_queue_create("whatever", NULL);
+  dispatch_async(aQueue, ^{
+    self.backgroundNode.size = self.size;
+    self.backgroundNode.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
+  });
 }
 
 @end

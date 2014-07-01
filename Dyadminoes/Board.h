@@ -56,8 +56,12 @@
          andOrigin:(CGPoint)origin
       andZPosition:(CGFloat)zPosition;
 
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes forReplay:(BOOL)replay;
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes forReplay:(BOOL)replay forResize:(BOOL)resize;
 -(void)reloadBackgroundImage;
+
+#pragma mark - zoom methods
+
+-(void)repositionCellsAndDyadminoesForZoomOut:(BOOL)resize;
 
 #pragma mark - pivot guide methods
 

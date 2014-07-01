@@ -14,6 +14,9 @@
 
 +(void)saveMyModel:(Model *)myModel;
 +(Model *)getMyModel;
+
+-(void)instantiateHardCodededSoloMatchForDebugPurposes;
+-(void)instantiateHardCodededPassNPlayMatchForDebugPurposes;
 -(void)instantiateHardCodedMatchesForDebugPurposes;
 -(void)sortMyMatches;
 
