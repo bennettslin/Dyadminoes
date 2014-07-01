@@ -69,8 +69,7 @@
 }
 
 -(void)pinched:(UIPinchGestureRecognizer *)sender {
-//  UIPinchGestureRecognizer *gesture = (UIPinchGestureRecognizer *)sender;
-  NSLog(@"pinch scale %.2f, velocity %.2f", sender.scale, sender.velocity);
+  [self.myScene handlePinchGestureWithScale:sender.scale andVelocity:sender.velocity];
 }
 
 -(void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event {

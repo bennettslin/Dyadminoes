@@ -56,7 +56,7 @@
          andOrigin:(CGPoint)origin
       andZPosition:(CGFloat)zPosition;
 
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes forReplay:(BOOL)replay forResize:(BOOL)resize;
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes;
 -(void)reloadBackgroundImage;
 
 #pragma mark - zoom methods

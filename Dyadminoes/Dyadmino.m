@@ -61,36 +61,23 @@
 #pragma mark - orient, position, and size methods
 
 -(void)establishSizeOfSprite:(SKSpriteNode *)sprite {
-  CGFloat resizeFactor;
-  if (self.isTouchThenHoverResized) {
-    resizeFactor = kDyadminoResizedFactor;
-  } else {
-    resizeFactor = 1.f;
-  }
+  CGFloat hoverResizeFactor = (self.isTouchThenHoverResized) ? kDyadminoHoverResizeFactor : 1.f;
+  CGFloat zoomResizeFactor = (self.isZoomResized) ? kZoomResizeFactor : 1.f;
+
 
     // size is different if not vertical orientation
-  CGFloat orientationFactor;
-  if (self.orientation == kPC1atTwelveOClock || self.orientation == kPC1atSixOClock) {
-    orientationFactor = 4.f;
-  } else {
-    orientationFactor = 3.f;
-  }
-  
+  CGFloat orientationFactor = (self.orientation == kPC1atTwelveOClock || self.orientation == kPC1atSixOClock) ? 4.f : 3.f;
   CGFloat pcRelativeSizeFactor = 10 / 7.f;
   
-  CGFloat ySize;
-  if (sprite == self) {
-    ySize = kDyadminoFaceRadius * orientationFactor;
-  } else { // sprite is a pc
-    ySize = kDyadminoFaceRadius * pcRelativeSizeFactor;
-  }
+    // sprite is either dyadmino or pc
+  CGFloat ySize = (sprite == self) ? kDyadminoFaceRadius * orientationFactor : kDyadminoFaceRadius * pcRelativeSizeFactor;
   
   CGFloat widthToHeightRatio = sprite.texture.size.width / sprite.texture.size.height;
   CGFloat xSize = widthToHeightRatio * ySize;
-  sprite.size = CGSizeMake(xSize * resizeFactor, ySize * resizeFactor);
+  sprite.size = CGSizeMake(xSize * hoverResizeFactor * zoomResizeFactor, ySize * hoverResizeFactor * zoomResizeFactor);
 }
 
--(void)resizeBasedOnHoveringStatus {
+-(void)resize {
   [self establishSizeOfSprite:self];
   [self establishSizeOfSprite:self.pc1Sprite];
   [self establishSizeOfSprite:self.pc2Sprite];
@@ -117,51 +104,46 @@
     }
   }
   
-  CGFloat resizeFactor;
-  if (self.isTouchThenHoverResized) {
-    resizeFactor = kDyadminoResizedFactor;
-  } else {
-    resizeFactor = 1;
-  }
-  
-  CGFloat yVertical = kDyadminoFaceRadius * resizeFactor;
-  CGFloat ySlant = kDyadminoFaceRadius * 0.5 * resizeFactor;
-  CGFloat xSlant = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * resizeFactor;
+  CGFloat hoverResizeFactor = (self.isTouchThenHoverResized) ? kDyadminoHoverResizeFactor : 1.f;
+  CGFloat zoomResizeFactor = (self.isZoomResized) ? kZoomResizeFactor : 1.f;
+  CGFloat yVertical = kDyadminoFaceRadius * hoverResizeFactor * zoomResizeFactor;
+  CGFloat ySlant = kDyadminoFaceRadius * 0.5 * hoverResizeFactor * zoomResizeFactor;
+  CGFloat xSlant = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * hoverResizeFactor * zoomResizeFactor;
   
   switch (self.orientation) {
     case kPC1atTwelveOClock:
       self.texture = self.rotationFrameArray[0];
-      [self resizeBasedOnHoveringStatus];
+      [self resize];
       self.pc1Sprite.position = CGPointMake(0, yVertical);
       self.pc2Sprite.position = CGPointMake(0, -yVertical);
       break;
     case kPC1atTwoOClock:
       self.texture = self.rotationFrameArray[1];
-      [self resizeBasedOnHoveringStatus];
+      [self resize];
       self.pc1Sprite.position = CGPointMake(xSlant, ySlant);
       self.pc2Sprite.position = CGPointMake(-xSlant, -ySlant);
       break;
     case kPC1atFourOClock:
       self.texture = self.rotationFrameArray[2];
-      [self resizeBasedOnHoveringStatus];
+      [self resize];
       self.pc1Sprite.position = CGPointMake(xSlant, -ySlant);
       self.pc2Sprite.position = CGPointMake(-xSlant, ySlant);
       break;
     case kPC1atSixOClock:
       self.texture = self.rotationFrameArray[0];
-      [self resizeBasedOnHoveringStatus];
+      [self resize];
       self.pc1Sprite.position = CGPointMake(0, -yVertical);
       self.pc2Sprite.position = CGPointMake(0, yVertical);
       break;
     case kPC1atEightOClock:
       self.texture = self.rotationFrameArray[1];
-      [self resizeBasedOnHoveringStatus];
+      [self resize];
       self.pc1Sprite.position = CGPointMake(-xSlant, -ySlant);
       self.pc2Sprite.position = CGPointMake(xSlant, ySlant);
       break;
     case kPC1atTenOClock:
       self.texture = self.rotationFrameArray[2];
-      [self resizeBasedOnHoveringStatus];
+      [self resize];
       self.pc1Sprite.position = CGPointMake(-xSlant, ySlant);
       self.pc2Sprite.position = CGPointMake(xSlant, -ySlant);
       break;
@@ -171,11 +153,7 @@
 -(void)orientBySnapNode:(SnapPoint *)snapNode {
   switch (snapNode.snapPointType) {
     case kSnapPointRack:
-      if (self.orientation <= 1 || self.orientation >= 5) {
-        self.orientation = 0;
-      } else {
-        self.orientation = 3;
-      }
+      self.orientation = (self.orientation <= 1 || self.orientation >= 5) ? 0 : 3;
       break;
     default: // snapNode is on board
       self.orientation = self.tempReturnOrientation;
@@ -185,47 +163,24 @@
 }
 
 -(CGPoint)getHomeNodePosition {
-  if (self.belongsInSwap) {
-    return [self addToThisPoint:self.homeNode.position
-                  thisPoint:CGPointMake(0.f, self.homeNode.position.y + (kRackHeight / 2))];
-  } else {
-    return self.homeNode.position;
-  }
+  return (self.belongsInSwap) ?
+      [self addToThisPoint:self.homeNode.position thisPoint:CGPointMake(0.f, self.homeNode.position.y + kRackHeight * 0.5)] :
+      self.homeNode.position;
 }
 
 #pragma mark - change status methods
 
 -(void)startTouchThenHoverResize {
-  
-    // FIXME: actions conflict
-//  SKAction *bounceScaleIn = [SKAction scaleTo:kDyadminoResizedFactor * 1.1f duration:0.125f];
-//  SKAction *bounceScaleOut = [SKAction scaleTo:kDyadminoResizedFactor duration:0.25f];
-//  SKAction *complete = [SKAction runBlock:^{
     self.isTouchThenHoverResized = YES;
-    [self resizeBasedOnHoveringStatus];
+    [self resize];
     [self selectAndPositionSprites];
-//  }];
-//  SKAction *faceSequence = [SKAction sequence:@[bounceScaleIn, bounceScaleOut]];
-//  SKAction *dyadminoSequence = [SKAction sequence:@[bounceScaleIn, bounceScaleOut, complete]];
-//  [self runAction:dyadminoSequence];
-//  [self.pc1Sprite runAction:faceSequence];
-//  [self.pc2Sprite runAction:faceSequence];
 }
 
 -(void)endTouchThenHoverResize {
   self.isTouchThenHoverResized = NO;
-  [self resizeBasedOnHoveringStatus];
+  [self resize];
   [self selectAndPositionSprites];
 }
-
-  // only update method sets to kDyadminoHovering
-//-(void)startHovering {
-//    // this is the only place where prePivot guide is made visible
-//    // starting from no pivot guides
-//  
-////  NSLog(@"start hovering?!");
-//  self.hoveringStatus = kDyadminoHovering;
-//}
 
 -(void)keepHovering {
   self.hoveringStatus = kDyadminoContinuesHovering;
@@ -254,11 +209,8 @@
 #pragma mark - change state methods
 
 -(void)setToHomeZPosition {
-  if (self.homeNode.snapPointType == kSnapPointRack) {
-    self.zPosition = kZPositionRackRestingDyadmino;
-  } else {
-    self.zPosition = kZPositionBoardRestingDyadmino;
-  }
+  self.zPosition = (self.homeNode.snapPointType == kSnapPointRack) ?
+      kZPositionRackRestingDyadmino : kZPositionBoardRestingDyadmino;
 }
 
 -(void)goHomeToRackByPoppingIn:(BOOL)poppingIn {
@@ -308,9 +260,9 @@
       // otherwise it's one of the pc faces
   } else {
     CGPoint pivotOffset;
-    CGFloat yVertical = kDyadminoFaceRadius * kDyadminoResizedFactor;
-    CGFloat xSlant = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * kDyadminoResizedFactor;
-    CGFloat ySlant = kDyadminoFaceRadius * 0.5 * kDyadminoResizedFactor;
+    CGFloat yVertical = kDyadminoFaceRadius * kDyadminoHoverResizeFactor;
+    CGFloat xSlant = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * kDyadminoHoverResizeFactor;
+    CGFloat ySlant = kDyadminoFaceRadius * 0.5 * kDyadminoHoverResizeFactor;
     
       // if pc2, pivot orientation is offset
     DyadminoOrientation pivotOrientation = self.prePivotDyadminoOrientation;
@@ -373,8 +325,8 @@
           // if it pivots on center, just go straight to positioning sprites
         if (pivotOnPC != kPivotCentre) {
           
-          CGFloat xIncrement = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * kDyadminoResizedFactor;
-          CGFloat yIncrement = kDyadminoFaceRadius * 0.5 * kDyadminoResizedFactor;
+          CGFloat xIncrement = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * kDyadminoHoverResizeFactor;
+          CGFloat yIncrement = kDyadminoFaceRadius * 0.5 * kDyadminoHoverResizeFactor;
           
             // pivot orientation starts out as the dyadmino orientation
           DyadminoOrientation pivotOrientation = newOrientation;
@@ -595,27 +547,15 @@
 }
 
 -(BOOL)isHovering {
-  if (self.hoveringStatus == kDyadminoHovering) {
-    return YES;
-  } else {
-    return NO;
-  }
+  return (self.hoveringStatus == kDyadminoHovering) ? YES : NO;
 }
 
 -(BOOL)continuesToHover {
-  if (self.hoveringStatus == kDyadminoContinuesHovering) {
-    return YES;
-  } else {
-    return NO;
-  }
+  return (self.hoveringStatus == kDyadminoContinuesHovering) ? YES : NO;
 }
 
 -(BOOL)isFinishedHovering {
-  if (self.hoveringStatus == kDyadminoFinishedHovering) {
-    return YES;
-  } else {
-    return NO;
-  }
+  return (self.hoveringStatus == kDyadminoFinishedHovering) ? YES : NO;
 }
 
 #pragma mark - helper methods

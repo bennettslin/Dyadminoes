@@ -21,6 +21,8 @@
 -(void)soundSettledDyadmino;
 -(void)soundPCToggle;
 -(void)soundDeviceOrientation;
+
+-(void)soundBoardZoom;
 -(void)soundSwapFieldSwoosh;
 -(void)soundButton:(BOOL)tap;
 

@@ -50,6 +50,7 @@
 
   // view constants
 #define kBoardCoverAlpha 0.4f
+#define kZoomResizeFactor 0.5f
 
   // label constants (maybe temp)
 #define kButtonSize CGSizeMake(kButtonWidth, kButtonWidth)
@@ -61,7 +62,7 @@
 #define kDoubleTapTime 0.225f
 
   // dyadmino state constants
-#define kDyadminoResizedFactor 1.17f
+#define kDyadminoHoverResizeFactor 1.17f
 #define kDyadminoColorBlendFactor 0.2f
 
   // math constants
@@ -76,8 +77,9 @@
 #define kAngleForSnapToPivot 0.1f
 #define kDistanceAfterCannotRotate (kDyadminoFaceRadius * 0.25f)
 #define kDistanceForTouchingFace (kDyadminoFaceRadius * 0.7f)
-#define kDistanceForTouchingHoveringDyadmino (kDyadminoFaceRadius * kDyadminoResizedFactor) // was 32.f
+#define kDistanceForTouchingHoveringDyadmino (kDyadminoFaceRadius * kDyadminoHoverResizeFactor) // was 32.f
 #define kDistanceForTouchingRestingDyadmino (kDyadminoFaceRadius * 0.8f) // was 25.f
+#define kDistanceToDoubleTap 44.f
 #define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
 #define kMaxDistanceForPivot (kDyadminoFaceRadius * 3.5f)
 #define kPivotGuideAlpha 0.9f

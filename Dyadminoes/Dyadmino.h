@@ -59,6 +59,7 @@
 @property (nonatomic) BOOL canFlip;
 @property (nonatomic) BOOL isRotating;
 @property (nonatomic) BOOL isTouchThenHoverResized;
+@property (nonatomic) BOOL isZoomResized;
 @property (nonatomic) DyadminoHoveringStatus hoveringStatus;
 
   // pivot properties

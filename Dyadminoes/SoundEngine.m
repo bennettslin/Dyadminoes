@@ -13,6 +13,7 @@
 #define kActionClick @"click"
 #define kActionButton @"button"
 #define kActionSwoosh @"swoosh"
+#define kActionZoom @"zoom"
 
 @implementation SoundEngine {
   
@@ -77,6 +78,11 @@
 -(void)soundSwapFieldSwoosh {
   SKAction *sound = [SKAction playSoundFileNamed:kSoundSwoosh waitForCompletion:NO];
   [self runAction:sound withKey:kActionSwoosh];
+}
+
+-(void)soundBoardZoom {
+  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
+  [self runAction:sound withKey:kActionZoom];
 }
 
 -(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked {

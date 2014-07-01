@@ -99,32 +99,27 @@
     // zoom out
   if (resize) {
     for (Cell *cell in self.allCells) {
-      if ([self.occupiedCells containsObject:cell]) {
+//      if ([self.occupiedCells containsObject:cell]) {
         [cell resizeCell:YES withVectorOrigin:_vectorOrigin];
-      } else {
-        cell.cellNode.hidden = YES;
-      }
+//      } else {
+//        cell.cellNode.hidden = YES;
+//      }
     }
     
       // zoom back in
   } else {
     for (Cell *cell in self.allCells) {
-      if ([self.occupiedCells containsObject:cell]) {
+//      if ([self.occupiedCells containsObject:cell]) {
         [cell resizeCell:NO withVectorOrigin:_vectorOrigin];
-      } else {
-        cell.cellNode.hidden = NO;
-      }
+//      } else {
+//        cell.cellNode.hidden = NO;
+//      }
     }
   }
 }
 
-  // replay and resize functionality may need their own methods
-  // FIXME: remove replay and resize bools from this method
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes
-                                       forReplay:(BOOL)replay
-                                       forResize:(BOOL)resize {
-    //  NSLog(@"layout called");
-  
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
+
     // hex origin is only set once
   if (!_hexOriginSet) {
     _vectorOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
@@ -133,30 +128,6 @@
     [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
   }
   
-    // no need to add other cells in replay mode
-//  if (replay || resize) {
-//    [self.snapPointsTwelveOClock removeAllObjects];
-//    [self.snapPointsTwoOClock removeAllObjects];
-//    [self.snapPointsTenOClock removeAllObjects];
-//    for (Cell *cell in self.allCells) {
-//      if (![self.occupiedCells containsObject:cell]) {
-//        cell.cellNode.hidden = YES;
-//      }
-//    }
-      // keep record of occupied cells
-//    [self.allCells removeAllObjects];
-    
-//    NSLog(@"board laid out with replay or resize");
-//    [self determineBoardPositionBounds];
-//    for (Dyadmino *dyadmino in boardDyadminoes) {
-//      [self acknowledgeOrAddCellWithXHex:dyadmino.myHexCoord.x andYHex:dyadmino.myHexCoord.y];
-//      HexCoord hexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:dyadmino.tempBoardNode];
-//      [self acknowledgeOrAddCellWithXHex:hexCoord.x andYHex:hexCoord.y];
-//    }
-    
-      // regular mode
-//  } else {
-//  NSLog(@"board laid out in regular mode");
     // covers all cells in old range plus new range
   NSInteger maxCellsTop = _oldCellsTop > self.cellsTop ? _oldCellsTop : self.cellsTop;
   NSInteger minCellsBottom = _oldCellsBottom < self.cellsBottom ? _oldCellsBottom : self.cellsBottom;
@@ -177,7 +148,6 @@
         [self ignoreCellWithXHex:xHex andYHex:yHex];
       }
     }
-//    }
   }
   
   NSLog(@"self.allCells count %i", self.allCells.count);
@@ -630,7 +600,7 @@
     
       // each iteration goes around the cell
     
-    NSInteger range = 6;
+    NSInteger range = 8;
     for (int i = 1; i < range; i++) {
       xHex = cell.hexCoord.x;
       yHex = cell.hexCoord.y + i;
@@ -684,7 +654,7 @@
   Cell *cellToColour = [self getCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex]];
   if (cellToColour) {
     
-    CGFloat multiplier = .01f;
+    CGFloat multiplier = .006f;
     cellToColour.cellNode.alpha += sign * factor * 4 * multiplier;
     
     /*

@@ -48,7 +48,7 @@
   UITouch *_currentTouch;
   CGPoint _beganTouchLocation;
   CGPoint _currentTouchLocation;
-//  CGPoint _endTouchLocation;
+  CGPoint _endTouchLocationToMeasureDoubleTap;
   CGPoint _touchOffsetVector;
   
     // bools and modes
@@ -126,7 +126,7 @@
     // this populates the board cells
   
   NSLog(@"layoutboard cells called from did move to view");
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes forReplay:NO forResize:NO];
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes];
 //  [_boardField reloadBackgroundImage];
 //  NSLog(@"cells and snap points laid out");
   
@@ -354,6 +354,14 @@
   [_topBar rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
 }
 
+-(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity {
+  NSLog(@"pinch scale %.2f, velocity %.2f", scale, velocity);
+    // tweak these numbers
+  if ((scale < .8f && !_boardZoomedOut) || (scale > 1.25f && _boardZoomedOut)) {
+    [self toggleBoardZoom];
+  }
+}
+
 #pragma mark - touch methods
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -380,6 +388,7 @@
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
   NSLog(@"%@, zPosition %.2f", _touchNode.name, _touchNode.zPosition);
+  NSLog(@"distance between double taps is %.2f", [self getDistanceFromThisPoint:_beganTouchLocation toThisPoint:_endTouchLocationToMeasureDoubleTap]);
 
     //--------------------------------------------------------------------------
     /// 3a. button pressed
@@ -400,23 +409,26 @@
   
   Dyadmino *dyadmino = [self selectDyadminoFromTouchPoint:_currentTouchLocation];
   
-  if (!_canDoubleTapForDyadminoFlip && ![dyadmino isRotating]) {
-    
-        // register sound if dyadmino tapped
-    if ((dyadmino && !_swapMode && !_pivotInProgress) || [dyadmino isInRack]) { // not sure if not being in swapMode is necessary
-      [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
+  if (!_boardZoomedOut && ![dyadmino isInRack]) {
+  
+    if (!_canDoubleTapForDyadminoFlip && ![dyadmino isRotating]) {
       
-        // register sound if face tapped
-    } else {
-      SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
-      if (face && face.parent != _hoveringDyadmino) {
-        [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
-        _soundedDyadminoFace = face;
+          // register sound if dyadmino tapped
+      if ((dyadmino && !_swapMode && !_pivotInProgress) || [dyadmino isInRack]) { // not sure if not being in swapMode is necessary
+        [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
+        
+          // register sound if face tapped
+      } else {
+        SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
+        if (face && face.parent != _hoveringDyadmino) {
+          [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
+          _soundedDyadminoFace = face;
+        }
       }
     }
   }
   
-  if (dyadmino && !dyadmino.isRotating && !_touchedDyadmino) {
+  if (dyadmino && !dyadmino.isRotating && !_touchedDyadmino && (!_boardZoomedOut || [dyadmino isInRack])) {
     _touchedDyadmino = dyadmino;
 //    NSLog(@"begin touch or pivot of dyadmino");
     [self beginTouchOrPivotOfDyadmino:dyadmino];
@@ -428,11 +440,13 @@
     // then the board is touched and being moved
   } else if (!_pivotInProgress || (_pivotInProgress && !_touchedDyadmino)) {
     if (_touchNode == _boardField || _touchNode == _boardCover ||
-        (_touchNode.parent == _boardField && ![_touchNode isKindOfClass:[Dyadmino class]]) ||
-        (_touchNode.parent.parent == _boardField && ![_touchNode.parent isKindOfClass:[Dyadmino class]])) { // cell label, this one is necessary only for testing purposes
+        (_touchNode.parent == _boardField && (![_touchNode isKindOfClass:[Dyadmino class]] || _boardZoomedOut)) ||
+        (_touchNode.parent.parent == _boardField && (![_touchNode.parent isKindOfClass:[Dyadmino class]] || _boardZoomedOut))) { // cell label, this one is necessary only for testing purposes
       
-      if (_canDoubleTapForBoardZoom) {
-        [self toggleBoardZoom];
+      if (_canDoubleTapForBoardZoom && !_hoveringDyadmino) {
+        if ([self getDistanceFromThisPoint:_beganTouchLocation toThisPoint:_endTouchLocationToMeasureDoubleTap] < kDistanceToDoubleTap) {
+          [self toggleBoardZoom];
+        }
       }
       NSLog(@"board to be moved or being moved");
       _boardToBeMovedOrBeingMoved = YES;
@@ -522,19 +536,26 @@
     _touchedDyadmino.canFlip = NO;
   }
   
-    // if rack dyadmino is moved to board, send home recentRack dyadmino
-  if (_recentRackDyadmino && _touchedDyadmino != _recentRackDyadmino &&
-      [_touchedDyadmino belongsInRack] && [_touchedDyadmino isOnBoard]) {
-  
-    [self changeColoursAroundDyadmino:_recentRackDyadmino withSign:-1];
-    NSLog(@"send dyadmino home if rack dyadmino is moved to board");
-    [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
+    // touched dyadmino is now on board
+  if ([_touchedDyadmino belongsInRack] && [_touchedDyadmino isOnBoard]) {
     
-      // or same thing with hovering dyadmino (it will only ever be one or the other)
-  } else if (_hoveringDyadmino && _touchedDyadmino != _hoveringDyadmino &&
-      [_touchedDyadmino belongsInRack] && [_touchedDyadmino isOnBoard]) {
-    NSLog(@"send dyadmino home if hovering dyadmino");
-    [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
+      // zoom back in
+    if (_boardZoomedOut) {
+      [self toggleBoardZoom];
+    }
+    
+      // if rack dyadmino is moved to board, send home recentRack dyadmino
+    if (_recentRackDyadmino && _touchedDyadmino != _recentRackDyadmino) {
+      
+      [self changeColoursAroundDyadmino:_recentRackDyadmino withSign:-1];
+//      NSLog(@"send dyadmino home if rack dyadmino is moved to board");
+      [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
+      
+        // or same thing with hovering dyadmino (it will only ever be one or the other)
+    } else if (_hoveringDyadmino && _touchedDyadmino != _hoveringDyadmino) {
+//      NSLog(@"send dyadmino home if hovering dyadmino");
+      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
+    }
   }
   
     // continue to reset hover count
@@ -590,11 +611,12 @@
 
     // this ensures no more than one touch at a time
   UITouch *thisTouch = [touches anyObject];
+  _endTouchLocationToMeasureDoubleTap = [self findTouchLocationFromTouches:touches];
+  
   if (thisTouch != _currentTouch) {
     return;
   }
-  
-//  _endTouchLocation = [self findTouchLocationFromTouches:touches];
+
   _currentTouch = nil;
   [self endTouchFromTouches:touches];
 }
@@ -702,6 +724,19 @@
   NSLog(@"board zoomed");
   _boardZoomedOut = _boardZoomedOut ? NO : YES;
   [_boardField repositionCellsAndDyadminoesForZoomOut:_boardZoomedOut];
+  
+  for (Dyadmino *dyadmino in self.boardDyadminoes) {
+    dyadmino.isZoomResized = dyadmino.isZoomResized ? NO : YES;
+    dyadmino.position = dyadmino.tempBoardNode.position;
+    [dyadmino selectAndPositionSprites];
+  }
+  if (_recentRackDyadmino) {
+    _recentRackDyadmino.isZoomResized = _recentRackDyadmino.isZoomResized ? NO : YES;
+    [_recentRackDyadmino selectAndPositionSprites];
+    _recentRackDyadmino.position = _recentRackDyadmino.tempBoardNode.position;
+  }
+  
+  [self.mySoundEngine soundBoardZoom];
 }
 
 #pragma mark - dyadmino methods
@@ -1803,7 +1838,7 @@
   
   if (layoutCells) {
     NSLog(@"layoutboardcells called from updateboardbounds");
-    [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard forReplay:NO forResize:NO];
+    [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard];
   }
   
   [_topBar updateLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
@@ -2171,26 +2206,10 @@
 
   for (Cell *cell in _boardField.allCells) {
     if ([cell isKindOfClass:[Cell class]]) {
-      if (!_dyadminoesHidden) {
-        cell.hexCoordLabel.hidden = YES;
-//        cell.color = [SKColor orangeColor];
-//        cell.colorBlendFactor = 0.5f;
-      } else {
-        cell.hexCoordLabel.hidden = NO;
-//        cell.color = [SKColor whiteColor];
-//        cell.colorBlendFactor = 0.5f;
-      }
+      cell.hexCoordLabel.hidden = (!_dyadminoesHidden) ? YES : NO;
     }
   }
-  
-//  NSLog(@"number of dyadminoes on board is %lu, number of occupied cells is %lu", (unsigned long)self.ourGameEngine.dyadminoesOnBoard.count, (unsigned long)_boardField.occupiedCells.count);
-//  
-//  NSLog(@"touched dyadmino %@, recent rack dyadmino %@, hovering dyadmino %@", _touchedDyadmino.name, _recentRackDyadmino.name, _hoveringDyadmino.name);
-//  NSLog(@"board being corrected within bounds is %i", _boardBeingCorrectedWithinBounds);
-//  if (_hoveringDyadmino.tempBoardNode) {
-//    NSLog(@"hovering dyadmino has temp board node");
-//  }
-//  NSLog(@"hovering dyadmino is on board %i", [_hoveringDyadmino isOnBoard]);
+
   [self updateLabels];
   [self updateButtonsForStaticState];
 }

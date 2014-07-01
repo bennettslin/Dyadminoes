@@ -11,7 +11,6 @@
 #import "Board.h"
 
 #define kPaddingBetweenCells (kIsIPhone ? 0.f : 0.f)
-#define kResizeFactor 0.5
 
 @interface Cell ()
 
@@ -54,15 +53,17 @@
   if (resize) {
     self.cellNode.size = [self establishCellSizeForResize:YES];
     self.cellNode.position = [self establishCellPositionWithVectorOrigin:vectorOrigin forResize:YES];
+    [self positionSnapPointsForResize:YES];
   } else {
     self.cellNode.size = self.cellNodeSize;
     self.cellNode.position = self.cellNodePosition;
+    [self positionSnapPointsForResize:NO];
   }
 }
 
 -(CGSize)establishCellSizeForResize:(BOOL)resize {
   
-  CGFloat factor = resize ? kResizeFactor : 1.f;
+  CGFloat factor = resize ? kZoomResizeFactor : 1.f;
   CGFloat ySize = (kDyadminoFaceRadius * 2 - kPaddingBetweenCells) * factor;
   CGFloat widthToHeightRatio = kTwoOverSquareRootOfThree;
   CGFloat xSize = widthToHeightRatio * ySize;
@@ -72,7 +73,7 @@
 -(CGPoint)establishCellPositionWithVectorOrigin:(CGVector)vectorOrigin forResize:(BOOL)resize {
   
     // to make node between two faces the center
-  CGFloat factor = resize ? kResizeFactor : 1.f;
+  CGFloat factor = resize ? kZoomResizeFactor : 1.f;
   CGFloat yOffset = kDyadminoFaceRadius * factor;
   CGFloat padding = kPaddingBetweenCells * factor;
   CGFloat cellWidth = self.cellNode ? self.cellNode.size.width : self.cellNodeSize.width * factor;
@@ -118,7 +119,7 @@
   self.boardSnapPointTwoOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwoOClock];
   self.boardSnapPointTenOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTenOClock];
   
-  [self positionSnapPoints];
+  [self positionSnapPointsForResize:NO];
   
   self.boardSnapPointTwelveOClock.name = @"snap 12";
   self.boardSnapPointTwoOClock.name = @"snap 2";
@@ -128,22 +129,24 @@
   self.boardSnapPointTenOClock.myCell = self;
 }
 
--(void)positionSnapPoints {
-  CGFloat faceOffset = kDyadminoFaceRadius;
+-(void)positionSnapPointsForResize:(BOOL)resize {
+  CGFloat faceOffset = resize ? kDyadminoFaceRadius * kZoomResizeFactor : kDyadminoFaceRadius;
   
     // based on a 30-60-90 degree triangle
   CGFloat faceOffsetX = faceOffset * 0.5 * kSquareRootOfThree;
   CGFloat faceOffsetY = faceOffset * 0.5;
-  self.boardSnapPointTwelveOClock.position = [self addToThisPoint:self.cellNodePosition
+  
+  CGPoint position = self.cellNode ? self.cellNode.position : self.cellNodePosition;
+  self.boardSnapPointTwelveOClock.position = [self addToThisPoint:position
                                                         thisPoint:CGPointMake(0.f, faceOffset)];
-  self.boardSnapPointTwoOClock.position = [self addToThisPoint:self.cellNodePosition
+  self.boardSnapPointTwoOClock.position = [self addToThisPoint:position
                                                      thisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
-  self.boardSnapPointTenOClock.position = [self addToThisPoint:self.cellNodePosition
+  self.boardSnapPointTenOClock.position = [self addToThisPoint:position
                                                      thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
 }
 
 -(void)addSnapPointsToBoard {
-  [self positionSnapPoints];
+//  [self positionSnapPointsForResize:NO];
   
   if (![self.board.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
     [self.board.snapPointsTwelveOClock addObject:self.boardSnapPointTwelveOClock];
