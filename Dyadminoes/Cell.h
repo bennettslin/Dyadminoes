@@ -50,6 +50,7 @@
 -(void)removeSnapPointsFromBoard;
 
 -(void)resizeCell:(BOOL)resize withVectorOrigin:(CGVector)vectorOrigin;
+-(void)addColourWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha;
 
 #pragma mark - testing methods
 

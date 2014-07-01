@@ -388,7 +388,14 @@
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
   NSLog(@"%@, zPosition %.2f", _touchNode.name, _touchNode.zPosition);
-  NSLog(@"distance between double taps is %.2f", [self getDistanceFromThisPoint:_beganTouchLocation toThisPoint:_endTouchLocationToMeasureDoubleTap]);
+  
+  if ([_touchNode.parent isKindOfClass:[Cell class]]) {
+    SKSpriteNode *node = (SKSpriteNode *)_touchNode;
+    UIColor *colour = node.color;
+    NSLog(@"colour %@", colour);
+  }
+  
+//  NSLog(@"distance between double taps is %.2f", [self getDistanceFromThisPoint:_beganTouchLocation toThisPoint:_endTouchLocationToMeasureDoubleTap]);
 
     //--------------------------------------------------------------------------
     /// 3a. button pressed
@@ -408,22 +415,35 @@
     /// 3b. dyadmino touched
   
   Dyadmino *dyadmino = [self selectDyadminoFromTouchPoint:_currentTouchLocation];
-  
-  if (!_boardZoomedOut && ![dyadmino isInRack]) {
-  
+//  BOOL parentDyadminoInRack;
+//  if (!dyadmino && [_touchNode.parent isKindOfClass:[Dyadmino class]]) {
+//    Dyadmino *parentDyadmino = (Dyadmino *)_touchNode.parent;
+//    parentDyadminoInRack = [parentDyadmino isInRack] ? YES : NO;
+//  }
+//  
+//  if (!_boardZoomedOut || (_boardZoomedOut && ([dyadmino isInRack] || parentDyadminoInRack))) {
+//    NSLog(@"got past this");
     if (!_canDoubleTapForDyadminoFlip && ![dyadmino isRotating]) {
       
           // register sound if dyadmino tapped
-      if ((dyadmino && !_swapMode && !_pivotInProgress) || [dyadmino isInRack]) { // not sure if not being in swapMode is necessary
-        [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
+      if (dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
+        if (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) {
+          [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
+        }
         
           // register sound if face tapped
       } else {
         SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
-        if (face && face.parent != _hoveringDyadmino) {
-          [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
-          _soundedDyadminoFace = face;
-        }
+        if (face && face.parent != _hoveringDyadmino && !_pivotInProgress) {
+
+          if ([face.parent isKindOfClass:[Dyadmino class]]) {
+            Dyadmino *faceParent = (Dyadmino *)face.parent;
+            if (!_boardZoomedOut || (_boardZoomedOut && [faceParent isInRack])) {
+              [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
+              _soundedDyadminoFace = face;
+            }
+          }
+//        }
       }
     }
   }

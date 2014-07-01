@@ -16,7 +16,9 @@
 
 @end
 
-@implementation Cell
+@implementation Cell {
+  CGFloat _red, _green, _blue, _alpha;
+}
 
 -(id)initWithBoard:(Board *)board andTexture:(SKTexture *)texture andHexCoord:(HexCoord)hexCoord andVectorOrigin:(CGVector)vectorOrigin {
   self = [super init];
@@ -24,6 +26,10 @@
     
     self.board = board;
     self.cellNodeTexture = texture;
+    _red = 0.2f;
+    _green = 0.2f;
+    _blue = 0.2f;
+    _alpha = 0.4f;
     
       // establish cell size
     self.cellNodeSize = [self establishCellSizeForResize:NO];
@@ -47,6 +53,16 @@
   
     // create snap points
   [self createSnapPoints];
+}
+
+-(void)addColourWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha {
+  _red += red;
+  _green += green;
+  _blue += blue;
+  _alpha += alpha;
+//  NSLog(@"%.2f, %.2f, %.2f, %.2f", _red, _green, _blue, _alpha);
+  self.cellNode.color = [SKColor colorWithRed:_red green:_green blue:_blue alpha:1.f];
+  self.cellNode.alpha = _alpha;
 }
 
 -(void)resizeCell:(BOOL)resize withVectorOrigin:(CGVector)vectorOrigin {
@@ -91,10 +107,10 @@
   self.cellNode = [[SKSpriteNode alloc] init];
   self.cellNode.texture = self.cellNodeTexture;
   self.cellNode.zPosition = kZPositionBoardCell;
-  
+  [self addColourWithRed:_red green:_green blue:_blue alpha:_alpha];
 //  self.cellNode.color = [SKColor colorWithRed:.2f green:.2f blue:.2f alpha:1.f];
-//  self.cellNode.colorBlendFactor = .5f;
-  self.cellNode.alpha = 0.2f; // was 0.8 before board patterning attempt
+  self.cellNode.colorBlendFactor = .9f;
+//  self.cellNode.alpha = 0.2f; // was 0.8 before board patterning attempt
   self.cellNode.size = self.cellNodeSize;
   [self initPositionCellNode];
   

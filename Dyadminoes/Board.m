@@ -11,6 +11,8 @@
 #import "Cell.h"
 #import "Dyadmino.h"
 
+#define kCellColourMultiplier .005f
+
 @interface Board ()
 
 @property (strong, nonatomic) SKSpriteNode *backgroundNode;
@@ -133,11 +135,12 @@
   NSInteger minCellsBottom = _oldCellsBottom < self.cellsBottom ? _oldCellsBottom : self.cellsBottom;
   NSInteger maxCellsRight = _oldCellsRight > self.cellsRight ? _oldCellsRight : self.cellsRight;
   NSInteger minCellsLeft = _oldCellsLeft < self.cellsLeft ? _oldCellsLeft : self.cellsLeft;
+//  NSLog(@"top %i, bottom %i, right %i, left %i", maxCellsTop, minCellsBottom, maxCellsRight, minCellsLeft);
   
     // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
     // use this to get the range to iterate over y, and to keep the board square
   for (NSInteger xHex = minCellsLeft; xHex <= maxCellsRight; xHex++) {
-    for (NSInteger yHex = minCellsBottom - maxCellsRight / 2; yHex <= maxCellsTop - minCellsLeft / 2; yHex++) {
+    for (NSInteger yHex = minCellsBottom - maxCellsRight / 2.f; yHex <= maxCellsTop - minCellsLeft / 2.f; yHex++) {
       
       if (xHex >= self.cellsLeft && xHex <= self.cellsRight &&
           yHex <= self.cellsTop - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f)) {
@@ -150,11 +153,11 @@
     }
   }
   
-  NSLog(@"self.allCells count %i", self.allCells.count);
+//  NSLog(@"self.allCells count %i", self.allCells.count);
   [self determineBoardPositionBounds];
   
-  NSLog(@"self.allCells %i, self.occupiedCells %i, self.dequeuedCells %i", self.allCells.count, self.occupiedCells.count, self.dequeuedCells.count);
-  NSLog(@"board nodes %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
+//  NSLog(@"self.allCells %i, self.occupiedCells %i, self.dequeuedCells %i", self.allCells.count, self.occupiedCells.count, self.dequeuedCells.count);
+//  NSLog(@"board nodes %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
 }
 
 -(Cell *)findCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
@@ -511,8 +514,6 @@
       
         // only remove if cell dyadmino is dyadmino
       if (cell.myDyadmino == dyadmino) {
-        cell.myDyadmino = nil;
-        cell.myPC = -1;
         
 //        NSLog(@"cell.myDyadmino is %@", cell.myDyadmino.name);
         
@@ -522,6 +523,8 @@
           [self changeColoursAroundCell:cell withSign:-1];
         }
         
+        cell.myDyadmino = nil;
+        cell.myPC = -1;
           /// testing purposes
         [cell updatePCLabel];
       }
@@ -649,44 +652,40 @@
   }
 }
 
--(void)colourCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex andFactor:(CGFloat)factor andSign:(NSInteger)sign andPC:(NSInteger)pc {
+-(void)colourCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex andFactor:(NSInteger)factor andSign:(NSInteger)sign andPC:(NSInteger)pc {
 
   Cell *cellToColour = [self getCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex]];
-  if (cellToColour) {
-    
-    CGFloat multiplier = .006f;
-    cellToColour.cellNode.alpha += sign * factor * 4 * multiplier;
-    
-    /*
-    if (pc != -1) {
+  if (pc != -1) {
 
-      NSInteger redMult, greenMult, blueMult;
-        // returns the opposite colour. So for example, pc 0 returns red 0, green 4, blue 4
+//    CGFloat colourFactor = (factor >= 2) ? factor - 2 : 0;
+    CGFloat colourFactor = factor * 0.5f;
+    
+    NSInteger redMult, greenMult, blueMult;
+    CGFloat redVal, greenVal, blueVal, alphaVal;
+    
+//    if (colourFactor > 0) {
+      // returns the opposite colour. So for example, pc 0 returns red 0, green 4, blue 4
       redMult = 6 - abs(6 - pc);
       redMult = redMult >= 4 ? 4 : redMult;
       greenMult = 6 - abs(6 - ((pc + 4) % 12));
       greenMult = greenMult >= 4 ? 4 : greenMult;
       blueMult = 6 - abs(6 - ((pc + 8) % 12));
       blueMult = blueMult >= 4 ? 4 : blueMult;
+//    } else {
+//      redMult = 0;
+//      greenMult = 0;
+//      blueMult = 0;
+//    }
+  
+//      NSLog(@"for pc %i, redMult %i, greenMult %i, blueMult %i", pc, redMult, greenMult, blueMult);
+//    colourFactor;
+    redVal = (sign * colourFactor * redMult * kCellColourMultiplier);
+    greenVal = (sign * colourFactor * greenMult * kCellColourMultiplier);
+    blueVal = (sign * colourFactor * blueMult * kCellColourMultiplier);
+    alphaVal = (sign * factor * 7 * kCellColourMultiplier);
+//      NSLog(@"for pc %i, redVal %.2f, greenVal %.2f, blueVal %.2f", pc, redVal, greenVal, blueVal);
     
-      NSLog(@"for pc %i, redMult %i, greenMult %i, blueMult %i", pc, redMult, greenMult, blueMult);
-      
-      CGFloat redVal, greenVal, blueVal, alphaVal;
-      BOOL okay = [cellToColour.cellNode.color getRed:&redVal green:&greenVal blue:&blueVal alpha:&alphaVal];
-      
-      NSLog(@"for pc %i, redVal %.2f, greenVal %.2f, blueVal %.2f", pc, redVal, greenVal, blueVal);
-      
-      if (okay) {
-        
-        redVal += (sign * factor * redMult * multiplier);
-        greenVal += (sign * factor * greenMult * multiplier);
-        blueVal += (sign * factor * blueMult * multiplier);
-        alphaVal += (sign * factor * 4 * multiplier);
-        
-        cellToColour.cellNode.color = [SKColor colorWithRed:redVal green:greenVal blue:blueVal alpha:alphaVal];
-      }
-    }
-    */
+    [cellToColour addColourWithRed:redVal green:greenVal blue:blueVal alpha:alphaVal];
   }
 }
 

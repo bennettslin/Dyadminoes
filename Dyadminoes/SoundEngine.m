@@ -98,10 +98,10 @@
   [self runAction:sound withKey:noteActionKey1];
   [self incrementNoteCount];
   
-  NSString *noteActionKey2 = [self returnNoteActionKey];
+//  NSString *noteActionKey2 = [self returnNoteActionKey];
 //  NSLog(@"%@", noteActionKey2);
-  [self removeActionForKey:noteActionKey2];
-  [self runAction:sound withKey:noteActionKey2];
+//  [self removeActionForKey:noteActionKey2];
+//  [self runAction:sound withKey:noteActionKey2];
   [self incrementNoteCount];
 }
 
