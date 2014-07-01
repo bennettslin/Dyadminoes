@@ -722,6 +722,10 @@
 
 -(void)toggleBoardZoom {
   NSLog(@"board zoomed");
+  if (_hoveringDyadmino) {
+    [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:NO];
+  }
+  
   _boardZoomedOut = _boardZoomedOut ? NO : YES;
   [_boardField repositionCellsAndDyadminoesForZoomOut:_boardZoomedOut];
   
