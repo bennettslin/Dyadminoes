@@ -17,4 +17,8 @@
       andPosition:(CGPoint)position
      andZPosition:(CGFloat)zPosition;
 
+-(void)changeName;
+-(SwapCancelOrUndoButton)confirmSwapCancelOrUndo;
+-(PassPlayOrDoneButton)confirmPassPlayOrDone;
+
 @end

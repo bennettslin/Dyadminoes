@@ -51,6 +51,7 @@
 //  NSLog(@"about to present scene");
   [self.mySceneView presentScene:self.myScene];
   [self.delegate stopActivityIndicator];
+//  [self.delegate removeChildViewController:nil]; // if nil, removes self.childVC
 //  NSLog(@"scene presented");
 }
 

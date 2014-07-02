@@ -8,12 +8,14 @@
 
 #import <UIKit/UIKit.h>
 
-@protocol PnPDelegate;
+@protocol PnPDelegate <NSObject>
 
-@interface PnPViewController : UIViewController
+-(void)startPnPGame;
 
 @end
 
-@protocol PnPDelegate <NSObject>
+@interface PnPViewController : UIViewController
+
+@property (weak, nonatomic) id<PnPDelegate> delegate;
 
 @end

@@ -669,10 +669,77 @@
             </objects>
             <point key="canvasLocation" x="561" y="-561"/>
         </scene>
+        <!--Solo View Controller-->
+        <scene sceneID="Qbu-Bo-kZE">
+            <objects>
+                <viewController storyboardIdentifier="SoloViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="X7K-Wy-mCB" customClass="SoloViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="GHY-I0-dpm"/>
+                        <viewControllerLayoutGuide type="bottom" id="dSv-FR-GYy"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="uCU-vU-2gg">
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <button appearanceType="aqua" opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="pbU-ng-nYI">
+                                <rect key="frame" x="331" y="93" width="107" height="55"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="36"/>
+                                <state key="normal" title="Button">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="startGameTapped:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="wRG-in-HNq"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <connections>
+                        <outlet property="startGameButton" destination="pbU-ng-nYI" id="p5T-GV-6w3"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="cJE-Gh-Nr5" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1496" y="-561"/>
+        </scene>
+        <!--PnP View Controller-->
+        <scene sceneID="O4W-Xf-tVj">
+            <objects>
+                <viewController storyboardIdentifier="PnPViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="AZv-NN-JqT" customClass="PnPViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="ImL-Xa-sFD"/>
+                        <viewControllerLayoutGuide type="bottom" id="njt-NI-oyS"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="ejW-Un-Qj7">
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <button appearanceType="aqua" opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="GPa-Ze-ckT">
+                                <rect key="frame" x="331" y="93" width="107" height="55"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="36"/>
+                                <state key="normal" title="Button">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="startGameTapped:" destination="AZv-NN-JqT" eventType="touchUpInside" id="LYf-ph-Fei"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <connections>
+                        <outlet property="startGameButton" destination="GPa-Ze-ckT" id="Ay1-SL-ajh"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="C7p-5m-w2N" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1496" y="699"/>
+        </scene>
         <!--Help View Controller-->
         <scene sceneID="Uu4-7i-U60">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="10k-v6-40U" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <viewController storyboardIdentifier="HelpViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="umk-Kr-SQX" customClass="HelpViewController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="FLW-Qx-e5w"/>
@@ -684,6 +751,7 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                 </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="10k-v6-40U" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-373" y="699"/>
         </scene>

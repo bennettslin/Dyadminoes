@@ -13,6 +13,7 @@
 #import "DebugViewController.h"
 #import "SceneViewController.h"
 
+#import "SoloViewController.h"
 #import "PnPViewController.h"
 #import "HelpViewController.h"
 #import "StoreViewController.h"
@@ -20,13 +21,15 @@
 #import "OptionsViewController.h"
 #import "AboutViewController.h"
 
+#import "Match.h"
+
   // all are iPad values for now
 #define kTableViewXMargin (kIsIPhone ? 20.f : 20.f)
 #define kTableViewTopMargin (kIsIPhone ? 122.f : 122.f)
 #define kTableViewBottomMargin (kIsIPhone ? 90.f : 90.f)
 #define kMainTopBarHeight (kIsIPhone ? 86.f : 86.f)
 
-@interface MatchesTableViewController () <SceneViewDelegate, DebugDelegate, MatchCellDelegate>
+@interface MatchesTableViewController () <SceneViewDelegate, DebugDelegate, MatchCellDelegate, SoloDelegate, PnPDelegate>
 
 @property (strong, nonatomic) Model *myModel;
 
@@ -51,6 +54,7 @@
 @property (strong, nonatomic) UIButton *darkOverlay;
 @property (nonatomic) BOOL vcIsAnimating;
 
+@property (strong, nonatomic) SoloViewController *soloVC;
 @property (strong, nonatomic) PnPViewController *pnpVC;
 @property (strong, nonatomic) HelpViewController *helpVC;
 @property (strong, nonatomic) StoreViewController *storeVC;
@@ -91,8 +95,14 @@
 //  NSArray *tempVCArray = @[self.pnpVC, self.helpVC, self.storeVC, self.rankVC, self.optionsVC, self.aboutVC];
 //  NSArray *tempColourArray = @[[UIColor lightGrayColor], [UIColor redColor], [UIColor orangeColor], [UIColor yellowColor], [UIColor greenColor], [UIColor blueColor]];
   
-  self.pnpVC = [[PnPViewController alloc] init];
-  self.pnpVC.view.backgroundColor = [UIColor lightGrayColor];
+  self.soloVC = [self.storyboard instantiateViewControllerWithIdentifier:@"SoloViewController"];
+  self.soloVC.view.backgroundColor = [UIColor lightGrayColor];
+  self.soloVC.delegate = self;
+    //  [self addChildViewController:self.soloVC];
+  
+  self.pnpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"PnPViewController"];
+  self.pnpVC.view.backgroundColor = [UIColor darkGrayColor];
+  self.pnpVC.delegate = self;
 //  [self addChildViewController:self.pnpVC];
   
   self.helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
@@ -115,7 +125,8 @@
   self.aboutVC.view.backgroundColor = [UIColor blueColor];
 //  [self addChildViewController:self.aboutVC];
   
-  self.darkOverlay = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, _screenWidth, _screenHeight)];
+    // hard coded for now
+  self.darkOverlay = [[UIButton alloc] initWithFrame:CGRectMake(0, 100, _screenWidth, _screenHeight - 100)];
   [self.darkOverlay addTarget:self action:@selector(matchesTapped:) forControlEvents:UIControlEventTouchDown];
   self.vcIsAnimating = NO;
   [self highlightBottomButton:self.matchesButton];
@@ -146,20 +157,6 @@
 
 -(void)didReceiveMemoryWarning {
   [super didReceiveMemoryWarning];
-}
-
-  // FIXME: solved problem for now with scene frame rate slowing down
-  // by not adding VCs through view controller containment
-  // so at present, this is NOT being called, because VCs are not being added in view did load
-  // this might be okay, though, so we'll see
--(void)removeAllChildVCs {
-  NSLog(@"all child vcs removed");
-  [self removeChildViewController:self.pnpVC];
-  [self removeChildViewController:self.helpVC];
-  [self removeChildViewController:self.storeVC];
-  [self removeChildViewController:self.rankVC];
-  [self removeChildViewController:self.optionsVC];
-  [self removeChildViewController:self.aboutVC];
 }
 
 #pragma mark - Table view delegate and data source
@@ -206,23 +203,28 @@
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
   
+  NSUInteger rowNumber;
   if ([segue.identifier isEqualToString:@"sceneSegue"]) {
     [self startActivityIndicator];
     
-    NSIndexPath *indexPath = [self.tableView indexPathForCell:sender];
-    Match *match = self.myModel.myMatches[indexPath.row];
-
-      //    DebugViewController *debugVC = [segue destinationViewController];
-      //    debugVC.myMatch = match;
-      //    debugVC.delegate = self;
+    if ([sender isKindOfClass:[Match class]]) { // sender is match
+      rowNumber = [self.myModel.myMatches indexOfObject:sender];
+    } else { // sender is tableView cell
+      NSIndexPath *indexPath = [self.tableView indexPathForCell:sender];
+      rowNumber = indexPath.row;
+    }
     
-    SceneViewController *sceneVC = [segue destinationViewController];
-    sceneVC.myModel = self.myModel;
-    sceneVC.myMatch = match;
-    sceneVC.delegate = self;
+    [self segue:segue ToMatchWithRowNumber:rowNumber];
   }
-  
-//  [self removeAllChildVCs];
+}
+
+-(void)segue:(UIStoryboardSegue *)segue ToMatchWithRowNumber:(NSUInteger)rowNumber {
+  Match *match = self.myModel.myMatches[rowNumber];
+
+  SceneViewController *sceneVC = [segue destinationViewController];
+  sceneVC.myModel = self.myModel;
+  sceneVC.myMatch = match;
+  sceneVC.delegate = self;
 }
 
 -(void)startActivityIndicator {
@@ -245,9 +247,8 @@
   if (self.childVC && self.childVC != childVC) {
     [self removeChildViewController:self.childVC];
   }
-  
   self.childVC = childVC;
-    
+  
     // overlay fade in and tableview slide out go together
   if (![self.darkOverlay superview]) {
     [self fadeInOverlay];
@@ -271,20 +272,15 @@
     self.vcIsAnimating = NO;
   }];
   
-//  [self addChildViewController:childVC];
-//  [childVC didMoveToParentViewController:self];
-  
   [self setNeedsStatusBarAppearanceUpdate];
 }
 
 -(void)removeChildViewController:(UIViewController *)childVC {
   
-//  [childVC willMoveToParentViewController:nil];
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
     childVC.view.center = CGPointMake(self.view.center.x + _screenWidth, self.view.center.y);
   } completion:^(BOOL finished) {
     [childVC.view removeFromSuperview];
-//    [self removeChildViewController:childVC];
   }];
   
   [self setNeedsStatusBarAppearanceUpdate];
@@ -345,28 +341,23 @@
 
 -(IBAction)selfGameTapped:(id)sender {
 //  [self slideInTableview];
-  if (!self.vcIsAnimating && ![self.childVC isKindOfClass:[PnPViewController class]]) {
-    [self presentChildViewController:self.pnpVC];
+  if (!self.vcIsAnimating && ![self.childVC isKindOfClass:[SoloViewController class]]) {
+    [self presentChildViewController:self.soloVC];
   }
-  [self.myModel instantiateHardCodededSoloMatchForDebugPurposes];
-  [self.myModel sortMyMatches];
-  [self.tableView reloadData];
 }
 
 -(IBAction)pnpGameTapped:(id)sender {
   if (!self.vcIsAnimating && ![self.childVC isKindOfClass:[PnPViewController class]]) {
     [self presentChildViewController:self.pnpVC];
   }
-  [self.myModel instantiateHardCodededPassNPlayMatchForDebugPurposes];
-  [self.myModel sortMyMatches];
-  [self.tableView reloadData];
 }
 
 -(IBAction)gcGameTapped:(id)sender {
-  [self slideOutTableview];
+//  [self slideOutTableview];
 }
 
 -(IBAction)matchesTapped:(id)sender {
+  NSLog(@"matches tapped called");
   if (!self.vcIsAnimating && self.childVC) {
     
     [self fadeOutOverlay];
@@ -375,6 +366,7 @@
     
     [self highlightBottomButton:self.matchesButton];
     [self removeChildViewController:self.childVC];
+    NSLog(@"self.childVC is nil from matches tapped");
     self.childVC = nil;
   }
 }
@@ -420,6 +412,25 @@
     button.backgroundColor = [UIColor yellowColor];
     self.highlightedBottomButton = button;
   }
+}
+
+#pragma mark - match creation methods
+
+-(void)startSoloGame {
+  Match *newMatch = [self.myModel instantiateHardCodededSoloMatchForDebugPurposes];
+    // may need to tweak with how this is viewed
+  [self matchesTapped:nil];
+  [self.myModel sortMyMatches];
+  [self.tableView reloadData];
+  [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
+}
+
+-(void)startPnPGame {
+  Match *newMatch = [self.myModel instantiateHardCodededPassNPlayMatchForDebugPurposes];
+  [self matchesTapped:nil];
+  [self.myModel sortMyMatches];
+  [self.tableView reloadData];
+  [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
 }
 
 #pragma mark - status bar methods

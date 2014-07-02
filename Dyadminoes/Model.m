@@ -45,20 +45,22 @@
   return pathString;
 }
 
--(void)instantiateHardCodededSoloMatchForDebugPurposes {
+-(Match *)instantiateHardCodededSoloMatchForDebugPurposes {
   Player *player1 = [[Player alloc] initWithUniqueID:@"12345" andPlayerName:@"Julia" andPlayerPicture:nil];
   Match *newSoloMatch = [[Match alloc] initWithPlayers:@[player1] andRules:kGameRulesTonal andSkill:kBeginner andType:kSelfGame];
   [self.myMatches addObject:newSoloMatch];
   [Model saveMyModel:self];
+  return newSoloMatch;
 }
 
--(void)instantiateHardCodededPassNPlayMatchForDebugPurposes {
+-(Match *)instantiateHardCodededPassNPlayMatchForDebugPurposes {
 
   Player *player1 = [[Player alloc] initWithUniqueID:@"12345" andPlayerName:@"Julia" andPlayerPicture:nil];
   Player *player2 = [[Player alloc] initWithUniqueID:@"23456" andPlayerName:@"Pamela" andPlayerPicture:nil];
   Match *newPnPMatch = [[Match alloc] initWithPlayers:@[player1, player2] andRules:kGameRulesTonal andSkill:kBeginner andType:kPnPGame];
   [self.myMatches addObject:newPnPMatch];
   [Model saveMyModel:self];
+  return newPnPMatch;
 }
 
 -(void)instantiateHardCodedMatchesForDebugPurposes {

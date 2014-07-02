@@ -45,6 +45,7 @@
 		3F87AAD6188DEE4C008C4A0D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAE188DEE4B008C4A0D /* UIKit.framework */; };
 		3F87AADE188DEE4C008C4A0D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3F87AADC188DEE4C008C4A0D /* InfoPlist.strings */; };
 		3F87AAE0188DEE4C008C4A0D /* DyadminoesTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F87AADF188DEE4C008C4A0D /* DyadminoesTests.m */; };
+		3F88EDB719638FBF005CC9A4 /* SoloViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F88EDB619638FBF005CC9A4 /* SoloViewController.m */; };
 		3F8F045818BFB1B300853C4C /* NSObject+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F8F045718BFB1B300853C4C /* NSObject+Helper.m */; };
 		3F8F045B18BFEF3300853C4C /* SnapPoint.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F8F045A18BFEF3300853C4C /* SnapPoint.m */; };
 		3F9923091895ECCA00FC9392 /* SonorityLogic.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F9923081895ECCA00FC9392 /* SonorityLogic.m */; };
@@ -133,6 +134,8 @@
 		3F87AADB188DEE4C008C4A0D /* DyadminoesTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "DyadminoesTests-Info.plist"; sourceTree = "<group>"; };
 		3F87AADD188DEE4C008C4A0D /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		3F87AADF188DEE4C008C4A0D /* DyadminoesTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DyadminoesTests.m; sourceTree = "<group>"; };
+		3F88EDB519638FBF005CC9A4 /* SoloViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoloViewController.h; sourceTree = "<group>"; };
+		3F88EDB619638FBF005CC9A4 /* SoloViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoloViewController.m; sourceTree = "<group>"; };
 		3F8F045618BFB1B300853C4C /* NSObject+Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+Helper.h"; sourceTree = "<group>"; };
 		3F8F045718BFB1B300853C4C /* NSObject+Helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+Helper.m"; sourceTree = "<group>"; };
 		3F8F045918BFEF3300853C4C /* SnapPoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SnapPoint.h; sourceTree = "<group>"; };
@@ -331,6 +334,8 @@
 		3FEBC8EE193BBCA100DA3560 /* Other View Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				3F88EDB519638FBF005CC9A4 /* SoloViewController.h */,
+				3F88EDB619638FBF005CC9A4 /* SoloViewController.m */,
 				3FECDE1419355B8A00D774AB /* PnPViewController.h */,
 				3FECDE1519355B8A00D774AB /* PnPViewController.m */,
 				3F0526BF1936C877003D3C04 /* HelpViewController.h */,
@@ -508,6 +513,7 @@
 				3F7BD7D8192B09FE009274DE /* DebugViewController.m in Sources */,
 				3F8F045B18BFEF3300853C4C /* SnapPoint.m in Sources */,
 				3F28A6D018DA86BA0092B9B2 /* Label.m in Sources */,
+				3F88EDB719638FBF005CC9A4 /* SoloViewController.m in Sources */,
 				3F7BD7DB192B0A37009274DE /* MatchTableViewCell.m in Sources */,
 				3FBC6AD4194E1BBD00420CB8 /* SoundEngine.m in Sources */,
 				3F8F045818BFB1B300853C4C /* NSObject+Helper.m in Sources */,

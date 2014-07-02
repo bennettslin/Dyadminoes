@@ -63,7 +63,16 @@
     self.snapPointsTenOClock = [NSMutableSet new];
     self.occupiedCells = [NSMutableSet new];
     self.allCells = [NSMutableSet new];
+    
+      // create new cells from get-go
     self.dequeuedCells = [NSMutableSet new];
+//    for (int i = 0; i < kIsIPhone ? 120 : 240; i++) {
+//      Cell *cell = [[Cell alloc] initWithBoard:self
+//                                    andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
+//                                   andHexCoord:[self hexCoordFromX:0 andY:0]
+//                               andVectorOrigin:_vectorOrigin];
+//      [self.dequeuedCells addObject:cell];
+//    }
     
       // testing
     _cellCount = 0;
@@ -156,8 +165,8 @@
 //  NSLog(@"self.allCells count %i", self.allCells.count);
   [self determineBoardPositionBounds];
   
-//  NSLog(@"self.allCells %i, self.occupiedCells %i, self.dequeuedCells %i", self.allCells.count, self.occupiedCells.count, self.dequeuedCells.count);
-//  NSLog(@"board nodes %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
+  NSLog(@"self.allCells %i, self.occupiedCells %i, self.dequeuedCells %i", self.allCells.count, self.occupiedCells.count, self.dequeuedCells.count);
+  NSLog(@"board nodes %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
 }
 
 -(Cell *)findCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {

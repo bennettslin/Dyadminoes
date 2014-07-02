@@ -10,6 +10,9 @@
 #import "Button.h"
 #import "Label.h"
 
+#define kMinusForName 425.f
+#define kMinusForScore 350.f
+
 @implementation TopBar {
   NSUInteger _rotationFromDevice;
 }
@@ -26,37 +29,13 @@
     self.position = position;
     self.zPosition = zPosition;
     _rotationFromDevice = 0;
-//    [self addGradientToView:self WithColour:self.color andUpsideDown:YES];
   }
   return self;
 }
 
 -(void)populateWithButtons {
-
-//  NSArray *tempNamesArray = @[@"games", @"toggle", @"swap", @"cancel", @"play", @"done", @"debug"];
-//  NSArray *skColoursArray = @[[SKColor grayColor], [SKColor orangeColor], [SKColor brownColor], [SKColor redColor], kDarkGreen, [SKColor blueColor], [SKColor blackColor]];
-//  int xMultiplier[7] = {1, 2, 3, 3, 4, 4, 5};
-//  
-//  for (int i = 0; i < self.allButtons.count; i++) {
-//    Button *button = self.allButtons[i];
-//    button = [[Button alloc] initWithName:tempNamesArray[i] andColor:skColoursArray[i] andSize:kButtonSize andPosition:CGPointMake(kButtonWidth * xMultiplier[i], kButtonYPosition) andZPosition:kZPositionTopBarButton];
-//    [self enableButton:button];
-//  }
  
   NSMutableSet *tempButtons = [NSMutableSet new];
-
-  self.undoButton = [[Button alloc] initWithName:@"undo" andColor:[SKColor redColor]
-                                          andSize:kButtonSize
-                                      andPosition:CGPointMake(kButtonWidth, kButtonYPosition * 3)
-                                     andZPosition:kZPositionTopBarButton];
-  [tempButtons addObject:self.undoButton];
-  [self enableButton:self.undoButton];
-  self.redoButton = [[Button alloc] initWithName:@"redo" andColor:[SKColor greenColor]
-                                         andSize:kButtonSize
-                                     andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition * 3)
-                                    andZPosition:kZPositionTopBarButton];
-  [tempButtons addObject:self.redoButton];
-  [self enableButton:self.redoButton];
   
   self.gamesButton = [[Button alloc] initWithName:@"games" andColor:[SKColor grayColor]
                                                  andSize:kButtonSize
@@ -72,40 +51,33 @@
   [tempButtons addObject:self.replayButton];
   [self enableButton:self.replayButton];
   
-//  self.togglePCModeButton = [[Button alloc] initWithName:@"toggle" andColor:[SKColor orangeColor]
-//                                                 andSize:kButtonSize
-//                                             andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition)
-//                                            andZPosition:kZPositionTopBarButton];
-//  [tempButtons addObject:self.togglePCModeButton];
-//  [self enableButton:self.togglePCModeButton];
+//  self.swapButton = [[Button alloc] initWithName:@"swap" andColor:[SKColor brownColor]
+//                                         andSize:kButtonSize
+//                                     andPosition:CGPointMake(kButtonWidth * 3, kButtonYPosition)
+//                                    andZPosition:kZPositionTopBarButton];
+//  [tempButtons addObject:self.swapButton];
+//  [self enableButton:self.swapButton];
   
-  self.swapButton = [[Button alloc] initWithName:@"swap" andColor:[SKColor brownColor]
-                                         andSize:kButtonSize
-                                     andPosition:CGPointMake(kButtonWidth * 3, kButtonYPosition)
-                                    andZPosition:kZPositionTopBarButton];
-  [tempButtons addObject:self.swapButton];
-  [self enableButton:self.swapButton];
-  
-  self.cancelButton = [[Button alloc] initWithName:@"cancel" andColor:[SKColor redColor]
+  self.swapCancelOrUndoButton = [[Button alloc] initWithName:@"swap" andColor:[SKColor redColor]
                                            andSize:kButtonSize
                                        andPosition:CGPointMake(kButtonWidth * 3, kButtonYPosition)
                                       andZPosition:kZPositionTopBarButton];
-  [tempButtons addObject:self.cancelButton];
-  [self disableButton:_cancelButton];
+  [tempButtons addObject:self.swapCancelOrUndoButton];
+  [self disableButton:self.swapCancelOrUndoButton];
   
-  self.playDyadminoButton = [[Button alloc] initWithName:@"play" andColor:kDarkGreen
-                                                 andSize:kButtonSize
-                                             andPosition:CGPointMake(kButtonWidth * 4, kButtonYPosition)
-                                            andZPosition:kZPositionTopBarButton];
-  [tempButtons addObject:self.playDyadminoButton];
-  [self disableButton:_playDyadminoButton];
+//  self.playButton = [[Button alloc] initWithName:@"play" andColor:kDarkGreen
+//                                                 andSize:kButtonSize
+//                                             andPosition:CGPointMake(kButtonWidth * 4, kButtonYPosition)
+//                                            andZPosition:kZPositionTopBarButton];
+//  [tempButtons addObject:self.playButton];
+//  [self disableButton:self.playButton];
   
-  self.doneTurnButton = [[Button alloc] initWithName:@"done" andColor:[SKColor blueColor]
+  self.passPlayOrDoneButton = [[Button alloc] initWithName:@"pass" andColor:[SKColor blueColor]
                                              andSize:kButtonSize
                                          andPosition:CGPointMake(kButtonWidth * 4, kButtonYPosition)
                                         andZPosition:kZPositionTopBarButton];
-  [tempButtons addObject:self.doneTurnButton];
-  [self enableButton:self.doneTurnButton];
+  [tempButtons addObject:self.passPlayOrDoneButton];
+  [self enableButton:self.passPlayOrDoneButton];
   
   self.resignButton = [[Button alloc] initWithName:@"resign" andColor:[SKColor blackColor]
                                            andSize:kButtonSize
@@ -137,63 +109,61 @@
                              andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
   [tempDictionary setValue:self.pileCountLabel forKey:self.pileCountLabel.name];
   
-  CGFloat xMinusForName = 425.f;
   self.player1Name = [[Label alloc] initWithName:@"player1Name"
                                      andFontColor:[SKColor whiteColor]
                                       andFontSize:labelFontSize
-                                      andPosition:CGPointMake(self.size.width - xMinusForName, kLabelYPosition * 10)
+                                      andPosition:CGPointMake(self.size.width - kMinusForName, kLabelYPosition * 10)
                                      andZPosition:kZPositionTopBarLabel
                            andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player1Name forKey:self.player1Name.name];
   self.player2Name = [[Label alloc] initWithName:@"player2Name"
                                     andFontColor:[SKColor whiteColor]
                                      andFontSize:labelFontSize
-                                     andPosition:CGPointMake(self.size.width - xMinusForName, kLabelYPosition * 7)
+                                     andPosition:CGPointMake(self.size.width - kMinusForName, kLabelYPosition * 7)
                                     andZPosition:kZPositionTopBarLabel
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player2Name forKey:self.player2Name.name];
   self.player3Name = [[Label alloc] initWithName:@"player3Name"
                                     andFontColor:[SKColor whiteColor]
                                      andFontSize:labelFontSize
-                                     andPosition:CGPointMake(self.size.width - xMinusForName, kLabelYPosition * 4)
+                                     andPosition:CGPointMake(self.size.width - kMinusForName, kLabelYPosition * 4)
                                     andZPosition:kZPositionTopBarLabel
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player3Name forKey:self.player3Name.name];
   self.player4Name = [[Label alloc] initWithName:@"player4Name"
                                     andFontColor:[SKColor whiteColor]
                                      andFontSize:labelFontSize
-                                     andPosition:CGPointMake(self.size.width - xMinusForName, kLabelYPosition * 1)
+                                     andPosition:CGPointMake(self.size.width - kMinusForName, kLabelYPosition * 1)
                                     andZPosition:kZPositionTopBarLabel
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player4Name forKey:self.player4Name.name];
   self.playerNameLabels = @[self.player1Name, self.player2Name, self.player3Name, self.player4Name];
-  
-  CGFloat xMinusForScore = 350.f;
+
   self.player1Score = [[Label alloc] initWithName:@"player1Score"
                                     andFontColor:[SKColor whiteColor]
                                      andFontSize:labelFontSize
-                                     andPosition:CGPointMake(self.size.width - xMinusForScore, kLabelYPosition * 10)
+                                     andPosition:CGPointMake(self.size.width - kMinusForScore, kLabelYPosition * 10)
                                     andZPosition:kZPositionTopBarLabel
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player1Score forKey:self.player1Score.name];
   self.player2Score = [[Label alloc] initWithName:@"player2Score"
                                      andFontColor:[SKColor whiteColor]
                                       andFontSize:labelFontSize
-                                      andPosition:CGPointMake(self.size.width - xMinusForScore, kLabelYPosition * 7)
+                                      andPosition:CGPointMake(self.size.width - kMinusForScore, kLabelYPosition * 7)
                                      andZPosition:kZPositionTopBarLabel
                            andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player2Score forKey:self.player2Score.name];
   self.player3Score = [[Label alloc] initWithName:@"player3Score"
                                      andFontColor:[SKColor whiteColor]
                                       andFontSize:labelFontSize
-                                      andPosition:CGPointMake(self.size.width - xMinusForScore, kLabelYPosition * 4)
+                                      andPosition:CGPointMake(self.size.width - kMinusForScore, kLabelYPosition * 4)
                                      andZPosition:kZPositionTopBarLabel
                            andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player3Score forKey:self.player3Score.name];
   self.player4Score = [[Label alloc] initWithName:@"player4Score"
                                      andFontColor:[SKColor whiteColor]
                                       andFontSize:labelFontSize
-                                      andPosition:CGPointMake(self.size.width - xMinusForScore, kLabelYPosition * 1)
+                                      andPosition:CGPointMake(self.size.width - kMinusForScore, kLabelYPosition * 1)
                                      andZPosition:kZPositionTopBarLabel
                            andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player4Score forKey:self.player4Score.name];
@@ -276,7 +246,7 @@
                                  andZPosition:kZPositionLogMessage
                        andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
   [tempDictionary setValue:self.logLabel forKey:self.logLabel.name];
-  self.chordLabel = [[Label alloc] initWithName:@"chord"
+  self.chordLabel = [[Label alloc] initWithName:@"gameAvatar"
                                  andFontColor:[SKColor yellowColor]
                                   andFontSize:labelFontSize
                                   andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 6)
@@ -291,16 +261,52 @@
 
 -(void)enableButton:(Button *)button {
   button.hidden = NO;
-  if (!button.parent) {
+  if (button && !button.parent) {
     [self addChild:button];
   }
 }
 
 -(void)disableButton:(Button *)button {
   button.hidden = YES;
-  if (button.parent) {
+  if (button && button.parent) {
     [button removeFromParent];
   }
+}
+
+-(void)changePassPlayOrDone:(PassPlayOrDoneButton)passPlayOrDone {
+  switch (passPlayOrDone) {
+    case kPassButton:
+      self.passPlayOrDoneButton.color = [SKColor purpleColor];
+      self.passPlayOrDoneButton.name = @"pass";
+      break;
+    case kPlayButton:
+      self.passPlayOrDoneButton.color = [SKColor greenColor];
+      self.passPlayOrDoneButton.name = @"play";
+      break;
+    case kDoneButton:
+      self.passPlayOrDoneButton.color = [SKColor blueColor];
+      self.passPlayOrDoneButton.name = @"done";
+      break;
+  }
+  [self.passPlayOrDoneButton changeName];
+}
+
+-(void)changeSwapCancelOrUndo:(SwapCancelOrUndoButton)swapCancelOrUndo {
+  switch (swapCancelOrUndo) {
+    case kSwapButton:
+      self.swapCancelOrUndoButton.color = [SKColor brownColor];
+      self.swapCancelOrUndoButton.name = @"swap";
+      break;
+    case kCancelButton:
+      self.swapCancelOrUndoButton.color = [SKColor redColor];
+      self.swapCancelOrUndoButton.name = @"cancel";
+      break;
+    case kUndoButton:
+      self.swapCancelOrUndoButton.color = [SKColor yellowColor];
+      self.swapCancelOrUndoButton.name = @"undeo";
+      break;
+  }
+  [self.swapCancelOrUndoButton changeName];
 }
 
 -(BOOL)rotateButtonsBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation {

@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+@class Match;
 
 @interface Model : NSObject <NSCoding>
 
@@ -15,8 +16,8 @@
 +(void)saveMyModel:(Model *)myModel;
 +(Model *)getMyModel;
 
--(void)instantiateHardCodededSoloMatchForDebugPurposes;
--(void)instantiateHardCodededPassNPlayMatchForDebugPurposes;
+-(Match *)instantiateHardCodededSoloMatchForDebugPurposes;
+-(Match *)instantiateHardCodededPassNPlayMatchForDebugPurposes;
 -(void)instantiateHardCodedMatchesForDebugPurposes;
 -(void)sortMyMatches;
 

@@ -8,7 +8,9 @@
 
 #import "Button.h"
 
-@implementation Button
+@implementation Button {
+  SKLabelNode *_labelNode;
+}
 
 -(id)initWithName:(NSString *)name andColor:(UIColor *)color
           andSize:(CGSize)size andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition {
@@ -20,13 +22,41 @@
     self.position = position;
     self.zPosition = zPosition;
     
-    SKLabelNode *labelNode = [SKLabelNode new];
-    labelNode.text = self.name;
-    labelNode.fontSize = kIsIPhone ? 10.f : 14.f;
-    labelNode.position = CGPointMake(0, -self.size.height * 0.5);
-    [self addChild:labelNode];
+    _labelNode = [SKLabelNode new];
+    _labelNode.text = self.name;
+    _labelNode.fontSize = kIsIPhone ? 10.f : 14.f;
+    _labelNode.position = CGPointMake(0, -self.size.height * 0.5);
+    [self addChild:_labelNode];
   }
   return self;
+}
+
+-(void)changeName {
+  _labelNode.text = self.name;
+}
+
+-(SwapCancelOrUndoButton)confirmSwapCancelOrUndo {
+  if ([self.name isEqualToString:@"swap"]) {
+    return kSwapButton;
+  } else if ([self.name isEqualToString:@"cancel"]) {
+    return kCancelButton;
+  } else if ([self.name isEqualToString:@"undo"]) {
+    return kUndoButton;
+  } else {
+    return -1;
+  }
+}
+
+-(PassPlayOrDoneButton)confirmPassPlayOrDone {
+  if ([self.name isEqualToString:@"pass"]) {
+    return kPassButton;
+  } else if ([self.name isEqualToString:@"play"]) {
+    return kPlayButton;
+  } else if ([self.name isEqualToString:@"done"]) {
+    return kDoneButton;
+  } else {
+    return -1;
+  }
 }
 
 @end

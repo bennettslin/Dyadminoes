@@ -241,6 +241,18 @@ typedef enum chordType {
   kChordNoChord
 } ChordType;
 
+typedef enum swapCancelOrUndoButton {
+  kSwapButton,
+  kCancelButton,
+  kUndoButton
+} SwapCancelOrUndoButton;
+
+typedef enum passPlayOrDoneButton {
+  kPassButton,
+  kPlayButton,
+  kDoneButton
+} PassPlayOrDoneButton;
+
 @interface NSObject (Helper)
 
   // math stuff

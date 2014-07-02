@@ -63,6 +63,10 @@
   BOOL _boardJustShiftedNotCorrected;
   BOOL _boardZoomedOut;
   
+    // determine button modes
+//  PassPlayOrDoneButton _passPlayOrDone;
+//  SwapCancelOrUndoButton _swapCancelOrUndo;
+  
   SnapPoint *_uponTouchDyadminoNode;
   DyadminoOrientation _uponTouchDyadminoOrientation;
   
@@ -91,9 +95,7 @@
 
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
-//    self.backgroundColor = [SKColor clearColor];
     self.backgroundColor = kBackgroundBoardColour;
-//    self.backgroundColor = [SKColor colorWithPatternImage:[UIImage imageNamed:@"page4.png"]];
     self.name = @"scene";
     self.mySoundEngine = [[SoundEngine alloc] init];
     self.mySceneEngine = [[SceneEngine alloc] init];
@@ -125,9 +127,8 @@
     // this only needs the board dyadminoes to determine the board's cells ranges
     // this populates the board cells
   
-  NSLog(@"layoutboard cells called from did move to view");
+//  NSLog(@"layoutboard cells called from did move to view");
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes];
-//  [_boardField reloadBackgroundImage];
 //  NSLog(@"cells and snap points laid out");
   
   [self populateBoardWithDyadminoes];
@@ -317,7 +318,7 @@
   [_topBar populateWithLabels];
   [self addChild:_topBar];
   [self updateLabels];
-  [self updateButtonsForStaticState];
+  [self updateButtons];
   
   _topBar.pileDyadminoesLabel.hidden = YES;
   _topBar.boardDyadminoesLabel.hidden = YES;
@@ -388,12 +389,12 @@
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
   NSLog(@"%@, zPosition %.2f", _touchNode.name, _touchNode.zPosition);
-  
-  if ([_touchNode.parent isKindOfClass:[Cell class]]) {
-    SKSpriteNode *node = (SKSpriteNode *)_touchNode;
-    UIColor *colour = node.color;
-    NSLog(@"colour %@", colour);
-  }
+//  
+//  if ([_touchNode.parent isKindOfClass:[Cell class]]) {
+//    SKSpriteNode *node = (SKSpriteNode *)_touchNode;
+//    UIColor *colour = node.color;
+//    NSLog(@"colour %@", colour);
+//  }
   
 //  NSLog(@"distance between double taps is %.2f", [self getDistanceFromThisPoint:_beganTouchLocation toThisPoint:_endTouchLocationToMeasureDoubleTap]);
 
@@ -415,35 +416,26 @@
     /// 3b. dyadmino touched
   
   Dyadmino *dyadmino = [self selectDyadminoFromTouchPoint:_currentTouchLocation];
-//  BOOL parentDyadminoInRack;
-//  if (!dyadmino && [_touchNode.parent isKindOfClass:[Dyadmino class]]) {
-//    Dyadmino *parentDyadmino = (Dyadmino *)_touchNode.parent;
-//    parentDyadminoInRack = [parentDyadmino isInRack] ? YES : NO;
-//  }
-//  
-//  if (!_boardZoomedOut || (_boardZoomedOut && ([dyadmino isInRack] || parentDyadminoInRack))) {
-//    NSLog(@"got past this");
-    if (!_canDoubleTapForDyadminoFlip && ![dyadmino isRotating]) {
+  if (!_canDoubleTapForDyadminoFlip && ![dyadmino isRotating]) {
+    
+        // register sound if dyadmino tapped
+    if (dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
+      if (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) {
+        [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
+      }
       
-          // register sound if dyadmino tapped
-      if (dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
-        if (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) {
-          [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
-        }
-        
-          // register sound if face tapped
-      } else {
-        SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
-        if (face && face.parent != _hoveringDyadmino && !_pivotInProgress) {
+        // register sound if face tapped
+    } else {
+      SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
+      if (face && face.parent != _hoveringDyadmino && !_pivotInProgress) {
 
-          if ([face.parent isKindOfClass:[Dyadmino class]]) {
-            Dyadmino *faceParent = (Dyadmino *)face.parent;
-            if (!_boardZoomedOut || (_boardZoomedOut && [faceParent isInRack])) {
-              [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
-              _soundedDyadminoFace = face;
-            }
+        if ([face.parent isKindOfClass:[Dyadmino class]]) {
+          Dyadmino *faceParent = (Dyadmino *)face.parent;
+          if (!_boardZoomedOut || (_boardZoomedOut && [faceParent isInRack])) {
+            [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
+            _soundedDyadminoFace = face;
           }
-//        }
+        }
       }
     }
   }
@@ -576,6 +568,7 @@
 //      NSLog(@"send dyadmino home if hovering dyadmino");
       [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
     }
+    [self updateButtons];
   }
   
     // continue to reset hover count
@@ -890,6 +883,8 @@
     } else {
       [self prepareForHoverThisDyadmino:dyadmino];
     }
+//    NSLog(@"update buttons from handle touch end of dyadmino");
+    [self updateButtons];
   }
 }
 
@@ -937,7 +932,7 @@
     // the other is when dyadmino is eased into board node
   if (updateBoardBounds) {
     NSLog(@"update board bounds from send dyadmino home");
-    [self updateBoardBoundsWithLayoutCells:YES];
+    [self updateBoardBoundsAndLayoutCells:YES];
   }
   
   [dyadmino endTouchThenHoverResize];
@@ -1033,54 +1028,54 @@
       /// games button
   if (_buttonPressed == _topBar.gamesButton) {
     [self goBackToMainViewController];
+    return;
+    
+      /// replay button
+  } else if (_buttonPressed == _topBar.replayButton) {
+    return;
     
       /// swap button
-  } else if (_buttonPressed == _topBar.swapButton) {
+  } else if (_buttonPressed == _topBar.swapCancelOrUndoButton &&
+             [_buttonPressed confirmSwapCancelOrUndo] == kSwapButton) {
     if (!_swapMode) {
       [self toggleSwapField];
       _swapMode = YES;
-      [self updateButtonsForStaticState];
       [self.myMatch resetHoldingContainerAndUndo];
     }
     
-//      /// togglePC button
-//  } else if (_buttonPressed == _topBar.togglePCModeButton) {
-//    [self.mySceneEngine toggleBetweenLetterAndNumberMode];
-    
       /// play button
-  } else if (_buttonPressed == _topBar.playDyadminoButton) {
+  } else if (_buttonPressed == _topBar.passPlayOrDoneButton &&
+             [_buttonPressed confirmPassPlayOrDone] == kPlayButton) {
     [self playDyadmino:_recentRackDyadmino];
     
       /// cancel button
-  } else if (_buttonPressed == _topBar.cancelButton) {
+  } else if (_buttonPressed == _topBar.swapCancelOrUndoButton &&
+             [_buttonPressed confirmSwapCancelOrUndo] == kCancelButton) {
+    
       // if in swap mode, cancel swap
     if (_swapMode) {
       [self toggleSwapField];
       [self cancelSwappedDyadminoes];
-      [self updateButtonsForStaticState];
       [self.myMatch resetHoldingContainerAndUndo];
       
         // else send dyadmino home
     } else if (_hoveringDyadmino) {
-      NSLog(@"send dyadmino home if hovering dyadmino and cancel button pressed");
       [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
 
         // recent rack dyadmino is sent home
     } else if (_recentRackDyadmino) {
-      NSLog(@"send dyadmino home if recent rack dyadmino and cancel button pressed");
       [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
     }
     
-      /// done button
-  } else if (_buttonPressed == _topBar.doneTurnButton) {
+      /// pass or done button
+  } else if (_buttonPressed == _topBar.passPlayOrDoneButton &&
+             ([_buttonPressed confirmPassPlayOrDone] == kDoneButton || [_buttonPressed confirmPassPlayOrDone] == kPassButton)) {
     if (!_swapMode) {
       [self finalisePlayerTurn];
     } else if (_swapMode) {
       if ([self finaliseSwap]) {
         [self toggleSwapField];
         _swapMode = NO;
-        [self updateLabels];
-        [self updateButtonsForStaticState];
       }
     }
     
@@ -1091,15 +1086,13 @@
       /// resign button
   } else if (_buttonPressed == _topBar.resignButton) {
     [self handleResign];
-    
-      /// undo button
-  } else if (_buttonPressed == _topBar.undoButton) {
-    [self handleUndo];
-  
-      /// redo button
-  } else if (_buttonPressed == _topBar.redoButton) {
-    [self handleRedo];
+  } else {
+    return;
   }
+  
+    // return to bypass updating labels and buttons
+  [self updateLabels];
+  [self updateButtons];
 }
 
 #pragma mark - match interaction methods
@@ -1153,7 +1146,7 @@
 //  }
   
   [self updateLabels];
-  [self updateButtonsForStaticState];
+  [self updateButtons];
 }
 
 -(void)handleRedo {
@@ -1170,7 +1163,7 @@
   
   
   [self updateLabels];
-  [self updateButtonsForStaticState];
+  [self updateButtons];
 }
 
 -(void)cancelSwappedDyadminoes {
@@ -1218,7 +1211,7 @@
     
     [self populateRackArray];
     [self layoutOrRefreshRackFieldAndDyadminoes];
-    [_topBar flashLabelNamed:@"log" withText:@"swapped"];
+    [_topBar flashLabelNamed:@"log" withText:@"Swapped!"];
     return YES;
   }
 }
@@ -1246,9 +1239,10 @@
     dataDyad.myHexCoord = dyadmino.myHexCoord;
     dataDyad.myOrientation = dyadmino.orientation;
   }
+  [_topBar flashLabelNamed:@"gameAvatar" withText:@"C major triad!"];
   [self layoutOrRefreshRackFieldAndDyadminoes];
   [self updateLabels];
-  [self updateButtonsForStaticState];
+  [self updateButtons];
 }
 
 -(void)finalisePlayerTurn {
@@ -1262,9 +1256,9 @@
     
       // update views
     [self updateLabels];
-    [_topBar flashLabelNamed:@"chord" withText:@"C major triad"];
-    [_topBar updateLabelNamed:@"score" withText:@"score: 3"];
-    [_topBar flashLabelNamed:@"log" withText:@"turn done"];
+    [self updateButtons];
+//    [_topBar updateLabelNamed:@"score" withText:@"score: 3"];
+    [_topBar flashLabelNamed:@"log" withText:@"Turn done!"];
   }
 }
 
@@ -1306,52 +1300,47 @@
   [self updateForBoardBeingCorrectedWithinBounds];
   [self updateForHoveringDyadminoBeingCorrectedWithinBounds];
   [self updatePivotForDyadminoMoveWithoutBoardCorrected];
-  [self updateForButtons];
+//  [self updateForButtons];
 }
 
--(void)updateForButtons {
+//-(void)updateForButtons {
+  /*
     // while *not* in swap mode...
   if (!_swapMode) {
-    [_topBar disableButton:_topBar.cancelButton];
+    [_topBar disableButton:_topBar.swapCancelOrUndoButton];
     
       // play button is enabled when there's a rack dyadmino on board
       // and no dyadmino is touched or hovering
-    _recentRackDyadmino && !_touchedDyadmino && !_hoveringDyadmino ?
-      [_topBar enableButton:_topBar.playDyadminoButton] :
-      [_topBar disableButton:_topBar.playDyadminoButton];
+//    _recentRackDyadmino && !_touchedDyadmino && !_hoveringDyadmino ?
+//      [_topBar enableButton:_topBar.playButton] :
+//      [_topBar disableButton:_topBar.playButton];
     
     (_recentRackDyadmino || _hoveringDyadmino) && ![self isFirstDyadmino:_hoveringDyadmino] ?
-      [_topBar enableButton:_topBar.cancelButton] :
-      [_topBar disableButton:_topBar.cancelButton];
+      [_topBar enableButton:_topBar.swapCancelOrUndoButton] :
+      [_topBar disableButton:_topBar.swapCancelOrUndoButton];
     
       // done button is enabled only when no recent rack dyadmino
       // and no dyadmino is hovering
     !_recentRackDyadmino && !_hoveringDyadmino ?
-      [_topBar enableButton:_topBar.doneTurnButton] :
-      [_topBar disableButton:_topBar.doneTurnButton];
+      [_topBar enableButton:_topBar.passPlayOrDoneButton] :
+      [_topBar disableButton:_topBar.passPlayOrDoneButton];
     
       // ...these are the criteria by which swap button is enabled
       // swap button cannot have any rack dyadminoes on board
-      // FIXME: swap button also is disabled when any dyadmino has been played
-//    if ([_touchedDyadmino isOnBoard] || _recentRackDyadmino) {
+//    if (self.myMatch.holdingContainer.count > 0) {
 //      [_topBar disableButton:_topBar.swapButton];
 //    } else if (!_touchedDyadmino || [_touchedDyadmino isInRack]) {
 //      [_topBar enableButton:_topBar.swapButton];
 //    }
     
-    if (self.myMatch.holdingContainer.count > 0) {
-      [_topBar disableButton:_topBar.swapButton];
-    } else if (!_touchedDyadmino || [_touchedDyadmino isInRack]) {
-      [_topBar enableButton:_topBar.swapButton];
-    }
-    
       // if in swap mode, cancel button cancels swap, done button finalises swap
   } else if (_swapMode) {
-    [_topBar enableButton:_topBar.cancelButton];
-    [_topBar enableButton:_topBar.doneTurnButton];
-    [_topBar disableButton:_topBar.swapButton];
+    [_topBar enableButton:_topBar.swapCancelOrUndoButton];
+    [_topBar enableButton:_topBar.passPlayOrDoneButton];
+//    [_topBar disableButton:_topBar.swapButton];
   }
-}
+   */
+//}
 
 -(void)updateForDoubleTap:(CFTimeInterval)currentTime {
   if (_canDoubleTapForDyadminoFlip || _canDoubleTapForBoardZoom) {
@@ -1642,7 +1631,7 @@
           // the other is when rack dyadmino is sent home
         
         NSLog(@"updateBoardBounds called from check whether to ease");
-        [self updateBoardBoundsWithLayoutCells:YES];
+        [self updateBoardBoundsAndLayoutCells:YES];
         
         [_boardField hideAllPivotGuides];
         [dyadmino animateEaseIntoNodeAfterHover];
@@ -1663,6 +1652,7 @@
       }
     }
   }
+  [self updateButtons];
 }
 
 #pragma mark - update label and button methods
@@ -1714,49 +1704,71 @@
   }
 }
 
--(void)updateButtonsForStaticState {
-  
-  if (_myPlayer.resigned || self.myMatch.gameHasEnded) { // only games, replay, and toggle (and debug)
-    [_topBar disableButton:_topBar.undoButton];
-    [_topBar disableButton:_topBar.redoButton];
+-(void)updateButtons {
+  NSLog(@"update buttons called");
+    // three main possibilities
+    // 1. Game has ended for player...
+  if (_myPlayer.resigned || self.myMatch.gameHasEnded) {
+    
+    [_topBar enableButton:_topBar.gamesButton];
+    [_topBar enableButton:_topBar.replayButton];
+    [_topBar disableButton:_topBar.swapCancelOrUndoButton];
+    [_topBar disableButton:_topBar.passPlayOrDoneButton];
     [_topBar disableButton:_topBar.resignButton];
-    [_topBar disableButton:_topBar.swapButton];
-    [_topBar disableButton:_topBar.playDyadminoButton];
-    [_topBar disableButton:_topBar.doneTurnButton];
-  } else { // game still active for player
-    if (_swapMode) { // only games, toggle, cancel, and done (and debug)
-      [_topBar disableButton:_topBar.undoButton];
-      [_topBar disableButton:_topBar.redoButton];
+    
+      //2. Still in game but not player's turn
+  } if (_myPlayer != self.myMatch.currentPlayer) {
+
+    [_topBar enableButton:_topBar.gamesButton];
+    [_topBar enableButton:_topBar.replayButton];
+    [_topBar disableButton:_topBar.swapCancelOrUndoButton];
+    [_topBar disableButton:_topBar.passPlayOrDoneButton];
+    [_topBar enableButton:_topBar.resignButton];
+    
+      // 2. Player's turn
+  } else if (_myPlayer == self.myMatch.currentPlayer) {
+    
+      // 2a. swap mode
+    if (_swapMode) {
+      [_topBar enableButton:_topBar.gamesButton];
       [_topBar disableButton:_topBar.replayButton];
+      [_topBar enableButton:_topBar.swapCancelOrUndoButton]; // cancel
+      [_topBar enableButton:_topBar.passPlayOrDoneButton]; // done
       [_topBar disableButton:_topBar.resignButton];
-      [_topBar disableButton:_topBar.swapButton];
-      [_topBar disableButton:_topBar.playDyadminoButton];
+      
+      [_topBar changeSwapCancelOrUndo:kCancelButton];
+      [_topBar changePassPlayOrDone:kDoneButton];
+
+        // 2b. not swap mode
     } else {
-      [_topBar enableButton:_topBar.undoButton];
-      [_topBar enableButton:_topBar.redoButton];
+      [_topBar enableButton:_topBar.gamesButton];
       [_topBar enableButton:_topBar.replayButton];
+      [_topBar enableButton:_topBar.swapCancelOrUndoButton];
+      [_topBar enableButton:_topBar.passPlayOrDoneButton];
       [_topBar enableButton:_topBar.resignButton];
-      if (self.myMatch.holdingContainer.count == 0) {
-        [_topBar enableButton:_topBar.swapButton];
+      
+        // any touched or hovering dyadmino
+      if ((_touchedDyadmino) || (_hoveringDyadmino)) {
+        [_topBar changeSwapCancelOrUndo:kCancelButton];
+        [_topBar disableButton:_topBar.passPlayOrDoneButton];
+        
+          // no dyadminoes played, and no recent rack dyadmino
+      } else if (self.myMatch.holdingContainer.count == 0 && !_recentRackDyadmino) {
+        [_topBar changeSwapCancelOrUndo:kSwapButton];
+        [_topBar changePassPlayOrDone:kPassButton];
+        
+          // a recent rack dyadmino placed on board
+      } else if (_recentRackDyadmino) { // doesn't matter whether holding container is empty
+        [_topBar changeSwapCancelOrUndo:kCancelButton];
+        [_topBar changePassPlayOrDone:kPlayButton];
+        
+        // holding container is not empty, and no recent rack dyadmino
+      } else {
+        [_topBar changeSwapCancelOrUndo:kUndoButton];
+        [_topBar changePassPlayOrDone:kDoneButton];
       }
-      [_topBar enableButton:_topBar.playDyadminoButton];
     }
   }
-  
-  if (_myPlayer != self.myMatch.currentPlayer) {
-      // TODO: obviously, do this
-  }
-  
-//  if (self.myMatch.holdingContainer > 0) {
-//    [_topBar disableButton:_topBar.swapButton];
-//  } else {
-//    [_topBar enableButton:_topBar.swapButton];
-//  }
-  
-    // undo and redo buttons
-  [self.myMatch.undoManager canUndo] ? [_topBar enableButton:_topBar.undoButton] : [_topBar disableButton:_topBar.undoButton];
-  [self.myMatch.undoManager canRedo] ? [_topBar enableButton:_topBar.redoButton] : [_topBar disableButton:_topBar.redoButton];
-
 }
 
 #pragma mark - field animation methods
@@ -1848,24 +1860,21 @@
   }
 }
 
--(void)updateBoardBoundsWithLayoutCells:(BOOL)layoutCells {
+-(void)updateBoardBoundsAndLayoutCells:(BOOL)layoutCells {
   
   NSLog(@"updateBoardBounds called");
   NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
 
     // add dyadmino to set if dyadmino is a recent rack dyadmino
-  if ([_recentRackDyadmino isOnBoard]) {
-    if (![dyadminoesOnBoard containsObject:_recentRackDyadmino]) {
-      [dyadminoesOnBoard addObject:_recentRackDyadmino];
-    }
+  if ([_recentRackDyadmino isOnBoard] && ![dyadminoesOnBoard containsObject:_recentRackDyadmino]) {
+    [dyadminoesOnBoard addObject:_recentRackDyadmino];
   }
   
   if (layoutCells) {
-    NSLog(@"layoutboardcells called from updateboardbounds");
     [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard];
   }
   
-  [_topBar updateLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
+  [_topBar flashLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
                                              _boardField.cellsTop - 0, _boardField.cellsRight - 0, _boardField.cellsBottom + 0, _boardField.cellsLeft + 0]];
 }
 
@@ -1944,23 +1953,19 @@
   NSArray *touchNodes = [self nodesAtPoint:touchPoint];
   for (SKSpriteNode *touchNode in touchNodes) {
     if ([touchNode.parent isKindOfClass:[Dyadmino class]]) {
-//      NSLog(@"yes, it's a dyadmino");
       Dyadmino *dyadmino = (Dyadmino *)touchNode.parent;
-      CGPoint relativeToDyadmino = [self addToThisPoint:touchNode.position thisPoint:dyadmino.position];
-      
-      
+      CGPoint relToDyadmino = [self addToThisPoint:touchNode.position thisPoint:dyadmino.position];
+
       if (dyadmino && [dyadmino isOnBoard] && !_swapMode) {
         
           // accommodate the fact that dyadmino's position is now relative to board
-        CGPoint relativeToBoardPoint = [_boardField getOffsetFromPoint:touchPoint];
-        if ([self getDistanceFromThisPoint:relativeToBoardPoint toThisPoint:relativeToDyadmino] < kDistanceForTouchingFace) {
-//          NSLog(@"yes, we got the distance");
+        CGPoint relToBoardPoint = [_boardField getOffsetFromPoint:touchPoint];
+        if ([self getDistanceFromThisPoint:relToBoardPoint toThisPoint:relToDyadmino] < kDistanceForTouchingFace) {
           return touchNode;
         }
           // if dyadmino is in rack...
       } else if (dyadmino && ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap])) {
-        if ([self getDistanceFromThisPoint:touchPoint toThisPoint:relativeToDyadmino] <
-            kDistanceForTouchingFace) {
+        if ([self getDistanceFromThisPoint:touchPoint toThisPoint:relToDyadmino] < kDistanceForTouchingFace) {
           return touchNode;
         }
       }
@@ -2006,9 +2011,6 @@
     } else if ([touchNode.parent.parent isKindOfClass:[Dyadmino class]]) {
       dyadmino = (Dyadmino *)touchNode.parent.parent;
     }
-  //  else {
-  //    return nil;
-  //  }
 
     if (dyadmino) {
       
@@ -2017,7 +2019,6 @@
 //      NSLog(@"determine current section of dyadmino from selectDyadminoFromTouchPoint");
       
       [self determineCurrentSectionOfDyadmino:dyadmino];
-      
       if ([dyadmino isOnBoard] && !_swapMode) {
         
           // accommodate the fact that dyadmino's position is now relative to board
@@ -2151,7 +2152,7 @@
   if ([buttonText isEqualToString:@"Resign"]) {
     [self.myMatch resignPlayer:_myPlayer];
     [self updateLabels];
-    [self updateButtonsForStaticState];
+    [self updateButtons];
   }
 }
 
@@ -2161,7 +2162,7 @@
   if ([buttonText isEqualToString:@"OK"]) {
     [self.myMatch resignPlayer:_myPlayer];
     [self updateLabels];
-    [self updateButtonsForStaticState];
+    [self updateButtons];
   }
 }
 
@@ -2172,7 +2173,6 @@
 
   // these methods might be different later, so keep them separate
 -(void)soundDyadminoPivotClick {
-//  NSLog(@"sound dyadmino pivot click");
   [self.mySoundEngine soundPivotClickedDyadmino];
 }
 
@@ -2235,7 +2235,7 @@
   }
 
   [self updateLabels];
-  [self updateButtonsForStaticState];
+  [self updateButtons];
 }
 
 @end

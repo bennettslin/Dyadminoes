@@ -28,14 +28,14 @@
 
 @property (strong, nonatomic) Button *gamesButton;
 //@property (strong, nonatomic) Button *togglePCModeButton;
-@property (strong, nonatomic) Button *swapButton;
-@property (strong, nonatomic) Button *cancelButton;
-@property (strong, nonatomic) Button *playDyadminoButton;
-@property (strong, nonatomic) Button *doneTurnButton;
+//@property (strong, nonatomic) Button *swapButton;
+@property (strong, nonatomic) Button *swapCancelOrUndoButton;
+//@property (strong, nonatomic) Button *playButton;
+@property (strong, nonatomic) Button *passPlayOrDoneButton;
 @property (strong, nonatomic) Button *debugButton;
 
-@property (strong, nonatomic) Button *undoButton;
-@property (strong, nonatomic) Button *redoButton;
+//@property (strong, nonatomic) Button *undoButton;
+//@property (strong, nonatomic) Button *redoButton;
 @property (strong, nonatomic) Button *replayButton;
 @property (strong, nonatomic) Button *resignButton;
 
@@ -72,6 +72,8 @@
 
 -(void)enableButton:(SKSpriteNode *)button;
 -(void)disableButton:(SKSpriteNode *)button;
+-(void)changeSwapCancelOrUndo:(SwapCancelOrUndoButton)swapCancelOrUndo;
+-(void)changePassPlayOrDone:(PassPlayOrDoneButton)passPlayOrDone;
 
 -(BOOL)rotateButtonsBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation;
 

@@ -26,5 +26,6 @@
 @protocol SceneViewDelegate <NSObject>
 
 -(void)stopActivityIndicator;
+-(void)removeChildViewController:(UIViewController *)childVC;
 
 @end

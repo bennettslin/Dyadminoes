@@ -1,20 +1,20 @@
 //
-//  PnPViewController.m
+//  SoloViewController.m
 //  Dyadminoes
 //
-//  Created by Bennett Lin on 5/27/14.
+//  Created by Bennett Lin on 7/1/14.
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
-#import "PnPViewController.h"
+#import "SoloViewController.h"
 
-@interface PnPViewController ()
+@interface SoloViewController ()
 
 @property (weak, nonatomic) IBOutlet UIButton *startGameButton;
 
 @end
 
-@implementation PnPViewController
+@implementation SoloViewController
 
 -(void)viewDidLoad {
   [super viewDidLoad];
@@ -27,7 +27,7 @@
 }
 
 -(IBAction)startGameTapped:(id)sender {
-  [self.delegate startPnPGame];
+  [self.delegate startSoloGame];
 }
 
 @end
