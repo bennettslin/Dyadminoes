@@ -137,7 +137,7 @@
 //  NSLog(@"swap field laid out");
   [self layoutTopBar];
 //  NSLog(@"top bar laid out");
-  [self layoutOrRefreshRackFieldAndDyadminoes];
+  [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO];
 //  NSLog(@"rack field and dyadminoes laid out and refreshed");
   [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
 }
@@ -326,7 +326,7 @@
   _topBar.swapContainerLabel.hidden = YES;
 }
 
--(void)layoutOrRefreshRackFieldAndDyadminoes {
+-(void)layoutOrRefreshRackFieldAndDyadminoesFromUndo:(BOOL)undo {
   
   if (!_rackField) {
     _rackField = [[Rack alloc] initWithBoard:_boardField
@@ -340,7 +340,7 @@
     [self addChild:_rackField];
   }
   [_rackField layoutOrRefreshNodesWithCount:self.playerRackDyadminoes.count];
-  [_rackField repositionDyadminoes:self.playerRackDyadminoes withAnimation:NO];
+  [_rackField repositionDyadminoes:self.playerRackDyadminoes fromUndo:undo withAnimation:NO];
   
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     dyadmino.delegate = self;
@@ -561,12 +561,12 @@
       
       [self changeColoursAroundDyadmino:_recentRackDyadmino withSign:-1];
 //      NSLog(@"send dyadmino home if rack dyadmino is moved to board");
-      [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_recentRackDyadmino fromUndo:NO byPoppingIn:YES andUpdatingBoardBounds:YES];
       
         // or same thing with hovering dyadmino (it will only ever be one or the other)
     } else if (_hoveringDyadmino && _touchedDyadmino != _hoveringDyadmino) {
 //      NSLog(@"send dyadmino home if hovering dyadmino");
-      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andUpdatingBoardBounds:YES];
     }
     [self updateButtons];
   }
@@ -736,7 +736,7 @@
 -(void)toggleBoardZoom {
   NSLog(@"board zoomed");
   if (_hoveringDyadmino) {
-    [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:NO];
+    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andUpdatingBoardBounds:NO];
   }
   
   _boardZoomedOut = _boardZoomedOut ? NO : YES;
@@ -777,7 +777,7 @@
       // rack dyadmino will do so upon move out of rack
     if (_hoveringDyadmino && [dyadmino isOnBoard]) {
       NSLog(@"send dyadmino home if hovering dyadmino");
-      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andUpdatingBoardBounds:YES];
     }
   }
   
@@ -850,9 +850,9 @@
       } else {
 //        NSLog(@"handle touch end of dyadmino and send dyadmino home");
         if (dyadmino == _recentRackDyadmino) {
-          [self sendDyadminoHome:dyadmino byPoppingIn:NO andUpdatingBoardBounds:YES];
+          [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andUpdatingBoardBounds:YES];
         } else { // dyadmino never left rack, or is hovering
-          [self sendDyadminoHome:dyadmino byPoppingIn:NO andUpdatingBoardBounds:NO];
+          [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andUpdatingBoardBounds:NO];
         }
         [self soundDyadminoSettleClick];
       }
@@ -865,11 +865,11 @@
       if ([dyadmino.homeNode isBoardNode]) {
 //        NSLog(@"its home node is board node, send dyadmino home");
         dyadmino.tempBoardNode = nil;
-        [self sendDyadminoHome:dyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
+        [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:YES andUpdatingBoardBounds:YES];
         
           // if it's a rack dyadmino (even if it was just recently on the board)
       } else {
-        [self sendDyadminoHome:dyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
+        [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:YES andUpdatingBoardBounds:YES];
       }
       
         // or if dyadmino is in rack but belongs on board (this seems to work)
@@ -877,7 +877,7 @@
       dyadmino.tempBoardNode = nil;
       [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
       dyadmino.position = [_boardField getOffsetFromPoint:dyadmino.position];
-      [self sendDyadminoHome:dyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:YES andUpdatingBoardBounds:YES];
       
         // otherwise, prepare it for hover
     } else {
@@ -912,16 +912,16 @@
   }
 }
 
--(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingIn:(BOOL)poppingIn andUpdatingBoardBounds:(BOOL)updateBoardBounds {
+-(void)sendDyadminoHome:(Dyadmino *)dyadmino fromUndo:(BOOL)undo byPoppingIn:(BOOL)poppingIn andUpdatingBoardBounds:(BOOL)updateBoardBounds {
   
       // reposition if dyadmino is rack dyadmino
-  if (dyadmino.parent == _boardField && [dyadmino belongsInRack]) {
+  if (dyadmino.parent == _boardField && ([dyadmino belongsInRack] || undo)) {
     CGPoint newPosition = [self addToThisPoint:dyadmino.position thisPoint:_boardField.position];
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
     dyadmino.position = newPosition;
   }
   
-  if (dyadmino == _recentRackDyadmino) {
+  if (dyadmino == _recentRackDyadmino || undo) {
     [self updateCellsForRemovedDyadmino:dyadmino andColour:YES];
   } else { // otherwise it's a hovering dyadmino
 //  NSLog(@"update cells for removed dyadmino called from send dyadmino home");
@@ -938,9 +938,13 @@
   [dyadmino endTouchThenHoverResize];
     // this makes nil tempBoardNode
   
-  if ([dyadmino belongsInRack]) {
+  if ([dyadmino belongsInRack] && !undo) {
     _uponTouchDyadminoNode = nil;
-    [dyadmino goHomeToRackByPoppingIn:poppingIn];
+    [dyadmino goHomeToRackByPoppingIn:poppingIn fromUndo:NO];
+  } else if (undo) {
+    _uponTouchDyadminoNode = nil;
+    [dyadmino goHomeToRackByPoppingIn:poppingIn fromUndo:YES];
+    
   } else {
     dyadmino.tempBoardNode = dyadmino.homeNode;
     [dyadmino goHomeToBoardByPoppingIn:poppingIn];
@@ -1043,11 +1047,6 @@
       [self.myMatch resetHoldingContainerAndUndo];
     }
     
-      /// play button
-  } else if (_buttonPressed == _topBar.passPlayOrDoneButton &&
-             [_buttonPressed confirmPassPlayOrDone] == kPlayButton) {
-    [self playDyadmino:_recentRackDyadmino];
-    
       /// cancel button
   } else if (_buttonPressed == _topBar.swapCancelOrUndoButton &&
              [_buttonPressed confirmSwapCancelOrUndo] == kCancelButton) {
@@ -1060,12 +1059,41 @@
       
         // else send dyadmino home
     } else if (_hoveringDyadmino) {
-      [self sendDyadminoHome:_hoveringDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andUpdatingBoardBounds:YES];
 
         // recent rack dyadmino is sent home
     } else if (_recentRackDyadmino) {
-      [self sendDyadminoHome:_recentRackDyadmino byPoppingIn:YES andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_recentRackDyadmino fromUndo:NO byPoppingIn:YES andUpdatingBoardBounds:YES];
     }
+    
+      /// undo button
+  } else if (_buttonPressed == _topBar.swapCancelOrUndoButton &&
+             [_buttonPressed confirmSwapCancelOrUndo] == kUndoButton) {
+    
+      // remove data dyadmino from holding container
+    DataDyadmino *undoneDataDyadmino = [self.myMatch undoDyadminoToHoldingContainer];
+    Dyadmino *undoneDyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[undoneDataDyadmino.myID - 1];
+    undoneDyadmino.tempReturnOrientation = undoneDataDyadmino.myOrientation;
+    undoneDyadmino.orientation = undoneDataDyadmino.myOrientation;
+    undoneDyadmino.myRackOrder = self.playerRackDyadminoes.count;
+    undoneDyadmino.homeNode = nil;
+
+      // re-add dyadmino to player rack
+    NSMutableArray *tempRackArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
+    [tempRackArray addObject:undoneDyadmino];
+    self.playerRackDyadminoes = [NSArray arrayWithArray:tempRackArray];
+    NSMutableSet *tempBoardSet = [NSMutableSet setWithSet:self.boardDyadminoes];
+    [tempBoardSet removeObject:undoneDyadmino];
+    self.boardDyadminoes = [NSSet setWithSet:tempBoardSet];
+    
+      // take care of views
+    [self sendDyadminoHome:undoneDyadmino fromUndo:YES byPoppingIn:YES andUpdatingBoardBounds:YES];
+    [self updateLabels];
+  
+      /// play button
+  } else if (_buttonPressed == _topBar.passPlayOrDoneButton &&
+             [_buttonPressed confirmPassPlayOrDone] == kPlayButton) {
+    [self playDyadmino:_recentRackDyadmino];
     
       /// pass or done button
   } else if (_buttonPressed == _topBar.passPlayOrDoneButton &&
@@ -1173,7 +1201,7 @@
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
       dyadmino.belongsInSwap = NO;
-      [dyadmino goHomeToRackByPoppingIn:NO];
+      [dyadmino goHomeToRackByPoppingIn:NO fromUndo:NO];
     }
   }
 }
@@ -1202,7 +1230,7 @@
         // TODO: this should be a better animation
         // dyadmino is already a child of rackField,
         // so no need to send dyadmino home through myScene's sendDyadmino method
-      [dyadmino goHomeToRackByPoppingIn:NO];
+      [dyadmino goHomeToRackByPoppingIn:NO fromUndo:NO];
       [dyadmino removeFromParent];
     }
     
@@ -1210,7 +1238,7 @@
     [self.myMatch swapDyadminoesFromCurrentPlayer];
     
     [self populateRackArray];
-    [self layoutOrRefreshRackFieldAndDyadminoes];
+    [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO];
     [_topBar flashLabelNamed:@"log" withText:@"Swapped!"];
     return YES;
   }
@@ -1240,7 +1268,7 @@
     dataDyad.myOrientation = dyadmino.orientation;
   }
   [_topBar flashLabelNamed:@"gameAvatar" withText:@"C major triad!"];
-  [self layoutOrRefreshRackFieldAndDyadminoes];
+  [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO];
   [self updateLabels];
   [self updateButtons];
 }
@@ -1252,7 +1280,7 @@
     [self.myMatch recordDyadminoesFromPlayer:_myPlayer];
 
     [self populateRackArray];
-    [self layoutOrRefreshRackFieldAndDyadminoes];
+    [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO];
     
       // update views
     [self updateLabels];

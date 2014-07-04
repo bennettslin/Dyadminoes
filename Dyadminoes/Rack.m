@@ -70,10 +70,11 @@
 
 #pragma mark - reposition methods
 
--(void)repositionDyadminoes:(NSArray *)dyadminoesInArray withAnimation:(BOOL)animation {
+-(void)repositionDyadminoes:(NSArray *)dyadminoesInArray fromUndo:(BOOL)undo withAnimation:(BOOL)animation {
     // dyadminoes are already in array, this method manages the sprite views
-    
-  for (NSUInteger index = 0; index < dyadminoesInArray.count; index++) {
+  
+  NSUInteger rackCount = dyadminoesInArray.count;
+  for (NSUInteger index = 0; index < rackCount; index++) {
     
     // assign pointers
     Dyadmino *dyadmino = [dyadminoesInArray objectAtIndex:index];
@@ -89,10 +90,16 @@
     
       // dyadmino is already on rack, just has to animate to new position if not already there
     if (dyadmino.parent == self) {
-      if (!CGPointEqualToPoint(dyadmino.position, shouldBePosition)) {
+      NSLog(@"dyadmino is already on rack");
+      if (!CGPointEqualToPoint(dyadmino.position, shouldBePosition) && !(undo && index == dyadminoesInArray.count - 1)) {
         [dyadmino animateMoveToPoint:shouldBePosition];
+        
+          // undone dyadmino is popped in
+      } else {
+        dyadmino.position = shouldBePosition;
+        SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
+        [dyadmino runAction:growAction];
       }
-      
         // dyadmino is *not* already on rack, so add offscreen first and then animate
     } else {
       dyadmino.position = CGPointMake(self.size.width + self.xIncrementInRack, shouldBePosition.y);

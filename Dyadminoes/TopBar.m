@@ -303,7 +303,7 @@
       break;
     case kUndoButton:
       self.swapCancelOrUndoButton.color = [SKColor yellowColor];
-      self.swapCancelOrUndoButton.name = @"undeo";
+      self.swapCancelOrUndoButton.name = @"undo";
       break;
   }
   [self.swapCancelOrUndoButton changeName];

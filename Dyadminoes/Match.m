@@ -374,10 +374,20 @@
   }
 }
 
--(void)undoDyadminoToHoldingContainer {
-  
-  self.tempScore--;
+-(DataDyadmino *)undoDyadminoToHoldingContainer {
+  if (self.holdingContainer.count > 0) {
+    self.tempScore--;
+    DataDyadmino *lastDataDyadmino = [self.holdingContainer lastObject];
+    NSMutableArray *tempContainer = [NSMutableArray arrayWithArray:self.holdingContainer];
+    [tempContainer removeObject:lastDataDyadmino];
+    self.holdingContainer = [NSArray arrayWithArray:tempContainer];
+    return lastDataDyadmino;
+  }
+  return nil;
+
+  /*
   [self.undoManager undo];
+   */
 }
 
 -(void)redoDyadminoToHoldingContainer {

@@ -19,6 +19,8 @@
 -(void)soundDyadminoPivotClick;
 -(void)soundDyadminoSuck;
 
+-(void)layoutOrRefreshRackFieldAndDyadminoesFromUndo:(BOOL)undo;
+
 -(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign;
 
 @end
@@ -102,7 +104,7 @@
 #pragma mark - change state methods
 
 -(void)setToHomeZPosition;
--(void)goHomeToRackByPoppingIn:(BOOL)poppingIn;
+-(void)goHomeToRackByPoppingIn:(BOOL)poppingIn fromUndo:(BOOL)undo;
 -(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn;
 -(void)animatePopBackIntoBoardNode;
 -(void)removeActionsAndEstablishNotRotating;

@@ -213,11 +213,11 @@
       kZPositionRackRestingDyadmino : kZPositionBoardRestingDyadmino;
 }
 
--(void)goHomeToRackByPoppingIn:(BOOL)poppingIn {
+-(void)goHomeToRackByPoppingIn:(BOOL)poppingIn fromUndo:(BOOL)undo {
 //  NSLog(@"dyadmino's go home by popping in method called");
     // move these into a completion block for animation
   if (poppingIn) {
-    [self animatePopBackIntoRackNode];
+    [self animatePopBackIntoRackNodeFromUndo:undo];
   } else {
     [self orientBySnapNode:self.homeNode];
     [self animateMoveToPoint:[self getHomeNodePosition]];
@@ -423,7 +423,7 @@
   [self runAction:sequenceAction withKey:kActionPopIntoBoard];
 }
 
--(void)animatePopBackIntoRackNode {
+-(void)animatePopBackIntoRackNodeFromUndo:(BOOL)undo {
   [self removeActionsAndEstablishNotRotating];
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
@@ -432,9 +432,14 @@
     [self unhighlightOutOfPlay];
     [self orientBySnapNode:self.homeNode];
     self.position = [self getHomeNodePosition];
+    if (undo) {
+      [self.delegate layoutOrRefreshRackFieldAndDyadminoesFromUndo:YES];
+    }
   }];
   SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
-  SKAction *sequenceAction = [SKAction sequence:@[shrinkAction, repositionAction, growAction]];
+  SKAction *sequenceAction = undo ?
+    [SKAction sequence:@[shrinkAction, repositionAction]] :
+    [SKAction sequence:@[shrinkAction, repositionAction, growAction]];
   [self runAction:sequenceAction withKey:kActionPopIntoRack];
 }
 

@@ -54,7 +54,7 @@
 
   // undo methods
 -(void)addToHoldingContainer:(DataDyadmino *)dyadmino;
--(void)undoDyadminoToHoldingContainer;
+-(DataDyadmino *)undoDyadminoToHoldingContainer;
 -(void)redoDyadminoToHoldingContainer;
 -(void)resetHoldingContainerAndUndo; // for swap purposes
 
