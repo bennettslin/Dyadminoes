@@ -33,7 +33,7 @@
   return self;
 }
 
--(void)populateWithButtons {
+-(void)populateWithTopBarButtons {
  
   NSMutableSet *tempButtons = [NSMutableSet new];
   
@@ -51,26 +51,12 @@
   [tempButtons addObject:self.replayButton];
   [self enableButton:self.replayButton];
   
-//  self.swapButton = [[Button alloc] initWithName:@"swap" andColor:[SKColor brownColor]
-//                                         andSize:kButtonSize
-//                                     andPosition:CGPointMake(kButtonWidth * 3, kButtonYPosition)
-//                                    andZPosition:kZPositionTopBarButton];
-//  [tempButtons addObject:self.swapButton];
-//  [self enableButton:self.swapButton];
-  
   self.swapCancelOrUndoButton = [[Button alloc] initWithName:@"swap" andColor:[SKColor redColor]
                                            andSize:kButtonSize
                                        andPosition:CGPointMake(kButtonWidth * 3, kButtonYPosition)
                                       andZPosition:kZPositionTopBarButton];
   [tempButtons addObject:self.swapCancelOrUndoButton];
   [self disableButton:self.swapCancelOrUndoButton];
-  
-//  self.playButton = [[Button alloc] initWithName:@"play" andColor:kDarkGreen
-//                                                 andSize:kButtonSize
-//                                             andPosition:CGPointMake(kButtonWidth * 4, kButtonYPosition)
-//                                            andZPosition:kZPositionTopBarButton];
-//  [tempButtons addObject:self.playButton];
-//  [self disableButton:self.playButton];
   
   self.passPlayOrDoneButton = [[Button alloc] initWithName:@"pass" andColor:[SKColor blueColor]
                                              andSize:kButtonSize
@@ -96,7 +82,7 @@
   self.allButtons = [NSSet setWithSet:tempButtons];
 }
 
--(void)populateWithLabels {
+-(void)populateWithTopBarLabels {
   
   NSMutableDictionary *tempDictionary = [NSMutableDictionary new];
   CGFloat labelFontSize = kIsIPhone ? 14.f : 18.f;

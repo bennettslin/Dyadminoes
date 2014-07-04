@@ -37,7 +37,7 @@
 @property (nonatomic) NSUInteger tempScore;
 @property (strong, nonatomic) NSArray *holdingContainer;
 @property (strong, nonatomic) NSMutableArray *swapContainer;
-@property (strong, nonatomic) NSUndoManager *undoManager;
+//@property (strong, nonatomic) NSUndoManager *undoManager;
 @property (nonatomic) NSUInteger replayCounter;
 @property (strong, nonatomic) NSMutableArray *turns;
 
@@ -55,8 +55,7 @@
   // undo methods
 -(void)addToHoldingContainer:(DataDyadmino *)dyadmino;
 -(DataDyadmino *)undoDyadminoToHoldingContainer;
--(void)redoDyadminoToHoldingContainer;
--(void)resetHoldingContainerAndUndo; // for swap purposes
+-(void)resetHoldingContainer; // for swap purposes
 
   // replay methods
 -(void)first;

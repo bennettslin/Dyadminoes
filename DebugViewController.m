@@ -138,8 +138,8 @@
       self.myMatch.holdingContainer.count > 0 ? [self disableAndHide:self.swapModeButton] : [self enableAndShow:self.swapModeButton];
       
         // undo and redo buttons
-      [self.myMatch.undoManager canUndo] ? [self enableAndShow:self.undoButton] : [self disableAndHide:self.undoButton];
-      [self.myMatch.undoManager canRedo] ? [self enableAndShow:self.redoButton] : [self disableAndHide:self.redoButton];
+//      [self.myMatch.undoManager canUndo] ? [self enableAndShow:self.undoButton] : [self disableAndHide:self.undoButton];
+//      [self.myMatch.undoManager canRedo] ? [self enableAndShow:self.redoButton] : [self disableAndHide:self.redoButton];
 
         //----------------------------------------------------------------------
       
@@ -318,7 +318,7 @@
 }
 
 -(IBAction)redoTapped:(id)sender {
-  [self.myMatch redoDyadminoToHoldingContainer];
+//  [self.myMatch redoDyadminoToHoldingContainer];
   [self setProperties];
   [self updateThisTurnDyadminoesLabel];
 }
@@ -329,7 +329,7 @@
   UIColor *color = self.swapMode ? [UIColor orangeColor] : [UIColor lightGrayColor];
   [self.swapModeButton setTitle:title forState:UIControlStateNormal];
   [self.swapModeButton setBackgroundColor:color];
-  [self.myMatch resetHoldingContainerAndUndo];
+//  [self.myMatch resetHoldingContainerAndUndo];
   
   [self setProperties];
   [self updateThisTurnDyadminoesLabel];

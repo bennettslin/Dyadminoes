@@ -39,9 +39,11 @@
     // sprites and nodes
   Rack *_rackField;
   Rack *_swapField;
+  Rack *_replayBottom;
   Board *_boardField;
   SKSpriteNode *_boardCover;
   TopBar *_topBar;
+  TopBar *_replayTop;
   SKNode *_touchNode;
 
     // touches
@@ -52,9 +54,10 @@
   CGPoint _touchOffsetVector;
   
     // bools and modes
+  BOOL _replayMode;
   BOOL _swapMode;
   BOOL _rackExchangeInProgress;
-  BOOL _swapFieldActionInProgress;
+  BOOL _fieldActionInProgress;
   BOOL _boardToBeMovedOrBeingMoved;
   BOOL _boardBeingCorrectedWithinBounds;
   BOOL _canDoubleTapForBoardZoom;
@@ -62,10 +65,6 @@
   BOOL _hoveringDyadminoToStayFixedWhileBoardMoves;
   BOOL _boardJustShiftedNotCorrected;
   BOOL _boardZoomedOut;
-  
-    // determine button modes
-//  PassPlayOrDoneButton _passPlayOrDone;
-//  SwapCancelOrUndoButton _swapCancelOrUndo;
   
   SnapPoint *_uponTouchDyadminoNode;
   DyadminoOrientation _uponTouchDyadminoOrientation;
@@ -99,7 +98,6 @@
     self.name = @"scene";
     self.mySoundEngine = [[SoundEngine alloc] init];
     self.mySceneEngine = [[SceneEngine alloc] init];
-//    self.undoManager = [[NSUndoManager alloc] init];
   
     _rackExchangeInProgress = NO;
     _buttonPressed = nil;
@@ -119,26 +117,17 @@
 }
 
 -(void)didMoveToView:(SKView *)view {
-//  NSLog(@"did move to view");
   [self layoutBoard];
-//  NSLog(@"board laid out");
   [self layoutBoardCover];
 
     // this only needs the board dyadminoes to determine the board's cells ranges
     // this populates the board cells
-  
-//  NSLog(@"layoutboard cells called from did move to view");
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes];
-//  NSLog(@"cells and snap points laid out");
-  
   [self populateBoardWithDyadminoes];
-//  NSLog(@"board populated with dyadminoes");
   [self layoutSwapField];
-//  NSLog(@"swap field laid out");
+  [self layoutReplayFields];
   [self layoutTopBar];
-//  NSLog(@"top bar laid out");
   [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO];
-//  NSLog(@"rack field and dyadminoes laid out and refreshed");
   [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
 }
 
@@ -306,6 +295,21 @@
   _swapField.hidden = YES;
 }
 
+-(void)layoutReplayFields {
+    // initial position is beyond screen
+  _replayTop = [[TopBar alloc] initWithColor:kReplayTopColour andSize:CGSizeMake(self.frame.size.width, kTopBarHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, self.frame.size.height) andZPosition:kZPositionReplayTop];
+  _replayTop.name = @"replayTop";
+  [self addChild:_replayTop];
+  
+  _replayBottom = [[Rack alloc] initWithBoard:_boardField andColour:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, -kRackHeight) andZPosition:kZPositionReplayBottom];
+  _replayBottom.name = @"replayBottom";
+  [self addChild:_replayBottom];
+  
+  _replayMode = NO;
+  _replayTop.hidden = YES;
+  _replayBottom.hidden = YES;
+}
+
 -(void)layoutTopBar {
     // background
   _topBar = [[TopBar alloc] initWithColor:kBarBrown
@@ -314,11 +318,11 @@
                               andPosition:CGPointMake(0, self.frame.size.height - kTopBarHeight)
                              andZPosition:kZPositionTopBar];
   _topBar.name = @"topBar";
-  [_topBar populateWithButtons];
-  [_topBar populateWithLabels];
+  [_topBar populateWithTopBarButtons];
+  [_topBar populateWithTopBarLabels];
   [self addChild:_topBar];
-  [self updateLabels];
-  [self updateButtons];
+  [self updateTopBarLabels];
+  [self updateTopBarButtons];
   
   _topBar.pileDyadminoesLabel.hidden = YES;
   _topBar.boardDyadminoesLabel.hidden = YES;
@@ -377,7 +381,7 @@
     _currentTouch = [touches anyObject];
   }
     
-  if (_swapFieldActionInProgress) {
+  if (_fieldActionInProgress) {
     return;
   }
   
@@ -402,7 +406,7 @@
     /// 3a. button pressed
   
     // if it's a button, take care of it when touch ended
-  if ([_topBar.allButtons containsObject:_touchNode]) {
+  if ([_touchNode isKindOfClass:[Button class]]) {
     
       // sound of button tapped
     [self.mySoundEngine soundButton:YES];
@@ -496,8 +500,8 @@
     return;
   }
   
-    // register no touches moved while swap field is being toggled
-  if (_swapFieldActionInProgress) {
+    // register no touches moved while field is being toggled
+  if (_fieldActionInProgress) {
     return;
   }
   
@@ -568,7 +572,7 @@
 //      NSLog(@"send dyadmino home if hovering dyadmino");
       [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andUpdatingBoardBounds:YES];
     }
-    [self updateButtons];
+    [self updateTopBarButtons];
   }
   
     // continue to reset hover count
@@ -635,7 +639,7 @@
 }
 
 -(void)endTouchFromTouches:(NSSet *)touches {
-  if (_swapFieldActionInProgress) {
+  if (_fieldActionInProgress) {
     return;
   }
   
@@ -884,7 +888,7 @@
       [self prepareForHoverThisDyadmino:dyadmino];
     }
 //    NSLog(@"update buttons from handle touch end of dyadmino");
-    [self updateButtons];
+    [self updateTopBarButtons];
   }
 }
 
@@ -1036,6 +1040,9 @@
     
       /// replay button
   } else if (_buttonPressed == _topBar.replayButton) {
+    NSLog(@"replay button pressed");
+    _replayMode = _replayMode ? NO : YES;
+    [self toggleReplayFields];
     return;
     
       /// swap button
@@ -1044,7 +1051,7 @@
     if (!_swapMode) {
       [self toggleSwapField];
       _swapMode = YES;
-      [self.myMatch resetHoldingContainerAndUndo];
+      [self.myMatch resetHoldingContainer];
     }
     
       /// cancel button
@@ -1055,7 +1062,7 @@
     if (_swapMode) {
       [self toggleSwapField];
       [self cancelSwappedDyadminoes];
-      [self.myMatch resetHoldingContainerAndUndo];
+      [self.myMatch resetHoldingContainer];
       
         // else send dyadmino home
     } else if (_hoveringDyadmino) {
@@ -1088,7 +1095,7 @@
     
       // take care of views
     [self sendDyadminoHome:undoneDyadmino fromUndo:YES byPoppingIn:YES andUpdatingBoardBounds:YES];
-    [self updateLabels];
+    [self updateTopBarLabels];
   
       /// play button
   } else if (_buttonPressed == _topBar.passPlayOrDoneButton &&
@@ -1119,8 +1126,8 @@
   }
   
     // return to bypass updating labels and buttons
-  [self updateLabels];
-  [self updateButtons];
+  [self updateTopBarLabels];
+  [self updateTopBarButtons];
 }
 
 #pragma mark - match interaction methods
@@ -1159,45 +1166,11 @@
     [self persistDataForDyadmino:dyadmino];
   }
 }
- 
--(void)handleUndo {
-//  [self.myMatch undoDyadminoToHoldingContainer];
-//    // get data dyadmino of undone dyadmino
-//  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
-//    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-//    if ([dyadmino belongsOnBoard] && ![self.myMatch.holdingContainer containsObject:dataDyad]) {
-//      [dyadmino removeFromParent];
-//      [self addToPlayerRackDyadminoes:dyadmino];
-//      [self layoutOrRefreshRackFieldAndDyadminoes];
-//      [self sendDyadminoHome:dyadmino byPoppingIn:NO];
-//    }
-//  }
-  
-  [self updateLabels];
-  [self updateButtons];
-}
-
--(void)handleRedo {
-//  [self.myMatch redoDyadminoToHoldingContainer];
-//  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
-//    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-//    if ([dyadmino belongsInRack] && ![self.myMatch.holdingContainer containsObject:dataDyad]) {
-//      [dyadmino removeFromParent];
-//      [self addToPlayerRackDyadminoes:dyadmino];
-//      [self layoutOrRefreshRackFieldAndDyadminoes];
-//      [self sendDyadminoHome:dyadmino byPoppingIn:NO];
-//    }
-//  }
-  
-  
-  [self updateLabels];
-  [self updateButtons];
-}
 
 -(void)cancelSwappedDyadminoes {
   _swapMode = NO;
   [self.myMatch.swapContainer removeAllObjects];
-  [self.myMatch resetHoldingContainerAndUndo];
+  [self.myMatch resetHoldingContainer];
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
       dyadmino.belongsInSwap = NO;
@@ -1269,8 +1242,8 @@
   }
   [_topBar flashLabelNamed:@"gameAvatar" withText:@"C major triad!"];
   [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO];
-  [self updateLabels];
-  [self updateButtons];
+  [self updateTopBarLabels];
+  [self updateTopBarButtons];
 }
 
 -(void)finalisePlayerTurn {
@@ -1283,9 +1256,8 @@
     [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO];
     
       // update views
-    [self updateLabels];
-    [self updateButtons];
-//    [_topBar updateLabelNamed:@"score" withText:@"score: 3"];
+    [self updateTopBarLabels];
+    [self updateTopBarButtons];
     [_topBar flashLabelNamed:@"log" withText:@"Turn done!"];
   }
 }
@@ -1297,7 +1269,6 @@
 -(void)handleResign {
   
   NSString *resignString = @"Are you sure? This will count as a loss in Game Center.";
-  
   UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:resignString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Resign" otherButtonTitles:nil, nil];
   actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
   [actionSheet showInView:self.view];
@@ -1317,9 +1288,7 @@
 -(void)update:(CFTimeInterval)currentTime {
   
   [self updateForDoubleTap:currentTime];
-//  NSLog(@"hovering dyadmino is %@", _hoveringDyadmino.name);
   if (_hoveringDyadmino) {
-//    NSLog(@"hovering dyadmino is %@", _hoveringDyadmino.name);
     [self updateDyadmino:_hoveringDyadmino forHover:currentTime];
   }
   
@@ -1328,47 +1297,7 @@
   [self updateForBoardBeingCorrectedWithinBounds];
   [self updateForHoveringDyadminoBeingCorrectedWithinBounds];
   [self updatePivotForDyadminoMoveWithoutBoardCorrected];
-//  [self updateForButtons];
 }
-
-//-(void)updateForButtons {
-  /*
-    // while *not* in swap mode...
-  if (!_swapMode) {
-    [_topBar disableButton:_topBar.swapCancelOrUndoButton];
-    
-      // play button is enabled when there's a rack dyadmino on board
-      // and no dyadmino is touched or hovering
-//    _recentRackDyadmino && !_touchedDyadmino && !_hoveringDyadmino ?
-//      [_topBar enableButton:_topBar.playButton] :
-//      [_topBar disableButton:_topBar.playButton];
-    
-    (_recentRackDyadmino || _hoveringDyadmino) && ![self isFirstDyadmino:_hoveringDyadmino] ?
-      [_topBar enableButton:_topBar.swapCancelOrUndoButton] :
-      [_topBar disableButton:_topBar.swapCancelOrUndoButton];
-    
-      // done button is enabled only when no recent rack dyadmino
-      // and no dyadmino is hovering
-    !_recentRackDyadmino && !_hoveringDyadmino ?
-      [_topBar enableButton:_topBar.passPlayOrDoneButton] :
-      [_topBar disableButton:_topBar.passPlayOrDoneButton];
-    
-      // ...these are the criteria by which swap button is enabled
-      // swap button cannot have any rack dyadminoes on board
-//    if (self.myMatch.holdingContainer.count > 0) {
-//      [_topBar disableButton:_topBar.swapButton];
-//    } else if (!_touchedDyadmino || [_touchedDyadmino isInRack]) {
-//      [_topBar enableButton:_topBar.swapButton];
-//    }
-    
-      // if in swap mode, cancel button cancels swap, done button finalises swap
-  } else if (_swapMode) {
-    [_topBar enableButton:_topBar.swapCancelOrUndoButton];
-    [_topBar enableButton:_topBar.passPlayOrDoneButton];
-//    [_topBar disableButton:_topBar.swapButton];
-  }
-   */
-//}
 
 -(void)updateForDoubleTap:(CFTimeInterval)currentTime {
   if (_canDoubleTapForDyadminoFlip || _canDoubleTapForBoardZoom) {
@@ -1447,7 +1376,7 @@
 
 -(void)updateForBoardBeingCorrectedWithinBounds {
   
-  if (_swapFieldActionInProgress) {
+  if (_fieldActionInProgress) {
     _boardField.homePosition = _boardField.position;
     return;
   }
@@ -1680,12 +1609,12 @@
       }
     }
   }
-  [self updateButtons];
+  [self updateTopBarButtons];
 }
 
 #pragma mark - update label and button methods
 
--(void)updateLabels {
+-(void)updateTopBarLabels {
   
     // pile count
   [_topBar updateLabelNamed:@"pileCount"
@@ -1732,7 +1661,7 @@
   }
 }
 
--(void)updateButtons {
+-(void)updateTopBarButtons {
   NSLog(@"update buttons called");
     // three main possibilities
     // 1. Game has ended for player...
@@ -1801,17 +1730,62 @@
 
 #pragma mark - field animation methods
 
+-(void)toggleReplayFields {
+  NSLog(@"toggle replay fields");
+    // it's in replay mode (opposite of toggle swap field)
+  if (_replayMode) {
+    [self.mySoundEngine soundSwapFieldSwoosh];
+    _fieldActionInProgress = YES;
+    
+    _replayTop.hidden = NO;
+    _replayBottom.hidden = NO;
+    SKAction *topMoveAction = [SKAction moveToY:self.frame.size.height - kTopBarHeight duration:kConstantTime];
+    SKAction *topCompleteAction = [SKAction runBlock:^{
+      _fieldActionInProgress = NO;
+      _rackField.hidden = YES;
+      _topBar.hidden = YES;
+    }];
+    SKAction *topSequenceAction = [SKAction sequence:@[topMoveAction, topCompleteAction]];
+    [_replayTop runAction:topSequenceAction];
+    
+    SKAction *bottomMoveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
+    [_replayBottom runAction:bottomMoveAction];
+    
+      // it's not in replay mode
+  } else {
+    [self.mySoundEngine soundSwapFieldSwoosh];
+    _fieldActionInProgress = YES;
+    
+    _rackField.hidden = NO;
+    _topBar.hidden = NO;
+    SKAction *topMoveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
+    SKAction *topCompleteAction = [SKAction runBlock:^{
+      _fieldActionInProgress = NO;
+      _replayTop.hidden = YES;
+    }];
+    SKAction *topSequenceAction = [SKAction sequence:@[topMoveAction, topCompleteAction]];
+    [_replayTop runAction:topSequenceAction];
+    
+    SKAction *bottomMoveAction = [SKAction moveToY:-kRackHeight duration:kConstantTime];
+    SKAction *bottomCompleteAction = [SKAction runBlock:^{
+      _replayBottom.hidden = YES;
+    }];
+    SKAction *bottomSequenceAction = [SKAction sequence:@[bottomMoveAction, bottomCompleteAction]];
+    [_replayBottom runAction:bottomSequenceAction];
+  }
+}
+
 -(void)toggleSwapField {
     // TODO: move animations at some point
     // FIXME: make better animation
     // otherwise toggle
   if (_swapMode) { // swap mode on, so turn off
     [self.mySoundEngine soundSwapFieldSwoosh];
-    _swapFieldActionInProgress = YES;
+    _fieldActionInProgress = YES;
     
     SKAction *moveAction = [SKAction moveToY:0.f duration:kConstantTime];
     SKAction *completionAction = [SKAction runBlock:^{
-      _swapFieldActionInProgress = NO;
+      _fieldActionInProgress = NO;
       _swapField.hidden = YES;
       [self hideBoardCover];
     }];
@@ -1826,12 +1800,12 @@
     
   } else { // swap mode off, turn on
     [self.mySoundEngine soundSwapFieldSwoosh];
-    _swapFieldActionInProgress = YES;
+    _fieldActionInProgress = YES;
     
     _swapField.hidden = NO;
     SKAction *moveAction = [SKAction moveToY:kRackHeight duration:kConstantTime];
     SKAction *completionAction = [SKAction runBlock:^{
-      _swapFieldActionInProgress = NO;
+      _fieldActionInProgress = NO;
       [self revealBoardCover];
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
@@ -2147,7 +2121,7 @@
   if (!_playerRackDyadminoes || !playerRackDyadminoes) {
     _playerRackDyadminoes = playerRackDyadminoes;
   } else if (_playerRackDyadminoes != playerRackDyadminoes) {
-    [self.myMatch.undoManager registerUndoWithTarget:self selector:@selector(setPlayerRackDyadminoes:) object:_playerRackDyadminoes];
+//    [self.myMatch.undoManager registerUndoWithTarget:self selector:@selector(setPlayerRackDyadminoes:) object:_playerRackDyadminoes];
     _playerRackDyadminoes = playerRackDyadminoes;
   }
 }
@@ -2179,8 +2153,8 @@
   NSString *buttonText = [actionSheet buttonTitleAtIndex:buttonIndex];
   if ([buttonText isEqualToString:@"Resign"]) {
     [self.myMatch resignPlayer:_myPlayer];
-    [self updateLabels];
-    [self updateButtons];
+    [self updateTopBarLabels];
+    [self updateTopBarButtons];
   }
 }
 
@@ -2189,8 +2163,8 @@
   NSString *buttonText = [alertView buttonTitleAtIndex:buttonIndex];
   if ([buttonText isEqualToString:@"OK"]) {
     [self.myMatch resignPlayer:_myPlayer];
-    [self updateLabels];
-    [self updateButtons];
+    [self updateTopBarLabels];
+    [self updateTopBarButtons];
   }
 }
 
@@ -2219,7 +2193,7 @@
 #pragma mark - debugging methods
 
 -(void)debugButtonPressed {
-  [self updateLabels];
+  [self updateTopBarLabels];
 
   if (_topBar.pileDyadminoesLabel.hidden) {
     _topBar.pileDyadminoesLabel.hidden = NO;
@@ -2262,8 +2236,8 @@
     }
   }
 
-  [self updateLabels];
-  [self updateButtons];
+  [self updateTopBarLabels];
+  [self updateTopBarButtons];
 }
 
 @end

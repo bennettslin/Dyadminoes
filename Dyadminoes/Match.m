@@ -108,8 +108,6 @@
     self.skill = skill;
     self.type = type;
     
-    self.undoManager = [[NSUndoManager alloc] init];
-    
     self.lastPlayed = [NSDate date];
     self.gameHasEnded = NO;
     self.numberOfConsecutivePasses = 0;
@@ -203,8 +201,6 @@
 
 #pragma mark - game state change methods
 
-
-
 -(void)swapDyadminoesFromCurrentPlayer {
   Player *player = self.currentPlayer;
   for (DataDyadmino *dataDyad in self.swapContainer) {
@@ -217,7 +213,7 @@
   [self.pile addObjectsFromArray:self.swapContainer];
   [self.swapContainer removeAllObjects];
   
-  [self resetHoldingContainerAndUndo];
+  [self resetHoldingContainer];
   [self recordDyadminoesFromPlayer:player]; // this records turn as a pass
     // sort the board and pile
   [self sortBoardAndPileArrays];
@@ -273,7 +269,7 @@
   }
   
       // whether pass or not, game continues
-  [self resetHoldingContainerAndUndo];
+  [self resetHoldingContainer];
   self.lastPlayed = [NSDate date];
   [self switchToNextPlayer];
 }
@@ -284,7 +280,7 @@
   [self.pile addObjectsFromArray:player.dataDyadminoesThisTurn];
   [self sortBoardAndPileArrays];
   
-  [self resetHoldingContainerAndUndo];
+  [self resetHoldingContainer];
   [player.dataDyadminoesThisTurn removeAllObjects];
   if (![self switchToNextPlayer]) {
     [self endGame];
@@ -295,7 +291,7 @@
 
 -(void)endGame {
   self.currentPlayer = nil;
-  [self resetHoldingContainerAndUndo];
+  [self resetHoldingContainer];
   
     // rules out that players with no points can win
   NSUInteger maxScore = 1;
@@ -365,11 +361,9 @@
 }
 
 -(void)setHoldingContainer:(NSArray *)newHoldingContainer {
-  
   if (!_holdingContainer || !newHoldingContainer) {
     _holdingContainer = newHoldingContainer;
   } else if (_holdingContainer != newHoldingContainer) {
-    [self.undoManager registerUndoWithTarget:self selector:@selector(setHoldingContainer:) object:_holdingContainer];
     _holdingContainer = newHoldingContainer;
   }
 }
@@ -384,22 +378,11 @@
     return lastDataDyadmino;
   }
   return nil;
-
-  /*
-  [self.undoManager undo];
-   */
 }
 
--(void)redoDyadminoToHoldingContainer {
-  
-  self.tempScore++;
-  [self.undoManager redo];
-}
-
--(void)resetHoldingContainerAndUndo {
+-(void)resetHoldingContainer {
   self.holdingContainer = @[];
   self.tempScore = 0;
-  [self.undoManager removeAllActions];
 }
 
 #pragma mark - replay methods

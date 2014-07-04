@@ -65,8 +65,8 @@
        andPosition:(CGPoint)position
       andZPosition:(CGFloat)zPosition;
 
--(void)populateWithButtons;
--(void)populateWithLabels;
+-(void)populateWithTopBarButtons;
+-(void)populateWithTopBarLabels;
 
 #pragma mark - button methods
 

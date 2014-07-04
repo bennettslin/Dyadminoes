@@ -106,12 +106,16 @@
   // children of top bar
 #define kZPositionTopBarButton 10.f
 #define kZPositionTopBarLabel 20.f
-#define kZPositionLogMessage 30.f
+#define kZPositionLogMessage 25.f
 
   // children of rack
 #define kZPositionRackMovedDyadmino 10.f
 #define kZPositionRackRestingDyadmino 20.f
 #define kZPositionDyadminoFace 5.f
+
+  // replay fields
+#define kZPositionReplayTop 150.f
+#define kZPositionReplayBottom 160.f
 
   // data key constants
 #define kMatchesKey @"myMatches"
@@ -133,6 +137,9 @@
 #define kDarkGreen [SKColor colorWithRed:0.f green:.6f blue:.2f alpha:1.f]
 #define kBarBrown [SKColor colorWithRed:0.3f green:0.15f blue:0.1f alpha:1.f]
 #define kPianoBlack [SKColor colorWithRed:0.1f green:0.05f blue:0.f alpha:1.f]
+
+#define kReplayTopColour [SKColor colorWithRed:0.9f green:0.15f blue:0.1f alpha:1.f]
+#define kReplayBottomColour [SKColor colorWithRed:0.9f green:0.15f blue:0.1f alpha:1.f]
 
 #define kPivotOrange [SKColor colorWithRed:0.9f green:.8f blue:.6f alpha:1.f]
 #define kPivotRed [SKColor colorWithRed:1.f green:.8f blue:.8f alpha:1.f]
@@ -180,17 +187,6 @@ typedef enum gameSkill {
   kIntermediate,
   kExpert
 } GameSkill;
-
-//typedef enum mainPageButtonType {
-//  kSoloGameButton,
-//  kPassNPlayButton,
-//  kGameCenterMatchButton,
-//  kHelpButton,
-//  kStoreButton,
-//  kLeaderboardButton,
-//  kOptionsButton,
-//  kAboutButton
-//} MainPageButtonType;
 
 typedef enum pcMode {
   kPCModeLetter,
