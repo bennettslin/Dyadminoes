@@ -22,7 +22,7 @@
 		3F580BDC194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */; };
 		3F580BDE194F710F0040B5D0 /* Click2-Sebastian-759472264.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */; };
 		3F580BE0194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDF194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav */; };
-		3F6AE50E18D4D1E7000528C1 /* TopBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F6AE50D18D4D1E7000528C1 /* TopBar.m */; };
+		3F6AE50E18D4D1E7000528C1 /* Bar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F6AE50D18D4D1E7000528C1 /* Bar.m */; };
 		3F7BD7C9192AF45D009274DE /* Match.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7C8192AF45D009274DE /* Match.m */; };
 		3F7BD7D5192B09D6009274DE /* MatchesTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7D4192B09D6009274DE /* MatchesTableViewController.m */; };
 		3F7BD7D8192B09FE009274DE /* DebugViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7D7192B09FE009274DE /* DebugViewController.m */; };
@@ -99,8 +99,8 @@
 		3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Electronic_Chime-KevanGC-495939803.wav"; sourceTree = "<group>"; };
 		3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Click2-Sebastian-759472264.wav"; sourceTree = "<group>"; };
 		3F580BDF194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Slide_Closed_SoundBible_com_1521580537.wav; sourceTree = "<group>"; };
-		3F6AE50C18D4D1E7000528C1 /* TopBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TopBar.h; sourceTree = "<group>"; };
-		3F6AE50D18D4D1E7000528C1 /* TopBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TopBar.m; sourceTree = "<group>"; };
+		3F6AE50C18D4D1E7000528C1 /* Bar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bar.h; sourceTree = "<group>"; };
+		3F6AE50D18D4D1E7000528C1 /* Bar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Bar.m; sourceTree = "<group>"; };
 		3F7BD7C7192AF45D009274DE /* Match.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Match.h; sourceTree = "<group>"; };
 		3F7BD7C8192AF45D009274DE /* Match.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Match.m; sourceTree = "<group>"; };
 		3F7BD7D3192B09D6009274DE /* MatchesTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MatchesTableViewController.h; sourceTree = "<group>"; };
@@ -384,8 +384,8 @@
 				3FD06E2218D6544F00E2FF04 /* Cell.m */,
 				3F8F045918BFEF3300853C4C /* SnapPoint.h */,
 				3F8F045A18BFEF3300853C4C /* SnapPoint.m */,
-				3F6AE50C18D4D1E7000528C1 /* TopBar.h */,
-				3F6AE50D18D4D1E7000528C1 /* TopBar.m */,
+				3F6AE50C18D4D1E7000528C1 /* Bar.h */,
+				3F6AE50D18D4D1E7000528C1 /* Bar.m */,
 				3F3116CC18CEFC5D0015CC2A /* Rack.h */,
 				3F3116CD18CEFC5D0015CC2A /* Rack.m */,
 				3F55E1FB18D7A8520048E67E /* Button.h */,
@@ -533,7 +533,7 @@
 				3FEBC8ED193B9CC700DA3560 /* DataDyadmino.m in Sources */,
 				3FECDE1619355B8A00D774AB /* PnPViewController.m in Sources */,
 				3FCCA71E18948B0500E0E4B5 /* SceneEngine.m in Sources */,
-				3F6AE50E18D4D1E7000528C1 /* TopBar.m in Sources */,
+				3F6AE50E18D4D1E7000528C1 /* Bar.m in Sources */,
 				3F9923091895ECCA00FC9392 /* SonorityLogic.m in Sources */,
 				3F87AABD188DEE4B008C4A0D /* AppDelegate.m in Sources */,
 				3F55E1FD18D7A8520048E67E /* Button.m in Sources */,

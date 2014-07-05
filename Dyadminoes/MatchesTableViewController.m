@@ -117,7 +117,7 @@
   self.rankVC.view.backgroundColor = [UIColor yellowColor];
 //  [self addChildViewController:self.rankVC];
   
-  self.optionsVC = [[OptionsViewController alloc] init];
+  self.optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"OptionsViewController"];
   self.optionsVC.view.backgroundColor = [UIColor greenColor];
 //  [self addChildViewController:self.optionsVC];
   

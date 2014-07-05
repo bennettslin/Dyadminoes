@@ -21,7 +21,6 @@
 @property (strong, nonatomic) SoundEngine *mySoundEngine;
 @property (strong, nonatomic) SceneEngine *mySceneEngine;
 @property (strong, nonatomic) Match *myMatch;
-//@property (strong, nonatomic) NSUndoManager *undoManager;
 @property (weak, nonatomic) id <SceneDelegate> delegate;
 
 -(void)preLoad;

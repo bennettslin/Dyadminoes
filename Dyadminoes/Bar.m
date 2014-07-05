@@ -6,14 +6,15 @@
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
-#import "TopBar.h"
+#import "Bar.h"
 #import "Button.h"
 #import "Label.h"
 
 #define kMinusForName 425.f
 #define kMinusForScore 350.f
+#define kLabelFontSize kIsIPhone ? 14.f : 18.f
 
-@implementation TopBar {
+@implementation Bar {
   NSUInteger _rotationFromDevice;
 }
 
@@ -37,12 +38,12 @@
  
   NSMutableSet *tempButtons = [NSMutableSet new];
   
-  self.gamesButton = [[Button alloc] initWithName:@"games" andColor:[SKColor grayColor]
+  self.returnButton = [[Button alloc] initWithName:@"games" andColor:[SKColor grayColor]
                                                  andSize:kButtonSize
                                              andPosition:CGPointMake(kButtonWidth, kButtonYPosition)
                                             andZPosition:kZPositionTopBarButton];
-  [tempButtons addObject:self.gamesButton];
-  [self enableButton:self.gamesButton];
+  [tempButtons addObject:self.returnButton];
+  [self enableButton:self.returnButton];
   
   self.replayButton = [[Button alloc] initWithName:@"replay" andColor:[SKColor orangeColor]
                                            andSize:kButtonSize
@@ -82,105 +83,163 @@
   self.allButtons = [NSSet setWithSet:tempButtons];
 }
 
--(void)populateWithTopBarLabels {
+-(void)populateWithTopReplayButtonsAndLabels {
+  
+  NSMutableSet *tempButtons = [NSMutableSet new];
+  self.returnButton = [[Button alloc] initWithName:@"return" andColor:[SKColor grayColor]
+                                           andSize:kButtonSize
+                                       andPosition:CGPointMake(kButtonWidth, kButtonYPosition * 2)
+                                      andZPosition:kZPositionTopBarButton];
+  [tempButtons addObject:self.returnButton];
+  [self enableButton:self.returnButton];
+  
+  self.allButtons = [NSSet setWithSet:tempButtons];
+  [self populateCommonLabels];
+  
+  [self updateLabelNamed:@"player1Name" withText:@"test"];
+}
+
+-(void)populateWithBottomReplayButtons {
+  
+  NSMutableSet *tempButtons = [NSMutableSet new];
+  
+  self.firstTurnButton = [[Button alloc] initWithName:@"first" andColor:[SKColor redColor]
+                                              andSize:kButtonSize
+                                          andPosition:CGPointMake(kButtonWidth, kButtonYPosition * 3)
+                                         andZPosition:kZPositionTopBarButton];
+  [tempButtons addObject:self.firstTurnButton];
+  [self enableButton:self.firstTurnButton];
+  
+  self.previousTurnButton = [[Button alloc] initWithName:@"previous" andColor:[SKColor orangeColor]
+                                                 andSize:kButtonSize
+                                             andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition * 3)
+                                            andZPosition:kZPositionTopBarButton];
+  [tempButtons addObject:self.previousTurnButton];
+  [self enableButton:self.previousTurnButton];
+  
+  self.nextTurnButton = [[Button alloc] initWithName:@"next" andColor:[SKColor greenColor]
+                                             andSize:kButtonSize
+                                         andPosition:CGPointMake(kButtonWidth * 3, kButtonYPosition * 3)
+                                        andZPosition:kZPositionTopBarButton];
+  [tempButtons addObject:self.nextTurnButton];
+  [self enableButton:self.nextTurnButton];
+  
+  self.lastTurnButton = [[Button alloc] initWithName:@"last" andColor:[SKColor blueColor]
+                                             andSize:kButtonSize
+                                         andPosition:CGPointMake(kButtonWidth * 4, kButtonYPosition * 3)
+                                        andZPosition:kZPositionTopBarButton];
+  [tempButtons addObject:self.lastTurnButton];
+  [self enableButton:self.lastTurnButton];
+  
+  self.allButtons = [NSSet setWithSet:tempButtons];
+}
+
+-(void)populateCommonLabels {
   
   NSMutableDictionary *tempDictionary = [NSMutableDictionary new];
-  CGFloat labelFontSize = kIsIPhone ? 14.f : 18.f;
-
-  self.pileCountLabel = [[Label alloc] initWithName:@"pileCount"
-                                       andFontColor:[SKColor whiteColor]
-                                        andFontSize:labelFontSize
-                                        andPosition:CGPointMake(self.size.width - 5.f, 30.f)
-                                       andZPosition:kZPositionTopBarLabel
-                             andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
-  [tempDictionary setValue:self.pileCountLabel forKey:self.pileCountLabel.name];
   
   self.player1Name = [[Label alloc] initWithName:@"player1Name"
-                                     andFontColor:[SKColor whiteColor]
-                                      andFontSize:labelFontSize
-                                      andPosition:CGPointMake(self.size.width - kMinusForName, kLabelYPosition * 10)
-                                     andZPosition:kZPositionTopBarLabel
-                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
+                                    andFontColor:[SKColor whiteColor]
+                                     andFontSize:kLabelFontSize
+                                     andPosition:CGPointMake(self.size.width - kMinusForName, kLabelYPosition * 10)
+                                    andZPosition:kZPositionTopBarLabel
+                          andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player1Name forKey:self.player1Name.name];
   self.player2Name = [[Label alloc] initWithName:@"player2Name"
                                     andFontColor:[SKColor whiteColor]
-                                     andFontSize:labelFontSize
+                                     andFontSize:kLabelFontSize
                                      andPosition:CGPointMake(self.size.width - kMinusForName, kLabelYPosition * 7)
                                     andZPosition:kZPositionTopBarLabel
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player2Name forKey:self.player2Name.name];
   self.player3Name = [[Label alloc] initWithName:@"player3Name"
                                     andFontColor:[SKColor whiteColor]
-                                     andFontSize:labelFontSize
+                                     andFontSize:kLabelFontSize
                                      andPosition:CGPointMake(self.size.width - kMinusForName, kLabelYPosition * 4)
                                     andZPosition:kZPositionTopBarLabel
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player3Name forKey:self.player3Name.name];
   self.player4Name = [[Label alloc] initWithName:@"player4Name"
                                     andFontColor:[SKColor whiteColor]
-                                     andFontSize:labelFontSize
+                                     andFontSize:kLabelFontSize
                                      andPosition:CGPointMake(self.size.width - kMinusForName, kLabelYPosition * 1)
                                     andZPosition:kZPositionTopBarLabel
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player4Name forKey:self.player4Name.name];
   self.playerNameLabels = @[self.player1Name, self.player2Name, self.player3Name, self.player4Name];
-
+  
   self.player1Score = [[Label alloc] initWithName:@"player1Score"
-                                    andFontColor:[SKColor whiteColor]
-                                     andFontSize:labelFontSize
-                                     andPosition:CGPointMake(self.size.width - kMinusForScore, kLabelYPosition * 10)
-                                    andZPosition:kZPositionTopBarLabel
-                          andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
+                                     andFontColor:[SKColor whiteColor]
+                                      andFontSize:kLabelFontSize
+                                      andPosition:CGPointMake(self.size.width - kMinusForScore, kLabelYPosition * 10)
+                                     andZPosition:kZPositionTopBarLabel
+                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player1Score forKey:self.player1Score.name];
   self.player2Score = [[Label alloc] initWithName:@"player2Score"
                                      andFontColor:[SKColor whiteColor]
-                                      andFontSize:labelFontSize
+                                      andFontSize:kLabelFontSize
                                       andPosition:CGPointMake(self.size.width - kMinusForScore, kLabelYPosition * 7)
                                      andZPosition:kZPositionTopBarLabel
                            andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player2Score forKey:self.player2Score.name];
   self.player3Score = [[Label alloc] initWithName:@"player3Score"
                                      andFontColor:[SKColor whiteColor]
-                                      andFontSize:labelFontSize
+                                      andFontSize:kLabelFontSize
                                       andPosition:CGPointMake(self.size.width - kMinusForScore, kLabelYPosition * 4)
                                      andZPosition:kZPositionTopBarLabel
                            andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player3Score forKey:self.player3Score.name];
   self.player4Score = [[Label alloc] initWithName:@"player4Score"
                                      andFontColor:[SKColor whiteColor]
-                                      andFontSize:labelFontSize
+                                      andFontSize:kLabelFontSize
                                       andPosition:CGPointMake(self.size.width - kMinusForScore, kLabelYPosition * 1)
                                      andZPosition:kZPositionTopBarLabel
                            andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player4Score forKey:self.player4Score.name];
   self.playerScoreLabels = @[self.player1Score, self.player2Score, self.player3Score, self.player4Score];
   
+  [tempDictionary addEntriesFromDictionary:self.allLabels];
+  self.allLabels = [NSDictionary dictionaryWithDictionary:tempDictionary];
+}
+
+-(void)populateWithTopBarLabels {
+  
+  NSMutableDictionary *tempDictionary = [NSMutableDictionary new];
+
+  self.pileCountLabel = [[Label alloc] initWithName:@"pileCount"
+                                       andFontColor:[SKColor whiteColor]
+                                        andFontSize:kLabelFontSize
+                                        andPosition:CGPointMake(self.size.width - 5.f, 30.f)
+                                       andZPosition:kZPositionTopBarLabel
+                             andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
+  [tempDictionary setValue:self.pileCountLabel forKey:self.pileCountLabel.name];
+  
     // debugger labels
   CGFloat xMinusForPlayerRack = 275.f;
   self.player1Rack = [[Label alloc] initWithName:@"player1Rack"
                                      andFontColor:[SKColor whiteColor]
-                                      andFontSize:labelFontSize
+                                      andFontSize:kLabelFontSize
                                       andPosition:CGPointMake(self.size.width - xMinusForPlayerRack, kLabelYPosition * 10)
                                      andZPosition:kZPositionTopBarLabel
                            andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player1Rack forKey:self.player1Rack.name];
   self.player2Rack = [[Label alloc] initWithName:@"player2Rack"
                                     andFontColor:[SKColor whiteColor]
-                                     andFontSize:labelFontSize
+                                     andFontSize:kLabelFontSize
                                      andPosition:CGPointMake(self.size.width - xMinusForPlayerRack, kLabelYPosition * 7)
                                     andZPosition:kZPositionTopBarLabel
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player2Rack forKey:self.player2Rack.name];
   self.player3Rack = [[Label alloc] initWithName:@"player3Rack"
                                     andFontColor:[SKColor whiteColor]
-                                     andFontSize:labelFontSize
+                                     andFontSize:kLabelFontSize
                                      andPosition:CGPointMake(self.size.width - xMinusForPlayerRack, kLabelYPosition * 4)
                                     andZPosition:kZPositionTopBarLabel
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player3Rack forKey:self.player3Rack.name];
   self.player4Rack = [[Label alloc] initWithName:@"player4Rack"
                                     andFontColor:[SKColor whiteColor]
-                                     andFontSize:labelFontSize
+                                     andFontSize:kLabelFontSize
                                      andPosition:CGPointMake(self.size.width - xMinusForPlayerRack, kLabelYPosition * 1)
                                     andZPosition:kZPositionTopBarLabel
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
@@ -189,28 +248,28 @@
   
   self.holdingContainerLabel = [[Label alloc] initWithName:@"holdingContainer"
                                               andFontColor:[SKColor whiteColor]
-                                               andFontSize:labelFontSize * 0.8f
+                                               andFontSize:kLabelFontSize * 0.8f
                                                andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition)
                                               andZPosition:kZPositionTopBarLabel
                                     andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
   [tempDictionary setValue:self.holdingContainerLabel forKey:self.holdingContainerLabel.name];
   self.swapContainerLabel = [[Label alloc] initWithName:@"swapContainer"
                                               andFontColor:[SKColor whiteColor]
-                                               andFontSize:labelFontSize * 0.8f
+                                               andFontSize:kLabelFontSize * 0.8f
                                                andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 4)
                                               andZPosition:kZPositionTopBarLabel
                                     andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
   [tempDictionary setValue:self.swapContainerLabel forKey:self.swapContainerLabel.name];
   self.boardDyadminoesLabel = [[Label alloc] initWithName:@"boardDyadminoes"
                                    andFontColor:[SKColor whiteColor]
-                                    andFontSize:labelFontSize * 0.8f
+                                    andFontSize:kLabelFontSize * 0.8f
                                     andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 7)
                                    andZPosition:kZPositionTopBarLabel
                          andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
   [tempDictionary setValue:self.boardDyadminoesLabel forKey:self.boardDyadminoesLabel.name];
   self.pileDyadminoesLabel = [[Label alloc] initWithName:@"pileDyadminoes"
                                   andFontColor:[SKColor whiteColor]
-                                   andFontSize:labelFontSize / 2
+                                   andFontSize:kLabelFontSize / 2
                                    andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 10)
                                   andZPosition:kZPositionTopBarLabel
                         andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
@@ -220,27 +279,29 @@
   
   self.messageLabel = [[Label alloc] initWithName:@"message"
                                      andFontColor:kTestRed
-                                      andFontSize:labelFontSize
+                                      andFontSize:kLabelFontSize
                                       andPosition:CGPointMake(5.f, -kLabelYPosition * 3)
                                      andZPosition:kZPositionLogMessage
                            andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
   [tempDictionary setValue:self.messageLabel forKey:self.messageLabel.name];
   self.logLabel = [[Label alloc] initWithName:@"log"
                                  andFontColor:[SKColor whiteColor]
-                                  andFontSize:labelFontSize
+                                  andFontSize:kLabelFontSize
                                   andPosition:CGPointMake(self.size.width - 5.f, -kLabelYPosition * 3)
                                  andZPosition:kZPositionLogMessage
                        andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
   [tempDictionary setValue:self.logLabel forKey:self.logLabel.name];
   self.chordLabel = [[Label alloc] initWithName:@"gameAvatar"
                                  andFontColor:[SKColor yellowColor]
-                                  andFontSize:labelFontSize
+                                  andFontSize:kLabelFontSize
                                   andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 6)
                                  andZPosition:kZPositionLogMessage
                        andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
   [tempDictionary setValue:self.chordLabel forKey:self.chordLabel.name];
   
   self.allLabels = [NSDictionary dictionaryWithDictionary:tempDictionary];
+  
+  [self populateCommonLabels];
 }
 
 #pragma mark - button methods

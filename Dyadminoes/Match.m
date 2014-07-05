@@ -46,7 +46,6 @@
     self.tempScore = [[aDecoder decodeObjectForKey:@"tempScore"] unsignedIntegerValue];
     self.holdingContainer = [aDecoder decodeObjectForKey:@"holdingContainer"];
     self.swapContainer = [aDecoder decodeObjectForKey:@"swapContainer"];
-//    self.undoManager = [aDecoder decodeObjectForKey:@"undoManager"];
     self.replayCounter = [[aDecoder decodeObjectForKey:@"replayCounter"] unsignedIntegerValue];
     self.turns = [aDecoder decodeObjectForKey:@"turns"];
     
@@ -74,29 +73,12 @@
   [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.tempScore] forKey:@"tempScore"];
   [aCoder encodeObject:self.holdingContainer forKey:@"holdingContainer"];
   [aCoder encodeObject:self.swapContainer forKey:@"swapContainer"];
-//  [aCoder encodeObject:self.undoManager forKey:@"undoManager"];
   [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.replayCounter] forKey:@"replayCounter"];
   [aCoder encodeObject:self.turns forKey:@"turns"];
   
   [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.numberOfConsecutivePasses] forKey:@"consecutivePasses"];
   [aCoder encodeObject:self.firstDyadmino forKey:@"firstDyadmino"];
 }
-
-//+(void)saveMyMatch:(Match *)myMatch {
-//  [NSKeyedArchiver archiveRootObject:myMatch toFile:[self getPathToArchive]];
-//}
-//
-//+(Match *)getMyMatch {
-//  return [NSKeyedUnarchiver unarchiveObjectWithFile:[self getPathToArchive]];
-//}
-//
-//+(NSString *)getPathToArchive {
-//  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-//  NSString *directory = [paths objectAtIndex:0];
-//  NSString *pathString = [directory stringByAppendingPathComponent:@"match.plist"];
-//  NSLog(@"the archive path is %@", pathString);
-//  return pathString;
-//}
 
 #pragma mark - init methods
 

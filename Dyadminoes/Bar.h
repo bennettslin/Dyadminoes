@@ -11,39 +11,24 @@
 @class Button;
 @class Label;
 
-@interface TopBar : SKSpriteNode
+@interface Bar : SKSpriteNode
 
 @property (strong, nonatomic) NSSet *allButtons;
 @property (strong, nonatomic) NSDictionary *allLabels;
 @property (strong, nonatomic) NSArray *playerNameLabels;
 @property (strong, nonatomic) NSArray *playerScoreLabels;
 
-  // debugger labels
-@property (strong, nonatomic) NSArray *playerRackLabels;
-@property (strong, nonatomic) Label *pileDyadminoesLabel;
-@property (strong, nonatomic) Label *boardDyadminoesLabel;
-@property (strong, nonatomic) Label *holdingContainerLabel;
-@property (strong, nonatomic) Label *swapContainerLabel;
-@property (strong, nonatomic) Label *lastActionLabel;
-
-@property (strong, nonatomic) Button *gamesButton;
-//@property (strong, nonatomic) Button *togglePCModeButton;
-//@property (strong, nonatomic) Button *swapButton;
+@property (strong, nonatomic) Button *returnButton;
 @property (strong, nonatomic) Button *swapCancelOrUndoButton;
-//@property (strong, nonatomic) Button *playButton;
 @property (strong, nonatomic) Button *passPlayOrDoneButton;
 @property (strong, nonatomic) Button *debugButton;
 
-//@property (strong, nonatomic) Button *undoButton;
-//@property (strong, nonatomic) Button *redoButton;
 @property (strong, nonatomic) Button *replayButton;
 @property (strong, nonatomic) Button *resignButton;
 
 @property (strong, nonatomic) Label *pileCountLabel;
 @property (strong, nonatomic) Label *messageLabel;
-@property (strong, nonatomic) Label *logLabel;
 @property (strong, nonatomic) Label *chordLabel;
-//@property (strong, nonatomic) Label *scoreLabel;
 
 @property (strong, nonatomic) Label *player1Name;
 @property (strong, nonatomic) Label *player2Name;
@@ -60,6 +45,25 @@
 @property (strong, nonatomic) Label *player3Rack;
 @property (strong, nonatomic) Label *player4Rack;
 
+  // replay buttons
+@property (strong, nonatomic) Button *firstTurnButton;
+@property (strong, nonatomic) Button *previousTurnButton;
+@property (strong, nonatomic) Button *nextTurnButton;
+@property (strong, nonatomic) Button *lastTurnButton;
+
+  // replay labels
+@property (strong, nonatomic) Label *turnLabel;
+@property (strong, nonatomic) Label *playedDyadminoesLabel;
+
+  // debugger labels
+@property (strong, nonatomic) Label *logLabel;
+@property (strong, nonatomic) NSArray *playerRackLabels;
+@property (strong, nonatomic) Label *pileDyadminoesLabel;
+@property (strong, nonatomic) Label *boardDyadminoesLabel;
+@property (strong, nonatomic) Label *holdingContainerLabel;
+@property (strong, nonatomic) Label *swapContainerLabel;
+@property (strong, nonatomic) Label *lastActionLabel;
+
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size
     andAnchorPoint:(CGPoint)anchorPoint
        andPosition:(CGPoint)position
@@ -67,6 +71,9 @@
 
 -(void)populateWithTopBarButtons;
 -(void)populateWithTopBarLabels;
+
+-(void)populateWithTopReplayButtonsAndLabels;
+-(void)populateWithBottomReplayButtons;
 
 #pragma mark - button methods
 

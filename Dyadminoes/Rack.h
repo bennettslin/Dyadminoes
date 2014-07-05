@@ -34,6 +34,7 @@
                andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition;
 
 -(void)layoutOrRefreshNodesWithCount:(NSUInteger)countNumber;
+-(void)layoutReplayButtons;
 
 #pragma mark - reposition methods
 

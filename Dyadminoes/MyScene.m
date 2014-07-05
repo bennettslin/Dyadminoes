@@ -15,7 +15,7 @@
 #import "Player.h"
 #import "Rack.h"
 #import "Board.h"
-#import "TopBar.h"
+#import "Bar.h"
 #import "Cell.h"
 #import "Button.h"
 #import "Label.h"
@@ -24,7 +24,6 @@
 #import "SoundEngine.h"
 
 #define kBackgroundBoardColour [SKColor darkGrayColor]
-//#define kBackgroundBoardColour [SKColor colorWithPatternImage:[UIImage imageNamed:@"MaryFloral.jpeg"]]
 
 @interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIAlertViewDelegate, UIActionSheetDelegate, MatchDelegate>
 
@@ -39,11 +38,11 @@
     // sprites and nodes
   Rack *_rackField;
   Rack *_swapField;
-  Rack *_replayBottom;
+  Bar *_replayBottom;
   Board *_boardField;
   SKSpriteNode *_boardCover;
-  TopBar *_topBar;
-  TopBar *_replayTop;
+  Bar *_topBar;
+  Bar *_replayTop;
   SKNode *_touchNode;
 
     // touches
@@ -237,8 +236,6 @@
   for (Dyadmino *dyadmino in self.boardDyadminoes) {
     dyadmino.delegate = self;
     
-//    NSLog(@"dyadmino coord is %i, %i", dyadmino.myHexCoord.x, dyadmino.myHexCoord.y);
-    
       // this is for the first dyadmino, which doesn't have a boardNode
       // and also other dyadminoes when reloading
     if (!dyadmino.homeNode) {
@@ -255,8 +252,6 @@
         case kPC1atFourOClock:
         case kPC1atTenOClock:
           snapPointsToSearch = _boardField.snapPointsTenOClock;
-          break;
-        default:
           break;
       }
       
@@ -297,13 +292,16 @@
 
 -(void)layoutReplayFields {
     // initial position is beyond screen
-  _replayTop = [[TopBar alloc] initWithColor:kReplayTopColour andSize:CGSizeMake(self.frame.size.width, kTopBarHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, self.frame.size.height) andZPosition:kZPositionReplayTop];
+  _replayTop = [[Bar alloc] initWithColor:kReplayTopColour andSize:CGSizeMake(self.frame.size.width, kTopBarHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, self.frame.size.height) andZPosition:kZPositionReplayTop];
   _replayTop.name = @"replayTop";
   [self addChild:_replayTop];
   
-  _replayBottom = [[Rack alloc] initWithBoard:_boardField andColour:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, -kRackHeight) andZPosition:kZPositionReplayBottom];
+  _replayBottom = [[Bar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, -kRackHeight) andZPosition:kZPositionReplayBottom];
   _replayBottom.name = @"replayBottom";
   [self addChild:_replayBottom];
+  
+  [_replayTop populateWithTopReplayButtonsAndLabels];
+  [_replayBottom populateWithBottomReplayButtons];
   
   _replayMode = NO;
   _replayTop.hidden = YES;
@@ -311,8 +309,8 @@
 }
 
 -(void)layoutTopBar {
-    // background
-  _topBar = [[TopBar alloc] initWithColor:kBarBrown
+
+  _topBar = [[Bar alloc] initWithColor:kBarBrown
                                   andSize:CGSizeMake(self.frame.size.width, kTopBarHeight)
                            andAnchorPoint:CGPointZero
                               andPosition:CGPointMake(0, self.frame.size.height - kTopBarHeight)
@@ -357,6 +355,8 @@
   }
   
   [_topBar rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
+  [_replayTop rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
+  [_replayBottom rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
 }
 
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity {
@@ -393,14 +393,6 @@
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
   NSLog(@"%@, zPosition %.2f", _touchNode.name, _touchNode.zPosition);
-//  
-//  if ([_touchNode.parent isKindOfClass:[Cell class]]) {
-//    SKSpriteNode *node = (SKSpriteNode *)_touchNode;
-//    UIColor *colour = node.color;
-//    NSLog(@"colour %@", colour);
-//  }
-  
-//  NSLog(@"distance between double taps is %.2f", [self getDistanceFromThisPoint:_beganTouchLocation toThisPoint:_endTouchLocationToMeasureDoubleTap]);
 
     //--------------------------------------------------------------------------
     /// 3a. button pressed
@@ -420,11 +412,16 @@
     /// 3b. dyadmino touched
   
   Dyadmino *dyadmino = [self selectDyadminoFromTouchPoint:_currentTouchLocation];
-  if (!_canDoubleTapForDyadminoFlip && ![dyadmino isRotating]) {
+  
+  
+  NSLog(@"it's replay mode %i", _replayMode);
+  if ((_replayMode && [dyadmino isOnBoard]) ||
+      (!_replayMode && !_canDoubleTapForDyadminoFlip && ![dyadmino isRotating])) {
     
         // register sound if dyadmino tapped
     if (dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
       if (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) {
+        NSLog(@"dyadmino is being sounded");
         [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
       }
       
@@ -434,6 +431,7 @@
       if (face && face.parent != _hoveringDyadmino && !_pivotInProgress) {
 
         if ([face.parent isKindOfClass:[Dyadmino class]]) {
+          NSLog(@"dyadmino face is being sounded");
           Dyadmino *faceParent = (Dyadmino *)face.parent;
           if (!_boardZoomedOut || (_boardZoomedOut && [faceParent isInRack])) {
             [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
@@ -444,7 +442,7 @@
     }
   }
   
-  if (dyadmino && !dyadmino.isRotating && !_touchedDyadmino && (!_boardZoomedOut || [dyadmino isInRack])) {
+  if (!_replayMode && dyadmino && !dyadmino.isRotating && !_touchedDyadmino && (!_boardZoomedOut || [dyadmino isInRack])) {
     _touchedDyadmino = dyadmino;
 //    NSLog(@"begin touch or pivot of dyadmino");
     [self beginTouchOrPivotOfDyadmino:dyadmino];
@@ -1034,13 +1032,12 @@
 -(void)handleButtonPressed {
   
       /// games button
-  if (_buttonPressed == _topBar.gamesButton) {
+  if (_buttonPressed == _topBar.returnButton) {
     [self goBackToMainViewController];
     return;
     
       /// replay button
-  } else if (_buttonPressed == _topBar.replayButton) {
-    NSLog(@"replay button pressed");
+  } else if (_buttonPressed == _topBar.replayButton || _buttonPressed == _replayTop.returnButton) {
     _replayMode = _replayMode ? NO : YES;
     [self toggleReplayFields];
     return;
@@ -1077,24 +1074,7 @@
   } else if (_buttonPressed == _topBar.swapCancelOrUndoButton &&
              [_buttonPressed confirmSwapCancelOrUndo] == kUndoButton) {
     
-      // remove data dyadmino from holding container
-    DataDyadmino *undoneDataDyadmino = [self.myMatch undoDyadminoToHoldingContainer];
-    Dyadmino *undoneDyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[undoneDataDyadmino.myID - 1];
-    undoneDyadmino.tempReturnOrientation = undoneDataDyadmino.myOrientation;
-    undoneDyadmino.orientation = undoneDataDyadmino.myOrientation;
-    undoneDyadmino.myRackOrder = self.playerRackDyadminoes.count;
-    undoneDyadmino.homeNode = nil;
-
-      // re-add dyadmino to player rack
-    NSMutableArray *tempRackArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
-    [tempRackArray addObject:undoneDyadmino];
-    self.playerRackDyadminoes = [NSArray arrayWithArray:tempRackArray];
-    NSMutableSet *tempBoardSet = [NSMutableSet setWithSet:self.boardDyadminoes];
-    [tempBoardSet removeObject:undoneDyadmino];
-    self.boardDyadminoes = [NSSet setWithSet:tempBoardSet];
-    
-      // take care of views
-    [self sendDyadminoHome:undoneDyadmino fromUndo:YES byPoppingIn:YES andUpdatingBoardBounds:YES];
+    [self undoLastPlayedDyadmino];
     [self updateTopBarLabels];
   
       /// play button
@@ -1131,6 +1111,29 @@
 }
 
 #pragma mark - match interaction methods
+
+-(void)undoLastPlayedDyadmino {
+    // remove data dyadmino from holding container
+  DataDyadmino *undoneDataDyadmino = [self.myMatch undoDyadminoToHoldingContainer];
+  Dyadmino *undoneDyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[undoneDataDyadmino.myID - 1];
+  undoneDyadmino.color = kHighlightedDyadminoYellow; // for color blend factor
+  undoneDyadmino.tempReturnOrientation = undoneDataDyadmino.myOrientation;
+  undoneDyadmino.orientation = undoneDataDyadmino.myOrientation;
+  undoneDyadmino.myRackOrder = self.playerRackDyadminoes.count;
+  undoneDyadmino.homeNode = nil;
+  
+    // re-add dyadmino to player rack
+  NSMutableArray *tempRackArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
+  [tempRackArray addObject:undoneDyadmino];
+  self.playerRackDyadminoes = [NSArray arrayWithArray:tempRackArray];
+  NSMutableSet *tempBoardSet = [NSMutableSet setWithSet:self.boardDyadminoes];
+  [tempBoardSet removeObject:undoneDyadmino];
+  self.boardDyadminoes = [NSSet setWithSet:tempBoardSet];
+  
+    // take care of views
+  [self sendDyadminoHome:undoneDyadmino fromUndo:YES byPoppingIn:YES andUpdatingBoardBounds:YES];
+  [self persistDataForDyadmino:undoneDyadmino];
+}
 
 -(void)recordChangedDataForRackDyadminoes:(NSMutableArray *)rackArray {
   for (int i = 0; i < rackArray.count; i++) {
@@ -1667,7 +1670,7 @@
     // 1. Game has ended for player...
   if (_myPlayer.resigned || self.myMatch.gameHasEnded) {
     
-    [_topBar enableButton:_topBar.gamesButton];
+    [_topBar enableButton:_topBar.returnButton];
     [_topBar enableButton:_topBar.replayButton];
     [_topBar disableButton:_topBar.swapCancelOrUndoButton];
     [_topBar disableButton:_topBar.passPlayOrDoneButton];
@@ -1676,7 +1679,7 @@
       //2. Still in game but not player's turn
   } if (_myPlayer != self.myMatch.currentPlayer) {
 
-    [_topBar enableButton:_topBar.gamesButton];
+    [_topBar enableButton:_topBar.returnButton];
     [_topBar enableButton:_topBar.replayButton];
     [_topBar disableButton:_topBar.swapCancelOrUndoButton];
     [_topBar disableButton:_topBar.passPlayOrDoneButton];
@@ -1687,7 +1690,7 @@
     
       // 2a. swap mode
     if (_swapMode) {
-      [_topBar enableButton:_topBar.gamesButton];
+      [_topBar enableButton:_topBar.returnButton];
       [_topBar disableButton:_topBar.replayButton];
       [_topBar enableButton:_topBar.swapCancelOrUndoButton]; // cancel
       [_topBar enableButton:_topBar.passPlayOrDoneButton]; // done
@@ -1698,7 +1701,7 @@
 
         // 2b. not swap mode
     } else {
-      [_topBar enableButton:_topBar.gamesButton];
+      [_topBar enableButton:_topBar.returnButton];
       [_topBar enableButton:_topBar.replayButton];
       [_topBar enableButton:_topBar.swapCancelOrUndoButton];
       [_topBar enableButton:_topBar.passPlayOrDoneButton];
@@ -2101,28 +2104,11 @@
 
 #pragma mark - undo manager
 
--(void)addToPlayerRackDyadminoes:(Dyadmino *)dyadmino {
-  if (![self.playerRackDyadminoes containsObject:dyadmino]) {
-    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
-    [tempArray addObject:dyadmino];
-    self.playerRackDyadminoes = [NSArray arrayWithArray:tempArray];
-  }
-}
-
 -(void)removeFromPlayerRackDyadminoes:(Dyadmino *)dyadmino {
   if ([self.playerRackDyadminoes containsObject:dyadmino]) {
     NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
     [tempArray removeObject:dyadmino];
     self.playerRackDyadminoes = [NSArray arrayWithArray:tempArray];
-  }
-}
-
--(void)setPlayerRackDyadminoes:(NSArray *)playerRackDyadminoes {
-  if (!_playerRackDyadminoes || !playerRackDyadminoes) {
-    _playerRackDyadminoes = playerRackDyadminoes;
-  } else if (_playerRackDyadminoes != playerRackDyadminoes) {
-//    [self.myMatch.undoManager registerUndoWithTarget:self selector:@selector(setPlayerRackDyadminoes:) object:_playerRackDyadminoes];
-    _playerRackDyadminoes = playerRackDyadminoes;
   }
 }
 
@@ -2228,7 +2214,6 @@
     }
     _dyadminoesHidden = NO;
   }
-
 
   for (Cell *cell in _boardField.allCells) {
     if ([cell isKindOfClass:[Cell class]]) {
