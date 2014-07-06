@@ -421,4 +421,15 @@
   }
 }
 
+-(void)afterPlayUpdateScoreLabel:(Label *)scoreLabel withText:(NSString *)scoreText {
+    // FIXME: change so it flashes
+  NSLog(@"afterPlayUpdateScoreLabel called");
+  if (scoreLabel) {
+    if (!scoreLabel.parent) {
+      [self addChild:scoreLabel];
+    }
+    scoreLabel.text = scoreText;
+  }
+}
+
 @end

@@ -84,18 +84,20 @@
     
       // create pivot guides
       // TODO: refactor into one method?
-    SKNode *prePivotGuide = [self createPivotGuideNamed:@"prePivotGuide"];
-    SKNode *pivotRotateGuide = [self createPivotGuideNamed:@"pivotRotateGuide"];
-    SKNode *pivotAroundGuide = [self createPivotGuideNamed:@"pivotAroundGuide"];
-    
-      // assign pivot guides
-    self.prePivotGuide = prePivotGuide;
-    self.prePivotGuide.name = @"prePivotGuide";
-    self.pivotRotateGuide = pivotRotateGuide;
-    self.pivotRotateGuide.name = @"pivotRotateGuide";
-    self.pivotAroundGuide = pivotAroundGuide;
-    self.pivotAroundGuide.name = @"pivotAroundGuide";
-    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"pivotGuide"]) {
+      SKNode *prePivotGuide = [self createPivotGuideNamed:@"prePivotGuide"];
+      SKNode *pivotRotateGuide = [self createPivotGuideNamed:@"pivotRotateGuide"];
+      SKNode *pivotAroundGuide = [self createPivotGuideNamed:@"pivotAroundGuide"];
+
+        // assign pivot guides
+      self.prePivotGuide = prePivotGuide;
+      self.prePivotGuide.name = @"prePivotGuide";
+      self.pivotRotateGuide = pivotRotateGuide;
+      self.pivotRotateGuide.name = @"pivotRotateGuide";
+      self.pivotAroundGuide = pivotAroundGuide;
+      self.pivotAroundGuide.name = @"pivotAroundGuide";
+    }
+
     _hexOriginSet = NO;
     
 //    [self initLoadBackgroundImage];
@@ -849,7 +851,7 @@
 }
 
 -(void)showPivotGuide:(SKNode *)pivotGuide forDyadmino:(Dyadmino *)dyadmino {
-  if (!pivotGuide.parent) {
+  if (pivotGuide && !pivotGuide.parent) {
     if (pivotGuide == self.prePivotGuide || pivotGuide == self.pivotRotateGuide) {
       pivotGuide.position = dyadmino.position;
     } else {
@@ -876,7 +878,7 @@
 }
 
 -(void)hidePivotGuide:(SKNode *)pivotGuide {
-  if (pivotGuide.parent) {
+  if (pivotGuide && pivotGuide.parent) {
     [pivotGuide removeFromParent];
     pivotGuide.hidden = YES;
   }
@@ -926,7 +928,6 @@
 
     // establish angles
   CGFloat touchAngle = [self findAngleInDegreesFromThisPoint:touchLocation toThisPoint:dyadmino.pivotAroundPoint];
-//  CGFloat changeInAngle = [self getChangeFromThisAngle:touchAngle toThisAngle:dyadmino.initialPivotAngle];
   
     //// pivot guide positions and rotations should be established in determinePivotOnPC methods
     //// Here, they are adjusted. This should change, obviously

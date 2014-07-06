@@ -88,5 +88,6 @@
 
 -(void)updateLabelNamed:(NSString *)name withText:(NSString *)text;
 -(void)flashLabelNamed:(NSString *)name withText:(NSString *)text;
+-(void)afterPlayUpdateScoreLabel:(Label *)scoreLabel withText:(NSString *)scoreText;
 
 @end

@@ -64,6 +64,7 @@
   BOOL _hoveringDyadminoToStayFixedWhileBoardMoves;
   BOOL _boardJustShiftedNotCorrected;
   BOOL _boardZoomedOut;
+  BOOL _buttonsUpdatedThisTouch;
   
   SnapPoint *_uponTouchDyadminoNode;
   DyadminoOrientation _uponTouchDyadminoOrientation;
@@ -103,6 +104,7 @@
     _hoveringDyadminoBeingCorrected = 0;
     _hoveringDyadminoFinishedCorrecting = 1;
     _boardZoomedOut = NO;
+    _buttonsUpdatedThisTouch = NO;
   }
   return self;
 }
@@ -319,7 +321,7 @@
   [_topBar populateWithTopBarButtons];
   [_topBar populateWithTopBarLabels];
   [self addChild:_topBar];
-  [self updateTopBarLabels];
+  [self updateTopBarLabelsFinalTurn:NO];
   [self updateTopBarButtons];
   
   _topBar.pileDyadminoesLabel.hidden = YES;
@@ -548,6 +550,12 @@
     // if it moved beyond certain distance, it can no longer flip
   if ([self getDistanceFromThisPoint:_touchedDyadmino.position toThisPoint:_touchedDyadmino.homeNode.position] > kDistanceAfterCannotRotate) {
     _touchedDyadmino.canFlip = NO;
+    
+      // buttons updated once
+    if ([_touchedDyadmino isOnBoard] && !_buttonsUpdatedThisTouch) {
+      [self updateTopBarButtons];
+      _buttonsUpdatedThisTouch = YES;
+    }
   }
   
     // touched dyadmino is now on board
@@ -562,15 +570,17 @@
     if (_recentRackDyadmino && _touchedDyadmino != _recentRackDyadmino) {
       
       [self changeColoursAroundDyadmino:_recentRackDyadmino withSign:-1];
-//      NSLog(@"send dyadmino home if rack dyadmino is moved to board");
       [self sendDyadminoHome:_recentRackDyadmino fromUndo:NO byPoppingIn:YES andUpdatingBoardBounds:YES];
       
         // or same thing with hovering dyadmino (it will only ever be one or the other)
     } else if (_hoveringDyadmino && _touchedDyadmino != _hoveringDyadmino) {
-//      NSLog(@"send dyadmino home if hovering dyadmino");
       [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andUpdatingBoardBounds:YES];
     }
-    [self updateTopBarButtons];
+      // buttons updated once
+    if (!_buttonsUpdatedThisTouch) {
+      [self updateTopBarButtons];
+      _buttonsUpdatedThisTouch = YES;
+    }
   }
   
     // continue to reset hover count
@@ -687,6 +697,7 @@
   _pivotInProgress = NO;
   _touchOffsetVector = CGPointZero;
   _soundedDyadminoFace = nil;
+  _buttonsUpdatedThisTouch = NO;
 }
 
 #pragma mark - board methods
@@ -885,8 +896,6 @@
     } else {
       [self prepareForHoverThisDyadmino:dyadmino];
     }
-//    NSLog(@"update buttons from handle touch end of dyadmino");
-    [self updateTopBarButtons];
   }
 }
 
@@ -971,6 +980,8 @@
     dyadmino.orientation = dyadmino.tempReturnOrientation;
     [self updateCellsForPlacedDyadmino:dyadmino andColour:NO];
   }
+  
+  [self updateTopBarButtons];
 }
 
 -(void)sendDyadminoToBoardNode:(Dyadmino *)dyadmino {
@@ -1075,7 +1086,6 @@
              [_buttonPressed confirmSwapCancelOrUndo] == kUndoButton) {
     
     [self undoLastPlayedDyadmino];
-    [self updateTopBarLabels];
   
       /// play button
   } else if (_buttonPressed == _topBar.passPlayOrDoneButton &&
@@ -1106,7 +1116,7 @@
   }
   
     // return to bypass updating labels and buttons
-  [self updateTopBarLabels];
+  [self updateTopBarLabelsFinalTurn:NO];
   [self updateTopBarButtons];
 }
 
@@ -1245,7 +1255,7 @@
   }
   [_topBar flashLabelNamed:@"gameAvatar" withText:@"C major triad!"];
   [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO];
-  [self updateTopBarLabels];
+  [self updateTopBarLabelsFinalTurn:NO];
   [self updateTopBarButtons];
 }
 
@@ -1259,7 +1269,7 @@
     [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO];
     
       // update views
-    [self updateTopBarLabels];
+    [self updateTopBarLabelsFinalTurn:YES];
     [self updateTopBarButtons];
     [_topBar flashLabelNamed:@"log" withText:@"Turn done!"];
   }
@@ -1597,6 +1607,7 @@
         [dyadmino animateEaseIntoNodeAfterHover];
         _hoveringDyadmino = nil;
 //        NSLog(@"hovering dyadmino is %@", _hoveringDyadmino.name);
+        [self updateTopBarButtons];
       } else {
 //        NSLog(@"will keep hovering");
         [dyadmino keepHovering];
@@ -1612,12 +1623,12 @@
       }
     }
   }
-  [self updateTopBarButtons];
+//  [self updateTopBarButtons];
 }
 
 #pragma mark - update label and button methods
 
--(void)updateTopBarLabels {
+-(void)updateTopBarLabelsFinalTurn:(BOOL)finalTurn {
   
     // pile count
   [_topBar updateLabelNamed:@"pileCount"
@@ -1644,10 +1655,19 @@
 
     [_topBar updateLabelNamed:nameLabel.name withText:player.playerName];
     
-    NSString *scoreText = self.myMatch.tempScore > 0 && player == _myPlayer ?
-    [NSString stringWithFormat:@"%lu + %lu", (unsigned long)player.playerScore, (unsigned long)self.myMatch.tempScore] :
-    [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
-    [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
+    NSString *scoreText;
+    if (self.myMatch.tempScore > 0 && player == _myPlayer) {
+      scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)player.playerScore, (unsigned long)self.myMatch.tempScore];
+      [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
+    } else {
+      scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
+      if (finalTurn) {
+          // upon final turn, score is animated
+        [_topBar afterPlayUpdateScoreLabel:scoreLabel withText:scoreText];
+      } else {
+        [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
+      }
+    }
     
     [_topBar updateLabelNamed:rackLabel.name withText:[[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
     
@@ -2139,7 +2159,7 @@
   NSString *buttonText = [actionSheet buttonTitleAtIndex:buttonIndex];
   if ([buttonText isEqualToString:@"Resign"]) {
     [self.myMatch resignPlayer:_myPlayer];
-    [self updateTopBarLabels];
+    [self updateTopBarLabelsFinalTurn:YES];
     [self updateTopBarButtons];
   }
 }
@@ -2149,7 +2169,7 @@
   NSString *buttonText = [alertView buttonTitleAtIndex:buttonIndex];
   if ([buttonText isEqualToString:@"OK"]) {
     [self.myMatch resignPlayer:_myPlayer];
-    [self updateTopBarLabels];
+    [self updateTopBarLabelsFinalTurn:YES];
     [self updateTopBarButtons];
   }
 }
@@ -2179,7 +2199,6 @@
 #pragma mark - debugging methods
 
 -(void)debugButtonPressed {
-  [self updateTopBarLabels];
 
   if (_topBar.pileDyadminoesLabel.hidden) {
     _topBar.pileDyadminoesLabel.hidden = NO;
@@ -2221,7 +2240,7 @@
     }
   }
 
-  [self updateTopBarLabels];
+  [self updateTopBarLabelsFinalTurn:NO];
   [self updateTopBarButtons];
 }
 
