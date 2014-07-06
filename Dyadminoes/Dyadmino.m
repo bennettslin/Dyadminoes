@@ -433,7 +433,7 @@
     [self orientBySnapNode:self.homeNode];
     self.position = [self getHomeNodePosition];
     if (undo) {
-      [self.delegate layoutOrRefreshRackFieldAndDyadminoesFromUndo:YES];
+      [self.delegate layoutOrRefreshRackFieldAndDyadminoesFromUndo:YES withAnimation:NO];
     }
   }];
   SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];

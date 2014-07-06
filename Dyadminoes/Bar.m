@@ -99,6 +99,22 @@
   [self updateLabelNamed:@"player1Name" withText:@"test"];
 }
 
+-(void)populateWithTopPnPButtons {
+  self.returnButton = [[Button alloc] initWithName:@"return" andColor:[SKColor grayColor]
+                                           andSize:kButtonSize
+                                       andPosition:CGPointMake(kButtonWidth, kButtonYPosition * 2)
+                                      andZPosition:kZPositionTopBarButton];
+  [self enableButton:self.returnButton];
+}
+
+-(void)populateWithBottomPnPButtons {
+  self.returnButton = [[Button alloc] initWithName:@"start" andColor:[SKColor grayColor]
+                                           andSize:kButtonSize
+                                       andPosition:CGPointMake(kButtonWidth, kButtonYPosition * 2)
+                                      andZPosition:kZPositionTopBarButton];
+  [self enableButton:self.returnButton];
+}
+
 -(void)populateWithBottomReplayButtons {
   
   NSMutableSet *tempButtons = [NSMutableSet new];
@@ -206,6 +222,13 @@
   
   NSMutableDictionary *tempDictionary = [NSMutableDictionary new];
 
+  self.turnLabel = [[Label alloc] initWithName:@"turnCount"
+                                       andFontColor:[SKColor whiteColor]
+                                        andFontSize:kLabelFontSize
+                                        andPosition:CGPointMake(self.size.width - 5.f, 60.f)
+                                       andZPosition:kZPositionTopBarLabel
+                             andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
+  [tempDictionary setValue:self.turnLabel forKey:self.turnLabel.name];
   self.pileCountLabel = [[Label alloc] initWithName:@"pileCount"
                                        andFontColor:[SKColor whiteColor]
                                         andFontSize:kLabelFontSize
@@ -282,7 +305,7 @@
                                       andFontSize:kLabelFontSize
                                       andPosition:CGPointMake(5.f, -kLabelYPosition * 3)
                                      andZPosition:kZPositionLogMessage
-                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
+                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.messageLabel forKey:self.messageLabel.name];
   self.logLabel = [[Label alloc] initWithName:@"log"
                                  andFontColor:[SKColor whiteColor]

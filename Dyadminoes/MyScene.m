@@ -25,7 +25,7 @@
 
 #define kBackgroundBoardColour [SKColor darkGrayColor]
 
-@interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIAlertViewDelegate, UIActionSheetDelegate, MatchDelegate>
+@interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIActionSheetDelegate, MatchDelegate>
 
   // the dyadminoes that the player sees
 @property (strong, nonatomic) NSArray *playerRackDyadminoes;
@@ -44,6 +44,8 @@
   Bar *_topBar;
   Bar *_replayTop;
   SKNode *_touchNode;
+  Bar *_PnPTop;
+  Bar *_PnPBottom;
 
     // touches
   UITouch *_currentTouch;
@@ -112,6 +114,7 @@
 -(void)preLoad {
 //  NSLog(@"preload called from scene");
   _myPlayer = self.myMatch.currentPlayer;
+  self.myMatch.delegate = self;
   [self addChild:self.mySoundEngine];
   [self populateRackArray];
   [self populateBoardSet];
@@ -128,7 +131,10 @@
   [self layoutSwapField];
   [self layoutReplayFields];
   [self layoutTopBar];
-  [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO];
+  if (self.myMatch.type == kPnPGame) {
+    [self layoutPnPFields];
+  }
+  [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO];
   [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
 }
 
@@ -310,6 +316,23 @@
   _replayBottom.hidden = YES;
 }
 
+-(void)layoutPnPFields {
+    // FIXME: use own constants, not replay field constants
+  _PnPTop = [[Bar alloc] initWithColor:kReplayTopColour andSize:CGSizeMake(self.frame.size.width, kTopBarHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, self.frame.size.height) andZPosition:kZPositionReplayTop];
+  _replayTop.name = @"PnPTop";
+  [self addChild:_PnPTop];
+  
+  _PnPBottom = [[Bar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, -kRackHeight) andZPosition:kZPositionReplayBottom];
+  _replayBottom.name = @"PnPBottom";
+  [self addChild:_PnPBottom];
+
+  [_PnPTop populateWithTopPnPButtons];
+  [_PnPBottom populateWithBottomPnPButtons];
+
+  _PnPTop.hidden = YES;
+  _PnPBottom.hidden = YES;
+}
+
 -(void)layoutTopBar {
 
   _topBar = [[Bar alloc] initWithColor:kBarBrown
@@ -330,7 +353,7 @@
   _topBar.swapContainerLabel.hidden = YES;
 }
 
--(void)layoutOrRefreshRackFieldAndDyadminoesFromUndo:(BOOL)undo {
+-(void)layoutOrRefreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation {
   
   if (!_rackField) {
     _rackField = [[Rack alloc] initWithBoard:_boardField
@@ -344,7 +367,7 @@
     [self addChild:_rackField];
   }
   [_rackField layoutOrRefreshNodesWithCount:self.playerRackDyadminoes.count];
-  [_rackField repositionDyadminoes:self.playerRackDyadminoes fromUndo:undo withAnimation:NO];
+  [_rackField repositionDyadminoes:self.playerRackDyadminoes fromUndo:undo withAnimation:animation];
   
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     dyadmino.delegate = self;
@@ -867,6 +890,8 @@
         } else { // dyadmino never left rack, or is hovering
           [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andUpdatingBoardBounds:NO];
         }
+          // just settles into rack or swap
+        [self updateTopBarButtons];
         [self soundDyadminoSettleClick];
       }
       
@@ -1070,7 +1095,6 @@
     if (_swapMode) {
       [self toggleSwapField];
       [self cancelSwappedDyadminoes];
-      [self.myMatch resetHoldingContainer];
       
         // else send dyadmino home
     } else if (_hoveringDyadmino) {
@@ -1096,11 +1120,20 @@
   } else if (_buttonPressed == _topBar.passPlayOrDoneButton &&
              ([_buttonPressed confirmPassPlayOrDone] == kDoneButton || [_buttonPressed confirmPassPlayOrDone] == kPassButton)) {
     if (!_swapMode) {
-      [self finalisePlayerTurn];
+      if (self.myMatch.holdingContainer.count == 0) {
+          // it's a pass, so confirm with action sheet
+        [self presentPassActionSheet];
+      } else {
+        [self finalisePlayerTurn];
+      }
+          // finalising a swap
     } else if (_swapMode) {
-      if ([self finaliseSwap]) {
-        [self toggleSwapField];
-        _swapMode = NO;
+        // confirm that there's enough dyadminoes in the pile
+      if (self.myMatch.swapContainer.count > self.myMatch.pile.count) {
+        [_topBar flashLabelNamed:@"message" withText:@"There aren't enough dyadminoes left in the pile."];
+        return;
+      } else {
+        [self presentSwapActionSheet];
       }
     }
     
@@ -1110,7 +1143,7 @@
     
       /// resign button
   } else if (_buttonPressed == _topBar.resignButton) {
-    [self handleResign];
+    [self presentResignActionSheet];
   } else {
     return;
   }
@@ -1200,15 +1233,9 @@
       [toPile addObject:dyadmino];
     }
   }
-  
-    // if swapped dyadminoes is greater than pile count, cancel
-  if (self.myMatch.holdingContainer.count > self.myMatch.pile.count) {
-    [_topBar flashLabelNamed:@"message" withText:@"this is more than the pile count"];
-    return NO;
-    
-      // else, proceed with swap
-  } else {
 
+    // extra confirmation; this will have been checked when button was done button was first pressed
+  if (self.myMatch.swapContainer.count <= self.myMatch.pile.count) {
       // first take care of views
     for (Dyadmino *dyadmino in toPile) {
       dyadmino.belongsInSwap = NO;
@@ -1222,12 +1249,12 @@
     
       // then swap in the logic
     [self.myMatch swapDyadminoesFromCurrentPlayer];
-    
     [self populateRackArray];
-    [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO];
+    [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
     [_topBar flashLabelNamed:@"log" withText:@"Swapped!"];
     return YES;
   }
+  return NO;
 }
 
 -(void)playDyadmino:(Dyadmino *)dyadmino {
@@ -1254,7 +1281,7 @@
     dataDyad.myOrientation = dyadmino.orientation;
   }
   [_topBar flashLabelNamed:@"gameAvatar" withText:@"C major triad!"];
-  [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO];
+  [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
   [self updateTopBarLabelsFinalTurn:NO];
   [self updateTopBarButtons];
 }
@@ -1266,7 +1293,7 @@
     [self.myMatch recordDyadminoesFromPlayer:_myPlayer];
 
     [self populateRackArray];
-    [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO];
+    [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
     
       // update views
     [self updateTopBarLabelsFinalTurn:YES];
@@ -1276,24 +1303,25 @@
 }
 
 -(void)handleSwitchToNextPlayer {
-  
-}
-
--(void)handleResign {
-  
-  NSString *resignString = @"Are you sure? This will count as a loss in Game Center.";
-  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:resignString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Resign" otherButtonTitles:nil, nil];
-  actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
-  [actionSheet showInView:self.view];
-  
-  /*
-  UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Resign" message:@"Are you sure you want to resign?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK", nil];
-  [alertView show];
-  */
+  NSString *nextPlayer = [NSString stringWithFormat:@"Waiting for %@ to play.", self.myMatch.currentPlayer.playerName];
+  [_topBar flashLabelNamed:@"message" withText:nextPlayer];
 }
 
 -(void) handleEndGame {
-  
+  NSString *winnerText;
+  if (self.myMatch.wonPlayers.count > 0) {
+    
+    NSMutableArray *wonPlayerNames = [[NSMutableArray alloc] initWithCapacity:self.myMatch.wonPlayers.count];
+    for (Player *player in self.myMatch.wonPlayers) {
+      [wonPlayerNames addObject:player.playerName];
+    }
+    
+    NSString *wonPlayers = [wonPlayerNames componentsJoinedByString:@" and "];
+    winnerText = [NSString stringWithFormat:@"%@ won!", wonPlayers];
+  } else {
+    winnerText = @"Game ended in draw.";
+  }
+  [_topBar flashLabelNamed:@"message" withText:winnerText];
 }
 
 #pragma mark - realtime update methods
@@ -1565,9 +1593,6 @@
 
   // touch just ended doesn't really make a difference
 -(void)checkWhetherToEaseOrKeepHovering:(Dyadmino *)dyadmino afterTouchJustEnded:(BOOL)touchJustEnded {
-//  NSLog(@"dyadmino name is %@, %i, %i", dyadmino.name, [dyadmino belongsInRack], [dyadmino isInRack]);
-//  NSLog(@"touch just ended %i", touchJustEnded);
-//  NSLog(@"dyadmino home node %@, tempboard node %@, orientation %i, tempreturnorientation %i, candoubletap %i", dyadmino.homeNode.name, dyadmino.tempBoardNode.name, dyadmino.orientation, dyadmino.tempReturnOrientation, _canDoubleTapForDyadminoFlip);
   
     // if finished hovering
   if ([dyadmino isOnBoard] && _touchedDyadmino != dyadmino) {
@@ -1579,17 +1604,12 @@
                                                                          onBoardNode:dyadmino.tempBoardNode];
       
         // handle placement results:
-//      NSLog(@"placement result is %i", placementResult);
-        // ease in right away because
-        // no error and
-        // dyadmino was not moved from original spot
+        // ease in right away because no error, and dyadmino was not moved from original spot
       if (placementResult == kNoError && !(dyadmino.tempBoardNode == _uponTouchDyadminoNode && dyadmino.orientation == _uponTouchDyadminoOrientation)) {
-//        NSLog(@"will finish hovering");
         [dyadmino finishHovering];
         if ([dyadmino belongsOnBoard]) {
           
             // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
-          
             // this method will record a dyadmino that's already in the match's board
             // this method also gets called if a recently played dyadmino
             // has been moved, but data will not be submitted until the turn is officially done.
@@ -1599,17 +1619,14 @@
         
           // this is one of two places where board bounds are updated
           // the other is when rack dyadmino is sent home
-        
         NSLog(@"updateBoardBounds called from check whether to ease");
         [self updateBoardBoundsAndLayoutCells:YES];
         
         [_boardField hideAllPivotGuides];
         [dyadmino animateEaseIntoNodeAfterHover];
         _hoveringDyadmino = nil;
-//        NSLog(@"hovering dyadmino is %@", _hoveringDyadmino.name);
         [self updateTopBarButtons];
       } else {
-//        NSLog(@"will keep hovering");
         [dyadmino keepHovering];
         
             // lone dyadmino
@@ -1623,7 +1640,6 @@
       }
     }
   }
-//  [self updateTopBarButtons];
 }
 
 #pragma mark - update label and button methods
@@ -1631,6 +1647,7 @@
 -(void)updateTopBarLabelsFinalTurn:(BOOL)finalTurn {
   
     // pile count
+  [_topBar updateLabelNamed:@"turnCount" withText:[NSString stringWithFormat:@"turn %i", self.myMatch.turns.count + 1]];
   [_topBar updateLabelNamed:@"pileCount"
                    withText:[NSString stringWithFormat:@"in pile: %lu",
                              (unsigned long)self.myMatch.pile.count]];
@@ -1713,7 +1730,11 @@
       [_topBar enableButton:_topBar.returnButton];
       [_topBar disableButton:_topBar.replayButton];
       [_topBar enableButton:_topBar.swapCancelOrUndoButton]; // cancel
+        if (self.myMatch.swapContainer.count > 0) {
       [_topBar enableButton:_topBar.passPlayOrDoneButton]; // done
+      } else {
+        [_topBar disableButton:_topBar.passPlayOrDoneButton];
+      }
       [_topBar disableButton:_topBar.resignButton];
       
       [_topBar changeSwapCancelOrUndo:kCancelButton];
@@ -2041,8 +2062,6 @@
       
         // second restriction is that touch point is close enough based on following criteria:
         // if dyadmino is on board, not hovering and thus locked in a node, and we're not in swap mode...
-//      NSLog(@"determine current section of dyadmino from selectDyadminoFromTouchPoint");
-      
       [self determineCurrentSectionOfDyadmino:dyadmino];
       if ([dyadmino isOnBoard] && !_swapMode) {
         
@@ -2148,30 +2167,66 @@
   }
 }
 
+#pragma mark - action sheet methods
+
+-(void)presentPassActionSheet {
+  NSString *passString = @"Are you sure? This will count as your turn.";
+  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:passString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Pass" otherButtonTitles:nil, nil];
+  actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
+  [actionSheet showInView:self.view];
+}
+
+-(void)presentSwapActionSheet {
+  NSString *swapString = @"Are you sure? This will count as your turn.";
+  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:swapString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Swap" otherButtonTitles:nil, nil];
+  actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
+  [actionSheet showInView:self.view];
+}
+
+-(void)presentResignActionSheet {
+  NSString *resignString = @"Are you sure? This will count as a loss in Game Center.";
+  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:resignString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Resign" otherButtonTitles:nil, nil];
+  actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
+  [actionSheet showInView:self.view];
+}
+
+-(void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+  NSString *buttonText = [actionSheet buttonTitleAtIndex:buttonIndex];
+  
+  if ([buttonText isEqualToString:@"Resign"]) {
+    [self.myMatch resignPlayer:_myPlayer];
+    
+  } else if ([buttonText isEqualToString:@"Pass"]) {
+    [self finalisePlayerTurn];
+  } else if ([buttonText isEqualToString:@"Swap"]) {
+    
+      // will swap if successful, if not, message will be flashed in finaliseSwap method
+    if ([self finaliseSwap]) {
+      [self toggleSwapField];
+      _swapMode = NO;
+    } else {
+      
+      return;
+    }
+    
+      // cancel swap
+  } else if ([buttonText isEqualToString:@"Cancel"]) {
+    if (_swapMode) {
+      [self toggleSwapField];
+      [self cancelSwappedDyadminoes];
+    }
+    [self updateTopBarButtons];
+    return;
+  }
+  
+  [self updateTopBarLabelsFinalTurn:YES];
+  [self updateTopBarButtons];
+}
+
 #pragma mark - delegate methods
 
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino {
   return (self.boardDyadminoes.count == 1 && dyadmino == [self.boardDyadminoes anyObject] && !_recentRackDyadmino) ? YES : NO;
-}
-
--(void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-    // for resign alert view
-  NSString *buttonText = [actionSheet buttonTitleAtIndex:buttonIndex];
-  if ([buttonText isEqualToString:@"Resign"]) {
-    [self.myMatch resignPlayer:_myPlayer];
-    [self updateTopBarLabelsFinalTurn:YES];
-    [self updateTopBarButtons];
-  }
-}
-
--(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    // for resign alert view
-  NSString *buttonText = [alertView buttonTitleAtIndex:buttonIndex];
-  if ([buttonText isEqualToString:@"OK"]) {
-    [self.myMatch resignPlayer:_myPlayer];
-    [self updateTopBarLabelsFinalTurn:YES];
-    [self updateTopBarButtons];
-  }
 }
 
 -(void)soundRackExchangedDyadmino:(Dyadmino *)dyadmino {

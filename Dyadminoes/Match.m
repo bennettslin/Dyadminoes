@@ -163,7 +163,6 @@
 }
 
 -(Player *)switchToNextPlayer {
-  [self.delegate handleSwitchToNextPlayer];
   
   NSUInteger index = [self.players indexOfObject:self.currentPlayer];
   if ([self checkNumberOfPlayersStillInGame] > 1) {
@@ -174,6 +173,8 @@
         index++;
       } else {
         self.currentPlayer = nextPlayer;
+        
+        [self.delegate handleSwitchToNextPlayer];
         return nextPlayer;
       }
     }

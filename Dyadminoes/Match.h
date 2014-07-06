@@ -37,7 +37,6 @@
 @property (nonatomic) NSUInteger tempScore;
 @property (strong, nonatomic) NSArray *holdingContainer;
 @property (strong, nonatomic) NSMutableArray *swapContainer;
-//@property (strong, nonatomic) NSUndoManager *undoManager;
 @property (nonatomic) NSUInteger replayCounter;
 @property (strong, nonatomic) NSMutableArray *turns;
 

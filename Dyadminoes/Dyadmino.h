@@ -19,7 +19,7 @@
 -(void)soundDyadminoPivotClick;
 -(void)soundDyadminoSuck;
 
--(void)layoutOrRefreshRackFieldAndDyadminoesFromUndo:(BOOL)undo;
+-(void)layoutOrRefreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation;
 
 -(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign;
 

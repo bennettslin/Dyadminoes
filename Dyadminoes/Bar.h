@@ -26,6 +26,7 @@
 @property (strong, nonatomic) Button *replayButton;
 @property (strong, nonatomic) Button *resignButton;
 
+@property (strong, nonatomic) Label *turnLabel;
 @property (strong, nonatomic) Label *pileCountLabel;
 @property (strong, nonatomic) Label *messageLabel;
 @property (strong, nonatomic) Label *chordLabel;
@@ -52,7 +53,6 @@
 @property (strong, nonatomic) Button *lastTurnButton;
 
   // replay labels
-@property (strong, nonatomic) Label *turnLabel;
 @property (strong, nonatomic) Label *playedDyadminoesLabel;
 
   // debugger labels
@@ -74,6 +74,9 @@
 
 -(void)populateWithTopReplayButtonsAndLabels;
 -(void)populateWithBottomReplayButtons;
+
+-(void)populateWithTopPnPButtons;
+-(void)populateWithBottomPnPButtons;
 
 #pragma mark - button methods
 
