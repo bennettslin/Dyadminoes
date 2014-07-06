@@ -140,9 +140,9 @@
   
     // no colour gradient lightens up, colour gradient darkens up
 
-    gradientRed = redValue + ((1.f - redValue) / 3.f);
-    gradientGreen = greenValue + ((1.f - greenValue) / 3.f);
-    gradientBlue = blueValue + ((1.f - blueValue) / 3.f);
+    gradientRed = redValue + ((1.f - redValue) / 4.f);
+    gradientGreen = greenValue + ((1.f - greenValue) / 4.f);
+    gradientBlue = blueValue + ((1.f - blueValue) / 4.f);
 
   if (!upsideDown) {
     topGradient = [UIColor colorWithRed:gradientRed green:gradientGreen blue:gradientBlue alpha:1.f];
@@ -160,6 +160,12 @@
   
   [thisView.layer addSublayer:gradientLayer];
   gradientLayer.zPosition = -1;
+}
+
+-(void)addShadowToView:(UIView *)thisView upsideDown:(BOOL)upsideDown {
+  thisView.layer.shadowColor = [UIColor blackColor].CGColor;
+  thisView.layer.shadowOffset = CGSizeMake(0, upsideDown ? -10.f : 10.f);
+  thisView.layer.shadowOpacity = .35f;
 }
 
 #pragma mark - chord label methods

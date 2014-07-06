@@ -92,6 +92,9 @@
   self.topBar.backgroundColor = kDarkBlue;
   [self addGradientToView:self.topBar WithColour:self.topBar.backgroundColor andUpsideDown:YES];
   
+  [self addShadowToView:self.topBar upsideDown:NO];
+  [self addShadowToView:self.bottomBar upsideDown:YES];
+  
 //  NSArray *tempVCArray = @[self.pnpVC, self.helpVC, self.storeVC, self.rankVC, self.optionsVC, self.aboutVC];
 //  NSArray *tempColourArray = @[[UIColor lightGrayColor], [UIColor redColor], [UIColor orangeColor], [UIColor yellowColor], [UIColor greenColor], [UIColor blueColor]];
   

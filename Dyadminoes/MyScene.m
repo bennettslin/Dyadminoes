@@ -1531,16 +1531,13 @@
 
       if (_boardJustShiftedNotCorrected &&
           _hoveringDyadmino && _hoveringDyadmino != _touchedDyadmino) {
-//        NSLog(@"hovering dyadmino is %@, touched dyadmino is %@", _hoveringDyadmino.name, _touchedDyadmino.name);
         
         _boardJustShiftedNotCorrected = NO;
-        NSLog(@"update cells for removed dyadmino called from update for board being corrected within bounds, board just shifted not corrected");
         [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
         _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
         [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
         
         if (_hoveringDyadminoBeingCorrected == 0) {
-//          NSLog(@"update for board");
           if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
             [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
           }
@@ -1555,7 +1552,6 @@
 -(void)updatePivotForDyadminoMoveWithoutBoardCorrected {
     // if board not shifted or corrected, show prepivot guide
   if (_hoveringDyadmino && _hoveringDyadminoBeingCorrected == 0 && !_touchedDyadmino && !_currentTouch && !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected && ![_boardField.children containsObject:_boardField.prePivotGuide]) {
-//    NSLog(@"update pivot for dyadmino move without board corrected");
     if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
       [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
     }
@@ -1585,7 +1581,6 @@
     }
     
     if ([dyadmino isFinishedHovering]) {
-//      NSLog(@"update dyadmino, finished hovering, check");
       [self checkWhetherToEaseOrKeepHovering:dyadmino afterTouchJustEnded:NO];
     }
   }
@@ -1702,11 +1697,9 @@
 }
 
 -(void)updateTopBarButtons {
-  NSLog(@"update buttons called");
     // three main possibilities
     // 1. Game has ended for player...
   if (_myPlayer.resigned || self.myMatch.gameHasEnded) {
-    
     [_topBar enableButton:_topBar.returnButton];
     [_topBar enableButton:_topBar.replayButton];
     [_topBar disableButton:_topBar.swapCancelOrUndoButton];
@@ -1714,7 +1707,7 @@
     [_topBar disableButton:_topBar.resignButton];
     
       //2. Still in game but not player's turn
-  } if (_myPlayer != self.myMatch.currentPlayer) {
+  } else if (_myPlayer != self.myMatch.currentPlayer) {
 
     [_topBar enableButton:_topBar.returnButton];
     [_topBar enableButton:_topBar.replayButton];
@@ -1965,7 +1958,6 @@
     
       // it's in swap
   } else if (_swapMode && _currentTouchLocation.y - _touchOffsetVector.y > kRackHeight) {
-//    NSLog(@"it's in swap");
     dyadmino.belongsInSwap = YES;
     [self addDataDyadminoToSwapContainerForDyadmino:dyadmino];
     
@@ -1973,7 +1965,6 @@
 
     // if in rack field, doesn't matter if it's in swap
   } else if (_currentTouchLocation.y - _touchOffsetVector.y <= kRackHeight) {
-//    NSLog(@"it's in the rack field");
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
     dyadmino.belongsInSwap = NO;
     [self removeDataDyadminoFromSwapContainerForDyadmino:dyadmino];
@@ -1982,10 +1973,7 @@
       // else it's in the top bar, but this is a clumsy workaround, so be careful!
   } else if (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >=
              self.frame.size.height - kTopBarHeight) {
-//    NSLog(@"it's in the top bar");
     dyadmino.isInTopBar = YES;
-  } else {
-//    NSLog(@"it's nowhere!");
   }
 }
 

@@ -270,6 +270,7 @@ typedef enum passPlayOrDoneButton {
 
   // view stuff
 -(void)addGradientToView:(UIView *)thisView WithColour:(UIColor *)colour andUpsideDown:(BOOL)upsideDown;
+-(void)addShadowToView:(UIView *)thisView upsideDown:(BOOL)upsideDown;
 
   // chord label stuff
 -(NSString *)stringForChord:(ChordType)chordType;
