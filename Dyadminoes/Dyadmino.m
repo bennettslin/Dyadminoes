@@ -240,13 +240,17 @@
 }
 
 -(void)removeActionsAndEstablishNotRotating {
-  [self.pc1Sprite setScale:1.f];
-  [self.pc2Sprite setScale:1.f];
+  [self resetFaceScales];
   [self removeActionForKey:kActionMoveToPoint];
   [self removeActionForKey:kActionPopIntoRack];
   [self removeActionForKey:kActionFlip];
   [self removeActionForKey:kActionEaseIntoNode];
   self.isRotating = NO;
+}
+
+-(void)resetFaceScales {
+  [self.pc1Sprite setScale:1.f];
+  [self.pc2Sprite setScale:1.f];
 }
 
 #pragma mark - pivot methods
@@ -516,9 +520,19 @@
 
 -(void)animateFace:(SKSpriteNode *)face {
   if (face.parent == self) {
+      [face removeAllActions];
+    SKAction *begin = [SKAction runBlock:^{
+      [self resetFaceScales];
+    }];
     SKAction *scaleIn = [SKAction scaleTo:1.5f duration:.05f];
     SKAction *scaleOut = [SKAction scaleTo:1.f duration:.125f];
-    SKAction *sequence = [SKAction sequence:@[scaleIn, scaleOut]];
+    
+      // FIXME: kludge way of ensuring that face is reset to right size
+      // when face is sounded immediately after dyadmino flip, and before ease into node
+    SKAction *complete = [SKAction runBlock:^{
+      [self establishSizeOfSprite:face];
+    }];
+    SKAction *sequence = [SKAction sequence:@[begin, scaleIn, scaleOut, complete]];
     [face runAction:sequence withKey:kActionSoundFace];
   }
 }

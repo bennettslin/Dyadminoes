@@ -23,7 +23,6 @@
 
 #import "Match.h"
 
-  // all are iPad values for now
 #define kTableViewXMargin (kIsIPhone ? 20.f : 20.f)
 #define kTableViewTopMargin (kIsIPhone ? 122.f : 122.f)
 #define kTableViewBottomMargin (kIsIPhone ? 90.f : 90.f)
@@ -36,7 +35,6 @@
 @property (weak, nonatomic) IBOutlet UIView *topBar;
 @property (weak, nonatomic) IBOutlet UIView *bottomBar;
 
-//@property (weak, nonatomic) IBOutlet UIView *tableParentView;
 @property (weak, nonatomic) IBOutlet UIButton *selfGameButton;
 @property (weak, nonatomic) IBOutlet UIButton *PnPGameButton;
 @property (weak, nonatomic) IBOutlet UIButton *GCGameButton;
@@ -82,7 +80,6 @@
   self.activityIndicator.layer.borderWidth = 5.f;
   self.activityIndicator.center = self.view.center;
   [self.view insertSubview:self.activityIndicator aboveSubview:self.topBar];
-//  [self.activityIndicator startAnimating];
   
   _screenWidth = [UIScreen mainScreen].bounds.size.width;
   _screenHeight = [UIScreen mainScreen].bounds.size.height;
@@ -94,9 +91,6 @@
   
   [self addShadowToView:self.topBar upsideDown:NO];
   [self addShadowToView:self.bottomBar upsideDown:YES];
-  
-//  NSArray *tempVCArray = @[self.pnpVC, self.helpVC, self.storeVC, self.rankVC, self.optionsVC, self.aboutVC];
-//  NSArray *tempColourArray = @[[UIColor lightGrayColor], [UIColor redColor], [UIColor orangeColor], [UIColor yellowColor], [UIColor greenColor], [UIColor blueColor]];
   
   self.soloVC = [self.storyboard instantiateViewControllerWithIdentifier:@"SoloViewController"];
   self.soloVC.view.backgroundColor = [UIColor lightGrayColor];
@@ -307,7 +301,7 @@
   self.darkOverlay.backgroundColor = [UIColor clearColor];
   [self.view insertSubview:self.darkOverlay belowSubview:self.bottomBar];
   [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-    self.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:0.3f];
+    self.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:kBoardCoverAlpha];
   } completion:^(BOOL finished) {
   }];
 }
