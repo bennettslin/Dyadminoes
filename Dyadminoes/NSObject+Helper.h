@@ -61,6 +61,14 @@
 #define kAnimateHoverTime 0.775f
 #define kDoubleTapTime 0.225f
 
+#define kFaceScaleFactor 1.5f
+#define kFaceScaleInTime 0.05f
+#define kFaceScaleOutTime 0.125f
+
+#define kScoreScaleFactor 2.f
+#define kScoreScaleInTime 0.1f
+#define kScoreScaleOutTime 0.25f
+
   // dyadmino state constants
 #define kDyadminoHoverResizeFactor 1.17f
 #define kDyadminoColorBlendFactor 0.2f

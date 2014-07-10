@@ -130,6 +130,8 @@
   [self updatePCLabel];
 }
 
+#pragma mark - snap points methods
+
 -(void)createSnapPoints {
   self.boardSnapPointTwelveOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwelveOClock];
   self.boardSnapPointTwoOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwoOClock];
@@ -162,7 +164,7 @@
 }
 
 -(void)addSnapPointsToBoard {
-//  [self positionSnapPointsForResize:NO];
+  [self positionSnapPointsForResize:NO];
   
   if (![self.board.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
     [self.board.snapPointsTwelveOClock addObject:self.boardSnapPointTwelveOClock];

@@ -1670,17 +1670,18 @@
     [_topBar updateLabelNamed:nameLabel.name withText:player.playerName];
     
     NSString *scoreText;
-    if (self.myMatch.tempScore > 0 && player == _myPlayer) {
+      
+    if (player == _myPlayer && self.myMatch.tempScore > 0) {
       scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)player.playerScore, (unsigned long)self.myMatch.tempScore];
-      [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
     } else {
       scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
-      if (finalTurn) {
-          // upon final turn, score is animated
-        [_topBar afterPlayUpdateScoreLabel:scoreLabel withText:scoreText];
-      } else {
-        [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
-      }
+    }
+    
+    if (player == _myPlayer && finalTurn) {
+        // upon final turn, score is animated
+      [_topBar afterPlayUpdateScoreLabel:scoreLabel withText:scoreText];
+    } else {
+      [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
     }
     
     [_topBar updateLabelNamed:rackLabel.name withText:[[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];

@@ -524,8 +524,8 @@
     SKAction *begin = [SKAction runBlock:^{
       [self resetFaceScales];
     }];
-    SKAction *scaleIn = [SKAction scaleTo:1.5f duration:.05f];
-    SKAction *scaleOut = [SKAction scaleTo:1.f duration:.125f];
+    SKAction *scaleIn = [SKAction scaleTo:kFaceScaleFactor duration:kFaceScaleInTime];
+    SKAction *scaleOut = [SKAction scaleTo:1.f duration:kFaceScaleOutTime];
     
       // FIXME: kludge way of ensuring that face is reset to right size
       // when face is sounded immediately after dyadmino flip, and before ease into node
