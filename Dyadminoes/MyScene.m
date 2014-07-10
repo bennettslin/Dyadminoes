@@ -631,7 +631,7 @@
   }
   
     // this ensures that pivot guides are not hidden if rack exchange
-  if (_touchedDyadmino == _hoveringDyadmino && !_touchedDyadmino.isRotating) {
+  if (_touchedDyadmino == _hoveringDyadmino) {
     [_boardField hideAllPivotGuides];
   }
   
