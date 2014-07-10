@@ -20,7 +20,6 @@
 -(void)soundDyadminoSuck;
 
 -(void)layoutOrRefreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation;
-
 -(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign;
 
 @end
@@ -34,6 +33,10 @@
 @property NSUInteger pc1;
 @property NSUInteger pc2;
 @property (nonatomic) PCMode pcMode;
+
+  // cells
+@property (strong, nonatomic) Cell *cellForPC1;
+@property (strong, nonatomic) Cell *cellForPC2;
 
   // nodes and touches
 @property (strong, nonatomic) SnapPoint *homeNode;

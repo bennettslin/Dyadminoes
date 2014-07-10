@@ -925,25 +925,27 @@
 }
 
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino {
-  _hoveringDyadmino = dyadmino;
-  
-    // establish the closest board node, without snapping just yet
-  dyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:dyadmino];
+  if (dyadmino != _touchedDyadmino) {
+    _hoveringDyadmino = dyadmino;
+    
+      // establish the closest board node, without snapping just yet
+    dyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:dyadmino];
 
-    // update cells for placement
-  [self updateCellsForPlacedDyadmino:dyadmino andColour:NO];
-  
-    // start hovering
-  [dyadmino removeActionsAndEstablishNotRotating];
-  
-//  NSLog(@"prepare for hover, check");
-  [self checkWhetherToEaseOrKeepHovering:dyadmino afterTouchJustEnded:YES];
-  
-//  NSLog(@"prepare for hover");
-  if (dyadmino.isHovering || dyadmino.continuesToHover) {
-//    NSLog(@"dyadmino hovering status is %i", dyadmino.hoveringStatus);
-    if (!_canDoubleTapForDyadminoFlip && ![dyadmino isRotating]) {
-      [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
+      // update cells for placement
+    [self updateCellsForPlacedDyadmino:dyadmino andColour:NO];
+    
+      // start hovering
+    [dyadmino removeActionsAndEstablishNotRotating];
+    
+  //  NSLog(@"prepare for hover, check");
+    [self checkWhetherToEaseOrKeepHovering:dyadmino afterTouchJustEnded:YES];
+    
+  //  NSLog(@"prepare for hover");
+    if (dyadmino.isHovering || dyadmino.continuesToHover) {
+  //    NSLog(@"dyadmino hovering status is %i", dyadmino.hoveringStatus);
+      if (!_canDoubleTapForDyadminoFlip && ![dyadmino isRotating]) {
+        [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
+      }
     }
   }
 }

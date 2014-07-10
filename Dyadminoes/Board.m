@@ -477,9 +477,6 @@
         // only assign if cell doesn't have a dyadmino recorded
       if (!cell.myDyadmino) {
         
-        // assign dyadmino to cell
-        cell.myDyadmino = dyadmino;
-        
         // assign pc to cell based on dyadmino orientation
         switch (dyadmino.orientation) {
           case kPC1atTwelveOClock:
@@ -493,18 +490,76 @@
             cell.myPC = pcs[(i + 1) % 2];
             break;
         }
-          // add to board's array of occupied cells to search
-        [self.occupiedCells addObject:cell];
+        
+          // ensures there's only one cell for each dyadmino pc, and vice versa
+        [self mapOneCell:cell toOnePCForDyadmino:dyadmino];
         
         if (colour) {
           [self changeColoursAroundCell:cell withSign:1];
         }
-        
-          /// testing purposes
-        [cell updatePCLabel];
       }
     }
   }
+}
+
+-(BOOL)mapOneCell:(Cell *)cell toOnePCForDyadmino:(Dyadmino *)dyadmino {
+  
+    // cell's new pc has just been assigned
+  if (cell.myPC == dyadmino.pc1) {
+    if (dyadmino.cellForPC1 && dyadmino.cellForPC1 != cell) { // remove dyadmino and its pc from previous cell
+      [self removeDyadminoDataFromCell:dyadmino.cellForPC1];
+    }
+    dyadmino.cellForPC1 = cell;
+    cell.myDyadmino = dyadmino;
+    
+      /// testing purposes
+    [cell updatePCLabel];
+    
+      // add to board's array of occupied cells to search
+    if (![self.occupiedCells containsObject:cell]) {
+      [self.occupiedCells addObject:cell];
+    }
+    return YES;
+    
+  } else if (cell.myPC == dyadmino.pc2) {
+    if (dyadmino.cellForPC2 && dyadmino.cellForPC2 != cell) { // remove dyadmino and its pc from previous cell
+      [self removeDyadminoDataFromCell:dyadmino.cellForPC2];
+    }
+    dyadmino.cellForPC2 = cell;
+    cell.myDyadmino = dyadmino;
+    
+      /// testing purposes
+    [cell updatePCLabel];
+    
+      // add to board's array of occupied cells to search
+    if (![self.occupiedCells containsObject:cell]) {
+      [self.occupiedCells addObject:cell];
+    }
+    return YES;
+  }
+  return NO;
+}
+
+-(BOOL)removeDyadminoDataFromCell:(Cell *)cell {
+  
+  if (cell.myDyadmino.cellForPC1 == cell) {
+    cell.myDyadmino.cellForPC1 = nil;
+  }
+  if (cell.myDyadmino.cellForPC2 == cell) {
+    cell.myDyadmino.cellForPC2 = nil;
+  }
+  
+  cell.myDyadmino = nil;
+  cell.myPC = -1;
+  
+  if ([self.occupiedCells containsObject:cell]) {
+    [self.occupiedCells removeObject:cell];
+  }
+  
+    // testing purposes
+  [cell updatePCLabel];
+  
+  return YES;
 }
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour {
@@ -520,27 +575,17 @@
     
     for (int i = 0; i < 2; i++) {
       Cell *cell = cells[i];
-
-//      NSLog(@"cell.myDyadmino is %@", cell.myDyadmino.name);
       
         // only remove if cell dyadmino is dyadmino
       if (cell.myDyadmino == dyadmino) {
-        
-//        NSLog(@"cell.myDyadmino is %@", cell.myDyadmino.name);
-        
-        [self.occupiedCells removeObject:cell];
        
         if (colour) {
           [self changeColoursAroundCell:cell withSign:-1];
         }
         
-        cell.myDyadmino = nil;
-        cell.myPC = -1;
-          /// testing purposes
-        [cell updatePCLabel];
+        [self removeDyadminoDataFromCell:cell];
       }
     }
-//    NSLog(@"cells removed from board");
   }
 }
 
