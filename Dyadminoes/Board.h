@@ -56,7 +56,7 @@
          andOrigin:(CGPoint)origin
       andZPosition:(CGFloat)zPosition;
 
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes;
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes forZoom:(BOOL)zoom;
 -(void)reloadBackgroundImage;
 
 #pragma mark - zoom methods
@@ -89,7 +89,7 @@
 #pragma mark - board span methods
 
 //-(HexCoord)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes;
--(void)determineBoardPositionBounds;
+-(void)determineBoardPositionBoundsForZoom:(BOOL)zoom;
 
 #pragma mark - legality methods
 

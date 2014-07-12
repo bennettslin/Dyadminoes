@@ -63,6 +63,7 @@
 @property (strong, nonatomic) Label *holdingContainerLabel;
 @property (strong, nonatomic) Label *swapContainerLabel;
 @property (strong, nonatomic) Label *lastActionLabel;
+@property (strong, nonatomic) Label *statusLabel;
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size
     andAnchorPoint:(CGPoint)anchorPoint

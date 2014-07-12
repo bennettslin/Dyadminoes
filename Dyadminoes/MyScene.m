@@ -126,7 +126,7 @@
 
     // this only needs the board dyadminoes to determine the board's cells ranges
     // this populates the board cells
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes];
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes forZoom:NO];
   [self populateBoardWithDyadminoes];
   [self layoutSwapField];
   [self layoutReplayFields];
@@ -436,17 +436,14 @@
     //--------------------------------------------------------------------------
     /// 3b. dyadmino touched
   
+    // dyadmino is not registered if face is touched
   Dyadmino *dyadmino = [self selectDyadminoFromTouchPoint:_currentTouchLocation];
   
-  
-  NSLog(@"it's replay mode %i", _replayMode);
-  if ((_replayMode && [dyadmino isOnBoard]) ||
-      (!_replayMode && !_canDoubleTapForDyadminoFlip && ![dyadmino isRotating])) {
+  if (!_canDoubleTapForDyadminoFlip && ([dyadmino isOnBoard] || ![dyadmino isRotating])) {
     
         // register sound if dyadmino tapped
-    if (dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
+    if (!_replayMode && dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
       if (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) {
-        NSLog(@"dyadmino is being sounded");
         [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
       }
       
@@ -456,7 +453,6 @@
       if (face && face.parent != _hoveringDyadmino && !_pivotInProgress) {
 
         if ([face.parent isKindOfClass:[Dyadmino class]]) {
-          NSLog(@"dyadmino face is being sounded");
           Dyadmino *faceParent = (Dyadmino *)face.parent;
           if (!_boardZoomedOut || (_boardZoomedOut && [faceParent isInRack])) {
             [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
@@ -777,12 +773,15 @@
   
   _boardZoomedOut = _boardZoomedOut ? NO : YES;
   [_boardField repositionCellsAndDyadminoesForZoomOut:_boardZoomedOut];
+  [self updateBoardBoundsAndLayoutCells:YES forZoom:_boardZoomedOut];
   
+    // resize dyadminoes
   for (Dyadmino *dyadmino in self.boardDyadminoes) {
     dyadmino.isZoomResized = dyadmino.isZoomResized ? NO : YES;
     dyadmino.position = dyadmino.tempBoardNode.position;
     [dyadmino selectAndPositionSprites];
   }
+  
   if (_recentRackDyadmino) {
     _recentRackDyadmino.isZoomResized = _recentRackDyadmino.isZoomResized ? NO : YES;
     [_recentRackDyadmino selectAndPositionSprites];
@@ -970,7 +969,7 @@
     // the other is when dyadmino is eased into board node
   if (updateBoardBounds) {
     NSLog(@"update board bounds from send dyadmino home");
-    [self updateBoardBoundsAndLayoutCells:YES];
+    [self updateBoardBoundsAndLayoutCells:YES forZoom:NO];
   }
   
   [dyadmino endTouchThenHoverResize];
@@ -1078,6 +1077,9 @@
   } else if (_buttonPressed == _topBar.replayButton || _buttonPressed == _replayTop.returnButton) {
     _replayMode = _replayMode ? NO : YES;
     [self toggleReplayFields];
+    if (_replayMode) {
+      [self loadReplayTurnInfo];
+    }
     return;
     
       /// swap button
@@ -1146,6 +1148,21 @@
       /// resign button
   } else if (_buttonPressed == _topBar.resignButton) {
     [self presentResignActionSheet];
+    
+      // replay buttons
+  } else if (_buttonPressed == _replayBottom.firstTurnButton) {
+    [self.myMatch first];
+    [self loadReplayTurnInfo];
+  } else if (_buttonPressed == _replayBottom.previousTurnButton) {
+    [self.myMatch previous];
+    [self loadReplayTurnInfo];
+  } else if (_buttonPressed == _replayBottom.nextTurnButton) {
+    [self.myMatch next];
+    [self loadReplayTurnInfo];
+  } else if (_buttonPressed == _replayBottom.lastTurnButton) {
+    [self.myMatch lastOrLeaveReplay];
+    [self loadReplayTurnInfo];
+  
   } else {
     return;
   }
@@ -1617,7 +1634,7 @@
           // this is one of two places where board bounds are updated
           // the other is when rack dyadmino is sent home
         NSLog(@"updateBoardBounds called from check whether to ease");
-        [self updateBoardBoundsAndLayoutCells:YES];
+        [self updateBoardBoundsAndLayoutCells:YES forZoom:NO];
         
         [_boardField hideAllPivotGuides];
         [dyadmino animateEaseIntoNodeAfterHover];
@@ -1768,6 +1785,25 @@
   }
 }
 
+-(void)updateReplayButtons {
+  if (self.myMatch.replayCounter == 1) {
+    [_replayBottom disableButton:_replayBottom.firstTurnButton];
+    [_replayBottom disableButton:_replayBottom.previousTurnButton];
+    [_replayBottom enableButton:_replayBottom.nextTurnButton];
+    [_replayBottom enableButton:_replayBottom.lastTurnButton];
+  } else if (self.myMatch.replayCounter == self.myMatch.turns.count) {
+    [_replayBottom enableButton:_replayBottom.firstTurnButton];
+    [_replayBottom enableButton:_replayBottom.previousTurnButton];
+    [_replayBottom disableButton:_replayBottom.nextTurnButton];
+    [_replayBottom disableButton:_replayBottom.lastTurnButton];
+  } else {
+    [_replayBottom enableButton:_replayBottom.firstTurnButton];
+    [_replayBottom enableButton:_replayBottom.previousTurnButton];
+    [_replayBottom enableButton:_replayBottom.nextTurnButton];
+    [_replayBottom enableButton:_replayBottom.lastTurnButton];
+  }
+}
+
 #pragma mark - field animation methods
 
 -(void)toggleReplayFields {
@@ -1882,6 +1918,24 @@
   }
 }
 
+-(void)loadReplayTurnInfo {
+  if (self.myMatch.turns.count > 0) {
+    Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"player"];
+    NSArray *dyadminoesPlayed = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"container"];
+    NSString *dyadminoesPlayedString;
+    if (dyadminoesPlayed.count > 0) {
+      NSString *componentsString = [[dyadminoesPlayed valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "];
+      dyadminoesPlayedString = [NSString stringWithFormat:@"played %@", componentsString];
+    } else {
+      dyadminoesPlayedString = @"passed";
+    }
+    NSString *turnText = [NSString stringWithFormat:@"%@ %@ for turn %lu of %lu", turnPlayer.playerName, dyadminoesPlayedString, (unsigned long)self.myMatch.replayCounter, (unsigned long)self.myMatch.turns.count];
+    NSLog(@"turn text is %@", turnText);
+    [_replayTop updateLabelNamed:@"status" withText:turnText];
+    [self updateReplayButtons];
+  }
+}
+
 #pragma mark - board helper methods
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour {
@@ -1902,7 +1956,7 @@
   }
 }
 
--(void)updateBoardBoundsAndLayoutCells:(BOOL)layoutCells {
+-(void)updateBoardBoundsAndLayoutCells:(BOOL)layoutCells forZoom:(BOOL)zoom {
   
   NSLog(@"updateBoardBounds called");
   NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
@@ -1913,7 +1967,7 @@
   }
   
   if (layoutCells) {
-    [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard];
+    [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard forZoom:zoom];
   }
   
   [_topBar flashLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",

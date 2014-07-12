@@ -97,6 +97,7 @@
   [self populateCommonLabels];
   
   [self updateLabelNamed:@"player1Name" withText:@"test"];
+  [self updateLabelNamed:@"status" withText:@"default turn info"];
 }
 
 -(void)populateWithTopPnPButtons {
@@ -213,6 +214,14 @@
                            andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player4Score forKey:self.player4Score.name];
   self.playerScoreLabels = @[self.player1Score, self.player2Score, self.player3Score, self.player4Score];
+  
+  self.statusLabel = [[Label alloc] initWithName:@"status"
+                                    andFontColor:kTestRed
+                                     andFontSize:kLabelFontSize
+                                     andPosition:CGPointMake(5.f, -kLabelYPosition * 6)
+                                    andZPosition:kZPositionLogMessage
+                          andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
+  [tempDictionary setValue:self.statusLabel forKey:self.statusLabel.name];
   
   [tempDictionary addEntriesFromDictionary:self.allLabels];
   self.allLabels = [NSDictionary dictionaryWithDictionary:tempDictionary];

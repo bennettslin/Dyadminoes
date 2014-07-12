@@ -108,7 +108,6 @@
 #pragma mark - cell methods
 
 -(void)repositionCellsAndDyadminoesForZoomOut:(BOOL)resize {
-  
     // zoom out
   if (resize) {
     for (Cell *cell in self.allCells) {
@@ -131,7 +130,7 @@
   }
 }
 
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes forZoom:(BOOL)zoom {
 
     // hex origin is only set once
   if (!_hexOriginSet) {
@@ -165,7 +164,7 @@
   }
   
 //  NSLog(@"self.allCells count %i", self.allCells.count);
-  [self determineBoardPositionBounds];
+  [self determineBoardPositionBoundsForZoom:zoom];
   
   NSLog(@"self.allCells %i, self.occupiedCells %i, self.dequeuedCells %i", self.allCells.count, self.occupiedCells.count, self.dequeuedCells.count);
   NSLog(@"board nodes %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
@@ -399,29 +398,31 @@
   return CGVectorMake(((self.cellsRight - self.cellsLeft) / 2) + self.cellsLeft, ((self.cellsTop - self.cellsBottom - 1) / 2) + self.cellsBottom);
 }
 
--(void)determineBoardPositionBounds {
+-(void)determineBoardPositionBoundsForZoom:(BOOL)zoom {
     // this should get called after every method that adds cells or removes them
+  
+  CGFloat factor = zoom ? kZoomResizeFactor : 1.f;
   
     // board y-coord bounds will be different depending on whether x is odd or even
   if (_cellsTopXIsEven) {
     CGFloat lowYBufferValue = -_vectorOrigin.dy + (kIsIPhone ? -0.5 : -1.5);
-    self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange + lowYBufferValue) * kDyadminoFaceDiameter;
+    self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange + lowYBufferValue) * kDyadminoFaceDiameter * factor;
   } else {
     CGFloat lowYBufferValue = -_vectorOrigin.dy + (kIsIPhone ? 0 : -1.0);
-    self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange + lowYBufferValue) * kDyadminoFaceDiameter;
+    self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange + lowYBufferValue) * kDyadminoFaceDiameter * factor;
   }
   CGFloat lowXBufferValue = -_vectorOrigin.dx + (kIsIPhone ? 0.25 : -.25);
-  self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange + lowXBufferValue) * kDyadminoFaceWideDiameter;
+  self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange + lowXBufferValue) * kDyadminoFaceWideDiameter * factor;
   
   if (_cellsBottomXIsEven) {
     CGFloat highYBufferValue = -_vectorOrigin.dy + (kIsIPhone ? -0.5 : 0.5);
-    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange + highYBufferValue) * kDyadminoFaceDiameter;
+    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange + highYBufferValue) * kDyadminoFaceDiameter * factor;
   } else {
     CGFloat highYBufferValue = -_vectorOrigin.dy + (kIsIPhone ? 0: 1.0);
-    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange + highYBufferValue) * kDyadminoFaceDiameter;
+    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange + highYBufferValue) * kDyadminoFaceDiameter * factor;
   }
   CGFloat highXBufferValue = -_vectorOrigin.dx + (kIsIPhone ? -0.25 : 0.25);
-  self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange + highXBufferValue) * kDyadminoFaceWideDiameter;
+  self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange + highXBufferValue) * kDyadminoFaceWideDiameter * factor;
   
   /*
     cellsTop determines lowest Y position
@@ -721,12 +722,12 @@
     
 //    if (colourFactor > 0) {
       // returns the opposite colour. So for example, pc 0 returns red 0, green 4, blue 4
-      redMult = 6 - abs(6 - pc);
-      redMult = redMult >= 4 ? 4 : redMult;
-      greenMult = 6 - abs(6 - ((pc + 4) % 12));
-      greenMult = greenMult >= 4 ? 4 : greenMult;
-      blueMult = 6 - abs(6 - ((pc + 8) % 12));
-      blueMult = blueMult >= 4 ? 4 : blueMult;
+    redMult = 6 - abs(6 - pc);
+    redMult = redMult >= 4 ? 4 : redMult;
+    greenMult = 6 - abs(6 - ((pc + 4) % 12));
+    greenMult = greenMult >= 4 ? 4 : greenMult;
+    blueMult = 6 - abs(6 - ((pc + 8) % 12));
+    blueMult = blueMult >= 4 ? 4 : blueMult;
 //    } else {
 //      redMult = 0;
 //      greenMult = 0;
