@@ -29,7 +29,7 @@
 
   // the dyadminoes that the player sees
 @property (strong, nonatomic) NSArray *playerRackDyadminoes;
-@property (strong, nonatomic) NSSet *boardDyadminoes;
+@property (strong, nonatomic) NSSet *boardDyadminoes; // contains holding container dyadminoes
 
 @end
 
@@ -100,42 +100,77 @@
     self.name = @"scene";
     self.mySoundEngine = [[SoundEngine alloc] init];
     self.mySceneEngine = [[SceneEngine alloc] init];
-  
-    _rackExchangeInProgress = NO;
-    _buttonPressed = nil;
-    _hoveringDyadminoBeingCorrected = 0;
-    _hoveringDyadminoFinishedCorrecting = 1;
-    _boardZoomedOut = NO;
-    _buttonsUpdatedThisTouch = NO;
+    [self addChild:self.mySoundEngine];
+    
+    NSLog(@"layout static scene assets");
+    [self layoutBoard];
+    [self repositionBoardField];
+    [self layoutBoardCover];
+    [self layoutSwapField];
+    [self layoutReplayFields];
+    [self layoutTopBar];
   }
   return self;
 }
 
--(void)preLoad {
+-(void)loadAfterNewMatchRetrieved {
 //  NSLog(@"preload called from scene");
+  
+  [self.mySoundEngine removeAllActions];
+  
+  _rackExchangeInProgress = NO;
+  _buttonPressed = nil;
+  _hoveringDyadminoBeingCorrected = 0;
+  _hoveringDyadminoFinishedCorrecting = 1;
+  _boardZoomedOut = NO;
+  _buttonsUpdatedThisTouch = NO;
+  
+    // reset these init values
+  _currentTouch = nil;
+  _replayMode = NO;
+  _swapMode = NO;
+  _fieldActionInProgress = NO;
+  _boardToBeMovedOrBeingMoved = NO;
+  _boardBeingCorrectedWithinBounds = NO;
+  _canDoubleTapForBoardZoom = NO;
+  _canDoubleTapForDyadminoFlip = NO;
+  _hoveringDyadminoToStayFixedWhileBoardMoves = NO;
+  _boardJustShiftedNotCorrected = NO;
+  _uponTouchDyadminoNode = nil;
+  _soundedDyadminoFace = nil;
+  _touchedDyadmino = nil;
+  _recentRackDyadmino = nil;
+  _hoveringDyadmino = nil;
+  _pivotInProgress = NO;
+  _dyadminoesHidden = NO;
+  
   _myPlayer = self.myMatch.currentPlayer;
   self.myMatch.delegate = self;
-  [self addChild:self.mySoundEngine];
+  
+//  [self repositionBoardField];
+  
   [self populateRackArray];
   [self populateBoardSet];
+  
+    // this only needs the board dyadminoes to determine the board's cells ranges
+    // this populates the board cells
+  [self repositionBoardField];
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes forZoom:NO];
+  [self populateBoardWithDyadminoes];
+  
+  [self updateTopBarLabelsFinalTurn:NO];
+  [self updateTopBarButtons];
 }
 
 -(void)didMoveToView:(SKView *)view {
-  [self layoutBoard];
-  [self layoutBoardCover];
 
-    // this only needs the board dyadminoes to determine the board's cells ranges
-    // this populates the board cells
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes forZoom:NO];
-  [self populateBoardWithDyadminoes];
-  [self layoutSwapField];
-  [self layoutReplayFields];
-  [self layoutTopBar];
   if (self.myMatch.type == kPnPGame) {
     [self layoutPnPFields];
   }
   [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO];
-  [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
+  
+    // not for first version
+//  [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
 }
 
 #pragma mark - layout methods
@@ -213,19 +248,22 @@
 }
 
 -(void)layoutBoard {
+  
+  NSLog(@"frame width %.2f, height %.2f", self.frame.size.width, self.frame.size.height);
+  NSLog(@"view frame width %.2f, %.2f", self.view.frame.size.width, self.view.frame.size.height);
   CGSize size = CGSizeMake(self.frame.size.width,
                            (self.frame.size.height - kTopBarHeight - kRackHeight));
-  CGPoint homePosition = CGPointMake(self.view.frame.size.width * 0.5,
-                                     (self.view.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
 
-  _boardField = [[Board alloc] initWithColor:[SKColor clearColor]
-                                     andSize:size
-                              andAnchorPoint:CGPointMake(0.5, 0.5)
-                             andHomePosition:homePosition // this is changed with board movement
-                                   andOrigin:(CGPoint)homePosition // origin *never* changes
-                                andZPosition:kZPositionBoard];
+  _boardField = [[Board alloc] initWithColor:[SKColor clearColor] andSize:size];
   _boardField.delegate = self;
   [self addChild:_boardField];
+}
+
+-(void)repositionBoardField {
+    // home position is changed with board movement, but origin never changes
+  CGPoint homePosition = CGPointMake(self.frame.size.width * 0.5,
+                                     (self.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
+  [_boardField repositionBoardWithHomePosition:homePosition andOrigin:(CGPoint)homePosition];
 }
 
 -(void)layoutBoardCover {
@@ -344,8 +382,6 @@
   [_topBar populateWithTopBarButtons];
   [_topBar populateWithTopBarLabels];
   [self addChild:_topBar];
-  [self updateTopBarLabelsFinalTurn:NO];
-  [self updateTopBarButtons];
   
   _topBar.pileDyadminoesLabel.hidden = YES;
   _topBar.boardDyadminoesLabel.hidden = YES;
@@ -378,6 +414,8 @@
   if ([self.mySceneEngine rotateDyadminoesBasedOnDeviceOrientation:deviceOrientation]) {
     [self.mySoundEngine soundDeviceOrientation];
   }
+  
+  NSLog(@"view frame size is %.2f, %.2f", self.view.frame.size.width, self.view.frame.size.height);
   
   [_topBar rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
   [_replayTop rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
@@ -766,26 +804,38 @@
 }
 
 -(void)toggleBoardZoom {
-  NSLog(@"board zoomed");
+//  NSLog(@"board zoomed");
   if (_hoveringDyadmino) {
     [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andUpdatingBoardBounds:NO];
   }
   
   _boardZoomedOut = _boardZoomedOut ? NO : YES;
+  
+    // need genuine board centering method
   [_boardField repositionCellsAndDyadminoesForZoomOut:_boardZoomedOut];
   [self updateBoardBoundsAndLayoutCells:YES forZoom:_boardZoomedOut];
+  [self updateForBoardBeingCorrectedWithinBoundsForZoom:YES];
+  
+    // same as for board dyadminoes
+  if (_recentRackDyadmino) {
+    
+      // these ensure that dyadmino is placed properly when flipped right before board zooms out
+    [_recentRackDyadmino removeActionsAndEstablishNotRotating];
+    _recentRackDyadmino.isTouchThenHoverResized = NO;
+    
+    _recentRackDyadmino.isZoomResized = _recentRackDyadmino.isZoomResized ? NO : YES;
+    _recentRackDyadmino.position = _recentRackDyadmino.tempBoardNode.position;
+    [_recentRackDyadmino selectAndPositionSprites];
+  }
   
     // resize dyadminoes
   for (Dyadmino *dyadmino in self.boardDyadminoes) {
+
+    [dyadmino removeActionsAndEstablishNotRotating];
+    dyadmino.isTouchThenHoverResized = NO;
     dyadmino.isZoomResized = dyadmino.isZoomResized ? NO : YES;
     dyadmino.position = dyadmino.tempBoardNode.position;
     [dyadmino selectAndPositionSprites];
-  }
-  
-  if (_recentRackDyadmino) {
-    _recentRackDyadmino.isZoomResized = _recentRackDyadmino.isZoomResized ? NO : YES;
-    [_recentRackDyadmino selectAndPositionSprites];
-    _recentRackDyadmino.position = _recentRackDyadmino.tempBoardNode.position;
   }
   
   [self.mySoundEngine soundBoardZoom];
@@ -891,7 +941,7 @@
         }
           // just settles into rack or swap
         [self updateTopBarButtons];
-        [self soundDyadminoSettleClick];
+//        [self soundDyadminoSettleClick];
       }
       
         // or if dyadmino is in top bar...
@@ -1056,6 +1106,34 @@
 #pragma mark - view controller methods
 
 -(void)goBackToMainViewController {
+  
+  self.boardDyadminoes = [NSSet new];
+  self.playerRackDyadminoes = @[];
+  
+  for (SKNode *node in _boardField.children) {
+    if ([node isKindOfClass:[Dyadmino class]]) {
+      Dyadmino *dyadmino = (Dyadmino *)node;
+      [self updateCellsForRemovedDyadmino:dyadmino andColour:YES];
+      [dyadmino resetForNewMatch];
+      [dyadmino removeFromParent];
+    }
+  }
+  
+  [_boardField resetForNewMatch];
+  
+//  for (Dyadmino *dyadmino in self.boardDyadminoes) {
+//    [self updateCellsForRemovedDyadmino:dyadmino andColour:YES];
+//    [dyadmino resetForNewMatch];
+//    [dyadmino removeFromParent];
+//  }
+  
+  for (Dyadmino *dyadmino in _rackField.children) {
+    if ([dyadmino isKindOfClass:[Dyadmino class]]) {
+      [dyadmino resetForNewMatch];
+      [dyadmino removeFromParent];
+    }
+  }
+  
   [self.delegate backToMainMenu];
 }
 
@@ -1326,7 +1404,7 @@
   [_topBar flashLabelNamed:@"message" withText:nextPlayer];
 }
 
--(void) handleEndGame {
+-(void)handleEndGame {
   NSString *winnerText;
   if (self.myMatch.wonPlayers.count > 0) {
     
@@ -1354,7 +1432,7 @@
   
     // snap back somewhat from board bounds
     // TODO: this works, but it feels jumpy
-  [self updateForBoardBeingCorrectedWithinBounds];
+  [self updateForBoardBeingCorrectedWithinBoundsForZoom:NO];
   [self updateForHoveringDyadminoBeingCorrectedWithinBounds];
   [self updatePivotForDyadminoMoveWithoutBoardCorrected];
 }
@@ -1434,7 +1512,7 @@
   }
 }
 
--(void)updateForBoardBeingCorrectedWithinBounds {
+-(void)updateForBoardBeingCorrectedWithinBoundsForZoom:(BOOL)zoom {
   
   if (_fieldActionInProgress) {
     _boardField.homePosition = _boardField.position;
@@ -1491,7 +1569,9 @@
     
     if (_boardField.position.x < lowestXBuffer) {
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = 1.f + (lowestXBuffer - _boardField.position.x) / distanceDivisor;
+      thisDistance = zoom ?
+        lowestXBuffer - _boardField.position.x :
+        1.f + (lowestXBuffer - _boardField.position.x) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
       
@@ -1505,7 +1585,9 @@
     
     if (_boardField.position.y < lowestYBuffer) {
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = 1.f + (lowestYBuffer - _boardField.position.y) / distanceDivisor;
+      thisDistance = zoom ?
+        lowestYBuffer - _boardField.position.y :
+        1.f + (lowestYBuffer - _boardField.position.y) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y + thisDistance);
       _boardField.homePosition = _boardField.position;
       
@@ -1519,7 +1601,9 @@
 
     if (_boardField.position.x > highestXBuffer) {
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = 1.f + (_boardField.position.x - highestXBuffer) / distanceDivisor;
+      thisDistance = zoom ?
+        _boardField.position.x - highestXBuffer :
+        1.f + (_boardField.position.x - highestXBuffer) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x - thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
       
@@ -1533,7 +1617,9 @@
 
     if (_boardField.position.y > highestYBuffer) {
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = 1.f + (_boardField.position.y - highestYBuffer) / distanceDivisor;
+      thisDistance = zoom ?
+        _boardField.position.y - highestYBuffer :
+        1.f + (_boardField.position.y - highestYBuffer) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
       _boardField.homePosition = _boardField.position;
       
@@ -1939,7 +2025,7 @@
 #pragma mark - board helper methods
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour {
-  NSLog(@"update cells for placed dyadmino");
+//  NSLog(@"update cells for placed dyadmino");
   if (![dyadmino isRotating]) {
     dyadmino.tempBoardNode ?
       [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.tempBoardNode andColour:colour] :
@@ -2276,7 +2362,7 @@
 
 -(void)soundRackExchangedDyadmino:(Dyadmino *)dyadmino {
     // this will be a click clack sound
-  [self.mySoundEngine soundRackExchangedDyadmino];
+//  [self.mySoundEngine soundRackExchangedDyadmino];
 }
 
   // these methods might be different later, so keep them separate
@@ -2285,6 +2371,7 @@
 }
 
 -(void)soundDyadminoSettleClick {
+  NSLog(@"delegate called to sound dyadmino settle click");
   [self.mySoundEngine soundSettledDyadmino];
 }
 

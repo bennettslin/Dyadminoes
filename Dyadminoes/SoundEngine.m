@@ -39,6 +39,7 @@
 }
 
 -(void)soundRackExchangedDyadmino {
+  NSLog(@"sound rack exchanged dyadmino from sound engine");
   SKAction *sound = [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
   [self runAction:sound withKey:kActionClick];
 }
@@ -49,16 +50,19 @@
 }
 
 -(void)soundPivotClickedDyadmino {
+  NSLog(@"sound pivot clicked dyadmino from sound engine");
   SKAction *sound = [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
   [self runAction:sound withKey:kActionClick];
 }
 
 -(void)soundSettledDyadmino {
+  NSLog(@"settled dyadmino clicked in sound engine");
   SKAction *sound = [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
   [self runAction:sound withKey:kActionClick];
 }
 
 -(void)soundButton:(BOOL)tap {
+  NSLog(@"sound button from sound engine");
   SKAction *sound = tap ?
     [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO] :
     [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];

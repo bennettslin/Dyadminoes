@@ -87,6 +87,8 @@
 
 //-(void)randomiseRackOrientation;
 
+-(void)resetForNewMatch;
+
 #pragma mark - orient, position, and size methods
 
 -(void)selectAndPositionSprites;

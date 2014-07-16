@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
+#import "MyScene.h"
 #import "MatchesTableViewController.h"
 #import "Model.h"
 #import "NSObject+Helper.h"
@@ -61,6 +62,8 @@
 @property (strong, nonatomic) AboutViewController *aboutVC;
 
 @property (strong, nonatomic) UIActivityIndicatorView *activityIndicator;
+
+@property (strong, nonatomic) MyScene *myScene;
 
 @end
 
@@ -131,6 +134,10 @@
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
 
+      // Create and configure the scene
+  self.myScene = [MyScene sceneWithSize:self.view.bounds.size];
+  self.myScene.scaleMode = SKSceneScaleModeAspectFill;
+  
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(getModel) name:UIApplicationWillEnterForegroundNotification object:nil];
 }
 
@@ -202,6 +209,10 @@
   
   NSUInteger rowNumber;
   if ([segue.identifier isEqualToString:@"sceneSegue"]) {
+    
+    SceneViewController *sceneVC = [segue destinationViewController];
+    sceneVC.myScene = self.myScene;
+    
     [self startActivityIndicator];
     
     if ([sender isKindOfClass:[Match class]]) { // sender is match

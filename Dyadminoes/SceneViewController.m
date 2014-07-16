@@ -15,7 +15,6 @@
 @interface SceneViewController () <SceneDelegate, UIGestureRecognizerDelegate>
 
 @property (strong, nonatomic) SKView *mySceneView;
-@property (strong, nonatomic) MyScene *myScene;
 
 @end
 
@@ -24,7 +23,11 @@
 -(void)viewDidLoad {
   [super viewDidLoad];
   
+    // first version will not have device orientation
+  /*
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
+  */
+  
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
 
   [self createAndConfigureScene];
@@ -39,12 +42,11 @@
   self.mySceneView.showsFPS = YES;
   self.mySceneView.showsNodeCount = YES;
   
-    // Create and configure the scene
-  self.myScene = [MyScene sceneWithSize:self.mySceneView.bounds.size];
-  self.myScene.scaleMode = SKSceneScaleModeAspectFill;
   self.myScene.myMatch = self.myMatch;
   self.myScene.delegate = self;
-  [self.myScene preLoad];
+  
+  [self.myScene loadAfterNewMatchRetrieved];
+  
 //  NSLog(@"about to present scene");
   [self.mySceneView presentScene:self.myScene];
   [self.delegate stopActivityIndicator];

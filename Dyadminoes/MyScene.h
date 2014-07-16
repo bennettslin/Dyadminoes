@@ -23,7 +23,7 @@
 @property (strong, nonatomic) Match *myMatch;
 @property (weak, nonatomic) id <SceneDelegate> delegate;
 
--(void)preLoad;
+-(void)loadAfterNewMatchRetrieved;
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity;
 -(void)persistAllSceneDataDyadminoes;

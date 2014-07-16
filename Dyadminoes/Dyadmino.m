@@ -21,8 +21,6 @@
 
 @implementation Dyadmino {
   BOOL _alreadyAddedChildren;
-  CGSize _touchSize;
-//  PivotOnPC _pivotOnPC;
 }
 
 #pragma mark - init and layout methods
@@ -56,6 +54,25 @@
   }
 //  [self addShadow];
   return self;
+}
+
+-(void)resetForNewMatch {
+
+    // reset these init values
+  
+  self.color = kHighlightedDyadminoYellow;
+  self.colorBlendFactor = 0.f;
+  self.cellForPC1 = nil;
+  self.cellForPC2 = nil;
+  self.homeNode = nil;
+  self.tempBoardNode = nil;
+  self.isInTopBar = NO;
+  self.belongsInSwap = NO;
+  self.canFlip = NO;
+  self.isRotating = NO;
+  self.isTouchThenHoverResized = NO;
+  self.isZoomResized = NO;
+  self.hoveringStatus = kDyadminoNoHoverStatus;
 }
 
 #pragma mark - orient, position, and size methods
@@ -397,11 +414,16 @@
 
 #pragma mark - animation methods
 
--(void)animateMoveToPoint:(CGPoint)point{
+-(void)animateMoveToPoint:(CGPoint)point {
+  NSLog(@"animateMoveToPoint called");
   [self removeActionsAndEstablishNotRotating];
-  CGFloat distance = [self getDistanceFromThisPoint:self.position toThisPoint:point];
-  SKAction *moveAction = [SKAction moveTo:point duration:kConstantSpeed * distance];
-  [self runAction:moveAction withKey:kActionMoveToPoint];
+//  CGFloat distance = [self getDistanceFromThisPoint:self.position toThisPoint:point];
+  SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime]; // was kConstantSpeed * distance
+  SKAction *completeAction = [SKAction runBlock:^{
+    [self.delegate soundDyadminoSettleClick];
+  }];
+  SKAction *sequence = [SKAction sequence:@[moveAction, completeAction]];
+  [self runAction:sequence withKey:kActionMoveToPoint];
 }
 
 -(void)animatePopBackIntoBoardNode {
@@ -461,11 +483,11 @@
     // rotation
   if ([self isInRack] || [self isOrBelongsInSwap]) {
     finishAction = [SKAction runBlock:^{
-      [self.delegate soundDyadminoSettleClick];
       [self finishHovering];
       [self setToHomeZPosition];
       [self endTouchThenHoverResize];
       self.isRotating = NO;
+      [self.delegate soundDyadminoSettleClick];
     }];
       // just to ensure that dyadmino is back in its node position
     self.position = [self getHomeNodePosition];
@@ -494,7 +516,6 @@
   SKAction *moveAction = [SKAction moveTo:settledPosition duration:kConstantTime];
   SKAction *finishAction = [SKAction runBlock:^{
     
-    [self.delegate soundDyadminoSettleClick];
     [self endTouchThenHoverResize];
     [self setToHomeZPosition];
     
@@ -502,6 +523,7 @@
     self.hoveringStatus = kDyadminoNoHoverStatus;
     self.initialPivotPosition = self.position;
     
+    [self.delegate soundDyadminoSettleClick];
     [self.delegate changeColoursAroundDyadmino:self withSign:+1];
   }];
   

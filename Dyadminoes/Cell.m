@@ -26,20 +26,14 @@
     
     self.board = board;
     self.cellNodeTexture = texture;
-    _red = 0.2f;
-    _green = 0.2f;
-    _blue = 0.2f;
-    _alpha = 0.4f;
-    
-      // establish cell size
-    self.cellNodeSize = [self establishCellSizeForResize:NO];
-    
-    [self initCellWithHexCoord:hexCoord andVectorOrigin:vectorOrigin];
+
+    [self resetForNewMatch];
+    [self reuseCellWithHexCoord:hexCoord andVectorOrigin:vectorOrigin];
   }
   return self;
 }
 
--(void)initCellWithHexCoord:(HexCoord)hexCoord andVectorOrigin:(CGVector)vectorOrigin {
+-(void)reuseCellWithHexCoord:(HexCoord)hexCoord andVectorOrigin:(CGVector)vectorOrigin {
   
   self.currentlyColouringNeighbouringCells = NO;
   self.hexCoord = hexCoord;
@@ -53,64 +47,49 @@
   
     // create snap points
   [self createSnapPoints];
-}
-
--(void)addColourWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha {
-  _red += red;
-  _green += green;
-  _blue += blue;
-  _alpha += alpha;
-//  NSLog(@"%.2f, %.2f, %.2f, %.2f", _red, _green, _blue, _alpha);
-  self.cellNode.color = [SKColor colorWithRed:_red green:_green blue:_blue alpha:1.f];
-  self.cellNode.alpha = _alpha;
-}
-
--(void)resizeCell:(BOOL)resize withVectorOrigin:(CGVector)vectorOrigin {
-  if (resize) {
-    self.cellNode.size = [self establishCellSizeForResize:YES];
-    self.cellNode.position = [self establishCellPositionWithVectorOrigin:vectorOrigin forResize:YES];
-    [self positionSnapPointsForResize:YES];
+  
+  if (!self.cellNode) {
+    [self instantiateCellNode];
   } else {
-    self.cellNode.size = self.cellNodeSize;
-    self.cellNode.position = self.cellNodePosition;
-    [self positionSnapPointsForResize:NO];
+    [self initPositionCellNode];
   }
 }
 
--(CGSize)establishCellSizeForResize:(BOOL)resize {
+-(void)resetForNewMatch {
   
-  CGFloat factor = resize ? kZoomResizeFactor : 1.f;
-  CGFloat ySize = (kDyadminoFaceRadius * 2 - kPaddingBetweenCells) * factor;
-  CGFloat widthToHeightRatio = kTwoOverSquareRootOfThree;
-  CGFloat xSize = widthToHeightRatio * ySize;
-  return CGSizeMake(xSize, ySize);
+  self.currentlyColouringNeighbouringCells = NO;
+  self.myDyadmino = nil;
+  self.myPC = -1;
+  
+    // reset colour
+  _red = 0.2f;
+  _green = 0.2f;
+  _blue = 0.2f;
+  _alpha = 0.4f;
+  
+  if (self.cellNode) {
+    self.cellNode.colorBlendFactor = 0.9f;
+    self.cellNode.color = [SKColor colorWithRed:0 green:0 blue:0 alpha:0];
+    [self addColourWithRed:_red green:_green blue:_blue alpha:_alpha];
+  }
+      // establish cell size
+    self.cellNodeSize = [self establishCellSizeForResize:NO];
 }
 
--(CGPoint)establishCellPositionWithVectorOrigin:(CGVector)vectorOrigin forResize:(BOOL)resize {
-  
-    // to make node between two faces the center
-  CGFloat factor = resize ? kZoomResizeFactor : 1.f;
-  CGFloat yOffset = kDyadminoFaceRadius * factor;
-  CGFloat padding = kPaddingBetweenCells * factor;
-  CGFloat cellWidth = self.cellNode ? self.cellNode.size.width : self.cellNodeSize.width * factor;
-  CGFloat cellHeight = self.cellNode ? self.cellNode.size.height : self.cellNodeSize.height * factor;
-  CGFloat newX = (self.hexCoord.x - vectorOrigin.dx) * (0.75 * cellWidth + padding);
-  CGFloat newY = (self.hexCoord.y - vectorOrigin.dy + self.hexCoord.x * 0.5) * (cellHeight + padding) - yOffset;
-  
-  return CGPointMake(newX, newY);
-}
+#pragma mark - cell node methods
 
 -(void)instantiateCellNode {
+  
+//  NSLog(@"cell node instantiated for %@", self.name);
     // cellNode properties
     // comment out this block to not instantiate cellNode (about one second faster)
     ///*
   self.cellNode = [[SKSpriteNode alloc] init];
+  self.cellNode.name = @"cellNode";
   self.cellNode.texture = self.cellNodeTexture;
   self.cellNode.zPosition = kZPositionBoardCell;
   [self addColourWithRed:_red green:_green blue:_blue alpha:_alpha];
-//  self.cellNode.color = [SKColor colorWithRed:.2f green:.2f blue:.2f alpha:1.f];
   self.cellNode.colorBlendFactor = .9f;
-//  self.cellNode.alpha = 0.2f; // was 0.8 before board patterning attempt
   self.cellNode.size = self.cellNodeSize;
   [self initPositionCellNode];
   
@@ -126,6 +105,7 @@
 
 -(void)initPositionCellNode {
   self.cellNode.position = self.cellNodePosition;
+  self.cellNode.size = self.cellNodeSize;
   [self updateHexCoordLabel];
   [self updatePCLabel];
 }
@@ -187,6 +167,55 @@
   if ([self.board.snapPointsTenOClock containsObject:self.boardSnapPointTenOClock]) {
     [self.board.snapPointsTenOClock removeObject:self.boardSnapPointTenOClock];
   }
+}
+
+#pragma mark - cell view helper methods
+
+-(void)addColourWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha {
+  _red += red;
+  _green += green;
+  _blue += blue;
+  _alpha += alpha;
+    //  NSLog(@"%.2f, %.2f, %.2f, %.2f", _red, _green, _blue, _alpha);
+  self.cellNode.color = [SKColor colorWithRed:_red green:_green blue:_blue alpha:1.f];
+  self.cellNode.alpha = _alpha;
+}
+
+-(void)resizeCell:(BOOL)resize withVectorOrigin:(CGVector)vectorOrigin {
+  if (resize) {
+    self.cellNode.size = [self establishCellSizeForResize:YES];
+    self.cellNode.position = [self establishCellPositionWithVectorOrigin:vectorOrigin forResize:YES];
+    [self positionSnapPointsForResize:YES];
+  } else {
+    self.cellNode.size = self.cellNodeSize;
+    self.cellNode.position = self.cellNodePosition;
+    [self positionSnapPointsForResize:NO];
+  }
+}
+
+#pragma mark - cell size and position helper methods
+
+-(CGSize)establishCellSizeForResize:(BOOL)resize {
+  
+  CGFloat factor = resize ? kZoomResizeFactor : 1.f;
+  CGFloat ySize = (kDyadminoFaceRadius * 2 - kPaddingBetweenCells) * factor;
+  CGFloat widthToHeightRatio = kTwoOverSquareRootOfThree;
+  CGFloat xSize = widthToHeightRatio * ySize;
+  return CGSizeMake(xSize, ySize);
+}
+
+-(CGPoint)establishCellPositionWithVectorOrigin:(CGVector)vectorOrigin forResize:(BOOL)resize {
+  
+    // to make node between two faces the center
+  CGFloat factor = resize ? kZoomResizeFactor : 1.f;
+  CGFloat yOffset = kDyadminoFaceRadius * factor;
+  CGFloat padding = kPaddingBetweenCells * factor;
+  CGFloat cellWidth = self.cellNodeSize.width * factor;
+  CGFloat cellHeight = self.cellNodeSize.height * factor;
+  CGFloat newX = (self.hexCoord.x - vectorOrigin.dx) * (0.75 * cellWidth + padding);
+  CGFloat newY = (self.hexCoord.y - vectorOrigin.dy + self.hexCoord.x * 0.5) * (cellHeight + padding) - yOffset;
+  
+  return CGPointMake(newX, newY);
 }
 
 #pragma mark - testing methods

@@ -35,19 +35,24 @@
 
 @property (nonatomic) BOOL currentlyColouringNeighbouringCells;
 
-  // called for new cell
+  // called to instantiate new cell
 -(id)initWithBoard:(Board *)board
         andTexture:(SKTexture *)texture
        andHexCoord:(HexCoord)hexCoord
       andVectorOrigin:(CGVector)vectorOrigin;
--(void)instantiateCellNode;
 
-  // called for dequeued cell
--(void)initCellWithHexCoord:(HexCoord)hexCoord andVectorOrigin:(CGVector)vectorOrigin;
--(void)initPositionCellNode;
+  // called to reuse dequeued cell
+-(void)reuseCellWithHexCoord:(HexCoord)hexCoord andVectorOrigin:(CGVector)vectorOrigin;
+
+  // called before dismissing scene
+-(void)resetForNewMatch;
+
+#pragma mark - snap point methods
 
 -(void)addSnapPointsToBoard;
 -(void)removeSnapPointsFromBoard;
+
+#pragma mark - cell view helper methods
 
 -(void)resizeCell:(BOOL)resize withVectorOrigin:(CGVector)vectorOrigin;
 -(void)addColourWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha;

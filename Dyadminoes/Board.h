@@ -50,18 +50,26 @@
   //----------------------------------------------------------------------------
   //----------------------------------------------------------------------------
 
--(id)initWithColor:(UIColor *)color andSize:(CGSize)size
-    andAnchorPoint:(CGPoint)anchorPoint
-   andHomePosition:(CGPoint)homePosition
-         andOrigin:(CGPoint)origin
-      andZPosition:(CGFloat)zPosition;
+-(id)initWithColor:(UIColor *)color andSize:(CGSize)size;
 
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes forZoom:(BOOL)zoom;
--(void)reloadBackgroundImage;
+-(void)repositionBoardWithHomePosition:(CGPoint)homePosition
+                             andOrigin:(CGPoint)origin;
+
+-(void)resetForNewMatch;
 
 #pragma mark - zoom methods
 
 -(void)repositionCellsAndDyadminoesForZoomOut:(BOOL)resize;
+
+#pragma mark - cell methods
+
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes forZoom:(BOOL)zoom;
+-(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
+-(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
+
+#pragma mark - cell colour methods
+
+-(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign;
 
 #pragma mark - pivot guide methods
 
@@ -70,29 +78,20 @@
 
 #pragma mark - pivot methods
 
-//-(SKNode *)determineCurrentPivotGuide;
 -(PivotOnPC)determinePivotOnPCForDyadmino:(Dyadmino *)dyadmino;
 -(void)pivotGuidesBasedOnTouchLocation:(CGPoint)touchLocation forDyadmino:(Dyadmino *)dyadmino;
 
-#pragma mark - distance methods
-
--(CGPoint)getOffsetFromPoint:(CGPoint)point;
--(CGPoint)getOffsetForPoint:(CGPoint)point withTouchOffset:(CGPoint)touchOffset;
-
-#pragma mark - cell methods
-
--(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
--(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
-
--(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign;
-
 #pragma mark - board span methods
 
-//-(HexCoord)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes;
 -(void)determineBoardPositionBoundsForZoom:(BOOL)zoom;
 
 #pragma mark - legality methods
 
 -(PhysicalPlacementResult)validatePlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint;
+
+#pragma mark - distance helper methods
+
+-(CGPoint)getOffsetFromPoint:(CGPoint)point;
+-(CGPoint)getOffsetForPoint:(CGPoint)point withTouchOffset:(CGPoint)touchOffset;
 
 @end

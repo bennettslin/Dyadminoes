@@ -151,4 +151,8 @@
   }
 }
 
+#pragma mark - singleton method
+
+
+
 @end

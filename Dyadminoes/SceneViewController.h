@@ -11,11 +11,13 @@
 @class Model;
 @class Match;
 @class Player;
+@class MyScene;
 
 @protocol SceneViewDelegate;
 
 @interface SceneViewController : UIViewController
 
+@property (strong, nonatomic) MyScene *myScene;
 @property (strong, nonatomic) Model *myModel;
 @property (strong, nonatomic) Match *myMatch;
 @property (strong, nonatomic) Player *myPlayer;
