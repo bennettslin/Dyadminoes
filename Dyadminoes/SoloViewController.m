@@ -10,6 +10,7 @@
 
 @interface SoloViewController ()
 
+@property (weak, nonatomic) IBOutlet UITextField *playerName;
 @property (weak, nonatomic) IBOutlet UIButton *startGameButton;
 
 @end

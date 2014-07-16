@@ -87,7 +87,7 @@
   CFTimeInterval _hoverTime;
   
     // test
-  BOOL _dyadminoesHidden;
+  BOOL _debugMode;
   
   Player *_myPlayer;
 }
@@ -126,6 +126,7 @@
   _buttonsUpdatedThisTouch = NO;
   
     // reset these init values
+  
   _currentTouch = nil;
   _replayMode = NO;
   _swapMode = NO;
@@ -142,12 +143,9 @@
   _recentRackDyadmino = nil;
   _hoveringDyadmino = nil;
   _pivotInProgress = NO;
-  _dyadminoesHidden = NO;
   
   _myPlayer = self.myMatch.currentPlayer;
   self.myMatch.delegate = self;
-  
-//  [self repositionBoardField];
   
   [self populateRackArray];
   [self populateBoardSet];
@@ -164,10 +162,11 @@
   _topBar.resignButton.name = (self.myMatch.type == kSelfGame) ? @"end game" : @"resign";
   [_topBar.resignButton changeName];
   [self updateTopBarButtons];
+
 }
 
 -(void)didMoveToView:(SKView *)view {
-
+  
   if (self.myMatch.type == kPnPGame) {
     [self layoutPnPFields];
   }
@@ -1093,6 +1092,11 @@
 
 -(void)goBackToMainViewController {
   
+  if (_debugMode) {
+    _debugMode = NO;
+    [self toggleDebugMode];
+  }
+  
   self.boardDyadminoes = [NSSet new];
   self.playerRackDyadminoes = @[];
   
@@ -1207,7 +1211,8 @@
     
       /// debug button
   } else if (_buttonPressed == _topBar.debugButton) {
-    [self debugButtonPressed];
+    _debugMode = _debugMode ? NO : YES;
+    [self toggleDebugMode];
     
       /// resign button
   } else if (_buttonPressed == _topBar.resignButton) {
@@ -1907,6 +1912,7 @@
   NSLog(@"toggle replay fields");
     // it's in replay mode (opposite of toggle swap field)
   if (_replayMode) {
+    self.myMatch.replayCounter = self.myMatch.turns.count;
     [self.mySoundEngine soundSwapFieldSwoosh];
     _fieldActionInProgress = YES;
     
@@ -2015,24 +2021,6 @@
   DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
   if ([self.myMatch.swapContainer containsObject:dataDyad]) {
     [self.myMatch.swapContainer removeObject:dataDyad];
-  }
-}
-
--(void)loadReplayTurnInfo {
-  if (self.myMatch.turns.count > 0) {
-    Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"player"];
-    NSArray *dyadminoesPlayed = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"container"];
-    NSString *dyadminoesPlayedString;
-    if (dyadminoesPlayed.count > 0) {
-      NSString *componentsString = [[dyadminoesPlayed valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "];
-      dyadminoesPlayedString = [NSString stringWithFormat:@"played %@", componentsString];
-    } else {
-      dyadminoesPlayedString = @"passed";
-    }
-    NSString *turnText = [NSString stringWithFormat:@"%@ %@ for turn %lu of %lu", turnPlayer.playerName, dyadminoesPlayedString, (unsigned long)self.myMatch.replayCounter, (unsigned long)self.myMatch.turns.count];
-    NSLog(@"turn text is %@", turnText);
-    [_replayTop updateLabelNamed:@"status" withText:turnText];
-    [self updateReplayButtons];
   }
 }
 
@@ -2316,6 +2304,34 @@
   }
 }
 
+#pragma mark - replay and turn methods
+
+-(void)loadReplayTurnInfo {
+  if (self.myMatch.turns.count > 0) {
+    Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"player"];
+    NSArray *dyadminoesPlayed = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"container"];
+    NSString *dyadminoesPlayedString;
+    if (dyadminoesPlayed.count > 0) {
+      NSString *componentsString = [[dyadminoesPlayed valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "];
+      dyadminoesPlayedString = [NSString stringWithFormat:@"played %@", componentsString];
+    } else {
+      dyadminoesPlayedString = @"passed";
+    }
+    NSString *turnText = [NSString stringWithFormat:@"%@ %@ for turn %lu of %lu", turnPlayer.playerName, dyadminoesPlayedString, (unsigned long)self.myMatch.replayCounter, (unsigned long)self.myMatch.turns.count];
+    NSLog(@"turn text is %@", turnText);
+    [_replayTop updateLabelNamed:@"status" withText:turnText];
+    [self updateReplayButtons];
+  }
+}
+
+-(void)showTurnInfoForReplay:(BOOL)replay {
+  if (replay) {
+    
+  } else {
+    
+  }
+}
+
 #pragma mark - undo manager
 
 -(void)removeFromPlayerRackDyadminoes:(Dyadmino *)dyadmino {
@@ -2451,9 +2467,9 @@
 
 #pragma mark - debugging methods
 
--(void)debugButtonPressed {
-
-  if (_topBar.pileDyadminoesLabel.hidden) {
+-(void)toggleDebugMode {
+  
+  if (_debugMode) {
     _topBar.pileDyadminoesLabel.hidden = NO;
     _topBar.pileDyadminoesLabel.zPosition = kZPositionTopBarLabel;
     _topBar.boardDyadminoesLabel.hidden = NO;
@@ -2462,6 +2478,12 @@
     _topBar.holdingContainerLabel.zPosition = kZPositionTopBarLabel;
     _topBar.swapContainerLabel.hidden = NO;
     _topBar.swapContainerLabel.zPosition = kZPositionTopBarLabel;
+    
+    for (Dyadmino *dyadmino in self.boardDyadminoes) {
+      dyadmino.hidden = YES;
+    }
+    _recentRackDyadmino.hidden = YES;
+    
   } else {
     _topBar.pileDyadminoesLabel.hidden = YES;
     _topBar.pileDyadminoesLabel.zPosition = -1000;
@@ -2471,25 +2493,16 @@
     _topBar.holdingContainerLabel.zPosition = -1000;
     _topBar.swapContainerLabel.hidden = YES;
     _topBar.swapContainerLabel.zPosition = -1000;
-  }
-  
-  if (!_dyadminoesHidden) {
-    for (Dyadmino *dyadmino in _boardField.children) {
-      if ([dyadmino isKindOfClass:[Dyadmino class]])
-      dyadmino.hidden = YES;
-    }
-    _dyadminoesHidden = YES;
-  } else {
-    for (Dyadmino *dyadmino in _boardField.children) {
-      if ([dyadmino isKindOfClass:[Dyadmino class]])
+    
+    for (Dyadmino *dyadmino in self.boardDyadminoes) {
       dyadmino.hidden = NO;
     }
-    _dyadminoesHidden = NO;
+    _recentRackDyadmino.hidden = NO;
   }
-
+  
   for (Cell *cell in _boardField.allCells) {
     if ([cell isKindOfClass:[Cell class]]) {
-      cell.hexCoordLabel.hidden = (!_dyadminoesHidden) ? YES : NO;
+      cell.hexCoordLabel.hidden = (_debugMode) ? NO : YES;
     }
   }
 
