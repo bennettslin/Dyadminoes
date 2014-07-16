@@ -453,6 +453,7 @@
   [self removeActionsAndEstablishNotRotating];
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
+    self.color = kHighlightedDyadminoYellow;
     [self.delegate soundDyadminoSuck];
     [self setToHomeZPosition];
     [self unhighlightOutOfPlay];
@@ -532,10 +533,10 @@
 }
 
 -(void)animateDyadminoesRecentlyPlayed:(BOOL)playedByMyPlayer {
-  
+  NSLog(@"animate dyadminoes recently played");
   self.color = playedByMyPlayer ? kPlayedDyadminoBlue : kEnemyDyadminoRed;
-  SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:kDyadminoColorBlendFactor * 1.333 duration:.75f];
-  SKAction *highlightOut = [SKAction colorizeWithColorBlendFactor:0.f duration:1.5f];
+  SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:kDyadminoColorBlendFactor * 1.333 duration:.5f];
+  SKAction *highlightOut = [SKAction colorizeWithColorBlendFactor:0.f duration:1.f];
   SKAction *sequence = [SKAction sequence:@[highlightIn, highlightOut]];
   [self runAction:sequence withKey:kActionShowRecentlyPlayed];
 }

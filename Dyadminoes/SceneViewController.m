@@ -112,6 +112,7 @@
 
 -(void)didReceiveMemoryWarning {
   [super didReceiveMemoryWarning];
+  NSLog(@"scene VC did receive memory warning");
   // Release any cached data, images, etc that aren't in use.
 }
 

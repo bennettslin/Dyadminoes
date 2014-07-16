@@ -159,6 +159,10 @@
   [self populateBoardWithDyadminoes];
   
   [self updateTopBarLabelsFinalTurn:NO];
+  
+    // solo mode
+  _topBar.resignButton.name = (self.myMatch.type == kSelfGame) ? @"end game" : @"resign";
+  [_topBar.resignButton changeName];
   [self updateTopBarButtons];
 }
 
@@ -168,6 +172,8 @@
     [self layoutPnPFields];
   }
   [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO];
+  
+  [self animateRecentlyPlayedDyadminoes];
   
     // not for first version
 //  [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
@@ -203,13 +209,6 @@
 }
 
 -(void)populateBoardSet {
-
-    // figure out what the last turn was, and who played it, to set highlighting and animation
-  NSDictionary *lastTurn = (NSDictionary *)[self.myMatch.turns lastObject];
-  Player *lastPlayer = (Player *)[lastTurn valueForKey:@"player"];
-  NSArray *lastContainer = (NSArray *)[lastTurn valueForKey:@"container"];
-    // animate last played only if current player does not have dyadminoes in holding container
-  BOOL animateLastPlayedDyadminoes = self.myMatch.holdingContainer.count == 0 ? YES : NO;
   
     // board must enumerate over both board and holding container dyadminoes
   NSMutableSet *tempDataEnumerationSet = [NSMutableSet setWithSet:self.myMatch.board];
@@ -224,19 +223,6 @@
     dyadmino.myRackOrder = -1; // signifies it's not in rack
       // not the best place to set tempReturnOrientation here either
     dyadmino.tempReturnOrientation = dyadmino.orientation;
-    
-      // highlighting and animation
-    
-      // either animate last played dyadminoes, or highlight dyadminoes currently in holding container
-    if (animateLastPlayedDyadminoes) {
-      if ([lastContainer containsObject:dataDyad]) {
-        [dyadmino animateDyadminoesRecentlyPlayed:(lastPlayer == _myPlayer)];
-      }
-    } else {
-      if ([self.myMatch.holdingContainer containsObject:dataDyad]) {
-        [dyadmino highlightBoardDyadmino];
-      }
-    }
     
     if (![tempSet containsObject:dyadmino]) {
       
@@ -1256,7 +1242,6 @@
     // remove data dyadmino from holding container
   DataDyadmino *undoneDataDyadmino = [self.myMatch undoDyadminoToHoldingContainer];
   Dyadmino *undoneDyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[undoneDataDyadmino.myID - 1];
-  undoneDyadmino.color = kHighlightedDyadminoYellow; // for color blend factor
   undoneDyadmino.tempReturnOrientation = undoneDataDyadmino.myOrientation;
   undoneDyadmino.orientation = undoneDataDyadmino.myOrientation;
   undoneDyadmino.myRackOrder = self.playerRackDyadminoes.count;
@@ -1396,6 +1381,10 @@
     [self updateTopBarLabelsFinalTurn:YES];
     [self updateTopBarButtons];
     [_topBar flashLabelNamed:@"log" withText:@"Turn done!"];
+    
+    if (self.myMatch.type == kSelfGame) {
+      [self animateRecentlyPlayedDyadminoes];
+    }
   }
 }
 
@@ -1752,54 +1741,67 @@
                    withText:[NSString stringWithFormat:@"in pile: %lu",
                              (unsigned long)self.myMatch.pile.count]];
   
-  for (int i = 0; i < self.myMatch.players.count; i++) {
-    Player *player = self.myMatch.players[i];
+  for (int i = 0; i < 4; i++) {
+    
+    Player *player = (i <= self.myMatch.players.count - 1) ? self.myMatch.players[i] : nil;
     Label *nameLabel = _topBar.playerNameLabels[i];
     Label *scoreLabel = _topBar.playerScoreLabels[i];
     Label *rackLabel = _topBar.playerRackLabels[i];
   
-    if (player.resigned) {
-      nameLabel.fontColor = [SKColor darkGrayColor];
-    } else if (player == _myPlayer) {
-      nameLabel.fontColor = (player == self.myMatch.currentPlayer) ? [SKColor orangeColor] : [SKColor yellowColor];
-    } else if (player == self.myMatch.currentPlayer) {
-      nameLabel.fontColor = [SKColor orangeColor];
-    } else if ([self.myMatch.wonPlayers containsObject:self.myMatch.currentPlayer]) {
-      nameLabel.fontColor = [SKColor greenColor];
+    if (!player) {
+      if (nameLabel.parent) {
+        [nameLabel removeFromParent];
+      }
+      if (scoreLabel.parent) {
+        [scoreLabel removeFromParent];
+      }
+      if (rackLabel.parent) {
+        [rackLabel removeFromParent];
+      }
     } else {
-      nameLabel.fontColor = [SKColor whiteColor];
-    }
+      if (player.resigned) {
+        nameLabel.fontColor = [SKColor darkGrayColor];
+      } else if (player == _myPlayer) {
+        nameLabel.fontColor = (player == self.myMatch.currentPlayer) ? [SKColor orangeColor] : [SKColor yellowColor];
+      } else if (player == self.myMatch.currentPlayer) {
+        nameLabel.fontColor = [SKColor orangeColor];
+      } else if ([self.myMatch.wonPlayers containsObject:self.myMatch.currentPlayer]) {
+        nameLabel.fontColor = [SKColor greenColor];
+      } else {
+        nameLabel.fontColor = [SKColor whiteColor];
+      }
 
-    [_topBar updateLabelNamed:nameLabel.name withText:player.playerName];
-    
-    NSString *scoreText;
+      [_topBar updateLabelNamed:nameLabel.name withText:player.playerName];
       
-    if (player == _myPlayer && self.myMatch.tempScore > 0) {
-      scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)player.playerScore, (unsigned long)self.myMatch.tempScore];
-    } else {
-      scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
+      NSString *scoreText;
+        
+      if (player == _myPlayer && self.myMatch.tempScore > 0) {
+        scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)player.playerScore, (unsigned long)self.myMatch.tempScore];
+      } else {
+        scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
+      }
+      
+      if (player == _myPlayer && (finalTurn || self.myMatch.tempScore > 0)) {
+          // upon final turn, score is animated
+        [_topBar afterPlayUpdateScoreLabel:scoreLabel withText:scoreText];
+      } else {
+        [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
+      }
+      
+      [_topBar updateLabelNamed:rackLabel.name withText:[[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
     }
-    
-    if (player == _myPlayer && finalTurn) {
-        // upon final turn, score is animated
-      [_topBar afterPlayUpdateScoreLabel:scoreLabel withText:scoreText];
-    } else {
-      [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
-    }
-    
-    [_topBar updateLabelNamed:rackLabel.name withText:[[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-    
-    NSString *pileText = [NSString stringWithFormat:@"in pile: %@", [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-    NSMutableArray *tempBoard = [NSMutableArray arrayWithArray:[self.myMatch.board allObjects]];
-    NSString *boardText = [NSString stringWithFormat:@"on board: %@", [[tempBoard valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-    NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-    NSString *swapContainerText = [NSString stringWithFormat:@"in swap container: %@", [[self.myMatch.swapContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-    
-    [_topBar updateLabelNamed:_topBar.pileDyadminoesLabel.name withText:pileText];
-    [_topBar updateLabelNamed:_topBar.boardDyadminoesLabel.name withText:boardText];
-    [_topBar updateLabelNamed:_topBar.holdingContainerLabel.name withText:holdingContainerText];
-    [_topBar updateLabelNamed:_topBar.swapContainerLabel.name withText:swapContainerText];
   }
+  
+  NSString *pileText = [NSString stringWithFormat:@"in pile: %@", [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+  NSMutableArray *tempBoard = [NSMutableArray arrayWithArray:[self.myMatch.board allObjects]];
+  NSString *boardText = [NSString stringWithFormat:@"on board: %@", [[tempBoard valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+  NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+  NSString *swapContainerText = [NSString stringWithFormat:@"in swap container: %@", [[self.myMatch.swapContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+  
+  [_topBar updateLabelNamed:_topBar.pileDyadminoesLabel.name withText:pileText];
+  [_topBar updateLabelNamed:_topBar.boardDyadminoesLabel.name withText:boardText];
+  [_topBar updateLabelNamed:_topBar.holdingContainerLabel.name withText:holdingContainerText];
+  [_topBar updateLabelNamed:_topBar.swapContainerLabel.name withText:swapContainerText];
 }
 
 -(void)updateTopBarButtons {
@@ -1855,8 +1857,13 @@
           // no dyadminoes played, and no recent rack dyadmino
       } else if (self.myMatch.holdingContainer.count == 0 && !_recentRackDyadmino) {
         [_topBar changeSwapCancelOrUndo:kSwapButton];
-        [_topBar changePassPlayOrDone:kPassButton];
         
+          // no pass option in self mode
+        if (self.myMatch.type == kSelfGame) {
+          [_topBar disableButton:_topBar.passPlayOrDoneButton];
+        } else {
+          [_topBar changePassPlayOrDone:kPassButton];
+        }
           // a recent rack dyadmino placed on board
       } else if (_recentRackDyadmino) { // doesn't matter whether holding container is empty
         [_topBar changeSwapCancelOrUndo:kCancelButton];
@@ -1868,6 +1875,10 @@
         [_topBar changePassPlayOrDone:kDoneButton];
       }
     }
+  }
+    // no point in replay button if first turn
+  if (self.myMatch.turns.count == 0) {
+    [_topBar disableButton:_topBar.replayButton];
   }
 }
 
@@ -1920,6 +1931,9 @@
     
     _rackField.hidden = NO;
     _topBar.hidden = NO;
+    
+    [self animateRecentlyPlayedDyadminoes];
+    
     SKAction *topMoveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
     SKAction *topCompleteAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
@@ -2019,6 +2033,36 @@
     NSLog(@"turn text is %@", turnText);
     [_replayTop updateLabelNamed:@"status" withText:turnText];
     [self updateReplayButtons];
+  }
+}
+
+-(void)animateRecentlyPlayedDyadminoes {
+  
+    // this is also in populateBoardSet method, but repeated code can't be helped
+  NSDictionary *lastTurn = (NSDictionary *)[self.myMatch.turns lastObject];
+  Player *lastPlayer = (Player *)[lastTurn valueForKey:@"player"];
+  NSArray *lastContainer = (NSArray *)[lastTurn valueForKey:@"container"];
+  
+    // board must enumerate over both board and holding container dyadminoes
+  NSMutableSet *tempDataEnumerationSet = [NSMutableSet setWithSet:self.myMatch.board];
+  [tempDataEnumerationSet addObjectsFromArray:self.myMatch.holdingContainer];
+  
+    // animate last played only if current player does not have dyadminoes in holding container
+  BOOL animateLastPlayedDyadminoes = self.myMatch.holdingContainer.count == 0 ? YES : NO;
+  
+  for (DataDyadmino *dataDyad in tempDataEnumerationSet) {
+    Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
+    
+      // either animate last played dyadminoes, or highlight dyadminoes currently in holding container
+    if (animateLastPlayedDyadminoes) {
+      if ([lastContainer containsObject:dataDyad]) {
+        [dyadmino animateDyadminoesRecentlyPlayed:(lastPlayer == _myPlayer)];
+      }
+    } else {
+      if ([self.myMatch.holdingContainer containsObject:dataDyad]) {
+        [dyadmino highlightBoardDyadmino];
+      }
+    }
   }
 }
 
@@ -2301,9 +2345,15 @@
 #pragma mark - action sheet methods
 
 -(void)presentPassActionSheet {
-  NSString *passString = @"Are you sure? This will count as your turn.";
-  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:passString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Pass" otherButtonTitles:nil, nil];
+  NSString *passString = (self.myMatch.type == kSelfGame) ?
+    @"Are you sure? Passing once in solo mode ends the game." :
+    @"Are you sure? This will count as your turn.";
+  
+  NSString *buttonText = (self.myMatch.type == kSelfGame) ? @"End game" : @"Pass";
+  
+  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:passString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:buttonText otherButtonTitles:nil, nil];
   actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
+  actionSheet.tag = 1;
   [actionSheet showInView:self.view];
 }
 
@@ -2315,19 +2365,35 @@
 }
 
 -(void)presentResignActionSheet {
-  NSString *resignString = @"Are you sure? This will count as a loss in Game Center.";
-  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:resignString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Resign" otherButtonTitles:nil, nil];
+  
+  
+  NSString *resignString;
+  
+  if (self.myMatch.type == kSelfGame) {
+    resignString = @"Are you sure you want to end the game?";
+  } else if (self.myMatch.type == kPnPGame) {
+    resignString = @"Are you sure you want to resign?";
+  } else if (self.myMatch.type == kGCGame) {
+    resignString = @"Are you sure? This will count as a loss in Game Center.";
+  }
+  
+  NSString *buttonText = (self.myMatch.type == kSelfGame) ? @"End game" : @"Resign";
+  
+  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:resignString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:buttonText otherButtonTitles:nil, nil];
   actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
+  actionSheet.tag = 3;
   [actionSheet showInView:self.view];
 }
 
 -(void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
   NSString *buttonText = [actionSheet buttonTitleAtIndex:buttonIndex];
   
-  if ([buttonText isEqualToString:@"Resign"]) {
+    // resign button
+  if (actionSheet.tag == 3 && ([buttonText isEqualToString:@"Resign"] || [buttonText isEqualToString:@"End game"])) {
     [self.myMatch resignPlayer:_myPlayer];
     
-  } else if ([buttonText isEqualToString:@"Pass"]) {
+      // pass button
+  } else if (actionSheet.tag == 1 && ([buttonText isEqualToString:@"Pass"] || [buttonText isEqualToString:@"End game"])) {
     [self finalisePlayerTurn];
   } else if ([buttonText isEqualToString:@"Swap"]) {
     

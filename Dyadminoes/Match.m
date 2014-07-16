@@ -211,6 +211,13 @@
   
     // player passes
   if (self.holdingContainer.count == 0) {
+    
+      // if solo game, ends right away
+    if (self.type == kSelfGame) {
+      [self endGame];
+      return;
+    }
+    
     self.numberOfConsecutivePasses++;
     
       // enough players passed to end game

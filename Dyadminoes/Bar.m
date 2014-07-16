@@ -448,7 +448,7 @@
     SKAction *fadeColor = [SKAction colorizeWithColor:[UIColor clearColor] colorBlendFactor:1.f duration:0.5f];
     SKAction *finishAnimation = [SKAction runBlock:^{
       label.text = @"";
-      label.fontColor = [SKColor whiteColor];
+      label.colorBlendFactor = 0.f;
       [label removeFromParent];
     }];
     SKAction *sequence = [SKAction sequence:@[wait, fadeColor, finishAnimation]];
@@ -467,7 +467,6 @@
       // make own constants
     
       // keeps score centred
-      //
     CGPoint positionPoint = CGPointMake(scoreLabel.position.x - scoreLabel.frame.size.width * 0.5f, scoreLabel.position.y - scoreLabel.frame.size.height * 0.35f);
     
     SKAction *scaleIn = [SKAction scaleTo:kScoreScaleFactor duration:kScoreScaleInTime];

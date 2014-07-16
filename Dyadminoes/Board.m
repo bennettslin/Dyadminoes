@@ -89,7 +89,7 @@
 }
 
 -(void)instantiateDequeuedCells {
-  NSUInteger times = kIsIPhone ? 125 : 275;
+  NSUInteger times = kIsIPhone ? 125 : 250;
   for (int i = 0; i < times; i++) {
     Cell *cell = [[Cell alloc] initWithBoard:self
                                   andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
