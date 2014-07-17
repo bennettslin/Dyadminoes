@@ -18,7 +18,7 @@
 +(Model *)getMyModel;
 
 -(Match *)instantiateSoloMatchWithName:(NSString *)playerName andRules:(GameRules)rules andSkill:(GameSkill)skill;
-//-(Match *)instantiateHardCodededSoloMatchForDebugPurposes;
+
 -(Match *)instantiateHardCodededPassNPlayMatchForDebugPurposes;
 -(void)instantiateHardCodedMatchesForDebugPurposes;
 -(void)sortMyMatches;

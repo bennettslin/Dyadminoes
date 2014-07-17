@@ -47,7 +47,7 @@
 
   // game state change methods
 -(Player *)switchToNextPlayer;
--(void)recordDyadminoesFromPlayer:(Player *)player;
+-(void)recordDyadminoesFromPlayer:(Player *)player withSwap:(BOOL)swap;
 -(void)swapDyadminoesFromCurrentPlayer;
 -(void)resignPlayer:(Player *)player;
 

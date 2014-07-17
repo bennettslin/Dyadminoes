@@ -46,8 +46,7 @@
 }
 
 -(void)saveNewPlayerName {
-  
-    // FIXME: trim white spaces
+
   NSString *trimmedString = [self.playerNameField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
   
   if (![trimmedString isEqualToString:[self.defaults objectForKey:@"soloName"]]) {

@@ -230,14 +230,14 @@
       kZPositionRackRestingDyadmino : kZPositionBoardRestingDyadmino;
 }
 
--(void)goHomeToRackByPoppingIn:(BOOL)poppingIn fromUndo:(BOOL)undo {
+-(void)goHomeToRackByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding fromUndo:(BOOL)undo {
 //  NSLog(@"dyadmino's go home by popping in method called");
     // move these into a completion block for animation
   if (poppingIn) {
     [self animatePopBackIntoRackNodeFromUndo:undo];
   } else {
     [self orientBySnapNode:self.homeNode];
-    [self animateMoveToPoint:[self getHomeNodePosition]];
+    [self animateMoveToPoint:[self getHomeNodePosition] andSounding:sounding];
     [self setToHomeZPosition];
   }
   self.tempBoardNode = nil;
@@ -245,12 +245,12 @@
 }
 
   // this should be combined into one method with goHomeToRack
--(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn {
+-(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding {
   if (poppingIn) {
     [self animatePopBackIntoBoardNode];
   } else {
     [self orientBySnapNode:self.homeNode];
-    [self animateMoveToPoint:[self getHomeNodePosition]];
+    [self animateMoveToPoint:[self getHomeNodePosition] andSounding:sounding];
     [self setToHomeZPosition];
   }
   [self finishHovering];
@@ -414,16 +414,20 @@
 
 #pragma mark - animation methods
 
--(void)animateMoveToPoint:(CGPoint)point {
-  NSLog(@"animateMoveToPoint called");
+-(void)animateMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding {
+  NSLog(@"animateMoveToPoint called from dyadmino %@", self.name);
   [self removeActionsAndEstablishNotRotating];
 //  CGFloat distance = [self getDistanceFromThisPoint:self.position toThisPoint:point];
   SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime]; // was kConstantSpeed * distance
-  SKAction *completeAction = [SKAction runBlock:^{
-    [self.delegate soundDyadminoSettleClick];
-  }];
-  SKAction *sequence = [SKAction sequence:@[moveAction, completeAction]];
-  [self runAction:sequence withKey:kActionMoveToPoint];
+  if (sounding) {
+    SKAction *completeAction = [SKAction runBlock:^{
+      [self.delegate soundDyadminoSettleClick];
+    }];
+    SKAction *sequence = [SKAction sequence:@[moveAction, completeAction]];
+    [self runAction:sequence withKey:kActionMoveToPoint];
+  } else {
+    [self runAction:moveAction withKey:kActionMoveToPoint];
+  }
 }
 
 -(void)animatePopBackIntoBoardNode {
@@ -524,6 +528,7 @@
     self.hoveringStatus = kDyadminoNoHoverStatus;
     self.initialPivotPosition = self.position;
     
+    NSLog(@"animate ease into node after hover");
     [self.delegate soundDyadminoSettleClick];
     [self.delegate changeColoursAroundDyadmino:self withSign:+1];
   }];

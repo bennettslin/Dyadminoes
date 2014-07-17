@@ -253,6 +253,7 @@
   self.pcLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;
   self.pcLabel.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
   self.pcLabel.position = CGPointMake(0, -9.f);
+  self.pcLabel.hidden = YES;
   [self.cellNode addChild:self.pcLabel];
 }
 

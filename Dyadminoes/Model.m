@@ -47,21 +47,14 @@
 
 -(Match *)instantiateSoloMatchWithName:(NSString *)playerName andRules:(GameRules)rules andSkill:(GameSkill)skill {
   
-    // FIXME: unique ID is not necessary, but get it from Game Center anyway
-  Player *player1 = [[Player alloc] initWithUniqueID:@"12345" andPlayerName:playerName andPlayerPicture:nil];
+    // In solo game, unique ID, rules, and skill are not important for now
+  Player *player1 = [[Player alloc] initWithUniqueID:@"" andPlayerName:playerName andPlayerPicture:nil];
+  
   Match *newSoloMatch = [[Match alloc] initWithPlayers:@[player1] andRules:rules andSkill:skill andType:kSelfGame];
   [self.myMatches addObject:newSoloMatch];
   [Model saveMyModel:self];
   return newSoloMatch;
 }
-
-//-(Match *)instantiateHardCodededSoloMatchForDebugPurposes {
-//  Player *player1 = [[Player alloc] initWithUniqueID:@"12345" andPlayerName:@"Julia" andPlayerPicture:nil];
-//  Match *newSoloMatch = [[Match alloc] initWithPlayers:@[player1] andRules:kGameRulesTonal andSkill:kBeginner andType:kSelfGame];
-//  [self.myMatches addObject:newSoloMatch];
-//  [Model saveMyModel:self];
-//  return newSoloMatch;
-//}
 
 -(Match *)instantiateHardCodededPassNPlayMatchForDebugPurposes {
 

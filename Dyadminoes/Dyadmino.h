@@ -109,8 +109,8 @@
 #pragma mark - change state methods
 
 -(void)setToHomeZPosition;
--(void)goHomeToRackByPoppingIn:(BOOL)poppingIn fromUndo:(BOOL)undo;
--(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn;
+-(void)goHomeToRackByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding fromUndo:(BOOL)undo;
+-(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding;
 -(void)animatePopBackIntoBoardNode;
 -(void)removeActionsAndEstablishNotRotating;
 
@@ -120,7 +120,7 @@
 
 #pragma mark - animation methods
 
--(void)animateMoveToPoint:(CGPoint)point;
+-(void)animateMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding;
 -(void)animateFlip;
 -(void)animateEaseIntoNodeAfterHover;
 -(void)animateDyadminoesRecentlyPlayed:(BOOL)playedByMyPlayer;

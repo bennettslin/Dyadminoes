@@ -355,7 +355,7 @@
   
     // submit for play
   if (!self.swapMode) {
-    [self.myMatch recordDyadminoesFromPlayer:self.myMatch.currentPlayer];
+    [self.myMatch recordDyadminoesFromPlayer:self.myMatch.currentPlayer withSwap:NO];
 
   } else { // swap mode
       // not enough in pile!

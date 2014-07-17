@@ -197,12 +197,12 @@
   [self.swapContainer removeAllObjects];
   
   [self resetHoldingContainer];
-  [self recordDyadminoesFromPlayer:player]; // this records turn as a pass
+  [self recordDyadminoesFromPlayer:player withSwap:YES]; // this records turn as a pass
     // sort the board and pile
   [self sortBoardAndPileArrays];
 }
 
--(void)recordDyadminoesFromPlayer:(Player *)player {
+-(void)recordDyadminoesFromPlayer:(Player *)player withSwap:(BOOL)swap {
   
   NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:self.currentPlayer, @"player", self.holdingContainer, @"container", nil];
   
@@ -213,7 +213,7 @@
   if (self.holdingContainer.count == 0) {
     
       // if solo game, ends right away
-    if (self.type == kSelfGame) {
+    if (self.type == kSelfGame && !swap) {
       [self endGame];
       return;
     }
@@ -223,8 +223,8 @@
       // enough players passed to end game
       // 1. two rotations if there are dyadminoes left in pile
       // 2. one rotation if no dyadminoes are left in pile
-    if ((self.pile.count > 0 && self.numberOfConsecutivePasses >= self.players.count * 2) ||
-        (self.pile.count == 0 && self.numberOfConsecutivePasses >= self.players.count)) {
+    if (self.type != kSelfGame && ((self.pile.count > 0 && self.numberOfConsecutivePasses >= self.players.count * 2) ||
+        (self.pile.count == 0 && self.numberOfConsecutivePasses >= self.players.count))) {
       [self endGame];
       return;
     }

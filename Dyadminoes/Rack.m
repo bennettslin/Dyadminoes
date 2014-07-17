@@ -96,7 +96,7 @@
     if (dyadmino.parent == self) {
       NSLog(@"dyadmino is already on rack");
       if (!CGPointEqualToPoint(dyadmino.position, shouldBePosition) && !(undo && index == dyadminoesInArray.count - 1)) {
-        [dyadmino animateMoveToPoint:shouldBePosition];
+        [dyadmino animateMoveToPoint:shouldBePosition andSounding:NO];
         
           // undone dyadmino is popped in
       } else {
@@ -113,7 +113,7 @@
       [self addChild:dyadmino];
       
       if (animation) {
-        [dyadmino animateMoveToPoint:shouldBePosition];
+        [dyadmino animateMoveToPoint:shouldBePosition andSounding:NO];
       } else {
         dyadmino.position = shouldBePosition;
       }
@@ -158,7 +158,7 @@
           // take care of state change and animation of exchanged dyadmino, as long as it's not on the board
         if (!scootedDyadmino.tempBoardNode) {
           scootedDyadmino.zPosition = kZPositionRackMovedDyadmino;
-          [scootedDyadmino animateMoveToPoint:[scootedDyadmino getHomeNodePosition]];
+          [scootedDyadmino animateMoveToPoint:[scootedDyadmino getHomeNodePosition] andSounding:NO];
           scootedDyadmino.zPosition = kZPositionRackRestingDyadmino;
           
             // sound it
