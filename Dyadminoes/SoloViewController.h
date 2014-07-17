@@ -10,12 +10,16 @@
 
 @protocol SoloDelegate <NSObject>
 
--(void)startSoloGame;
+-(void)startSoloGameWithPlayerName:(NSString *)playerName;
+-(void)disableOverlay;
+-(void)enableOverlay;
 
 @end
 
 @interface SoloViewController : UIViewController
 
 @property (weak, nonatomic) id<SoloDelegate> delegate;
+
+-(void)resignTextField;
 
 @end

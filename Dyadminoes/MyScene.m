@@ -114,8 +114,6 @@
 }
 
 -(void)loadAfterNewMatchRetrieved {
-//  NSLog(@"preload called from scene");
-  
   [self.mySoundEngine removeAllActions];
   
   _rackExchangeInProgress = NO;
@@ -124,9 +122,6 @@
   _hoveringDyadminoFinishedCorrecting = 1;
   _boardZoomedOut = NO;
   _buttonsUpdatedThisTouch = NO;
-  
-    // reset these init values
-  
   _currentTouch = nil;
   _replayMode = NO;
   _swapMode = NO;
@@ -156,7 +151,7 @@
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes forZoom:NO];
   [self populateBoardWithDyadminoes];
   
-  [self updateTopBarLabelsFinalTurn:NO];
+  [self updateTopBarLabelsFinalTurn:NO animated:NO];
   
     // solo mode
   _topBar.resignButton.name = (self.myMatch.type == kSelfGame) ? @"end game" : @"resign";
@@ -173,7 +168,7 @@
   [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO];
   
   [self animateRecentlyPlayedDyadminoes];
-  
+  [self showTurnInfoOrGameResultsForReplay:NO];
     // not for first version
 //  [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
 }
@@ -235,7 +230,6 @@
 -(void)layoutBoard {
   
   NSLog(@"frame width %.2f, height %.2f", self.frame.size.width, self.frame.size.height);
-  NSLog(@"view frame width %.2f, %.2f", self.view.frame.size.width, self.view.frame.size.height);
   CGSize size = CGSizeMake(self.frame.size.width,
                            (self.frame.size.height - kTopBarHeight - kRackHeight));
 
@@ -1146,7 +1140,8 @@
     _replayMode = _replayMode ? NO : YES;
     [self toggleReplayFields];
     if (_replayMode) {
-      [self loadReplayTurnInfo];
+      [self showTurnInfoOrGameResultsForReplay:YES];
+      [self updateReplayButtons];
     }
     return;
     
@@ -1221,23 +1216,27 @@
       // replay buttons
   } else if (_buttonPressed == _replayBottom.firstTurnButton) {
     [self.myMatch first];
-    [self loadReplayTurnInfo];
+    [self showTurnInfoOrGameResultsForReplay:YES];
+    [self updateReplayButtons];
   } else if (_buttonPressed == _replayBottom.previousTurnButton) {
     [self.myMatch previous];
-    [self loadReplayTurnInfo];
+    [self showTurnInfoOrGameResultsForReplay:YES];
+    [self updateReplayButtons];
   } else if (_buttonPressed == _replayBottom.nextTurnButton) {
     [self.myMatch next];
-    [self loadReplayTurnInfo];
+    [self showTurnInfoOrGameResultsForReplay:YES];
+    [self updateReplayButtons];
   } else if (_buttonPressed == _replayBottom.lastTurnButton) {
     [self.myMatch lastOrLeaveReplay];
-    [self loadReplayTurnInfo];
+    [self showTurnInfoOrGameResultsForReplay:YES];
+    [self updateReplayButtons];
   
   } else {
     return;
   }
   
     // return to bypass updating labels and buttons
-  [self updateTopBarLabelsFinalTurn:NO];
+  [self updateTopBarLabelsFinalTurn:NO animated:YES];
   [self updateTopBarButtons];
 }
 
@@ -1369,7 +1368,7 @@
   }
   [_topBar flashLabelNamed:@"gameAvatar" withText:@"C major triad!"];
   [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
-  [self updateTopBarLabelsFinalTurn:NO];
+  [self updateTopBarLabelsFinalTurn:NO animated:YES];
   [self updateTopBarButtons];
 }
 
@@ -1383,13 +1382,15 @@
     [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
     
       // update views
-    [self updateTopBarLabelsFinalTurn:YES];
+    [self updateTopBarLabelsFinalTurn:YES animated:YES];
     [self updateTopBarButtons];
     [_topBar flashLabelNamed:@"log" withText:@"Turn done!"];
     
     if (self.myMatch.type == kSelfGame) {
       [self animateRecentlyPlayedDyadminoes];
     }
+    
+    [self showTurnInfoOrGameResultsForReplay:NO];
   }
 }
 
@@ -1399,20 +1400,8 @@
 }
 
 -(void)handleEndGame {
-  NSString *winnerText;
-  if (self.myMatch.wonPlayers.count > 0) {
-    
-    NSMutableArray *wonPlayerNames = [[NSMutableArray alloc] initWithCapacity:self.myMatch.wonPlayers.count];
-    for (Player *player in self.myMatch.wonPlayers) {
-      [wonPlayerNames addObject:player.playerName];
-    }
-    
-    NSString *wonPlayers = [wonPlayerNames componentsJoinedByString:@" and "];
-    winnerText = [NSString stringWithFormat:@"%@ won!", wonPlayers];
-  } else {
-    winnerText = @"Game ended in draw.";
-  }
-  [_topBar flashLabelNamed:@"message" withText:winnerText];
+  NSString *resultsText = [self.myMatch endGameResultsText];
+  [_topBar flashLabelNamed:@"message" withText:resultsText];
 }
 
 #pragma mark - realtime update methods
@@ -1738,13 +1727,15 @@
 
 #pragma mark - update label and button methods
 
--(void)updateTopBarLabelsFinalTurn:(BOOL)finalTurn {
+-(void)updateTopBarLabelsFinalTurn:(BOOL)finalTurn animated:(BOOL)animated {
   
-    // pile count
-  [_topBar updateLabelNamed:@"turnCount" withText:[NSString stringWithFormat:@"turn %i", self.myMatch.turns.count + 1]];
-  [_topBar updateLabelNamed:@"pileCount"
-                   withText:[NSString stringWithFormat:@"in pile: %lu",
-                             (unsigned long)self.myMatch.pile.count]];
+    // show turn count and pile left if game has not ended
+    NSString *pileLeftText = self.myMatch.gameHasEnded ? @"" : [NSString stringWithFormat:@"in pile: %lu",
+                                                          (unsigned long)self.myMatch.pile.count];
+  NSString *turnText = self.myMatch.gameHasEnded ? @"" : [NSString stringWithFormat:@"turn %i", self.myMatch.turns.count + 1];
+  
+  [_topBar updateLabelNamed:@"turnCount" withText:turnText];
+  [_topBar updateLabelNamed:@"pileCount" withText:pileLeftText];
   
   for (int i = 0; i < 4; i++) {
     
@@ -1764,13 +1755,13 @@
         [rackLabel removeFromParent];
       }
     } else {
-      if (player.resigned) {
+      if (player.resigned && self.myMatch.type != kSelfGame) {
         nameLabel.fontColor = [SKColor darkGrayColor];
       } else if (player == _myPlayer) {
         nameLabel.fontColor = (player == self.myMatch.currentPlayer) ? [SKColor orangeColor] : [SKColor yellowColor];
       } else if (player == self.myMatch.currentPlayer) {
         nameLabel.fontColor = [SKColor orangeColor];
-      } else if ([self.myMatch.wonPlayers containsObject:self.myMatch.currentPlayer]) {
+      } else if ([self.myMatch.wonPlayers containsObject:player]) {
         nameLabel.fontColor = [SKColor greenColor];
       } else {
         nameLabel.fontColor = [SKColor whiteColor];
@@ -1788,7 +1779,12 @@
       
       if (player == _myPlayer && (finalTurn || self.myMatch.tempScore > 0)) {
           // upon final turn, score is animated
-        [_topBar afterPlayUpdateScoreLabel:scoreLabel withText:scoreText];
+        if (animated) {
+          [_topBar afterPlayUpdateScoreLabel:scoreLabel withText:scoreText];
+        } else {
+          [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
+        }
+        
       } else {
         [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
       }
@@ -1938,7 +1934,9 @@
     _rackField.hidden = NO;
     _topBar.hidden = NO;
     
+      // animate last play, or game results if game ended
     [self animateRecentlyPlayedDyadminoes];
+    [self showTurnInfoOrGameResultsForReplay:NO];
     
     SKAction *topMoveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
     SKAction *topCompleteAction = [SKAction runBlock:^{
@@ -2036,21 +2034,21 @@
   [tempDataEnumerationSet addObjectsFromArray:self.myMatch.holdingContainer];
   
     // animate last played only if current player does not have dyadminoes in holding container
-  BOOL animateLastPlayedDyadminoes = self.myMatch.holdingContainer.count == 0 ? YES : NO;
+//  BOOL animateLastPlayedDyadminoes = self.myMatch.holdingContainer.count == 0 ? YES : NO;
   
   for (DataDyadmino *dataDyad in tempDataEnumerationSet) {
     Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
     
       // either animate last played dyadminoes, or highlight dyadminoes currently in holding container
-    if (animateLastPlayedDyadminoes) {
+//    if (animateLastPlayedDyadminoes) {
       if ([lastContainer containsObject:dataDyad]) {
         [dyadmino animateDyadminoesRecentlyPlayed:(lastPlayer == _myPlayer)];
       }
-    } else {
+//    } else {
       if ([self.myMatch.holdingContainer containsObject:dataDyad]) {
         [dyadmino highlightBoardDyadmino];
       }
-    }
+//    }
   }
 }
 
@@ -2306,29 +2304,19 @@
 
 #pragma mark - replay and turn methods
 
--(void)loadReplayTurnInfo {
+-(void)showTurnInfoOrGameResultsForReplay:(BOOL)replay {
   if (self.myMatch.turns.count > 0) {
-    Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"player"];
-    NSArray *dyadminoesPlayed = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"container"];
-    NSString *dyadminoesPlayedString;
-    if (dyadminoesPlayed.count > 0) {
-      NSString *componentsString = [[dyadminoesPlayed valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "];
-      dyadminoesPlayedString = [NSString stringWithFormat:@"played %@", componentsString];
+    
+    // if game has ended, give results
+    NSString *turnOrResultsText = (!replay && self.myMatch.gameHasEnded) ?
+      [self.myMatch endGameResultsText] :
+      [self.myMatch turnText];
+    
+    if (replay) {
+      [_replayTop updateLabelNamed:@"status" withText:turnOrResultsText];
     } else {
-      dyadminoesPlayedString = @"passed";
+      [_topBar flashLabelNamed:@"message" withText:turnOrResultsText];
     }
-    NSString *turnText = [NSString stringWithFormat:@"%@ %@ for turn %lu of %lu", turnPlayer.playerName, dyadminoesPlayedString, (unsigned long)self.myMatch.replayCounter, (unsigned long)self.myMatch.turns.count];
-    NSLog(@"turn text is %@", turnText);
-    [_replayTop updateLabelNamed:@"status" withText:turnText];
-    [self updateReplayButtons];
-  }
-}
-
--(void)showTurnInfoForReplay:(BOOL)replay {
-  if (replay) {
-    
-  } else {
-    
   }
 }
 
@@ -2432,7 +2420,7 @@
     return;
   }
   
-  [self updateTopBarLabelsFinalTurn:YES];
+  [self updateTopBarLabelsFinalTurn:YES animated:YES];
   [self updateTopBarButtons];
 }
 
@@ -2506,7 +2494,7 @@
     }
   }
 
-  [self updateTopBarLabelsFinalTurn:NO];
+  [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
 }
 

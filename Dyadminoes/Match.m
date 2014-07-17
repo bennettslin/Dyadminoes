@@ -265,7 +265,7 @@
 }
 
 -(void)resignPlayer:(Player *)player {
-
+  
   player.resigned = YES;
   [self.pile addObjectsFromArray:player.dataDyadminoesThisTurn];
   [self sortBoardAndPileArrays];
@@ -283,23 +283,32 @@
   self.currentPlayer = nil;
   [self resetHoldingContainer];
   
-    // rules out that players with no points can win
-  NSUInteger maxScore = 1;
-  NSMutableArray *tempArray = [[NSMutableArray alloc] initWithCapacity:self.players.count];
-  
-  for (Player *player in self.players) {
-    if (!player.resigned) {
-      if (player.playerScore > maxScore) {
-        [tempArray removeAllObjects];
-        [tempArray addObject:player];
-        maxScore = player.playerScore;
-      } else if (player.playerScore == maxScore) {
-        [tempArray addObject:player];
+    // if solo game, sole player is winner if any score at all
+  if (self.type == kSelfGame) {
+    Player *soloPlayer = self.players[0];
+    self.wonPlayers = (soloPlayer.playerScore > 0) ?
+      [NSArray arrayWithArray:self.players] :
+      @[];
+    
+  } else {
+      // rules out that players with no points can win
+    NSUInteger maxScore = 1;
+    NSMutableArray *tempArray = [[NSMutableArray alloc] initWithCapacity:self.players.count];
+    
+    for (Player *player in self.players) {
+      if (!player.resigned) {
+        if (player.playerScore > maxScore) {
+          [tempArray removeAllObjects];
+          [tempArray addObject:player];
+          maxScore = player.playerScore;
+        } else if (player.playerScore == maxScore) {
+          [tempArray addObject:player];
+        }
       }
     }
+    self.wonPlayers = [NSArray arrayWithArray:tempArray];
   }
 
-  self.wonPlayers = [NSArray arrayWithArray:tempArray];
   self.gameHasEnded = YES;
   [self.delegate handleEndGame];
 }
@@ -333,6 +342,44 @@
 -(void)sortDyadminoes:(NSMutableArray *)array {
   NSSortDescriptor *sortByID = [[NSSortDescriptor alloc] initWithKey:@"myID" ascending:YES];
   [array sortedArrayUsingDescriptors:@[sortByID]];
+}
+
+-(NSString *)endGameResultsText {
+  
+  NSString *resultsText;
+    // there are winners if there is any score at all
+  if (self.wonPlayers.count > 0) {
+    
+    NSMutableArray *wonPlayerNames = [[NSMutableArray alloc] initWithCapacity:self.wonPlayers.count];
+    for (Player *player in self.wonPlayers) {
+      [wonPlayerNames addObject:player.playerName];
+    }
+    
+    NSString *wonPlayers = [wonPlayerNames componentsJoinedByString:@" and "];
+    resultsText = [NSString stringWithFormat:@"%@ won!", wonPlayers];
+    
+      // solo game with no score
+  } else if (self.type == kSelfGame) {
+    resultsText = @"Scoreless game.";
+    
+  } else {
+    resultsText = @"Draw game.";
+  }
+  
+  return resultsText;
+}
+
+-(NSString *)turnText {
+  Player *turnPlayer = [self.turns[self.replayCounter - 1] objectForKey:@"player"];
+  NSArray *dyadminoesPlayed = [self.turns[self.replayCounter - 1] objectForKey:@"container"];
+  NSString *dyadminoesPlayedString;
+  if (dyadminoesPlayed.count > 0) {
+    NSString *componentsString = [[dyadminoesPlayed valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "];
+    dyadminoesPlayedString = [NSString stringWithFormat:@"played %@", componentsString];
+  } else {
+    dyadminoesPlayedString = @"passed";
+  }
+  return [NSString stringWithFormat:@"%@ %@ for turn %lu of %lu.", turnPlayer.playerName, dyadminoesPlayedString, (unsigned long)self.replayCounter, (unsigned long)self.turns.count];
 }
 
 #pragma mark - undo manager

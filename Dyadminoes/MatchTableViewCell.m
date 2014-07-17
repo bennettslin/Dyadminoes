@@ -63,7 +63,7 @@
 
       playerLabel.text = player.playerName;
 
-      if (player.resigned) {
+      if (player.resigned && self.myMatch.type != kSelfGame) {
         playerLabel.textColor = [UIColor lightGrayColor];
       } else if (player == self.myMatch.currentPlayer) {
         playerLabel.textColor = [UIColor orangeColor];
@@ -82,19 +82,7 @@
       
         // game ended, so lastPlayed label shows date
       self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed];
-      
-      if (self.myMatch.wonPlayers.count > 0) {
-        NSMutableArray *wonPlayerNames = [[NSMutableArray alloc] initWithCapacity:self.myMatch.wonPlayers.count];
-        
-        for (Player *player in self.myMatch.wonPlayers) {
-          [wonPlayerNames addObject:player.playerName];
-        }
-        
-        NSString *wonPlayers = [wonPlayerNames componentsJoinedByString:@" and "];
-        self.winnerLabel.text = [NSString stringWithFormat:@"%@ won!", wonPlayers];
-      } else {
-        self.winnerLabel.text = @"Draw game.";
-      }
+      self.winnerLabel.text = [self.myMatch endGameResultsText];
       
       self.removeGameButton.hidden = NO;
       self.removeGameButton.enabled = YES;

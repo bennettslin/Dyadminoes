@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "NSObject+Helper.h"
 @class Match;
 
 @interface Model : NSObject <NSCoding>
@@ -16,7 +17,8 @@
 +(void)saveMyModel:(Model *)myModel;
 +(Model *)getMyModel;
 
--(Match *)instantiateHardCodededSoloMatchForDebugPurposes;
+-(Match *)instantiateSoloMatchWithName:(NSString *)playerName andRules:(GameRules)rules andSkill:(GameSkill)skill;
+//-(Match *)instantiateHardCodededSoloMatchForDebugPurposes;
 -(Match *)instantiateHardCodededPassNPlayMatchForDebugPurposes;
 -(void)instantiateHardCodedMatchesForDebugPurposes;
 -(void)sortMyMatches;

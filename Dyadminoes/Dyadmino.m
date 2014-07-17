@@ -534,9 +534,10 @@
 
 -(void)animateDyadminoesRecentlyPlayed:(BOOL)playedByMyPlayer {
   NSLog(@"animate dyadminoes recently played");
-  self.color = playedByMyPlayer ? kPlayedDyadminoBlue : kEnemyDyadminoRed;
-  SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:kDyadminoColorBlendFactor * 1.333 duration:.5f];
-  SKAction *highlightOut = [SKAction colorizeWithColorBlendFactor:0.f duration:1.f];
+  [self removeActionsAndEstablishNotRotating];
+  self.color = playedByMyPlayer ? kFriendlyDyadminoGreen : kEnemyDyadminoRed;
+  SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:kDyadminoColorBlendFactor * 1.333 duration:.75f];
+  SKAction *highlightOut = [SKAction colorizeWithColorBlendFactor:0.f duration:1.25f];
   SKAction *sequence = [SKAction sequence:@[highlightIn, highlightOut]];
   [self runAction:sequence withKey:kActionShowRecentlyPlayed];
 }

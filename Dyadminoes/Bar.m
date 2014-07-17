@@ -443,6 +443,9 @@
     if (!label.parent) {
       [self addChild:label];
     }
+    
+      // ensures that cancelled animation does not affect colour blend factor
+    label.colorBlendFactor = 0.f;
     label.text = text;
     SKAction *wait = [SKAction waitForDuration:2.f];
     SKAction *fadeColor = [SKAction colorizeWithColor:[UIColor clearColor] colorBlendFactor:1.f duration:0.5f];

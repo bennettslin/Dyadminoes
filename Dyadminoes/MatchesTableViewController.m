@@ -70,6 +70,8 @@
 @implementation MatchesTableViewController {
   CGFloat _screenWidth;
   CGFloat _screenHeight;
+  
+  BOOL _overlayEnabled;
 }
 
 -(void)viewDidLoad {
@@ -147,6 +149,8 @@
 }
 
 -(void)viewWillAppear:(BOOL)animated {
+  
+  _overlayEnabled = YES;
   
   if (![Model getMyModel]) {
     self.myModel = [Model new];
@@ -366,7 +370,8 @@
 
 -(IBAction)matchesTapped:(id)sender {
   NSLog(@"matches tapped called");
-  if (!self.vcIsAnimating && self.childVC) {
+  
+  if (!self.vcIsAnimating && self.childVC && _overlayEnabled) {
     
     [self fadeOutOverlay];
     [self slideDownTopBar];
@@ -376,6 +381,10 @@
     [self removeChildViewController:self.childVC];
     NSLog(@"self.childVC is nil from matches tapped");
     self.childVC = nil;
+  } else if (!_overlayEnabled) {
+    if (self.childVC == self.soloVC) {
+      [self.soloVC resignTextField];
+    }
   }
 }
 
@@ -424,8 +433,8 @@
 
 #pragma mark - match creation methods
 
--(void)startSoloGame {
-  Match *newMatch = [self.myModel instantiateHardCodededSoloMatchForDebugPurposes];
+-(void)startSoloGameWithPlayerName:(NSString *)playerName {
+  Match *newMatch = [self.myModel instantiateSoloMatchWithName:playerName andRules:kGameRulesTonal andSkill:kBeginner];
     // may need to tweak with how this is viewed
   [self matchesTapped:nil];
   [self.myModel sortMyMatches];
@@ -439,6 +448,16 @@
   [self.myModel sortMyMatches];
   [self.tableView reloadData];
   [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
+}
+
+#pragma mark - delegate methods
+
+-(void)disableOverlay {
+  _overlayEnabled = NO;
+}
+
+-(void)enableOverlay {
+  _overlayEnabled = YES;
 }
 
 #pragma mark - status bar methods

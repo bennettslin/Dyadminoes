@@ -8,10 +8,14 @@
 
 #import "SoloViewController.h"
 
-@interface SoloViewController ()
+#define kDefaultSoloName @"Ludwig van Beethoven"
 
-@property (weak, nonatomic) IBOutlet UITextField *playerName;
+@interface SoloViewController () <UITextFieldDelegate>
+
+@property (weak, nonatomic) IBOutlet UITextField *playerNameField;
 @property (weak, nonatomic) IBOutlet UIButton *startGameButton;
+
+@property (strong, nonatomic) NSUserDefaults *defaults;
 
 @end
 
@@ -19,16 +23,63 @@
 
 -(void)viewDidLoad {
   [super viewDidLoad];
-  // Do any additional setup after loading the view.
+  
+  self.playerNameField.delegate = self;
+  
+  self.defaults = [NSUserDefaults standardUserDefaults];
 }
 
--(void)didReceiveMemoryWarning {
-  [super didReceiveMemoryWarning];
-  // Dispose of any resources that can be recreated.
+-(void)viewWillAppear:(BOOL)animated {
+  
+    // FIXME: if no player name, try to get from Game Center *first*
+  NSString *userDefaultString = [self.defaults objectForKey:@"soloName"];
+  if (!userDefaultString || [userDefaultString isEqualToString:@""] || [userDefaultString isEqualToString:kDefaultSoloName]) {
+    self.playerNameField.text = nil;
+    [self.defaults setObject:kDefaultSoloName forKey:@"soloName"];
+  } else {
+    self.playerNameField.text = [self.defaults objectForKey:@"soloName"];
+  }
 }
 
 -(IBAction)startGameTapped:(id)sender {
-  [self.delegate startSoloGame];
+  [self.delegate startSoloGameWithPlayerName:[self.defaults objectForKey:@"soloName"]];
+}
+
+-(void)saveNewPlayerName {
+  
+    // FIXME: trim white spaces
+  NSString *trimmedString = [self.playerNameField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+  
+  if (![trimmedString isEqualToString:[self.defaults objectForKey:@"soloName"]]) {
+    if (!trimmedString || [trimmedString isEqualToString:@""]) {
+      [self.defaults setObject:kDefaultSoloName forKey:@"soloName"];
+    } else {
+      [self.defaults setObject:trimmedString forKey:@"soloName"];
+    }
+    [self.defaults synchronize];
+    NSLog(@"newPlayerName is '%@'", [self.defaults objectForKey:@"soloName"]);
+  }
+}
+
+#pragma mark - text field delegate methods
+
+-(void)textFieldDidBeginEditing:(UITextField *)textField {
+  [self.delegate disableOverlay];
+}
+
+-(BOOL)textFieldShouldReturn:(UITextField *)textField {
+  [self resignTextField];
+  return YES;
+}
+
+-(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+  [self resignTextField];
+}
+
+-(void)resignTextField {
+  [self.playerNameField resignFirstResponder];
+  [self saveNewPlayerName];
+  [self.delegate enableOverlay];
 }
 
 @end

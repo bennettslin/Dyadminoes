@@ -62,6 +62,10 @@
 -(BOOL)next;
 -(void)lastOrLeaveReplay;
 
+  // label methods
+-(NSString *)endGameResultsText;
+-(NSString *)turnText;
+
 @end
 
 @protocol MatchDelegate <NSObject>

@@ -113,6 +113,7 @@
 -(void)didReceiveMemoryWarning {
   [super didReceiveMemoryWarning];
   NSLog(@"scene VC did receive memory warning");
+  [self saveModel];
   // Release any cached data, images, etc that aren't in use.
 }
 
