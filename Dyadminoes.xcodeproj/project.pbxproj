@@ -99,6 +99,7 @@
 		3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Electronic_Chime-KevanGC-495939803.wav"; sourceTree = "<group>"; };
 		3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Click2-Sebastian-759472264.wav"; sourceTree = "<group>"; };
 		3F580BDF194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Slide_Closed_SoundBible_com_1521580537.wav; sourceTree = "<group>"; };
+		3F59D92019784B6A00A1265D /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		3F6AE50C18D4D1E7000528C1 /* Bar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bar.h; sourceTree = "<group>"; };
 		3F6AE50D18D4D1E7000528C1 /* Bar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Bar.m; sourceTree = "<group>"; };
 		3F7BD7C7192AF45D009274DE /* Match.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Match.h; sourceTree = "<group>"; };
@@ -246,6 +247,7 @@
 		3F87AAA9188DEE4B008C4A0D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3F59D92019784B6A00A1265D /* AVFoundation.framework */,
 				3F87AAAA188DEE4B008C4A0D /* Foundation.framework */,
 				3F87AAAC188DEE4B008C4A0D /* CoreGraphics.framework */,
 				3F87AAAE188DEE4B008C4A0D /* UIKit.framework */,

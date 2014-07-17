@@ -110,6 +110,9 @@
 }
 
 -(void)soundTouchedDyadminoFace:(SKSpriteNode *)dyadminoFace plucked:(BOOL)plucked {
+  
+  NSLog(@"face touched is %@", dyadminoFace.name);
+  
     // find out hexcoord
   Dyadmino *dyadmino = (Dyadmino *)dyadminoFace.parent;
   HexCoord faceHexCoord = [dyadmino getHexCoordOfFace:dyadminoFace];

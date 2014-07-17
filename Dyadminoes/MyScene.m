@@ -496,14 +496,16 @@
       
         // register sound if face tapped
     } else {
+      
       SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
       if (face && face.parent != _hoveringDyadmino && !_pivotInProgress) {
-
         if ([face.parent isKindOfClass:[Dyadmino class]]) {
           Dyadmino *faceParent = (Dyadmino *)face.parent;
-          if (!_boardZoomedOut || (_boardZoomedOut && [faceParent isInRack])) {
-            [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
-            _soundedDyadminoFace = face;
+          if (!_replayMode || (_replayMode && [faceParent isOnBoard])) {
+            if (!_boardZoomedOut || (_boardZoomedOut && [faceParent isInRack])) {
+              [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
+              _soundedDyadminoFace = face;
+            }
           }
         }
       }
@@ -581,11 +583,14 @@
     SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
     
     if (face && face.parent != _hoveringDyadmino) {
-      if (!_soundedDyadminoFace) {
-        [self.mySoundEngine soundTouchedDyadminoFace:face plucked:NO];
-        _soundedDyadminoFace = face;
-      } else {
-        
+      if ([face.parent isKindOfClass:[Dyadmino class]]) {
+        Dyadmino *faceParent = (Dyadmino *)face.parent;
+        if (!_replayMode || (_replayMode && [faceParent isOnBoard])) {
+          if (!_soundedDyadminoFace) {
+            [self.mySoundEngine soundTouchedDyadminoFace:face plucked:NO];
+            _soundedDyadminoFace = face;
+          }
+        }
       }
     } else {
       _soundedDyadminoFace = nil;
