@@ -391,6 +391,31 @@
   }
 }
 
+-(UIColor *)colourForPlayer:(Player *)player {
+  if ([self.players containsObject:player]) {
+    NSUInteger index = [self.players indexOfObject:player];
+    switch (index) {
+      case 0:
+        return kPlayerBlue;
+        break;
+      case 1:
+        return kPlayerRed;
+        break;
+      case 2:
+        return kPlayerGreen;
+        break;
+      case 3:
+        return kPlayerOrange;
+        break;
+      default:
+        return nil;
+        break;
+    }
+  } else {
+    return nil;
+  }
+}
+
 #pragma mark - undo manager
 
 -(void)addToHoldingContainer:(DataDyadmino *)dataDyad {

@@ -34,7 +34,7 @@
   self = [super init];
   if (self) {
       // constants
-    self.color = kHighlightedDyadminoYellow; // for color blend factor
+    self.color = (SKColor *)kNeutralYellow; // for color blend factor
     self.zPosition = kZPositionRackRestingDyadmino;
     self.name = [NSString stringWithFormat:@"dyadmino %lu-%lu", (unsigned long)pc1, (unsigned long)pc2];
     self.pc1 = pc1;
@@ -60,7 +60,7 @@
 
     // reset these init values
   
-  self.color = kHighlightedDyadminoYellow;
+  self.color = (SKColor *)kNeutralYellow;
   self.colorBlendFactor = 0.f;
   self.cellForPC1 = nil;
   self.cellForPC2 = nil;
@@ -212,8 +212,8 @@
   self.colorBlendFactor = 0.f;
 }
 
--(void)highlightBoardDyadmino {
-  self.color = kPlayedDyadminoBlue;
+-(void)highlightBoardDyadminoWithColour:(UIColor *)colour {
+  self.color = (SKColor *)colour;
   self.colorBlendFactor = kDyadminoColorBlendFactor;
 }
 
@@ -457,7 +457,7 @@
   [self removeActionsAndEstablishNotRotating];
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
-    self.color = kHighlightedDyadminoYellow;
+    self.color = (SKColor *)kNeutralYellow;
     [self.delegate soundDyadminoSuck];
     [self setToHomeZPosition];
     [self unhighlightOutOfPlay];
@@ -537,10 +537,10 @@
   [self runAction:sequence withKey:kActionEaseIntoNode];
 }
 
--(void)animateDyadminoesRecentlyPlayed:(BOOL)playedByMyPlayer {
+-(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour {
   NSLog(@"animate dyadminoes recently played");
   [self removeActionsAndEstablishNotRotating];
-  self.color = playedByMyPlayer ? kFriendlyDyadminoGreen : kEnemyDyadminoRed;
+  self.color = (SKColor *)colour;
   
   SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:kDyadminoColorBlendFactor * 1.333 duration:.5f];
   

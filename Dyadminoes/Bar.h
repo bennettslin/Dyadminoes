@@ -90,8 +90,8 @@
 
 #pragma mark - label methods
 
--(void)updateLabelNamed:(NSString *)name withText:(NSString *)text;
--(void)flashLabelNamed:(NSString *)name withText:(NSString *)text;
+-(void)updateLabelNamed:(NSString *)name withText:(NSString *)text andColour:(UIColor *)colour;
+-(void)flashLabelNamed:(NSString *)name withText:(NSString *)text andColour:(UIColor *)colour;
 -(void)afterPlayUpdateScoreLabel:(Label *)scoreLabel withText:(NSString *)scoreText;
 
 @end

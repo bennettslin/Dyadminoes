@@ -66,6 +66,10 @@
 -(NSString *)endGameResultsText;
 -(NSString *)turnTextLastPlayed:(BOOL)lastPlayed;
 
+#pragma mark - helper methods
+
+-(UIColor *)colourForPlayer:(Player *)player;
+
 @end
 
 @protocol MatchDelegate <NSObject>

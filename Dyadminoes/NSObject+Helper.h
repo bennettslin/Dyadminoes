@@ -132,10 +132,12 @@
   //----------------------------------------------------------------------------
 
   // colours
-#define kHighlightedDyadminoYellow [SKColor yellowColor]
-#define kPlayedDyadminoBlue [SKColor colorWithRed:.4f green:.35f blue:1.f alpha:1.f]
-#define kEnemyDyadminoRed [SKColor colorWithRed:1.f green:.3f blue:.3f alpha:1.f]
-#define kFriendlyDyadminoGreen [SKColor colorWithRed:0.3f green:1.f blue:.3f alpha:1.f]
+
+#define kNeutralYellow [UIColor yellowColor]
+#define kPlayerBlue [UIColor colorWithRed:.4f green:.35f blue:1.f alpha:1.f]
+#define kPlayerRed [UIColor colorWithRed:1.f green:.3f blue:.3f alpha:1.f]
+#define kPlayerGreen [UIColor colorWithRed:0.2f green:1.f blue:.2f alpha:1.f]
+#define kPlayerOrange [UIColor orangeColor]
 
 #define kDarkBlue [SKColor colorWithRed:.29f green:.4f blue:.63f alpha:1.f]
 #define kSkyBlue [SKColor colorWithRed:.7f green:.8f blue:.9f alpha:1.f]

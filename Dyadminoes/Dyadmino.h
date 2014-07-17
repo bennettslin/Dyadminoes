@@ -103,7 +103,7 @@
 -(void)keepHovering;
 -(void)finishHovering;
 //-(void)unhighlightOutOfPlay;
--(void)highlightBoardDyadmino;
+-(void)highlightBoardDyadminoWithColour:(UIColor *)colour;
 -(void)adjustHighlightGivenDyadminoOffsetPosition:(CGPoint)dyadminoOffsetPosition;
 
 #pragma mark - change state methods
@@ -123,7 +123,7 @@
 -(void)animateMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding;
 -(void)animateFlip;
 -(void)animateEaseIntoNodeAfterHover;
--(void)animateDyadminoesRecentlyPlayed:(BOOL)playedByMyPlayer;
+-(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour;
 -(void)animateFace:(SKSpriteNode *)face;
 //-(void)animateInitialTouch;
 

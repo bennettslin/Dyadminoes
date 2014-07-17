@@ -63,14 +63,18 @@
 
       playerLabel.text = player.playerName;
 
+        // static player colours
       if (player.resigned && self.myMatch.type != kSelfGame) {
         playerLabel.textColor = [UIColor lightGrayColor];
-      } else if (player == self.myMatch.currentPlayer) {
-        playerLabel.textColor = [UIColor orangeColor];
-      } else if ([self.myMatch.wonPlayers containsObject:player]) {
-        playerLabel.textColor = [UIColor greenColor];
       } else {
-        playerLabel.textColor = [UIColor blackColor];
+        playerLabel.textColor = [self.myMatch colourForPlayer:player];
+      }
+      
+        // background colours depending on match results
+      if (!self.myMatch.gameHasEnded && player == self.myMatch.currentPlayer) {
+        playerLabel.backgroundColor = kNeutralYellow;
+      } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
+        playerLabel.backgroundColor = [UIColor greenColor];
       }
       
       scoreLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];

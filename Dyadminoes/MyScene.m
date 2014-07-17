@@ -146,6 +146,9 @@
 
 -(void)didMoveToView:(SKView *)view {
   
+    // ensures that match's board dyadminoes are reset
+  [self.myMatch lastOrLeaveReplay];
+  
   [self populateRackArray];
   [self populateBoardSet];
   
@@ -1152,6 +1155,9 @@
     if (_replayMode) {
       [self showTurnInfoOrGameResultsForReplay:YES];
       [self updateReplayButtons];
+    } else {
+        // reset match's board
+      [self.myMatch lastOrLeaveReplay];
     }
     return;
     
@@ -1207,7 +1213,7 @@
     } else if (_swapMode) {
         // confirm that there's enough dyadminoes in the pile
       if (self.myMatch.swapContainer.count > self.myMatch.pile.count) {
-        [_topBar flashLabelNamed:@"message" withText:@"There aren't enough dyadminoes left in the pile."];
+        [_topBar flashLabelNamed:@"message" withText:@"There aren't enough dyadminoes left in the pile." andColour:nil];
         return;
       } else {
         [self presentSwapActionSheet];
@@ -1347,7 +1353,7 @@
     [self.myMatch swapDyadminoesFromCurrentPlayer];
     [self populateRackArray];
     [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
-    [_topBar flashLabelNamed:@"log" withText:@"Swapped!"];
+    [_topBar flashLabelNamed:@"log" withText:@"Swapped!" andColour:nil];
     return YES;
   }
   return NO;
@@ -1366,7 +1372,7 @@
       // do cleanup, dyadmino's home node is now the board node
     dyadmino.homeNode = dyadmino.tempBoardNode;
     dyadmino.myHexCoord = dyadmino.homeNode.myCell.hexCoord;
-    [dyadmino highlightBoardDyadmino];
+    [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer]];
     
       // empty pointers
     _recentRackDyadmino = nil;
@@ -1376,7 +1382,7 @@
     dataDyad.myHexCoord = dyadmino.myHexCoord;
     dataDyad.myOrientation = dyadmino.orientation;
   }
-  [_topBar flashLabelNamed:@"gameAvatar" withText:@"C major triad!"];
+  [_topBar flashLabelNamed:@"gameAvatar" withText:@"C major triad!" andColour:nil];
   [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
   [self updateTopBarLabelsFinalTurn:NO animated:YES];
   [self updateTopBarButtons];
@@ -1394,7 +1400,7 @@
       // update views
     [self updateTopBarLabelsFinalTurn:YES animated:YES];
     [self updateTopBarButtons];
-    [_topBar flashLabelNamed:@"log" withText:@"Turn done!"];
+    [_topBar flashLabelNamed:@"log" withText:@"Turn done!" andColour:nil];
     
     if (self.myMatch.type == kSelfGame) {
       [self animateRecentlyPlayedDyadminoes];
@@ -1406,12 +1412,12 @@
 
 -(void)handleSwitchToNextPlayer {
   NSString *nextPlayer = [NSString stringWithFormat:@"Waiting for %@ to play.", self.myMatch.currentPlayer.playerName];
-  [_topBar flashLabelNamed:@"message" withText:nextPlayer];
+  [_topBar flashLabelNamed:@"message" withText:nextPlayer andColour:[self.myMatch colourForPlayer:self.myMatch.currentPlayer]];
 }
 
 -(void)handleEndGame {
   NSString *resultsText = [self.myMatch endGameResultsText];
-  [_topBar flashLabelNamed:@"message" withText:resultsText];
+  [_topBar flashLabelNamed:@"message" withText:resultsText andColour:nil];
 }
 
 #pragma mark - realtime update methods
@@ -1724,11 +1730,11 @@
         
             // lone dyadmino
         if (placementResult == kErrorLoneDyadmino) {
-          [_topBar flashLabelNamed:@"message" withText:@"no lone dyadminoes!"];
+          [_topBar flashLabelNamed:@"message" withText:@"no lone dyadminoes!" andColour:nil];
           
             // stacked dyadminoes
         } else if (placementResult == kErrorStackedDyadminoes) {
-          [_topBar flashLabelNamed:@"message" withText:@"can't stack dyadminoes!"];
+          [_topBar flashLabelNamed:@"message" withText:@"can't stack dyadminoes!" andColour:nil];
         }
       }
     }
@@ -1744,8 +1750,8 @@
                                                           (unsigned long)self.myMatch.pile.count];
   NSString *turnText = self.myMatch.gameHasEnded ? @"" : [NSString stringWithFormat:@"turn %i", self.myMatch.turns.count + 1];
   
-  [_topBar updateLabelNamed:@"turnCount" withText:turnText];
-  [_topBar updateLabelNamed:@"pileCount" withText:pileLeftText];
+  [_topBar updateLabelNamed:@"turnCount" withText:turnText andColour:nil];
+  [_topBar updateLabelNamed:@"pileCount" withText:pileLeftText andColour:nil];
   
   for (int i = 0; i < 4; i++) {
     
@@ -1765,19 +1771,22 @@
         [rackLabel removeFromParent];
       }
     } else {
+      
+      [_topBar updateLabelNamed:nameLabel.name withText:player.playerName andColour:nil];
+      
+        // static player colours
       if (player.resigned && self.myMatch.type != kSelfGame) {
         nameLabel.fontColor = [SKColor darkGrayColor];
-      } else if (player == _myPlayer) {
-        nameLabel.fontColor = (player == self.myMatch.currentPlayer) ? [SKColor orangeColor] : [SKColor yellowColor];
-      } else if (player == self.myMatch.currentPlayer) {
-        nameLabel.fontColor = [SKColor orangeColor];
-      } else if ([self.myMatch.wonPlayers containsObject:player]) {
-        nameLabel.fontColor = [SKColor greenColor];
       } else {
-        nameLabel.fontColor = [SKColor whiteColor];
+        nameLabel.fontColor = [self.myMatch colourForPlayer:player];
       }
-
-      [_topBar updateLabelNamed:nameLabel.name withText:player.playerName];
+      
+        // FIXME: this will show match results
+      if (!self.myMatch.gameHasEnded && player == self.myMatch.currentPlayer) {
+        nameLabel.fontColor = [SKColor whiteColor];
+      } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
+        nameLabel.fontColor = [SKColor blackColor];
+      }
       
       NSString *scoreText;
         
@@ -1792,14 +1801,14 @@
         if (animated) {
           [_topBar afterPlayUpdateScoreLabel:scoreLabel withText:scoreText];
         } else {
-          [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
+          [_topBar updateLabelNamed:scoreLabel.name withText:scoreText andColour:nil];
         }
         
       } else {
-        [_topBar updateLabelNamed:scoreLabel.name withText:scoreText];
+        [_topBar updateLabelNamed:scoreLabel.name withText:scoreText andColour:nil];
       }
       
-      [_topBar updateLabelNamed:rackLabel.name withText:[[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+      [_topBar updateLabelNamed:rackLabel.name withText:[[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "] andColour:nil];
     }
   }
   
@@ -1809,10 +1818,10 @@
   NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
   NSString *swapContainerText = [NSString stringWithFormat:@"in swap container: %@", [[self.myMatch.swapContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
   
-  [_topBar updateLabelNamed:_topBar.pileDyadminoesLabel.name withText:pileText];
-  [_topBar updateLabelNamed:_topBar.boardDyadminoesLabel.name withText:boardText];
-  [_topBar updateLabelNamed:_topBar.holdingContainerLabel.name withText:holdingContainerText];
-  [_topBar updateLabelNamed:_topBar.swapContainerLabel.name withText:swapContainerText];
+  [_topBar updateLabelNamed:_topBar.pileDyadminoesLabel.name withText:pileText andColour:nil];
+  [_topBar updateLabelNamed:_topBar.boardDyadminoesLabel.name withText:boardText andColour:nil];
+  [_topBar updateLabelNamed:_topBar.holdingContainerLabel.name withText:holdingContainerText andColour:nil];
+  [_topBar updateLabelNamed:_topBar.swapContainerLabel.name withText:swapContainerText andColour:nil];
 }
 
 -(void)updateTopBarButtons {
@@ -2049,16 +2058,16 @@
   
   for (DataDyadmino *dataDyad in tempDataEnumerationSet) {
     Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
-    
-      // either animate last played dyadminoes, or highlight dyadminoes currently in holding container
+  
+    // either animate last played dyadminoes, or highlight dyadminoes currently in holding container
 //    if (animateLastPlayedDyadminoes) {
-      if ([lastContainer containsObject:dataDyad]) {
-        [dyadmino animateDyadminoesRecentlyPlayed:(lastPlayer == _myPlayer)];
-      }
+    if ([lastContainer containsObject:dataDyad]) {
+      [dyadmino animateDyadminoesRecentlyPlayedWithColour:[self.myMatch colourForPlayer:lastPlayer]];
+    }
 //    } else {
-      if ([self.myMatch.holdingContainer containsObject:dataDyad]) {
-        [dyadmino highlightBoardDyadmino];
-      }
+    if ([self.myMatch.holdingContainer containsObject:dataDyad]) {
+      [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer]];
+    }
 //    }
   }
 }
@@ -2097,8 +2106,8 @@
     [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard forZoom:zoom];
   }
   
-  [_topBar flashLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
-                                             _boardField.cellsTop - 0, _boardField.cellsRight - 0, _boardField.cellsBottom + 0, _boardField.cellsLeft + 0]];
+//  [_topBar flashLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
+//                                             _boardField.cellsTop - 0, _boardField.cellsRight - 0, _boardField.cellsBottom + 0, _boardField.cellsLeft + 0]];
 }
 
 #pragma mark - touch helper methods
@@ -2320,9 +2329,13 @@
     
     // if game has ended, give results
     NSString *turnOrResultsText;
+    SKColor *colour;
     
+      // FIXME: refactor to make more efficient
     if (replay) {
       turnOrResultsText = [self.myMatch turnTextLastPlayed:NO];
+      Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"player"];
+      colour = [self.myMatch colourForPlayer:turnPlayer];
       
     } else if (!replay && self.myMatch.gameHasEnded) {
       turnOrResultsText = [self.myMatch endGameResultsText];
@@ -2330,12 +2343,14 @@
         // just say it was the last play, no turn number
     } else {
       turnOrResultsText = [self.myMatch turnTextLastPlayed:YES];
+      Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"player"];
+      colour = [self.myMatch colourForPlayer:turnPlayer];
     }
     
     if (replay) {
-      [_replayTop updateLabelNamed:@"status" withText:turnOrResultsText];
+      [_replayTop updateLabelNamed:@"status" withText:turnOrResultsText andColour:colour];
     } else {
-      [_topBar flashLabelNamed:@"message" withText:turnOrResultsText];
+      [_topBar flashLabelNamed:@"message" withText:turnOrResultsText andColour:colour];
     }
   }
 }

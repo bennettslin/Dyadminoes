@@ -107,8 +107,8 @@
   
   [self populateCommonLabels];
   
-  [self updateLabelNamed:@"player1Name" withText:@"test"];
-  [self updateLabelNamed:@"status" withText:@"default turn info"];
+  [self updateLabelNamed:@"player1Name" withText:@"test" andColour:nil];
+  [self updateLabelNamed:@"status" withText:@"default turn info" andColour:nil];
 }
 
 -(void)populateWithTopPnPButtons {
@@ -426,9 +426,17 @@
 
 #pragma mark - label methods
 
--(void)updateLabelNamed:(NSString *)name withText:(NSString *)text {
+-(void)updateLabelNamed:(NSString *)name withText:(NSString *)text andColour:(UIColor *)colour {
   Label *label = [self.allLabels valueForKey:name];
+  
   if (label) {
+    
+    if (!colour) {
+      label.fontColor = label.originalFontColour;
+    } else {
+      label.fontColor = colour;
+    }
+    
     if (!label.parent) {
       [self addChild:label];
     }
@@ -436,30 +444,32 @@
   }
 }
 
--(void)flashLabelNamed:(NSString *)name withText:(NSString *)text {
+-(void)flashLabelNamed:(NSString *)name withText:(NSString *)text andColour:(UIColor *)colour {
   Label *label = [self.allLabels valueForKey:name];
   if (label) {
     [label removeAllActions];
     if (!label.parent) {
       [self addChild:label];
     }
+
+    if (!colour) {
+      label.fontColor = label.originalFontColour;
+    } else {
+      label.fontColor = colour;
+    }
     
-      // ensures that cancelled animation does not affect colour blend factor
-//    label.fontColor = kTestRed;
-//    label.colorBlendFactor = 0.f;
     label.text = text;
     label.alpha = 0.f;
-//    SKAction *start = [SKAction colorizeWithColor:[SKColor clearColor] colorBlendFactor:1.f duration:0.1f];
+
     SKAction *fadeIn = [SKAction fadeInWithDuration:.25f];
     SKAction *wait = [SKAction waitForDuration:1.75f];
     SKAction *fadeOut = [SKAction fadeOutWithDuration:0.5f];
     
     SKAction *finishAnimation = [SKAction runBlock:^{
       label.text = @"";
-//      label.color = label.fontColor;
-//      label.colorBlendFactor = 0.f;
       [label removeFromParent];
       label.alpha = 1.f;
+      label.fontColor = label.originalFontColour;
     }];
     
     SKAction *sequence = [SKAction sequence:@[fadeIn, wait, fadeOut, finishAnimation]];
