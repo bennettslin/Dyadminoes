@@ -2319,9 +2319,18 @@
   if (self.myMatch.turns.count > 0) {
     
     // if game has ended, give results
-    NSString *turnOrResultsText = (!replay && self.myMatch.gameHasEnded) ?
-      [self.myMatch endGameResultsText] :
-      [self.myMatch turnText];
+    NSString *turnOrResultsText;
+    
+    if (replay) {
+      turnOrResultsText = [self.myMatch turnTextLastPlayed:NO];
+      
+    } else if (!replay && self.myMatch.gameHasEnded) {
+      turnOrResultsText = [self.myMatch endGameResultsText];
+      
+        // just say it was the last play, no turn number
+    } else {
+      turnOrResultsText = [self.myMatch turnTextLastPlayed:YES];
+    }
     
     if (replay) {
       [_replayTop updateLabelNamed:@"status" withText:turnOrResultsText];

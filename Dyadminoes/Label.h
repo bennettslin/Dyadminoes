@@ -10,6 +10,8 @@
 
 @interface Label : SKLabelNode
 
+@property (strong, nonatomic) SKColor *originalFontColour;
+
 -(id)initWithName:(NSString *)name
      andFontColor:(UIColor *)fontColor
       andFontSize:(CGFloat)fontSize

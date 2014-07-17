@@ -64,7 +64,7 @@
 
   // label methods
 -(NSString *)endGameResultsText;
--(NSString *)turnText;
+-(NSString *)turnTextLastPlayed:(BOOL)lastPlayed;
 
 @end
 

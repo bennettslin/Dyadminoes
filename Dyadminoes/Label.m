@@ -21,6 +21,7 @@
   if (self) {
     self.name = name;
     self.fontColor = fontColor;
+    self.originalFontColour = self.fontColor;
     self.fontSize = fontSize;
     self.position = position;
     self.zPosition = zPosition;

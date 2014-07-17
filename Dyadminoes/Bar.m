@@ -445,16 +445,24 @@
     }
     
       // ensures that cancelled animation does not affect colour blend factor
-    label.colorBlendFactor = 0.f;
+//    label.fontColor = kTestRed;
+//    label.colorBlendFactor = 0.f;
     label.text = text;
-    SKAction *wait = [SKAction waitForDuration:2.f];
-    SKAction *fadeColor = [SKAction colorizeWithColor:[UIColor clearColor] colorBlendFactor:1.f duration:0.5f];
+    label.alpha = 0.f;
+//    SKAction *start = [SKAction colorizeWithColor:[SKColor clearColor] colorBlendFactor:1.f duration:0.1f];
+    SKAction *fadeIn = [SKAction fadeInWithDuration:.25f];
+    SKAction *wait = [SKAction waitForDuration:1.75f];
+    SKAction *fadeOut = [SKAction fadeOutWithDuration:0.5f];
+    
     SKAction *finishAnimation = [SKAction runBlock:^{
       label.text = @"";
-      label.colorBlendFactor = 0.f;
+//      label.color = label.fontColor;
+//      label.colorBlendFactor = 0.f;
       [label removeFromParent];
+      label.alpha = 1.f;
     }];
-    SKAction *sequence = [SKAction sequence:@[wait, fadeColor, finishAnimation]];
+    
+    SKAction *sequence = [SKAction sequence:@[fadeIn, wait, fadeOut, finishAnimation]];
     [label runAction:sequence withKey:@"flash"];
   }
 }

@@ -93,7 +93,7 @@
       
         // game still in play, so lastPlayed label shows time since last played
       self.lastPlayedLabel.text = [self returnLastPlayedStringFromDate:self.myMatch.lastPlayed];
-      
+
       self.removeGameButton.hidden = YES;
       self.removeGameButton.enabled = NO;
     }
