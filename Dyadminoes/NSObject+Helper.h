@@ -78,6 +78,7 @@
 #define kTwoOverSquareRootOfThree 1.15470054f
 
   // game logic constants
+#define kMaxNumPlayers 4
 #define kNumDyadminoesInRack 6
 #define kPileCount 66
 

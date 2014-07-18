@@ -57,11 +57,17 @@
   
   if (self.myMatch) {
     
-    for (Player *player in self.myMatch.players) {
-      UILabel *playerLabel = self.playerLabelsArray[[self.myMatch.players indexOfObject:player]];
-      UILabel *scoreLabel = self.scoreLabelsArray[[self.myMatch.players indexOfObject:player]];
+    for (int i = 0; i < kMaxNumPlayers; i++) {
+      Player *player;
+      
+      if (i < self.myMatch.players.count) {
+        player = self.myMatch.players[i];
+      }
+      
+      UILabel *playerLabel = self.playerLabelsArray[i];
+      UILabel *scoreLabel = self.scoreLabelsArray[i];
 
-      playerLabel.text = player.playerName;
+      playerLabel.text = player ? player.playerName : @"";
 
         // static player colours
       if (player.resigned && self.myMatch.type != kSelfGame) {
@@ -71,13 +77,15 @@
       }
       
         // background colours depending on match results
-      if (!self.myMatch.gameHasEnded) {
-        playerLabel.backgroundColor = (player == self.myMatch.currentPlayer) ? kNeutralYellow : [UIColor clearColor];
+      if (!self.myMatch.gameHasEnded && player == self.myMatch.currentPlayer) {
+        playerLabel.backgroundColor = kNeutralYellow;
       } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
         playerLabel.backgroundColor = [UIColor greenColor];
+      } else {
+        playerLabel.backgroundColor = [UIColor clearColor];
       }
       
-      scoreLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
+      scoreLabel.text = player ? [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
     }
     
     if (self.myMatch.gameHasEnded) {
