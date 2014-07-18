@@ -120,7 +120,7 @@
 //  [self addChildViewController:self.rankVC];
   
   self.optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"OptionsViewController"];
-  self.optionsVC.view.backgroundColor = [UIColor greenColor];
+  self.optionsVC.view.backgroundColor = kPlayerGreen;
 //  [self addChildViewController:self.optionsVC];
   
   self.aboutVC = [[AboutViewController alloc] init];

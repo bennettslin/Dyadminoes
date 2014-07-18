@@ -1136,8 +1136,10 @@
 
 #pragma mark - button methods
 
--(void)deviceShaken {
-  [self.mySoundEngine soundPCToggle];
+-(void)togglePCsUserShaken:(BOOL)userShaken {
+  if (userShaken) {
+    [self.mySoundEngine soundPCToggle];
+  }
   [self.mySceneEngine toggleBetweenLetterAndNumberMode];
 }
 
@@ -1782,8 +1784,8 @@
       }
       
         // FIXME: this will show match results
-      if (!self.myMatch.gameHasEnded && player == self.myMatch.currentPlayer) {
-        nameLabel.fontColor = [SKColor whiteColor];
+      if (!self.myMatch.gameHasEnded && player) {
+        nameLabel.fontColor = (player == self.myMatch.currentPlayer) ? [SKColor whiteColor] : [self.myMatch colourForPlayer:player];
       } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
         nameLabel.fontColor = [SKColor blackColor];
       }
@@ -1955,7 +1957,10 @@
     _topBar.hidden = NO;
     
       // animate last play, or game results if game ended
-    [self animateRecentlyPlayedDyadminoes];
+      // unless player's turn is already over
+    if (_myPlayer == self.myMatch.currentPlayer) {
+      [self animateRecentlyPlayedDyadminoes];
+    }
     [self showTurnInfoOrGameResultsForReplay:NO];
     
     SKAction *topMoveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];

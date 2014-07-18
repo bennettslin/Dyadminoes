@@ -27,6 +27,9 @@
     _rotationFromDevice = 0;
       // initial setup
     self.dyadminoesInCommonPile = [[NSMutableSet alloc] initWithCapacity:kPileCount];
+    
+    self.myPCMode = kPCModeLetter;
+    
     [self createPile];
   }
   return self;
@@ -141,6 +144,22 @@
 
 -(void)toggleBetweenLetterAndNumberMode {
 
+  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+  
+    // change values
+  if (self.myPCMode == kPCModeLetter) {
+    self.myPCMode = kPCModeNumber;
+    NSLog(@"now number mode");
+    [defaults setInteger:1 forKey:@"notation"];
+    [defaults synchronize];
+  } else if (self.myPCMode == kPCModeNumber) {
+    self.myPCMode = kPCModeLetter;
+    NSLog(@"now letter mode");
+    [defaults setInteger:0 forKey:@"notation"];
+    [defaults synchronize];
+  }
+  
+    // change views
   for (Dyadmino *dyadmino in self.allDyadminoes) {
     if (dyadmino.pcMode == kPCModeLetter) {
       dyadmino.pcMode = kPCModeNumber;

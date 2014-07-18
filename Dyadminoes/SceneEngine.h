@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "NSObject+Helper.h"
 @class Dyadmino;
 @class Player;
 @class SKTextureAtlas;
@@ -17,6 +18,7 @@
 
   // dyadminoes
 @property (strong, nonatomic) NSArray *allDyadminoes;
+@property (nonatomic) PCMode myPCMode;
 
 #pragma mark - player preference methods
 

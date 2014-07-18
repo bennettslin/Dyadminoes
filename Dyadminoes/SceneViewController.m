@@ -9,6 +9,7 @@
 #import "SceneViewController.h"
 #import "NSObject+Helper.h"
 #import "MyScene.h"
+#import "SceneEngine.h"
 #import "Match.h"
 #import "Model.h"
 
@@ -47,7 +48,13 @@
   
   [self.myScene loadAfterNewMatchRetrieved];
   
-//  NSLog(@"about to present scene");
+    // ensure pcs are correct before presenting view
+  NSInteger userNotation = [[NSUserDefaults standardUserDefaults] integerForKey:@"notation"];
+  if ((userNotation == 1 && self.myScene.mySceneEngine.myPCMode == kPCModeLetter) ||
+      (userNotation == 0 && self.myScene.mySceneEngine.myPCMode == kPCModeNumber)) {
+    [self.myScene togglePCsUserShaken:NO];
+  }
+  
   [self.mySceneView presentScene:self.myScene];
   [self.delegate stopActivityIndicator];
 //  [self.delegate removeChildViewController:nil]; // if nil, removes self.childVC
@@ -81,7 +88,7 @@
 -(void)motionEnded:(UIEventSubtype)motion withEvent:(UIEvent *)event {
   if (motion == UIEventSubtypeMotionShake) {
 //    NSLog(@"ended motion is %d", motion);
-    [self.myScene deviceShaken];
+    [self.myScene togglePCsUserShaken:YES];
   }
 }
 

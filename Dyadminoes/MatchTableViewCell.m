@@ -71,8 +71,8 @@
       }
       
         // background colours depending on match results
-      if (!self.myMatch.gameHasEnded && player == self.myMatch.currentPlayer) {
-        playerLabel.backgroundColor = kNeutralYellow;
+      if (!self.myMatch.gameHasEnded) {
+        playerLabel.backgroundColor = (player == self.myMatch.currentPlayer) ? kNeutralYellow : [UIColor clearColor];
       } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
         playerLabel.backgroundColor = [UIColor greenColor];
       }

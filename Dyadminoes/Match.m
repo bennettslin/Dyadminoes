@@ -203,6 +203,12 @@
 }
 
 -(void)recordDyadminoesFromPlayer:(Player *)player withSwap:(BOOL)swap {
+
+    // a pass has an empty holding container, while a resign has *no* holding container
+  NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:self.currentPlayer, @"player", self.holdingContainer, @"container", nil];
+  
+  [self.turns addObject:dictionary];
+  self.replayCounter = self.turns.count;
   
     // player passes
   if (self.holdingContainer.count == 0) {
@@ -229,12 +235,6 @@
     
       // player submitted dyadminoes
   } else {
-    
-      // only counts as a turn if it's not a pass
-    NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:self.currentPlayer, @"player", self.holdingContainer, @"container", nil];
-    
-    [self.turns addObject:dictionary];
-    self.replayCounter = self.turns.count;
     
       // reset number of consecutive passes
     self.numberOfConsecutivePasses = 0;
@@ -270,6 +270,14 @@
 
 -(void)resignPlayer:(Player *)player {
   
+    // a resign has *no* holding container
+  if (self.type != kSelfGame) {
+    NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:self.currentPlayer, @"player", nil];
+    
+    [self.turns addObject:dictionary];
+    self.replayCounter = self.turns.count;
+  }
+
   player.resigned = YES;
   [self.pile addObjectsFromArray:player.dataDyadminoesThisTurn];
   [self sortBoardAndPileArrays];
@@ -375,17 +383,30 @@
 
 -(NSString *)turnTextLastPlayed:(BOOL)lastPlayed {
   Player *turnPlayer = [self.turns[self.replayCounter - 1] objectForKey:@"player"];
-  NSArray *dyadminoesPlayed = [self.turns[self.replayCounter - 1] objectForKey:@"container"];
+  NSArray *dyadminoesPlayed;
+  if (![self.turns[self.replayCounter - 1] objectForKey:@"container"]) {
+    
+  } else {
+    dyadminoesPlayed = [self.turns[self.replayCounter - 1] objectForKey:@"container"];
+  }
+  
   NSString *dyadminoesPlayedString;
   if (dyadminoesPlayed.count > 0) {
     NSString *componentsString = [[dyadminoesPlayed valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "];
     dyadminoesPlayedString = [NSString stringWithFormat:@"played %@", componentsString];
-  } else {
+  } else if (!dyadminoesPlayed) {
+    dyadminoesPlayedString = @"resigned";
+  } else if (dyadminoesPlayed.count == 0) {
     dyadminoesPlayedString = @"passed";
   }
   
   if (lastPlayed) {
-    return [NSString stringWithFormat:@"%@ last %@.", turnPlayer.playerName, dyadminoesPlayedString];
+    if (dyadminoesPlayed.count > 0) {
+      return [NSString stringWithFormat:@"%@ last %@.", turnPlayer.playerName, dyadminoesPlayedString];
+    } else {
+      return [NSString stringWithFormat:@"%@ %@ last turn.", turnPlayer.playerName, dyadminoesPlayedString];
+    }
+
   } else {
     return [NSString stringWithFormat:@"%@ %@ for turn %lu of %lu.", turnPlayer.playerName, dyadminoesPlayedString, (unsigned long)self.replayCounter, (unsigned long)self.turns.count];
   }
