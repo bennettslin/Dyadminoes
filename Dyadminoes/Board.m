@@ -18,6 +18,8 @@
 @property (strong, nonatomic) SKSpriteNode *backgroundNode;
 @property (strong, nonatomic) NSMutableSet *dequeuedCells;
 
+@property (nonatomic) BOOL userWantsPivotGuides;
+
 @end
 
 @implementation Board {
@@ -44,6 +46,8 @@
     self.size = CGSizeMake(size.width * 2, size.height * 2);
     self.anchorPoint = CGPointMake(0.5, 0.5);
     self.zPosition = kZPositionBoard;
+    
+    self.userWantsPivotGuides = YES;
 //    self.backgroundNode = [[SKSpriteNode alloc] init];
 //    [self addChild:self.backgroundNode];
 
@@ -57,33 +61,23 @@
       // create new cells from get-go
     self.dequeuedCells = [NSMutableSet new];
     [self instantiateDequeuedCells];
-//    for (int i = 0; i < kIsIPhone ? 120 : 240; i++) {
-//      Cell *cell = [[Cell alloc] initWithBoard:self
-//                                    andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
-//                                   andHexCoord:[self hexCoordFromX:0 andY:0]
-//                               andVectorOrigin:_vectorOrigin];
-//      [self.dequeuedCells addObject:cell];
-//    }
     
       // these values are necessary for board movement
       // see determineBoardPositionBounds method for explanation
     
       // create pivot guides
       // TODO: refactor into one method?
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"pivotGuide"]) {
-      SKNode *prePivotGuide = [self createPivotGuideNamed:@"prePivotGuide"];
-      SKNode *pivotRotateGuide = [self createPivotGuideNamed:@"pivotRotateGuide"];
-      SKNode *pivotAroundGuide = [self createPivotGuideNamed:@"pivotAroundGuide"];
+    SKNode *prePivotGuide = [self createPivotGuideNamed:@"prePivotGuide"];
+    SKNode *pivotRotateGuide = [self createPivotGuideNamed:@"pivotRotateGuide"];
+    SKNode *pivotAroundGuide = [self createPivotGuideNamed:@"pivotAroundGuide"];
 
-        // assign pivot guides
-      self.prePivotGuide = prePivotGuide;
-      self.prePivotGuide.name = @"prePivotGuide";
-      self.pivotRotateGuide = pivotRotateGuide;
-      self.pivotRotateGuide.name = @"pivotRotateGuide";
-      self.pivotAroundGuide = pivotAroundGuide;
-      self.pivotAroundGuide.name = @"pivotAroundGuide";
-    }
-//    [self initLoadBackgroundImage];
+      // assign pivot guides
+    self.prePivotGuide = prePivotGuide;
+    self.prePivotGuide.name = @"prePivotGuide";
+    self.pivotRotateGuide = pivotRotateGuide;
+    self.pivotRotateGuide.name = @"pivotRotateGuide";
+    self.pivotAroundGuide = pivotAroundGuide;
+    self.pivotAroundGuide.name = @"pivotAroundGuide";
   }
   return self;
 }
@@ -646,8 +640,13 @@
   return pivotGuide;
 }
 
+-(void)handleUserWantsPivotGuides {
+    // called before scene appears
+  self.userWantsPivotGuides = [[NSUserDefaults standardUserDefaults] boolForKey:@"pivotGuide"];
+}
+
 -(void)showPivotGuide:(SKNode *)pivotGuide forDyadmino:(Dyadmino *)dyadmino {
-  if (pivotGuide && !pivotGuide.parent) {
+  if (self.userWantsPivotGuides && !pivotGuide.parent) {
     if (pivotGuide == self.prePivotGuide || pivotGuide == self.pivotRotateGuide) {
       pivotGuide.position = dyadmino.position;
     } else {
@@ -662,6 +661,7 @@
     pivotGuide.zRotation = [self getRadiansFromDegree:degree];
     
     [self addChild:pivotGuide];
+    [pivotGuide removeActionForKey:@"pivotGuideScale"];
     SKAction *scaleStart = [SKAction scaleTo:0.f duration:0.f];
     SKAction *unhide = [SKAction runBlock:^{
       pivotGuide.hidden = NO;
@@ -674,7 +674,7 @@
 }
 
 -(void)hidePivotGuide:(SKNode *)pivotGuide {
-  if (pivotGuide && pivotGuide.parent) {
+  if (self.userWantsPivotGuides && pivotGuide.parent) {
     [pivotGuide removeFromParent];
     pivotGuide.hidden = YES;
   }

@@ -48,12 +48,23 @@
   
   [self.myScene loadAfterNewMatchRetrieved];
   
+    // user defaults
+    //--------------------------------------------------------------------------
+  
     // ensure pcs are correct before presenting view
   NSInteger userNotation = [[NSUserDefaults standardUserDefaults] integerForKey:@"notation"];
   if ((userNotation == 1 && self.myScene.mySceneEngine.myPCMode == kPCModeLetter) ||
       (userNotation == 0 && self.myScene.mySceneEngine.myPCMode == kPCModeNumber)) {
     [self.myScene togglePCsUserShaken:NO];
   }
+  
+    // pivot guide
+  [self.myScene handleUserWantsPivotGuides];
+  
+    // volume
+  [self.myScene handleUserWantsVolume];
+  
+    //--------------------------------------------------------------------------
   
   [self.mySceneView presentScene:self.myScene];
   [self.delegate stopActivityIndicator];

@@ -779,14 +779,16 @@
                                 <rect key="frame" x="325" y="131" width="118" height="31"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <connections>
-                                    <action selector="soundEffectsSliderChanged:" destination="CRf-ou-lUt" eventType="valueChanged" id="nFl-fz-1ws"/>
+                                    <action selector="soundEffectsSliderTouchEnded:" destination="CRf-ou-lUt" eventType="touchUpOutside" id="dx1-by-xQh"/>
+                                    <action selector="soundEffectsSliderTouchEnded:" destination="CRf-ou-lUt" eventType="touchUpInside" id="q6J-lv-AIB"/>
                                 </connections>
                             </slider>
                             <slider appearanceType="aqua" opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="Cbb-FW-dna">
                                 <rect key="frame" x="325" y="188" width="118" height="31"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <connections>
-                                    <action selector="musicSliderChanged:" destination="CRf-ou-lUt" eventType="valueChanged" id="1Ae-Vz-OLm"/>
+                                    <action selector="musicSliderTouchEnded:" destination="CRf-ou-lUt" eventType="touchUpInside" id="9h1-G1-gJi"/>
+                                    <action selector="musicSliderTouchEnded:" destination="CRf-ou-lUt" eventType="touchUpOutside" id="YB1-je-SRU"/>
                                 </connections>
                             </slider>
                             <label appearanceType="aqua" opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="+" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uyg-JH-Z1L">

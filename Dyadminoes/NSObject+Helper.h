@@ -10,10 +10,10 @@
 @class Dyadmino;
 
   // temporary sounds
-#define kSoundPop @"hitCatLady.wav"
-#define kSoundClick @"Click2-Sebastian-759472264.wav"
-#define kSoundRing @"Electronic_Chime-KevanGC-495939803.wav"
-#define kSoundSwoosh @"Slide_Closed_SoundBible_com_1521580537.wav"
+#define kSoundPop @"hitCatLady"
+#define kSoundClick @"Click2-Sebastian-759472264"
+#define kSoundRing @"Electronic_Chime-KevanGC-495939803"
+#define kSoundSwoosh @"Slide_Closed_SoundBible_com_1521580537"
 
 // constants that differ between iPhone and iPad
 //------------------------------------------------------------------------------

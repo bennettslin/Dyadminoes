@@ -75,6 +75,7 @@
 
 -(void)hidePivotGuideAndShowPrePivotGuideForDyadmino:(Dyadmino *)dyadmino;
 -(void)hideAllPivotGuides;
+-(void)handleUserWantsPivotGuides;
 
 #pragma mark - pivot methods
 

@@ -13,12 +13,19 @@
 
 @interface SoundEngine : SKNode
 
--(void)soundSuckedDyadmino;
+@property (nonatomic) CGFloat soundVolume;
+@property (nonatomic) CGFloat musicVolume;
+
+
+-(void)instantiatePlayers;
+-(void)sound:(NSString *)urlString music:(BOOL)music;
+
+//-(void)soundSuckedDyadmino;
 -(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked;
 -(void)soundTouchedDyadminoFace:(SKSpriteNode *)dyadminoFace plucked:(BOOL)plucked;
--(void)soundRackExchangedDyadmino;
--(void)soundPivotClickedDyadmino;
--(void)soundSettledDyadmino;
+//-(void)soundRackExchangedDyadmino;
+//-(void)soundPivotClickedDyadmino;
+//-(void)soundSettledDyadmino;
 -(void)soundPCToggle;
 -(void)soundDeviceOrientation;
 

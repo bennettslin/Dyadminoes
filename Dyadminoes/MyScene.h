@@ -27,7 +27,10 @@
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity;
 -(void)persistAllSceneDataDyadminoes;
+
 -(void)togglePCsUserShaken:(BOOL)userShaken;
+-(void)handleUserWantsPivotGuides;
+-(void)handleUserWantsVolume;
 
 @end
 

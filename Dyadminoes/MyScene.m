@@ -858,6 +858,17 @@
   [self.mySoundEngine soundBoardZoom];
 }
 
+-(void)handleUserWantsPivotGuides {
+  [_boardField handleUserWantsPivotGuides];
+  [_boardField hideAllPivotGuides];
+}
+
+-(void)handleUserWantsVolume {
+  self.mySoundEngine.soundVolume = [[NSUserDefaults standardUserDefaults] floatForKey:@"soundEffects"];
+  self.mySoundEngine.musicVolume = [[NSUserDefaults standardUserDefaults] floatForKey:@"music"];
+  [self.mySoundEngine instantiatePlayers];
+}
+
 #pragma mark - dyadmino methods
 
 -(void)beginTouchOrPivotOfDyadmino:(Dyadmino *)dyadmino {
@@ -1008,20 +1019,12 @@
   //  NSLog(@"prepare for hover");
     if (dyadmino.isHovering || dyadmino.continuesToHover) {
   //    NSLog(@"dyadmino hovering status is %i", dyadmino.hoveringStatus);
-      if (!_canDoubleTapForDyadminoFlip && ![dyadmino isRotating]) {
+      if (![dyadmino isRotating]) { // add !_canDoubleTapForDyadminoFlip to have delay after touch ends
         [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
       }
     }
   }
 }
-
-//-(void)settleBackRackDyadmino:(Dyadmino *)dyadmino {
-//  [dyadmino endTouchThenHoverResize];
-//  _uponTouchDyadminoNode = nil;
-//  [dyadmino goHomeToRackByPoppingIn:NO fromUndo:NO];
-//  [self updateTopBarButtons];
-//  NSLog(@"recent rack dyadmino is %@, hovering dyadmino is %@", _recentRackDyadmino.name, _hoveringDyadmino.name);
-//}
 
 -(void)sendDyadminoHome:(Dyadmino *)dyadmino fromUndo:(BOOL)undo byPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding andUpdatingBoardBounds:(BOOL)updateBoardBounds {
   
@@ -1269,13 +1272,9 @@
   undoneDyadmino.myRackOrder = self.playerRackDyadminoes.count;
   undoneDyadmino.homeNode = nil;
   
-    // re-add dyadmino to player rack
-  NSMutableArray *tempRackArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
-  [tempRackArray addObject:undoneDyadmino];
-  self.playerRackDyadminoes = [NSArray arrayWithArray:tempRackArray];
-  NSMutableSet *tempBoardSet = [NSMutableSet setWithSet:self.boardDyadminoes];
-  [tempBoardSet removeObject:undoneDyadmino];
-  self.boardDyadminoes = [NSSet setWithSet:tempBoardSet];
+    // re-add dyadmino to player rack, remove from scene board
+  [self reAddToPlayerRackDyadminoes:undoneDyadmino];
+  [self removeFromSceneBoardDyadminoes:undoneDyadmino];
   
     // take care of views
   [self sendDyadminoHome:undoneDyadmino fromUndo:YES byPoppingIn:YES andSounding:NO  andUpdatingBoardBounds:YES];
@@ -1931,7 +1930,7 @@
     self.myMatch.replayCounter = self.myMatch.turns.count;
     // it's in replay mode (opposite of toggle swap field)
   if (_replayMode) {
-    [self.mySoundEngine soundSwapFieldSwoosh];
+    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
     _replayTop.hidden = NO;
@@ -1950,7 +1949,7 @@
     
       // it's not in replay mode
   } else {
-    [self.mySoundEngine soundSwapFieldSwoosh];
+    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
     _rackField.hidden = NO;
@@ -1985,7 +1984,7 @@
     // FIXME: make better animation
     // otherwise toggle
   if (_swapMode) { // swap mode on, so turn off
-    [self.mySoundEngine soundSwapFieldSwoosh];
+    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
     SKAction *moveAction = [SKAction moveToY:0.f duration:kConstantTime];
@@ -2004,7 +2003,7 @@
     }
     
   } else { // swap mode off, turn on
-    [self.mySoundEngine soundSwapFieldSwoosh];
+    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
     _swapField.hidden = NO;
@@ -2074,6 +2073,40 @@
       [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer]];
     }
 //    }
+  }
+}
+
+#pragma mark - undo manager
+
+-(void)reAddToPlayerRackDyadminoes:(Dyadmino *)dyadmino {
+  if (![self.playerRackDyadminoes containsObject:dyadmino]) {
+    NSMutableArray *tempRackArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
+    [tempRackArray addObject:dyadmino];
+    self.playerRackDyadminoes = [NSArray arrayWithArray:tempRackArray];
+  }
+}
+
+-(void)removeFromPlayerRackDyadminoes:(Dyadmino *)dyadmino {
+  if ([self.playerRackDyadminoes containsObject:dyadmino]) {
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
+    [tempArray removeObject:dyadmino];
+    self.playerRackDyadminoes = [NSArray arrayWithArray:tempArray];
+  }
+}
+
+-(void)addToSceneBoardDyadminoes:(Dyadmino *)dyadmino {
+  if (![self.boardDyadminoes containsObject:dyadmino]) {
+    NSMutableSet *tempSet = [NSMutableSet setWithSet:self.boardDyadminoes];
+    [tempSet addObject:dyadmino];
+    self.boardDyadminoes = [NSSet setWithSet:tempSet];
+  }
+}
+
+-(void)removeFromSceneBoardDyadminoes:(Dyadmino *)dyadmino {
+  if ([self.boardDyadminoes containsObject:dyadmino]) {
+    NSMutableSet *tempSet = [NSMutableSet setWithSet:self.boardDyadminoes];
+    [tempSet removeObject:dyadmino];
+    self.boardDyadminoes = [NSSet setWithSet:tempSet];
   }
 }
 
@@ -2360,32 +2393,6 @@
   }
 }
 
-#pragma mark - undo manager
-
--(void)removeFromPlayerRackDyadminoes:(Dyadmino *)dyadmino {
-  if ([self.playerRackDyadminoes containsObject:dyadmino]) {
-    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
-    [tempArray removeObject:dyadmino];
-    self.playerRackDyadminoes = [NSArray arrayWithArray:tempArray];
-  }
-}
-
--(void)addToSceneBoardDyadminoes:(Dyadmino *)dyadmino {
-  if (![self.boardDyadminoes containsObject:dyadmino]) {
-    NSMutableSet *tempSet = [NSMutableSet setWithSet:self.boardDyadminoes];
-    [tempSet addObject:dyadmino];
-    self.boardDyadminoes = [NSSet setWithSet:tempSet];
-  }
-}
-
--(void)removeFromSceneBoardDyadminoes:(Dyadmino *)dyadmino {
-  if ([self.boardDyadminoes containsObject:dyadmino]) {
-    NSMutableSet *tempSet = [NSMutableSet setWithSet:self.boardDyadminoes];
-    [tempSet removeObject:dyadmino];
-    self.boardDyadminoes = [NSSet setWithSet:tempSet];
-  }
-}
-
 #pragma mark - action sheet methods
 
 -(void)presentPassActionSheet {
@@ -2473,21 +2480,21 @@
 
 -(void)soundRackExchangedDyadmino:(Dyadmino *)dyadmino {
     // this will be a click clack sound
-  [self.mySoundEngine soundRackExchangedDyadmino];
+  [self.mySoundEngine sound:kSoundClick music:NO];
 }
 
   // these methods might be different later, so keep them separate
 -(void)soundDyadminoPivotClick {
-  [self.mySoundEngine soundPivotClickedDyadmino];
+  [self.mySoundEngine sound:kSoundClick music:NO];
 }
 
 -(void)soundDyadminoSettleClick {
   NSLog(@"delegate called to sound dyadmino settle click");
-  [self.mySoundEngine soundSettledDyadmino];
+  [self.mySoundEngine sound:kSoundClick music:NO];
 }
 
 -(void)soundDyadminoSuck {
-  [self.mySoundEngine soundSuckedDyadmino];
+  [self.mySoundEngine sound:kSoundPop music:NO];
 }
 
 -(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign {

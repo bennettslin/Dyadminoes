@@ -7,6 +7,8 @@
 //
 
 #import "OptionsViewController.h"
+#import "NSObject+Helper.h"
+#import <AVFoundation/AVFoundation.h>
 
 @interface OptionsViewController ()
 
@@ -18,6 +20,7 @@
 @property (weak, nonatomic) IBOutlet UIButton *removeDefaultsButton;
 
 @property (strong, nonatomic) NSUserDefaults *defaults;
+@property (strong, nonatomic) AVAudioPlayer *player;
 
 @end
 
@@ -70,14 +73,16 @@
   [self.defaults synchronize];
 }
 
--(IBAction)musicSliderChanged:(UISlider *)sender {
+-(IBAction)musicSliderTouchEnded:(UISlider *)sender {
   NSLog(@"slider value is %.2f", sender.value);
+  [self soundWithVolume:sender.value andMusic:YES];
   [self.defaults setFloat:sender.value forKey:@"music"];
   [self.defaults synchronize];
 }
 
--(IBAction)soundEffectsSliderChanged:(UISlider *)sender {
+-(IBAction)soundEffectsSliderTouchEnded:(UISlider *)sender {
   NSLog(@"slider value is %.2f", sender.value);
+  [self soundWithVolume:sender.value andMusic:NO];
   [self.defaults setFloat:sender.value forKey:@"soundEffects"];
   [self.defaults synchronize];
 }
@@ -89,13 +94,21 @@
   [self.defaults removeObjectForKey:@"soundEffects"];
   [self.defaults synchronize];
   
-  [self.showPivotGuideSwitch setOn:YES animated:NO];
+  [self.showPivotGuideSwitch setOn:YES animated:YES];
   self.notationControl.selectedSegmentIndex = 0;
-  [self.soundEffectsSlider setValue:0.5f];
-  [self.musicSlider setValue:0.5f];
+  [self.soundEffectsSlider setValue:0.5f animated:YES];
+  [self.musicSlider setValue:0.5f animated:YES];
 }
 
-
-
+-(void)soundWithVolume:(float)volume andMusic:(BOOL)music {
+  
+  [self.player pause];
+  [self.player stop];
+  NSString *urlString = music ? kSoundRing : kSoundPop;
+  NSURL *soundURL = [[NSBundle mainBundle] URLForResource:urlString withExtension:@"wav"];
+  self.player = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:nil];
+  [self.player setVolume:volume];
+  [self.player play];
+}
 
 @end

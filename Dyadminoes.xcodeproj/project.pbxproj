@@ -54,6 +54,7 @@
 		3FBC6AD8194E208300420CB8 /* hitCatLady.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3FBC6AD6194E208300420CB8 /* hitCatLady.wav */; };
 		3FCCA71B18948AF200E0E4B5 /* Dyadmino.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCA71A18948AF200E0E4B5 /* Dyadmino.m */; };
 		3FCCA71E18948B0500E0E4B5 /* SceneEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCA71D18948B0500E0E4B5 /* SceneEngine.m */; };
+		3FCD39851979D4FA00F17DF4 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F59D92019784B6A00A1265D /* AVFoundation.framework */; };
 		3FD06E2318D6544F00E2FF04 /* Cell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FD06E2218D6544F00E2FF04 /* Cell.m */; };
 		3FDD7FD918D4C89B0029DB7D /* Board.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FDD7FD818D4C89B0029DB7D /* Board.m */; };
 		3FEBC8ED193B9CC700DA3560 /* DataDyadmino.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FEBC8EC193B9CC700DA3560 /* DataDyadmino.m */; };
@@ -175,6 +176,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3FCD39851979D4FA00F17DF4 /* AVFoundation.framework in Frameworks */,
 				3F87AAAD188DEE4B008C4A0D /* CoreGraphics.framework in Frameworks */,
 				3F87AAAF188DEE4B008C4A0D /* UIKit.framework in Frameworks */,
 				3F87AAB1188DEE4B008C4A0D /* SpriteKit.framework in Frameworks */,
