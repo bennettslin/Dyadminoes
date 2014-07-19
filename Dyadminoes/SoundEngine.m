@@ -78,10 +78,12 @@
   } else if ([urlString isEqualToString:kSoundPop]) {
     player = self.popPlayer;
   }
-  
-//  [player pause];
-//  [player setVolume:volume];
-  [player play];
+
+  SKAction *playAction = [SKAction runBlock:^{
+    [player stop];
+    [player play];
+  }];
+  [self runAction:playAction];
 }
 
 //-(void)soundRackExchangedDyadmino {

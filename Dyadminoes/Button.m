@@ -24,6 +24,7 @@
     
     _labelNode = [SKLabelNode new];
     _labelNode.text = self.name;
+    _labelNode.fontName = @"FilmotypeHarmony";
     _labelNode.fontSize = kIsIPhone ? 10.f : 14.f;
     _labelNode.position = CGPointMake(0, -self.size.height * 0.5);
     [self addChild:_labelNode];

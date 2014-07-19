@@ -42,6 +42,8 @@
 }
 
 -(IBAction)startGameTapped:(id)sender {
+  
+  [self resignTextField];
   [self.delegate startSoloGameWithPlayerName:[self.defaults objectForKey:@"soloName"]];
 }
 

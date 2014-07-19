@@ -419,6 +419,7 @@
   [self removeActionsAndEstablishNotRotating];
 //  CGFloat distance = [self getDistanceFromThisPoint:self.position toThisPoint:point];
   SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime]; // was kConstantSpeed * distance
+  moveAction.timingMode = SKActionTimingEaseIn;
   if (sounding) {
     SKAction *completeAction = [SKAction runBlock:^{
       [self.delegate soundDyadminoSettleClick];

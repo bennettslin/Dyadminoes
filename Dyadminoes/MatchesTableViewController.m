@@ -27,7 +27,10 @@
 #define kTableViewXMargin (kIsIPhone ? 20.f : 20.f)
 #define kTableViewTopMargin (kIsIPhone ? 122.f : 122.f)
 #define kTableViewBottomMargin (kIsIPhone ? 90.f : 90.f)
-#define kMainTopBarHeight (kIsIPhone ? 86.f : 86.f)
+#define kMainTopBarHeight (kIsIPhone ? 64.f : 86.f)
+#define kMainBottomBarHeight (kIsIPhone ? 64.f : 90.f)
+#define kViewControllerSpeed 0.225f
+#define kMainOverlayAlpha 0.6f
 
 @interface MatchesTableViewController () <SceneViewDelegate, DebugDelegate, MatchCellDelegate, SoloDelegate, PnPDelegate>
 
@@ -40,7 +43,6 @@
 @property (weak, nonatomic) IBOutlet UIButton *PnPGameButton;
 @property (weak, nonatomic) IBOutlet UIButton *GCGameButton;
 
-@property (weak, nonatomic) IBOutlet UIButton *matchesButton;
 @property (weak, nonatomic) IBOutlet UIButton *helpButton;
 @property (weak, nonatomic) IBOutlet UIButton *storeButton;
 @property (weak, nonatomic) IBOutlet UIButton *rankButton;
@@ -77,6 +79,11 @@
 -(void)viewDidLoad {
   
   [super viewDidLoad];
+  
+  self.view.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"KeyboardBackground"]];
+  self.tableView.layer.cornerRadius = kCornerRadius;
+  self.tableView.clipsToBounds = YES;
+  self.tableView.backgroundColor = [UIColor clearColor];
   
   self.activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
   self.activityIndicator.backgroundColor = [UIColor darkGrayColor];
@@ -127,10 +134,10 @@
 //  [self addChildViewController:self.aboutVC];
   
     // hard coded for now
-  self.darkOverlay = [[UIButton alloc] initWithFrame:CGRectMake(0, 100, _screenWidth, _screenHeight - 100)];
-  [self.darkOverlay addTarget:self action:@selector(matchesTapped:) forControlEvents:UIControlEventTouchDown];
+  self.darkOverlay = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, _screenWidth, _screenHeight)];
+  [self.darkOverlay addTarget:self action:@selector(backToMatches) forControlEvents:UIControlEventTouchDown];
   self.vcIsAnimating = NO;
-  [self highlightBottomButton:self.matchesButton];
+//  [self highlightBottomButton:self.matchesButton];
   
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
@@ -188,6 +195,12 @@
   
   cell.delegate = self;
   cell.myMatch = self.myModel.myMatches[indexPath.row];
+  
+    // selected colour
+  UIView *customColorView = [[UIView alloc] init];
+  customColorView.backgroundColor = [UIColor colorWithRed:1.f green:1.f blue:.8f alpha:.8f];
+  cell.selectedBackgroundView = customColorView;
+  
   [cell setProperties];
   
   cell.accessoryType = UITableViewCellAccessoryNone;
@@ -195,17 +208,38 @@
   return cell;
 }
 
--(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-//  [self stopActivityIndicator];
-  NSLog(@"didSelectRow called");
+-(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+  Match *match = self.myModel.myMatches[indexPath.row];
+  if (match.gameHasEnded || match.type != kGCGame) {
+    return YES;
+  } else {
+    return NO;
+  }
+}
 
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+  if (editingStyle == UITableViewCellEditingStyleDelete) {
+    Match *match = self.myModel.myMatches[indexPath.row];
+    [self.tableView beginUpdates];
+    [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+    [self removeMatch:match];
+    [self.tableView endUpdates];
+  }
+}
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+  [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+-(NSString *)tableView:(UITableView *)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath {
+  return @"Remove game";
 }
 
 #pragma mark - cell delegate methods
 
 -(void)removeMatch:(Match *)match {
   [self.myModel.myMatches removeObject:match];
-  [self.tableView reloadData];
+  [Model saveMyModel:self.myModel];
 }
 
 #pragma mark - Navigation
@@ -243,7 +277,7 @@
 }
 
 -(void)startActivityIndicator {
-  NSLog(@"activity indicator starts");
+//  NSLog(@"activity indicator starts");
   [self.view addSubview:self.activityIndicator];
   [self.activityIndicator startAnimating];
 }
@@ -251,7 +285,11 @@
 -(void)stopActivityIndicator {
   [self.activityIndicator stopAnimating];
   [self.activityIndicator removeFromSuperview];
-  NSLog(@"activity indicator stops");
+  
+    // also remove startGame childVC
+  [self backToMatches];
+  
+//  NSLog(@"activity indicator stops");
 }
 
 #pragma mark - view controller methods
@@ -267,7 +305,7 @@
     // overlay fade in and tableview slide out go together
   if (![self.darkOverlay superview]) {
     [self fadeInOverlay];
-    [self slideUpTopBar];
+    [self slideOutTopBarAndBottomBar];
     [self slideOutTableview];
   }
   
@@ -301,16 +339,24 @@
   [self setNeedsStatusBarAppearanceUpdate];
 }
 
--(void)slideUpTopBar {
-  [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+-(void)slideOutTopBarAndBottomBar {
+  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
     self.topBar.frame = CGRectMake(0, -kMainTopBarHeight, _screenWidth, kMainTopBarHeight);
+  } completion:^(BOOL finished) {
+  }];
+  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    self.bottomBar.frame = CGRectMake(0, _screenHeight, _screenWidth, kMainBottomBarHeight);
   } completion:^(BOOL finished) {
   }];
 }
 
--(void)slideDownTopBar {
-  [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+-(void)slideInTopBarAndBottomBar {
+  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
     self.topBar.frame = CGRectMake(0, 0, _screenWidth, kMainTopBarHeight);
+  } completion:^(BOOL finished) {
+  }];
+  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+    self.bottomBar.frame = CGRectMake(0, _screenHeight - kMainBottomBarHeight, _screenWidth, kMainTopBarHeight);
   } completion:^(BOOL finished) {
   }];
 }
@@ -319,7 +365,7 @@
   self.darkOverlay.backgroundColor = [UIColor clearColor];
   [self.view insertSubview:self.darkOverlay belowSubview:self.bottomBar];
   [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-    self.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:kBoardCoverAlpha];
+    self.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:kMainOverlayAlpha];
   } completion:^(BOOL finished) {
   }];
 }
@@ -332,30 +378,23 @@
   }];
 }
 
-  // FIXME: slide in and out animations not working when simultaneous with overlay fade in and out
-  // but does work by itself
 -(void)slideOutTableview {
-//  NSLog(@"slide out");
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.tableView.frame = CGRectMake(kTableViewXMargin, _screenHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kTableViewTopMargin - kTableViewBottomMargin);
   } completion:^(BOOL finished) {
-//    NSLog(@"slide out completed");
   }];
 }
 
 -(void)slideInTableview {
-//  NSLog(@"slide in");
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
     self.tableView.frame = CGRectMake(kTableViewXMargin, kTableViewTopMargin, _screenWidth - kTableViewXMargin * 2, _screenHeight - kTableViewTopMargin - kTableViewBottomMargin);
   } completion:^(BOOL finished) {
-//    NSLog(@"slide in completed");
   }];
 }
 
 #pragma mark - button methods
 
 -(IBAction)selfGameTapped:(id)sender {
-//  [self slideInTableview];
   if (!self.vcIsAnimating && ![self.childVC isKindOfClass:[SoloViewController class]]) {
     [self presentChildViewController:self.soloVC];
   }
@@ -368,19 +407,19 @@
 }
 
 -(IBAction)gcGameTapped:(id)sender {
-//  [self slideOutTableview];
+//  [self slideInTableview];
 }
 
--(IBAction)matchesTapped:(id)sender {
+-(void)backToMatches {
   NSLog(@"matches tapped called");
   
   if (!self.vcIsAnimating && self.childVC && _overlayEnabled) {
     
     [self fadeOutOverlay];
-    [self slideDownTopBar];
+    [self slideInTopBarAndBottomBar];
     [self slideInTableview];
     
-    [self highlightBottomButton:self.matchesButton];
+//    [self highlightBottomButton:self.matchesButton];
     [self removeChildViewController:self.childVC];
     NSLog(@"self.childVC is nil from matches tapped");
     self.childVC = nil;
@@ -393,53 +432,52 @@
 
 -(IBAction)helpTapped:(id)sender {
   if (!self.vcIsAnimating && ![self.childVC isKindOfClass:[HelpViewController class]]) {
-    [self highlightBottomButton:sender];
+//    [self highlightBottomButton:sender];
     [self presentChildViewController:self.helpVC];
   }
 }
 
 -(IBAction)storeTapped:(id)sender {
   if (!self.vcIsAnimating && ![self.childVC isKindOfClass:[StoreViewController class]]) {
-    [self highlightBottomButton:sender];
+//    [self highlightBottomButton:sender];
     [self presentChildViewController:self.storeVC];
   }
 }
 
 -(IBAction)rankTapped:(id)sender {
   if (!self.vcIsAnimating && ![self.childVC isKindOfClass:[RankViewController class]]) {
-    [self highlightBottomButton:sender];
+//    [self highlightBottomButton:sender];
     [self presentChildViewController:self.rankVC];
   }
 }
 
 -(IBAction)optionsTapped:(id)sender {
   if (!self.vcIsAnimating && ![self.childVC isKindOfClass:[OptionsViewController class]]) {
-    [self highlightBottomButton:sender];
+//    [self highlightBottomButton:sender];
     [self presentChildViewController:self.optionsVC];
   }
 }
 
 -(IBAction)aboutTapped:(id)sender {
   if (!self.vcIsAnimating && ![self.childVC isKindOfClass:[AboutViewController class]]) {
-    [self highlightBottomButton:sender];
+//    [self highlightBottomButton:sender];
     [self presentChildViewController:self.aboutVC];
   }
 }
 
--(void)highlightBottomButton:(UIButton *)button {
-  if (self.highlightedBottomButton != button) {
-    self.highlightedBottomButton.backgroundColor = [UIColor clearColor];
-    button.backgroundColor = [UIColor yellowColor];
-    self.highlightedBottomButton = button;
-  }
-}
+//-(void)highlightBottomButton:(UIButton *)button {
+//  if (self.highlightedBottomButton != button) {
+//    self.highlightedBottomButton.backgroundColor = [UIColor clearColor];
+//    button.backgroundColor = [UIColor yellowColor];
+//    self.highlightedBottomButton = button;
+//  }
+//}
 
 #pragma mark - match creation methods
 
 -(void)startSoloGameWithPlayerName:(NSString *)playerName {
   Match *newMatch = [self.myModel instantiateSoloMatchWithName:playerName andRules:kGameRulesTonal andSkill:kBeginner];
     // may need to tweak with how this is viewed
-  [self matchesTapped:nil];
   [self.myModel sortMyMatches];
   [self.tableView reloadData];
   [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
@@ -447,7 +485,7 @@
 
 -(void)startPnPGame {
   Match *newMatch = [self.myModel instantiateHardCodededPassNPlayMatchForDebugPurposes];
-  [self matchesTapped:nil];
+  [self backToMatches];
   [self.myModel sortMyMatches];
   [self.tableView reloadData];
   [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
@@ -466,10 +504,10 @@
 #pragma mark - status bar methods
 
 -(BOOL)prefersStatusBarHidden {
-  if (self.childVC) {
+//  if (self.childVC) {
     return YES;
-  }
-  return NO;
+//  }
+//  return NO;
 }
 
 @end

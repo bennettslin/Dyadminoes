@@ -11,6 +11,10 @@
 #import "Match.h"
 #import "Player.h"
 
+  // TODO: verify this
+#define kLabelWidth (kIsIPhone ? 54.f : 109.f)
+#define kPlayerLabelHeightPadding 5.f
+
 @interface MatchTableViewCell ()
 
 @property (weak, nonatomic) IBOutlet UILabel *player1Label;
@@ -26,8 +30,6 @@
 @property (weak, nonatomic) IBOutlet UILabel *lastPlayedLabel;
 @property (weak, nonatomic) IBOutlet UILabel *winnerLabel;
 
-@property (weak, nonatomic) IBOutlet UIButton *removeGameButton;
-
 @property (strong, nonatomic) NSArray *playerLabelsArray;
 @property (strong, nonatomic) NSArray *scoreLabelsArray;
 
@@ -39,6 +41,16 @@
   
   self.playerLabelsArray = @[self.player1Label, self.player2Label, self.player3Label, self.player4Label];
   self.scoreLabelsArray = @[self.score1Label, self.score2Label, self.score3Label, self.score4Label];
+  
+  for (UILabel *label in self.playerLabelsArray) {
+    label.layer.cornerRadius = (label.frame.size.height + kPlayerLabelHeightPadding) / 2;
+    label.clipsToBounds = YES;
+    label.font = [UIFont fontWithName:@"FilmotypeModern" size:kIsIPhone ? 12.f : 24.f];
+  }
+  
+  self.lastPlayedLabel.adjustsFontSizeToFitWidth = YES;
+  self.winnerLabel.font = [UIFont fontWithName:@"FilmotypeHarmony" size:kIsIPhone ? 12.f : 24.f];
+  self.winnerLabel.adjustsFontSizeToFitWidth = YES;
   
   [self setProperties];
 }
@@ -67,7 +79,15 @@
       UILabel *playerLabel = self.playerLabelsArray[i];
       UILabel *scoreLabel = self.scoreLabelsArray[i];
 
-      playerLabel.text = player ? player.playerName : @"";
+        // these should be loaded only once
+        // put two spaces in front of player name
+      playerLabel.text = player ? [NSString stringWithFormat:@"  %@", player.playerName] : @"";
+      [playerLabel sizeToFit];
+      if (playerLabel.frame.size.width > kLabelWidth) {
+        playerLabel.frame = CGRectMake(playerLabel.frame.origin.x, playerLabel.frame.origin.y,kLabelWidth, playerLabel.frame.size.height);
+      }
+      playerLabel.adjustsFontSizeToFitWidth = YES;
+      playerLabel.frame = CGRectMake(playerLabel.frame.origin.x - 10.f, playerLabel.frame.origin.y, playerLabel.frame.size.width + 10.f, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
 
         // static player colours
       if (player.resigned && self.myMatch.type != kSelfGame) {
@@ -90,31 +110,20 @@
     
     if (self.myMatch.gameHasEnded) {
       
-      self.backgroundColor = [UIColor colorWithRed:1.f green:0.9f blue:0.9f alpha:1.f];
+      self.backgroundColor = [UIColor colorWithRed:1.f green:0.9f blue:0.9f alpha:0.8f];
       
         // game ended, so lastPlayed label shows date
       self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed];
       self.winnerLabel.text = [self.myMatch endGameResultsText];
       
-      self.removeGameButton.hidden = NO;
-      self.removeGameButton.enabled = YES;
-      
     } else {
       
-      self.backgroundColor = [UIColor clearColor];
+      self.backgroundColor = [[UIColor whiteColor] colorWithAlphaComponent:0.8f];
       
         // game still in play, so lastPlayed label shows time since last played
       self.lastPlayedLabel.text = [self returnLastPlayedStringFromDate:self.myMatch.lastPlayed];
 
-      self.removeGameButton.hidden = YES;
-      self.removeGameButton.enabled = NO;
     }
-  }
-}
-
-- (IBAction)removeGameTapped:(id)sender {
-  if (self.myMatch.gameHasEnded) {
-    [self.delegate removeMatch:self.myMatch];
   }
 }
 

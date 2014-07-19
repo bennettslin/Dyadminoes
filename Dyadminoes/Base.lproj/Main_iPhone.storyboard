@@ -180,17 +180,6 @@
                                                     <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="N9G-d7-oUs">
-                                                    <rect key="frame" x="20" y="53" width="80" height="27"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                                    <state key="normal" title="Remove game">
-                                                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                    </state>
-                                                    <connections>
-                                                        <action selector="removeGameTapped:" destination="PnH-LI-aWR" eventType="touchUpInside" id="a30-ax-q5c"/>
-                                                    </connections>
-                                                </button>
                                             </subviews>
                                         </tableViewCellContentView>
                                         <connections>
@@ -199,7 +188,6 @@
                                             <outlet property="player2Label" destination="TUA-eU-cnH" id="x6r-Bc-wxm"/>
                                             <outlet property="player3Label" destination="C3o-hv-oE3" id="UeJ-YA-Q9v"/>
                                             <outlet property="player4Label" destination="IvG-fk-XKm" id="CZc-Rx-y6Y"/>
-                                            <outlet property="removeGameButton" destination="N9G-d7-oUs" id="kHg-Hr-84y"/>
                                             <outlet property="score1Label" destination="0rh-wL-F56" id="Lam-er-gv4"/>
                                             <outlet property="score2Label" destination="taI-XT-ue4" id="Cce-vz-Ubw"/>
                                             <outlet property="score3Label" destination="P0D-bv-YW3" id="e4H-5c-PuN"/>
@@ -261,7 +249,7 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="L1P-ey-aqB">
-                                        <rect key="frame" x="124" y="1" width="72" height="32"/>
+                                        <rect key="frame" x="44" y="0.0" width="72" height="32"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <state key="normal" title="Help">
@@ -272,7 +260,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="zIm-59-lik">
-                                        <rect key="frame" x="204" y="1" width="72" height="32"/>
+                                        <rect key="frame" x="124" y="0.0" width="72" height="32"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <state key="normal" title="Store">
@@ -283,7 +271,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rnC-Y2-LZJ">
-                                        <rect key="frame" x="44" y="31" width="72" height="32"/>
+                                        <rect key="frame" x="204" y="0.0" width="72" height="32"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <state key="normal" title="Rank">
@@ -294,7 +282,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="c2b-sM-byf">
-                                        <rect key="frame" x="124" y="31" width="72" height="32"/>
+                                        <rect key="frame" x="84" y="26" width="72" height="32"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <state key="normal" title="Options">
@@ -305,7 +293,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dlQ-hw-MZd">
-                                        <rect key="frame" x="204" y="31" width="72" height="32"/>
+                                        <rect key="frame" x="164" y="26" width="72" height="32"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <state key="normal" title="About">
@@ -313,17 +301,6 @@
                                         </state>
                                         <connections>
                                             <action selector="aboutTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="vdK-IS-Ao0"/>
-                                        </connections>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="A5b-s1-ULE">
-                                        <rect key="frame" x="44" y="1" width="72" height="32"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                        <state key="normal" title="Matches">
-                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                        </state>
-                                        <connections>
-                                            <action selector="matchesTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="Qkr-QQ-wwN"/>
                                         </connections>
                                     </button>
                                 </subviews>
@@ -338,7 +315,6 @@
                         <outlet property="aboutButton" destination="dlQ-hw-MZd" id="bjI-rN-bdy"/>
                         <outlet property="bottomBar" destination="k3C-2Y-dsV" id="NK0-I7-Rdb"/>
                         <outlet property="helpButton" destination="L1P-ey-aqB" id="l9q-uN-3hT"/>
-                        <outlet property="matchesButton" destination="A5b-s1-ULE" id="7Ag-Ti-wwU"/>
                         <outlet property="optionsButton" destination="c2b-sM-byf" id="lL3-UK-yp2"/>
                         <outlet property="rankButton" destination="rnC-Y2-LZJ" id="fRt-eV-ipW"/>
                         <outlet property="selfGameButton" destination="jP0-ad-iJf" id="3YA-W7-ke1"/>

@@ -22,6 +22,4 @@
 
 @protocol MatchCellDelegate <NSObject>
 
--(void)removeMatch:(Match *)match;
-
 @end

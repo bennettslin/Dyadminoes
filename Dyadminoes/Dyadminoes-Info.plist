@@ -42,5 +42,10 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Filmotype-Harmony.otf</string>
+		<string>Filmotype-Modern.otf</string>
+	</array>
 </dict>
 </plist>

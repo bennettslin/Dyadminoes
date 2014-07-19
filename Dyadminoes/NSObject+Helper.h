@@ -40,7 +40,6 @@
 //------------------------------------------------------------------------------
 
   // view controller constants
-#define kViewControllerSpeed 0.2f
 #define kCornerRadius 25.f
 
   // dyadmino size constants
@@ -57,7 +56,7 @@
 
   // animation constants
 #define kRotateWait 0.05f
-#define kConstantTime 0.15f
+#define kConstantTime 0.175f // was 0.15f
 #define kAnimateHoverTime 0.775f
 #define kDoubleTapTime 0.225f
 

@@ -138,4 +138,10 @@
   // Release any cached data, images, etc that aren't in use.
 }
 
+#pragma mark - system methods
+
+-(BOOL)prefersStatusBarHidden {
+  return YES;
+}
+
 @end

@@ -63,6 +63,9 @@
 		3FECDE1019355B3A00D774AB /* OptionsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FECDE0F19355B3A00D774AB /* OptionsViewController.m */; };
 		3FECDE1319355B4400D774AB /* AboutViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FECDE1219355B4400D774AB /* AboutViewController.m */; };
 		3FECDE1619355B8A00D774AB /* PnPViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FECDE1519355B8A00D774AB /* PnPViewController.m */; };
+		3FF255C3197A3F6500B40D8D /* Filmotype-Modern.otf in Resources */ = {isa = PBXBuildFile; fileRef = 3FF255C1197A3F3900B40D8D /* Filmotype-Modern.otf */; };
+		3FF255C4197A3F6900B40D8D /* Filmotype-Harmony.otf in Resources */ = {isa = PBXBuildFile; fileRef = 3FF255C2197A3F4000B40D8D /* Filmotype-Harmony.otf */; };
+		3FF255C6197A4E2F00B40D8D /* KeyboardBackground.png in Resources */ = {isa = PBXBuildFile; fileRef = 3FF255C5197A4E2F00B40D8D /* KeyboardBackground.png */; };
 		3FFD6CA318B40A83000D2DA4 /* DyadminoImages.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 3FFD6CA218B40A83000D2DA4 /* DyadminoImages.atlas */; };
 /* End PBXBuildFile section */
 
@@ -168,6 +171,9 @@
 		3FECDE1219355B4400D774AB /* AboutViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AboutViewController.m; sourceTree = "<group>"; };
 		3FECDE1419355B8A00D774AB /* PnPViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PnPViewController.h; sourceTree = "<group>"; };
 		3FECDE1519355B8A00D774AB /* PnPViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PnPViewController.m; sourceTree = "<group>"; };
+		3FF255C1197A3F3900B40D8D /* Filmotype-Modern.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Filmotype-Modern.otf"; sourceTree = "<group>"; };
+		3FF255C2197A3F4000B40D8D /* Filmotype-Harmony.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Filmotype-Harmony.otf"; sourceTree = "<group>"; };
+		3FF255C5197A4E2F00B40D8D /* KeyboardBackground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = KeyboardBackground.png; sourceTree = "<group>"; };
 		3FFD6CA218B40A83000D2DA4 /* DyadminoImages.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; name = DyadminoImages.atlas; path = ../DyadminoImages.atlas; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -200,6 +206,9 @@
 		3F0526C21936CE92003D3C04 /* Images and Sounds */ = {
 			isa = PBXGroup;
 			children = (
+				3FF255C5197A4E2F00B40D8D /* KeyboardBackground.png */,
+				3FF255C2197A3F4000B40D8D /* Filmotype-Harmony.otf */,
+				3FF255C1197A3F3900B40D8D /* Filmotype-Modern.otf */,
 				3F580BDF194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav */,
 				3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */,
 				3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */,
@@ -480,7 +489,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				3FFD6CA318B40A83000D2DA4 /* DyadminoImages.atlas in Resources */,
+				3FF255C6197A4E2F00B40D8D /* KeyboardBackground.png in Resources */,
 				3FBC6AD7194E208300420CB8 /* hitCat.wav in Resources */,
+				3FF255C4197A3F6900B40D8D /* Filmotype-Harmony.otf in Resources */,
 				3F580BDE194F710F0040B5D0 /* Click2-Sebastian-759472264.wav in Resources */,
 				3F87AACD188DEE4B008C4A0D /* Images.xcassets in Resources */,
 				3FBC6AD8194E208300420CB8 /* hitCatLady.wav in Resources */,
@@ -491,6 +502,7 @@
 				3F580BDC194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav in Resources */,
 				3F0526CA1936CE9F003D3C04 /* page1.png in Resources */,
 				3F87AAB7188DEE4B008C4A0D /* InfoPlist.strings in Resources */,
+				3FF255C3197A3F6500B40D8D /* Filmotype-Modern.otf in Resources */,
 				3F0526C71936CE9F003D3C04 /* page4.png in Resources */,
 				3F0526C81936CE9F003D3C04 /* page3.png in Resources */,
 			);
