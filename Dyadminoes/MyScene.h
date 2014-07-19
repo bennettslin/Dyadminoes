@@ -37,5 +37,6 @@
 @protocol SceneDelegate <NSObject>
 
 -(void)backToMainMenu;
+-(void)stopActivityIndicator;
 
 @end

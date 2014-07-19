@@ -51,7 +51,7 @@
   Player *player1 = [[Player alloc] initWithUniqueID:@"" andPlayerName:playerName andPlayerPicture:nil];
   
   Match *newSoloMatch = [[Match alloc] initWithPlayers:@[player1] andRules:rules andSkill:skill andType:kSelfGame];
-  [self.myMatches addObject:newSoloMatch];
+  [self.myMatches insertObject:newSoloMatch atIndex:0];
   [Model saveMyModel:self];
   return newSoloMatch;
 }
@@ -61,7 +61,7 @@
   Player *player1 = [[Player alloc] initWithUniqueID:@"12345" andPlayerName:@"Julia" andPlayerPicture:nil];
   Player *player2 = [[Player alloc] initWithUniqueID:@"23456" andPlayerName:@"Pamela" andPlayerPicture:nil];
   Match *newPnPMatch = [[Match alloc] initWithPlayers:@[player1, player2] andRules:kGameRulesTonal andSkill:kBeginner andType:kPnPGame];
-  [self.myMatches addObject:newPnPMatch];
+  [self.myMatches insertObject:newPnPMatch atIndex:0];
   [Model saveMyModel:self];
   return newPnPMatch;
 }
@@ -92,7 +92,7 @@
     Match *match = [[Match alloc] initWithPlayers:players andRules:kGameRulesTonal andSkill:kBeginner andType:kPnPGame];
     
       // add match to data
-    [self.myMatches addObject:match];
+    [self.myMatches insertObject:match atIndex:0];
   }
   [Model saveMyModel:self];
 }

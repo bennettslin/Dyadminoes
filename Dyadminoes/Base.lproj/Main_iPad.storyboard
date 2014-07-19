@@ -720,7 +720,7 @@
         <!--Options View Controller-->
         <scene sceneID="HcX-tt-hlU">
             <objects>
-                <viewController storyboardIdentifier="OptionsViewController" id="CRf-ou-lUt" customClass="OptionsViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="OptionsViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="CRf-ou-lUt" customClass="OptionsViewController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="RgC-Ch-Oxg"/>
                         <viewControllerLayoutGuide type="bottom" id="q8o-4X-Dyc"/>
@@ -834,9 +834,9 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <button appearanceType="aqua" opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VBe-d3-RA3">
-                                <rect key="frame" x="20" y="248" width="116" height="30"/>
+                                <rect key="frame" x="20" y="255" width="99" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Remove defaults">
+                                <state key="normal" title="Reset defaults">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>

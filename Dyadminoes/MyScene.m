@@ -174,9 +174,19 @@
   [self showTurnInfoOrGameResultsForReplay:NO];
     // not for first version
 //  [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
+  
+    // kludge way to remove activity indicator
+  SKAction *wait = [SKAction waitForDuration:1.f];
+  SKAction *removeActivityIndicator = [SKAction runBlock:^{
+    [self.delegate stopActivityIndicator];
+  }];
+  SKAction *sequence = [SKAction sequence:@[wait, removeActivityIndicator]];
+  [self runAction:sequence];
 }
 
 -(void)willMoveFromView:(SKView *)view {
+  
+  [self.delegate stopActivityIndicator];
   
   NSLog(@"will move from view");
   if (_debugMode) {

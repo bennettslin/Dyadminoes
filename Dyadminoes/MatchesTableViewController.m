@@ -79,12 +79,11 @@
   [super viewDidLoad];
   
   self.activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-  self.activityIndicator.color = [UIColor darkGrayColor];
-  self.activityIndicator.frame = CGRectMake(0, 0, 100, 100);
-  self.activityIndicator.layer.borderColor = [UIColor redColor].CGColor;
-  self.activityIndicator.layer.borderWidth = 5.f;
+  self.activityIndicator.backgroundColor = [UIColor darkGrayColor];
+  self.activityIndicator.frame = CGRectMake(0, 0, 150, 150);
+  self.activityIndicator.layer.cornerRadius = kCornerRadius;
+  self.activityIndicator.clipsToBounds = YES;
   self.activityIndicator.center = self.view.center;
-  [self.view insertSubview:self.activityIndicator aboveSubview:self.topBar];
   
   _screenWidth = [UIScreen mainScreen].bounds.size.width;
   _screenHeight = [UIScreen mainScreen].bounds.size.height;
@@ -197,7 +196,9 @@
 }
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-  [self.activityIndicator startAnimating];
+//  [self stopActivityIndicator];
+  NSLog(@"didSelectRow called");
+
 }
 
 #pragma mark - cell delegate methods
@@ -213,11 +214,13 @@
   
   NSUInteger rowNumber;
   if ([segue.identifier isEqualToString:@"sceneSegue"]) {
+    NSLog(@"prepareForSegue called");
+    [self startActivityIndicator];
     
     SceneViewController *sceneVC = [segue destinationViewController];
     sceneVC.myScene = self.myScene;
     
-    [self startActivityIndicator];
+//    [self startActivityIndicator];
     
     if ([sender isKindOfClass:[Match class]]) { // sender is match
       rowNumber = [self.myModel.myMatches indexOfObject:sender];
@@ -241,7 +244,7 @@
 
 -(void)startActivityIndicator {
   NSLog(@"activity indicator starts");
-
+  [self.view addSubview:self.activityIndicator];
   [self.activityIndicator startAnimating];
 }
 
