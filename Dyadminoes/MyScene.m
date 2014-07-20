@@ -544,7 +544,7 @@
           [self toggleBoardZoom];
         }
       }
-      NSLog(@"board to be moved or being moved");
+//      NSLog(@"board to be moved or being moved");
       _boardToBeMovedOrBeingMoved = YES;
       _canDoubleTapForBoardZoom = YES;
       
@@ -786,10 +786,8 @@
 #pragma mark - board methods
 
 -(void)moveBoard {
-  
-
-  
     // if board isn't being corrected within bounds
+  
   if (!_boardBeingCorrectedWithinBounds) {
     
     CGPoint adjustedNewPosition = [_boardField adjustToNewPositionFromBeganLocation:_beganTouchLocation toCurrentLocation:_currentTouchLocation withSwap:_swapMode];
@@ -803,7 +801,6 @@
 }
 
 -(void)toggleBoardZoom {
-//  NSLog(@"board zoomed");
   if (_hoveringDyadmino) {
     [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO  andUpdatingBoardBounds:NO];
   }
@@ -819,7 +816,6 @@
   
     // need genuine board centering method
   [self updateBoardBoundsAndLayoutCells:YES];
-  [self updateForBoardBeingCorrectedWithinBoundsForZoom:YES];
   [_boardField repositionCellsAndDyadminoesForZoom];
   
     // same as for board dyadminoes
@@ -1422,7 +1418,7 @@
   
     // snap back somewhat from board bounds
     // TODO: this works, but it feels jumpy
-  [self updateForBoardBeingCorrectedWithinBoundsForZoom:NO];
+  [self updateForBoardBeingCorrectedWithinBounds];
   [self updateForHoveringDyadminoBeingCorrectedWithinBounds];
   [self updatePivotForDyadminoMoveWithoutBoardCorrected];
 }
@@ -1502,7 +1498,7 @@
   }
 }
 
--(void)updateForBoardBeingCorrectedWithinBoundsForZoom:(BOOL)zoom {
+-(void)updateForBoardBeingCorrectedWithinBounds {
   
   if (_fieldActionInProgress) {
     _boardField.homePosition = _boardField.position;
@@ -1544,10 +1540,12 @@
       // this establishes when board is no longer being corrected within bounds
     NSUInteger alreadyCorrect = 0;
 
-    CGFloat lowestXBuffer = _boardField.lowestXPos + kDyadminoFaceWideRadius;
-    CGFloat lowestYBuffer = _boardField.lowestYPos + kDyadminoFaceRadius;
-    CGFloat highestXBuffer = _boardField.highestXPos - kDyadminoFaceWideRadius;
-    CGFloat highestYBuffer = _boardField.highestYPos - kDyadminoFaceRadius + swapBuffer;
+    CGFloat zoomFactor = _boardZoomedOut ? kZoomResizeFactor : 1.f;
+    
+    CGFloat lowestXBuffer = _boardField.lowestXPos + (kDyadminoFaceAverageWideRadius * zoomFactor);
+    CGFloat lowestYBuffer = _boardField.lowestYPos + (kDyadminoFaceRadius * zoomFactor);
+    CGFloat highestXBuffer = _boardField.highestXPos - (kDyadminoFaceAverageWideRadius * zoomFactor);
+    CGFloat highestYBuffer = _boardField.highestYPos - (kDyadminoFaceRadius * zoomFactor) + swapBuffer;
     
       // this way when the board is being corrected,
       // it doesn't jump afterwards
@@ -1556,12 +1554,9 @@
     }
   
       // establishes the board is being shifted away from hard edge, not as a correction
-    
     if (_boardField.position.x < lowestXBuffer) {
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = zoom ?
-        lowestXBuffer - _boardField.position.x :
-        1.f + (lowestXBuffer - _boardField.position.x) / distanceDivisor;
+      thisDistance = 1.f + (lowestXBuffer - _boardField.position.x) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
       
@@ -1575,9 +1570,7 @@
     
     if (_boardField.position.y < lowestYBuffer) {
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = zoom ?
-        lowestYBuffer - _boardField.position.y :
-        1.f + (lowestYBuffer - _boardField.position.y) / distanceDivisor;
+      thisDistance = 1.f + (lowestYBuffer - _boardField.position.y) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y + thisDistance);
       _boardField.homePosition = _boardField.position;
       
@@ -1591,9 +1584,7 @@
 
     if (_boardField.position.x > highestXBuffer) {
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = zoom ?
-        _boardField.position.x - highestXBuffer :
-        1.f + (_boardField.position.x - highestXBuffer) / distanceDivisor;
+      thisDistance = 1.f + (_boardField.position.x - highestXBuffer) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x - thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
       
@@ -1607,9 +1598,7 @@
 
     if (_boardField.position.y > highestYBuffer) {
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = zoom ?
-        _boardField.position.y - highestYBuffer :
-        1.f + (_boardField.position.y - highestYBuffer) / distanceDivisor;
+      thisDistance = 1.f + (_boardField.position.y - highestYBuffer) / distanceDivisor;
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
       _boardField.homePosition = _boardField.position;
       

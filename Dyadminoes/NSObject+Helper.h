@@ -46,6 +46,8 @@
 #define kDyadminoFaceDiameter (kDyadminoFaceRadius * 2)
 #define kDyadminoFaceWideRadius (kDyadminoFaceRadius * kTwoOverSquareRootOfThree)
 #define kDyadminoFaceWideDiameter (kDyadminoFaceWideRadius * 3 / 2)
+#define kDyadminoFaceAverageWideDiameter (kDyadminoFaceWideRadius + (kDyadminoFaceRadius * kTwoOverSquareRootOfThree / 2))
+#define kDyadminoFaceAverageWideRadius (kDyadminoFaceAverageWideDiameter / 2)
 
   // view constants
 #define kBoardCoverAlpha 0.4f

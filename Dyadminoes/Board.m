@@ -31,6 +31,7 @@
   BOOL _hexOriginSet;
   CGVector _hexOrigin;
   CGVector _hexCurrent;
+  BOOL _cellsTopNeedsBuffer;
   
   NSInteger _oldCellsTop;
   NSInteger _oldCellsBottom;
@@ -178,6 +179,9 @@
   NSInteger cellsBottom = 99999999;
   NSInteger cellsLeft = 99999999;
   
+  NSInteger cellsTopX;
+  NSInteger cellsTopY;
+  
   for (Dyadmino *dyadmino in boardDyadminoes) {
     
     HexCoord hexCoord1;
@@ -217,30 +221,34 @@
         cellsLeft = xHex;
       }
       
+        // FIXME: was this part necessary?
         // now check y span, which means...
         // next, subtract cell when x is negative to compensate for rounding down
         // and yes, it has to be in this order!
-      NSInteger workingXHex = xHex;
-      if (xHex < 0) {
-        workingXHex = xHex - 1;
-      }
+      CGFloat workingXHex = xHex;
+//      if (xHex < 0) {
+//        workingXHex = xHex - 1;
+//      }
       
-        // this compensates for the fact that when x is odd, y is offset by half a cell
+        // this compensates for the fact that when x is odd, y is offset up by half a cell
       CGFloat workingYHex = yHex;
       if (abs(xHex) % 2 == 1) {
-        workingYHex = yHex + 0.5;
+        workingYHex = yHex + 0.25; // (was + 0.5 before, subtract 0.25 to ensure that it's considered only slightly higher)
       }
       
-      if (workingYHex > cellsTop - workingXHex / 2) {
+      if (workingYHex > (float)cellsTop - (workingXHex / 2)) {
         cellsTop = yHex + workingXHex / 2;
           // board y-coord bounds will be different depending on whether x is odd or even
         _cellsTopXIsEven = (abs(xHex) % 2 == 0) ? YES : NO;
+        cellsTopX = xHex;
+        cellsTopY = yHex;
       }
       
-      if (workingYHex < cellsBottom - workingXHex / 2) {
+      if (workingYHex < (float)cellsBottom - (workingXHex / 2)) {
         cellsBottom = yHex + workingXHex / 2;
         _cellsBottomXIsEven = (abs(xHex) % 2 == 0) ? YES : NO;
       }
+      
         //        NSLog(@"yHex is %i, this value is %.1f", yHex, cellsTop - (xHex / 2.f));
         //        NSLog(@"yHex %i, cellsTop %i, xHex / 2 is %.1f", yHex, cellsTop, xHex / 2.f);
         //        NSLog(@"xHex is %i, yHex is %i", xHex, yHex);
@@ -255,17 +263,17 @@
   
   NSInteger extraYCells;
   switch (cellsTop - cellsBottom) {
-    case 0:
-    case 1:
-    case 2:
-      extraYCells = kIsIPhone? 5 : 7;
-      break;
-    case 3:
-    case 4:
-      extraYCells = kIsIPhone? 4 : 6;
-      break;
+//    case 0:
+//    case 1:
+//    case 2:
+//      extraYCells = kIsIPhone? 5 : 7;
+//      break;
+//    case 3:
+//    case 4:
+//      extraYCells = kIsIPhone? 4 : 6;
+//      break;
     default:
-      extraYCells = kIsIPhone? 4 : 5;
+      extraYCells = kIsIPhone? 5 : 7; // was 4 : 5;
       break;
   }
   
@@ -302,8 +310,20 @@
     //  [self centerBoardWithCellCenterX:(CGFloat)(cellsTop - cellsBottom) / 2 andY:(CGFloat)(cellsRight - cellsLeft) / 2];
   
   self.cellsTop = cellsTop + extraYCells;
+  
+    // kludge job
+  if (!_cellsTopXIsEven && (cellsTopY * 2 < cellsTopX * -1)) {
+    _cellsTopNeedsBuffer = YES;
+  } else {
+    _cellsTopNeedsBuffer = NO;
+  }
+  
   self.cellsRight = cellsRight + extraXCells;
   self.cellsBottom = cellsBottom - extraYCells;
+//  if (!_cellsBottomXIsEven && cellsBottom) {
+//    self.cellsBottom -= 1;
+//  }
+
   self.cellsLeft = cellsLeft - extraXCells;
   
   NSLog(@"top %i, right %i, bottom %i, left %i", self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
@@ -324,26 +344,38 @@
   
     // board y-coord bounds will be different depending on whether x is odd or even
   if (_cellsTopXIsEven) {
+    NSLog(@"cells top x is even"); // 5.5 cells up
     CGFloat lowYBufferValue = -_hexOrigin.dy + (kIsIPhone ? -0.5 : -1.5);
     self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange + lowYBufferValue) * kDyadminoFaceDiameter * factor;
   } else {
-    CGFloat lowYBufferValue = -_hexOrigin.dy + (kIsIPhone ? 0 : -1.0);
+    NSLog(@"cells top x is odd"); // 5.5 cells up
+    CGFloat lowYBufferValue = -_hexOrigin.dy + (kIsIPhone ? -1.0 : -1.0);
+      // kludge workaround
+    if (_cellsTopNeedsBuffer) {
+      lowYBufferValue -= 1.0;
+    }
     self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange + lowYBufferValue) * kDyadminoFaceDiameter * factor;
   }
+  
   CGFloat lowXBufferValue = -_hexOrigin.dx + (kIsIPhone ? 0.25 : -.25);
-  self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange + lowXBufferValue) * kDyadminoFaceWideDiameter * factor;
+  self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange + lowXBufferValue) * kDyadminoFaceAverageWideDiameter * factor;
   
   if (_cellsBottomXIsEven) {
+    NSLog(@"cells bottom x is even"); // 5.5 cells down
     CGFloat highYBufferValue = -_hexOrigin.dy + (kIsIPhone ? -0.5 : 0.5);
     self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange + highYBufferValue) * kDyadminoFaceDiameter * factor;
   } else {
-    CGFloat highYBufferValue = -_hexOrigin.dy + (kIsIPhone ? 0: 1.0);
+    NSLog(@"cells bottom x is odd"); // 5.5 cells down
+    CGFloat highYBufferValue = -_hexOrigin.dy + (kIsIPhone ? 0 : 0.0);
     self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange + highYBufferValue) * kDyadminoFaceDiameter * factor;
   }
-  CGFloat highXBufferValue = -_hexOrigin.dx + (kIsIPhone ? -0.25 : 0.25);
-  self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange + highXBufferValue) * kDyadminoFaceWideDiameter * factor;
   
+  CGFloat highXBufferValue = -_hexOrigin.dx + (kIsIPhone ? -0.25 : 0.25);
+  self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange + highXBufferValue) * kDyadminoFaceAverageWideDiameter * factor;
+  
+  NSLog(@"lowest y is %.2f, highest y is %.2f", self.lowestYPos, self.highestYPos);
   NSLog(@"determine board position bounds, for zoom? %i", self.zoomedOut);
+  NSLog(@"board bounds range %.2f, %.2f", self.highestXPos - self.lowestXPos, self.highestYPos - self.lowestYPos);
   
   /*
    cellsTop determines lowest Y position
@@ -378,6 +410,7 @@
 
   [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:newPoint withSwap:NO];
   self.homePosition = newPoint;
+//  [self determineBoardPositionBounds];
 }
 
 -(void)repositionCellsAndDyadminoesForZoom {
