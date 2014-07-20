@@ -96,15 +96,14 @@
 
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
-    self.backgroundColor = kBackgroundBoardColour;
+//    self.backgroundColor = kBackgroundBoardColour;
     self.name = @"scene";
     self.mySoundEngine = [[SoundEngine alloc] init];
     self.mySceneEngine = [[SceneEngine alloc] init];
     [self addChild:self.mySoundEngine];
     
-    NSLog(@"layout static scene assets");
+//    NSLog(@"layout static scene assets");
     [self layoutBoard];
-    [self repositionBoardField];
     [self layoutBoardCover];
     [self layoutSwapField];
     [self layoutReplayFields];
@@ -155,7 +154,7 @@
     // this only needs the board dyadminoes to determine the board's cells ranges
     // this populates the board cells
   [self repositionBoardField];
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes forZoom:NO];
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes];
   [self populateBoardWithDyadminoes];
   
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
@@ -437,7 +436,7 @@
     [self.mySoundEngine soundDeviceOrientation];
   }
   
-  NSLog(@"view frame size is %.2f, %.2f", self.view.frame.size.width, self.view.frame.size.height);
+//  NSLog(@"view frame size is %.2f, %.2f", self.view.frame.size.width, self.view.frame.size.height);
   
   [_topBar rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
   [_replayTop rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
@@ -445,7 +444,7 @@
 }
 
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity {
-  NSLog(@"pinch scale %.2f, velocity %.2f", scale, velocity);
+//  NSLog(@"pinch scale %.2f, velocity %.2f", scale, velocity);
     // tweak these numbers
   if ((scale < .8f && !_boardZoomedOut) || (scale > 1.25f && _boardZoomedOut)) {
     [self toggleBoardZoom];
@@ -788,45 +787,18 @@
 
 -(void)moveBoard {
   
+
+  
     // if board isn't being corrected within bounds
   if (!_boardBeingCorrectedWithinBounds) {
-      // first get new board position, after applying touch offset
-    CGPoint touchOffset = [self subtractFromThisPoint:_beganTouchLocation thisPoint:_currentTouchLocation];
-    CGPoint newPosition = [self subtractFromThisPoint:_boardField.homePosition thisPoint:touchOffset];
     
-    CGFloat newX = newPosition.x;
-    CGFloat newY = newPosition.y;
-    
-    CGFloat swapBuffer = 0.f;
-    if (_swapMode) {
-      swapBuffer = kRackHeight; // the height of the swap field
-    }
-    
-    if (newPosition.y < _boardField.lowestYPos) {
-      newY = _boardField.lowestYPos;
-    } else if (newPosition.y > (_boardField.highestYPos + swapBuffer)) {
-      newY = _boardField.highestYPos + swapBuffer;
-    }
-    
-    if (newPosition.x < _boardField.lowestXPos) {
-      newX = _boardField.lowestXPos;
-    } else if (newPosition.x > _boardField.highestXPos) {
-      newX = _boardField.highestXPos;
-    }
-    
-    CGPoint adjustedNewPosition = CGPointMake(newX, newY);
+    CGPoint adjustedNewPosition = [_boardField adjustToNewPositionFromBeganLocation:_beganTouchLocation toCurrentLocation:_currentTouchLocation withSwap:_swapMode];
     
     if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
       _hoveringDyadmino.position = [self addToThisPoint:_hoveringDyadmino.position
                                               thisPoint:[self subtractFromThisPoint:_boardField.position
                                                                           thisPoint:adjustedNewPosition]];
     }
-    
-      // move board to new position
-    _boardField.position = adjustedNewPosition;
-    
-      // move home position to board position, after applying touch offset
-    _boardField.homePosition = [self addToThisPoint:_boardField.position thisPoint:touchOffset];
   }
 }
 
@@ -837,11 +809,18 @@
   }
   
   _boardZoomedOut = _boardZoomedOut ? NO : YES;
+  _boardField.zoomedOut = _boardZoomedOut;
+  
+  if (_boardZoomedOut) {
+  _boardField.preZoomPosition = _boardField.homePosition;
+  } else {
+    _boardField.homePosition = _boardField.preZoomPosition;
+  }
   
     // need genuine board centering method
-  [_boardField repositionCellsAndDyadminoesForZoomOut:_boardZoomedOut];
-  [self updateBoardBoundsAndLayoutCells:YES forZoom:_boardZoomedOut];
+  [self updateBoardBoundsAndLayoutCells:YES];
   [self updateForBoardBeingCorrectedWithinBoundsForZoom:YES];
+  [_boardField repositionCellsAndDyadminoesForZoom];
   
     // same as for board dyadminoes
   if (_recentRackDyadmino) {
@@ -865,7 +844,8 @@
     [dyadmino selectAndPositionSprites];
   }
   
-  [self.mySoundEngine soundBoardZoom];
+    // FIXME: silence for now to avoid sound engine error
+//  [self.mySoundEngine soundBoardZoom];
 }
 
 -(void)handleUserWantsPivotGuides {
@@ -1056,7 +1036,7 @@
     // the other is when dyadmino is eased into board node
   if (updateBoardBounds) {
     NSLog(@"update board bounds from send dyadmino home");
-    [self updateBoardBoundsAndLayoutCells:YES forZoom:NO];
+    [self updateBoardBoundsAndLayoutCells:YES];
   }
   
   [dyadmino endTouchThenHoverResize];
@@ -1730,7 +1710,7 @@
           // this is one of two places where board bounds are updated
           // the other is when rack dyadmino is sent home
         NSLog(@"updateBoardBounds called from check whether to ease");
-        [self updateBoardBoundsAndLayoutCells:YES forZoom:NO];
+        [self updateBoardBoundsAndLayoutCells:YES];
         
         [_boardField hideAllPivotGuides];
         [dyadmino animateEaseIntoNodeAfterHover];
@@ -2140,7 +2120,7 @@
   }
 }
 
--(void)updateBoardBoundsAndLayoutCells:(BOOL)layoutCells forZoom:(BOOL)zoom {
+-(void)updateBoardBoundsAndLayoutCells:(BOOL)layoutCells {
   
   NSLog(@"updateBoardBounds called");
   NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
@@ -2151,7 +2131,7 @@
   }
   
   if (layoutCells) {
-    [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard forZoom:zoom];
+    [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard];
   }
   
 //  [_topBar flashLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
@@ -2516,6 +2496,9 @@
 -(void)toggleDebugMode {
   
   if (_debugMode) {
+    
+    [_boardField centerBoard];
+    
     _topBar.pileDyadminoesLabel.hidden = NO;
     _topBar.pileDyadminoesLabel.zPosition = kZPositionTopBarLabel;
     _topBar.boardDyadminoesLabel.hidden = NO;

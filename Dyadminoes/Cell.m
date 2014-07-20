@@ -20,7 +20,7 @@
   CGFloat _red, _green, _blue, _alpha;
 }
 
--(id)initWithBoard:(Board *)board andTexture:(SKTexture *)texture andHexCoord:(HexCoord)hexCoord andVectorOrigin:(CGVector)vectorOrigin {
+-(id)initWithBoard:(Board *)board andTexture:(SKTexture *)texture andHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin {
   self = [super init];
   if (self) {
     
@@ -28,19 +28,19 @@
     self.cellNodeTexture = texture;
 
     [self resetForNewMatch];
-    [self reuseCellWithHexCoord:hexCoord andVectorOrigin:vectorOrigin];
+    [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin];
   }
   return self;
 }
 
--(void)reuseCellWithHexCoord:(HexCoord)hexCoord andVectorOrigin:(CGVector)vectorOrigin {
+-(void)reuseCellWithHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin {
   
   self.currentlyColouringNeighbouringCells = NO;
   self.hexCoord = hexCoord;
   self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
   
     // establish cell position
-  self.cellNodePosition = [self establishCellPositionWithVectorOrigin:vectorOrigin forResize:NO];
+  self.cellNodePosition = [self establishCellPositionWithHexOrigin:hexOrigin forResize:NO];
   
     // establish logic default
   self.myPC = -1;
@@ -181,10 +181,10 @@
   self.cellNode.alpha = _alpha;
 }
 
--(void)resizeCell:(BOOL)resize withVectorOrigin:(CGVector)vectorOrigin {
+-(void)resizeCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin {
   if (resize) {
     self.cellNode.size = [self establishCellSizeForResize:YES];
-    self.cellNode.position = [self establishCellPositionWithVectorOrigin:vectorOrigin forResize:YES];
+    self.cellNode.position = [self establishCellPositionWithHexOrigin:hexOrigin forResize:YES];
     [self positionSnapPointsForResize:YES];
   } else {
     self.cellNode.size = self.cellNodeSize;
@@ -204,7 +204,7 @@
   return CGSizeMake(xSize, ySize);
 }
 
--(CGPoint)establishCellPositionWithVectorOrigin:(CGVector)vectorOrigin forResize:(BOOL)resize {
+-(CGPoint)establishCellPositionWithHexOrigin:(CGVector)hexOrigin forResize:(BOOL)resize {
   
     // to make node between two faces the center
   CGFloat factor = resize ? kZoomResizeFactor : 1.f;
@@ -212,8 +212,8 @@
   CGFloat padding = kPaddingBetweenCells * factor;
   CGFloat cellWidth = self.cellNodeSize.width * factor;
   CGFloat cellHeight = self.cellNodeSize.height * factor;
-  CGFloat newX = (self.hexCoord.x - vectorOrigin.dx) * (0.75 * cellWidth + padding);
-  CGFloat newY = (self.hexCoord.y - vectorOrigin.dy + self.hexCoord.x * 0.5) * (cellHeight + padding) - yOffset;
+  CGFloat newX = (self.hexCoord.x - hexOrigin.dx) * (0.75 * cellWidth + padding);
+  CGFloat newY = (self.hexCoord.y - hexOrigin.dy + self.hexCoord.x * 0.5) * (cellHeight + padding) - yOffset;
   
   return CGPointMake(newX, newY);
 }

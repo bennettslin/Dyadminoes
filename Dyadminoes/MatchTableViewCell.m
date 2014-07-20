@@ -13,7 +13,7 @@
 
   // TODO: verify this
 #define kLabelWidth (kIsIPhone ? 54.f : 109.f)
-#define kPlayerLabelHeightPadding 5.f
+#define kPlayerLabelHeightPadding 7.5f
 
 @interface MatchTableViewCell ()
 
@@ -58,14 +58,6 @@
 -(void)setProperties {
   
   self.winnerLabel.text = @"";
-  
-    // because some matches will have less than four players
-  for (UILabel *label in self.playerLabelsArray) {
-    label.text = @"";
-  }
-  for (UILabel *label in self.scoreLabelsArray) {
-    label.text = @"";
-  }
   
   if (self.myMatch) {
     

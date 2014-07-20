@@ -39,10 +39,10 @@
 -(id)initWithBoard:(Board *)board
         andTexture:(SKTexture *)texture
        andHexCoord:(HexCoord)hexCoord
-      andVectorOrigin:(CGVector)vectorOrigin;
+      andHexOrigin:(CGVector)hexOrigin;
 
   // called to reuse dequeued cell
--(void)reuseCellWithHexCoord:(HexCoord)hexCoord andVectorOrigin:(CGVector)vectorOrigin;
+-(void)reuseCellWithHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin;
 
   // called before dismissing scene
 -(void)resetForNewMatch;
@@ -54,7 +54,7 @@
 
 #pragma mark - cell view helper methods
 
--(void)resizeCell:(BOOL)resize withVectorOrigin:(CGVector)vectorOrigin;
+-(void)resizeCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin;
 -(void)addColourWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha;
 
 #pragma mark - testing methods

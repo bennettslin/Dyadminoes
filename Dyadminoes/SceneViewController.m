@@ -24,7 +24,7 @@
 -(void)viewDidLoad {
   [super viewDidLoad];
   
-    // first version will not have device orientation
+    // first version of app will not have device orientation
   /*
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
   */
@@ -67,8 +67,6 @@
     //--------------------------------------------------------------------------
   
   [self.mySceneView presentScene:self.myScene];
-//  [self.delegate removeChildViewController:nil]; // if nil, removes self.childVC
-//  NSLog(@"scene presented");
 }
 
 -(void)stopActivityIndicator {
@@ -93,15 +91,8 @@
   [self.myScene handlePinchGestureWithScale:sender.scale andVelocity:sender.velocity];
 }
 
--(void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event {
-  if (motion == UIEventSubtypeMotionShake) {
-//    NSLog(@"began motion is %d", motion);
-  }
-}
-
 -(void)motionEnded:(UIEventSubtype)motion withEvent:(UIEvent *)event {
   if (motion == UIEventSubtypeMotionShake) {
-//    NSLog(@"ended motion is %d", motion);
     [self.myScene togglePCsUserShaken:YES];
   }
 }
@@ -131,14 +122,13 @@
   [Model saveMyModel:self.myModel];
 }
 
+#pragma mark - system methods
+
 -(void)didReceiveMemoryWarning {
   [super didReceiveMemoryWarning];
-  NSLog(@"scene VC did receive memory warning");
-  [self saveModel];
-  // Release any cached data, images, etc that aren't in use.
+//  NSLog(@"scene VC did receive memory warning");
+//  [self saveModel];
 }
-
-#pragma mark - system methods
 
 -(BOOL)prefersStatusBarHidden {
   return YES;

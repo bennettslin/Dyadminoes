@@ -216,7 +216,7 @@
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="selfGameTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="jkg-7w-j6P"/>
+                                            <action selector="menuButtonTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="QKR-R1-S0I"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="t6v-oN-Vdb">
@@ -227,7 +227,7 @@
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="pnpGameTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="Mb1-gn-oxl"/>
+                                            <action selector="menuButtonTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="arW-UO-xEw"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="JNr-FF-Tpt">
@@ -238,7 +238,7 @@
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="gcGameTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="3lp-DT-o4o"/>
+                                            <action selector="menuButtonTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="2gy-Wo-Mi2"/>
                                         </connections>
                                     </button>
                                 </subviews>
@@ -256,7 +256,7 @@
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="helpTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="5qC-0z-7nc"/>
+                                            <action selector="menuButtonTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="AcK-yT-AqN"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="zIm-59-lik">
@@ -267,7 +267,7 @@
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="storeTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="ie5-xL-gnw"/>
+                                            <action selector="menuButtonTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="Bvn-ya-Z06"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rnC-Y2-LZJ">
@@ -278,7 +278,7 @@
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="rankTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="YVH-An-tbg"/>
+                                            <action selector="menuButtonTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="kSO-dy-8IH"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="c2b-sM-byf">
@@ -289,7 +289,7 @@
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="optionsTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="IvX-fG-rbP"/>
+                                            <action selector="menuButtonTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="6nG-gd-ZZT"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dlQ-hw-MZd">
@@ -300,7 +300,7 @@
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="aboutTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="vdK-IS-Ao0"/>
+                                            <action selector="menuButtonTapped:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="NxE-WX-TbF"/>
                                         </connections>
                                     </button>
                                 </subviews>

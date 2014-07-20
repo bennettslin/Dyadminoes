@@ -22,6 +22,9 @@
 @property (nonatomic) CGPoint homePosition;
 @property (nonatomic) CGPoint origin;
 
+@property (nonatomic) BOOL zoomedOut;
+@property (nonatomic) CGPoint preZoomPosition;
+
 @property (nonatomic) CGFloat highestYPos;
 @property (nonatomic) CGFloat highestXPos;
 @property (nonatomic) CGFloat lowestYPos;
@@ -55,15 +58,17 @@
 -(void)repositionBoardWithHomePosition:(CGPoint)homePosition
                              andOrigin:(CGPoint)origin;
 
+-(CGPoint)adjustToNewPositionFromBeganLocation:(CGPoint)beganLocation toCurrentLocation:(CGPoint)currentLocation withSwap:(BOOL)swap;
+
 -(void)resetForNewMatch;
 
 #pragma mark - zoom methods
 
--(void)repositionCellsAndDyadminoesForZoomOut:(BOOL)resize;
+-(void)repositionCellsAndDyadminoesForZoom;
 
 #pragma mark - cell methods
 
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes forZoom:(BOOL)zoom;
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes;
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
 
@@ -84,7 +89,8 @@
 
 #pragma mark - board span methods
 
--(void)determineBoardPositionBoundsForZoom:(BOOL)zoom;
+-(void)determineBoardPositionBounds;
+-(void)centerBoard;
 
 #pragma mark - legality methods
 

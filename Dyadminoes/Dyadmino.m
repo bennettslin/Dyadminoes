@@ -251,7 +251,6 @@
   } else {
     [self orientBySnapNode:self.homeNode];
     [self animateMoveToPoint:[self getHomeNodePosition] andSounding:sounding];
-    [self setToHomeZPosition];
   }
   [self finishHovering];
 }
@@ -423,6 +422,7 @@
   if (sounding) {
     SKAction *completeAction = [SKAction runBlock:^{
       [self.delegate soundDyadminoSettleClick];
+      [self setToHomeZPosition];
     }];
     SKAction *sequence = [SKAction sequence:@[moveAction, completeAction]];
     [self runAction:sequence withKey:kActionMoveToPoint];

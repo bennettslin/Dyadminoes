@@ -15,7 +15,7 @@
   
   self.myAtlas = [SKTextureAtlas atlasNamed:@"DyadminoImages"];
   [self.myAtlas preloadWithCompletionHandler:^{
-    NSLog(@"texture atlas loaded");
+//    NSLog(@"texture atlas loaded");
   }];
   
   UIPageControl *pageControl = [UIPageControl appearance];

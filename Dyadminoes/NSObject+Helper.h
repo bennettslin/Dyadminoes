@@ -106,6 +106,7 @@
 #define kZPositionRackField 130.f
 
   // children of board
+#define kZPositionBackgroundNode 5.f
 #define kZPositionBoardCell 10.f
 #define kZPositionBoardRestingDyadmino 20.f
 #define kZPositionPivotGuide 450.f

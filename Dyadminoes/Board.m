@@ -15,7 +15,7 @@
 
 @interface Board ()
 
-@property (strong, nonatomic) SKSpriteNode *backgroundNode;
+@property (strong, nonatomic) SKSpriteNode *zoomBackgroundNode;
 @property (strong, nonatomic) NSMutableSet *dequeuedCells;
 
 @property (nonatomic) BOOL userWantsPivotGuides;
@@ -29,7 +29,8 @@
   BOOL _cellsTopXIsEven;
   BOOL _cellsBottomXIsEven;
   BOOL _hexOriginSet;
-  CGVector _vectorOrigin;
+  CGVector _hexOrigin;
+  CGVector _hexCurrent;
   
   NSInteger _oldCellsTop;
   NSInteger _oldCellsBottom;
@@ -43,13 +44,12 @@
     
     self.name = @"board";
     self.color = color;
+//    self.size = size;
     self.size = CGSizeMake(size.width * 2, size.height * 2);
     self.anchorPoint = CGPointMake(0.5, 0.5);
     self.zPosition = kZPositionBoard;
     
     self.userWantsPivotGuides = YES;
-//    self.backgroundNode = [[SKSpriteNode alloc] init];
-//    [self addChild:self.backgroundNode];
 
       // instantiate node and cell arrays to be searched
     self.snapPointsTwelveOClock = [NSMutableSet new];
@@ -78,6 +78,8 @@
     self.pivotRotateGuide.name = @"pivotRotateGuide";
     self.pivotAroundGuide = pivotAroundGuide;
     self.pivotAroundGuide.name = @"pivotAroundGuide";
+
+    [self initLoadBackgroundImage];
   }
   return self;
 }
@@ -88,7 +90,7 @@
     Cell *cell = [[Cell alloc] initWithBoard:self
                                   andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
                                  andHexCoord:[self hexCoordFromX:0 andY:0]
-                             andVectorOrigin:_vectorOrigin];
+                             andHexOrigin:_hexOrigin];
     [self.dequeuedCells addObject:cell];
   }
 }
@@ -113,40 +115,309 @@
   for (Cell *cell in tempAllCells) {
     [self ignoreCellWithXHex:cell.hexCoord.x andYHex:cell.hexCoord.y];
     [cell resetForNewMatch];
+    
+    cell.cellNode.hidden = NO;
   }
   NSLog(@"self.all cells count is %i, dequeued cells is %i", self.allCells.count, self.dequeuedCells.count);
   NSLog(@"self snappoints count is %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
   
+  self.zoomedOut = NO;
+  self.zoomBackgroundNode.hidden = YES;
+  if (self.zoomBackgroundNode.parent) {
+    [self.zoomBackgroundNode removeFromParent];
+  }
+}
+
+#pragma mark - board span methods
+
+-(CGPoint)adjustToNewPositionFromBeganLocation:(CGPoint)beganLocation toCurrentLocation:(CGPoint)currentLocation withSwap:(BOOL)swap {
+    // first get new board position, after applying touch offset
+  CGPoint touchOffset = [self subtractFromThisPoint:beganLocation thisPoint:currentLocation];
+  CGPoint newPosition = [self subtractFromThisPoint:self.homePosition thisPoint:touchOffset];
+  
+  CGFloat newX = newPosition.x;
+  CGFloat newY = newPosition.y;
+  
+  CGFloat swapBuffer = 0.f;
+  
+  if (swap) {
+    swapBuffer = kRackHeight; // the height of the swap field
+  }
+  
+  if (newPosition.y < self.lowestYPos) {
+    newY = self.lowestYPos;
+  } else if (newPosition.y > (self.highestYPos + swapBuffer)) {
+    newY = self.highestYPos + swapBuffer;
+  }
+  
+  if (newPosition.x < self.lowestXPos) {
+    newX = self.lowestXPos;
+  } else if (newPosition.x > self.highestXPos) {
+    newX = self.highestXPos;
+  }
+  
+  CGPoint adjustedNewPosition = CGPointMake(newX, newY);
+  
+    // move board to new position
+  self.position = adjustedNewPosition;
+  
+    // move home position to board position, after applying touch offset
+  self.homePosition = [self addToThisPoint:self.position thisPoint:touchOffset];
+  
+  return adjustedNewPosition;
+}
+
+-(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes {
+  
+  NSLog(@"determine outermost cells based on board dyadminoes");
+  
+    // ridiculously high numbers arbitrarily chosen to force limits
+    // not sure if this is the best approach...
+  NSInteger cellsTop = -99999999;
+  NSInteger cellsRight = -99999999;
+  NSInteger cellsBottom = 99999999;
+  NSInteger cellsLeft = 99999999;
+  
+  for (Dyadmino *dyadmino in boardDyadminoes) {
+    
+    HexCoord hexCoord1;
+    HexCoord hexCoord2;
+    
+    if (dyadmino.homeNode) {
+      SnapPoint *boardNode;
+      
+        // different board nodes, depending on whether dyadmino belongs in rack
+      boardNode = [dyadmino belongsInRack] ? dyadmino.tempBoardNode : dyadmino.homeNode;
+      
+      struct HexCoord tempHexCoord1 = boardNode.myCell.hexCoord;
+      struct HexCoord tempHexCoord2 = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:boardNode];
+      hexCoord1 = tempHexCoord1;
+      hexCoord2 = tempHexCoord2;
+      
+        // if instantiating, dyadmino does not have boardNode
+    } else {
+        //      NSLog(@"dyadmino %i does not have board node", dyadmino.myID);
+      struct HexCoord tempHexCoord1 = dyadmino.myHexCoord;
+      struct HexCoord tempHexCoord2 = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil];
+      hexCoord1 = tempHexCoord1;
+      hexCoord2 = tempHexCoord2;
+    }
+    
+    HexCoord hexCoord[2] = {hexCoord1, hexCoord2};
+    
+    for (int i = 0; i < 2; i++) {
+      NSInteger xHex = hexCoord[i].x;
+      NSInteger yHex = hexCoord[i].y;
+      
+        // check x span - this one is easy enough
+      if (xHex > cellsRight) {
+        cellsRight = xHex;
+      }
+      if (xHex < cellsLeft) {
+        cellsLeft = xHex;
+      }
+      
+        // now check y span, which means...
+        // next, subtract cell when x is negative to compensate for rounding down
+        // and yes, it has to be in this order!
+      NSInteger workingXHex = xHex;
+      if (xHex < 0) {
+        workingXHex = xHex - 1;
+      }
+      
+        // this compensates for the fact that when x is odd, y is offset by half a cell
+      CGFloat workingYHex = yHex;
+      if (abs(xHex) % 2 == 1) {
+        workingYHex = yHex + 0.5;
+      }
+      
+      if (workingYHex > cellsTop - workingXHex / 2) {
+        cellsTop = yHex + workingXHex / 2;
+          // board y-coord bounds will be different depending on whether x is odd or even
+        _cellsTopXIsEven = (abs(xHex) % 2 == 0) ? YES : NO;
+      }
+      
+      if (workingYHex < cellsBottom - workingXHex / 2) {
+        cellsBottom = yHex + workingXHex / 2;
+        _cellsBottomXIsEven = (abs(xHex) % 2 == 0) ? YES : NO;
+      }
+        //        NSLog(@"yHex is %i, this value is %.1f", yHex, cellsTop - (xHex / 2.f));
+        //        NSLog(@"yHex %i, cellsTop %i, xHex / 2 is %.1f", yHex, cellsTop, xHex / 2.f);
+        //        NSLog(@"xHex is %i, yHex is %i", xHex, yHex);
+    }
+  }
+    // buffer cells beyond outermost dyadmino
+  
+  NSLog(@"board size is %.2f, %.2f", self.size.width, self.size.height);
+  NSLog(@"board origin is %.2f, %.2f", self.origin.x, self.origin.y);
+  NSLog(@"board homePosition is %.2f, %.2f", self.homePosition.x, self.homePosition.y);
+//  NSLog(@"board position is %.2f, %.2f", self.position.x, self.position.y);
+  
+  NSInteger extraYCells;
+  switch (cellsTop - cellsBottom) {
+    case 0:
+    case 1:
+    case 2:
+      extraYCells = kIsIPhone? 5 : 7;
+      break;
+    case 3:
+    case 4:
+      extraYCells = kIsIPhone? 4 : 6;
+      break;
+    default:
+      extraYCells = kIsIPhone? 4 : 5;
+      break;
+  }
+  
+  NSInteger extraXCells;
+  switch (cellsRight - cellsLeft) {
+    case 0:
+    case 1:
+      extraXCells = kIsIPhone? 5 : 8;
+      break;
+    case 2:
+    case 3:
+      extraXCells = kIsIPhone? 4 : 7;
+      break;
+    case 4:
+    case 5:
+      extraXCells = kIsIPhone? 4 : 6;
+      break;
+    case 6:
+    case 7:
+      extraXCells = kIsIPhone? 4 : 5;
+      break;
+    default:
+      extraXCells = kIsIPhone? 4 : 4;
+      break;
+  }
+  
+  _oldCellsTop = self.cellsTop;
+  _oldCellsBottom = self.cellsBottom;
+  _oldCellsRight = self.cellsRight;
+  _oldCellsLeft = self.cellsLeft;
+  
+  NSLog(@"original top %i, right %i, bottom %i, left %i", cellsTop, cellsRight, cellsBottom, cellsLeft);
+  
+    //  [self centerBoardWithCellCenterX:(CGFloat)(cellsTop - cellsBottom) / 2 andY:(CGFloat)(cellsRight - cellsLeft) / 2];
+  
+  self.cellsTop = cellsTop + extraYCells;
+  self.cellsRight = cellsRight + extraXCells;
+  self.cellsBottom = cellsBottom - extraYCells;
+  self.cellsLeft = cellsLeft - extraXCells;
+  
+  NSLog(@"top %i, right %i, bottom %i, left %i", self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
+  NSLog(@"vector origin (general center) is %.1f, %.1f", _hexOrigin.dx, _hexOrigin.dy);
+  
+    // returns cell coordinates that are hex center
+//  if (self.zoomedOut) {
+//    return CGVectorMake(_hexOrigin.dx - _zoomHexOrigin.dx, _hexOrigin.dy - _zoomHexOrigin.dy);
+//  } else {
+    return CGVectorMake(((CGFloat)(self.cellsRight - self.cellsLeft) / 2) + self.cellsLeft, ((CGFloat)(self.cellsTop - self.cellsBottom) / 2) + self.cellsBottom);
+//  }
+}
+
+-(void)determineBoardPositionBounds {
+    // this should get called after every method that adds cells or removes them
+  
+  CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
+  
+    // board y-coord bounds will be different depending on whether x is odd or even
+  if (_cellsTopXIsEven) {
+    CGFloat lowYBufferValue = -_hexOrigin.dy + (kIsIPhone ? -0.5 : -1.5);
+    self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange + lowYBufferValue) * kDyadminoFaceDiameter * factor;
+  } else {
+    CGFloat lowYBufferValue = -_hexOrigin.dy + (kIsIPhone ? 0 : -1.0);
+    self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange + lowYBufferValue) * kDyadminoFaceDiameter * factor;
+  }
+  CGFloat lowXBufferValue = -_hexOrigin.dx + (kIsIPhone ? 0.25 : -.25);
+  self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange + lowXBufferValue) * kDyadminoFaceWideDiameter * factor;
+  
+  if (_cellsBottomXIsEven) {
+    CGFloat highYBufferValue = -_hexOrigin.dy + (kIsIPhone ? -0.5 : 0.5);
+    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange + highYBufferValue) * kDyadminoFaceDiameter * factor;
+  } else {
+    CGFloat highYBufferValue = -_hexOrigin.dy + (kIsIPhone ? 0: 1.0);
+    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange + highYBufferValue) * kDyadminoFaceDiameter * factor;
+  }
+  CGFloat highXBufferValue = -_hexOrigin.dx + (kIsIPhone ? -0.25 : 0.25);
+  self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange + highXBufferValue) * kDyadminoFaceWideDiameter * factor;
+  
+  NSLog(@"determine board position bounds, for zoom? %i", self.zoomedOut);
+  
+  /*
+   cellsTop determines lowest Y position
+   cellsBottom determines highest Y position
+   cellsRight determines lowest X position
+   cellsLeft determines highest X position
+   
+   cellsInVertRange and cellsInHorzRange is the number of cells
+   that span one half-height or half-width of screen
+   
+   so that number gets subtracted from the actual number of cells
+   in, let's say, the top half, then multiplied by the cell diameter
+   (which is different horizontally), then subtracted from the origin
+   to indicate how far away from the origin the board position is allowed to be
+   
+   furthest cell seen from outermost vertical cell is 4.5 cells away
+   furthest cell seen from outermost horizontal cell is 4.5 cells away
+   that half cell is not seen after it snaps back
+   
+   of course, on iPad, these numbers may be different
+   origin on iPhone 4-inch is 160, 298
+   */
 }
 
 #pragma mark - zoom methods
 
--(void)repositionCellsAndDyadminoesForZoomOut:(BOOL)resize {
+-(void)centerBoard {
+  
+  CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
+  CGPoint newPoint = CGPointMake(self.origin.x + (_hexOrigin.dx - _hexCurrent.dx) * kDyadminoFaceWideDiameter * factor,
+                                 self.origin.y + (_hexOrigin.dy - _hexCurrent.dy) * kDyadminoFaceDiameter * factor);
+
+  [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:newPoint withSwap:NO];
+  self.homePosition = newPoint;
+}
+
+-(void)repositionCellsAndDyadminoesForZoom {
     // zoom out
-  if (resize) {
+  if (self.zoomedOut) {
     for (Cell *cell in self.allCells) {
-      [cell resizeCell:YES withVectorOrigin:_vectorOrigin];
+      [cell resizeCell:YES withHexOrigin:_hexOrigin];
+//      cell.cellNode.hidden = YES;
     }
+
+    [self centerBoard];
     
+    self.zoomBackgroundNode.hidden = NO;
+    [self addChild:self.zoomBackgroundNode];
       // zoom back in
   } else {
     for (Cell *cell in self.allCells) {
-      [cell resizeCell:NO withVectorOrigin:_vectorOrigin];
+      [cell resizeCell:NO withHexOrigin:_hexOrigin];
+      cell.cellNode.hidden = NO;
     }
+    
+    [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:self.preZoomPosition withSwap:NO];
+    
+    self.zoomBackgroundNode.hidden = YES;
+    [self.zoomBackgroundNode removeFromParent];
   }
 }
 
 #pragma mark - cell methods
 
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes forZoom:(BOOL)zoom {
-  
-    // hex origin is only set once
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
+
+    // regular hex origin is only set once per scene load, but zoom hex origin is set every time{
   if (!_hexOriginSet) {
-    NSLog(@"hex origin not set, so determine vector origin");
-    _vectorOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
+    _hexOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
+    _hexCurrent = _hexOrigin;
+    NSLog(@"determine vector origin (general center) is %.1f, %.1f", _hexOrigin.dx, _hexOrigin.dy);
     _hexOriginSet = YES;
   } else {
-    [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
+    _hexCurrent = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
   }
   
     // covers all cells in old range plus new range
@@ -173,7 +444,7 @@
   }
   
     //  NSLog(@"self.allCells count %i", self.allCells.count);
-  [self determineBoardPositionBoundsForZoom:zoom];
+  [self determineBoardPositionBounds];
   
   NSLog(@"self.allCells %i, self.occupiedCells %i, self.dequeuedCells %i", self.allCells.count, self.occupiedCells.count, self.dequeuedCells.count);
   NSLog(@"board nodes %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
@@ -197,15 +468,14 @@
     Cell *poppedCell = [self popDequeuedCell];
     if (poppedCell) {
       cell = poppedCell;
-      [cell reuseCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex] andVectorOrigin:_vectorOrigin];
+      [cell reuseCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex] andHexOrigin:_hexOrigin];
     } else {
       cell = [[Cell alloc] initWithBoard:self
                               andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
                              andHexCoord:[self hexCoordFromX:xHex andY:yHex]
-                         andVectorOrigin:_vectorOrigin];
+                         andHexOrigin:_hexOrigin];
     }
     
-      //    cell.cellNode.hidden = NO;
     if (!cell.cellNode.parent) {
       [self addChild:cell.cellNode];
     }
@@ -226,7 +496,6 @@
   Cell *cell = [self findCellWithXHex:xHex andYHex:yHex];
   if (cell) {
     if (cell.cellNode) {
-        //      cell.cellNode.hidden = YES;
       [cell.cellNode removeFromParent];
     }
       //    NSLog(@"cell %@ removed, self.allCells count %i", cell.name, self.allCells.count);
@@ -254,6 +523,8 @@
   }
   return cell;
 }
+
+#pragma mark - cell and data dyadmino methods
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour {
     // this assumes dyadmino is properly oriented for this boardNode
@@ -336,28 +607,6 @@
   return NO;
 }
 
--(BOOL)removeDyadminoDataFromCell:(Cell *)cell {
-  
-  if (cell.myDyadmino.cellForPC1 == cell) {
-    cell.myDyadmino.cellForPC1 = nil;
-  }
-  if (cell.myDyadmino.cellForPC2 == cell) {
-    cell.myDyadmino.cellForPC2 = nil;
-  }
-  
-  cell.myDyadmino = nil;
-  cell.myPC = -1;
-  
-  if ([self.occupiedCells containsObject:cell]) {
-    [self.occupiedCells removeObject:cell];
-  }
-  
-    // testing purposes
-  [cell updatePCLabel];
-  
-  return YES;
-}
-
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour {
     // don't call if it's a rack node
   if ([snapPoint isBoardNode]) {
@@ -383,6 +632,28 @@
       }
     }
   }
+}
+
+-(BOOL)removeDyadminoDataFromCell:(Cell *)cell {
+  
+  if (cell.myDyadmino.cellForPC1 == cell) {
+    cell.myDyadmino.cellForPC1 = nil;
+  }
+  if (cell.myDyadmino.cellForPC2 == cell) {
+    cell.myDyadmino.cellForPC2 = nil;
+  }
+  
+  cell.myDyadmino = nil;
+  cell.myPC = -1;
+  
+  if ([self.occupiedCells containsObject:cell]) {
+    [self.occupiedCells removeObject:cell];
+  }
+  
+    // testing purposes
+  [cell updatePCLabel];
+  
+  return YES;
 }
 
 -(HexCoord)getHexCoordOfOtherCellGivenDyadmino:(Dyadmino *)dyadmino andBoardNode:(SnapPoint *)snapPoint {
@@ -733,210 +1004,11 @@
   self.pivotRotateGuide.zRotation = [self getRadiansFromDegree:touchAngle];
 }
 
-#pragma mark - board span methods
-
--(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes {
-  
-  NSLog(@"determine outermost cells based on board dyadminoes");
-  
-    // ridiculously high numbers arbitrarily chosen to force limits
-    // not sure if this is the best approach...
-  NSInteger cellsTop = -99999999;
-  NSInteger cellsRight = -99999999;
-  NSInteger cellsBottom = 99999999;
-  NSInteger cellsLeft = 99999999;
-  
-  for (Dyadmino *dyadmino in boardDyadminoes) {
-    
-    HexCoord hexCoord1;
-    HexCoord hexCoord2;
-    
-    if (dyadmino.homeNode) {
-      SnapPoint *boardNode;
-      
-        // different board nodes, depending on whether dyadmino belongs in rack
-      if ([dyadmino belongsInRack]) {
-        boardNode = dyadmino.tempBoardNode;
-      } else {
-        boardNode = dyadmino.homeNode;
-      }
-      struct HexCoord tempHexCoord1 = boardNode.myCell.hexCoord;
-      struct HexCoord tempHexCoord2 = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:boardNode];
-      hexCoord1 = tempHexCoord1;
-      hexCoord2 = tempHexCoord2;
-      
-        // if instantiating, dyadmino does not have boardNode
-    } else {
-        //      NSLog(@"dyadmino %i does not have board node", dyadmino.myID);
-      struct HexCoord tempHexCoord1 = dyadmino.myHexCoord;
-      struct HexCoord tempHexCoord2 = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil];
-      hexCoord1 = tempHexCoord1;
-      hexCoord2 = tempHexCoord2;
-    }
-    
-    HexCoord hexCoord[2] = {hexCoord1, hexCoord2};
-    
-    for (int i = 0; i < 2; i++) {
-      NSInteger xHex = hexCoord[i].x;
-      NSInteger yHex = hexCoord[i].y;
-      
-        // check x span - this one is easy enough
-      if (xHex > cellsRight) {
-        cellsRight = xHex;
-      }
-      if (xHex < cellsLeft) {
-        cellsLeft = xHex;
-      }
-      
-        // now check y span, which means...
-        // next, subtract cell when x is negative to compensate for rounding down
-        // and yes, it has to be in this order!
-      NSInteger workingXHex = xHex;
-      if (xHex < 0) {
-        workingXHex = xHex - 1;
-      }
-      
-        // this compensates for the fact that when x is odd, y is offset by half a cell
-      CGFloat workingYHex = yHex;
-      if (abs(xHex) % 2 == 1) {
-        workingYHex = yHex + 0.5;
-      }
-      
-      if (workingYHex > cellsTop - workingXHex / 2) {
-        cellsTop = yHex + workingXHex / 2;
-          // board y-coord bounds will be different depending on whether x is odd or even
-        if (abs(xHex) % 2 == 0) {
-          _cellsTopXIsEven = YES;
-        } else {
-          _cellsTopXIsEven = NO;
-        }
-      }
-      
-      if (workingYHex < cellsBottom - workingXHex / 2) {
-        cellsBottom = yHex + workingXHex / 2;
-        if (abs(xHex) % 2 == 0) {
-          _cellsBottomXIsEven = YES;
-        } else {
-          _cellsBottomXIsEven = NO;
-        }
-      }
-        //        NSLog(@"yHex is %i, this value is %.1f", yHex, cellsTop - (xHex / 2.f));
-        //        NSLog(@"yHex %i, cellsTop %i, xHex / 2 is %.1f", yHex, cellsTop, xHex / 2.f);
-        //        NSLog(@"xHex is %i, yHex is %i", xHex, yHex);
-    }
-  }
-    // buffer cells beyond outermost dyadmino
-  NSInteger extraYCells;
-  switch (cellsTop - cellsBottom) {
-    case 0:
-    case 1:
-    case 2:
-      extraYCells = kIsIPhone? 5 : 7;
-      break;
-    case 3:
-    case 4:
-      extraYCells = kIsIPhone? 4 : 6;
-      break;
-    default:
-      extraYCells = kIsIPhone? 4 : 5;
-      break;
-  }
-  
-  NSInteger extraXCells;
-  switch (cellsRight - cellsLeft) {
-    case 0:
-    case 1:
-      extraXCells = kIsIPhone? 5 : 8;
-      break;
-    case 2:
-    case 3:
-      extraXCells = kIsIPhone? 4 : 7;
-      break;
-    case 4:
-    case 5:
-      extraXCells = kIsIPhone? 4 : 6;
-      break;
-    case 6:
-    case 7:
-      extraXCells = kIsIPhone? 4 : 5;
-      break;
-    default:
-      extraXCells = kIsIPhone? 4 : 4;
-      break;
-  }
-  
-  _oldCellsTop = self.cellsTop;
-  _oldCellsBottom = self.cellsBottom;
-  _oldCellsRight = self.cellsRight;
-  _oldCellsLeft = self.cellsLeft;
-  
-  self.cellsTop = cellsTop + extraYCells;
-  self.cellsRight = cellsRight + extraXCells;
-  self.cellsBottom = cellsBottom - extraYCells;
-  self.cellsLeft = cellsLeft - extraXCells;
-  
-  NSLog(@"top %i, right %i, bottom %i, left %i", self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
-  
-    // returns general center
-  return CGVectorMake(((self.cellsRight - self.cellsLeft) / 2) + self.cellsLeft, ((self.cellsTop - self.cellsBottom - 1) / 2) + self.cellsBottom);
-}
-
--(void)determineBoardPositionBoundsForZoom:(BOOL)zoom {
-    // this should get called after every method that adds cells or removes them
-  
-  CGFloat factor = zoom ? kZoomResizeFactor : 1.f;
-  
-    // board y-coord bounds will be different depending on whether x is odd or even
-  if (_cellsTopXIsEven) {
-    CGFloat lowYBufferValue = -_vectorOrigin.dy + (kIsIPhone ? -0.5 : -1.5);
-    self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange + lowYBufferValue) * kDyadminoFaceDiameter * factor;
-  } else {
-    CGFloat lowYBufferValue = -_vectorOrigin.dy + (kIsIPhone ? 0 : -1.0);
-    self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange + lowYBufferValue) * kDyadminoFaceDiameter * factor;
-  }
-  CGFloat lowXBufferValue = -_vectorOrigin.dx + (kIsIPhone ? 0.25 : -.25);
-  self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange + lowXBufferValue) * kDyadminoFaceWideDiameter * factor;
-  
-  if (_cellsBottomXIsEven) {
-    CGFloat highYBufferValue = -_vectorOrigin.dy + (kIsIPhone ? -0.5 : 0.5);
-    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange + highYBufferValue) * kDyadminoFaceDiameter * factor;
-  } else {
-    CGFloat highYBufferValue = -_vectorOrigin.dy + (kIsIPhone ? 0: 1.0);
-    self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange + highYBufferValue) * kDyadminoFaceDiameter * factor;
-  }
-  CGFloat highXBufferValue = -_vectorOrigin.dx + (kIsIPhone ? -0.25 : 0.25);
-  self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange + highXBufferValue) * kDyadminoFaceWideDiameter * factor;
-  
-  NSLog(@"determine board position bounds, for zoom? %i", zoom);
-  
-  /*
-   cellsTop determines lowest Y position
-   cellsBottom determines highest Y position
-   cellsRight determines lowest X position
-   cellsLeft determines highest X position
-   
-   cellsInVertRange and cellsInHorzRange is the number of cells
-   that span one half-height or half-width of screen
-   
-   so that number gets subtracted from the actual number of cells
-   in, let's say, the top half, then multiplied by the cell diameter
-   (which is different horizontally), then subtracted from the origin
-   to indicate how far away from the origin the board position is allowed to be
-   
-   furthest cell seen from outermost vertical cell is 4.5 cells away
-   furthest cell seen from outermost horizontal cell is 4.5 cells away
-   that half cell is not seen after it snaps back
-   
-   of course, on iPad, these numbers may be different
-   origin on iPhone 4-inch is 160, 298
-   */
-}
-
   // these might be used for replay mode
 #pragma mark - background image methods
 
 -(void)initLoadBackgroundImage {
-  UIImage *backgroundImage = [UIImage imageNamed:@"MaryFloral.jpeg"];
+  UIImage *backgroundImage = [UIImage imageNamed:@"MaryFloral.jpg"];
   CGImageRef backgroundCGImage = backgroundImage.CGImage;
   CGRect textureSize = CGRectMake(self.position.x, self.position.y, backgroundImage.size.width / 2, backgroundImage.size.height / 2);
   
@@ -949,17 +1021,22 @@
   UIGraphicsEndImageContext();
   
   SKTexture *backgroundTexture = [SKTexture textureWithCGImage:tiledBackground.CGImage];
-  self.backgroundNode.texture = backgroundTexture;
+  self.zoomBackgroundNode = [[SKSpriteNode alloc] initWithTexture:backgroundTexture];
+  self.zoomBackgroundNode.color = [SKColor greenColor];
+  self.zoomBackgroundNode.texture = backgroundTexture;
+  self.zoomBackgroundNode.zPosition = kZPositionBackgroundNode;
+  
+  NSLog(@"background image texture loaded");
 }
 
--(void)reloadBackgroundImage {
-    //  dispatch_queue_t aQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-  dispatch_queue_t aQueue = dispatch_queue_create("whatever", NULL);
-  dispatch_async(aQueue, ^{
-    self.backgroundNode.size = self.size;
-    self.backgroundNode.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
-  });
-}
+//-(void)reloadBackgroundImage {
+//    //  dispatch_queue_t aQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+//  dispatch_queue_t aQueue = dispatch_queue_create("whatever", NULL);
+//  dispatch_async(aQueue, ^{
+//    self.zoomBackgroundNode.size = self.size;
+//    self.zoomBackgroundNode.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
+//  });
+//}
 
 #pragma mark - legality methods
 
@@ -987,14 +1064,8 @@
     };
   }
   
-    // if it's the first dyadmino
-  if ([self.delegate isFirstDyadmino:dyadmino]) {
-      //    NSLog(@"first dyadmino!");
-    return kNoError;
-  } else {
-      // otherwise, it's a lone dyadmino
-    return kErrorLoneDyadmino;
-  }
+    // if lone dyadmino, no error only if it's the first dyadmino
+  return [self.delegate isFirstDyadmino:dyadmino] ? kNoError : kErrorLoneDyadmino;
 }
 
 -(BOOL)cell:(Cell *)dyadminoCell hasNeighbourCellNotOccupiedByDyadmino:(Dyadmino *)dyadmino {
@@ -1017,7 +1088,6 @@
   }
   return NO;
 }
-
 
 #pragma mark - distance helper methods
 

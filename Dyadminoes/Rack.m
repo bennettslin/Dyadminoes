@@ -108,9 +108,11 @@
     } else {
       dyadmino.position = CGPointMake(self.size.width + self.xIncrementInRack, shouldBePosition.y);
       dyadmino.zPosition = kZPositionRackRestingDyadmino;
-//      NSLog(@"Dyadmino parent is %@", dyadmino.parent.name);
       
       [self addChild:dyadmino];
+      
+        // kludge way of ensuring that dyadminoes are oriented properly in rack
+      [dyadmino orientBySnapNode:dyadmino.homeNode];
       
       if (animation) {
         [dyadmino animateMoveToPoint:shouldBePosition andSounding:NO];

@@ -30,10 +30,12 @@
 }
 
 +(void)saveMyModel:(Model *)myModel {
+  NSLog(@"model saved.");
   [NSKeyedArchiver archiveRootObject:myModel toFile:[self getPathToArchive]];
 }
 
 +(Model *)getMyModel {
+  NSLog(@"model retrieved.");
   return [NSKeyedUnarchiver unarchiveObjectWithFile:[self getPathToArchive]];
 }
 
