@@ -31,10 +31,10 @@
 @property (nonatomic) CGFloat lowestXPos;
 
   /// these are the limits in terms of number of cells
-@property (nonatomic) NSInteger cellsTop;
-@property (nonatomic) NSInteger cellsRight;
-@property (nonatomic) NSInteger cellsBottom;
-@property (nonatomic) NSInteger cellsLeft;
+@property (nonatomic) CGFloat cellsTop;
+@property (nonatomic) CGFloat cellsRight;
+@property (nonatomic) CGFloat cellsBottom;
+@property (nonatomic) CGFloat cellsLeft;
 
 @property (strong, nonatomic) NSMutableSet *snapPointsTwelveOClock;
 @property (strong, nonatomic) NSMutableSet *snapPointsTwoOClock;
