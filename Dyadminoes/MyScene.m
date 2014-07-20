@@ -447,7 +447,7 @@
 //  NSLog(@"pinch scale %.2f, velocity %.2f", scale, velocity);
     // tweak these numbers
   if ((scale < .8f && !_boardZoomedOut) || (scale > 1.25f && _boardZoomedOut)) {
-    [self toggleBoardZoom];
+    [self toggleBoardZoomWithTapCentering:NO andCenterLocation:CGPointZero];
   }
 }
 
@@ -478,6 +478,10 @@
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
   NSLog(@"%@, zPosition %.2f", _touchNode.name, _touchNode.zPosition);
 
+  NSLog(@"toggleBoardTouchLocation is %.2f, %.2f", _beganTouchLocation.x, _beganTouchLocation.y);
+  NSLog(@"board homePosition is %.2f, %.2f", _boardField.homePosition.x, _boardField.origin.y);
+  NSLog(@"touch relative to board homePosition is %.2f, %.2f", _beganTouchLocation.x - _boardField.homePosition.x, _beganTouchLocation.y - _boardField.homePosition.y);
+  
     //--------------------------------------------------------------------------
     /// 3a. button pressed
   
@@ -541,7 +545,12 @@
       
       if (_canDoubleTapForBoardZoom && !_hoveringDyadmino) {
         if ([self getDistanceFromThisPoint:_beganTouchLocation toThisPoint:_endTouchLocationToMeasureDoubleTap] < kDistanceToDoubleTap) {
-          [self toggleBoardZoom];
+          
+            // board will center back to user's touch location once zoomed back in
+          CGPoint location = CGPointMake((_boardField.homePosition.x - _beganTouchLocation.x) / kZoomResizeFactor + _boardField.origin.x,
+                                         (_boardField.homePosition.y - _beganTouchLocation.y) / kZoomResizeFactor + _boardField.origin.y);
+          
+          [self toggleBoardZoomWithTapCentering:YES andCenterLocation:location];
         }
       }
 //      NSLog(@"board to be moved or being moved");
@@ -644,9 +653,9 @@
     // touched dyadmino is now on board
   if ([_touchedDyadmino belongsInRack] && [_touchedDyadmino isOnBoard]) {
     
-      // zoom back in
+      // automatically zoom back in if rack dyadmino moved to board
     if (_boardZoomedOut) {
-      [self toggleBoardZoom];
+      [self toggleBoardZoomWithTapCentering:NO andCenterLocation:CGPointZero];
     }
     
       // if rack dyadmino is moved to board, send home recentRack dyadmino
@@ -800,7 +809,7 @@
   }
 }
 
--(void)toggleBoardZoom {
+-(void)toggleBoardZoomWithTapCentering:(BOOL)tapCentering andCenterLocation:(CGPoint)location {
   if (_hoveringDyadmino) {
     [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO  andUpdatingBoardBounds:NO];
   }
@@ -809,11 +818,24 @@
   _boardField.zoomedOut = _boardZoomedOut;
   
   if (_boardZoomedOut) {
-  _boardField.preZoomPosition = _boardField.homePosition;
+    _boardField.postZoomPosition = _boardField.homePosition;
   } else {
-    _boardField.homePosition = _boardField.preZoomPosition;
+
+    if (tapCentering) {
+      _boardField.postZoomPosition = location;
+    }
+    
+      // ensures that board position is consistent with where view thinks it is, so that there won't be a skip after user moves board
+    _boardField.homePosition = _boardField.postZoomPosition;
   }
 
+    // prep board for bounds and position
+  NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
+  if ([_recentRackDyadmino isOnBoard] && ![dyadminoesOnBoard containsObject:_recentRackDyadmino]) {
+    [dyadminoesOnBoard addObject:_recentRackDyadmino];
+  }
+  [_boardField determineOutermostCellsBasedOnDyadminoes:dyadminoesOnBoard];
+  [_boardField determineBoardPositionBounds];
   [_boardField repositionCellsAndDyadminoesForZoom];
   
     // same as for board dyadminoes
@@ -1416,7 +1438,7 @@
   
     // snap back somewhat from board bounds
     // TODO: this works, but it feels jumpy
-  [self updateForBoardBeingCorrectedWithinBounds];
+  [self updateForBoardBeingCorrectedWithinBoundsWithAnimation:YES];
   [self updateForHoveringDyadminoBeingCorrectedWithinBounds];
   [self updatePivotForDyadminoMoveWithoutBoardCorrected];
 }
@@ -1496,7 +1518,7 @@
   }
 }
 
--(void)updateForBoardBeingCorrectedWithinBounds {
+-(void)updateForBoardBeingCorrectedWithinBoundsWithAnimation:(BOOL)animated {
   
   if (_fieldActionInProgress) {
     _boardField.homePosition = _boardField.position;
@@ -1554,7 +1576,9 @@
       // establishes the board is being shifted away from hard edge, not as a correction
     if (_boardField.position.x < lowestXBuffer) {
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = 1.f + (lowestXBuffer - _boardField.position.x) / distanceDivisor;
+      thisDistance = animated ?
+          (1.f + (lowestXBuffer - _boardField.position.x) / distanceDivisor) :
+          (lowestXBuffer - _boardField.position.x);
       _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
       
@@ -1568,7 +1592,9 @@
     
     if (_boardField.position.y < lowestYBuffer) {
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = 1.f + (lowestYBuffer - _boardField.position.y) / distanceDivisor;
+      thisDistance = animated ?
+          (1.f + (lowestYBuffer - _boardField.position.y) / distanceDivisor) :
+          (lowestYBuffer - _boardField.position.y);
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y + thisDistance);
       _boardField.homePosition = _boardField.position;
       
@@ -1582,7 +1608,9 @@
 
     if (_boardField.position.x > highestXBuffer) {
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = 1.f + (_boardField.position.x - highestXBuffer) / distanceDivisor;
+      thisDistance = animated ?
+          (1.f + (_boardField.position.x - highestXBuffer) / distanceDivisor) :
+          (_boardField.position.x - highestXBuffer);
       _boardField.position = CGPointMake(_boardField.position.x - thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
       
@@ -1596,7 +1624,9 @@
 
     if (_boardField.position.y > highestYBuffer) {
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = 1.f + (_boardField.position.y - highestYBuffer) / distanceDivisor;
+      thisDistance = animated ?
+          (1.f + (_boardField.position.y - highestYBuffer) / distanceDivisor) :
+          (_boardField.position.y - highestYBuffer);
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
       _boardField.homePosition = _boardField.position;
       
@@ -2108,8 +2138,7 @@
 }
 
 -(void)updateBoardBoundsAndLayoutCells {
-  
-  NSLog(@"updateBoardBounds called");
+
   NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
 
     // add dyadmino to set if dyadmino is a recent rack dyadmino
@@ -2481,8 +2510,6 @@
 -(void)toggleDebugMode {
   
   if (_debugMode) {
-    
-    [_boardField centerBoard];
     
     _topBar.pileDyadminoesLabel.hidden = NO;
     _topBar.pileDyadminoesLabel.zPosition = kZPositionTopBarLabel;

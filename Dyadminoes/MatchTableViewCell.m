@@ -75,11 +75,16 @@
         // put two spaces in front of player name
       playerLabel.text = player ? [NSString stringWithFormat:@"  %@", player.playerName] : @"";
       [playerLabel sizeToFit];
+      
+        // frame width can never be greater than maximum label width
       if (playerLabel.frame.size.width > kLabelWidth) {
         playerLabel.frame = CGRectMake(playerLabel.frame.origin.x, playerLabel.frame.origin.y,kLabelWidth, playerLabel.frame.size.height);
       }
+
+        // make font size smaller if it can't fit
       playerLabel.adjustsFontSizeToFitWidth = YES;
-      playerLabel.frame = CGRectMake(playerLabel.frame.origin.x - 10.f, playerLabel.frame.origin.y, playerLabel.frame.size.width + 10.f, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
+      
+//      playerLabel.frame = CGRectMake(playerLabel.frame.origin.x - 10.f, playerLabel.frame.origin.y, playerLabel.frame.size.width + 10.f, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
 
         // static player colours
       if (player.resigned && self.myMatch.type != kSelfGame) {

@@ -97,21 +97,13 @@
   }
 }
 
--(void)repositionBoardWithHomePosition:(CGPoint)homePosition
-                             andOrigin:(CGPoint)origin {
-  _hexOriginSet = NO;
-  self.homePosition = homePosition;
-  self.origin = origin;
-  self.position = self.homePosition;
-}
-
 -(void)resetForNewMatch {
   
   NSSet *tempAllCells = [NSSet setWithSet:self.allCells];
   [self.occupiedCells removeAllObjects];
   
   for (Cell *cell in tempAllCells) {
-    [self ignoreCellWithXHex:cell.hexCoord.x andYHex:cell.hexCoord.y];
+    [self ignoreCell:cell];
     [cell resetForNewMatch];
     
     cell.cellNode.hidden = NO;
@@ -124,6 +116,30 @@
   if (self.zoomBackgroundNode.parent) {
     [self.zoomBackgroundNode removeFromParent];
   }
+}
+
+#pragma mark - board position methods
+
+-(void)repositionBoardWithHomePosition:(CGPoint)homePosition
+                             andOrigin:(CGPoint)origin {
+  _hexOriginSet = NO;
+  self.homePosition = homePosition;
+  self.origin = origin;
+  self.position = self.homePosition;
+}
+
+-(void)centerBoardOnDyadminoesAverageCenter {
+  CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
+  CGPoint newPoint = CGPointMake(self.origin.x + (_hexOrigin.dx - _hexCurrent.dx) * kDyadminoFaceWideDiameter * factor,
+                                 self.origin.y + (_hexOrigin.dy - _hexCurrent.dy) * kDyadminoFaceDiameter * factor);
+  
+  [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:newPoint withSwap:NO];
+  self.homePosition = newPoint;
+}
+
+-(void)centerBoardOnLocation:(CGPoint)location {
+  [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:location withSwap:NO];
+  self.homePosition = location;
 }
 
 #pragma mark - board span methods
@@ -200,6 +216,7 @@
       if (xHex > cellsRightmost) {
         cellsRightmost = xHex;
       }
+      
       if (xHex < cellsLeftmost) {
         cellsLeftmost = xHex;
       }
@@ -220,27 +237,27 @@
 
     // not needed, eventually delete
   if (_cellsTopXIsEven) {
-    NSLog(@"cells top x is even"); // 5.5 cells up
+//    NSLog(@"cells top x is even"); // 5.5 cells up
   } else {
-    NSLog(@"cells top x is odd"); // 5.5 cells up
+//    NSLog(@"cells top x is odd"); // 5.5 cells up
   }
   
   if (_cellsBottomXIsEven) {
-    NSLog(@"cells bottom x is even"); // 5.5 cells down
+//    NSLog(@"cells bottom x is even"); // 5.5 cells down
   } else {
-    NSLog(@"cells bottom x is odd"); // 5.5 cells down
+//    NSLog(@"cells bottom x is odd"); // 5.5 cells down
   }
   
-  NSLog(@"board size is %.2f, %.2f", self.size.width, self.size.height);
-  NSLog(@"board origin is %.2f, %.2f", self.origin.x, self.origin.y);
-  NSLog(@"board homePosition is %.2f, %.2f", self.homePosition.x, self.homePosition.y);
+//  NSLog(@"board size is %.2f, %.2f", self.size.width, self.size.height);
+//  NSLog(@"board origin is %.2f, %.2f", self.origin.x, self.origin.y);
+//  NSLog(@"board homePosition is %.2f, %.2f", self.homePosition.x, self.homePosition.y);
 
   CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
 //  CGFloat factor = 1.f;
   _cellsInVertRange = ((self.origin.y - kRackHeight) / (kDyadminoFaceDiameter * factor));
   _cellsInHorzRange = (self.origin.x / (kDyadminoFaceAverageWideDiameter * factor));
   
-  NSLog(@"cells in horz range is %.2f, cells in vert range is %.2f", _cellsInHorzRange * 2, _cellsInVertRange * 2);
+//  NSLog(@"cells in horz range is %.2f, cells in vert range is %.2f", _cellsInHorzRange * 2, _cellsInVertRange * 2);
 
       // buffer cells beyond outermost dyadmino (keep tweaking these numbers)
   CGFloat extraYCells = (((_cellsInVertRange * 2) - (cellsTopmost - cellsBottommost + 1)) / 2.f) + 1.5f;
@@ -253,14 +270,14 @@
     extraXCells = 4;
   }
   
-  NSLog(@"extra y cells is %.2f, extra x cells is %.2f", extraYCells, extraXCells);
+//  NSLog(@"extra y cells is %.2f, extra x cells is %.2f", extraYCells, extraXCells);
   
   _oldCellsTop = self.cellsTop;
   _oldCellsBottom = self.cellsBottom;
   _oldCellsRight = self.cellsRight;
   _oldCellsLeft = self.cellsLeft;
   
-  NSLog(@"original top %.2f, right %.2f, bottom %.2f, left %.2f", cellsTopmost, cellsRightmost, cellsBottommost, cellsLeftmost);
+//  NSLog(@"original top %.2f, right %.2f, bottom %.2f, left %.2f", cellsTopmost, cellsRightmost, cellsBottommost, cellsLeftmost);
   
   self.cellsTop = cellsTopmost + extraYCells;
   self.cellsRight = cellsRightmost + extraXCells;
@@ -279,22 +296,12 @@
   self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange - _hexOrigin.dy) * kDyadminoFaceDiameter * factor;
   self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange - _hexOrigin.dx) * kDyadminoFaceAverageWideDiameter * factor;
   
-  NSLog(@"lowest y is %.2f, highest y is %.2f", self.lowestYPos, self.highestYPos);
-  NSLog(@"determine board position bounds, for zoom? %i", self.zoomedOut);
-  NSLog(@"board bounds range %.2f, %.2f", self.highestXPos - self.lowestXPos, self.highestYPos - self.lowestYPos);
+//  NSLog(@"lowest y is %.2f, highest y is %.2f", self.lowestYPos, self.highestYPos);
+//  NSLog(@"determine board position bounds, for zoom? %i", self.zoomedOut);
+//  NSLog(@"board bounds range %.2f, %.2f", self.highestXPos - self.lowestXPos, self.highestYPos - self.lowestYPos);
 }
 
 #pragma mark - zoom methods
-
--(void)centerBoard {
-  
-  CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
-  CGPoint newPoint = CGPointMake(self.origin.x + (_hexOrigin.dx - _hexCurrent.dx) * kDyadminoFaceWideDiameter * factor,
-                                 self.origin.y + (_hexOrigin.dy - _hexCurrent.dy) * kDyadminoFaceDiameter * factor);
-
-  [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:newPoint withSwap:NO];
-  self.homePosition = newPoint;
-}
 
 -(void)repositionCellsAndDyadminoesForZoom {
     // zoom out
@@ -304,7 +311,7 @@
 //      cell.cellNode.hidden = YES;
     }
 
-    [self centerBoard];
+    [self centerBoardOnDyadminoesAverageCenter];
     
     self.zoomBackgroundNode.hidden = NO;
     [self addChild:self.zoomBackgroundNode];
@@ -315,7 +322,9 @@
       cell.cellNode.hidden = NO;
     }
     
-    [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:self.preZoomPosition withSwap:NO];
+    [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:self.postZoomPosition withSwap:NO];
+//    NSLog(@"after zoom back in, reposition to %.2f, %.2f", self.postZoomPosition.x, self.postZoomPosition.y);
+    [self.delegate updateForBoardBeingCorrectedWithinBoundsWithAnimation:NO];
     
     self.zoomBackgroundNode.hidden = YES;
     [self.zoomBackgroundNode removeFromParent];
@@ -330,36 +339,50 @@
   if (!_hexOriginSet) {
     _hexOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
     _hexCurrent = _hexOrigin;
-    NSLog(@"determine vector origin (general center) is %.1f, %.1f", _hexOrigin.dx, _hexOrigin.dy);
+//    NSLog(@"determine vector origin (general center) is %.1f, %.1f", _hexOrigin.dx, _hexOrigin.dy);
     _hexOriginSet = YES;
   } else {
     _hexCurrent = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
   }
   
     // covers all cells in old range plus new range
-  NSInteger maxCellsTop = _oldCellsTop > self.cellsTop ? _oldCellsTop : self.cellsTop;
-  NSInteger minCellsBottom = _oldCellsBottom < self.cellsBottom ? _oldCellsBottom : self.cellsBottom;
-  NSInteger maxCellsRight = _oldCellsRight > self.cellsRight ? _oldCellsRight : self.cellsRight;
-  NSInteger minCellsLeft = _oldCellsLeft < self.cellsLeft ? _oldCellsLeft : self.cellsLeft;
+  CGFloat maxCellsTop = _oldCellsTop > self.cellsTop ? _oldCellsTop : self.cellsTop;
+  CGFloat minCellsBottom = _oldCellsBottom < self.cellsBottom ? _oldCellsBottom : self.cellsBottom;
+  CGFloat maxCellsRight = _oldCellsRight > self.cellsRight ? _oldCellsRight : self.cellsRight;
+  CGFloat minCellsLeft = _oldCellsLeft < self.cellsLeft ? _oldCellsLeft : self.cellsLeft;
     //  NSLog(@"top %i, bottom %i, right %i, left %i", maxCellsTop, minCellsBottom, maxCellsRight, minCellsLeft);
   
     // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
     // use this to get the range to iterate over y, and to keep the board square
-  for (NSInteger xHex = minCellsLeft; xHex <= maxCellsRight; xHex++) {
-    for (NSInteger yHex = minCellsBottom - maxCellsRight / 2.f; yHex <= maxCellsTop - minCellsLeft / 2.f; yHex++) {
+  
+  NSMutableSet *tempAddedCellSet = [NSMutableSet new];
+  
+//  NSLog(@"from layout, max and min top %.2f, right %.2f, bottom %.2f, left %.2f", maxCellsTop, maxCellsRight, minCellsBottom, minCellsLeft);
+//  NSLog(@"in integers, that's %i, %i, %i, %i", (int)maxCellsTop, (int)maxCellsRight, (int)minCellsBottom, (int)minCellsLeft);
+  
+    // FIXME: (maybe) these extra + or - and 1 or 2 constants ensures that no empty slots show when dyadmino is moved or removed
+    // and board bounds are corrected as a result. Seems fine for now, but *might* want to fix later
+  for (NSInteger xHex = minCellsLeft - 2; xHex <= maxCellsRight + 2; xHex++) {
+    for (NSInteger yHex = minCellsBottom - 1 - maxCellsRight / 2.f; yHex <= maxCellsTop + 2 - minCellsLeft / 2.f; yHex++) {
       
-      if (xHex >= self.cellsLeft && xHex <= self.cellsRight &&
-          yHex <= self.cellsTop - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - (xHex / 2.f)) {
-        [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
-        
+      if (xHex >= self.cellsLeft - 2 && xHex <= self.cellsRight + 2 &&
+          yHex <= self.cellsTop + 2 - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - 1 - (xHex / 2.f)) {
+        Cell *addedCell = [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
+        [tempAddedCellSet addObject:addedCell];
       } else {
-          //          NSLog(@"ignoring cell from layout board");
         [self ignoreCellWithXHex:xHex andYHex:yHex];
       }
     }
   }
   
-    //  NSLog(@"self.allCells count %i", self.allCells.count);
+    // ensures there's no straggler cells
+  NSMutableSet *tempAllCellsSet = [NSMutableSet setWithSet:self.allCells];
+  for (Cell *cell in tempAllCellsSet) {
+    if (![tempAddedCellSet containsObject:cell]) {
+      [self ignoreCell:cell];
+    }
+  }
+  
   [self determineBoardPositionBounds];
   
   NSLog(@"self.allCells %i, self.occupiedCells %i, self.dequeuedCells %i", self.allCells.count, self.occupiedCells.count, self.dequeuedCells.count);
@@ -406,6 +429,10 @@
 
 -(void)ignoreCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
   Cell *cell = [self findCellWithXHex:xHex andYHex:yHex];
+  [self ignoreCell:cell];
+}
+
+-(void)ignoreCell:(Cell *)cell {
   if (cell) {
     if (cell.cellNode) {
       [cell.cellNode removeFromParent];

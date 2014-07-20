@@ -13,6 +13,7 @@
 @protocol BoardDelegate <NSObject>
 
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino;
+-(void)updateForBoardBeingCorrectedWithinBoundsWithAnimation:(BOOL)animated;
 
 @end
 
@@ -23,7 +24,7 @@
 @property (nonatomic) CGPoint origin;
 
 @property (nonatomic) BOOL zoomedOut;
-@property (nonatomic) CGPoint preZoomPosition;
+@property (nonatomic) CGPoint postZoomPosition;
 
 @property (nonatomic) CGFloat highestYPos;
 @property (nonatomic) CGFloat highestXPos;
@@ -62,6 +63,10 @@
 
 -(void)resetForNewMatch;
 
+#pragma mark - board position methods
+
+-(void)centerBoardOnLocation:(CGPoint)location;
+
 #pragma mark - zoom methods
 
 -(void)repositionCellsAndDyadminoesForZoom;
@@ -89,8 +94,8 @@
 
 #pragma mark - board span methods
 
+-(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes; // called by scene's toggle board zoom method only
 -(void)determineBoardPositionBounds;
--(void)centerBoard;
 
 #pragma mark - legality methods
 
