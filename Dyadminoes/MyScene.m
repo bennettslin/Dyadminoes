@@ -813,9 +813,7 @@
   } else {
     _boardField.homePosition = _boardField.preZoomPosition;
   }
-  
-    // need genuine board centering method
-  [self updateBoardBoundsAndLayoutCells:YES];
+
   [_boardField repositionCellsAndDyadminoesForZoom];
   
     // same as for board dyadminoes
@@ -1032,7 +1030,7 @@
     // the other is when dyadmino is eased into board node
   if (updateBoardBounds) {
     NSLog(@"update board bounds from send dyadmino home");
-    [self updateBoardBoundsAndLayoutCells:YES];
+    [self updateBoardBoundsAndLayoutCells];
   }
   
   [dyadmino endTouchThenHoverResize];
@@ -1699,7 +1697,7 @@
           // this is one of two places where board bounds are updated
           // the other is when rack dyadmino is sent home
         NSLog(@"updateBoardBounds called from check whether to ease");
-        [self updateBoardBoundsAndLayoutCells:YES];
+        [self updateBoardBoundsAndLayoutCells];
         
         [_boardField hideAllPivotGuides];
         [dyadmino animateEaseIntoNodeAfterHover];
@@ -2109,7 +2107,7 @@
   }
 }
 
--(void)updateBoardBoundsAndLayoutCells:(BOOL)layoutCells {
+-(void)updateBoardBoundsAndLayoutCells {
   
   NSLog(@"updateBoardBounds called");
   NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
@@ -2118,10 +2116,8 @@
   if ([_recentRackDyadmino isOnBoard] && ![dyadminoesOnBoard containsObject:_recentRackDyadmino]) {
     [dyadminoesOnBoard addObject:_recentRackDyadmino];
   }
-  
-  if (layoutCells) {
-    [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard];
-  }
+
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard];
   
 //  [_topBar flashLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
 //                                             _boardField.cellsTop - 0, _boardField.cellsRight - 0, _boardField.cellsBottom + 0, _boardField.cellsLeft + 0]];
