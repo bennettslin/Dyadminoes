@@ -13,7 +13,7 @@
 @protocol BoardDelegate <NSObject>
 
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino;
--(void)updateForBoardBeingCorrectedWithinBoundsWithAnimation:(BOOL)animated;
+-(void)correctBoardForPositionAfterZoom;
 
 @end
 

@@ -26,6 +26,7 @@
 -(void)loadAfterNewMatchRetrieved;
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity;
+-(void)handleDoubleTap;
 -(void)persistAllSceneDataDyadminoes;
 
 -(void)togglePCsUserShaken:(BOOL)userShaken;
@@ -38,5 +39,7 @@
 
 -(void)backToMainMenu;
 -(void)stopActivityIndicator;
+-(void)cancelPinchGestureRecogniser;
+-(void)cancelDoubleTapGestureRecogniser;
 
 @end

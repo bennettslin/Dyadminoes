@@ -23,6 +23,9 @@
 @property (strong, nonatomic) Player *myPlayer;
 @property (weak, nonatomic) id <SceneViewDelegate> delegate;
 
+@property (strong, nonatomic) UIPinchGestureRecognizer *pinchGestureRecogniser;
+@property (strong, nonatomic) UITapGestureRecognizer *doubleTapGestureRecogniser;
+
 @end
 
 @protocol SceneViewDelegate <NSObject>

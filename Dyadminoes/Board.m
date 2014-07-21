@@ -47,7 +47,7 @@
     self.name = @"board";
     self.color = color;
 //    self.size = size;
-    self.size = CGSizeMake(size.width * 2, size.height * 2);
+    self.size = CGSizeMake(size.width, size.height);
     self.anchorPoint = CGPointMake(0.5, 0.5);
     self.zPosition = kZPositionBoard;
     
@@ -183,6 +183,7 @@
 
 -(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes {
   
+  NSLog(@"determineOutermostCells");
     // floats to allow for in-between values for y-coordinates
   CGFloat cellsTopmost = -2147483648;
   CGFloat cellsRightmost = -2147483648;
@@ -288,6 +289,7 @@
 }
 
 -(void)determineBoardPositionBounds {
+  NSLog(@"determineBoardPositionBounds");
     // this should get called after every method that adds cells or removes them
   
   CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
@@ -324,7 +326,7 @@
     
     [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:self.postZoomPosition withSwap:NO];
 //    NSLog(@"after zoom back in, reposition to %.2f, %.2f", self.postZoomPosition.x, self.postZoomPosition.y);
-    [self.delegate updateForBoardBeingCorrectedWithinBoundsWithAnimation:NO];
+    [self.delegate correctBoardForPositionAfterZoom];
     
     self.zoomBackgroundNode.hidden = YES;
     [self.zoomBackgroundNode removeFromParent];

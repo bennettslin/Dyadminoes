@@ -61,7 +61,7 @@
   BOOL _fieldActionInProgress;
   BOOL _boardToBeMovedOrBeingMoved;
   BOOL _boardBeingCorrectedWithinBounds;
-  BOOL _canDoubleTapForBoardZoom;
+//  BOOL _canDoubleTapForBoardZoom;
   BOOL _canDoubleTapForDyadminoFlip;
   BOOL _hoveringDyadminoToStayFixedWhileBoardMoves;
   BOOL _boardJustShiftedNotCorrected;
@@ -127,7 +127,7 @@
   _fieldActionInProgress = NO;
   _boardToBeMovedOrBeingMoved = NO;
   _boardBeingCorrectedWithinBounds = NO;
-  _canDoubleTapForBoardZoom = NO;
+//  _canDoubleTapForBoardZoom = NO;
   _canDoubleTapForDyadminoFlip = NO;
   _hoveringDyadminoToStayFixedWhileBoardMoves = NO;
   _boardJustShiftedNotCorrected = NO;
@@ -192,6 +192,8 @@
     _debugMode = NO;
     [self toggleDebugMode];
   }
+  
+  [self toggleSwapFieldWithAnimation:NO];
   
   self.boardDyadminoes = [NSSet new];
   self.playerRackDyadminoes = @[];
@@ -292,7 +294,7 @@
   _boardCover = [[SKSpriteNode alloc] initWithColor:[SKColor blackColor] size:_boardField.size];
   _boardCover.name = @"boardCover";
   _boardCover.anchorPoint = CGPointMake(0.5, 0.5);
-  _boardCover.position = _boardField.homePosition;
+  _boardCover.position = CGPointMake(self.frame.size.width * 0.5, (self.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
   _boardCover.zPosition = kZPositionBoardCoverHidden;
   _boardCover.alpha = kBoardCoverAlpha;
   _boardCover.hidden = YES;
@@ -451,6 +453,14 @@
   }
 }
 
+-(void)handleDoubleTap {
+    // board will center back to user's touch location once zoomed back in
+  CGPoint location = CGPointMake((_boardField.homePosition.x - _beganTouchLocation.x) / kZoomResizeFactor + _boardField.origin.x,
+                                 (_boardField.homePosition.y - _beganTouchLocation.y) / kZoomResizeFactor + _boardField.origin.y);
+  
+  [self toggleBoardZoomWithTapCentering:YES andCenterLocation:location];
+}
+
 #pragma mark - touch methods
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -477,10 +487,6 @@
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
   NSLog(@"%@, zPosition %.2f", _touchNode.name, _touchNode.zPosition);
-
-  NSLog(@"toggleBoardTouchLocation is %.2f, %.2f", _beganTouchLocation.x, _beganTouchLocation.y);
-  NSLog(@"board homePosition is %.2f, %.2f", _boardField.homePosition.x, _boardField.origin.y);
-  NSLog(@"touch relative to board homePosition is %.2f, %.2f", _beganTouchLocation.x - _boardField.homePosition.x, _beganTouchLocation.y - _boardField.homePosition.y);
   
     //--------------------------------------------------------------------------
     /// 3a. button pressed
@@ -489,7 +495,9 @@
   if ([_touchNode isKindOfClass:[Button class]]) {
     
       // sound of button tapped
-    [self.mySoundEngine soundButton:YES];
+    
+      // FIXME: sound should work
+//    [self.mySoundEngine soundButton:YES];
     _buttonPressed = (Button *)_touchNode;
       // TODO: make distinction of button pressed better, of course
     _buttonPressed.alpha = 0.3f;
@@ -543,19 +551,21 @@
         (_touchNode.parent == _boardField && (![_touchNode isKindOfClass:[Dyadmino class]] || _boardZoomedOut)) ||
         (_touchNode.parent.parent == _boardField && (![_touchNode.parent isKindOfClass:[Dyadmino class]] || _boardZoomedOut))) { // cell label, this one is necessary only for testing purposes
       
-      if (_canDoubleTapForBoardZoom && !_hoveringDyadmino) {
+      if (!_hoveringDyadmino) {
+
+//      if (_canDoubleTapForBoardZoom && !_hoveringDyadmino) {
         if ([self getDistanceFromThisPoint:_beganTouchLocation toThisPoint:_endTouchLocationToMeasureDoubleTap] < kDistanceToDoubleTap) {
           
-            // board will center back to user's touch location once zoomed back in
-          CGPoint location = CGPointMake((_boardField.homePosition.x - _beganTouchLocation.x) / kZoomResizeFactor + _boardField.origin.x,
-                                         (_boardField.homePosition.y - _beganTouchLocation.y) / kZoomResizeFactor + _boardField.origin.y);
-          
-          [self toggleBoardZoomWithTapCentering:YES andCenterLocation:location];
+//            // board will center back to user's touch location once zoomed back in
+//          CGPoint location = CGPointMake((_boardField.homePosition.x - _beganTouchLocation.x) / kZoomResizeFactor + _boardField.origin.x,
+//                                         (_boardField.homePosition.y - _beganTouchLocation.y) / kZoomResizeFactor + _boardField.origin.y);
+//          
+//          [self toggleBoardZoomWithTapCentering:YES andCenterLocation:location];
         }
       }
 //      NSLog(@"board to be moved or being moved");
       _boardToBeMovedOrBeingMoved = YES;
-      _canDoubleTapForBoardZoom = YES;
+//      _canDoubleTapForBoardZoom = YES;
       
         // check to see if hovering dyadmino should stay with board or not
       if (_hoveringDyadmino) {
@@ -752,7 +762,8 @@
     if (node == _buttonPressed) {
       
         // sound of button release
-      [self.mySoundEngine soundButton:NO];
+        // FIXME: sound should work
+//      [self.mySoundEngine soundButton:NO];
       [self handleButtonPressed];
     }
     _buttonPressed.alpha = 1.f;
@@ -1176,7 +1187,7 @@
   } else if (_buttonPressed == _topBar.swapCancelOrUndoButton &&
              [_buttonPressed confirmSwapCancelOrUndo] == kSwapButton) {
     if (!_swapMode) {
-      [self toggleSwapField];
+      [self toggleSwapFieldWithAnimation:YES];
       _swapMode = YES;
       [self.myMatch resetHoldingContainer];
     }
@@ -1187,7 +1198,7 @@
     
       // if in swap mode, cancel swap
     if (_swapMode) {
-      [self toggleSwapField];
+      [self toggleSwapFieldWithAnimation:YES];
       [self cancelSwappedDyadminoes];
       
         // else send dyadmino home
@@ -1444,14 +1455,16 @@
 }
 
 -(void)updateForDoubleTap:(CFTimeInterval)currentTime {
-  if (_canDoubleTapForDyadminoFlip || _canDoubleTapForBoardZoom) {
+  if (_canDoubleTapForDyadminoFlip) {
+
+//  if (_canDoubleTapForDyadminoFlip || _canDoubleTapForBoardZoom) {
     if (_doubleTapTime == 0.f) {
       _doubleTapTime = currentTime;
     }
   }
   
   if (_doubleTapTime != 0.f && currentTime > _doubleTapTime + kDoubleTapTime) {
-    _canDoubleTapForBoardZoom = NO;
+//    _canDoubleTapForBoardZoom = NO;
     _canDoubleTapForDyadminoFlip = NO;
     _hoveringDyadmino.canFlip = NO;
     _doubleTapTime = 0.f;
@@ -1518,17 +1531,53 @@
   }
 }
 
+-(void)correctBoardForPositionAfterZoom {
+  
+  CGFloat zoomFactor = _boardZoomedOut ? kZoomResizeFactor : 1.f;
+  CGFloat swapBuffer = _swapMode ? kRackHeight : 0.f; // the height of the swap field
+  
+  CGFloat lowestXBuffer = _boardField.lowestXPos + (kDyadminoFaceAverageWideRadius * zoomFactor);
+  CGFloat lowestYBuffer = _boardField.lowestYPos + (kDyadminoFaceRadius * zoomFactor);
+  CGFloat highestXBuffer = _boardField.highestXPos - (kDyadminoFaceAverageWideRadius * zoomFactor);
+  CGFloat highestYBuffer = _boardField.highestYPos - (kDyadminoFaceRadius * zoomFactor) + swapBuffer;
+  
+  if (_boardField.position.x < lowestXBuffer) {
+    NSLog(@"board high X corrected");
+    CGFloat thisDistance = (lowestXBuffer - _boardField.position.x);
+    _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
+    _boardField.homePosition = _boardField.position;
+  }
+  
+  if (_boardField.position.y < lowestYBuffer) {
+    NSLog(@"board high Y corrected");
+    CGFloat thisDistance = (lowestYBuffer - _boardField.position.y);
+    _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y + thisDistance);
+    _boardField.homePosition = _boardField.position;
+  }
+
+  if (_boardField.position.x > highestXBuffer) {
+    NSLog(@"board low X corrected");
+    CGFloat thisDistance = (_boardField.position.x - highestXBuffer);
+    _boardField.position = CGPointMake(_boardField.position.x - thisDistance, _boardField.position.y);
+    _boardField.homePosition = _boardField.position;
+  }
+  
+  if (_boardField.position.y > highestYBuffer) {
+    NSLog(@"board low Y corrected");
+    CGFloat thisDistance = _boardField.position.y - highestYBuffer;
+    _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
+    _boardField.homePosition = _boardField.position;
+  }
+}
+    // FIXME: this no longer needs the animated BOOL
 -(void)updateForBoardBeingCorrectedWithinBoundsWithAnimation:(BOOL)animated {
   
   if (_fieldActionInProgress) {
     _boardField.homePosition = _boardField.position;
     return;
   }
-  
-  CGFloat swapBuffer = 0.f;
-  if (_swapMode) {
-    swapBuffer = kRackHeight; // the height of the swap field
-  }
+
+  CGFloat swapBuffer = _swapMode ? kRackHeight : 0.f; // the height of the swap field
   
     // only prevents board move from touch if it's truly out of bounds
     // it's fine if it's still within the buffer
@@ -1575,6 +1624,7 @@
   
       // establishes the board is being shifted away from hard edge, not as a correction
     if (_boardField.position.x < lowestXBuffer) {
+      NSLog(@"board high X corrected");
       _boardJustShiftedNotCorrected = YES;
       thisDistance = animated ?
           (1.f + (lowestXBuffer - _boardField.position.x) / distanceDivisor) :
@@ -1591,6 +1641,7 @@
     }
     
     if (_boardField.position.y < lowestYBuffer) {
+      NSLog(@"board high Y corrected");
       _boardJustShiftedNotCorrected = YES;
       thisDistance = animated ?
           (1.f + (lowestYBuffer - _boardField.position.y) / distanceDivisor) :
@@ -1607,6 +1658,7 @@
     }
 
     if (_boardField.position.x > highestXBuffer) {
+      NSLog(@"board low X corrected");
       _boardJustShiftedNotCorrected = YES;
       thisDistance = animated ?
           (1.f + (_boardField.position.x - highestXBuffer) / distanceDivisor) :
@@ -1623,6 +1675,7 @@
     }
 
     if (_boardField.position.y > highestYBuffer) {
+      NSLog(@"board low Y corrected");
       _boardJustShiftedNotCorrected = YES;
       thisDistance = animated ?
           (1.f + (_boardField.position.y - highestYBuffer) / distanceDivisor) :
@@ -1636,6 +1689,10 @@
       
     } else {
       alreadyCorrect++;
+    }
+    
+    if (!animated) {
+      alreadyCorrect = 4;
     }
 
       // this one is constantly being called even when board is motionless
@@ -1986,14 +2043,24 @@
   }
 }
 
--(void)toggleSwapField {
+-(void)toggleSwapFieldWithAnimation:(BOOL)animated {
     // TODO: move animations at some point
     // FIXME: make better animation
     // otherwise toggle
+  
+  
+    // this gets called before scene is removed from view
+  if (!animated) {
+    _swapField.hidden = YES;
+    [self hideBoardCover];
+    return;
+  }
+  
   if (_swapMode) { // swap mode on, so turn off
     [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
+      // swap field action
     SKAction *moveAction = [SKAction moveToY:0.f duration:kConstantTime];
     SKAction *completionAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
@@ -2003,17 +2070,21 @@
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
     [_swapField runAction:sequenceAction];
     
-    if (_boardField.position.y > _boardField.highestYPos) {
-      CGFloat swapBuffer = _boardField.position.y - _boardField.highestYPos;
-      SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y - swapBuffer duration:kConstantTime];
-      [_boardField runAction:moveBoardAction];
-    }
+      // board action
+    CGFloat swapBuffer;
     
+      // FIXME: when board is moved to top in swap mode, board goes down, then pops back up
+    swapBuffer = (_boardField.position.y > _boardField.highestYPos) ? _boardField.highestYPos : _boardField.position.y - kRackHeight / 2;
+      
+    SKAction *moveBoardAction = [SKAction moveToY:swapBuffer duration:kConstantTime];
+    [_boardField runAction:moveBoardAction];
+
   } else { // swap mode off, turn on
     [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
-    
     _swapField.hidden = NO;
+    
+      // swap field action
     SKAction *moveAction = [SKAction moveToY:kRackHeight duration:kConstantTime];
     SKAction *completionAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
@@ -2021,7 +2092,9 @@
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
     [_swapField runAction:sequenceAction];
-    SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y + kRackHeight duration:kConstantTime];
+    
+      // board action
+    SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y + kRackHeight / 2 duration:kConstantTime];
     [_boardField runAction:moveBoardAction];
   }
 }
@@ -2455,7 +2528,7 @@
     
       // will swap if successful, if not, message will be flashed in finaliseSwap method
     if ([self finaliseSwap]) {
-      [self toggleSwapField];
+      [self toggleSwapFieldWithAnimation:YES];
       _swapMode = NO;
     } else {
       
@@ -2465,7 +2538,7 @@
       // cancel swap
   } else if ([buttonText isEqualToString:@"Cancel"]) {
     if (_swapMode) {
-      [self toggleSwapField];
+      [self toggleSwapFieldWithAnimation:YES];
       [self cancelSwappedDyadminoes];
     }
     [self updateTopBarButtons];
@@ -2508,7 +2581,7 @@
 #pragma mark - debugging methods
 
 -(void)toggleDebugMode {
-  
+  NSLog(@"debug mode toggled");
   if (_debugMode) {
     
     _topBar.pileDyadminoesLabel.hidden = NO;

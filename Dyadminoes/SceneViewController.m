@@ -32,7 +32,7 @@
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
 
   [self createAndConfigureScene];
-  [self setUpGestureRecogniser];
+  [self setUpGestureRecognisers];
 }
 
 -(void)createAndConfigureScene {
@@ -81,14 +81,32 @@
 
 #pragma mark - event handling methods
 
--(void)setUpGestureRecogniser {
-  UIPinchGestureRecognizer *pinchGestureRecogniser = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinched:)];
-  pinchGestureRecogniser.delegate = self;
-  [self.mySceneView addGestureRecognizer:pinchGestureRecogniser];
+-(void)setUpGestureRecognisers {
+  self.pinchGestureRecogniser = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinched:)];
+  self.pinchGestureRecogniser.delegate = self;
+  [self.mySceneView addGestureRecognizer:self.pinchGestureRecogniser];
+  
+    // FIXME: disabled double tap gesture recogniser for now
+  self.doubleTapGestureRecogniser = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapped:)];
+  self.doubleTapGestureRecogniser.delegate = self;
+  self.doubleTapGestureRecogniser.numberOfTapsRequired = 2;
+  [self.mySceneView addGestureRecognizer:self.doubleTapGestureRecogniser];
 }
 
 -(void)pinched:(UIPinchGestureRecognizer *)sender {
   [self.myScene handlePinchGestureWithScale:sender.scale andVelocity:sender.velocity];
+}
+
+-(void)doubleTapped:(UITapGestureRecognizer *)sender {
+  [self.myScene handleDoubleTap];
+}
+
+-(void)cancelPinchGestureRecogniser {
+
+}
+
+-(void)cancelDoubleTapGestureRecogniser {
+
 }
 
 -(void)motionEnded:(UIEventSubtype)motion withEvent:(UIEvent *)event {
