@@ -1071,14 +1071,14 @@
   
   if ([dyadmino belongsInRack] && !undo) {
     _uponTouchDyadminoNode = nil;
-    [dyadmino goHomeToRackByPoppingIn:poppingIn andSounding:sounding fromUndo:NO];
+    [dyadmino goHomeToRackByPoppingIn:poppingIn andSounding:sounding fromUndo:NO withResize:_boardZoomedOut];
   } else if (undo) {
     _uponTouchDyadminoNode = nil;
-    [dyadmino goHomeToRackByPoppingIn:poppingIn andSounding:sounding fromUndo:YES];
+    [dyadmino goHomeToRackByPoppingIn:poppingIn andSounding:sounding fromUndo:YES withResize:_boardZoomedOut];
     
   } else {
     dyadmino.tempBoardNode = dyadmino.homeNode;
-    [dyadmino goHomeToBoardByPoppingIn:poppingIn andSounding:sounding];
+    [dyadmino goHomeToBoardByPoppingIn:poppingIn andSounding:sounding withResize:_boardZoomedOut];
   }
 
     // this ensures that pivot guide doesn't disappear if rack exchange
@@ -1102,14 +1102,6 @@
   }
   
   [self updateTopBarButtons];
-}
-
--(void)sendDyadminoToBoardNode:(Dyadmino *)dyadmino {
-    // cells will be updated in callback
-  [dyadmino animatePopBackIntoBoardNode];
-  if (dyadmino == _hoveringDyadmino) {
-    _hoveringDyadmino = nil;
-  }
 }
 
 -(void)handlePivotOfDyadmino:(Dyadmino *)dyadmino {
@@ -1203,7 +1195,7 @@
       
         // else send dyadmino home
     } else if (_hoveringDyadmino) {
-      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO  andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
 
         // recent rack dyadmino is sent home
     } else if (_recentRackDyadmino) {
@@ -1340,7 +1332,7 @@
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
       dyadmino.belongsInSwap = NO;
-      [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO];
+      [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO withResize:NO];
     }
   }
 }
@@ -1363,7 +1355,7 @@
         // TODO: this should be a better animation
         // dyadmino is already a child of rackField,
         // so no need to send dyadmino home through myScene's sendDyadmino method
-      [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO];
+      [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO withResize:NO];
       [dyadmino removeFromParent];
     }
     
@@ -1449,7 +1441,7 @@
   
     // snap back somewhat from board bounds
     // TODO: this works, but it feels jumpy
-  [self updateForBoardBeingCorrectedWithinBoundsWithAnimation:YES];
+  [self updateForBoardBeingCorrectedWithinBounds];
   [self updateForHoveringDyadminoBeingCorrectedWithinBounds];
   [self updatePivotForDyadminoMoveWithoutBoardCorrected];
 }
@@ -1542,35 +1534,35 @@
   CGFloat highestYBuffer = _boardField.highestYPos - (kDyadminoFaceRadius * zoomFactor) + swapBuffer;
   
   if (_boardField.position.x < lowestXBuffer) {
-    NSLog(@"board high X corrected");
+//    NSLog(@"board high X corrected");
     CGFloat thisDistance = (lowestXBuffer - _boardField.position.x);
     _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
     _boardField.homePosition = _boardField.position;
   }
   
   if (_boardField.position.y < lowestYBuffer) {
-    NSLog(@"board high Y corrected");
+//    NSLog(@"board high Y corrected");
     CGFloat thisDistance = (lowestYBuffer - _boardField.position.y);
     _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y + thisDistance);
     _boardField.homePosition = _boardField.position;
   }
 
   if (_boardField.position.x > highestXBuffer) {
-    NSLog(@"board low X corrected");
+//    NSLog(@"board low X corrected");
     CGFloat thisDistance = (_boardField.position.x - highestXBuffer);
     _boardField.position = CGPointMake(_boardField.position.x - thisDistance, _boardField.position.y);
     _boardField.homePosition = _boardField.position;
   }
   
   if (_boardField.position.y > highestYBuffer) {
-    NSLog(@"board low Y corrected");
+//    NSLog(@"board low Y corrected");
     CGFloat thisDistance = _boardField.position.y - highestYBuffer;
     _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
     _boardField.homePosition = _boardField.position;
   }
 }
-    // FIXME: this no longer needs the animated BOOL
--(void)updateForBoardBeingCorrectedWithinBoundsWithAnimation:(BOOL)animated {
+
+-(void)updateForBoardBeingCorrectedWithinBounds {
   
   if (_fieldActionInProgress) {
     _boardField.homePosition = _boardField.position;
@@ -1624,11 +1616,9 @@
   
       // establishes the board is being shifted away from hard edge, not as a correction
     if (_boardField.position.x < lowestXBuffer) {
-      NSLog(@"board high X corrected");
+//      NSLog(@"board high X corrected");
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = animated ?
-          (1.f + (lowestXBuffer - _boardField.position.x) / distanceDivisor) :
-          (lowestXBuffer - _boardField.position.x);
+      thisDistance = (1.f + (lowestXBuffer - _boardField.position.x) / distanceDivisor);
       _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
       
@@ -1641,11 +1631,9 @@
     }
     
     if (_boardField.position.y < lowestYBuffer) {
-      NSLog(@"board high Y corrected");
+//      NSLog(@"board high Y corrected");
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = animated ?
-          (1.f + (lowestYBuffer - _boardField.position.y) / distanceDivisor) :
-          (lowestYBuffer - _boardField.position.y);
+      thisDistance = (1.f + (lowestYBuffer - _boardField.position.y) / distanceDivisor);
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y + thisDistance);
       _boardField.homePosition = _boardField.position;
       
@@ -1658,11 +1646,9 @@
     }
 
     if (_boardField.position.x > highestXBuffer) {
-      NSLog(@"board low X corrected");
+//      NSLog(@"board low X corrected");
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = animated ?
-          (1.f + (_boardField.position.x - highestXBuffer) / distanceDivisor) :
-          (_boardField.position.x - highestXBuffer);
+      thisDistance = (1.f + (_boardField.position.x - highestXBuffer) / distanceDivisor);
       _boardField.position = CGPointMake(_boardField.position.x - thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
       
@@ -1675,11 +1661,9 @@
     }
 
     if (_boardField.position.y > highestYBuffer) {
-      NSLog(@"board low Y corrected");
+//      NSLog(@"board low Y corrected");
       _boardJustShiftedNotCorrected = YES;
-      thisDistance = animated ?
-          (1.f + (_boardField.position.y - highestYBuffer) / distanceDivisor) :
-          (_boardField.position.y - highestYBuffer);
+      thisDistance = (1.f + (_boardField.position.y - highestYBuffer) / distanceDivisor);
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
       _boardField.homePosition = _boardField.position;
       
@@ -1689,10 +1673,6 @@
       
     } else {
       alreadyCorrect++;
-    }
-    
-    if (!animated) {
-      alreadyCorrect = 4;
     }
 
       // this one is constantly being called even when board is motionless
@@ -2057,7 +2037,7 @@
   }
   
   if (_swapMode) { // swap mode on, so turn off
-    [self.mySoundEngine sound:kSoundSwoosh music:NO];
+//    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
       // swap field action
@@ -2080,7 +2060,7 @@
     [_boardField runAction:moveBoardAction];
 
   } else { // swap mode off, turn on
-    [self.mySoundEngine sound:kSoundSwoosh music:NO];
+//    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     _swapField.hidden = NO;
     
@@ -2202,7 +2182,7 @@
 }
 
 -(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour {
-  NSLog(@"update cells for removed dyadmino");
+//  NSLog(@"update cells for removed dyadmino");
   if (![dyadmino isRotating]) {
     dyadmino.tempBoardNode ?
       [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.tempBoardNode andColour:colour] :
@@ -2210,15 +2190,19 @@
   }
 }
 
--(void)updateBoardBoundsAndLayoutCells {
-
+-(NSSet *)allBoardDyadminoesPlusRecentRackDyadmino {
   NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
-
+  
     // add dyadmino to set if dyadmino is a recent rack dyadmino
   if ([_recentRackDyadmino isOnBoard] && ![dyadminoesOnBoard containsObject:_recentRackDyadmino]) {
     [dyadminoesOnBoard addObject:_recentRackDyadmino];
   }
+  return [NSSet setWithSet:dyadminoesOnBoard];
+}
 
+-(void)updateBoardBoundsAndLayoutCells {
+
+  NSSet *dyadminoesOnBoard = [self allBoardDyadminoesPlusRecentRackDyadmino];
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard];
   
 //  [_topBar flashLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",

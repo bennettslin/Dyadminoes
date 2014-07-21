@@ -14,6 +14,7 @@
 
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino;
 -(void)correctBoardForPositionAfterZoom;
+-(NSSet *)allBoardDyadminoesPlusRecentRackDyadmino;
 
 @end
 

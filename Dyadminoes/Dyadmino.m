@@ -81,7 +81,6 @@
   CGFloat hoverResizeFactor = (self.isTouchThenHoverResized) ? kDyadminoHoverResizeFactor : 1.f;
   CGFloat zoomResizeFactor = (self.isZoomResized) ? kZoomResizeFactor : 1.f;
 
-
     // size is different if not vertical orientation
   CGFloat orientationFactor = (self.orientation == kPC1atTwelveOClock || self.orientation == kPC1atSixOClock) ? 4.f : 3.f;
   CGFloat pcRelativeSizeFactor = 10 / 7.f;
@@ -230,11 +229,11 @@
       kZPositionRackRestingDyadmino : kZPositionBoardRestingDyadmino;
 }
 
--(void)goHomeToRackByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding fromUndo:(BOOL)undo {
+-(void)goHomeToRackByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding fromUndo:(BOOL)undo withResize:(BOOL)resize {
 //  NSLog(@"dyadmino's go home by popping in method called");
     // move these into a completion block for animation
   if (poppingIn) {
-    [self animatePopBackIntoRackNodeFromUndo:undo];
+    [self animatePopBackIntoRackNodeFromUndo:undo withResize:resize];
   } else {
     [self orientBySnapNode:self.homeNode];
     [self animateMoveToPoint:[self getHomeNodePosition] andSounding:sounding];
@@ -245,7 +244,7 @@
 }
 
   // this should be combined into one method with goHomeToRack
--(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding {
+-(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding withResize:(BOOL)resize {
   if (poppingIn) {
     [self animatePopBackIntoBoardNode];
   } else {
@@ -454,7 +453,7 @@
   [self runAction:sequenceAction withKey:kActionPopIntoBoard];
 }
 
--(void)animatePopBackIntoRackNodeFromUndo:(BOOL)undo {
+-(void)animatePopBackIntoRackNodeFromUndo:(BOOL)undo withResize:(BOOL)resize {
   [self removeActionsAndEstablishNotRotating];
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
@@ -463,6 +462,13 @@
     [self setToHomeZPosition];
     [self unhighlightOutOfPlay];
     [self orientBySnapNode:self.homeNode];
+    
+    if (resize) {
+      self.isZoomResized = NO;
+      [self resize];
+      [self selectAndPositionSprites];
+    }
+    
     self.position = [self getHomeNodePosition];
     if (undo) {
       [self.delegate layoutOrRefreshRackFieldAndDyadminoesFromUndo:YES withAnimation:NO];

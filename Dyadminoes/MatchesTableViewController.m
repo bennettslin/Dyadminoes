@@ -90,6 +90,7 @@
   self.activityIndicator.layer.cornerRadius = kCornerRadius;
   self.activityIndicator.clipsToBounds = YES;
   self.activityIndicator.center = self.view.center;
+  [self.view addSubview:self.activityIndicator];
   
   _screenWidth = [UIScreen mainScreen].bounds.size.width;
   _screenHeight = [UIScreen mainScreen].bounds.size.height;
@@ -142,12 +143,10 @@
 -(void)viewWillAppear:(BOOL)animated {
   
   _overlayEnabled = YES;
-  
-  if (![Model getMyModel]) {
+  self.myModel = [Model getMyModel];
+  if (!self.myModel) {
     self.myModel = [Model new];
     [self.myModel instantiateHardCodedMatchesForDebugPurposes];
-  } else {
-    [self getModel];
   }
   
   [self.myModel sortMyMatches];
@@ -177,11 +176,6 @@
   cell.delegate = self;
   cell.myMatch = self.myModel.myMatches[indexPath.row];
   
-    // selected colour
-  UIView *customColorView = [[UIView alloc] init];
-  customColorView.backgroundColor = [UIColor colorWithRed:1.f green:1.f blue:.8f alpha:.8f];
-  cell.selectedBackgroundView = customColorView;
-  
   [cell setProperties];
   
   cell.accessoryType = UITableViewCellAccessoryNone;
@@ -191,6 +185,7 @@
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 //  [tableView deselectRowAtIndexPath:indexPath animated:YES];
+//  NSLog(@"did select row at index path");
 }
 
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -368,19 +363,22 @@
 }
 
 -(void)startActivityIndicator {
-    //  NSLog(@"activity indicator starts");
-  [self.view addSubview:self.activityIndicator];
+    // hooray!
+  [NSThread detachNewThreadSelector:@selector(threadStartAnimating:) toTarget:self withObject:nil];
+}
+
+-(void)threadStartAnimating:(id)data {
+  self.activityIndicator.hidden = NO;
   [self.activityIndicator startAnimating];
 }
 
 -(void)stopActivityIndicator {
+  NSLog(@"activityIndicator stops");
   [self.activityIndicator stopAnimating];
-  [self.activityIndicator removeFromSuperview];
+  self.activityIndicator.hidden = YES;
   
     // also remove startGame childVC
   [self backToMatches];
-  
-    //  NSLog(@"activity indicator stops");
 }
 
 #pragma mark - button methods

@@ -33,6 +33,7 @@
   CGVector _hexCurrent;
   BOOL _cellsTopNeedsBuffer;
   BOOL _cellsBottomNeedsBuffer;
+  BOOL _redoLayoutAfterZoom;
   
   CGFloat _oldCellsTop;
   CGFloat _oldCellsBottom;
@@ -326,6 +327,10 @@
     
     [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:self.postZoomPosition withSwap:NO];
 //    NSLog(@"after zoom back in, reposition to %.2f, %.2f", self.postZoomPosition.x, self.postZoomPosition.y);
+    if (_redoLayoutAfterZoom) {
+      [self layoutBoardCellsAndSnapPointsOfDyadminoes:[self.delegate allBoardDyadminoesPlusRecentRackDyadmino]];
+      _redoLayoutAfterZoom = NO;
+    }
     [self.delegate correctBoardForPositionAfterZoom];
     
     self.zoomBackgroundNode.hidden = YES;
@@ -369,8 +374,15 @@
       
       if (xHex >= self.cellsLeft - 2 && xHex <= self.cellsRight + 2 &&
           yHex <= self.cellsTop + 2 - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - 1 - (xHex / 2.f)) {
-        Cell *addedCell = [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
-        [tempAddedCellSet addObject:addedCell];
+
+          // this method gets called if dyadmino is cancelled or undone while board is zoomed out
+          // so this is a kludge way of ensuring that board doesn't add cells when this happens
+          // redoLayoutAfterZoom bool is set to yes to ensure that cells are properly laid out *after* zoom
+        if (!self.zoomedOut) {
+          Cell *addedCell = [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
+          [tempAddedCellSet addObject:addedCell];
+        }
+        
       } else {
         [self ignoreCellWithXHex:xHex andYHex:yHex];
       }
@@ -378,11 +390,15 @@
   }
   
     // ensures there's no straggler cells
-  NSMutableSet *tempAllCellsSet = [NSMutableSet setWithSet:self.allCells];
-  for (Cell *cell in tempAllCellsSet) {
-    if (![tempAddedCellSet containsObject:cell]) {
-      [self ignoreCell:cell];
+  if (!self.zoomedOut) {
+    NSMutableSet *tempAllCellsSet = [NSMutableSet setWithSet:self.allCells];
+    for (Cell *cell in tempAllCellsSet) {
+      if (![tempAddedCellSet containsObject:cell]) {
+        [self ignoreCell:cell];
+      }
     }
+  } else {
+    _redoLayoutAfterZoom = YES;
   }
   
   [self determineBoardPositionBounds];

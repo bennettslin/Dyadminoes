@@ -90,7 +90,7 @@
   self.doubleTapGestureRecogniser = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapped:)];
   self.doubleTapGestureRecogniser.delegate = self;
   self.doubleTapGestureRecogniser.numberOfTapsRequired = 2;
-  [self.mySceneView addGestureRecognizer:self.doubleTapGestureRecogniser];
+//  [self.mySceneView addGestureRecognizer:self.doubleTapGestureRecogniser];
 }
 
 -(void)pinched:(UIPinchGestureRecognizer *)sender {
