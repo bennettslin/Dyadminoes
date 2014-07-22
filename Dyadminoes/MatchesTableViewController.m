@@ -84,6 +84,9 @@
   self.tableView.clipsToBounds = YES;
   self.tableView.backgroundColor = [UIColor clearColor];
   
+    // eventually set separator
+//  self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+  
   self.activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
   self.activityIndicator.backgroundColor = [[UIColor darkGrayColor] colorWithAlphaComponent:0.8f];
   self.activityIndicator.frame = CGRectMake(0, 0, 150, 150);
@@ -164,7 +167,7 @@
 }
 
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-  return 90;
+  return kIsIPhone ? 90.f : 140.f; // cell height 90.f + buffer 50.f
 }
 
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -278,7 +281,7 @@
   }
   
   CGFloat viewWidth = _screenWidth * 4 / 5;
-  CGFloat viewHeight = _screenHeight * 4 / 5;
+  CGFloat viewHeight = kIsIPhone ? _screenHeight * 5 / 7 : _screenHeight * 4 / 5;
   
   childVC.view.frame = CGRectMake(0, 0, viewWidth, viewHeight);
   childVC.view.center = CGPointMake(self.view.center.x - _screenWidth, self.view.center.y);

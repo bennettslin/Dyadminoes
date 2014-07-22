@@ -55,9 +55,11 @@
 
   // label constants (maybe temp)
 #define kButtonSize CGSizeMake(kButtonWidth, kButtonWidth)
+#define kPlayerNameFont @"FilmotypeModern"
+#define kButtonFont @"FilmotypeHarmony"
 
   // animation constants
-#define kRotateWait 0.05f
+#define kRotateWait 0.06f
 #define kConstantTime 0.175f // was 0.15f
 #define kAnimateHoverTime 0.775f
 #define kDoubleTapTime 0.225f
@@ -280,7 +282,7 @@ typedef enum passPlayOrDoneButton {
 
   // date stuff
 -(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date;
--(NSString *)returnLastPlayedStringFromDate:(NSDate *)date;
+-(NSString *)returnLastPlayedStringFromDate:(NSDate *)date started:(BOOL)started;
 
   // view stuff
 -(void)addGradientToView:(UIView *)thisView WithColour:(UIColor *)colour andUpsideDown:(BOOL)upsideDown;

@@ -12,7 +12,8 @@
 
 #define kMinusForName 425.f
 #define kMinusForScore 350.f
-#define kLabelFontSize kIsIPhone ? 14.f : 18.f
+#define kPlayerLabelFontSize (kIsIPhone ? 20.f : 24.f)
+#define kLabelFontSize (kIsIPhone ? 14.f : 18.f)
 
 @implementation Bar {
   NSUInteger _rotationFromDevice;
@@ -168,33 +169,37 @@
   
   self.player1Name = [[Label alloc] initWithName:@"player1Name"
                                     andFontColor:[SKColor whiteColor]
-                                     andFontSize:kLabelFontSize
+                                     andFontSize:kPlayerLabelFontSize
                                      andPosition:CGPointMake(self.size.width - kMinusForName, kLabelYPosition * 10)
                                     andZPosition:kZPositionTopBarLabel
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player1Name forKey:self.player1Name.name];
   self.player2Name = [[Label alloc] initWithName:@"player2Name"
                                     andFontColor:[SKColor whiteColor]
-                                     andFontSize:kLabelFontSize
+                                     andFontSize:kPlayerLabelFontSize
                                      andPosition:CGPointMake(self.size.width - kMinusForName, kLabelYPosition * 7)
                                     andZPosition:kZPositionTopBarLabel
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player2Name forKey:self.player2Name.name];
   self.player3Name = [[Label alloc] initWithName:@"player3Name"
                                     andFontColor:[SKColor whiteColor]
-                                     andFontSize:kLabelFontSize
+                                     andFontSize:kPlayerLabelFontSize
                                      andPosition:CGPointMake(self.size.width - kMinusForName, kLabelYPosition * 4)
                                     andZPosition:kZPositionTopBarLabel
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player3Name forKey:self.player3Name.name];
   self.player4Name = [[Label alloc] initWithName:@"player4Name"
                                     andFontColor:[SKColor whiteColor]
-                                     andFontSize:kLabelFontSize
+                                     andFontSize:kPlayerLabelFontSize
                                      andPosition:CGPointMake(self.size.width - kMinusForName, kLabelYPosition * 1)
                                     andZPosition:kZPositionTopBarLabel
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.player4Name forKey:self.player4Name.name];
   self.playerNameLabels = @[self.player1Name, self.player2Name, self.player3Name, self.player4Name];
+  
+  for (Label *label in self.playerNameLabels) {
+    label.fontName = kPlayerNameFont;
+  }
   
   self.player1Score = [[Label alloc] initWithName:@"player1Score"
                                      andFontColor:[SKColor whiteColor]
@@ -424,7 +429,7 @@
   }
 }
 
-#pragma mark - label methods
+#pragma mark - label view methods
 
 -(void)updateLabelNamed:(NSString *)name withText:(NSString *)text andColour:(UIColor *)colour {
   Label *label = [self.allLabels valueForKey:name];

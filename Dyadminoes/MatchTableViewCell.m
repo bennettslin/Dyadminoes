@@ -16,6 +16,7 @@
 #define kLabelWidth (kIsIPhone ? 54.f : 109.f)
 #define kPlayerLabelHeightPadding 7.5f
 #define kPlayerLabelWidthPadding 22.5f
+#define kMaxNumPlayers 4
 
 @interface MatchTableViewCell ()
 
@@ -59,13 +60,15 @@
   
   for (int i = 0; i < 4; i++) {
     UILabel *label = self.playerLabelsArray[i];
-    label.font = [UIFont fontWithName:@"FilmotypeModern" size:kIsIPhone ? 12.f : 24.f];
+    label.font = [UIFont fontWithName:kPlayerNameFont size:kIsIPhone ? 18.f : 28.f];
     BackgroundView *labelView = self.playerLabelViewsArray[i];
     [self insertSubview:labelView belowSubview:label];
   }
   
   self.lastPlayedLabel.adjustsFontSizeToFitWidth = YES;
-  self.winnerLabel.font = [UIFont fontWithName:@"FilmotypeHarmony" size:kIsIPhone ? 12.f : 24.f];
+  self.lastPlayedLabel.frame = CGRectMake(self.lastPlayedLabel.frame.origin.x, (self.frame.size.height / 10) * 11,
+                                          self.lastPlayedLabel.frame.size.width, self.lastPlayedLabel.frame.size.height);
+  self.winnerLabel.font = [UIFont fontWithName:kButtonFont size:kIsIPhone ? 12.f : 24.f];
   self.winnerLabel.adjustsFontSizeToFitWidth = YES;
   
     // selected colour
@@ -144,9 +147,177 @@
       self.backgroundColor = [[UIColor whiteColor] colorWithAlphaComponent:0.8f];
       
         // game still in play, so lastPlayed label shows time since last played
-      self.lastPlayedLabel.text = [self returnLastPlayedStringFromDate:self.myMatch.lastPlayed];
+      self.lastPlayedLabel.text = [self returnLastPlayedStringFromDate:self.myMatch.lastPlayed
+                                                               started:(self.myMatch.turns.count == 0 ? YES : NO)];
     }
   }
+  
+  [self determinePlayerLabelPositionsBasedOnScores];
 }
+
+#pragma mark - view helper methods
+
+-(void)determinePlayerLabelPositionsBasedOnScores {
+  
+  int tempPositionArray[kMaxNumPlayers] = {};
+  NSUInteger maxPosition = 1;
+  
+  for (int i = 0; i < kMaxNumPlayers; i++) {
+    if (i < self.myMatch.players.count) {
+      int iPosition = tempPositionArray[i];
+      iPosition++;
+      tempPositionArray[i] = iPosition;
+      
+      for (int j = 0; j < i; j++) {
+        if (i != j) {
+          Player *playerI = self.myMatch.players[i];
+          NSUInteger playerIScore = playerI.playerScore;
+          Player *playerJ = self.myMatch.players[j];
+          NSUInteger playerJScore = playerJ.playerScore;
+          if (playerIScore > playerJScore) {
+            
+              // ensure that no other player is tied with player J
+              // since that means player I was already incremented
+            BOOL alreadyIncremented = NO;
+            for (int k = 0; k < i; k++) {
+              if (k != i && k != j) {
+                if (tempPositionArray[k] == tempPositionArray[j]) {
+                  alreadyIncremented = YES;
+                }
+              }
+            }
+            
+            if (!alreadyIncremented) {
+              int iPosition = tempPositionArray[i];
+              iPosition++;
+              tempPositionArray[i] = iPosition;
+            }
+
+            if (tempPositionArray[i] > maxPosition) {
+              maxPosition = tempPositionArray[i];
+            }
+
+          } else if (playerJScore > playerIScore) {
+            
+            BOOL alreadyIncremented = NO;
+            for (int k = 0; k < i; k++) {
+              if (k != i && k != j) {
+                if (tempPositionArray[k] == tempPositionArray[i]) {
+                  alreadyIncremented = YES;
+                }
+              }
+            }
+            
+            if (!alreadyIncremented) {
+              int jPosition = tempPositionArray[j];
+              jPosition++;
+              tempPositionArray[j] = jPosition;
+            }
+            
+            if (tempPositionArray[j] > maxPosition) {
+              maxPosition = tempPositionArray[j];
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for (int i = 0; i < kMaxNumPlayers; i++) {
+    NSLog(@"Player %i position is %i", i, tempPositionArray[i]);
+
+    UILabel *playerLabel = self.playerLabelsArray[i];
+    BackgroundView *labelView = self.playerLabelViewsArray[i];
+    NSUInteger position = tempPositionArray[i];
+
+    playerLabel.frame = CGRectMake(playerLabel.frame.origin.x, playerLabel.frame.origin.y,
+                                   playerLabel.frame.size.width, [self labelHeightForMaxPosition:maxPosition andPlayerPosition:position]);
+    labelView.center = playerLabel.center;
+  }
+}
+
+  // draws staves
+-(void)drawRect:(CGRect)rect {
+  [super drawRect:rect];
+
+  CGFloat cellHeight = self.frame.size.height;
+  CGFloat cellWidth = self.frame.size.width;
+
+  CGFloat staveYHeight = cellHeight / 10;
+  CGFloat staveXBuffer = 20.f;
+  
+  for (int i = 0; i < 5; i++) {
+    
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSetStrokeColorWithColor(context, [UIColor blackColor].CGColor);
+    CGContextSetLineWidth(context, 1.f);
+    
+    CGFloat yPosition = staveYHeight * (i + 3);
+    
+    CGContextMoveToPoint(context, staveXBuffer, yPosition); //start at this point
+    CGContextAddLineToPoint(context, cellWidth - staveXBuffer, yPosition); //draw to this point
+    
+      // and now draw the Path!
+    CGContextStrokePath(context);
+    
+  }
+}
+
+-(CGFloat)labelHeightForMaxPosition:(NSUInteger)maxPosition andPlayerPosition:(NSUInteger)playerPosition {
+  CGFloat cellHeight = self.frame.size.height;
+  CGFloat staveYHeight = cellHeight / 10;
+  CGFloat multiplier;
+  
+  switch (maxPosition) {
+    case 4:
+      switch (playerPosition) {
+        case 4:
+          multiplier = 2;
+          break;
+        case 3:
+          multiplier = 4;
+          break;
+        case 2:
+          multiplier = 6;
+          break;
+        case 1:
+          multiplier = 8;
+          break;
+      }
+      break;
+    case 3:
+      switch (playerPosition) {
+        case 3:
+          multiplier = 3;
+          break;
+        case 2:
+          multiplier = 5;
+          break;
+        case 1:
+          multiplier = 7;
+          break;
+      }
+      break;
+    case 2:
+      switch (playerPosition) {
+        case 2:
+          multiplier = 4;
+          break;
+        case 1:
+          multiplier = 6;
+          break;
+      }
+      break;
+    case 1:
+      multiplier = 5;
+      break;
+    default:
+      multiplier = 0;
+      break;
+  }
+  return (multiplier + 1) * staveYHeight + (kPlayerLabelWidthPadding * 0.1f); // corrects for vertical adjustment of text
+}
+
+
 
 @end

@@ -72,7 +72,7 @@
   return [NSString stringWithFormat:@"Game ended %@.", [dateFormatter stringFromDate:date]];
 }
 
--(NSString *)returnLastPlayedStringFromDate:(NSDate *)date {
+-(NSString *)returnLastPlayedStringFromDate:(NSDate *)date started:(BOOL)started {
   NSDate *startDate = date;
   NSDate *endDate = [NSDate date];
   
@@ -122,7 +122,9 @@
     dateComponent = [NSString stringWithFormat:@"%i %@", componentQuantity, dateComponent];
   }
   
-  return [NSString stringWithFormat:@"Last played %@ ago.", dateComponent];
+  return started ?
+      [NSString stringWithFormat:@"Started %@ ago.", dateComponent] :
+      [NSString stringWithFormat:@"Played %@ ago.", dateComponent];
 }
 
 #pragma mark - view stuff
