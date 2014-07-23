@@ -68,6 +68,8 @@
   BOOL _boardZoomedOut;
   BOOL _buttonsUpdatedThisTouch;
   
+  BOOL _zoomChangedCellsAlpha; // only used for pinch zoom
+  
   SnapPoint *_uponTouchDyadminoNode;
   DyadminoOrientation _uponTouchDyadminoOrientation;
   
@@ -115,6 +117,7 @@
 -(void)loadAfterNewMatchRetrieved {
   [self.mySoundEngine removeAllActions];
   
+  _zoomChangedCellsAlpha = NO;
   _rackExchangeInProgress = NO;
   _buttonPressed = nil;
   _hoveringDyadminoBeingCorrected = 0;
@@ -446,11 +449,35 @@
 }
 
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity {
-//  NSLog(@"pinch scale %.2f, velocity %.2f", scale, velocity);
-    // tweak these numbers
-  if ((scale < .8f && !_boardZoomedOut) || (scale > 1.25f && _boardZoomedOut)) {
+  
+    // leave this alone for now
+  /*
+  if (_boardZoomedOut) { // only > 1 scale matters
+    if (scale > 1.f && scale < kHighPinchScale) {
+      [_boardField changeAllBoardCellsGivenScale:(kHighPinchScale - scale) / (kHighPinchScale - 1)];
+      _zoomChangedCellsAlpha = YES;
+    }
+  } else { // only < 1 scale matters
+    if (scale > kLowPinchScale && scale < 1.f) {
+      [_boardField changeAllBoardCellsGivenScale:(1.f - scale) / (1 - kLowPinchScale)];
+      _zoomChangedCellsAlpha = YES;
+    }
+  }
+   */
+  
+  if ((scale < kLowPinchScale && !_boardZoomedOut) || (scale > kHighPinchScale && _boardZoomedOut)) {
     [self toggleBoardZoomWithTapCentering:NO andCenterLocation:CGPointZero];
   }
+}
+
+-(void)cancelPinch {
+  /*
+  if (_zoomChangedCellsAlpha) {
+    NSLog(@"touches ended, now changing to prezoom alpha");
+    [_boardField changeAllBoardCellsToPreZoomAlpha];
+    _zoomChangedCellsAlpha = NO;
+  }
+   */
 }
 
 -(void)handleDoubleTap {
@@ -487,7 +514,7 @@
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
   NSLog(@"%@, zPosition %.2f", _touchNode.name, _touchNode.zPosition);
-  
+
     //--------------------------------------------------------------------------
     /// 3a. button pressed
   
@@ -735,7 +762,7 @@
 
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     /// 1. first check whether to even register the touch ended
-
+  
     // this ensures no more than one touch at a time
   UITouch *thisTouch = [touches anyObject];
   _endTouchLocationToMeasureDoubleTap = [self findTouchLocationFromTouches:touches];
@@ -749,6 +776,7 @@
 }
 
 -(void)endTouchFromTouches:(NSSet *)touches {
+  
   if (_fieldActionInProgress) {
     return;
   }
@@ -825,6 +853,7 @@
     [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO  andUpdatingBoardBounds:NO];
   }
   
+//  _zoomChangedCellsAlpha = NO;
   _boardZoomedOut = _boardZoomedOut ? NO : YES;
   _boardField.zoomedOut = _boardZoomedOut;
   

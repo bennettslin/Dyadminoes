@@ -94,7 +94,11 @@
 }
 
 -(void)pinched:(UIPinchGestureRecognizer *)sender {
-  [self.myScene handlePinchGestureWithScale:sender.scale andVelocity:sender.velocity];
+  if ([sender state] == UIGestureRecognizerStateEnded) {
+    [self.myScene cancelPinch];
+  } else {
+    [self.myScene handlePinchGestureWithScale:sender.scale andVelocity:sender.velocity];
+  }
 }
 
 -(void)doubleTapped:(UITapGestureRecognizer *)sender {

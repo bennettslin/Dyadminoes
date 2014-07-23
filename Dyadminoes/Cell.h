@@ -18,6 +18,9 @@
 @property (nonatomic) CGPoint cellNodePosition;
 @property (nonatomic) CGSize cellNodeSize;
 
+  // FIXME: not really necessary now, since they're all 1.f
+@property (nonatomic) CGFloat preZoomAlpha;
+
 @property (strong, nonatomic) NSString *name;
 
 @property (strong, nonatomic) SnapPoint *boardSnapPointTwelveOClock;
@@ -34,6 +37,7 @@
 @property (strong, nonatomic) SKLabelNode *pcLabel;
 
 @property (nonatomic) BOOL currentlyColouringNeighbouringCells;
+@property (nonatomic) NSInteger colouredByNeighbouringCells; // this is only used for fading cells during pinch zoom back in
 
   // called to instantiate new cell
 -(id)initWithBoard:(Board *)board

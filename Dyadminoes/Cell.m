@@ -26,6 +26,8 @@
     
     self.board = board;
     self.cellNodeTexture = texture;
+    self.preZoomAlpha = -1;
+    self.colouredByNeighbouringCells = 0;
 
     [self resetForNewMatch];
     [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin];
@@ -58,8 +60,10 @@
 -(void)resetForNewMatch {
   
   self.currentlyColouringNeighbouringCells = NO;
+  self.colouredByNeighbouringCells = 0;
   self.myDyadmino = nil;
   self.myPC = -1;
+  self.preZoomAlpha = -1;
   
     // reset colour
   _red = 0.2f;
@@ -177,8 +181,8 @@
   _blue += blue;
   _alpha += alpha;
     //  NSLog(@"%.2f, %.2f, %.2f, %.2f", _red, _green, _blue, _alpha);
-  self.cellNode.color = [SKColor colorWithRed:_red green:_green blue:_blue alpha:1.f];
-  self.cellNode.alpha = _alpha;
+  self.cellNode.color = [SKColor colorWithRed:_red green:_green blue:_blue alpha:_alpha];
+//  self.cellNode.alpha = _alpha;
 }
 
 -(void)resizeCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin {

@@ -58,6 +58,10 @@
 #define kPlayerNameFont @"FilmotypeModern"
 #define kButtonFont @"FilmotypeHarmony"
 
+  // pinch gesture constants
+#define kLowPinchScale 0.8f
+#define kHighPinchScale 1.25f
+
   // animation constants
 #define kRotateWait 0.06f
 #define kConstantTime 0.175f // was 0.15f

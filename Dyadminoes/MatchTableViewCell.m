@@ -17,6 +17,12 @@
 #define kPlayerLabelHeightPadding 7.5f
 #define kPlayerLabelWidthPadding 22.5f
 #define kMaxNumPlayers 4
+#define kStaveXBuffer 20.f
+
+#define kCellHeight self.frame.size.height
+#define kCellWidth self.frame.size.width
+#define kStaveYHeight (kCellHeight / 10)
+#define kStaveWidthDivision ((self.frame.size.width - (kStaveXBuffer * 2)) / 9)
 
 @interface MatchTableViewCell ()
 
@@ -60,7 +66,7 @@
   
   for (int i = 0; i < 4; i++) {
     UILabel *label = self.playerLabelsArray[i];
-    label.font = [UIFont fontWithName:kPlayerNameFont size:kIsIPhone ? 18.f : 28.f];
+    label.font = [UIFont fontWithName:kPlayerNameFont size:kIsIPhone ? 24.f : 32.f];
     BackgroundView *labelView = self.playerLabelViewsArray[i];
     [self insertSubview:labelView belowSubview:label];
   }
@@ -73,6 +79,8 @@
   
     // selected colour
   UIView *customColorView = [[UIView alloc] init];
+  customColorView.layer.cornerRadius = kCornerRadius;
+  customColorView.clipsToBounds = YES;
   customColorView.backgroundColor = [UIColor colorWithRed:1.f green:1.f blue:.8f alpha:.8f];
   self.selectedBackgroundView = customColorView;
   
@@ -80,7 +88,7 @@
 }
 
 -(void)setProperties {
-  
+
   self.winnerLabel.text = @"";
   
   if (self.myMatch) {
@@ -96,14 +104,14 @@
       BackgroundView *labelView = self.playerLabelViewsArray[i];
       UILabel *scoreLabel = self.scoreLabelsArray[i];
 
-        // these should be loaded only once
-        // put two spaces in front of player name
       playerLabel.text = player ? player.playerName : @"";
       [playerLabel sizeToFit];
       
         // frame width can never be greater than maximum label width
       if (playerLabel.frame.size.width > kLabelWidth) {
-        playerLabel.frame = CGRectMake(playerLabel.frame.origin.x, playerLabel.frame.origin.y, kLabelWidth, playerLabel.frame.size.height);
+        playerLabel.frame = CGRectMake(kStaveWidthDivision + (i * kStaveWidthDivision * 2), playerLabel.frame.origin.y, kLabelWidth, playerLabel.frame.size.height);
+      } else {
+        playerLabel.frame = CGRectMake(kStaveWidthDivision + (i * kStaveWidthDivision * 2), playerLabel.frame.origin.y, playerLabel.frame.size.width, playerLabel.frame.size.height);
       }
       
         // make font size smaller if it can't fit
@@ -131,6 +139,7 @@
       }
       labelView.backgroundColourCanBeChanged = NO;
       
+        // score label
       scoreLabel.text = player ? [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
     }
     
@@ -224,27 +233,25 @@
   }
 
   for (int i = 0; i < kMaxNumPlayers; i++) {
-    NSLog(@"Player %i position is %i", i, tempPositionArray[i]);
+//    NSLog(@"Player %i position is %i", i, tempPositionArray[i]);
 
     UILabel *playerLabel = self.playerLabelsArray[i];
     BackgroundView *labelView = self.playerLabelViewsArray[i];
+    UILabel *scoreLabel = self.scoreLabelsArray[i];
     NSUInteger position = tempPositionArray[i];
 
-    playerLabel.frame = CGRectMake(playerLabel.frame.origin.x, playerLabel.frame.origin.y,
-                                   playerLabel.frame.size.width, [self labelHeightForMaxPosition:maxPosition andPlayerPosition:position]);
+    playerLabel.frame = CGRectMake(playerLabel.frame.origin.x, [self labelHeightForMaxPosition:maxPosition andPlayerPosition:position],
+                                   playerLabel.frame.size.width, playerLabel.frame.size.height);
     labelView.center = playerLabel.center;
+    scoreLabel.frame = CGRectMake(playerLabel.frame.origin.x + (playerLabel.frame.size.width / 2), playerLabel.frame.origin.y + kStaveYHeight * 1.75, scoreLabel.frame.size.width, scoreLabel.frame.size.height);
   }
 }
 
   // draws staves
 -(void)drawRect:(CGRect)rect {
+  
+  NSLog(@"drawRect called");
   [super drawRect:rect];
-
-  CGFloat cellHeight = self.frame.size.height;
-  CGFloat cellWidth = self.frame.size.width;
-
-  CGFloat staveYHeight = cellHeight / 10;
-  CGFloat staveXBuffer = 20.f;
   
   for (int i = 0; i < 5; i++) {
     
@@ -252,72 +259,34 @@
     CGContextSetStrokeColorWithColor(context, [UIColor blackColor].CGColor);
     CGContextSetLineWidth(context, 1.f);
     
-    CGFloat yPosition = staveYHeight * (i + 3);
-    
-    CGContextMoveToPoint(context, staveXBuffer, yPosition); //start at this point
-    CGContextAddLineToPoint(context, cellWidth - staveXBuffer, yPosition); //draw to this point
+    CGFloat yPosition = kStaveYHeight * (i + 3);
+    CGContextMoveToPoint(context, kStaveXBuffer, yPosition); //start at this point
+    CGContextAddLineToPoint(context, kCellWidth - kStaveXBuffer, yPosition); //draw to this point
     
       // and now draw the Path!
     CGContextStrokePath(context);
-    
   }
 }
 
 -(CGFloat)labelHeightForMaxPosition:(NSUInteger)maxPosition andPlayerPosition:(NSUInteger)playerPosition {
-  CGFloat cellHeight = self.frame.size.height;
-  CGFloat staveYHeight = cellHeight / 10;
-  CGFloat multiplier;
+
+  CGFloat multiplier = 0;
   
   switch (maxPosition) {
     case 4:
-      switch (playerPosition) {
-        case 4:
-          multiplier = 2;
-          break;
-        case 3:
-          multiplier = 4;
-          break;
-        case 2:
-          multiplier = 6;
-          break;
-        case 1:
-          multiplier = 8;
-          break;
-      }
+      multiplier = 10 - (playerPosition) - 1;
       break;
     case 3:
-      switch (playerPosition) {
-        case 3:
-          multiplier = 3;
-          break;
-        case 2:
-          multiplier = 5;
-          break;
-        case 1:
-          multiplier = 7;
-          break;
-      }
+      multiplier = 10 - (playerPosition) - 1.5;
       break;
     case 2:
-      switch (playerPosition) {
-        case 2:
-          multiplier = 4;
-          break;
-        case 1:
-          multiplier = 6;
-          break;
-      }
+      multiplier = 10 - (playerPosition) - 2;
       break;
     case 1:
-      multiplier = 5;
-      break;
-    default:
-      multiplier = 0;
+      multiplier = 10 - (playerPosition) - 2.5;
       break;
   }
-  return (multiplier + 1) * staveYHeight + (kPlayerLabelWidthPadding * 0.1f); // corrects for vertical adjustment of text
+  return (multiplier - 2.5) * kStaveYHeight - (kPlayerLabelHeightPadding * 0.25f);
 }
-
-
 
 @end

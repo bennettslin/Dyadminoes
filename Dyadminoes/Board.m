@@ -82,7 +82,9 @@
     self.pivotAroundGuide = pivotAroundGuide;
     self.pivotAroundGuide.name = @"pivotAroundGuide";
 
+      // zoom background node is always there, if 
     [self initLoadBackgroundImage];
+    [self addChild:self.zoomBackgroundNode];
   }
   return self;
 }
@@ -106,17 +108,16 @@
   for (Cell *cell in tempAllCells) {
     [self ignoreCell:cell];
     [cell resetForNewMatch];
-    
     cell.cellNode.hidden = NO;
   }
   NSLog(@"self.all cells count is %i, dequeued cells is %i", self.allCells.count, self.dequeuedCells.count);
   NSLog(@"self snappoints count is %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
   
   self.zoomedOut = NO;
-  self.zoomBackgroundNode.hidden = YES;
-  if (self.zoomBackgroundNode.parent) {
-    [self.zoomBackgroundNode removeFromParent];
-  }
+//  self.zoomBackgroundNode.hidden = YES;
+//  if (self.zoomBackgroundNode.parent) {
+//    [self.zoomBackgroundNode removeFromParent];
+//  }
 }
 
 #pragma mark - board position methods
@@ -311,13 +312,13 @@
   if (self.zoomedOut) {
     for (Cell *cell in self.allCells) {
       [cell resizeCell:YES withHexOrigin:_hexOrigin];
-//      cell.cellNode.hidden = YES;
+//      if (cell.colouredByNeighbouringCells <= 0) {
+      cell.cellNode.hidden = YES;
+//      }
     }
 
     [self centerBoardOnDyadminoesAverageCenter];
     
-    self.zoomBackgroundNode.hidden = NO;
-    [self addChild:self.zoomBackgroundNode];
       // zoom back in
   } else {
     for (Cell *cell in self.allCells) {
@@ -332,9 +333,6 @@
       _redoLayoutAfterZoom = NO;
     }
     [self.delegate correctBoardForPositionAfterZoom];
-    
-    self.zoomBackgroundNode.hidden = YES;
-    [self.zoomBackgroundNode removeFromParent];
   }
 }
 
@@ -772,6 +770,11 @@
 //      NSLog(@"for pc %i, redVal %.2f, greenVal %.2f, blueVal %.2f", pc, redVal, greenVal, blueVal);
     
     [cellToColour addColourWithRed:redVal green:greenVal blue:blueVal alpha:alphaVal];
+    if (sign) {
+      cellToColour.colouredByNeighbouringCells += 1;
+    } else {
+      cellToColour.colouredByNeighbouringCells -= 1;
+    }
   }
 }
 
@@ -984,6 +987,49 @@
   self.zoomBackgroundNode.zPosition = kZPositionBackgroundNode;
   
   NSLog(@"background image texture loaded");
+}
+
+-(void)changeAllBoardCellsGivenScale:(CGFloat)scale {
+    // board doesn't care about pinch scale
+    // scale here is between 0 and 1
+  
+    // cells
+  for (Cell *cell in self.allCells) {
+    if ([cell isKindOfClass:[Cell class]]) {
+      
+      if (cell.preZoomAlpha == -1) {
+        cell.preZoomAlpha = cell.cellNode.alpha;
+      }
+      
+        // only show surrounding coloured cells when zoomed out
+      if (_zoomedOut) {
+        
+        if (cell.colouredByNeighbouringCells > 0) {
+//              NSLog(@"cell coloured by %i cells", cell.colouredByNeighbouringCells);
+          cell.cellNode.alpha = 1 - scale;
+        }
+      } else {
+          cell.cellNode.alpha = 1 - scale;
+      }
+    }
+  }
+}
+
+-(void)changeAllBoardCellsToPreZoomAlpha {
+  
+//  NSLog(@"change all board cells to pre zoom alpha called");
+  for (Cell *cell in self.allCells) {
+    if ([cell isKindOfClass:[Cell class]]) {
+//      NSLog(@"changed back to preZoom alpha %.2f", cell.preZoomAlpha);
+      
+      if (_zoomedOut) {
+        cell.cellNode.alpha = 0.f;
+      } else {
+        cell.cellNode.alpha = 1.f;
+        cell.preZoomAlpha = -1;
+      }
+    }
+  }
 }
 
 #pragma mark - legality methods

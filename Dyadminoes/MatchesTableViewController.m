@@ -49,6 +49,8 @@
 @property (weak, nonatomic) IBOutlet UIButton *optionsButton;
 @property (weak, nonatomic) IBOutlet UIButton *aboutButton;
 
+@property (strong, nonatomic) NSArray *allButtons;
+
 @property (strong, nonatomic) UIViewController *childVC;
 
 @property (strong, nonatomic) UIButton *highlightedBottomButton;
@@ -85,7 +87,7 @@
   self.tableView.backgroundColor = [UIColor clearColor];
   
     // eventually set separator
-//  self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+  self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
   
   self.activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
   self.activityIndicator.backgroundColor = [[UIColor darkGrayColor] colorWithAlphaComponent:0.8f];
@@ -100,7 +102,7 @@
   
   self.bottomBar.backgroundColor = kFieldPurple;
   [self addGradientToView:self.bottomBar WithColour:self.bottomBar.backgroundColor andUpsideDown:NO];
-  self.topBar.backgroundColor = kDarkBlue;
+  self.topBar.backgroundColor = kFieldPurple;
   [self addGradientToView:self.topBar WithColour:self.topBar.backgroundColor andUpsideDown:YES];
   
   [self addShadowToView:self.topBar upsideDown:NO];
@@ -139,6 +141,12 @@
       // Create and configure the scene
   self.myScene = [MyScene sceneWithSize:self.view.bounds.size];
   self.myScene.scaleMode = SKSceneScaleModeAspectFill;
+  
+  self.allButtons = @[self.selfGameButton, self.PnPGameButton, self.GCGameButton, self.helpButton, self.storeButton, self.rankButton, self.optionsButton, self.aboutButton];
+  
+  for (UIButton *button in self.allButtons) {
+    button.titleLabel.font = [UIFont fontWithName:kButtonFont size:(kIsIPhone ? 36 : 48)];
+  }
   
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(getModel) name:UIApplicationWillEnterForegroundNotification object:nil];
 }
