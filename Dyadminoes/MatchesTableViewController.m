@@ -21,12 +21,11 @@
 #import "RankViewController.h"
 #import "OptionsViewController.h"
 #import "AboutViewController.h"
-
 #import "Match.h"
 
-#define kTableViewXMargin (kIsIPhone ? 20.f : 20.f)
-#define kTableViewTopMargin (kIsIPhone ? 122.f : 122.f)
-#define kTableViewBottomMargin (kIsIPhone ? 90.f : 90.f)
+#define kTableViewXMargin (kIsIPhone ? 25.f : 60.f)
+//#define kTableViewTopMargin (kIsIPhone ? 122.f : 122.f)
+//#define kTableViewBottomMargin (kIsIPhone ? 90.f : 90.f)
 #define kMainTopBarHeight (kIsIPhone ? 64.f : 86.f)
 #define kMainBottomBarHeight (kIsIPhone ? 64.f : 90.f)
 #define kViewControllerSpeed 0.225f
@@ -35,6 +34,8 @@
 @interface MatchesTableViewController () <SceneViewDelegate, DebugDelegate, MatchCellDelegate, SoloDelegate, PnPDelegate>
 
 @property (strong, nonatomic) Model *myModel;
+
+@property (weak, nonatomic) IBOutlet UILabel *titleLogo; // make custom image eventually
 
 @property (weak, nonatomic) IBOutlet UIView *topBar;
 @property (weak, nonatomic) IBOutlet UIView *bottomBar;
@@ -69,6 +70,8 @@
 
 @property (strong, nonatomic) MyScene *myScene;
 
+@property (strong, nonatomic) UIView *backgroundView;
+
 @end
 
 @implementation MatchesTableViewController {
@@ -81,13 +84,25 @@
   
   [super viewDidLoad];
   
-  self.view.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"KeyboardBackground"]];
-  self.tableView.layer.cornerRadius = kCornerRadius;
-  self.tableView.clipsToBounds = YES;
-  self.tableView.backgroundColor = [UIColor clearColor];
+  _screenWidth = [UIScreen mainScreen].bounds.size.width;
+  _screenHeight = [UIScreen mainScreen].bounds.size.height;
   
-    // eventually set separator
+//  self.view.backgroundColor = [UIColor lightGrayColor];
+  
+  [self insertImageBackground];
+  [self insertGradientBackground];
+  
+  self.titleLogo.font = [UIFont fontWithName:kPlayerNameFont size:(kIsIPhone ? 36.f : 60.f)];
+  
+//  self.tableView.layer.cornerRadius = kCornerRadius;
+//  self.tableView.clipsToBounds = YES;
+  self.tableView.backgroundColor = [UIColor clearColor];
   self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+//  self.tableView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
+  self.tableView.showsVerticalScrollIndicator = NO;
+  
+    // doesn't know screen width or height until viewWillAppear
+  self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
   
   self.activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
   self.activityIndicator.backgroundColor = [[UIColor darkGrayColor] colorWithAlphaComponent:0.8f];
@@ -96,9 +111,6 @@
   self.activityIndicator.clipsToBounds = YES;
   self.activityIndicator.center = self.view.center;
   [self.view addSubview:self.activityIndicator];
-  
-  _screenWidth = [UIScreen mainScreen].bounds.size.width;
-  _screenHeight = [UIScreen mainScreen].bounds.size.height;
   
   self.bottomBar.backgroundColor = kFieldPurple;
   [self addGradientToView:self.bottomBar WithColour:self.bottomBar.backgroundColor andUpsideDown:NO];
@@ -145,7 +157,7 @@
   self.allButtons = @[self.selfGameButton, self.PnPGameButton, self.GCGameButton, self.helpButton, self.storeButton, self.rankButton, self.optionsButton, self.aboutButton];
   
   for (UIButton *button in self.allButtons) {
-    button.titleLabel.font = [UIFont fontWithName:kButtonFont size:(kIsIPhone ? 36 : 48)];
+    button.titleLabel.font = [UIFont fontWithName:kButtonFont size:(kIsIPhone ? 28 : 48)];
   }
   
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(getModel) name:UIApplicationWillEnterForegroundNotification object:nil];
@@ -153,13 +165,15 @@
 
 -(void)viewWillAppear:(BOOL)animated {
   
+//  [self animate:self.backgroundView and:self.backgroundView];
+  
   _overlayEnabled = YES;
   self.myModel = [Model getMyModel];
   if (!self.myModel) {
     self.myModel = [Model new];
     [self.myModel instantiateHardCodedMatchesForDebugPurposes];
   }
-  
+
   [self.myModel sortMyMatches];
   [self.tableView reloadData];
 }
@@ -175,7 +189,7 @@
 }
 
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-  return kIsIPhone ? 90.f : 140.f; // cell height 90.f + buffer 50.f
+  return kIsIPhone ? 90.f : 90.f + kCellSeparatorBuffer;
 }
 
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -344,14 +358,14 @@
 
 -(void)slideOutTableview {
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.tableView.frame = CGRectMake(kTableViewXMargin, _screenHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kTableViewTopMargin - kTableViewBottomMargin);
+        self.tableView.frame = CGRectMake(kTableViewXMargin, _screenHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
   } completion:^(BOOL finished) {
   }];
 }
 
 -(void)slideInTableview {
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-    self.tableView.frame = CGRectMake(kTableViewXMargin, kTableViewTopMargin, _screenWidth - kTableViewXMargin * 2, _screenHeight - kTableViewTopMargin - kTableViewBottomMargin);
+    self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
   } completion:^(BOOL finished) {
   }];
 }
@@ -440,6 +454,70 @@
   [self.myModel sortMyMatches];
   [self.tableView reloadData];
   [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
+}
+
+#pragma mark - background view methods
+
+-(void)animate:(UIView *)backgroundView withInitialDelay:(BOOL)delay {
+  
+  CGFloat seconds = 10;
+  CGFloat delaySeconds = delay ? (seconds / 2) : 0;
+
+  [UIView animateWithDuration:seconds delay:delaySeconds options:UIViewAnimationOptionCurveLinear animations:^{
+    backgroundView.frame = CGRectOffset(backgroundView.frame, backgroundView.frame.size.width / 2, backgroundView.frame.size.height / 2);
+    
+  } completion:^(BOOL finished) {
+     if (finished) {
+
+       backgroundView.frame = CGRectOffset(backgroundView.frame, -backgroundView.frame.size.width / 2, -backgroundView.frame.size.height / 2);
+       [self.view sendSubviewToBack:backgroundView];
+       [self animate:backgroundView withInitialDelay:NO];
+     }
+  }];
+}
+
+-(void)insertImageBackground {
+  UIView *backgroundView1 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, _screenWidth * 2, _screenHeight * 2)];
+  backgroundView1.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"MaryFloral.jpg"]];
+//  backgroundView1.layer.borderColor = [UIColor greenColor].CGColor;
+//  backgroundView1.layer.borderWidth = 5.f;
+  backgroundView1.center = CGPointMake(_screenWidth, _screenHeight);
+//  
+//  UIView *backgroundView2 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, _screenWidth * 2, _screenHeight * 2)];
+//  backgroundView2.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"MaryFloral.jpg"]];
+//  backgroundView2.layer.borderColor = [UIColor redColor].CGColor;
+//  backgroundView2.layer.borderWidth = 5.f;
+//  backgroundView2.center = CGPointZero;
+  
+  [self.view insertSubview:backgroundView1 belowSubview:self.tableView];
+//  [self.view insertSubview:backgroundView2 belowSubview:backgroundView1];
+  backgroundView1.frame = CGRectOffset(backgroundView1.frame, -backgroundView1.frame.size.width / 2, -backgroundView1.frame.size.height / 2);
+//  backgroundView2.frame = CGRectOffset(backgroundView2.frame, -backgroundView2.frame.size.width / 2, -backgroundView2.frame.size.height / 2);
+  
+  [self animate:backgroundView1 withInitialDelay:NO];
+//  [self animate:backgroundView2 withInitialDelay:YES];
+}
+
+-(void)insertGradientBackground {
+    // background gradient
+  UIView *gradientView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, _screenWidth, _screenHeight)];
+  
+  UIColor *darkGradient;
+  UIColor *lightGradient;
+  
+  darkGradient = [[UIColor darkGrayColor] colorWithAlphaComponent:1.f];
+  lightGradient = [[UIColor lightGrayColor] colorWithAlphaComponent:0.4f];
+  
+  CAGradientLayer *gradientLayer = [CAGradientLayer layer];
+  gradientLayer.frame = gradientView.frame;
+  gradientLayer.colors = @[(id)darkGradient.CGColor, (id)lightGradient.CGColor, (id)lightGradient.CGColor, (id)darkGradient.CGColor];
+  gradientLayer.startPoint = CGPointMake(0.3, 0.0);
+  gradientLayer.endPoint = CGPointMake(0.7, 1.0);
+  gradientLayer.locations = @[@0.f, @0.3f, @0.7f, @1.f];
+  
+  [gradientView.layer addSublayer:gradientLayer];
+  gradientLayer.zPosition = -1;
+  [self.view insertSubview:gradientView belowSubview:self.tableView];
 }
 
 #pragma mark - delegate methods

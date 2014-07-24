@@ -87,9 +87,9 @@
   [self.mySceneView addGestureRecognizer:self.pinchGestureRecogniser];
   
     // FIXME: disabled double tap gesture recogniser for now
-  self.doubleTapGestureRecogniser = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapped:)];
-  self.doubleTapGestureRecogniser.delegate = self;
-  self.doubleTapGestureRecogniser.numberOfTapsRequired = 2;
+//  self.doubleTapGestureRecogniser = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapped:)];
+//  self.doubleTapGestureRecogniser.delegate = self;
+//  self.doubleTapGestureRecogniser.numberOfTapsRequired = 2;
 //  [self.mySceneView addGestureRecognizer:self.doubleTapGestureRecogniser];
 }
 
@@ -101,15 +101,11 @@
   }
 }
 
--(void)doubleTapped:(UITapGestureRecognizer *)sender {
-  [self.myScene handleDoubleTap];
-}
+//-(void)doubleTapped:(UITapGestureRecognizer *)sender {
+//  [self.myScene handleDoubleTap];
+//}
 
 -(void)cancelPinchGestureRecogniser {
-
-}
-
--(void)cancelDoubleTapGestureRecogniser {
 
 }
 

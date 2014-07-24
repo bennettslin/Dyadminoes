@@ -24,7 +24,7 @@
 @property (weak, nonatomic) id <SceneViewDelegate> delegate;
 
 @property (strong, nonatomic) UIPinchGestureRecognizer *pinchGestureRecogniser;
-@property (strong, nonatomic) UITapGestureRecognizer *doubleTapGestureRecogniser;
+//@property (strong, nonatomic) UITapGestureRecognizer *doubleTapGestureRecogniser;
 
 @end
 

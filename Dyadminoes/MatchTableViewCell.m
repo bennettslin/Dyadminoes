@@ -10,19 +10,16 @@
 #import "NSObject+Helper.h"
 #import "Match.h"
 #import "Player.h"
-#import "BackgroundView.h"
+#import "CellBackgroundView.h"
+#import "StavesView.h"
 
   // TODO: verify this
-#define kLabelWidth (kIsIPhone ? 54.f : 109.f)
+#define kPlayerLabelWidth (kIsIPhone ? 54.f : 109.f)
 #define kPlayerLabelHeightPadding 7.5f
 #define kPlayerLabelWidthPadding 22.5f
+#define kScoreLabelWidth (kPlayerLabelWidthPadding / 2)
+#define kScoreLabelHeight (kScoreLabelWidth * 3)
 #define kMaxNumPlayers 4
-#define kStaveXBuffer 20.f
-
-#define kCellHeight self.frame.size.height
-#define kCellWidth self.frame.size.width
-#define kStaveYHeight (kCellHeight / 10)
-#define kStaveWidthDivision ((self.frame.size.width - (kStaveXBuffer * 2)) / 9)
 
 @interface MatchTableViewCell ()
 
@@ -31,10 +28,10 @@
 @property (weak, nonatomic) IBOutlet UILabel *player3Label;
 @property (weak, nonatomic) IBOutlet UILabel *player4Label;
 
-@property (strong, nonatomic) BackgroundView *player1LabelView;
-@property (strong, nonatomic) BackgroundView *player2LabelView;
-@property (strong, nonatomic) BackgroundView *player3LabelView;
-@property (strong, nonatomic) BackgroundView *player4LabelView;
+@property (strong, nonatomic) CellBackgroundView *player1LabelView;
+@property (strong, nonatomic) CellBackgroundView *player2LabelView;
+@property (strong, nonatomic) CellBackgroundView *player3LabelView;
+@property (strong, nonatomic) CellBackgroundView *player4LabelView;
 
 @property (weak, nonatomic) IBOutlet UILabel *score1Label;
 @property (weak, nonatomic) IBOutlet UILabel *score2Label;
@@ -54,21 +51,34 @@
 
 -(void)awakeFromNib {
   
+    // colour when cell is selected
+  UIView *customColorView = [[UIView alloc] init];
+  customColorView.backgroundColor = [UIColor colorWithRed:1.f green:1.f blue:.8f alpha:.8f];
+  self.selectedBackgroundView = customColorView;
+  
+  StavesView *stavesView = [[StavesView alloc] initWithFrame:CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, 90.f + kCellSeparatorBuffer)];
+  [self addSubview:stavesView];
+  
   self.playerLabelsArray = @[self.player1Label, self.player2Label, self.player3Label, self.player4Label];
   
-  self.player1LabelView = [[BackgroundView alloc] init];
-  self.player2LabelView = [[BackgroundView alloc] init];
-  self.player3LabelView = [[BackgroundView alloc] init];
-  self.player4LabelView = [[BackgroundView alloc] init];
+  self.player1LabelView = [[CellBackgroundView alloc] init];
+  self.player2LabelView = [[CellBackgroundView alloc] init];
+  self.player3LabelView = [[CellBackgroundView alloc] init];
+  self.player4LabelView = [[CellBackgroundView alloc] init];
   self.playerLabelViewsArray = @[self.player1LabelView, self.player2LabelView, self.player3LabelView, self.player4LabelView];
   
   self.scoreLabelsArray = @[self.score1Label, self.score2Label, self.score3Label, self.score4Label];
   
   for (int i = 0; i < 4; i++) {
-    UILabel *label = self.playerLabelsArray[i];
-    label.font = [UIFont fontWithName:kPlayerNameFont size:kIsIPhone ? 24.f : 32.f];
-    BackgroundView *labelView = self.playerLabelViewsArray[i];
-    [self insertSubview:labelView belowSubview:label];
+    UILabel *playerLabel = self.playerLabelsArray[i];
+    playerLabel.font = [UIFont fontWithName:kPlayerNameFont size:kIsIPhone ? 24.f : 32.f];
+    CellBackgroundView *labelView = self.playerLabelViewsArray[i];
+    [self insertSubview:labelView belowSubview:playerLabel];
+    
+    UILabel *scoreLabel = self.scoreLabelsArray[i];
+    scoreLabel.font = [UIFont fontWithName:kPlayerNameFont size:kIsIPhone ? 12.f : 20.f];
+    scoreLabel.textColor = [UIColor brownColor];
+    scoreLabel.frame = CGRectMake(scoreLabel.frame.origin.x, scoreLabel.frame.origin.y, kScoreLabelWidth, kScoreLabelHeight);
   }
   
   self.lastPlayedLabel.adjustsFontSizeToFitWidth = YES;
@@ -76,19 +86,30 @@
                                           self.lastPlayedLabel.frame.size.width, self.lastPlayedLabel.frame.size.height);
   self.winnerLabel.font = [UIFont fontWithName:kButtonFont size:kIsIPhone ? 12.f : 24.f];
   self.winnerLabel.adjustsFontSizeToFitWidth = YES;
-  
-    // selected colour
-  UIView *customColorView = [[UIView alloc] init];
-  customColorView.layer.cornerRadius = kCornerRadius;
-  customColorView.clipsToBounds = YES;
-  customColorView.backgroundColor = [UIColor colorWithRed:1.f green:1.f blue:.8f alpha:.8f];
-  self.selectedBackgroundView = customColorView;
-  
-  [self setProperties];
 }
 
 -(void)setProperties {
 
+  NSLog(@"setProperties");
+  
+//  UIView *stavesView = [[UIView alloc] init];
+//  UIGraphicsBeginImageContext(self.frame.size);
+//  CGContextRef context = UIGraphicsGetCurrentContext();
+//  for (int i = 0; i < 5; i++) {
+//    CGContextSetStrokeColorWithColor(context, [[UIColor brownColor] colorWithAlphaComponent:0.8f].CGColor);
+//    CGContextSetLineWidth(context, 1.f);
+//    
+//    CGFloat yPosition = kStaveYHeight * (i + 3);
+//    CGContextMoveToPoint(context, kStaveXBuffer, yPosition); //start at this point
+//    CGContextAddLineToPoint(context, kCellWidth - kStaveXBuffer, yPosition); //draw to this point
+//    
+//      // and now draw the Path!
+//    CGContextStrokePath(context);
+//  }
+//  UIGraphicsEndImageContext();
+//  [stavesView.layer renderInContext:context];
+//  [self addSubview:stavesView];
+  
   self.winnerLabel.text = @"";
   
   if (self.myMatch) {
@@ -101,23 +122,28 @@
       }
       
       UILabel *playerLabel = self.playerLabelsArray[i];
-      BackgroundView *labelView = self.playerLabelViewsArray[i];
+      CellBackgroundView *labelView = self.playerLabelViewsArray[i];
       UILabel *scoreLabel = self.scoreLabelsArray[i];
 
+        // score label
+      scoreLabel.text = player ? [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
+      scoreLabel.adjustsFontSizeToFitWidth = YES;
+      
+        // player label
       playerLabel.text = player ? player.playerName : @"";
       [playerLabel sizeToFit];
       
         // frame width can never be greater than maximum label width
-      if (playerLabel.frame.size.width > kLabelWidth) {
-        playerLabel.frame = CGRectMake(kStaveWidthDivision + (i * kStaveWidthDivision * 2), playerLabel.frame.origin.y, kLabelWidth, playerLabel.frame.size.height);
+      if (playerLabel.frame.size.width > kPlayerLabelWidth) {
+        playerLabel.frame = CGRectMake(kStaveXBuffer + kStaveWidthDivision + (i * kStaveWidthDivision * 2), playerLabel.frame.origin.y, kPlayerLabelWidth, playerLabel.frame.size.height);
       } else {
-        playerLabel.frame = CGRectMake(kStaveWidthDivision + (i * kStaveWidthDivision * 2), playerLabel.frame.origin.y, playerLabel.frame.size.width, playerLabel.frame.size.height);
+        playerLabel.frame = CGRectMake(kStaveXBuffer + kStaveWidthDivision + (i * kStaveWidthDivision * 2), playerLabel.frame.origin.y, playerLabel.frame.size.width, playerLabel.frame.size.height);
       }
       
         // make font size smaller if it can't fit
       playerLabel.adjustsFontSizeToFitWidth = YES;
-      labelView.frame = CGRectMake(0, 0, playerLabel.frame.size.width + kPlayerLabelWidthPadding, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
-      labelView.center = CGPointMake(playerLabel.center.x, playerLabel.center.y - kPlayerLabelWidthPadding * 0.1f);
+      labelView.frame = CGRectMake(0, 0, playerLabel.frame.size.width + kPlayerLabelWidthPadding + kScoreLabelWidth, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
+//      labelView.center = CGPointMake(playerLabel.center.x + (kScoreLabelWidth / 2), playerLabel.center.y - kPlayerLabelWidthPadding * 0.1f);
       labelView.layer.cornerRadius = labelView.frame.size.height / 2;
       labelView.clipsToBounds = YES;
 
@@ -138,14 +164,11 @@
         labelView.backgroundColor = [UIColor clearColor];
       }
       labelView.backgroundColourCanBeChanged = NO;
-      
-        // score label
-      scoreLabel.text = player ? [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
     }
     
     if (self.myMatch.gameHasEnded) {
       
-      self.backgroundColor = [[UIColor greenColor] colorWithAlphaComponent:0.1f];
+      self.backgroundColor = [UIColor colorWithRed:0.9f green:1.f blue:0.9f alpha:1.f];
       
         // game ended, so lastPlayed label shows date
       self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed];
@@ -153,7 +176,7 @@
       
     } else {
       
-      self.backgroundColor = [[UIColor whiteColor] colorWithAlphaComponent:0.8f];
+      self.backgroundColor = [[UIColor whiteColor] colorWithAlphaComponent:1.f];
       
         // game still in play, so lastPlayed label shows time since last played
       self.lastPlayedLabel.text = [self returnLastPlayedStringFromDate:self.myMatch.lastPlayed
@@ -236,35 +259,15 @@
 //    NSLog(@"Player %i position is %i", i, tempPositionArray[i]);
 
     UILabel *playerLabel = self.playerLabelsArray[i];
-    BackgroundView *labelView = self.playerLabelViewsArray[i];
+    CellBackgroundView *labelView = self.playerLabelViewsArray[i];
     UILabel *scoreLabel = self.scoreLabelsArray[i];
     NSUInteger position = tempPositionArray[i];
 
     playerLabel.frame = CGRectMake(playerLabel.frame.origin.x, [self labelHeightForMaxPosition:maxPosition andPlayerPosition:position],
                                    playerLabel.frame.size.width, playerLabel.frame.size.height);
-    labelView.center = playerLabel.center;
-    scoreLabel.frame = CGRectMake(playerLabel.frame.origin.x + (playerLabel.frame.size.width / 2), playerLabel.frame.origin.y + kStaveYHeight * 1.75, scoreLabel.frame.size.width, scoreLabel.frame.size.height);
-  }
-}
-
-  // draws staves
--(void)drawRect:(CGRect)rect {
-  
-  NSLog(@"drawRect called");
-  [super drawRect:rect];
-  
-  for (int i = 0; i < 5; i++) {
-    
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextSetStrokeColorWithColor(context, [UIColor blackColor].CGColor);
-    CGContextSetLineWidth(context, 1.f);
-    
-    CGFloat yPosition = kStaveYHeight * (i + 3);
-    CGContextMoveToPoint(context, kStaveXBuffer, yPosition); //start at this point
-    CGContextAddLineToPoint(context, kCellWidth - kStaveXBuffer, yPosition); //draw to this point
-    
-      // and now draw the Path!
-    CGContextStrokePath(context);
+//    labelView.center = playerLabel.center;
+    labelView.center = CGPointMake(playerLabel.center.x + (kScoreLabelWidth / 2), playerLabel.center.y - kPlayerLabelWidthPadding * 0.1f);
+    scoreLabel.frame = CGRectMake(playerLabel.frame.origin.x + playerLabel.frame.size.width + (kPlayerLabelWidthPadding / 4), playerLabel.frame.origin.y, scoreLabel.frame.size.width, scoreLabel.frame.size.height);
   }
 }
 

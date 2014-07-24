@@ -61,7 +61,7 @@
   BOOL _fieldActionInProgress;
   BOOL _boardToBeMovedOrBeingMoved;
   BOOL _boardBeingCorrectedWithinBounds;
-//  BOOL _canDoubleTapForBoardZoom;
+  BOOL _canDoubleTapForBoardZoom;
   BOOL _canDoubleTapForDyadminoFlip;
   BOOL _hoveringDyadminoToStayFixedWhileBoardMoves;
   BOOL _boardJustShiftedNotCorrected;
@@ -130,7 +130,7 @@
   _fieldActionInProgress = NO;
   _boardToBeMovedOrBeingMoved = NO;
   _boardBeingCorrectedWithinBounds = NO;
-//  _canDoubleTapForBoardZoom = NO;
+  _canDoubleTapForBoardZoom = NO;
   _canDoubleTapForDyadminoFlip = NO;
   _hoveringDyadminoToStayFixedWhileBoardMoves = NO;
   _boardJustShiftedNotCorrected = NO;
@@ -140,6 +140,7 @@
   _recentRackDyadmino = nil;
   _hoveringDyadmino = nil;
   _pivotInProgress = NO;
+  _endTouchLocationToMeasureDoubleTap = CGPointMake(2147483647, 2147483647);
   
   _myPlayer = self.myMatch.currentPlayer;
   self.myMatch.delegate = self;
@@ -578,21 +579,22 @@
         (_touchNode.parent == _boardField && (![_touchNode isKindOfClass:[Dyadmino class]] || _boardZoomedOut)) ||
         (_touchNode.parent.parent == _boardField && (![_touchNode.parent isKindOfClass:[Dyadmino class]] || _boardZoomedOut))) { // cell label, this one is necessary only for testing purposes
       
-      if (!_hoveringDyadmino) {
-
-//      if (_canDoubleTapForBoardZoom && !_hoveringDyadmino) {
-        if ([self getDistanceFromThisPoint:_beganTouchLocation toThisPoint:_endTouchLocationToMeasureDoubleTap] < kDistanceToDoubleTap) {
+//      if (!_hoveringDyadmino) {
+      if (_canDoubleTapForBoardZoom && !_hoveringDyadmino) {
+        CGFloat distance = [self getDistanceFromThisPoint:_beganTouchLocation toThisPoint:_endTouchLocationToMeasureDoubleTap];
+        if (distance < kDistanceToDoubleTap) {
           
+          NSLog(@"distance from %.2f, %.2f to %.2f, %.2f is %.2f", _beganTouchLocation.x, _beganTouchLocation.y, _endTouchLocationToMeasureDoubleTap.x, _endTouchLocationToMeasureDoubleTap.y, distance);
 //            // board will center back to user's touch location once zoomed back in
 //          CGPoint location = CGPointMake((_boardField.homePosition.x - _beganTouchLocation.x) / kZoomResizeFactor + _boardField.origin.x,
 //                                         (_boardField.homePosition.y - _beganTouchLocation.y) / kZoomResizeFactor + _boardField.origin.y);
 //          
-//          [self toggleBoardZoomWithTapCentering:YES andCenterLocation:location];
+          [self handleDoubleTap];
         }
       }
 //      NSLog(@"board to be moved or being moved");
       _boardToBeMovedOrBeingMoved = YES;
-//      _canDoubleTapForBoardZoom = YES;
+      _canDoubleTapForBoardZoom = YES;
       
         // check to see if hovering dyadmino should stay with board or not
       if (_hoveringDyadmino) {
@@ -1476,16 +1478,16 @@
 }
 
 -(void)updateForDoubleTap:(CFTimeInterval)currentTime {
-  if (_canDoubleTapForDyadminoFlip) {
-
-//  if (_canDoubleTapForDyadminoFlip || _canDoubleTapForBoardZoom) {
+//  if (_canDoubleTapForDyadminoFlip) {
+  if (_canDoubleTapForDyadminoFlip || _canDoubleTapForBoardZoom) {
     if (_doubleTapTime == 0.f) {
       _doubleTapTime = currentTime;
     }
   }
   
   if (_doubleTapTime != 0.f && currentTime > _doubleTapTime + kDoubleTapTime) {
-//    _canDoubleTapForBoardZoom = NO;
+    _canDoubleTapForBoardZoom = NO;
+    _endTouchLocationToMeasureDoubleTap = CGPointMake(2147483647, 2147483647);
     _canDoubleTapForDyadminoFlip = NO;
     _hoveringDyadmino.canFlip = NO;
     _doubleTapTime = 0.f;

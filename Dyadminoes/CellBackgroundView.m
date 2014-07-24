@@ -6,9 +6,9 @@
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
-#import "BackgroundView.h"
+#import "CellBackgroundView.h"
 
-@implementation BackgroundView
+@implementation CellBackgroundView
 
 -(void)setBackgroundColor:(UIColor *)backgroundColor {
   if (self.backgroundColourCanBeChanged) {

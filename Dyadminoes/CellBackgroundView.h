@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface BackgroundView : UIView
+@interface CellBackgroundView : UIView
 
   // kludge way to ensure that view isn't made transparent
   // when table view cell is selected

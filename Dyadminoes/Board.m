@@ -84,7 +84,7 @@
 
       // zoom background node is always there, if 
     [self initLoadBackgroundImage];
-    [self addChild:self.zoomBackgroundNode];
+//    [self addChild:self.zoomBackgroundNode];
   }
   return self;
 }
@@ -114,10 +114,10 @@
   NSLog(@"self snappoints count is %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
   
   self.zoomedOut = NO;
-//  self.zoomBackgroundNode.hidden = YES;
-//  if (self.zoomBackgroundNode.parent) {
-//    [self.zoomBackgroundNode removeFromParent];
-//  }
+  self.zoomBackgroundNode.hidden = YES;
+  if (self.zoomBackgroundNode.parent) {
+    [self.zoomBackgroundNode removeFromParent];
+  }
 }
 
 #pragma mark - board position methods
@@ -318,6 +318,10 @@
     }
 
     [self centerBoardOnDyadminoesAverageCenter];
+    self.zoomBackgroundNode.hidden = NO;
+    if (!self.zoomBackgroundNode.parent) {
+      [self addChild:self.zoomBackgroundNode];
+    }
     
       // zoom back in
   } else {
@@ -333,6 +337,11 @@
       _redoLayoutAfterZoom = NO;
     }
     [self.delegate correctBoardForPositionAfterZoom];
+    
+    self.zoomBackgroundNode.hidden = YES;
+    if (self.zoomBackgroundNode.parent) {
+      [self.zoomBackgroundNode removeFromParent];
+    }
   }
 }
 

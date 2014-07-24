@@ -41,6 +41,5 @@
 -(void)backToMainMenu;
 -(void)stopActivityIndicator;
 -(void)cancelPinchGestureRecogniser;
--(void)cancelDoubleTapGestureRecogniser;
 
 @end

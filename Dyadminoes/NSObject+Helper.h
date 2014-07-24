@@ -42,6 +42,14 @@
   // view controller constants
 #define kCornerRadius 25.f
 
+  // table view cell constants
+#define kCellHeight self.frame.size.height
+#define kCellWidth self.frame.size.width
+#define kCellSeparatorBuffer 50.f
+#define kStaveXBuffer 20.f
+#define kStaveYHeight (kCellHeight / 10)
+#define kStaveWidthDivision ((self.frame.size.width - (kStaveXBuffer * 2)) / 9.5)
+
   // dyadmino size constants
 #define kDyadminoFaceDiameter (kDyadminoFaceRadius * 2)
 #define kDyadminoFaceWideRadius (kDyadminoFaceRadius * kTwoOverSquareRootOfThree)
@@ -95,7 +103,7 @@
 #define kDistanceForTouchingFace (kDyadminoFaceRadius * 0.7f)
 #define kDistanceForTouchingHoveringDyadmino (kDyadminoFaceRadius * kDyadminoHoverResizeFactor) // was 32.f
 #define kDistanceForTouchingRestingDyadmino (kDyadminoFaceRadius * 0.8f) // was 25.f
-#define kDistanceToDoubleTap 44.f
+#define kDistanceToDoubleTap 24.f // tweak as necessary
 #define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
 #define kMaxDistanceForPivot (kDyadminoFaceRadius * 3.5f)
 #define kPivotGuideAlpha 0.9f
