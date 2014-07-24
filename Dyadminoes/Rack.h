@@ -13,7 +13,7 @@
 
 @protocol FieldNodeDelegate <NSObject>
 
--(void)recordChangedDataForRackDyadminoes:(NSMutableArray *)rackArray;
+-(void)recordChangedDataForRackDyadminoes:(NSArray *)rackArray;
 -(void)soundRackExchangedDyadmino:(Dyadmino *)dyadmino;
 
 @end

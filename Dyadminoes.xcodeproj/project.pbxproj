@@ -16,6 +16,7 @@
 		3F0B477D1953C7B700BDE0BA /* Chord.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F0B477C1953C7B700BDE0BA /* Chord.m */; };
 		3F18924718CDB43300BEE276 /* Player.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F18924618CDB43300BEE276 /* Player.m */; };
 		3F193119198064C10034A5B9 /* StavesView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F193118198064C10034A5B9 /* StavesView.m */; };
+		3F1931201980C8240034A5B9 /* BachMassBackgroundCropped.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F19311F1980C8240034A5B9 /* BachMassBackgroundCropped.png */; };
 		3F28A6D018DA86BA0092B9B2 /* Label.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F28A6CF18DA86BA0092B9B2 /* Label.m */; };
 		3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3116CD18CEFC5D0015CC2A /* Rack.m */; };
 		3F55E1FD18D7A8520048E67E /* Button.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F55E1FC18D7A8520048E67E /* Button.m */; };
@@ -96,6 +97,7 @@
 		3F18924618CDB43300BEE276 /* Player.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Player.m; sourceTree = "<group>"; };
 		3F193117198064C10034A5B9 /* StavesView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StavesView.h; sourceTree = "<group>"; };
 		3F193118198064C10034A5B9 /* StavesView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StavesView.m; sourceTree = "<group>"; };
+		3F19311F1980C8240034A5B9 /* BachMassBackgroundCropped.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BachMassBackgroundCropped.png; sourceTree = "<group>"; };
 		3F28A6CE18DA86BA0092B9B2 /* Label.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Label.h; sourceTree = "<group>"; };
 		3F28A6CF18DA86BA0092B9B2 /* Label.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Label.m; sourceTree = "<group>"; };
 		3F3116CC18CEFC5D0015CC2A /* Rack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rack.h; sourceTree = "<group>"; };
@@ -211,6 +213,7 @@
 		3F0526C21936CE92003D3C04 /* Images and Sounds */ = {
 			isa = PBXGroup;
 			children = (
+				3F19311F1980C8240034A5B9 /* BachMassBackgroundCropped.png */,
 				3F7A30B4197B24C8003DBB1C /* MaryFloral.jpg */,
 				3FF255C5197A4E2F00B40D8D /* KeyboardBackground.png */,
 				3FF255C2197A3F4000B40D8D /* Filmotype-Harmony.otf */,
@@ -496,6 +499,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3F1931201980C8240034A5B9 /* BachMassBackgroundCropped.png in Resources */,
 				3FFD6CA318B40A83000D2DA4 /* DyadminoImages.atlas in Resources */,
 				3FF255C6197A4E2F00B40D8D /* KeyboardBackground.png in Resources */,
 				3FBC6AD7194E208300420CB8 /* hitCat.wav in Resources */,

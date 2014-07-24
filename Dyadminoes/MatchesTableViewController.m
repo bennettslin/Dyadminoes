@@ -165,7 +165,8 @@
 
 -(void)viewWillAppear:(BOOL)animated {
   
-//  [self animate:self.backgroundView and:self.backgroundView];
+  NSLog(@"view will appear");
+  [self animateBackgroundView];
   
   _overlayEnabled = YES;
   self.myModel = [Model getMyModel];
@@ -206,11 +207,6 @@
   cell.accessoryType = UITableViewCellAccessoryNone;
   
   return cell;
-}
-
--(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-//  [tableView deselectRowAtIndexPath:indexPath animated:YES];
-//  NSLog(@"did select row at index path");
 }
 
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -372,7 +368,7 @@
 
 -(void)fadeInOverlay {
   self.darkOverlay.backgroundColor = [UIColor clearColor];
-  [self.view insertSubview:self.darkOverlay belowSubview:self.bottomBar];
+  [self.view insertSubview:self.darkOverlay belowSubview:self.activityIndicator];
   [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
     self.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:kMainOverlayAlpha];
   } completion:^(BOOL finished) {
@@ -388,8 +384,8 @@
 }
 
 -(void)startActivityIndicator {
-    // hooray!
   [NSThread detachNewThreadSelector:@selector(threadStartAnimating:) toTarget:self withObject:nil];
+  [NSThread detachNewThreadSelector:@selector(fadeInOverlay) toTarget:self withObject:nil];
 }
 
 -(void)threadStartAnimating:(id)data {
@@ -401,6 +397,10 @@
   NSLog(@"activityIndicator stops");
   [self.activityIndicator stopAnimating];
   self.activityIndicator.hidden = YES;
+  
+    // no animation
+  self.darkOverlay.backgroundColor = [UIColor clearColor];
+  [self.darkOverlay removeFromSuperview];
   
     // also remove startGame childVC
   [self backToMatches];
@@ -458,62 +458,61 @@
 
 #pragma mark - background view methods
 
--(void)animate:(UIView *)backgroundView withInitialDelay:(BOOL)delay {
+-(void)animateBackgroundView {
+  NSLog(@"animate method called");
   
-  CGFloat seconds = 10;
-  CGFloat delaySeconds = delay ? (seconds / 2) : 0;
-
-  [UIView animateWithDuration:seconds delay:delaySeconds options:UIViewAnimationOptionCurveLinear animations:^{
-    backgroundView.frame = CGRectOffset(backgroundView.frame, backgroundView.frame.size.width / 2, backgroundView.frame.size.height / 2);
+  BOOL firstTime = YES;
+  if (firstTime) {
+    self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
+    firstTime = NO;
+  }
+  
+  CGFloat seconds = 30;
+  [UIView animateWithDuration:seconds delay:0 options:UIViewAnimationOptionCurveLinear animations:^{
+    self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, self.backgroundView.frame.size.width / 2, self.backgroundView.frame.size.height / 2);
     
   } completion:^(BOOL finished) {
      if (finished) {
 
-       backgroundView.frame = CGRectOffset(backgroundView.frame, -backgroundView.frame.size.width / 2, -backgroundView.frame.size.height / 2);
-       [self.view sendSubviewToBack:backgroundView];
-       [self animate:backgroundView withInitialDelay:NO];
+       self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
+       [self.view sendSubviewToBack:self.backgroundView];
+       [self animateBackgroundView];
      }
   }];
 }
 
 -(void)insertImageBackground {
-  UIView *backgroundView1 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, _screenWidth * 2, _screenHeight * 2)];
-  backgroundView1.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"MaryFloral.jpg"]];
-//  backgroundView1.layer.borderColor = [UIColor greenColor].CGColor;
-//  backgroundView1.layer.borderWidth = 5.f;
-  backgroundView1.center = CGPointMake(_screenWidth, _screenHeight);
-//  
-//  UIView *backgroundView2 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, _screenWidth * 2, _screenHeight * 2)];
-//  backgroundView2.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"MaryFloral.jpg"]];
-//  backgroundView2.layer.borderColor = [UIColor redColor].CGColor;
-//  backgroundView2.layer.borderWidth = 5.f;
-//  backgroundView2.center = CGPointZero;
   
-  [self.view insertSubview:backgroundView1 belowSubview:self.tableView];
-//  [self.view insertSubview:backgroundView2 belowSubview:backgroundView1];
-  backgroundView1.frame = CGRectOffset(backgroundView1.frame, -backgroundView1.frame.size.width / 2, -backgroundView1.frame.size.height / 2);
-//  backgroundView2.frame = CGRectOffset(backgroundView2.frame, -backgroundView2.frame.size.width / 2, -backgroundView2.frame.size.height / 2);
+  UIImage *backgroundImage = [UIImage imageNamed:@"BachMassBackgroundCropped"];
   
-  [self animate:backgroundView1 withInitialDelay:NO];
-//  [self animate:backgroundView2 withInitialDelay:YES];
+    // make sure that view size is even multiple of backgroundImage
+  self.backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, backgroundImage.size.width * 2, backgroundImage.size.height * 2)];
+  self.backgroundView.backgroundColor = [[UIColor colorWithPatternImage:backgroundImage] colorWithAlphaComponent:0.3f];
+  self.backgroundView.center = CGPointMake(_screenWidth, _screenHeight);
+  
+  NSLog(@"bkg view is %.1f, %.1f", self.backgroundView.frame.size.width, self.backgroundView.frame.size.height);
+  NSLog(@"image view is %.1f, %.1f", backgroundImage.size.width, backgroundImage.size.height);
+  
+  [self.view insertSubview:self.backgroundView belowSubview:self.tableView];
 }
 
 -(void)insertGradientBackground {
+  
     // background gradient
   UIView *gradientView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, _screenWidth, _screenHeight)];
   
   UIColor *darkGradient;
   UIColor *lightGradient;
   
-  darkGradient = [[UIColor darkGrayColor] colorWithAlphaComponent:1.f];
-  lightGradient = [[UIColor lightGrayColor] colorWithAlphaComponent:0.4f];
+  darkGradient = [[UIColor brownColor] colorWithAlphaComponent:1.f];
+  lightGradient = [[UIColor brownColor] colorWithAlphaComponent:0.4f];
   
   CAGradientLayer *gradientLayer = [CAGradientLayer layer];
   gradientLayer.frame = gradientView.frame;
   gradientLayer.colors = @[(id)darkGradient.CGColor, (id)lightGradient.CGColor, (id)lightGradient.CGColor, (id)darkGradient.CGColor];
   gradientLayer.startPoint = CGPointMake(0.3, 0.0);
   gradientLayer.endPoint = CGPointMake(0.7, 1.0);
-  gradientLayer.locations = @[@0.f, @0.3f, @0.7f, @1.f];
+  gradientLayer.locations = @[@0.f, @0.4f, @0.6f, @1.f];
   
   [gradientView.layer addSublayer:gradientLayer];
   gradientLayer.zPosition = -1;

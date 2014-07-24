@@ -157,6 +157,9 @@
           // dyadminoes exchange rack nodes, and vice versa
         scootedDyadmino.homeNode = displacedDyadmino.homeNode;
         
+        displacedDyadmino.myRackOrder = newRackNodeIndex;
+        scootedDyadmino.myRackOrder = displacedIndex;
+        
           // take care of state change and animation of exchanged dyadmino, as long as it's not on the board
         if (!scootedDyadmino.tempBoardNode) {
           scootedDyadmino.zPosition = kZPositionRackMovedDyadmino;
@@ -179,9 +182,10 @@
       [tempArray insertObject:touchedDyadmino atIndex:newRackNodeIndex];
       
         // delegate method makes it easier to call only if there was indeed a rack exchange
-      [self.delegate recordChangedDataForRackDyadminoes:tempArray];
+      NSArray *immutableArray = [NSArray arrayWithArray:tempArray];
+      [self.delegate recordChangedDataForRackDyadminoes:immutableArray];
       
-      return [NSArray arrayWithArray:tempArray];
+      return immutableArray;
     }
   }
   return dyadminoesInArray;

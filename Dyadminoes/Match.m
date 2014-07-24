@@ -147,11 +147,7 @@
 
 -(void)fillRackFromPileForPlayer:(Player *)player {
     // reset rack order of data dyadminoes already in rack
-  for (int i = 0; i < player.dataDyadminoesThisTurn.count; i++) {
-    DataDyadmino *dataDyad = player.dataDyadminoesThisTurn[i];
-    dataDyad.myRackOrder = i;
-  }
-  
+
   while (player.dataDyadminoesThisTurn.count < kNumDyadminoesInRack && self.pile.count > 0) {
     NSUInteger randIndex = [self randomIntegerUpTo:self.pile.count];
     DataDyadmino *dataDyad = [self.pile objectAtIndex:randIndex];

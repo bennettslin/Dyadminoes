@@ -123,8 +123,8 @@
 }
 
 -(void)soundPCToggle {
-  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
-  [self runAction:sound withKey:kActionSuck];
+//  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
+//  [self runAction:sound withKey:kActionSuck];
 }
 
 -(void)soundDeviceOrientation {

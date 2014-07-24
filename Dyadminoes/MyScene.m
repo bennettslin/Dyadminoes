@@ -1321,7 +1321,7 @@
   [self persistDataForDyadmino:undoneDyadmino];
 }
 
--(void)recordChangedDataForRackDyadminoes:(NSMutableArray *)rackArray {
+-(void)recordChangedDataForRackDyadminoes:(NSArray *)rackArray {
   for (int i = 0; i < rackArray.count; i++) {
     if ([rackArray[i] isKindOfClass:[Dyadmino class]]) {
       Dyadmino *dyadmino = (Dyadmino *)rackArray[i];
@@ -1337,12 +1337,12 @@
     dataDyad.myHexCoord = dyadmino.homeNode.myCell.hexCoord;
   }
   
-//  dataDyad.myHexCoord = dyadmino.myHexCoord;
   if ([dyadmino isOnBoard] && [dyadmino belongsInRack]) {
     dataDyad.myOrientation = dyadmino.tempReturnOrientation;
   } else {
     dataDyad.myOrientation = dyadmino.orientation;
   }
+  
   dataDyad.myRackOrder = dyadmino.myRackOrder;
 }
 
@@ -2635,7 +2635,22 @@
       cell.pcLabel.hidden = (_debugMode) ? NO : YES;
     }
   }
-
+  
+  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
+    NSLog(@"%@ is at %i", dyadmino.name, dyadmino.myRackOrder);
+    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+    NSLog(@"data %i is at %i", dataDyad.myID, dataDyad.myRackOrder);
+  }
+  
+  NSMutableArray *tempDyadminoArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
+  NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
+  NSArray *tempImutableArray = [tempDyadminoArray sortedArrayUsingDescriptors:@[sortByRackOrder]];
+  for (Dyadmino *dyadmino in tempImutableArray) {
+    NSLog(@"%@ is now at %i", dyadmino.name, [tempImutableArray indexOfObject:dyadmino]);
+    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+    NSLog(@"data %i is at %i", dataDyad.myID, dataDyad.myRackOrder);
+  }
+  
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
 }
