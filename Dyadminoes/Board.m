@@ -977,9 +977,9 @@
 #pragma mark - background image methods
 
 -(void)initLoadBackgroundImage {
-  UIImage *backgroundImage = [UIImage imageNamed:@"MaryFloral.jpg"];
+  UIImage *backgroundImage = [UIImage imageNamed:@"BachMassBackgroundCropped"];
   CGImageRef backgroundCGImage = backgroundImage.CGImage;
-  CGRect textureSize = CGRectMake(self.position.x, self.position.y, backgroundImage.size.width / 2, backgroundImage.size.height / 2);
+  CGRect textureSize = CGRectMake(self.position.x + self.size.width / 4, self.position.y, backgroundImage.size.width / 2, backgroundImage.size.height / 2);
   
   UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
   CGContextRef context = UIGraphicsGetCurrentContext();
@@ -991,11 +991,12 @@
   
   SKTexture *backgroundTexture = [SKTexture textureWithCGImage:tiledBackground.CGImage];
   self.zoomBackgroundNode = [[SKSpriteNode alloc] initWithTexture:backgroundTexture];
-  self.zoomBackgroundNode.color = [SKColor greenColor];
+  self.zoomBackgroundNode.color = [UIColor darkGrayColor];
+  self.zoomBackgroundNode.alpha = 0.25f;
   self.zoomBackgroundNode.texture = backgroundTexture;
   self.zoomBackgroundNode.zPosition = kZPositionBackgroundNode;
   
-  NSLog(@"background image texture loaded");
+//  NSLog(@"background image texture loaded");
 }
 
 -(void)changeAllBoardCellsGivenScale:(CGFloat)scale {

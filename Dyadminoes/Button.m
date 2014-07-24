@@ -24,6 +24,7 @@
     
     _labelNode = [SKLabelNode new];
     _labelNode.text = self.name;
+    _labelNode.name = [NSString stringWithFormat:@"%@ label", self.name];
     _labelNode.fontName = kButtonFont;
     _labelNode.fontSize = kIsIPhone ? 20.f : 24.f;
     _labelNode.position = CGPointMake(0, -self.size.height * 0.5 + self.size.height / 8);

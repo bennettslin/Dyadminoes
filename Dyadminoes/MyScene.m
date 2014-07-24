@@ -98,7 +98,7 @@
 
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
-//    self.backgroundColor = kBackgroundBoardColour;
+    self.backgroundColor = kBackgroundBoardColour;
     self.name = @"scene";
     self.mySoundEngine = [[SoundEngine alloc] init];
     self.mySceneEngine = [[SceneEngine alloc] init];
@@ -520,13 +520,17 @@
     /// 3a. button pressed
   
     // if it's a button, take care of it when touch ended
-  if ([_touchNode isKindOfClass:[Button class]]) {
+  if ([_touchNode isKindOfClass:[Button class]] || [_touchNode.parent isKindOfClass:[Button class]]) {
     
       // sound of button tapped
     
       // FIXME: sound should work
 //    [self.mySoundEngine soundButton:YES];
-    _buttonPressed = (Button *)_touchNode;
+    if ([_touchNode isKindOfClass:[Button class]]) {
+      _buttonPressed = (Button *)_touchNode;
+    } else if ([_touchNode.parent isKindOfClass:[Button class]]) {
+      _buttonPressed = (Button *)_touchNode.parent;
+    }
       // TODO: make distinction of button pressed better, of course
     _buttonPressed.alpha = 0.3f;
     return;
@@ -789,7 +793,7 @@
     // handle button that was pressed, ensure that touch is still on button when it ends
   if (_buttonPressed && touches) {
     SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
-    if (node == _buttonPressed) {
+    if (node == _buttonPressed || node.parent == _buttonPressed) {
       
         // sound of button release
         // FIXME: sound should work

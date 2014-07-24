@@ -23,18 +23,37 @@
 -(void)drawRect:(CGRect)rect {
   
   [super drawRect:rect];
+  CGFloat lineWidth = 0.5f;
   
   CGContextRef context = UIGraphicsGetCurrentContext();
   for (int i = 0; i < 5; i++) {
     CGContextSetStrokeColorWithColor(context, [[UIColor brownColor] colorWithAlphaComponent:0.7f].CGColor);
-    CGContextSetLineWidth(context, 0.5f);
+    CGContextSetLineWidth(context, lineWidth);
     
     CGFloat yPosition = kStaveYHeight * (i + 3);
     CGContextMoveToPoint(context, kStaveXBuffer, yPosition); //start at this point
-    CGContextAddLineToPoint(context, kCellWidth - kStaveXBuffer, yPosition); //draw to this point
+    
+    CGFloat endXPoint = self.gameHasEnded ? kCellWidth - kStaveXBuffer - kStaveYHeight / 2 : kCellWidth - kStaveXBuffer;
+    
+    CGContextAddLineToPoint(context, endXPoint, yPosition); //draw to this point
     
       // and now draw the Path!
     CGContextStrokePath(context);
+  }
+  
+    // filled rectangle of end symbol
+  if (self.gameHasEnded) {
+    
+    CGContextRef endLineContext = UIGraphicsGetCurrentContext();
+    CGContextSetLineWidth(endLineContext, lineWidth * 2);
+    CGContextMoveToPoint(endLineContext, kCellWidth - kStaveXBuffer - kStaveYHeight * 0.9, kStaveYHeight * 3);
+    CGContextAddLineToPoint(endLineContext, kCellWidth - kStaveXBuffer - kStaveYHeight * 0.9, kStaveYHeight * 7);
+    CGContextStrokePath(endLineContext);
+    
+    CGContextRef endBoxContext = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(endBoxContext, [[UIColor brownColor] colorWithAlphaComponent:0.7f].CGColor);
+    CGRect endRect = CGRectMake(kCellWidth - kStaveXBuffer - kStaveYHeight / 2, kStaveYHeight * 3 - lineWidth, kStaveYHeight / 2, kStaveYHeight * 4 + (lineWidth * 2));
+    CGContextFillRect(endBoxContext, endRect);
   }
 }
 

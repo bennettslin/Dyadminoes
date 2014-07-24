@@ -10,4 +10,6 @@
 
 @interface StavesView : UIView
 
+@property (nonatomic) BOOL gameHasEnded;
+
 @end

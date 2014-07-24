@@ -45,6 +45,8 @@
 @property (strong, nonatomic) NSArray *playerLabelViewsArray;
 @property (strong, nonatomic) NSArray *scoreLabelsArray;
 
+@property (strong, nonatomic) StavesView *stavesView;
+
 @end
 
 @implementation MatchTableViewCell
@@ -56,8 +58,8 @@
   customColorView.backgroundColor = [UIColor colorWithRed:1.f green:1.f blue:.8f alpha:.8f];
   self.selectedBackgroundView = customColorView;
   
-  StavesView *stavesView = [[StavesView alloc] initWithFrame:CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, 90.f + kCellSeparatorBuffer)];
-  [self addSubview:stavesView];
+  self.stavesView = [[StavesView alloc] initWithFrame:CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, 90.f + kCellSeparatorBuffer)];
+  [self addSubview:self.stavesView];
   
   self.playerLabelsArray = @[self.player1Label, self.player2Label, self.player3Label, self.player4Label];
   
@@ -92,23 +94,10 @@
 
   NSLog(@"setProperties");
   
-//  UIView *stavesView = [[UIView alloc] init];
-//  UIGraphicsBeginImageContext(self.frame.size);
-//  CGContextRef context = UIGraphicsGetCurrentContext();
-//  for (int i = 0; i < 5; i++) {
-//    CGContextSetStrokeColorWithColor(context, [[UIColor brownColor] colorWithAlphaComponent:0.8f].CGColor);
-//    CGContextSetLineWidth(context, 1.f);
-//    
-//    CGFloat yPosition = kStaveYHeight * (i + 3);
-//    CGContextMoveToPoint(context, kStaveXBuffer, yPosition); //start at this point
-//    CGContextAddLineToPoint(context, kCellWidth - kStaveXBuffer, yPosition); //draw to this point
-//    
-//      // and now draw the Path!
-//    CGContextStrokePath(context);
-//  }
-//  UIGraphicsEndImageContext();
-//  [stavesView.layer renderInContext:context];
-//  [self addSubview:stavesView];
+  if (self.myMatch.gameHasEnded) {
+    self.stavesView.gameHasEnded = YES;
+    [self.stavesView setNeedsDisplay];
+  }
   
   self.winnerLabel.text = @"";
   
