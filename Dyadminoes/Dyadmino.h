@@ -102,7 +102,7 @@
 //-(void)startHovering;
 -(void)keepHovering;
 -(void)finishHovering;
-//-(void)unhighlightOutOfPlay;
+-(void)unhighlightOutOfPlay;
 -(void)highlightBoardDyadminoWithColour:(UIColor *)colour;
 -(void)adjustHighlightGivenDyadminoOffsetPosition:(CGPoint)dyadminoOffsetPosition;
 

@@ -94,6 +94,7 @@
 }
 
 -(void)pinched:(UIPinchGestureRecognizer *)sender {
+  NSLog(@"pinch gesture scale is %.3f", sender.scale);
   if ([sender state] == UIGestureRecognizerStateEnded) {
     [self.myScene cancelPinch];
   } else {

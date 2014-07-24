@@ -185,6 +185,17 @@
   }];
   SKAction *sequence = [SKAction sequence:@[wait, removeActivityIndicator]];
   [self runAction:sequence];
+  
+  
+    // testing purposes only
+//  for (Cell *cell in _boardField.allCells) {
+//    
+//    if (cell.colouredByNeighbouringCells > 0) {
+//      cell.cellNode.hidden = NO;
+//    } else {
+//      cell.cellNode.hidden = YES;
+//    }
+//  }
 }
 
 -(void)willMoveFromView:(SKView *)view {
@@ -542,7 +553,7 @@
     // dyadmino is not registered if face is touched
   Dyadmino *dyadmino = [self selectDyadminoFromTouchPoint:_currentTouchLocation];
   
-  if (!_canDoubleTapForDyadminoFlip && ([dyadmino isOnBoard] || ![dyadmino isRotating])) {
+  if (!dyadmino.hidden && !_canDoubleTapForDyadminoFlip && ([dyadmino isOnBoard] || ![dyadmino isRotating])) {
     
         // register sound if dyadmino tapped
     if (!_replayMode && dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
@@ -557,7 +568,7 @@
       if (face && face.parent != _hoveringDyadmino && !_pivotInProgress) {
         if ([face.parent isKindOfClass:[Dyadmino class]]) {
           Dyadmino *faceParent = (Dyadmino *)face.parent;
-          if (!_replayMode || (_replayMode && [faceParent isOnBoard])) {
+          if (!faceParent.hidden && (!_replayMode || (_replayMode && [faceParent isOnBoard]))) {
             if (!_boardZoomedOut || (_boardZoomedOut && [faceParent isInRack])) {
               [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
               _soundedDyadminoFace = face;
@@ -1202,11 +1213,13 @@
     _replayMode = _replayMode ? NO : YES;
     [self toggleReplayFields];
     if (_replayMode) {
+      [self updateBoardToReflectReplayTurn];
       [self showTurnInfoOrGameResultsForReplay:YES];
       [self updateReplayButtons];
     } else {
         // reset match's board
       [self.myMatch lastOrLeaveReplay];
+      [self updateBoardToReflectReplayTurn];
     }
     return;
     
@@ -1281,18 +1294,22 @@
       // replay buttons
   } else if (_buttonPressed == _replayBottom.firstTurnButton) {
     [self.myMatch first];
+    [self updateBoardToReflectReplayTurn];
     [self showTurnInfoOrGameResultsForReplay:YES];
     [self updateReplayButtons];
   } else if (_buttonPressed == _replayBottom.previousTurnButton) {
     [self.myMatch previous];
+    [self updateBoardToReflectReplayTurn];
     [self showTurnInfoOrGameResultsForReplay:YES];
     [self updateReplayButtons];
   } else if (_buttonPressed == _replayBottom.nextTurnButton) {
     [self.myMatch next];
+    [self updateBoardToReflectReplayTurn];
     [self showTurnInfoOrGameResultsForReplay:YES];
     [self updateReplayButtons];
   } else if (_buttonPressed == _replayBottom.lastTurnButton) {
     [self.myMatch lastOrLeaveReplay];
+    [self updateBoardToReflectReplayTurn];
     [self showTurnInfoOrGameResultsForReplay:YES];
     [self updateReplayButtons];
   
@@ -2485,6 +2502,26 @@
       [_replayTop updateLabelNamed:@"status" withText:turnOrResultsText andColour:colour];
     } else {
       [_topBar flashLabelNamed:@"message" withText:turnOrResultsText andColour:colour];
+    }
+  }
+}
+
+-(void)updateBoardToReflectReplayTurn {
+  
+  Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"player"];
+  NSArray *turnDyadminoes = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"container"];
+  
+    // hide or show dyadmino
+    // FIXME: make animations more sophisticated
+  for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
+    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+    
+    dyadmino.hidden = [self.myMatch.board containsObject:dataDyad] ? NO : YES;
+    
+    if ([turnDyadminoes containsObject:dataDyad]) {
+      [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer]];
+    } else {
+      [dyadmino unhighlightOutOfPlay];
     }
   }
 }

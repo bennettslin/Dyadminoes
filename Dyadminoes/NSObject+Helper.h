@@ -67,8 +67,9 @@
 #define kButtonFont @"FilmotypeHarmony"
 
   // pinch gesture constants
-#define kLowPinchScale 0.8f
-#define kHighPinchScale 1.25f
+  // FIXME: might not need the iPhone constants
+#define kLowPinchScale (kIsIPhone ? 0.7f : 0.85f)
+#define kHighPinchScale (kIsIPhone ? 1.3f : 1.15f)
 
   // animation constants
 #define kRotateWait 0.06f
@@ -86,7 +87,7 @@
 
   // dyadmino state constants
 #define kDyadminoHoverResizeFactor 1.17f
-#define kDyadminoColorBlendFactor 0.2f
+#define kDyadminoColorBlendFactor 0.3f
 
   // math constants
 #define kSquareRootOfThree 1.73205081f

@@ -69,7 +69,7 @@
   _red = 0.2f;
   _green = 0.2f;
   _blue = 0.2f;
-  _alpha = 0.4f;
+  _alpha = 0.f;
   
   if (self.cellNode) {
     self.cellNode.colorBlendFactor = 0.9f;
