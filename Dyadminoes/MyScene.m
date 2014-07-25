@@ -476,9 +476,15 @@
     }
   }
    */
+//  NSLog(@"raw pinch location is %.2f, %.2f", location.x, (self.size.height - location.y));
+  
+    // sceneVC sends Y upside down
+  CGPoint correctLocation = CGPointMake((_boardField.homePosition.x - location.x) / kZoomResizeFactor + _boardField.origin.x,
+                                 (_boardField.homePosition.y - (self.size.height - location.y)) / kZoomResizeFactor + _boardField.origin.y);
+//  NSLog(@"processed pinch location is %.2f, %.2f", correctLocation.x, correctLocation.y);
   
   if ((scale < kLowPinchScale && !_boardZoomedOut) || (scale > kHighPinchScale && _boardZoomedOut)) {
-    [self toggleBoardZoomWithTapCentering:NO andCenterLocation:CGPointZero];
+    [self toggleBoardZoomWithTapCentering:YES andCenterLocation:correctLocation];
   }
 }
 
@@ -494,18 +500,23 @@
 
 -(BOOL)validatePinchLocation:(CGPoint)location {
   
-  CGFloat reverseY = self.size.height - location.y;
+    // sceneVC sends Y upside down
+  CGFloat rightSideUpY = self.size.height - location.y;
   CGFloat bottomFloat = _swapMode ? kRackHeight * 2 : kRackHeight;
   
 //  NSLog(@"bottom is %.2f, top is %.2f", bottomFloat, self.size.height - kTopBarHeight);
 //  NSLog(@"location.y is %.2f", reverseY);
-  return (reverseY > bottomFloat && reverseY < self.size.height - kTopBarHeight) ? YES : NO;
+  return (rightSideUpY > bottomFloat && rightSideUpY < self.size.height - kTopBarHeight) ? YES : NO;
 }
 
 -(void)handleDoubleTap {
+  
+  NSLog(@"raw double tap location is %.2f, %.2f", _beganTouchLocation.x, _beganTouchLocation.y);
+
     // board will center back to user's touch location once zoomed back in
   CGPoint location = CGPointMake((_boardField.homePosition.x - _beganTouchLocation.x) / kZoomResizeFactor + _boardField.origin.x,
                                  (_boardField.homePosition.y - _beganTouchLocation.y) / kZoomResizeFactor + _boardField.origin.y);
+  NSLog(@"processed double tap location is %.2f, %.2f", location.x, location.y);
   
   [self toggleBoardZoomWithTapCentering:YES andCenterLocation:location];
 }
