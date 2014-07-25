@@ -264,6 +264,16 @@
   [self switchToNextPlayer];
 }
 
+-(void)recordBoardDyadminoPositionChanges {
+//  for (DataDyadmino *dataDyad in self.board) {
+//    NSUInteger currentTurn = self.turns.count;
+//    
+//    
+//    DyadminoOrientation storedOrientation = [dataDyad.turnPositionsAndOrientations
+  
+  
+}
+
 -(void)resignPlayer:(Player *)player {
   
     // a resign has *no* holding container
@@ -475,6 +485,10 @@
 
 #pragma mark - replay methods
 
+-(void)startReplay {
+  self.replayBoard = [NSMutableSet setWithSet:self.board];
+}
+
 -(void)first {
   
   if (self.replayCounter == 0) { // in case the replay is before any turn made
@@ -482,12 +496,12 @@
   }
   
   self.replayCounter = 1;
-  [self.board removeAllObjects];
-  [self.board addObject:self.firstDyadmino];
+  [self.replayBoard removeAllObjects];
+  [self.replayBoard addObject:self.firstDyadmino];
   NSArray *container = [self.turns[self.replayCounter - 1] objectForKey:@"container"];
   for (DataDyadmino *dataDyad in container) {
-    if (![self.board containsObject:dataDyad]) {
-      [self.board addObject:dataDyad];
+    if (![self.replayBoard containsObject:dataDyad]) {
+      [self.replayBoard addObject:dataDyad];
     }
   }
 }
@@ -500,8 +514,8 @@
   } else {
       NSArray *container = [self.turns[self.replayCounter - 1] objectForKey:@"container"];
       for (DataDyadmino *dataDyad in container) {
-        if ([self.board containsObject:dataDyad]) {
-          [self.board removeObject:dataDyad];
+        if ([self.replayBoard containsObject:dataDyad]) {
+          [self.replayBoard removeObject:dataDyad];
         }
       }
     self.replayCounter--;
@@ -518,24 +532,28 @@
     self.replayCounter++;
       NSArray *container = [self.turns[self.replayCounter - 1] objectForKey:@"container"];
       for (DataDyadmino *dataDyad in container) {
-        if (![self.board containsObject:dataDyad]) {
-          [self.board addObject:dataDyad];
+        if (![self.replayBoard containsObject:dataDyad]) {
+          [self.replayBoard addObject:dataDyad];
         }
       }
     return YES;
   }
 }
 
--(void)lastOrLeaveReplay {
+-(void)last {
   self.replayCounter = self.turns.count;
   for (int i = 0; i < self.turns.count; i++) {
     NSArray *container = [self.turns[i] objectForKey:@"container"];
     for (DataDyadmino *dataDyad in container) {
-      if (![self.board containsObject:dataDyad]) {
-        [self.board addObject:dataDyad];
+      if (![self.replayBoard containsObject:dataDyad]) {
+        [self.replayBoard addObject:dataDyad];
       }
     }
   }
+}
+
+-(void)leaveReplay {
+  [self.replayBoard removeAllObjects];
 }
 
 @end

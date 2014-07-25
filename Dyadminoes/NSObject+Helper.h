@@ -77,6 +77,9 @@
 #define kAnimateHoverTime 0.775f
 #define kDoubleTapTime 0.225f
 
+  // define action constants
+#define kActionShowRecentlyPlayed @"recentlyPlayed"
+
 #define kFaceScaleFactor 1.5f
 #define kFaceScaleInTime 0.05f
 #define kFaceScaleOutTime 0.125f

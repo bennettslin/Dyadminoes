@@ -16,7 +16,6 @@
 #define kActionPopIntoRack @"popIntoRack"
 #define kActionFlip @"flip"
 #define kActionEaseIntoNode @"easeIntoNode"
-#define kActionShowRecentlyPlayed @"recentlyPlayed"
 #define kActionSoundFace @"animateFace"
 
 @implementation Dyadmino {
@@ -59,7 +58,6 @@
 -(void)resetForNewMatch {
 
     // reset these init values
-  
   self.color = (SKColor *)kNeutralYellow;
   self.colorBlendFactor = 0.f;
   self.cellForPC1 = nil;
@@ -73,6 +71,7 @@
   self.isTouchThenHoverResized = NO;
   self.isZoomResized = NO;
   self.hoveringStatus = kDyadminoNoHoverStatus;
+  self.hidden = NO;
 }
 
 #pragma mark - orient, position, and size methods

@@ -25,9 +25,11 @@
 
 -(void)loadAfterNewMatchRetrieved;
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;
--(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity;
+-(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location;
 -(void)cancelPinch;
--(void)handleDoubleTap;
+-(BOOL)validatePinchLocation:(CGPoint)location;
+
+//-(void)handleDoubleTap;
 -(void)persistAllSceneDataDyadminoes;
 
 -(void)togglePCsUserShaken:(BOOL)userShaken;

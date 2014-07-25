@@ -32,6 +32,7 @@
   // data dyadmino arrays
 @property (strong, nonatomic) NSMutableArray *pile;
 @property (strong, nonatomic) NSMutableSet *board;
+@property (strong, nonatomic) NSMutableSet *replayBoard;
 
   // turns and undo
 @property (nonatomic) NSUInteger tempScore;
@@ -57,10 +58,12 @@
 -(void)resetHoldingContainer; // for swap purposes
 
   // replay methods
+-(void)startReplay;
 -(void)first;
 -(BOOL)previous;
 -(BOOL)next;
--(void)lastOrLeaveReplay;
+-(void)last;
+-(void)leaveReplay;
 
   // label methods
 -(NSString *)endGameResultsText;

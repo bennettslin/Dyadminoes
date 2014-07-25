@@ -344,7 +344,7 @@
   
     // restore state
   if (!self.replayMode) {
-    [self.myMatch lastOrLeaveReplay];
+    [self.myMatch last];
   }
 
   [self setProperties];
@@ -395,7 +395,7 @@
 }
 
 -(IBAction)lastTapped:(id)sender {
-  [self.myMatch lastOrLeaveReplay];
+  [self.myMatch last];
   [self setProperties];
 }
 

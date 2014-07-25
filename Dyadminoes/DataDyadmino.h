@@ -16,6 +16,8 @@
 @property (nonatomic) HexCoord myHexCoord;
 @property (nonatomic) NSInteger myRackOrder;
 
+@property (strong, nonatomic) NSArray *turnChanges;
+
 -(id)initWithID:(NSUInteger)id;
 
 @end

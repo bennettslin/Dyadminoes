@@ -150,7 +150,7 @@
 -(void)didMoveToView:(SKView *)view {
   
     // ensures that match's board dyadminoes are reset
-  [self.myMatch lastOrLeaveReplay];
+  [self.myMatch last];
   
   [self populateRackArray];
   [self populateBoardSet];
@@ -460,7 +460,7 @@
   [_replayBottom rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
 }
 
--(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity {
+-(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location {
   
     // leave this alone for now
   /*
@@ -490,6 +490,16 @@
     _zoomChangedCellsAlpha = NO;
   }
    */
+}
+
+-(BOOL)validatePinchLocation:(CGPoint)location {
+  
+  CGFloat reverseY = self.size.height - location.y;
+  CGFloat bottomFloat = _swapMode ? kRackHeight * 2 : kRackHeight;
+  
+//  NSLog(@"bottom is %.2f, top is %.2f", bottomFloat, self.size.height - kTopBarHeight);
+//  NSLog(@"location.y is %.2f", reverseY);
+  return (reverseY > bottomFloat && reverseY < self.size.height - kTopBarHeight) ? YES : NO;
 }
 
 -(void)handleDoubleTap {
@@ -1212,14 +1222,18 @@
   } else if (_buttonPressed == _topBar.replayButton || _buttonPressed == _replayTop.returnButton) {
     _replayMode = _replayMode ? NO : YES;
     [self toggleReplayFields];
+    
     if (_replayMode) {
+      [self startReplay];
       [self updateBoardToReflectReplayTurn];
       [self showTurnInfoOrGameResultsForReplay:YES];
       [self updateReplayButtons];
     } else {
-        // reset match's board
-      [self.myMatch lastOrLeaveReplay];
+        // reset match's board to last turn
+      [self.myMatch last]; // ensures that replay ends on last turn
       [self updateBoardToReflectReplayTurn];
+      [self showTurnInfoOrGameResultsForReplay:NO];
+      [self leaveReplay];
     }
     return;
     
@@ -1308,7 +1322,7 @@
     [self showTurnInfoOrGameResultsForReplay:YES];
     [self updateReplayButtons];
   } else if (_buttonPressed == _replayBottom.lastTurnButton) {
-    [self.myMatch lastOrLeaveReplay];
+    [self.myMatch last];
     [self updateBoardToReflectReplayTurn];
     [self showTurnInfoOrGameResultsForReplay:YES];
     [self updateReplayButtons];
@@ -2021,14 +2035,23 @@
 #pragma mark - field animation methods
 
 -(void)toggleReplayFields {
+  
+  if (_hoveringDyadmino) {
+    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
+  }
+  
   NSLog(@"toggle replay fields");
   
-    self.myMatch.replayCounter = self.myMatch.turns.count;
+  self.myMatch.replayCounter = self.myMatch.turns.count;
+  
     // it's in replay mode (opposite of toggle swap field)
   if (_replayMode) {
+    
+      // sound
     [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
+      // scene views
     _replayTop.hidden = NO;
     _replayBottom.hidden = NO;
     SKAction *topMoveAction = [SKAction moveToY:self.frame.size.height - kTopBarHeight duration:kConstantTime];
@@ -2039,25 +2062,19 @@
     }];
     SKAction *topSequenceAction = [SKAction sequence:@[topMoveAction, topCompleteAction]];
     [_replayTop runAction:topSequenceAction];
-    
     SKAction *bottomMoveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
     [_replayBottom runAction:bottomMoveAction];
     
       // it's not in replay mode
   } else {
+    
+      // sound
     [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
+      // scene views
     _rackField.hidden = NO;
     _topBar.hidden = NO;
-    
-      // animate last play, or game results if game ended
-      // unless player's turn is already over
-    if (_myPlayer == self.myMatch.currentPlayer) {
-      [self animateRecentlyPlayedDyadminoes];
-    }
-    [self showTurnInfoOrGameResultsForReplay:NO];
-    
     SKAction *topMoveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
     SKAction *topCompleteAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
@@ -2065,7 +2082,6 @@
     }];
     SKAction *topSequenceAction = [SKAction sequence:@[topMoveAction, topCompleteAction]];
     [_replayTop runAction:topSequenceAction];
-    
     SKAction *bottomMoveAction = [SKAction moveToY:-kRackHeight duration:kConstantTime];
     SKAction *bottomCompleteAction = [SKAction runBlock:^{
       _replayBottom.hidden = YES;
@@ -2506,22 +2522,61 @@
   }
 }
 
+-(void)startReplay {
+  [self.myMatch startReplay];
+  [self.myMatch last]; // ensures that replay starts on last turn
+  
+    // hide all recently played dyadminoes
+  for (DataDyadmino *dataDyad in self.myMatch.holdingContainer) {
+    Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
+    dyadmino.hidden = YES;
+  }
+  if (_recentRackDyadmino) {
+    _recentRackDyadmino.hidden = YES;
+  }
+}
+
+-(void)leaveReplay {
+    // show all recently played dyadminoes
+  for (DataDyadmino *dataDyad in self.myMatch.holdingContainer) {
+    Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
+    dyadmino.hidden = NO;
+  }
+  if (_recentRackDyadmino) {
+    _recentRackDyadmino.hidden = NO;
+  }
+  
+    // animate last play, or game results if game ended
+    // unless player's turn is already over
+  if (_myPlayer == self.myMatch.currentPlayer) {
+    [self animateRecentlyPlayedDyadminoes];
+  }
+  
+  [self.myMatch leaveReplay];
+}
+
 -(void)updateBoardToReflectReplayTurn {
   
   Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"player"];
   NSArray *turnDyadminoes = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"container"];
   
-    // hide or show dyadmino
-    // FIXME: make animations more sophisticated
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     
-    dyadmino.hidden = [self.myMatch.board containsObject:dataDyad] ? NO : YES;
-    
-    if ([turnDyadminoes containsObject:dataDyad]) {
-      [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer]];
-    } else {
-      [dyadmino unhighlightOutOfPlay];
+      // only hide or show dyadminoes from past turns here, not recently played ones
+    if (![self.myMatch.holdingContainer containsObject:dataDyad] && dyadmino != _recentRackDyadmino) {
+      
+        // hide or show dyadmino
+        // FIXME: make animations more sophisticated
+      dyadmino.hidden = [self.myMatch.replayBoard containsObject:dataDyad] ? NO : YES;
+      
+        // highlight dyadminoes played this turn
+      if ([turnDyadminoes containsObject:dataDyad]) {
+        [dyadmino removeActionForKey:kActionShowRecentlyPlayed];
+        [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer]];
+      } else {
+        [dyadmino unhighlightOutOfPlay];
+      }
     }
   }
 }
@@ -2638,6 +2693,11 @@
 
 -(void)toggleDebugMode {
   NSLog(@"debug mode toggled");
+  
+  if (_hoveringDyadmino) {
+    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
+  }
+  
   if (_debugMode) {
     
     _topBar.pileDyadminoesLabel.hidden = NO;

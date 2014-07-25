@@ -15,12 +15,10 @@
   if (self) {
     self.myID = [[aDecoder decodeObjectForKey:@"myID"] unsignedIntegerValue];
     self.myOrientation = [[aDecoder decodeObjectForKey:@"myOrientation"] unsignedIntValue];
-    
+    self.turnChanges = [aDecoder decodeObjectForKey:@"turnChanges"];
     NSInteger xCoord = [aDecoder decodeIntegerForKey:@"hexX"];
     NSInteger yCoord = [aDecoder decodeIntegerForKey:@"hexY"];
-    struct HexCoord hexCoord = {xCoord, yCoord};
-    self.myHexCoord = hexCoord;
-    
+    self.myHexCoord = [self hexCoordFromX:xCoord andY:yCoord];
     self.myRackOrder = [aDecoder decodeIntegerForKey:@"myRackOrder"];
   }
   return self;
@@ -29,6 +27,7 @@
 -(void)encodeWithCoder:(NSCoder *)aCoder {
   [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.myID] forKey:@"myID"];
   [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.myOrientation] forKey:@"myOrientation"];
+  [aCoder encodeObject:self.turnChanges forKey:@"turnChanges"];
   [aCoder encodeInteger:self.myHexCoord.x forKey:@"hexX"];
   [aCoder encodeInteger:self.myHexCoord.y forKey:@"hexY"];
   [aCoder encodeInteger:self.myRackOrder forKey:@"myRackOrder"];

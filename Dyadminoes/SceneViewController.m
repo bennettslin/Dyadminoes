@@ -19,7 +19,9 @@
 
 @end
 
-@implementation SceneViewController
+@implementation SceneViewController {
+  BOOL _pinchStillCounts;
+}
 
 -(void)viewDidLoad {
   [super viewDidLoad];
@@ -33,6 +35,11 @@
 
   [self createAndConfigureScene];
   [self setUpGestureRecognisers];
+}
+
+-(void)viewWillAppear:(BOOL)animated {
+  NSLog(@"sceneVC view will appear");
+  _pinchStillCounts = YES;
 }
 
 -(void)createAndConfigureScene {
@@ -94,11 +101,24 @@
 }
 
 -(void)pinched:(UIPinchGestureRecognizer *)sender {
-  NSLog(@"pinch gesture scale is %.3f", sender.scale);
+
+    // verify that touches are on board
+  if (sender.numberOfTouches > 1) {
+    CGPoint location1 = [sender locationOfTouch:0 inView:self.view];
+    CGPoint location2 = [sender locationOfTouch:1 inView:self.view];
+    if (![self.myScene validatePinchLocation:location1] || ![self.myScene validatePinchLocation:location2]) {
+      NSLog(@"pinch still counts is no");
+      _pinchStillCounts = NO;
+    }
+  }
+  
   if ([sender state] == UIGestureRecognizerStateEnded) {
     [self.myScene cancelPinch];
-  } else {
-    [self.myScene handlePinchGestureWithScale:sender.scale andVelocity:sender.velocity];
+    _pinchStillCounts = YES;
+    
+  } else if (_pinchStillCounts) {
+    CGPoint midpointLocation = [sender locationInView:self.view];
+    [self.myScene handlePinchGestureWithScale:sender.scale andVelocity:sender.velocity andLocation:midpointLocation];
   }
 }
 
