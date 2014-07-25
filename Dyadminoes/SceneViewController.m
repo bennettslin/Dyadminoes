@@ -92,12 +92,6 @@
   self.pinchGestureRecogniser = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinched:)];
   self.pinchGestureRecogniser.delegate = self;
   [self.mySceneView addGestureRecognizer:self.pinchGestureRecogniser];
-  
-    // FIXME: disabled double tap gesture recogniser for now
-//  self.doubleTapGestureRecogniser = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapped:)];
-//  self.doubleTapGestureRecogniser.delegate = self;
-//  self.doubleTapGestureRecogniser.numberOfTapsRequired = 2;
-//  [self.mySceneView addGestureRecognizer:self.doubleTapGestureRecogniser];
 }
 
 -(void)pinched:(UIPinchGestureRecognizer *)sender {
@@ -120,14 +114,6 @@
     CGPoint midpointLocation = [sender locationInView:self.view];
     [self.myScene handlePinchGestureWithScale:sender.scale andVelocity:sender.velocity andLocation:midpointLocation];
   }
-}
-
-//-(void)doubleTapped:(UITapGestureRecognizer *)sender {
-//  [self.myScene handleDoubleTap];
-//}
-
--(void)cancelPinchGestureRecogniser {
-
 }
 
 -(void)motionEnded:(UIEventSubtype)motion withEvent:(UIEvent *)event {

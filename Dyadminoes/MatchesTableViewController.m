@@ -78,6 +78,7 @@
   CGFloat _screenWidth;
   CGFloat _screenHeight;
   BOOL _overlayEnabled;
+  BOOL _sceneLoaded; // this might be extraneous
 }
 
 -(void)viewDidLoad {
@@ -165,9 +166,6 @@
 
 -(void)viewWillAppear:(BOOL)animated {
   
-  NSLog(@"view will appear");
-  [self animateBackgroundView];
-  
   _overlayEnabled = YES;
   self.myModel = [Model getMyModel];
   if (!self.myModel) {
@@ -177,6 +175,12 @@
 
   [self.myModel sortMyMatches];
   [self.tableView reloadData];
+}
+
+-(void)viewDidAppear:(BOOL)animated {
+//  NSLog(@"view will appear");
+  _sceneLoaded = NO;
+  [self animateBackgroundViewFirstTime:YES];
 }
 
 #pragma mark - Table view delegate and data source
@@ -398,9 +402,12 @@
   [self.activityIndicator stopAnimating];
   self.activityIndicator.hidden = YES;
   
-    // no animation
   self.darkOverlay.backgroundColor = [UIColor clearColor];
   [self.darkOverlay removeFromSuperview];
+  
+    // no animation
+  _sceneLoaded = NO; // this might be extraneous
+  [self.backgroundView.layer removeAllAnimations];
   
     // also remove startGame childVC
   [self backToMatches];
@@ -458,25 +465,23 @@
 
 #pragma mark - background view methods
 
--(void)animateBackgroundView {
-  NSLog(@"animate method called");
+-(void)animateBackgroundViewFirstTime:(BOOL)firstTime {
   
-  BOOL firstTime = YES;
   if (firstTime) {
     self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
-    firstTime = NO;
   }
   
   CGFloat seconds = 30;
+
   [UIView animateWithDuration:seconds delay:0 options:UIViewAnimationOptionCurveLinear animations:^{
     self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, self.backgroundView.frame.size.width / 2, self.backgroundView.frame.size.height / 2);
     
   } completion:^(BOOL finished) {
      if (finished) {
-
        self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
-       [self.view sendSubviewToBack:self.backgroundView];
-       [self animateBackgroundView];
+       if (!_sceneLoaded) {
+         [self animateBackgroundViewFirstTime:NO];
+       }
      }
   }];
 }
@@ -486,12 +491,12 @@
   UIImage *backgroundImage = [UIImage imageNamed:@"BachMassBackgroundCropped"];
   
     // make sure that view size is even multiple of backgroundImage
-  self.backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, backgroundImage.size.width * 2, backgroundImage.size.height * 2)];
+  self.backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, backgroundImage.size.width * 4, backgroundImage.size.height * 4)];
   self.backgroundView.backgroundColor = [[UIColor colorWithPatternImage:backgroundImage] colorWithAlphaComponent:0.3f];
   self.backgroundView.center = CGPointMake(_screenWidth, _screenHeight);
   
-  NSLog(@"bkg view is %.1f, %.1f", self.backgroundView.frame.size.width, self.backgroundView.frame.size.height);
-  NSLog(@"image view is %.1f, %.1f", backgroundImage.size.width, backgroundImage.size.height);
+//  NSLog(@"bkg view is %.1f, %.1f", self.backgroundView.frame.size.width, self.backgroundView.frame.size.height);
+//  NSLog(@"image view is %.1f, %.1f", backgroundImage.size.width, backgroundImage.size.height);
   
   [self.view insertSubview:self.backgroundView belowSubview:self.tableView];
 }
