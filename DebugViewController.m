@@ -113,8 +113,8 @@
   
     // show turn
   if (self.myMatch.turns.count > 0) {
-    Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"player"];
-    NSArray *dyadminoesPlayed = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"container"];
+    Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"player"];
+    NSArray *dyadminoesPlayed = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"container"];
     NSString *dyadminoesPlayedString;
     if (dyadminoesPlayed.count > 0) {
       NSString *componentsString = [[dyadminoesPlayed valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "];
@@ -122,7 +122,7 @@
     } else {
       dyadminoesPlayedString = @"passed";
     }
-    self.turnLabel.text = [NSString stringWithFormat:@"%@ %@ for turn %lu of %lu", turnPlayer.playerName, dyadminoesPlayedString, (unsigned long)self.myMatch.replayCounter, (unsigned long)self.myMatch.turns.count];
+    self.turnLabel.text = [NSString stringWithFormat:@"%@ %@ for turn %lu of %lu", turnPlayer.playerName, dyadminoesPlayedString, (unsigned long)self.myMatch.replayTurn, (unsigned long)self.myMatch.turns.count];
   }
   
     // game is still in play and not in replay mode

@@ -9,6 +9,7 @@
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
 @class SnapPoint;
+@class Cell;
 
 @protocol BoardDelegate <NSObject>
 
@@ -60,7 +61,9 @@
 -(void)repositionBoardWithHomePosition:(CGPoint)homePosition
                              andOrigin:(CGPoint)origin;
 
--(CGPoint)adjustToNewPositionFromBeganLocation:(CGPoint)beganLocation toCurrentLocation:(CGPoint)currentLocation withSwap:(BOOL)swap;
+-(CGPoint)adjustToNewPositionFromBeganLocation:(CGPoint)beganLocation
+                             toCurrentLocation:(CGPoint)currentLocation
+                                      withSwap:(BOOL)swap;
 
 -(void)resetForNewMatch;
 
@@ -75,6 +78,7 @@
 #pragma mark - cell methods
 
 -(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes;
+-(Cell *)acknowledgeOrAddCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex; // called by scene's replay methods
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
 

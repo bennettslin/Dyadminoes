@@ -144,7 +144,7 @@
   
   _myPlayer = self.myMatch.currentPlayer;
   self.myMatch.delegate = self;
-  self.myMatch.replayCounter = self.myMatch.turns.count;
+  self.myMatch.replayTurn = self.myMatch.turns.count;
 }
 
 -(void)didMoveToView:(SKView *)view {
@@ -354,7 +354,9 @@
     dyadmino.position = dyadmino.homeNode.position;
     [dyadmino orientBySnapNode:dyadmino.homeNode];
     [dyadmino selectAndPositionSprites];
-    [_boardField addChild:dyadmino];
+    if (!dyadmino.parent) {
+      [_boardField addChild:dyadmino];
+    }
   }
 }
 
@@ -1130,7 +1132,7 @@
     // the other is when dyadmino is eased into board node
   if (updateBoardBounds) {
     NSLog(@"update board bounds from send dyadmino home");
-    [self updateBoardBoundsAndLayoutCells];
+    [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
   }
   
   [dyadmino endTouchThenHoverResize];
@@ -1235,6 +1237,7 @@
     [self toggleReplayFields];
     
     if (_replayMode) {
+      self.myMatch.replayTurn = self.myMatch.turns.count;
       [self startReplay];
       [self updateViewForReplay];
     } else {
@@ -1334,12 +1337,6 @@
     // return to bypass updating labels and buttons
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
-}
-
--(void)updateViewForReplay {
-  [self updateBoardToReflectReplayTurn];
-  [self showTurnInfoOrGameResultsForReplay:YES];
-  [self updateReplayButtons];
 }
 
 #pragma mark - match interaction methods
@@ -1480,11 +1477,13 @@
 
 -(void)tempStoreForPlayerSceneDataDyadmino:(Dyadmino *)dyadmino {
   DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+  
   if ([dyadmino belongsOnBoard]) {
     dataDyad.myHexCoord = dyadmino.homeNode.myCell.hexCoord;
   }
   
   dataDyad.myOrientation = ([dyadmino isOnBoard] && [dyadmino belongsInRack]) ? dyadmino.tempReturnOrientation : dyadmino.orientation;
+  
   dataDyad.myRackOrder = dyadmino.myRackOrder;
 }
 
@@ -1829,7 +1828,7 @@
           // this is one of two places where board bounds are updated
           // the other is when rack dyadmino is sent home
         NSLog(@"updateBoardBounds called from check whether to ease");
-        [self updateBoardBoundsAndLayoutCells];
+        [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
         
         [_boardField hideAllPivotGuides];
         [dyadmino animateEaseIntoNodeAfterHover];
@@ -2022,12 +2021,12 @@
     return;
   }
   
-  if (self.myMatch.replayCounter == 1) {
+  if (self.myMatch.replayTurn == 1) {
     [_replayBottom disableButton:_replayBottom.firstTurnButton];
     [_replayBottom disableButton:_replayBottom.previousTurnButton];
     [_replayBottom enableButton:_replayBottom.nextTurnButton];
     [_replayBottom enableButton:_replayBottom.lastTurnButton];
-  } else if (self.myMatch.replayCounter == self.myMatch.turns.count) {
+  } else if (self.myMatch.replayTurn == self.myMatch.turns.count) {
     [_replayBottom enableButton:_replayBottom.firstTurnButton];
     [_replayBottom enableButton:_replayBottom.previousTurnButton];
     [_replayBottom disableButton:_replayBottom.nextTurnButton];
@@ -2049,8 +2048,6 @@
   }
   
   NSLog(@"toggle replay fields");
-  
-  self.myMatch.replayCounter = self.myMatch.turns.count;
   
     // it's in replay mode (opposite of toggle swap field)
   if (_replayMode) {
@@ -2221,18 +2218,14 @@
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour {
 //  NSLog(@"update cells for placed dyadmino");
   if (![dyadmino isRotating]) {
-    dyadmino.tempBoardNode ?
-      [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.tempBoardNode andColour:colour] :
-      [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:dyadmino.homeNode andColour:colour];
+    [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:(dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode) andColour:colour];
   }
 }
 
 -(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour {
 //  NSLog(@"update cells for removed dyadmino");
   if (![dyadmino isRotating]) {
-    dyadmino.tempBoardNode ?
-      [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.tempBoardNode andColour:colour] :
-      [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:dyadmino.homeNode andColour:colour];
+    [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:(dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode) andColour:colour];
   }
 }
 
@@ -2244,15 +2237,6 @@
     [dyadminoesOnBoard addObject:_recentRackDyadmino];
   }
   return [NSSet setWithSet:dyadminoesOnBoard];
-}
-
--(void)updateBoardBoundsAndLayoutCells {
-
-  NSSet *dyadminoesOnBoard = [self allBoardDyadminoesPlusRecentRackDyadmino];
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoard];
-  
-//  [_topBar flashLabelNamed:@"log" withText:[NSString stringWithFormat:@"cells: top %i, right %i, bottom %i, left %i",
-//                                             _boardField.cellsTop - 0, _boardField.cellsRight - 0, _boardField.cellsBottom + 0, _boardField.cellsLeft + 0]];
 }
 
 #pragma mark - touch helper methods
@@ -2512,7 +2496,7 @@
       // FIXME: refactor to make more efficient
     if (replay) {
       turnOrResultsText = [self.myMatch turnTextLastPlayed:NO];
-      Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"player"];
+      Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"player"];
       colour = [self.myMatch colourForPlayer:turnPlayer];
       
     } else if (!replay && self.myMatch.gameHasEnded) {
@@ -2521,7 +2505,7 @@
         // just say it was the last play, no turn number
     } else {
       turnOrResultsText = [self.myMatch turnTextLastPlayed:YES];
-      Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"player"];
+      Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"player"];
       colour = [self.myMatch colourForPlayer:turnPlayer];
     }
     
@@ -2534,6 +2518,10 @@
 }
 
 -(void)startReplay {
+  
+    // temp store dyadmino position and orientation in data dyadmino
+  [self tempStoreForPlayerSceneDataDyadminoes];
+  
   [self.myMatch startReplay];
   [self.myMatch last]; // ensures that replay starts on last turn
   
@@ -2548,6 +2536,11 @@
 }
 
 -(void)leaveReplay {
+  
+    /// reload data from temp stored data dyadmino positions and orientations
+    /// can probably reuse initial load methods, with modifications
+    /// make sure this is only done for past turn dyadminoes, not recently played dyadminoes
+  
     // show all recently played dyadminoes
   for (DataDyadmino *dataDyad in self.myMatch.holdingContainer) {
     Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
@@ -2568,13 +2561,14 @@
 
 -(void)updateBoardToReflectReplayTurn {
   
-  Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"player"];
-  NSArray *turnDyadminoes = [self.myMatch.turns[self.myMatch.replayCounter - 1] objectForKey:@"container"];
+    // match already knows the turn number
+  Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"player"];
+  NSArray *turnDyadminoes = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"container"];
   
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     
-      // only hide or show dyadminoes from past turns here, not recently played ones
+      // only hide or show dyadminoes from past turns here, not recently played ones which were hidden in startReplay
     if (![self.myMatch.holdingContainer containsObject:dataDyad] && dyadmino != _recentRackDyadmino) {
       
         // hide or show dyadmino
@@ -2588,8 +2582,22 @@
       } else {
         [dyadmino unhighlightOutOfPlay];
       }
+      
+        // position dyadminoes
+      dyadmino.myHexCoord = [dataDyad getHexCoordForTurn:self.myMatch.replayTurn];
+      dyadmino.orientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
+      dyadmino.homeNode = nil; // establish nil so that populateBoard method will assign it a homeNode;
+      
+        /// modify this method so that cells do not get coloured
+      [self populateBoardWithDyadminoes];
     }
   }
+}
+
+-(void)updateViewForReplay {
+  [self updateBoardToReflectReplayTurn];
+  [self showTurnInfoOrGameResultsForReplay:YES];
+  [self updateReplayButtons];
 }
 
 #pragma mark - action sheet methods

@@ -33,7 +33,7 @@
   self = [super init];
   if (self) {
       // constants
-    self.color = (SKColor *)kNeutralDarkerYellow; // for color blend factor
+    self.color = (SKColor *)kNeutralYellow; // for color blend factor
     self.zPosition = kZPositionRackRestingDyadmino;
     self.name = [NSString stringWithFormat:@"dyadmino %lu-%lu", (unsigned long)pc1, (unsigned long)pc2];
     self.pc1 = pc1;
@@ -58,7 +58,7 @@
 -(void)resetForNewMatch {
 
     // reset these init values
-  self.color = (SKColor *)kNeutralDarkerYellow;
+  self.color = (SKColor *)kNeutralYellow;
   self.colorBlendFactor = 0.f;
   self.cellForPC1 = nil;
   self.cellForPC2 = nil;
@@ -457,7 +457,7 @@
   [self removeActionsAndEstablishNotRotating];
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
-    self.color = (SKColor *)kNeutralDarkerYellow;
+    self.color = (SKColor *)kNeutralYellow;
     [self.delegate soundDyadminoSuck];
     [self setToHomeZPosition];
     [self unhighlightOutOfPlay];

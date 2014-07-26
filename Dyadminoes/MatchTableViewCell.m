@@ -147,7 +147,7 @@
         // background colours depending on match results
       labelView.backgroundColourCanBeChanged = YES;
       if (!self.myMatch.gameHasEnded && player == self.myMatch.currentPlayer) {
-        labelView.backgroundColor = [kNeutralDarkerYellow colorWithAlphaComponent:0.8f];
+        labelView.backgroundColor = [kMainDarkerYellow colorWithAlphaComponent:0.8f];
       } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
         labelView.backgroundColor = [kEndedMatchCellDarkColour colorWithAlphaComponent:0.8f];
       } else {
@@ -166,9 +166,9 @@
       self.winnerLabel.text = [self.myMatch endGameResultsText];
       
     } else {
-      self.selectedBackgroundView.backgroundColor = kNeutralSelectedYellow;
+      self.selectedBackgroundView.backgroundColor = kMainSelectedYellow;
       
-      self.backgroundColor = kNeutralLighterYellow;
+      self.backgroundColor = kMainLighterYellow;
       
         // game still in play, so lastPlayed label shows time since last played
       self.lastPlayedLabel.text = [self returnLastPlayedStringFromDate:self.myMatch.lastPlayed

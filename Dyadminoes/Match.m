@@ -46,7 +46,7 @@
     self.tempScore = [[aDecoder decodeObjectForKey:@"tempScore"] unsignedIntegerValue];
     self.holdingContainer = [aDecoder decodeObjectForKey:@"holdingContainer"];
     self.swapContainer = [aDecoder decodeObjectForKey:@"swapContainer"];
-    self.replayCounter = [[aDecoder decodeObjectForKey:@"replayCounter"] unsignedIntegerValue];
+    self.replayTurn = [[aDecoder decodeObjectForKey:@"replayCounter"] unsignedIntegerValue];
     self.turns = [aDecoder decodeObjectForKey:@"turns"];
     
     self.numberOfConsecutivePasses = [[aDecoder decodeObjectForKey:@"consecutivePasses"] unsignedIntegerValue];
@@ -75,7 +75,7 @@
   [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.tempScore] forKey:@"tempScore"];
   [aCoder encodeObject:self.holdingContainer forKey:@"holdingContainer"];
   [aCoder encodeObject:self.swapContainer forKey:@"swapContainer"];
-  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.replayCounter] forKey:@"replayCounter"];
+  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.replayTurn] forKey:@"replayCounter"];
   [aCoder encodeObject:self.turns forKey:@"turns"];
   
   [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.numberOfConsecutivePasses] forKey:@"consecutivePasses"];
@@ -113,7 +113,7 @@
     self.pile = [[NSMutableArray alloc] initWithCapacity:kPileCount];
     self.board = [[NSMutableSet alloc] initWithCapacity:kPileCount];
     self.turns = [NSMutableArray new];
-    self.replayCounter = 0;
+    self.replayTurn = 0;
     
     [self generatePile];
     [self placeFirstDyadminoOnBoard];
@@ -146,6 +146,7 @@
     self.firstDyadmino.myHexCoord = myHex;
     [self.pile removeObjectAtIndex:randIndex];
     [self.board addObject:self.firstDyadmino];
+    [self persistChangedPositionForBoardDataDyadmino:self.firstDyadmino];
   }
 }
 
@@ -212,7 +213,7 @@
                               self.holdingContainer, @"container", nil];
   
   [self.turns addObject:dictionary];
-  self.replayCounter = self.turns.count;
+  self.replayTurn = self.turns.count;
   
     // player passes
   if (self.holdingContainer.count == 0) {
@@ -307,7 +308,7 @@
       NSLog(@"new dictionary created for turn %i", self.turns.count);
       
         // set object for changed hexCoord position
-      if (!(dataDyad.myHexCoord.x == [lastHexX integerValue] && dataDyad.myHexCoord.y == [lastHexY integerValue])) {
+      if (!(lastHexX && lastHexY) || !(dataDyad.myHexCoord.x == [lastHexX integerValue] && dataDyad.myHexCoord.y == [lastHexY integerValue])) {
         NSLog(@"hexCoord for dataDyad %i changed, persist!", dataDyad.myID);
         NSNumber *newHexX = [NSNumber numberWithInteger:dataDyad.myHexCoord.x];
         NSNumber *newHexY = [NSNumber numberWithInteger:dataDyad.myHexCoord.y];
@@ -316,7 +317,7 @@
       }
       
         // set object for changed orientation
-      if (dataDyad.myOrientation != [lastOrientation unsignedIntegerValue]) {
+      if (!lastOrientation || dataDyad.myOrientation != [lastOrientation unsignedIntegerValue]) {
         NSLog(@"orientation for dataDyad %i changed, persist!", dataDyad.myID);
         NSNumber *newOrientation = [NSNumber numberWithUnsignedInteger:dataDyad.myOrientation];
         [newDictionary setObject:newOrientation forKey:@"orientation"];
@@ -345,7 +346,7 @@
     NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:self.currentPlayer, @"player", nil];
     
     [self.turns addObject:dictionary];
-    self.replayCounter = self.turns.count;
+    self.replayTurn = self.turns.count;
   }
 
   player.resigned = YES;
@@ -452,12 +453,12 @@
 }
 
 -(NSString *)turnTextLastPlayed:(BOOL)lastPlayed {
-  Player *turnPlayer = [self.turns[self.replayCounter - 1] objectForKey:@"player"];
+  Player *turnPlayer = [self.turns[self.replayTurn - 1] objectForKey:@"player"];
   NSArray *dyadminoesPlayed;
-  if (![self.turns[self.replayCounter - 1] objectForKey:@"container"]) {
+  if (![self.turns[self.replayTurn - 1] objectForKey:@"container"]) {
     
   } else {
-    dyadminoesPlayed = [self.turns[self.replayCounter - 1] objectForKey:@"container"];
+    dyadminoesPlayed = [self.turns[self.replayTurn - 1] objectForKey:@"container"];
   }
   
   NSString *dyadminoesPlayedString;
@@ -478,7 +479,7 @@
     }
 
   } else {
-    return [NSString stringWithFormat:@"%@ %@ for turn %lu of %lu.", turnPlayer.playerName, dyadminoesPlayedString, (unsigned long)self.replayCounter, (unsigned long)self.turns.count];
+    return [NSString stringWithFormat:@"%@ %@ for turn %lu of %lu.", turnPlayer.playerName, dyadminoesPlayedString, (unsigned long)self.replayTurn, (unsigned long)self.turns.count];
   }
 }
 
@@ -555,14 +556,14 @@
 
 -(void)first {
   
-  if (self.replayCounter == 0) { // in case the replay is before any turn made
+  if (self.replayTurn == 0) { // in case the replay is before any turn made
     return;
   }
   
-  self.replayCounter = 1;
+  self.replayTurn = 1;
   [self.replayBoard removeAllObjects];
   [self.replayBoard addObject:self.firstDyadmino];
-  NSArray *container = [self.turns[self.replayCounter - 1] objectForKey:@"container"];
+  NSArray *container = [self.turns[self.replayTurn - 1] objectForKey:@"container"];
   for (DataDyadmino *dataDyad in container) {
     if (![self.replayBoard containsObject:dataDyad]) {
       [self.replayBoard addObject:dataDyad];
@@ -572,29 +573,29 @@
 
 -(BOOL)previous {
 
-  if (self.replayCounter <= 1) {
+  if (self.replayTurn <= 1) {
     return NO;
     
   } else {
-      NSArray *container = [self.turns[self.replayCounter - 1] objectForKey:@"container"];
+      NSArray *container = [self.turns[self.replayTurn - 1] objectForKey:@"container"];
       for (DataDyadmino *dataDyad in container) {
         if ([self.replayBoard containsObject:dataDyad]) {
           [self.replayBoard removeObject:dataDyad];
         }
       }
-    self.replayCounter--;
+    self.replayTurn--;
     return YES;
   }
 }
 
 -(BOOL)next {
   
-  if (self.replayCounter >= self.turns.count) {
+  if (self.replayTurn >= self.turns.count) {
     return NO;
     
   } else {
-    self.replayCounter++;
-      NSArray *container = [self.turns[self.replayCounter - 1] objectForKey:@"container"];
+    self.replayTurn++;
+      NSArray *container = [self.turns[self.replayTurn - 1] objectForKey:@"container"];
       for (DataDyadmino *dataDyad in container) {
         if (![self.replayBoard containsObject:dataDyad]) {
           [self.replayBoard addObject:dataDyad];
@@ -605,7 +606,7 @@
 }
 
 -(void)last {
-  self.replayCounter = self.turns.count;
+  self.replayTurn = self.turns.count;
   for (int i = 0; i < self.turns.count; i++) {
     NSArray *container = [self.turns[i] objectForKey:@"container"];
     for (DataDyadmino *dataDyad in container) {

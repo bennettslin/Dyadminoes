@@ -38,8 +38,8 @@
 @property (nonatomic) NSUInteger tempScore;
 @property (strong, nonatomic) NSArray *holdingContainer;
 @property (strong, nonatomic) NSMutableArray *swapContainer;
-@property (nonatomic) NSUInteger replayCounter;
-@property (strong, nonatomic) NSMutableArray *turns;
+@property (nonatomic) NSUInteger replayTurn;
+@property (strong, nonatomic) NSMutableArray *turns; // turns start from 1
 
 @property (nonatomic) NSInteger randomNumber1To24;
 

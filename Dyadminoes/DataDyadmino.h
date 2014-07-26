@@ -19,5 +19,7 @@
 @property (strong, nonatomic) NSArray *turnChanges;
 
 -(id)initWithID:(NSUInteger)id;
+-(HexCoord)getHexCoordForTurn:(NSUInteger)turn;
+-(DyadminoOrientation)getOrientationForTurn:(NSUInteger)turn;
 
 @end

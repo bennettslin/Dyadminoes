@@ -154,9 +154,10 @@
 
   // colours
 
-#define kNeutralSelectedYellow [UIColor colorWithRed:.97f green:.97f blue:.9f alpha:1.f]
-#define kNeutralLighterYellow [UIColor colorWithRed:.95f green:.95f blue:.85f alpha:1.f]
-#define kNeutralDarkerYellow [UIColor colorWithRed:0.85f green:0.85f blue:0.75f alpha:1.f]
+#define kMainSelectedYellow [UIColor colorWithRed:.97f green:.97f blue:.9f alpha:1.f]
+#define kMainLighterYellow [UIColor colorWithRed:.95f green:.95f blue:.85f alpha:1.f]
+#define kMainDarkerYellow [UIColor colorWithRed:0.85f green:0.85f blue:0.75f alpha:1.f]
+
 //#define kNeutralDarkerCitron [UIColor colorWithRed:0.70f green:0.90f blue:0.30f alpha:1.f]
 //#define kNeutralLighterCitron [UIColor colorWithRed:0.90f green:1.f blue:0.50f alpha:1.f]
 #define kResignedGray [UIColor colorWithRed:0.75f green:0.75f blue:0.75f alpha:1.f]
@@ -170,6 +171,7 @@
 
 #define kScrollingBackgroundFade [UIColor colorWithRed:0.33f green:.30f blue:0.24f alpha:1.f]
 
+#define kNeutralYellow [UIColor yellowColor]
 #define kPlayerBlue [UIColor colorWithRed:.04f green:.52f blue:.91f alpha:1.f]
 #define kPlayerRed [UIColor colorWithRed:.93f green:.27f blue:.93f alpha:1.f]
 #define kPlayerGreen [UIColor colorWithRed:0.f green:.65f blue:.19f alpha:1.f]

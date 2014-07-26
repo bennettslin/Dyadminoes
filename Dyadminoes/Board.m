@@ -370,12 +370,10 @@
     // use this to get the range to iterate over y, and to keep the board square
   
   NSMutableSet *tempAddedCellSet = [NSMutableSet new];
-  
-//  NSLog(@"from layout, max and min top %.2f, right %.2f, bottom %.2f, left %.2f", maxCellsTop, maxCellsRight, minCellsBottom, minCellsLeft);
-//  NSLog(@"in integers, that's %i, %i, %i, %i", (int)maxCellsTop, (int)maxCellsRight, (int)minCellsBottom, (int)minCellsLeft);
-  
+
     // FIXME: (maybe) these extra + or - and 1 or 2 constants ensures that no empty slots show when dyadmino is moved or removed
     // and board bounds are corrected as a result. Seems fine for now, but *might* want to fix later
+//  /*
   for (NSInteger xHex = minCellsLeft - 2; xHex <= maxCellsRight + 2; xHex++) {
     for (NSInteger yHex = minCellsBottom - 1 - maxCellsRight / 2.f; yHex <= maxCellsTop + 2 - minCellsLeft / 2.f; yHex++) {
       
@@ -395,6 +393,23 @@
       }
     }
   }
+//   */
+  
+    // this block tries to add only cells surrounding dyadminoes
+    // unfortunately, getting cell from dyadmino's myHexCoord is not a good way to do it
+  /*
+  for (Dyadmino *dyadmino in boardDyadminoes) {
+    if (!self.zoomedOut) {
+      Cell *addedCell = [self acknowledgeOrAddCellWithXHex:dyadmino.myHexCoord.x andYHex:dyadmino.myHexCoord.y];
+      HexCoord otherCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:(dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode)];
+      Cell *otherCell = [self acknowledgeOrAddCellWithXHex:otherCellHexCoord.x andYHex:otherCellHexCoord.y];
+      [tempAddedCellSet addObject:addedCell];
+      [tempAddedCellSet addObject:otherCell];
+    }
+  }
+  
+  self.allCells = [NSMutableSet setWithSet:tempAddedCellSet];
+  */
   
     // ensures there's no straggler cells
   if (!self.zoomedOut) {
