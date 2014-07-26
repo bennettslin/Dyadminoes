@@ -142,9 +142,9 @@
   
     // no colour gradient lightens up, colour gradient darkens up
 
-    gradientRed = redValue + ((1.f - redValue) / 4.f);
-    gradientGreen = greenValue + ((1.f - greenValue) / 4.f);
-    gradientBlue = blueValue + ((1.f - blueValue) / 4.f);
+    gradientRed = redValue + ((1.f - redValue) / 5.f);
+    gradientGreen = greenValue + ((1.f - greenValue) / 5.f);
+    gradientBlue = blueValue + ((1.f - blueValue) / 5.f);
 
   if (!upsideDown) {
     topGradient = [UIColor colorWithRed:gradientRed green:gradientGreen blue:gradientBlue alpha:1.f];

@@ -41,6 +41,8 @@
 @property (nonatomic) NSUInteger replayCounter;
 @property (strong, nonatomic) NSMutableArray *turns;
 
+@property (nonatomic) NSInteger randomNumber1To24;
+
 @property (weak, nonatomic) id <MatchDelegate> delegate;
 
   // init methods
@@ -49,6 +51,7 @@
   // game state change methods
 -(Player *)switchToNextPlayer;
 -(void)recordDyadminoesFromPlayer:(Player *)player withSwap:(BOOL)swap;
+-(void)persistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad;
 -(void)swapDyadminoesFromCurrentPlayer;
 -(void)resignPlayer:(Player *)player;
 

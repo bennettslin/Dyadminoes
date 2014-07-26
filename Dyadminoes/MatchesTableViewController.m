@@ -78,7 +78,7 @@
   CGFloat _screenWidth;
   CGFloat _screenHeight;
   BOOL _overlayEnabled;
-  BOOL _sceneLoaded; // this might be extraneous
+  BOOL _backgroundShouldBeStill; // this might be extraneous
 }
 
 -(void)viewDidLoad {
@@ -113,10 +113,10 @@
   self.activityIndicator.center = self.view.center;
   [self.view addSubview:self.activityIndicator];
   
-  self.bottomBar.backgroundColor = kFieldPurple;
-  [self addGradientToView:self.bottomBar WithColour:self.bottomBar.backgroundColor andUpsideDown:NO];
-  self.topBar.backgroundColor = kFieldPurple;
-  [self addGradientToView:self.topBar WithColour:self.topBar.backgroundColor andUpsideDown:YES];
+  self.bottomBar.backgroundColor = kMainBarsColour;
+  [self addGradientToView:self.bottomBar WithColour:kMainBarsColour andUpsideDown:NO];
+  self.topBar.backgroundColor = kMainBarsColour;
+  [self addGradientToView:self.topBar WithColour:kMainBarsColour andUpsideDown:YES];
   
   [self addShadowToView:self.topBar upsideDown:NO];
   [self addShadowToView:self.bottomBar upsideDown:YES];
@@ -159,9 +159,15 @@
   
   for (UIButton *button in self.allButtons) {
     button.titleLabel.font = [UIFont fontWithName:kButtonFont size:(kIsIPhone ? 28 : 48)];
+    button.tintColor = kMainButtonsColour;
   }
   
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(startAnimatingBackground) name:UIApplicationDidBecomeActiveNotification object:nil];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stopAnimatingBackground) name:UIApplicationWillResignActiveNotification object:nil];
+  
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(getModel) name:UIApplicationWillEnterForegroundNotification object:nil];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationWillTerminateNotification object:nil];
 }
 
 -(void)viewWillAppear:(BOOL)animated {
@@ -179,8 +185,17 @@
 
 -(void)viewDidAppear:(BOOL)animated {
 //  NSLog(@"view will appear");
-  _sceneLoaded = NO;
+  [self startAnimatingBackground];
+}
+
+-(void)startAnimatingBackground {
+  _backgroundShouldBeStill = NO;
   [self animateBackgroundViewFirstTime:YES];
+}
+
+-(void)stopAnimatingBackground {
+  _backgroundShouldBeStill = YES; // this might be extraneous
+  [self.backgroundView.layer removeAllAnimations];
 }
 
 #pragma mark - Table view delegate and data source
@@ -404,10 +419,8 @@
   
   self.darkOverlay.backgroundColor = [UIColor clearColor];
   [self.darkOverlay removeFromSuperview];
-  
-    // no animation
-  _sceneLoaded = NO; // this might be extraneous
-  [self.backgroundView.layer removeAllAnimations];
+
+  [self stopAnimatingBackground];
   
     // also remove startGame childVC
   [self backToMatches];
@@ -447,6 +460,11 @@
   self.myModel = [Model getMyModel];
 }
 
+-(void)saveModel {
+  NSLog(@"saveModel");
+  [Model saveMyModel:self.myModel];
+}
+
 -(void)startSoloGameWithPlayerName:(NSString *)playerName {
   Match *newMatch = [self.myModel instantiateSoloMatchWithName:playerName andRules:kGameRulesTonal andSkill:kBeginner];
     // may need to tweak with how this is viewed
@@ -468,6 +486,7 @@
 -(void)animateBackgroundViewFirstTime:(BOOL)firstTime {
   
   if (firstTime) {
+    [self.backgroundView.layer removeAllAnimations];
     self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
   }
   
@@ -479,7 +498,7 @@
   } completion:^(BOOL finished) {
      if (finished) {
        self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
-       if (!_sceneLoaded) {
+       if (!_backgroundShouldBeStill) {
          [self animateBackgroundViewFirstTime:NO];
        }
      }
@@ -492,7 +511,7 @@
   
     // make sure that view size is even multiple of backgroundImage
   self.backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, backgroundImage.size.width * 4, backgroundImage.size.height * 4)];
-  self.backgroundView.backgroundColor = [[UIColor colorWithPatternImage:backgroundImage] colorWithAlphaComponent:0.3f];
+  self.backgroundView.backgroundColor = [[UIColor colorWithPatternImage:backgroundImage] colorWithAlphaComponent:0.25f];
   self.backgroundView.center = CGPointMake(_screenWidth, _screenHeight);
   
 //  NSLog(@"bkg view is %.1f, %.1f", self.backgroundView.frame.size.width, self.backgroundView.frame.size.height);
@@ -509,8 +528,8 @@
   UIColor *darkGradient;
   UIColor *lightGradient;
   
-  darkGradient = [[UIColor brownColor] colorWithAlphaComponent:1.f];
-  lightGradient = [[UIColor brownColor] colorWithAlphaComponent:0.4f];
+  darkGradient = [kScrollingBackgroundFade colorWithAlphaComponent:1.f];
+  lightGradient = [kScrollingBackgroundFade colorWithAlphaComponent:0.5f];
   
   CAGradientLayer *gradientLayer = [CAGradientLayer layer];
   gradientLayer.frame = gradientView.frame;
@@ -536,7 +555,7 @@
 
 -(void)removeMatch:(Match *)match {
   [self.myModel.myMatches removeObject:match];
-  [Model saveMyModel:self.myModel];
+  [self saveModel];
 }
 
 #pragma mark - system methods

@@ -33,7 +33,7 @@
   self = [super init];
   if (self) {
       // constants
-    self.color = (SKColor *)kNeutralYellow; // for color blend factor
+    self.color = (SKColor *)kNeutralDarkerYellow; // for color blend factor
     self.zPosition = kZPositionRackRestingDyadmino;
     self.name = [NSString stringWithFormat:@"dyadmino %lu-%lu", (unsigned long)pc1, (unsigned long)pc2];
     self.pc1 = pc1;
@@ -58,7 +58,7 @@
 -(void)resetForNewMatch {
 
     // reset these init values
-  self.color = (SKColor *)kNeutralYellow;
+  self.color = (SKColor *)kNeutralDarkerYellow;
   self.colorBlendFactor = 0.f;
   self.cellForPC1 = nil;
   self.cellForPC2 = nil;
@@ -212,7 +212,8 @@
 
 -(void)highlightBoardDyadminoWithColour:(UIColor *)colour {
   self.color = (SKColor *)colour;
-  self.colorBlendFactor = kDyadminoColorBlendFactor;
+    // orange colour is dimmer, so needs to be brightened
+  self.colorBlendFactor = ([colour isEqual:kPlayerOrange]) ? kDyadminoColorBlendFactor * 1.5 : kDyadminoColorBlendFactor;
 }
 
 -(void)adjustHighlightGivenDyadminoOffsetPosition:(CGPoint)dyadminoOffsetPosition {
@@ -456,7 +457,7 @@
   [self removeActionsAndEstablishNotRotating];
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
-    self.color = (SKColor *)kNeutralYellow;
+    self.color = (SKColor *)kNeutralDarkerYellow;
     [self.delegate soundDyadminoSuck];
     [self setToHomeZPosition];
     [self unhighlightOutOfPlay];
@@ -548,7 +549,8 @@
   [self removeActionsAndEstablishNotRotating];
   self.color = (SKColor *)colour;
   
-  SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:kDyadminoColorBlendFactor * 1.333 duration:.5f];
+  CGFloat colourBlendFactor = ([colour isEqual:kPlayerOrange]) ? kDyadminoColorBlendFactor * 1.5 : kDyadminoColorBlendFactor;
+  SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:colourBlendFactor * 1.333 duration:.5f];
   
   SKAction *wait = [SKAction waitForDuration:1.f];
   

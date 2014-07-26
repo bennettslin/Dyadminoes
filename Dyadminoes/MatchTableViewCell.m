@@ -55,11 +55,8 @@
   
     // colour when cell is selected
   UIView *customColorView = [[UIView alloc] init];
-  customColorView.backgroundColor = [UIColor colorWithRed:1.f green:1.f blue:.8f alpha:.8f];
+//  customColorView.backgroundColor = [UIColor whiteColor];
   self.selectedBackgroundView = customColorView;
-  
-  self.stavesView = [[StavesView alloc] initWithFrame:CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, 90.f + kCellSeparatorBuffer)];
-  [self addSubview:self.stavesView];
   
   self.playerLabelsArray = @[self.player1Label, self.player2Label, self.player3Label, self.player4Label];
   
@@ -88,11 +85,15 @@
                                           self.lastPlayedLabel.frame.size.width, self.lastPlayedLabel.frame.size.height);
   self.winnerLabel.font = [UIFont fontWithName:kButtonFont size:kIsIPhone ? 12.f : 24.f];
   self.winnerLabel.adjustsFontSizeToFitWidth = YES;
+  
+  self.stavesView = [[StavesView alloc] initWithFrame:CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, 90.f + kCellSeparatorBuffer)];
+  [self insertSubview:self.stavesView belowSubview:self.selectedBackgroundView];
 }
 
 -(void)setProperties {
 
   NSLog(@"setProperties");
+  NSLog(@"random number is %i", self.myMatch.randomNumber1To24);
   
   if (self.myMatch.gameHasEnded) {
     self.stavesView.gameHasEnded = YES;
@@ -146,9 +147,9 @@
         // background colours depending on match results
       labelView.backgroundColourCanBeChanged = YES;
       if (!self.myMatch.gameHasEnded && player == self.myMatch.currentPlayer) {
-        labelView.backgroundColor = [kNeutralYellow colorWithAlphaComponent:0.5f];
+        labelView.backgroundColor = [kNeutralDarkerYellow colorWithAlphaComponent:0.8f];
       } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
-        labelView.backgroundColor = [[UIColor greenColor] colorWithAlphaComponent:0.5f];
+        labelView.backgroundColor = [kEndedMatchCellDarkColour colorWithAlphaComponent:0.8f];
       } else {
         labelView.backgroundColor = [UIColor clearColor];
       }
@@ -157,15 +158,17 @@
     
     if (self.myMatch.gameHasEnded) {
       
-      self.backgroundColor = [UIColor colorWithRed:0.9f green:1.f blue:0.9f alpha:1.f];
+      self.selectedBackgroundView.backgroundColor = kEndedMatchCellSelectedColour;
+      self.backgroundColor = kEndedMatchCellLightColour;
       
         // game ended, so lastPlayed label shows date
       self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed];
       self.winnerLabel.text = [self.myMatch endGameResultsText];
       
     } else {
+      self.selectedBackgroundView.backgroundColor = kNeutralSelectedYellow;
       
-      self.backgroundColor = [[UIColor whiteColor] colorWithAlphaComponent:1.f];
+      self.backgroundColor = kNeutralLighterYellow;
       
         // game still in play, so lastPlayed label shows time since last played
       self.lastPlayedLabel.text = [self returnLastPlayedStringFromDate:self.myMatch.lastPlayed
@@ -278,7 +281,7 @@
       multiplier = 10 - (playerPosition) - 2.5;
       break;
   }
-  return (multiplier - 2.5) * kStaveYHeight - (kPlayerLabelHeightPadding * 0.25f);
+  return (multiplier - 3) * kStaveYHeight - (kPlayerLabelHeightPadding * 0.25f);
 }
 
 @end

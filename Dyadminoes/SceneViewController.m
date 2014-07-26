@@ -142,7 +142,7 @@
 #pragma mark - model methods
 
 -(void)saveModel {
-  [self.myScene persistAllSceneDataDyadminoes];
+  [self.myScene tempStoreForPlayerSceneDataDyadminoes];
   NSLog(@"saveModel");
   [Model saveMyModel:self.myModel];
 }

@@ -51,6 +51,8 @@
     
     self.numberOfConsecutivePasses = [[aDecoder decodeObjectForKey:@"consecutivePasses"] unsignedIntegerValue];
     self.firstDyadmino = [aDecoder decodeObjectForKey:@"firstDyadmino"];
+    
+    self.randomNumber1To24 = [aDecoder decodeIntegerForKey:@"randomNumber1To24"];
   }
   return self;
 }
@@ -78,6 +80,8 @@
   
   [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.numberOfConsecutivePasses] forKey:@"consecutivePasses"];
   [aCoder encodeObject:self.firstDyadmino forKey:@"firstDyadmino"];
+  
+  [aCoder encodeInteger:self.randomNumber1To24 forKey:@"randomNumber1To24"];
 }
 
 #pragma mark - init methods
@@ -96,6 +100,8 @@
     
     self.players = players;
     self.currentPlayer = players[0];
+    
+    self.randomNumber1To24 = [self randomIntegerUpTo:24] + 1;
     
     for (Player *player in self.players) {
       player.delegate = self;
@@ -201,7 +207,9 @@
 -(void)recordDyadminoesFromPlayer:(Player *)player withSwap:(BOOL)swap {
 
     // a pass has an empty holding container, while a resign has *no* holding container
-  NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:self.currentPlayer, @"player", self.holdingContainer, @"container", nil];
+  NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:
+                              self.currentPlayer, @"player",
+                              self.holdingContainer, @"container", nil];
   
   [self.turns addObject:dictionary];
   self.replayCounter = self.turns.count;
@@ -264,14 +272,70 @@
   [self switchToNextPlayer];
 }
 
--(void)recordBoardDyadminoPositionChanges {
-//  for (DataDyadmino *dataDyad in self.board) {
-//    NSUInteger currentTurn = self.turns.count;
-//    
-//    
-//    DyadminoOrientation storedOrientation = [dataDyad.turnPositionsAndOrientations
-  
-  
+-(void)persistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad {
+  if ([self.board containsObject:dataDyad]) {
+    
+    NSNumber *lastHexX;
+    NSNumber *lastHexY;
+    NSNumber *lastOrientation;
+    
+      // get last hexCoord and orientation
+      // (must be iterated separately, because they might be in different dictionaries)
+    int hexCoordCounter = dataDyad.turnChanges.count - 1;
+    while ((!lastHexX || !lastHexY) && hexCoordCounter >= 0) {
+      NSDictionary *lastDictionary = (NSDictionary *)dataDyad.turnChanges[hexCoordCounter];
+      lastHexX = (NSNumber *)[lastDictionary objectForKey:@"hexX"];
+      lastHexY = (NSNumber *)[lastDictionary objectForKey:@"hexY"];
+      hexCoordCounter--;
+    }
+    int orientationCounter = dataDyad.turnChanges.count - 1;
+    while (!lastOrientation && orientationCounter >= 0) {
+      NSDictionary *lastDictionary = (NSDictionary *)dataDyad.turnChanges[orientationCounter];
+      lastOrientation = (NSNumber *)[lastDictionary objectForKey:@"orientation"];
+      orientationCounter--;
+    }
+    
+      // if either hexCoord position or orientation has changed, or was never established
+    if ((!lastHexX || dataDyad.myHexCoord.x != [lastHexX integerValue]) ||
+        (!lastHexY || dataDyad.myHexCoord.y != [lastHexY integerValue]) ||
+        (!lastOrientation || dataDyad.myOrientation != [lastOrientation unsignedIntegerValue])) {
+      
+        // create new dictionary
+      NSMutableDictionary *newDictionary = [NSMutableDictionary new];
+      NSNumber *thisTurn = [NSNumber numberWithUnsignedInteger:self.turns.count];
+      [newDictionary setObject:thisTurn forKey:@"turn"];
+      NSLog(@"new dictionary created for turn %i", self.turns.count);
+      
+        // set object for changed hexCoord position
+      if (!(dataDyad.myHexCoord.x == [lastHexX integerValue] && dataDyad.myHexCoord.y == [lastHexY integerValue])) {
+        NSLog(@"hexCoord for dataDyad %i changed, persist!", dataDyad.myID);
+        NSNumber *newHexX = [NSNumber numberWithInteger:dataDyad.myHexCoord.x];
+        NSNumber *newHexY = [NSNumber numberWithInteger:dataDyad.myHexCoord.y];
+        [newDictionary setObject:newHexX forKey:@"hexX"];
+        [newDictionary setObject:newHexY forKey:@"hexY"];
+      }
+      
+        // set object for changed orientation
+      if (dataDyad.myOrientation != [lastOrientation unsignedIntegerValue]) {
+        NSLog(@"orientation for dataDyad %i changed, persist!", dataDyad.myID);
+        NSNumber *newOrientation = [NSNumber numberWithUnsignedInteger:dataDyad.myOrientation];
+        [newDictionary setObject:newOrientation forKey:@"orientation"];
+      }
+      
+      NSMutableArray *mutableTurnChanges = [NSMutableArray arrayWithArray:dataDyad.turnChanges];
+      [mutableTurnChanges addObject:[NSDictionary dictionaryWithDictionary:newDictionary]];
+      dataDyad.turnChanges = [NSArray arrayWithArray:mutableTurnChanges];
+      
+        // for testing purposes
+      for (NSDictionary *dictionary in dataDyad.turnChanges) {
+        NSUInteger turn = [(NSNumber *)[dictionary objectForKey:@"turn"] unsignedIntegerValue];
+        NSInteger hexX = [(NSNumber *)[dictionary objectForKey:@"hexX"] integerValue];
+        NSInteger hexY = [(NSNumber *)[dictionary objectForKey:@"hexY"] integerValue];
+        DyadminoOrientation orientation = [(NSNumber *)[dictionary objectForKey:@"orientation"] unsignedIntegerValue];
+        NSLog(@"dataDyad %i for turn %i has position %i, %i and orientation %i", dataDyad.myID, turn, hexX, hexY, orientation);
+      }
+    }
+  }
 }
 
 -(void)resignPlayer:(Player *)player {

@@ -29,8 +29,7 @@
 -(void)cancelPinch;
 -(BOOL)validatePinchLocation:(CGPoint)location;
 
-//-(void)handleDoubleTap;
--(void)persistAllSceneDataDyadminoes;
+-(void)tempStoreForPlayerSceneDataDyadminoes;
 
 -(void)togglePCsUserShaken:(BOOL)userShaken;
 -(void)handleUserWantsPivotGuides;

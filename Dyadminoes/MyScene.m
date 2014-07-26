@@ -243,7 +243,7 @@
       // only add if it's not in the holding container
       // if it is, then don't add because holding container is added to board set instead
     if (![self.myMatch.holdingContainer containsObject:dataDyad]) {
-      Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
+      Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
       dyadmino.myHexCoord = dataDyad.myHexCoord;
       dyadmino.orientation = dataDyad.myOrientation;
       dyadmino.myRackOrder = dataDyad.myRackOrder;
@@ -270,7 +270,7 @@
   NSMutableSet *tempSet = [[NSMutableSet alloc] initWithCapacity:tempDataEnumerationSet.count];
   
   for (DataDyadmino *dataDyad in tempDataEnumerationSet) {
-    Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
+    Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
     dyadmino.myHexCoord = dataDyad.myHexCoord;
     dyadmino.orientation = dataDyad.myOrientation;
     dyadmino.myRackOrder = -1; // signifies it's not in rack
@@ -1098,7 +1098,7 @@
     [dyadmino removeActionsAndEstablishNotRotating];
     
   //  NSLog(@"prepare for hover, check");
-    [self checkWhetherToEaseOrKeepHovering:dyadmino afterTouchJustEnded:YES];
+    [self checkWhetherToEaseOrKeepHovering:dyadmino];
     
   //  NSLog(@"prepare for hover");
     if (dyadmino.isHovering || dyadmino.continuesToHover) {
@@ -1236,9 +1236,7 @@
     
     if (_replayMode) {
       [self startReplay];
-      [self updateBoardToReflectReplayTurn];
-      [self showTurnInfoOrGameResultsForReplay:YES];
-      [self updateReplayButtons];
+      [self updateViewForReplay];
     } else {
         // reset match's board to last turn
       [self.myMatch last]; // ensures that replay ends on last turn
@@ -1319,25 +1317,16 @@
       // replay buttons
   } else if (_buttonPressed == _replayBottom.firstTurnButton) {
     [self.myMatch first];
-    [self updateBoardToReflectReplayTurn];
-    [self showTurnInfoOrGameResultsForReplay:YES];
-    [self updateReplayButtons];
+    [self updateViewForReplay];
   } else if (_buttonPressed == _replayBottom.previousTurnButton) {
     [self.myMatch previous];
-    [self updateBoardToReflectReplayTurn];
-    [self showTurnInfoOrGameResultsForReplay:YES];
-    [self updateReplayButtons];
+    [self updateViewForReplay];
   } else if (_buttonPressed == _replayBottom.nextTurnButton) {
     [self.myMatch next];
-    [self updateBoardToReflectReplayTurn];
-    [self showTurnInfoOrGameResultsForReplay:YES];
-    [self updateReplayButtons];
+    [self updateViewForReplay];
   } else if (_buttonPressed == _replayBottom.lastTurnButton) {
     [self.myMatch last];
-    [self updateBoardToReflectReplayTurn];
-    [self showTurnInfoOrGameResultsForReplay:YES];
-    [self updateReplayButtons];
-  
+    [self updateViewForReplay];
   } else {
     return;
   }
@@ -1347,60 +1336,13 @@
   [self updateTopBarButtons];
 }
 
+-(void)updateViewForReplay {
+  [self updateBoardToReflectReplayTurn];
+  [self showTurnInfoOrGameResultsForReplay:YES];
+  [self updateReplayButtons];
+}
+
 #pragma mark - match interaction methods
-
--(void)undoLastPlayedDyadmino {
-    // remove data dyadmino from holding container
-  DataDyadmino *undoneDataDyadmino = [self.myMatch undoDyadminoToHoldingContainer];
-  Dyadmino *undoneDyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[undoneDataDyadmino.myID - 1];
-  undoneDyadmino.tempReturnOrientation = undoneDataDyadmino.myOrientation;
-  undoneDyadmino.orientation = undoneDataDyadmino.myOrientation;
-  undoneDyadmino.myRackOrder = self.playerRackDyadminoes.count;
-  undoneDyadmino.homeNode = nil;
-  
-    // re-add dyadmino to player rack, remove from scene board
-  [self reAddToPlayerRackDyadminoes:undoneDyadmino];
-  [self removeFromSceneBoardDyadminoes:undoneDyadmino];
-  
-    // take care of views
-  [self sendDyadminoHome:undoneDyadmino fromUndo:YES byPoppingIn:YES andSounding:NO  andUpdatingBoardBounds:YES];
-  [self persistDataForDyadmino:undoneDyadmino];
-}
-
--(void)recordChangedDataForRackDyadminoes:(NSArray *)rackArray {
-  for (int i = 0; i < rackArray.count; i++) {
-    if ([rackArray[i] isKindOfClass:[Dyadmino class]]) {
-      Dyadmino *dyadmino = (Dyadmino *)rackArray[i];
-      dyadmino.myRackOrder = i;
-      [self persistDataForDyadmino:dyadmino];
-    }
-  }
-}
-
--(void)persistDataForDyadmino:(Dyadmino *)dyadmino {
-  DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-  if ([dyadmino belongsOnBoard]) {
-    dataDyad.myHexCoord = dyadmino.homeNode.myCell.hexCoord;
-  }
-  
-  if ([dyadmino isOnBoard] && [dyadmino belongsInRack]) {
-    dataDyad.myOrientation = dyadmino.tempReturnOrientation;
-  } else {
-    dataDyad.myOrientation = dyadmino.orientation;
-  }
-  
-  dataDyad.myRackOrder = dyadmino.myRackOrder;
-}
-
--(void)persistAllSceneDataDyadminoes {
-  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
-    [self persistDataForDyadmino:dyadmino];
-  }
-  
-  for (Dyadmino *dyadmino in self.boardDyadminoes) {
-    [self persistDataForDyadmino:dyadmino];
-  }
-}
 
 -(void)cancelSwappedDyadminoes {
   _swapMode = NO;
@@ -1475,11 +1417,30 @@
   [self updateTopBarButtons];
 }
 
+-(void)undoLastPlayedDyadmino {
+    // remove data dyadmino from holding container
+  DataDyadmino *undoneDataDyadmino = [self.myMatch undoDyadminoToHoldingContainer];
+  Dyadmino *undoneDyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[undoneDataDyadmino.myID - 1];
+  undoneDyadmino.tempReturnOrientation = undoneDataDyadmino.myOrientation;
+  undoneDyadmino.orientation = undoneDataDyadmino.myOrientation;
+  undoneDyadmino.myRackOrder = self.playerRackDyadminoes.count;
+  undoneDyadmino.homeNode = nil;
+  
+    // re-add dyadmino to player rack, remove from scene board
+  [self reAddToPlayerRackDyadminoes:undoneDyadmino];
+  [self removeFromSceneBoardDyadminoes:undoneDyadmino];
+  
+    // take care of views
+  [self sendDyadminoHome:undoneDyadmino fromUndo:YES byPoppingIn:YES andSounding:NO  andUpdatingBoardBounds:YES];
+  [self tempStoreForPlayerSceneDataDyadmino:undoneDyadmino];
+}
+
 -(void)finalisePlayerTurn {
     // no recent rack dyadmino on board
   if (!_recentRackDyadmino) {
-    [self persistAllSceneDataDyadminoes];
+    [self tempStoreForPlayerSceneDataDyadminoes]; // for player view
     [self.myMatch recordDyadminoesFromPlayer:_myPlayer withSwap:NO];
+    [self persistChangedBoardDyadminoPositionsAndOrientations]; // for match
 
     [self populateRackArray];
     [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
@@ -1505,6 +1466,34 @@
 -(void)handleEndGame {
   NSString *resultsText = [self.myMatch endGameResultsText];
   [_topBar flashLabelNamed:@"message" withText:resultsText andColour:nil];
+}
+
+-(void)tempStoreForPlayerSceneDataDyadminoes {
+  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
+    [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
+  }
+  
+  for (Dyadmino *dyadmino in self.boardDyadminoes) {
+    [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
+  }
+}
+
+-(void)tempStoreForPlayerSceneDataDyadmino:(Dyadmino *)dyadmino {
+  DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+  if ([dyadmino belongsOnBoard]) {
+    dataDyad.myHexCoord = dyadmino.homeNode.myCell.hexCoord;
+  }
+  
+  dataDyad.myOrientation = ([dyadmino isOnBoard] && [dyadmino belongsInRack]) ? dyadmino.tempReturnOrientation : dyadmino.orientation;
+  dataDyad.myRackOrder = dyadmino.myRackOrder;
+}
+
+-(void)persistChangedBoardDyadminoPositionsAndOrientations {
+    // call this *after* recordDyadminoes to ensure that dataDyad is in match's board
+  for (Dyadmino *dyadmino in self.boardDyadminoes) {
+    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+    [self.myMatch persistChangedPositionForBoardDataDyadmino:dataDyad];
+  }
 }
 
 #pragma mark - realtime update methods
@@ -1807,13 +1796,12 @@
     }
     
     if ([dyadmino isFinishedHovering]) {
-      [self checkWhetherToEaseOrKeepHovering:dyadmino afterTouchJustEnded:NO];
+      [self checkWhetherToEaseOrKeepHovering:dyadmino];
     }
   }
 }
 
-  // touch just ended doesn't really make a difference
--(void)checkWhetherToEaseOrKeepHovering:(Dyadmino *)dyadmino afterTouchJustEnded:(BOOL)touchJustEnded {
+-(void)checkWhetherToEaseOrKeepHovering:(Dyadmino *)dyadmino {
   
     // if finished hovering
   if ([dyadmino isOnBoard] && _touchedDyadmino != dyadmino) {
@@ -1834,7 +1822,7 @@
             // this method will record a dyadmino that's already in the match's board
             // this method also gets called if a recently played dyadmino
             // has been moved, but data will not be submitted until the turn is officially done.
-          [self persistDataForDyadmino:dyadmino];
+          [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
           dyadmino.homeNode = dyadmino.tempBoardNode;
         }
         
@@ -2025,6 +2013,15 @@
 }
 
 -(void)updateReplayButtons {
+  
+  if (self.myMatch.turns.count <= 1) {
+    [_replayBottom disableButton:_replayBottom.firstTurnButton];
+    [_replayBottom disableButton:_replayBottom.previousTurnButton];
+    [_replayBottom disableButton:_replayBottom.nextTurnButton];
+    [_replayBottom disableButton:_replayBottom.lastTurnButton];
+    return;
+  }
+  
   if (self.myMatch.replayCounter == 1) {
     [_replayBottom disableButton:_replayBottom.firstTurnButton];
     [_replayBottom disableButton:_replayBottom.previousTurnButton];
@@ -2185,36 +2182,6 @@
   }
 }
 
--(void)animateRecentlyPlayedDyadminoes {
-  
-    // this is also in populateBoardSet method, but repeated code can't be helped
-  NSDictionary *lastTurn = (NSDictionary *)[self.myMatch.turns lastObject];
-  Player *lastPlayer = (Player *)[lastTurn valueForKey:@"player"];
-  NSArray *lastContainer = (NSArray *)[lastTurn valueForKey:@"container"];
-  
-    // board must enumerate over both board and holding container dyadminoes
-  NSMutableSet *tempDataEnumerationSet = [NSMutableSet setWithSet:self.myMatch.board];
-  [tempDataEnumerationSet addObjectsFromArray:self.myMatch.holdingContainer];
-  
-    // animate last played only if current player does not have dyadminoes in holding container
-//  BOOL animateLastPlayedDyadminoes = self.myMatch.holdingContainer.count == 0 ? YES : NO;
-  
-  for (DataDyadmino *dataDyad in tempDataEnumerationSet) {
-    Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
-  
-    // either animate last played dyadminoes, or highlight dyadminoes currently in holding container
-//    if (animateLastPlayedDyadminoes) {
-    if ([lastContainer containsObject:dataDyad]) {
-      [dyadmino animateDyadminoesRecentlyPlayedWithColour:[self.myMatch colourForPlayer:lastPlayer]];
-    }
-//    } else {
-    if ([self.myMatch.holdingContainer containsObject:dataDyad]) {
-      [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer]];
-    }
-//    }
-  }
-}
-
 #pragma mark - undo manager
 
 -(void)reAddToPlayerRackDyadminoes:(Dyadmino *)dyadmino {
@@ -2299,13 +2266,17 @@
   return CGPointMake(uiTouchLocation.x, self.frame.size.height - uiTouchLocation.y);
 }
 
-#pragma mark - dyadmino helper methods
+#pragma mark - data dyadmino methods
+
+-(Dyadmino *)getDyadminoFromDataDyadmino:(DataDyadmino *)dataDyad {
+  return (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
+}
 
 -(DataDyadmino *)getDataDyadminoFromDyadmino:(Dyadmino *)dyadmino {
   
   NSMutableSet *tempDataDyadSet = [NSMutableSet setWithSet:self.myMatch.board];
   [tempDataDyadSet addObjectsFromArray:_myPlayer.dataDyadminoesThisTurn];
-
+  
   for (DataDyadmino *dataDyad in tempDataDyadSet) {
     if (dataDyad.myID == dyadmino.myID) {
       return dataDyad;
@@ -2314,6 +2285,8 @@
   
   return nil;
 }
+
+#pragma mark - dyadmino helper methods
 
 -(void)determineCurrentSectionOfDyadmino:(Dyadmino *)dyadmino {
     // this the ONLY place that determines current section of dyadmino
@@ -2500,6 +2473,33 @@
   }
 }
 
+-(void)animateRecentlyPlayedDyadminoes {
+  
+    // this is also in populateBoardSet method, but repeated code can't be helped
+  NSDictionary *lastTurn = (NSDictionary *)[self.myMatch.turns lastObject];
+  Player *lastPlayer = (Player *)[lastTurn valueForKey:@"player"];
+  NSArray *lastContainer = (NSArray *)[lastTurn valueForKey:@"container"];
+  
+    // board must enumerate over both board and holding container dyadminoes
+  NSMutableSet *tempDataEnumerationSet = [NSMutableSet setWithSet:self.myMatch.board];
+  [tempDataEnumerationSet addObjectsFromArray:self.myMatch.holdingContainer];
+  
+    // animate last played only if current player does not have dyadminoes in holding container
+    //  BOOL animateLastPlayedDyadminoes = self.myMatch.holdingContainer.count == 0 ? YES : NO;
+  
+  for (DataDyadmino *dataDyad in tempDataEnumerationSet) {
+    Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
+    
+      // animate last played dyadminoes, and highlight dyadminoes currently in holding container
+    if ([lastContainer containsObject:dataDyad]) {
+      [dyadmino animateDyadminoesRecentlyPlayedWithColour:[self.myMatch colourForPlayer:lastPlayer]];
+    }
+    if ([self.myMatch.holdingContainer containsObject:dataDyad]) {
+      [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer]];
+    }
+  }
+}
+
 #pragma mark - replay and turn methods
 
 -(void)showTurnInfoOrGameResultsForReplay:(BOOL)replay {
@@ -2539,7 +2539,7 @@
   
     // hide all recently played dyadminoes
   for (DataDyadmino *dataDyad in self.myMatch.holdingContainer) {
-    Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
+    Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
     dyadmino.hidden = YES;
   }
   if (_recentRackDyadmino) {
@@ -2550,7 +2550,7 @@
 -(void)leaveReplay {
     // show all recently played dyadminoes
   for (DataDyadmino *dataDyad in self.myMatch.holdingContainer) {
-    Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
+    Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
     dyadmino.hidden = NO;
   }
   if (_recentRackDyadmino) {
@@ -2672,6 +2672,17 @@
 }
 
 #pragma mark - delegate methods
+
+  // called from rack exchange
+-(void)recordChangedDataForRackDyadminoes:(NSArray *)rackArray {
+  for (int i = 0; i < rackArray.count; i++) {
+    if ([rackArray[i] isKindOfClass:[Dyadmino class]]) {
+      Dyadmino *dyadmino = (Dyadmino *)rackArray[i];
+      dyadmino.myRackOrder = i;
+      [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
+    }
+  }
+}
 
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino {
   return (self.boardDyadminoes.count == 1 && dyadmino == [self.boardDyadminoes anyObject] && !_recentRackDyadmino) ? YES : NO;

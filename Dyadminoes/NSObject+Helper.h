@@ -154,11 +154,26 @@
 
   // colours
 
-#define kNeutralYellow [UIColor yellowColor]
-#define kPlayerBlue [UIColor colorWithRed:.4f green:.35f blue:1.f alpha:1.f]
-#define kPlayerRed [UIColor colorWithRed:1.f green:.3f blue:.3f alpha:1.f]
-#define kPlayerGreen [UIColor colorWithRed:0.2f green:1.f blue:.2f alpha:1.f]
-#define kPlayerOrange [UIColor orangeColor]
+#define kNeutralSelectedYellow [UIColor colorWithRed:.97f green:.97f blue:.9f alpha:1.f]
+#define kNeutralLighterYellow [UIColor colorWithRed:.95f green:.95f blue:.85f alpha:1.f]
+#define kNeutralDarkerYellow [UIColor colorWithRed:0.85f green:0.85f blue:0.75f alpha:1.f]
+//#define kNeutralDarkerCitron [UIColor colorWithRed:0.70f green:0.90f blue:0.30f alpha:1.f]
+//#define kNeutralLighterCitron [UIColor colorWithRed:0.90f green:1.f blue:0.50f alpha:1.f]
+#define kResignedGray [UIColor colorWithRed:0.75f green:0.75f blue:0.75f alpha:1.f]
+
+#define kMainBarsColour [UIColor colorWithRed:0.37f green:0.24f blue:0.21f alpha:1.f]
+#define kMainButtonsColour [UIColor colorWithRed:0.82f green:0.62f blue:0.f alpha:1.f]
+
+#define kEndedMatchCellDarkColour [UIColor colorWithRed:0.83f green:.74f blue:0.6f alpha:1.f]
+#define kEndedMatchCellLightColour [UIColor colorWithRed:0.94f green:.85f blue:0.71f alpha:1.f]
+#define kEndedMatchCellSelectedColour [UIColor colorWithRed:0.96f green:.88f blue:0.76f alpha:1.f]
+
+#define kScrollingBackgroundFade [UIColor colorWithRed:0.33f green:.30f blue:0.24f alpha:1.f]
+
+#define kPlayerBlue [UIColor colorWithRed:.04f green:.52f blue:.91f alpha:1.f]
+#define kPlayerRed [UIColor colorWithRed:.93f green:.27f blue:.93f alpha:1.f]
+#define kPlayerGreen [UIColor colorWithRed:0.f green:.65f blue:.19f alpha:1.f]
+#define kPlayerOrange [UIColor colorWithRed:0.85f green:.50f blue:.18f alpha:1.f]
 
 #define kDarkBlue [SKColor colorWithRed:.29f green:.4f blue:.63f alpha:1.f]
 #define kSkyBlue [SKColor colorWithRed:.7f green:.8f blue:.9f alpha:1.f]
@@ -179,6 +194,8 @@
 #define kWhite [SKColor colorWithRed:1.f green:1.f blue:1.f alpha:1.f]
 #define kYellow [SKColor colorWithRed:0.9f green:0.86f blue:.52f alpha:1.f]
 #define kCyanBlue [SKColor colorWithRed:.62f green:.96f blue:1.f alpha:1.f]
+
+
 
   //----------------------------------------------------------------------------
 
