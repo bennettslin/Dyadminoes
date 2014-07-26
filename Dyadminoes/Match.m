@@ -283,7 +283,7 @@
       // get last hexCoord and orientation
       // (must be iterated separately, because they might be in different dictionaries)
     int hexCoordCounter = dataDyad.turnChanges.count - 1;
-    while ((!lastHexX || !lastHexY) && hexCoordCounter >= 0) {
+    while (!(lastHexX || lastHexY) && hexCoordCounter >= 0) {
       NSDictionary *lastDictionary = (NSDictionary *)dataDyad.turnChanges[hexCoordCounter];
       lastHexX = (NSNumber *)[lastDictionary objectForKey:@"hexX"];
       lastHexY = (NSNumber *)[lastDictionary objectForKey:@"hexY"];
@@ -303,12 +303,12 @@
       
         // create new dictionary
       NSMutableDictionary *newDictionary = [NSMutableDictionary new];
-      NSNumber *thisTurn = [NSNumber numberWithUnsignedInteger:self.turns.count];
+      NSNumber *thisTurn = [NSNumber numberWithUnsignedInteger:(self.turns.count > 0 ? self.turns.count : 1)]; // for first dyadmino
       [newDictionary setObject:thisTurn forKey:@"turn"];
       NSLog(@"new dictionary created for turn %i", self.turns.count);
       
         // set object for changed hexCoord position
-      if (!(lastHexX && lastHexY) || !(dataDyad.myHexCoord.x == [lastHexX integerValue] && dataDyad.myHexCoord.y == [lastHexY integerValue])) {
+      if (!(lastHexX || lastHexY) || !(dataDyad.myHexCoord.x == [lastHexX integerValue] && dataDyad.myHexCoord.y == [lastHexY integerValue])) {
         NSLog(@"hexCoord for dataDyad %i changed, persist!", dataDyad.myID);
         NSNumber *newHexX = [NSNumber numberWithInteger:dataDyad.myHexCoord.x];
         NSNumber *newHexY = [NSNumber numberWithInteger:dataDyad.myHexCoord.y];

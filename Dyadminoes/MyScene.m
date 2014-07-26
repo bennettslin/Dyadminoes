@@ -2586,6 +2586,7 @@
         // position dyadminoes
       dyadmino.myHexCoord = [dataDyad getHexCoordForTurn:self.myMatch.replayTurn];
       dyadmino.orientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
+      dyadmino.tempReturnOrientation = dyadmino.orientation;
       dyadmino.homeNode = nil; // establish nil so that populateBoard method will assign it a homeNode;
       
         /// modify this method so that cells do not get coloured
@@ -2722,7 +2723,6 @@
 #pragma mark - debugging methods
 
 -(void)toggleDebugMode {
-  NSLog(@"debug mode toggled");
   
   if (_hoveringDyadmino) {
     [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];

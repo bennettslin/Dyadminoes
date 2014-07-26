@@ -224,9 +224,10 @@
 
 #pragma mark - change state methods
 
--(void)setToHomeZPosition {
+-(void)setToHomeZPositionAndSyncOrientation {
   self.zPosition = (self.homeNode.snapPointType == kSnapPointRack) ?
       kZPositionRackRestingDyadmino : kZPositionBoardRestingDyadmino;
+  self.tempReturnOrientation = self.orientation;
 }
 
 -(void)goHomeToRackByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding fromUndo:(BOOL)undo withResize:(BOOL)resize {
@@ -237,7 +238,7 @@
   } else {
     [self orientBySnapNode:self.homeNode];
     [self animateMoveToPoint:[self getHomeNodePosition] andSounding:sounding];
-    [self setToHomeZPosition];
+//    [self setToHomeZPositionAndSyncOrientation];
   }
   self.tempBoardNode = nil;
   [self finishHovering];
@@ -250,6 +251,7 @@
   } else {
     [self orientBySnapNode:self.homeNode];
     [self animateMoveToPoint:[self getHomeNodePosition] andSounding:sounding];
+//    [self setToHomeZPositionAndSyncOrientation];
   }
   [self finishHovering];
 }
@@ -421,7 +423,7 @@
   if (sounding) {
     SKAction *completeAction = [SKAction runBlock:^{
       [self.delegate soundDyadminoSettleClick];
-      [self setToHomeZPosition];
+      [self setToHomeZPositionAndSyncOrientation];
     }];
     SKAction *sequence = [SKAction sequence:@[moveAction, completeAction]];
     [self runAction:sequence withKey:kActionMoveToPoint];
@@ -437,7 +439,7 @@
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
     [self.delegate soundDyadminoSuck];
-    [self setToHomeZPosition];
+    [self setToHomeZPositionAndSyncOrientation];
     if ([self belongsInRack]) {
       [self orientBySnapNode:self.tempBoardNode];
       self.position = self.tempBoardNode.position;
@@ -459,7 +461,7 @@
   SKAction *repositionAction = [SKAction runBlock:^{
     self.color = (SKColor *)kNeutralYellow;
     [self.delegate soundDyadminoSuck];
-    [self setToHomeZPosition];
+    [self setToHomeZPositionAndSyncOrientation];
     [self unhighlightOutOfPlay];
     [self orientBySnapNode:self.homeNode];
     
@@ -496,7 +498,7 @@
   if ([self isInRack] || [self isOrBelongsInSwap]) {
     finishAction = [SKAction runBlock:^{
       [self finishHovering];
-      [self setToHomeZPosition];
+      [self setToHomeZPositionAndSyncOrientation];
       [self endTouchThenHoverResize];
       self.isRotating = NO;
       [self.delegate soundDyadminoSettleClick];
@@ -529,13 +531,15 @@
   SKAction *finishAction = [SKAction runBlock:^{
     
     [self endTouchThenHoverResize];
-    [self setToHomeZPosition];
+    [self setToHomeZPositionAndSyncOrientation];
     
     self.canFlip = NO;
     self.hoveringStatus = kDyadminoNoHoverStatus;
     self.initialPivotPosition = self.position;
     
     NSLog(@"animate ease into node after hover");
+    NSLog(@"dyadmino %@ has homeNode %@ and tempBoardNode %@", self.name, self.homeNode.name, self.tempBoardNode.name);
+    NSLog(@"and orientation %i and temp orientation %i", self.orientation, self.tempReturnOrientation);
     [self.delegate soundDyadminoSettleClick];
     [self.delegate changeColoursAroundDyadmino:self withSign:+1];
   }];

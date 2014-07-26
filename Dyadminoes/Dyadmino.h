@@ -108,7 +108,7 @@
 
 #pragma mark - change state methods
 
--(void)setToHomeZPosition;
+//-(void)setToHomeZPosition;
 -(void)goHomeToRackByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding fromUndo:(BOOL)undo withResize:(BOOL)resize;
 -(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding withResize:(BOOL)resize;
 -(void)removeActionsAndEstablishNotRotating;
