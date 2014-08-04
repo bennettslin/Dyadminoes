@@ -47,6 +47,9 @@
 		3F87AAD6188DEE4C008C4A0D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAE188DEE4B008C4A0D /* UIKit.framework */; };
 		3F87AADE188DEE4C008C4A0D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3F87AADC188DEE4C008C4A0D /* InfoPlist.strings */; };
 		3F87AAE0188DEE4C008C4A0D /* DyadminoesTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F87AADF188DEE4C008C4A0D /* DyadminoesTests.m */; };
+		3F88E69E198F0E5A004E3533 /* fermata-med.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F88E69B198F0E5A004E3533 /* fermata-med.png */; };
+		3F88E69F198F0E5A004E3533 /* bass-clef-md.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F88E69C198F0E5A004E3533 /* bass-clef-md.png */; };
+		3F88E6A0198F0E5A004E3533 /* treble-clef-med.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F88E69D198F0E5A004E3533 /* treble-clef-med.png */; };
 		3F88EDB719638FBF005CC9A4 /* SoloViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F88EDB619638FBF005CC9A4 /* SoloViewController.m */; };
 		3F8F045818BFB1B300853C4C /* NSObject+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F8F045718BFB1B300853C4C /* NSObject+Helper.m */; };
 		3F8F045B18BFEF3300853C4C /* SnapPoint.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F8F045A18BFEF3300853C4C /* SnapPoint.m */; };
@@ -144,6 +147,9 @@
 		3F87AADB188DEE4C008C4A0D /* DyadminoesTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "DyadminoesTests-Info.plist"; sourceTree = "<group>"; };
 		3F87AADD188DEE4C008C4A0D /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		3F87AADF188DEE4C008C4A0D /* DyadminoesTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DyadminoesTests.m; sourceTree = "<group>"; };
+		3F88E69B198F0E5A004E3533 /* fermata-med.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fermata-med.png"; sourceTree = "<group>"; };
+		3F88E69C198F0E5A004E3533 /* bass-clef-md.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "bass-clef-md.png"; sourceTree = "<group>"; };
+		3F88E69D198F0E5A004E3533 /* treble-clef-med.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "treble-clef-med.png"; sourceTree = "<group>"; };
 		3F88EDB519638FBF005CC9A4 /* SoloViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoloViewController.h; sourceTree = "<group>"; };
 		3F88EDB619638FBF005CC9A4 /* SoloViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoloViewController.m; sourceTree = "<group>"; };
 		3F8F045618BFB1B300853C4C /* NSObject+Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+Helper.h"; sourceTree = "<group>"; };
@@ -213,6 +219,9 @@
 		3F0526C21936CE92003D3C04 /* Images and Sounds */ = {
 			isa = PBXGroup;
 			children = (
+				3F88E69B198F0E5A004E3533 /* fermata-med.png */,
+				3F88E69C198F0E5A004E3533 /* bass-clef-md.png */,
+				3F88E69D198F0E5A004E3533 /* treble-clef-med.png */,
 				3F19311F1980C8240034A5B9 /* BachMassBackgroundCropped.png */,
 				3F7A30B4197B24C8003DBB1C /* MaryFloral.jpg */,
 				3FF255C5197A4E2F00B40D8D /* KeyboardBackground.png */,
@@ -503,11 +512,13 @@
 				3FFD6CA318B40A83000D2DA4 /* DyadminoImages.atlas in Resources */,
 				3FF255C6197A4E2F00B40D8D /* KeyboardBackground.png in Resources */,
 				3FBC6AD7194E208300420CB8 /* hitCat.wav in Resources */,
+				3F88E69F198F0E5A004E3533 /* bass-clef-md.png in Resources */,
 				3FF255C4197A3F6900B40D8D /* Filmotype-Harmony.otf in Resources */,
 				3F580BDE194F710F0040B5D0 /* Click2-Sebastian-759472264.wav in Resources */,
 				3F87AACD188DEE4B008C4A0D /* Images.xcassets in Resources */,
 				3FBC6AD8194E208300420CB8 /* hitCatLady.wav in Resources */,
 				3F87AAC3188DEE4B008C4A0D /* Main_iPad.storyboard in Resources */,
+				3F88E69E198F0E5A004E3533 /* fermata-med.png in Resources */,
 				3F0526C91936CE9F003D3C04 /* page2.png in Resources */,
 				3F580BE0194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav in Resources */,
 				3F87AAC0188DEE4B008C4A0D /* Main_iPhone.storyboard in Resources */,
@@ -515,6 +526,7 @@
 				3F0526CA1936CE9F003D3C04 /* page1.png in Resources */,
 				3F7A30B5197B24C8003DBB1C /* MaryFloral.jpg in Resources */,
 				3F87AAB7188DEE4B008C4A0D /* InfoPlist.strings in Resources */,
+				3F88E6A0198F0E5A004E3533 /* treble-clef-med.png in Resources */,
 				3FF255C3197A3F6500B40D8D /* Filmotype-Modern.otf in Resources */,
 				3F0526C71936CE9F003D3C04 /* page4.png in Resources */,
 				3F0526C81936CE9F003D3C04 /* page3.png in Resources */,
@@ -707,10 +719,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Dyadminoes/Dyadminoes-Prefix.pch";
 				INFOPLIST_FILE = "Dyadminoes/Dyadminoes-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				SPRITEKIT_TEXTURE_ATLAS_OUTPUT = YES;
 				WRAPPER_EXTENSION = app;
 			};
@@ -722,10 +736,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Dyadminoes/Dyadminoes-Prefix.pch";
 				INFOPLIST_FILE = "Dyadminoes/Dyadminoes-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				SPRITEKIT_TEXTURE_ATLAS_OUTPUT = YES;
 				WRAPPER_EXTENSION = app;
 			};

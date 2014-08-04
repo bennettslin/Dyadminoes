@@ -51,7 +51,7 @@
   self.mySceneView.showsNodeCount = YES;
   
   self.myScene.myMatch = self.myMatch;
-  self.myScene.delegate = self;
+  self.myScene.myDelegate = self;
   
   [self.myScene loadAfterNewMatchRetrieved];
   

@@ -39,7 +39,10 @@
 @property (weak, nonatomic) IBOutlet UILabel *score4Label;
 
 @property (weak, nonatomic) IBOutlet UILabel *lastPlayedLabel;
-@property (weak, nonatomic) IBOutlet UILabel *winnerLabel;
+//@property (weak, nonatomic) IBOutlet UILabel *winnerLabel;
+
+@property (strong, nonatomic) UIImageView *clefImage;
+@property (strong, nonatomic) NSArray *fermataImageViewArray;
 
 @property (strong, nonatomic) NSArray *playerLabelsArray;
 @property (strong, nonatomic) NSArray *playerLabelViewsArray;
@@ -83,24 +86,40 @@
   self.lastPlayedLabel.adjustsFontSizeToFitWidth = YES;
   self.lastPlayedLabel.frame = CGRectMake(self.lastPlayedLabel.frame.origin.x, (self.frame.size.height / 10) * 11,
                                           self.lastPlayedLabel.frame.size.width, self.lastPlayedLabel.frame.size.height);
-  self.winnerLabel.font = [UIFont fontWithName:kButtonFont size:kIsIPhone ? 12.f : 24.f];
-  self.winnerLabel.adjustsFontSizeToFitWidth = YES;
+//  self.winnerLabel.font = [UIFont fontWithName:kButtonFont size:kIsIPhone ? 12.f : 24.f];
+//  self.winnerLabel.adjustsFontSizeToFitWidth = YES;
   
   self.stavesView = [[StavesView alloc] initWithFrame:CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, 90.f + kCellSeparatorBuffer)];
   [self insertSubview:self.stavesView belowSubview:self.selectedBackgroundView];
+  
+  self.clefImage = [UIImageView new];
+  self.clefImage.frame = CGRectMake(kStaveXBuffer, kStaveYHeight * 4, kStaveYHeight * 4, kStaveYHeight * 4);
+  [self addSubview:self.clefImage];
+  
+  NSMutableArray *tempFermataImageViewArray = [NSMutableArray new];
+  for (int i = 0; i < 4; i++) {
+    UIImageView *fermataImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"fermata-med"]];
+    [tempFermataImageViewArray addObject:fermataImageView];
+  }
+  self.fermataImageViewArray = [NSArray arrayWithArray:tempFermataImageViewArray];
 }
 
 -(void)setProperties {
 
   NSLog(@"setProperties");
-  NSLog(@"random number is %i", self.myMatch.randomNumber1To24);
+  NSLog(@"random number is %li", (long)self.myMatch.randomNumber1To24);
   
-  if (self.myMatch.gameHasEnded) {
-    self.stavesView.gameHasEnded = YES;
-    [self.stavesView setNeedsDisplay];
+  self.stavesView.gameHasEnded = self.myMatch.gameHasEnded;
+  [self.stavesView setNeedsDisplay];
+  
+  self.clefImage.image = (self.myMatch.players.count == 1) ? [UIImage imageNamed:@"treble-clef-med"] : [UIImage imageNamed:@"bass-clef-md"];
+  self.clefImage.contentMode = UIViewContentModeScaleAspectFit;
+  
+  for (UIImageView *fermataImageView in self.fermataImageViewArray) {
+    [fermataImageView removeFromSuperview];
   }
   
-  self.winnerLabel.text = @"";
+//  self.winnerLabel.text = @"";
   
   if (self.myMatch) {
     
@@ -124,32 +143,31 @@
       [playerLabel sizeToFit];
       
         // frame width can never be greater than maximum label width
-      if (playerLabel.frame.size.width > kPlayerLabelWidth) {
-        playerLabel.frame = CGRectMake(kStaveXBuffer + kStaveWidthDivision + (i * kStaveWidthDivision * 2), playerLabel.frame.origin.y, kPlayerLabelWidth, playerLabel.frame.size.height);
-      } else {
-        playerLabel.frame = CGRectMake(kStaveXBuffer + kStaveWidthDivision + (i * kStaveWidthDivision * 2), playerLabel.frame.origin.y, playerLabel.frame.size.width, playerLabel.frame.size.height);
-      }
+      CGFloat playerLabelFrameWidth = (playerLabel.frame.size.width > kPlayerLabelWidth) ?
+          kPlayerLabelWidth : playerLabel.frame.size.width;
+      playerLabel.frame = CGRectMake(kStaveXBuffer + kStaveWidthDivision + (i * kStaveWidthDivision * 2), playerLabel.frame.origin.y, playerLabelFrameWidth, playerLabel.frame.size.height);
       
         // make font size smaller if it can't fit
       playerLabel.adjustsFontSizeToFitWidth = YES;
       labelView.frame = CGRectMake(0, 0, playerLabel.frame.size.width + kPlayerLabelWidthPadding + kScoreLabelWidth, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
-//      labelView.center = CGPointMake(playerLabel.center.x + (kScoreLabelWidth / 2), playerLabel.center.y - kPlayerLabelWidthPadding * 0.1f);
+
       labelView.layer.cornerRadius = labelView.frame.size.height / 2;
       labelView.clipsToBounds = YES;
 
-        // static player colours
-      if (player.resigned && self.myMatch.type != kSelfGame) {
-        playerLabel.textColor = [UIColor lightGrayColor];
-      } else {
-        playerLabel.textColor = [self.myMatch colourForPlayer:player];
-      }
+        // static player colours, check if player resigned
+      playerLabel.textColor = (player.resigned && self.myMatch.type != kSelfGame) ?
+          [UIColor lightGrayColor] : [self.myMatch colourForPlayer:player];
       
         // background colours depending on match results
       labelView.backgroundColourCanBeChanged = YES;
       if (!self.myMatch.gameHasEnded && player == self.myMatch.currentPlayer) {
         labelView.backgroundColor = [kMainDarkerYellow colorWithAlphaComponent:0.8f];
       } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
-        labelView.backgroundColor = [kEndedMatchCellDarkColour colorWithAlphaComponent:0.8f];
+//        labelView.backgroundColor = [kEndedMatchCellDarkColour colorWithAlphaComponent:0.8f];
+        labelView.backgroundColor = [UIColor clearColor]; // I've decided just fermata, no background for won player
+        UIImageView *fermataImageView = self.fermataImageViewArray[i];
+        [self addSubview:fermataImageView];
+        
       } else {
         labelView.backgroundColor = [UIColor clearColor];
       }
@@ -163,11 +181,10 @@
       
         // game ended, so lastPlayed label shows date
       self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed];
-      self.winnerLabel.text = [self.myMatch endGameResultsText];
+//      self.winnerLabel.text = [self.myMatch endGameResultsText];
       
     } else {
       self.selectedBackgroundView.backgroundColor = kMainSelectedYellow;
-      
       self.backgroundColor = kMainLighterYellow;
       
         // game still in play, so lastPlayed label shows time since last played
@@ -257,9 +274,14 @@
 
     playerLabel.frame = CGRectMake(playerLabel.frame.origin.x, [self labelHeightForMaxPosition:maxPosition andPlayerPosition:position],
                                    playerLabel.frame.size.width, playerLabel.frame.size.height);
-//    labelView.center = playerLabel.center;
     labelView.center = CGPointMake(playerLabel.center.x + (kScoreLabelWidth / 2), playerLabel.center.y - kPlayerLabelWidthPadding * 0.1f);
     scoreLabel.frame = CGRectMake(playerLabel.frame.origin.x + playerLabel.frame.size.width + (kPlayerLabelWidthPadding / 4), playerLabel.frame.origin.y, scoreLabel.frame.size.width, scoreLabel.frame.size.height);
+    
+    UIImageView *fermataImageView = self.fermataImageViewArray[i];
+    if (fermataImageView.superview) {
+      fermataImageView.frame = CGRectMake(playerLabel.frame.origin.x, playerLabel.frame.origin.y - kStaveYHeight * 2, kStaveYHeight * 2, kStaveYHeight * 2);
+      fermataImageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
   }
 }
 

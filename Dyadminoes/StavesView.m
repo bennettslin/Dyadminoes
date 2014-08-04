@@ -25,9 +25,11 @@
   [super drawRect:rect];
   CGFloat lineWidth = 0.5f;
   
+  UIColor *staveColour = self.gameHasEnded ? kStaveEndedGameColour : kStaveColour;
+  
   CGContextRef context = UIGraphicsGetCurrentContext();
   for (int i = 0; i < 5; i++) {
-    CGContextSetStrokeColorWithColor(context, [[UIColor brownColor] colorWithAlphaComponent:0.7f].CGColor);
+    CGContextSetStrokeColorWithColor(context, [staveColour colorWithAlphaComponent:0.7f].CGColor);
     CGContextSetLineWidth(context, lineWidth);
     
     CGFloat yPosition = kStaveYHeight * (i + 3);
@@ -44,6 +46,8 @@
     // filled rectangle of end symbol
   if (self.gameHasEnded) {
     
+    UIColor *staveColour = self.gameHasEnded ? kStaveEndedGameColour : kStaveColour;
+    
     CGContextRef endLineContext = UIGraphicsGetCurrentContext();
     CGContextSetLineWidth(endLineContext, lineWidth * 2);
     CGContextMoveToPoint(endLineContext, kCellWidth - kStaveXBuffer - kStaveYHeight * 0.9, kStaveYHeight * 3);
@@ -51,7 +55,7 @@
     CGContextStrokePath(endLineContext);
     
     CGContextRef endBoxContext = UIGraphicsGetCurrentContext();
-    CGContextSetFillColorWithColor(endBoxContext, [[UIColor brownColor] colorWithAlphaComponent:0.7f].CGColor);
+    CGContextSetFillColorWithColor(endBoxContext, [staveColour colorWithAlphaComponent:0.7f].CGColor);
     CGRect endRect = CGRectMake(kCellWidth - kStaveXBuffer - kStaveYHeight / 2, kStaveYHeight * 3 - lineWidth, kStaveYHeight / 2, kStaveYHeight * 4 + (lineWidth * 2));
     CGContextFillRect(endBoxContext, endRect);
   }

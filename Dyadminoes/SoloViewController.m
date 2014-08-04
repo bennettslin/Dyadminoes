@@ -42,10 +42,15 @@
 }
 
 -(IBAction)startGameTapped:(id)sender {
+
+    // for all practical purposes, button will be covered by textField
+    // so calling resignTextField is unnecessary
   
-  [self resignTextField];
+//  [self resignTextFieldWithOverlay:NO];
   [self.delegate startSoloGameWithPlayerName:[self.defaults objectForKey:@"soloName"]];
 }
+
+
 
 -(void)saveNewPlayerName {
 
@@ -69,18 +74,22 @@
 }
 
 -(BOOL)textFieldShouldReturn:(UITextField *)textField {
-  [self resignTextField];
+  [self resignTextFieldWithOverlay:YES];
   return YES;
 }
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-  [self resignTextField];
+  [self resignTextFieldWithOverlay:YES];
 }
 
--(void)resignTextField {
+
+  // with overlay bool is unnecessary
+-(void)resignTextFieldWithOverlay:(BOOL)overlay {
   [self.playerNameField resignFirstResponder];
   [self saveNewPlayerName];
-  [self.delegate enableOverlay];
+  if (overlay) {
+    [self.delegate enableOverlay];
+  }
 }
 
 @end

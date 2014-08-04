@@ -172,7 +172,13 @@
 
 -(void)viewWillAppear:(BOOL)animated {
   
+  [self resetActivityIndicatorAndDarkOverlay];
+  self.topBar.frame = CGRectMake(0, 0, _screenWidth, kMainTopBarHeight);
+  self.bottomBar.frame = CGRectMake(0, _screenHeight - kMainBottomBarHeight, _screenWidth, kMainTopBarHeight);
+  self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
+  
   _overlayEnabled = YES;
+  
   self.myModel = [Model getMyModel];
   if (!self.myModel) {
     self.myModel = [Model new];
@@ -260,6 +266,10 @@
     NSLog(@"prepareForSegue called");
     [self startActivityIndicator];
     
+    if (!self.darkOverlay.superview) {
+        [self startFadeInThread];
+    }
+    
     SceneViewController *sceneVC = [segue destinationViewController];
     sceneVC.myScene = self.myScene;
 
@@ -284,20 +294,29 @@
 }
 
 -(void)backToMatches {
+  [self backToMatchesWithAnimateRemoveVC:NO];
+}
+
+-(void)backToMatchesWithAnimateRemoveVC:(BOOL)animateRemoveVC {
   
   if (!self.vcIsAnimating && self.childVC && _overlayEnabled) {
     
-    [self fadeOutOverlay];
-    [self slideInTopBarAndBottomBar];
-    [self slideInTableview];
-    
-    [self removeChildViewController:self.childVC];
+    if (animateRemoveVC == NO) {
+      [self fadeOutOverlay];
+      [self slideInTopBarAndBottomBar];
+      [self slideInTableview];
+      [self removeChildViewController:self.childVC];
+      
+    } else { // dismiss soloVC after starting new game
+      [self performSelectorInBackground:@selector(removeChildViewController:) withObject:self.childVC];
+    }
+
     self.childVC = nil;
     
       // so that overlay doesn't register when user dismisses keyboard
   } else if (!_overlayEnabled) {
     if (self.childVC == self.soloVC) {
-      [self.soloVC resignTextField];
+      [self.soloVC resignTextFieldWithOverlay:YES];
     }
   }
 }
@@ -308,9 +327,8 @@
   if (self.childVC && self.childVC != childVC) {
     [self removeChildViewController:self.childVC];
   }
-  self.childVC = childVC;
   
-    // overlay fade in and tableview slide out go together
+  self.childVC = childVC;
   if (![self.darkOverlay superview]) {
     [self fadeInOverlay];
     [self slideOutTopBarAndBottomBar];
@@ -327,13 +345,15 @@
 
   [self.view addSubview:childVC.view];
   
+  [self performSelector:@selector(animatePresentVC:) withObject:childVC];
+}
+
+-(void)animatePresentVC:(UIViewController *)childVC {
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
     childVC.view.center = self.view.center;
   } completion:^(BOOL finished) {
     self.vcIsAnimating = NO;
   }];
-  
-  [self setNeedsStatusBarAppearanceUpdate];
 }
 
 -(void)removeChildViewController:(UIViewController *)childVC {
@@ -343,8 +363,6 @@
   } completion:^(BOOL finished) {
     [childVC.view removeFromSuperview];
   }];
-  
-  [self setNeedsStatusBarAppearanceUpdate];
 }
 
 #pragma mark - view animation methods
@@ -404,6 +422,9 @@
 
 -(void)startActivityIndicator {
   [NSThread detachNewThreadSelector:@selector(threadStartAnimating:) toTarget:self withObject:nil];
+}
+
+-(void)startFadeInThread { // called from prepareForSegue
   [NSThread detachNewThreadSelector:@selector(fadeInOverlay) toTarget:self withObject:nil];
 }
 
@@ -412,18 +433,18 @@
   [self.activityIndicator startAnimating];
 }
 
--(void)stopActivityIndicator {
-  NSLog(@"activityIndicator stops");
+-(void)resetActivityIndicatorAndDarkOverlay {
   [self.activityIndicator stopAnimating];
   self.activityIndicator.hidden = YES;
   
   self.darkOverlay.backgroundColor = [UIColor clearColor];
   [self.darkOverlay removeFromSuperview];
+}
 
+-(void)stopActivityIndicator {
+  NSLog(@"activityIndicator stops");
+  [self resetActivityIndicatorAndDarkOverlay];
   [self stopAnimatingBackground];
-  
-    // also remove startGame childVC
-  [self backToMatches];
 }
 
 #pragma mark - button methods
@@ -466,9 +487,10 @@
 }
 
 -(void)startSoloGameWithPlayerName:(NSString *)playerName {
+  
+  [self backToMatchesWithAnimateRemoveVC:YES];
+  
   Match *newMatch = [self.myModel instantiateSoloMatchWithName:playerName andRules:kGameRulesTonal andSkill:kBeginner];
-    // may need to tweak with how this is viewed
-  [self.myModel sortMyMatches];
   [self.tableView reloadData];
   [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
 }
@@ -561,10 +583,7 @@
 #pragma mark - system methods
 
 -(BOOL)prefersStatusBarHidden {
-//  if (self.childVC) {
     return YES;
-//  }
-//  return NO;
 }
 
 -(void)didReceiveMemoryWarning {

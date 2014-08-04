@@ -183,7 +183,7 @@
     // kludge way to remove activity indicator
   SKAction *wait = [SKAction waitForDuration:1.f];
   SKAction *removeActivityIndicator = [SKAction runBlock:^{
-    [self.delegate stopActivityIndicator];
+    [self.myDelegate stopActivityIndicator];
   }];
   SKAction *sequence = [SKAction sequence:@[wait, removeActivityIndicator]];
   [self runAction:sequence];
@@ -202,7 +202,7 @@
 
 -(void)willMoveFromView:(SKView *)view {
   
-  [self.delegate stopActivityIndicator];
+  [self.myDelegate stopActivityIndicator];
   
   NSLog(@"will move from view");
   if (_debugMode) {
@@ -1214,7 +1214,7 @@
 
 -(void)goBackToMainViewController {
   
-  [self.delegate backToMainMenu];
+  [self.myDelegate backToMainMenu];
 }
 
 #pragma mark - button methods

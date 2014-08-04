@@ -20,6 +20,6 @@
 
 @property (weak, nonatomic) id<SoloDelegate> delegate;
 
--(void)resignTextField;
+-(void)resignTextFieldWithOverlay:(BOOL)overlay;
 
 @end
