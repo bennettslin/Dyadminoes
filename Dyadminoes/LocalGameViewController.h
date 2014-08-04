@@ -8,17 +8,17 @@
 
 #import <UIKit/UIKit.h>
 
-@protocol SoloDelegate <NSObject>
+@protocol LocalGameDelegate <NSObject>
 
--(void)startSoloGameWithPlayerName:(NSString *)playerName;
+-(void)startLocalGameWithPlayerName:(NSString *)playerName;
 -(void)disableOverlay;
 -(void)enableOverlay;
 
 @end
 
-@interface SoloViewController : UIViewController
+@interface LocalGameViewController : UIViewController
 
-@property (weak, nonatomic) id<SoloDelegate> delegate;
+@property (weak, nonatomic) id<LocalGameDelegate> delegate;
 
 -(void)resignTextFieldWithOverlay:(BOOL)overlay;
 

@@ -114,36 +114,14 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="enz-5f-B3T">
-                                        <rect key="frame" x="432" y="27" width="100" height="50"/>
+                                        <rect key="frame" x="591" y="26" width="157" height="51"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="32"/>
-                                        <state key="normal" title="Self">
+                                        <state key="normal" title="New Game">
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
                                             <action selector="menuButtonTapped:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="QhN-TK-MSz"/>
-                                        </connections>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="VHr-Gh-Rco">
-                                        <rect key="frame" x="540" y="27" width="100" height="50"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="32"/>
-                                        <state key="normal" title="PnP">
-                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                        </state>
-                                        <connections>
-                                            <action selector="menuButtonTapped:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="krf-36-VCB"/>
-                                        </connections>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="a18-8W-EEx">
-                                        <rect key="frame" x="648" y="27" width="100" height="50"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="32"/>
-                                        <state key="normal" title="GC">
-                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                        </state>
-                                        <connections>
-                                            <action selector="menuButtonTapped:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="OVO-3O-0S0"/>
                                         </connections>
                                     </button>
                                 </subviews>
@@ -164,39 +142,6 @@
                                             <action selector="menuButtonTapped:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="x7d-2i-DM9"/>
                                         </connections>
                                     </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="W1o-So-8qY">
-                                        <rect key="frame" x="226" y="20" width="100" height="51"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="24"/>
-                                        <state key="normal" title="Store">
-                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                        </state>
-                                        <connections>
-                                            <action selector="menuButtonTapped:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="hT4-wQ-tRf"/>
-                                        </connections>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="uwt-n3-ESD">
-                                        <rect key="frame" x="334" y="20" width="100" height="51"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="24"/>
-                                        <state key="normal" title="Rank">
-                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                        </state>
-                                        <connections>
-                                            <action selector="menuButtonTapped:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="qsX-04-5Id"/>
-                                        </connections>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="Cia-J8-Cgo">
-                                        <rect key="frame" x="442" y="20" width="100" height="51"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="24"/>
-                                        <state key="normal" title="Options">
-                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                        </state>
-                                        <connections>
-                                            <action selector="menuButtonTapped:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="2M6-7Z-CFP"/>
-                                        </connections>
-                                    </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="SnC-7K-26T">
                                         <rect key="frame" x="550" y="20" width="100" height="51"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -208,6 +153,17 @@
                                             <action selector="menuButtonTapped:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="xpc-Wi-Voi"/>
                                         </connections>
                                     </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="Cia-J8-Cgo">
+                                        <rect key="frame" x="334" y="20" width="100" height="51"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="24"/>
+                                        <state key="normal" title="Options">
+                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="menuButtonTapped:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="2M6-7Z-CFP"/>
+                                        </connections>
+                                    </button>
                                 </subviews>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                             </view>
@@ -215,15 +171,11 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <connections>
-                        <outlet property="GCGameButton" destination="a18-8W-EEx" id="rXR-30-2WX"/>
-                        <outlet property="PnPGameButton" destination="VHr-Gh-Rco" id="6Cb-Yt-Fzj"/>
                         <outlet property="aboutButton" destination="SnC-7K-26T" id="Dh1-dp-qxl"/>
                         <outlet property="bottomBar" destination="Us1-C6-BdJ" id="bQc-fP-LZQ"/>
                         <outlet property="helpButton" destination="Oze-Uv-Has" id="hkj-uT-PBa"/>
+                        <outlet property="localGameButton" destination="enz-5f-B3T" id="IdV-8g-bmN"/>
                         <outlet property="optionsButton" destination="Cia-J8-Cgo" id="qNO-i5-1YZ"/>
-                        <outlet property="rankButton" destination="uwt-n3-ESD" id="teC-Ar-c2V"/>
-                        <outlet property="selfGameButton" destination="enz-5f-B3T" id="rdL-Vk-OAH"/>
-                        <outlet property="storeButton" destination="W1o-So-8qY" id="Riz-G7-iWN"/>
                         <outlet property="tableView" destination="TrJ-oo-P2H" id="ubO-88-VlX"/>
                         <outlet property="titleLogo" destination="LEs-Rx-hrB" id="MXM-cC-J1P"/>
                         <outlet property="topBar" destination="NAB-IZ-wdh" id="4lz-7M-1AC"/>
@@ -627,27 +579,14 @@
             </objects>
             <point key="canvasLocation" x="561" y="-561"/>
         </scene>
-        <!--Solo View Controller-->
+        <!--Local Game View Controller-->
         <scene sceneID="Qbu-Bo-kZE">
             <objects>
-                <viewController storyboardIdentifier="SoloViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="X7K-Wy-mCB" customClass="SoloViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="LocalViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="X7K-Wy-mCB" customClass="LocalGameViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="uCU-vU-2gg">
                         <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="bezel" placeholder="Ludwig van Beethoven" minimumFontSize="36" clearButtonMode="whileEditing" id="Kmh-FN-1BU">
-                                <rect key="frame" x="213" y="19" width="343" height="44"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="32"/>
-                                <textInputTraits key="textInputTraits"/>
-                            </textField>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Player name:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="ed8-XW-KSI">
-                                <rect key="frame" x="20" y="20" width="206" height="43"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="32"/>
-                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="pbU-ng-nYI">
                                 <rect key="frame" x="259" y="700" width="250" height="55"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -659,11 +598,66 @@
                                     <action selector="startGameTapped:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="wRG-in-HNq"/>
                                 </connections>
                             </button>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="bezel" placeholder="Ludwig van Beethoven" minimumFontSize="36" clearButtonMode="whileEditing" id="Kmh-FN-1BU">
+                                <rect key="frame" x="213" y="19" width="343" height="44"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="32"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Player 1:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="ed8-XW-KSI">
+                                <rect key="frame" x="20" y="20" width="206" height="43"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="32"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="bezel" placeholder="Ludwig van Beethoven" minimumFontSize="36" clearButtonMode="whileEditing" id="n2R-7c-mmE">
+                                <rect key="frame" x="213" y="71" width="343" height="44"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="32"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Player 2:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="iqn-Uc-OoV">
+                                <rect key="frame" x="20" y="72" width="206" height="43"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="32"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="bezel" placeholder="Ludwig van Beethoven" minimumFontSize="36" clearButtonMode="whileEditing" id="z9B-6q-a8Z">
+                                <rect key="frame" x="213" y="123" width="343" height="44"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="32"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Player 3:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="ss8-9g-hTG">
+                                <rect key="frame" x="20" y="124" width="206" height="43"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="32"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="bezel" placeholder="Ludwig van Beethoven" minimumFontSize="36" clearButtonMode="whileEditing" id="Hsb-5k-eNt">
+                                <rect key="frame" x="213" y="175" width="343" height="44"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="32"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Player 4:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="CL2-hM-9Q2">
+                                <rect key="frame" x="20" y="176" width="206" height="43"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="32"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <connections>
-                        <outlet property="playerNameField" destination="Kmh-FN-1BU" id="ceh-hI-gsc"/>
+                        <outlet property="player1NameField" destination="Kmh-FN-1BU" id="uyH-he-aCr"/>
+                        <outlet property="player2NameField" destination="n2R-7c-mmE" id="tKx-Ly-U7Q"/>
+                        <outlet property="player3NameField" destination="z9B-6q-a8Z" id="8BV-Yr-abj"/>
+                        <outlet property="player4NameField" destination="Hsb-5k-eNt" id="QTM-z4-riJ"/>
                         <outlet property="startGameButton" destination="pbU-ng-nYI" id="p5T-GV-6w3"/>
                     </connections>
                 </viewController>
@@ -807,36 +801,6 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cS4-7w-Al7" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="2452" y="699"/>
-        </scene>
-        <!--PnP View Controller-->
-        <scene sceneID="O4W-Xf-tVj">
-            <objects>
-                <viewController storyboardIdentifier="PnPViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="AZv-NN-JqT" customClass="PnPViewController" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="ejW-Un-Qj7">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="GPa-Ze-ckT">
-                                <rect key="frame" x="331" y="93" width="107" height="55"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="36"/>
-                                <state key="normal" title="Button">
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <connections>
-                                    <action selector="startGameTapped:" destination="AZv-NN-JqT" eventType="touchUpInside" id="LYf-ph-Fei"/>
-                                </connections>
-                            </button>
-                        </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                    </view>
-                    <connections>
-                        <outlet property="startGameButton" destination="GPa-Ze-ckT" id="Ay1-SL-ajh"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="C7p-5m-w2N" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="2452" y="-561"/>
         </scene>
         <!--Help View Controller-->
         <scene sceneID="Uu4-7i-U60">

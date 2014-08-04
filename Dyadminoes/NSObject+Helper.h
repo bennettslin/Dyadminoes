@@ -167,8 +167,8 @@
 #define kEndedMatchCellDarkColour [UIColor colorWithRed:0.83f green:0.74f blue:0.6f alpha:1.f]
 #define kEndedMatchCellSelectedColour [UIColor colorWithRed:0.96f green:.88f blue:0.76f alpha:1.f]
 
-#define kStaveColour [UIColor colorWithRed:0.4f green:0.28f blue:0.2f alpha:1.f]
-#define kStaveEndedGameColour [UIColor colorWithRed:0.32f green:0.22f blue:0.16f alpha:1.f]
+#define kStaveColour [UIColor colorWithRed:0.5f green:0.38f blue:0.3f alpha:1.f]
+#define kStaveEndedGameColour [UIColor colorWithRed:0.42f green:0.32f blue:0.26f alpha:1.f]
 
 #define kScrollingBackgroundFade [UIColor colorWithRed:0.33f green:.30f blue:0.24f alpha:1.f]
 

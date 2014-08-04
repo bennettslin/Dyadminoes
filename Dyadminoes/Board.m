@@ -827,9 +827,15 @@
   float endAngle[9] = {327.5, 147.5, 327.5, 147.5,
                        27.5, 207.5,
                        60, 60, 60};
-  NSArray *colourArray = @[kPivotOrange, kPivotOrange, kPivotOrange, kPivotOrange,
-                           kYellow, kYellow,
-                           kYellow, kPivotOrange, kPivotOrange];
+  NSArray *colourArray = @[kEndedMatchCellDarkColour,
+                           kEndedMatchCellDarkColour,
+                           kEndedMatchCellDarkColour,
+                           kEndedMatchCellDarkColour,
+                           kEndedMatchCellLightColour,
+                           kEndedMatchCellLightColour,
+                           kEndedMatchCellLightColour,
+                           kEndedMatchCellDarkColour,
+                           kEndedMatchCellDarkColour];
   
   CGFloat outerMin = kMaxDistanceForPivot + 5.f;
   CGFloat outerMax = kMaxDistanceForPivot + kMaxDistanceForPivot - kMinDistanceForPivot;

@@ -6,25 +6,30 @@
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
-#import "SoloViewController.h"
+#import "LocalGameViewController.h"
 
-#define kDefaultSoloName @"Ludwig van Beethoven"
 
-@interface SoloViewController () <UITextFieldDelegate>
+#define kDefaultPlayer1Name @"Hildegard"
 
-@property (weak, nonatomic) IBOutlet UITextField *playerNameField;
+@interface LocalGameViewController () <UITextFieldDelegate>
+
+@property (weak, nonatomic) IBOutlet UITextField *player1NameField;
+@property (weak, nonatomic) IBOutlet UITextField *player2NameField;
+@property (weak, nonatomic) IBOutlet UITextField *player3NameField;
+@property (weak, nonatomic) IBOutlet UITextField *player4NameField;
+
 @property (weak, nonatomic) IBOutlet UIButton *startGameButton;
 
 @property (strong, nonatomic) NSUserDefaults *defaults;
 
 @end
 
-@implementation SoloViewController
+@implementation LocalGameViewController
 
 -(void)viewDidLoad {
   [super viewDidLoad];
   
-  self.playerNameField.delegate = self;
+  self.player1NameField.delegate = self;
   
   self.defaults = [NSUserDefaults standardUserDefaults];
 }
@@ -33,11 +38,11 @@
   
     // FIXME: if no player name, try to get from Game Center *first*
   NSString *userDefaultString = [self.defaults objectForKey:@"soloName"];
-  if (!userDefaultString || [userDefaultString isEqualToString:@""] || [userDefaultString isEqualToString:kDefaultSoloName]) {
-    self.playerNameField.text = nil;
-    [self.defaults setObject:kDefaultSoloName forKey:@"soloName"];
+  if (!userDefaultString || [userDefaultString isEqualToString:@""] || [userDefaultString isEqualToString:kDefaultPlayer1Name]) {
+    self.player1NameField.text = nil;
+    [self.defaults setObject:kDefaultPlayer1Name forKey:@"soloName"];
   } else {
-    self.playerNameField.text = [self.defaults objectForKey:@"soloName"];
+    self.player1NameField.text = [self.defaults objectForKey:@"soloName"];
   }
 }
 
@@ -47,18 +52,18 @@
     // so calling resignTextField is unnecessary
   
 //  [self resignTextFieldWithOverlay:NO];
-  [self.delegate startSoloGameWithPlayerName:[self.defaults objectForKey:@"soloName"]];
+  [self.delegate startLocalGameWithPlayerName:[self.defaults objectForKey:@"soloName"]];
 }
 
 
 
 -(void)saveNewPlayerName {
 
-  NSString *trimmedString = [self.playerNameField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+  NSString *trimmedString = [self.player1NameField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
   
   if (![trimmedString isEqualToString:[self.defaults objectForKey:@"soloName"]]) {
     if (!trimmedString || [trimmedString isEqualToString:@""]) {
-      [self.defaults setObject:kDefaultSoloName forKey:@"soloName"];
+      [self.defaults setObject:kDefaultPlayer1Name forKey:@"soloName"];
     } else {
       [self.defaults setObject:trimmedString forKey:@"soloName"];
     }
@@ -85,7 +90,7 @@
 
   // with overlay bool is unnecessary
 -(void)resignTextFieldWithOverlay:(BOOL)overlay {
-  [self.playerNameField resignFirstResponder];
+  [self.player1NameField resignFirstResponder];
   [self saveNewPlayerName];
   if (overlay) {
     [self.delegate enableOverlay];

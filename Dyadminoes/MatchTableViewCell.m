@@ -12,6 +12,7 @@
 #import "Player.h"
 #import "CellBackgroundView.h"
 #import "StavesView.h"
+#import "UIImage+colouredImage.h"
 
   // TODO: verify this
 #define kPlayerLabelWidth (kIsIPhone ? 54.f : 109.f)
@@ -39,7 +40,6 @@
 @property (weak, nonatomic) IBOutlet UILabel *score4Label;
 
 @property (weak, nonatomic) IBOutlet UILabel *lastPlayedLabel;
-//@property (weak, nonatomic) IBOutlet UILabel *winnerLabel;
 
 @property (strong, nonatomic) UIImageView *clefImage;
 @property (strong, nonatomic) NSArray *fermataImageViewArray;
@@ -58,7 +58,6 @@
   
     // colour when cell is selected
   UIView *customColorView = [[UIView alloc] init];
-//  customColorView.backgroundColor = [UIColor whiteColor];
   self.selectedBackgroundView = customColorView;
   
   self.playerLabelsArray = @[self.player1Label, self.player2Label, self.player3Label, self.player4Label];
@@ -86,8 +85,6 @@
   self.lastPlayedLabel.adjustsFontSizeToFitWidth = YES;
   self.lastPlayedLabel.frame = CGRectMake(self.lastPlayedLabel.frame.origin.x, (self.frame.size.height / 10) * 11,
                                           self.lastPlayedLabel.frame.size.width, self.lastPlayedLabel.frame.size.height);
-//  self.winnerLabel.font = [UIFont fontWithName:kButtonFont size:kIsIPhone ? 12.f : 24.f];
-//  self.winnerLabel.adjustsFontSizeToFitWidth = YES;
   
   self.stavesView = [[StavesView alloc] initWithFrame:CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, 90.f + kCellSeparatorBuffer)];
   [self insertSubview:self.stavesView belowSubview:self.selectedBackgroundView];
@@ -96,9 +93,11 @@
   self.clefImage.frame = CGRectMake(kStaveXBuffer, kStaveYHeight * 4, kStaveYHeight * 4, kStaveYHeight * 4);
   [self addSubview:self.clefImage];
   
+  UIImage *fermataImage = [UIImage imageNamed:@"fermata-med"];
+  fermataImage = [UIImage colourImage:fermataImage withColor:kStaveEndedGameColour];
   NSMutableArray *tempFermataImageViewArray = [NSMutableArray new];
   for (int i = 0; i < 4; i++) {
-    UIImageView *fermataImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"fermata-med"]];
+    UIImageView *fermataImageView = [[UIImageView alloc] initWithImage:fermataImage];
     [tempFermataImageViewArray addObject:fermataImageView];
   }
   self.fermataImageViewArray = [NSArray arrayWithArray:tempFermataImageViewArray];
@@ -106,20 +105,22 @@
 
 -(void)setProperties {
 
-  NSLog(@"setProperties");
-  NSLog(@"random number is %li", (long)self.myMatch.randomNumber1To24);
+//  NSLog(@"setProperties");
+//  NSLog(@"random number is %li", (long)self.myMatch.randomNumber1To24);
   
   self.stavesView.gameHasEnded = self.myMatch.gameHasEnded;
   [self.stavesView setNeedsDisplay];
   
-  self.clefImage.image = (self.myMatch.players.count == 1) ? [UIImage imageNamed:@"treble-clef-med"] : [UIImage imageNamed:@"bass-clef-md"];
-  self.clefImage.contentMode = UIViewContentModeScaleAspectFit;
-  
+  UIImage *clefImage = (self.myMatch.players.count == 1) ?
+      [UIImage imageNamed:@"treble-clef-med"] : [UIImage imageNamed:@"bass-clef-md"];
+  UIColor *clefColour = self.myMatch.gameHasEnded ? kStaveEndedGameColour : kStaveColour;
+  UIImage *colouredImage = [UIImage colourImage:clefImage withColor:clefColour];
+  self.clefImage.image = colouredImage;
+
+    // remove fermatas, they will be decided later
   for (UIImageView *fermataImageView in self.fermataImageViewArray) {
     [fermataImageView removeFromSuperview];
   }
-  
-//  self.winnerLabel.text = @"";
   
   if (self.myMatch) {
     
@@ -156,7 +157,7 @@
 
         // static player colours, check if player resigned
       playerLabel.textColor = (player.resigned && self.myMatch.type != kSelfGame) ?
-          [UIColor lightGrayColor] : [self.myMatch colourForPlayer:player];
+          kResignedGray : [self.myMatch colourForPlayer:player];
       
         // background colours depending on match results
       labelView.backgroundColourCanBeChanged = YES;
@@ -181,7 +182,6 @@
       
         // game ended, so lastPlayed label shows date
       self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed];
-//      self.winnerLabel.text = [self.myMatch endGameResultsText];
       
     } else {
       self.selectedBackgroundView.backgroundColor = kMainSelectedYellow;
@@ -279,7 +279,8 @@
     
     UIImageView *fermataImageView = self.fermataImageViewArray[i];
     if (fermataImageView.superview) {
-      fermataImageView.frame = CGRectMake(playerLabel.frame.origin.x, playerLabel.frame.origin.y - kStaveYHeight * 2, kStaveYHeight * 2, kStaveYHeight * 2);
+      fermataImageView.frame = CGRectMake(playerLabel.frame.origin.x, kStaveYHeight, kStaveYHeight * 2, kStaveYHeight * 2);
+      
       fermataImageView.contentMode = UIViewContentModeScaleAspectFit;
     }
   }

@@ -55,7 +55,7 @@
     CGContextStrokePath(endLineContext);
     
     CGContextRef endBoxContext = UIGraphicsGetCurrentContext();
-    CGContextSetFillColorWithColor(endBoxContext, [staveColour colorWithAlphaComponent:0.7f].CGColor);
+    CGContextSetFillColorWithColor(endBoxContext, staveColour.CGColor);
     CGRect endRect = CGRectMake(kCellWidth - kStaveXBuffer - kStaveYHeight / 2, kStaveYHeight * 3 - lineWidth, kStaveYHeight / 2, kStaveYHeight * 4 + (lineWidth * 2));
     CGContextFillRect(endBoxContext, endRect);
   }

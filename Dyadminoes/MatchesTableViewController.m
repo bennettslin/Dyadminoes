@@ -14,8 +14,7 @@
 #import "DebugViewController.h"
 #import "SceneViewController.h"
 
-#import "SoloViewController.h"
-#import "PnPViewController.h"
+#import "LocalGameViewController.h"
 #import "HelpViewController.h"
 #import "StoreViewController.h"
 #import "RankViewController.h"
@@ -31,7 +30,7 @@
 #define kViewControllerSpeed 0.225f
 #define kMainOverlayAlpha 0.6f
 
-@interface MatchesTableViewController () <SceneViewDelegate, DebugDelegate, MatchCellDelegate, SoloDelegate, PnPDelegate>
+@interface MatchesTableViewController () <SceneViewDelegate, DebugDelegate, MatchCellDelegate, LocalGameDelegate>
 
 @property (strong, nonatomic) Model *myModel;
 
@@ -40,13 +39,12 @@
 @property (weak, nonatomic) IBOutlet UIView *topBar;
 @property (weak, nonatomic) IBOutlet UIView *bottomBar;
 
-@property (weak, nonatomic) IBOutlet UIButton *selfGameButton;
-@property (weak, nonatomic) IBOutlet UIButton *PnPGameButton;
-@property (weak, nonatomic) IBOutlet UIButton *GCGameButton;
+@property (weak, nonatomic) IBOutlet UIButton *localGameButton;
+//@property (weak, nonatomic) IBOutlet UIButton *GCGameButton;
 
 @property (weak, nonatomic) IBOutlet UIButton *helpButton;
-@property (weak, nonatomic) IBOutlet UIButton *storeButton;
-@property (weak, nonatomic) IBOutlet UIButton *rankButton;
+//@property (weak, nonatomic) IBOutlet UIButton *storeButton;
+//@property (weak, nonatomic) IBOutlet UIButton *rankButton;
 @property (weak, nonatomic) IBOutlet UIButton *optionsButton;
 @property (weak, nonatomic) IBOutlet UIButton *aboutButton;
 
@@ -58,11 +56,10 @@
 @property (strong, nonatomic) UIButton *darkOverlay;
 @property (nonatomic) BOOL vcIsAnimating;
 
-@property (strong, nonatomic) SoloViewController *soloVC;
-@property (strong, nonatomic) PnPViewController *pnpVC;
+@property (strong, nonatomic) LocalGameViewController *localVC;
 @property (strong, nonatomic) HelpViewController *helpVC;
-@property (strong, nonatomic) StoreViewController *storeVC;
-@property (strong, nonatomic) RankViewController *rankVC;
+//@property (strong, nonatomic) StoreViewController *storeVC;
+//@property (strong, nonatomic) RankViewController *rankVC;
 @property (strong, nonatomic) OptionsViewController *optionsVC;
 @property (strong, nonatomic) AboutViewController *aboutVC;
 
@@ -121,22 +118,18 @@
   [self addShadowToView:self.topBar upsideDown:NO];
   [self addShadowToView:self.bottomBar upsideDown:YES];
   
-  self.soloVC = [self.storyboard instantiateViewControllerWithIdentifier:@"SoloViewController"];
-  self.soloVC.view.backgroundColor = [UIColor lightGrayColor];
-  self.soloVC.delegate = self;
-  
-  self.pnpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"PnPViewController"];
-  self.pnpVC.view.backgroundColor = [UIColor darkGrayColor];
-  self.pnpVC.delegate = self;
+  self.localVC = [self.storyboard instantiateViewControllerWithIdentifier:@"LocalViewController"];
+  self.localVC.view.backgroundColor = [UIColor lightGrayColor];
+  self.localVC.delegate = self;
   
   self.helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
   self.helpVC.view.backgroundColor = [UIColor redColor];
   
-  self.storeVC = [[StoreViewController alloc] init];
-  self.storeVC.view.backgroundColor = [UIColor orangeColor];
-  
-  self.rankVC = [[RankViewController alloc] init];
-  self.rankVC.view.backgroundColor = [UIColor yellowColor];
+//  self.storeVC = [[StoreViewController alloc] init];
+//  self.storeVC.view.backgroundColor = [UIColor orangeColor];
+//  
+//  self.rankVC = [[RankViewController alloc] init];
+//  self.rankVC.view.backgroundColor = [UIColor yellowColor];
   
   self.optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"OptionsViewController"];
   self.optionsVC.view.backgroundColor = kPlayerGreen;
@@ -155,7 +148,7 @@
   self.myScene = [MyScene sceneWithSize:self.view.bounds.size];
   self.myScene.scaleMode = SKSceneScaleModeAspectFill;
   
-  self.allButtons = @[self.selfGameButton, self.PnPGameButton, self.GCGameButton, self.helpButton, self.storeButton, self.rankButton, self.optionsButton, self.aboutButton];
+  self.allButtons = @[self.localGameButton, self.helpButton, self.optionsButton, self.aboutButton];
   
   for (UIButton *button in self.allButtons) {
     button.titleLabel.font = [UIFont fontWithName:kButtonFont size:(kIsIPhone ? 28 : 48)];
@@ -315,8 +308,8 @@
     
       // so that overlay doesn't register when user dismisses keyboard
   } else if (!_overlayEnabled) {
-    if (self.childVC == self.soloVC) {
-      [self.soloVC resignTextFieldWithOverlay:YES];
+    if (self.childVC == self.localVC) {
+      [self.localVC resignTextFieldWithOverlay:YES];
     }
   }
 }
@@ -453,20 +446,12 @@
   UIViewController *buttonVC;
   if (sender == self.helpButton) {
     buttonVC = self.helpVC;
-  } else if (sender == self.storeButton) {
-    buttonVC = self.storeVC;
-  } else if (sender == self.rankButton) {
-    buttonVC = self.rankVC;
   } else if (sender == self.optionsButton) {
     buttonVC = self.optionsVC;
   } else if (sender == self.aboutButton) {
     buttonVC = self.aboutVC;
-  } else if (sender == self.selfGameButton) {
-    buttonVC = self.soloVC;
-  } else if (sender == self.PnPGameButton) {
-    buttonVC = self.pnpVC;
-  } else if (sender == self.GCGameButton) {
-      //
+  } else if (sender == self.localGameButton) {
+    buttonVC = self.localVC;
   }
 
   if (!self.vcIsAnimating && self.childVC != buttonVC) {
@@ -486,7 +471,7 @@
   [Model saveMyModel:self.myModel];
 }
 
--(void)startSoloGameWithPlayerName:(NSString *)playerName {
+-(void)startLocalGameWithPlayerName:(NSString *)playerName {
   
   [self backToMatchesWithAnimateRemoveVC:YES];
   
