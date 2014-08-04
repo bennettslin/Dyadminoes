@@ -20,6 +20,7 @@
 		3F28A6D018DA86BA0092B9B2 /* Label.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F28A6CF18DA86BA0092B9B2 /* Label.m */; };
 		3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3116CD18CEFC5D0015CC2A /* Rack.m */; };
 		3F3ABBA8198F4CF600015033 /* UIImage+colouredImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3ABBA7198F4CF600015033 /* UIImage+colouredImage.m */; };
+		3F3ABBB2198F68B200015033 /* MyPinchGestureRecognizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3ABBB1198F68B200015033 /* MyPinchGestureRecognizer.m */; };
 		3F55E1FD18D7A8520048E67E /* Button.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F55E1FC18D7A8520048E67E /* Button.m */; };
 		3F580BDC194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */; };
 		3F580BDE194F710F0040B5D0 /* Click2-Sebastian-759472264.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */; };
@@ -107,6 +108,8 @@
 		3F3116CD18CEFC5D0015CC2A /* Rack.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Rack.m; sourceTree = "<group>"; };
 		3F3ABBA6198F4CF600015033 /* UIImage+colouredImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+colouredImage.h"; sourceTree = "<group>"; };
 		3F3ABBA7198F4CF600015033 /* UIImage+colouredImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+colouredImage.m"; sourceTree = "<group>"; };
+		3F3ABBB0198F68B200015033 /* MyPinchGestureRecognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyPinchGestureRecognizer.h; sourceTree = "<group>"; };
+		3F3ABBB1198F68B200015033 /* MyPinchGestureRecognizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyPinchGestureRecognizer.m; sourceTree = "<group>"; };
 		3F55E1FB18D7A8520048E67E /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
 		3F55E1FC18D7A8520048E67E /* Button.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Button.m; sourceTree = "<group>"; };
 		3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Electronic_Chime-KevanGC-495939803.wav"; sourceTree = "<group>"; };
@@ -362,6 +365,8 @@
 				3F193118198064C10034A5B9 /* StavesView.m */,
 				3F87AAC4188DEE4B008C4A0D /* SceneViewController.h */,
 				3F87AAC5188DEE4B008C4A0D /* SceneViewController.m */,
+				3F3ABBB0198F68B200015033 /* MyPinchGestureRecognizer.h */,
+				3F3ABBB1198F68B200015033 /* MyPinchGestureRecognizer.m */,
 			);
 			name = "Game View Controllers";
 			sourceTree = "<group>";
@@ -563,6 +568,7 @@
 				3FDA7B80197CF96A001677D8 /* CellBackgroundView.m in Sources */,
 				3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */,
 				3FECDE0A19355B1600D774AB /* StoreViewController.m in Sources */,
+				3F3ABBB2198F68B200015033 /* MyPinchGestureRecognizer.m in Sources */,
 				3F87AAC9188DEE4B008C4A0D /* MyScene.m in Sources */,
 				3F87AAC6188DEE4B008C4A0D /* SceneViewController.m in Sources */,
 				3FDD7FD918D4C89B0029DB7D /* Board.m in Sources */,

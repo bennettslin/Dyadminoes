@@ -47,57 +47,72 @@
   return pathString;
 }
 
--(Match *)instantiateSoloMatchWithName:(NSString *)playerName andRules:(GameRules)rules andSkill:(GameSkill)skill {
-  
-    // In solo game, unique ID, rules, and skill are not important for now
-  Player *player1 = [[Player alloc] initWithUniqueID:@"" andPlayerName:playerName andPlayerPicture:nil];
-  
-  Match *newSoloMatch = [[Match alloc] initWithPlayers:@[player1] andRules:rules andSkill:skill andType:kSelfGame];
-  [self.myMatches insertObject:newSoloMatch atIndex:0];
-  [Model saveMyModel:self];
-  return newSoloMatch;
-}
+//-(Match *)instantiateSoloMatchWithName:(NSString *)playerName andRules:(GameRules)rules andSkill:(GameSkill)skill {
+//  
+//    // In solo game, unique ID, rules, and skill are not important for now
+//  Player *player1 = [[Player alloc] initWithUniqueID:@"" andPlayerName:playerName andPlayerPicture:nil];
+//  
+//  Match *newSoloMatch = [[Match alloc] initWithPlayers:@[player1] andRules:rules andSkill:skill andType:kSelfGame];
+//  [self.myMatches insertObject:newSoloMatch atIndex:0];
+//  [Model saveMyModel:self];
+//  return newSoloMatch;
+//}
 
--(Match *)instantiateHardCodededPassNPlayMatchForDebugPurposes {
+-(Match *)instantiateNewLocalMatchWithNames:(NSMutableArray *)playerNames andRules:(GameRules)rules andSkill:(GameSkill)skill {
 
-  Player *player1 = [[Player alloc] initWithUniqueID:@"12345" andPlayerName:@"Julia" andPlayerPicture:nil];
-  Player *player2 = [[Player alloc] initWithUniqueID:@"23456" andPlayerName:@"Pamela" andPlayerPicture:nil];
-  Match *newPnPMatch = [[Match alloc] initWithPlayers:@[player1, player2] andRules:kGameRulesTonal andSkill:kBeginner andType:kPnPGame];
-  [self.myMatches insertObject:newPnPMatch atIndex:0];
-  [Model saveMyModel:self];
-  return newPnPMatch;
-}
-
--(void)instantiateHardCodedMatchesForDebugPurposes {
-//  NSLog(@"hard coded matches");
-    //hard coded values
-  NSArray *names = @[@"Julia", @"Pamela", @"Darcy", @"Mary"];
-  NSArray *ids = @[@"12345", @"23456", @"34567", @"45678"];
-
-  self.myMatches = [[NSMutableArray alloc] initWithCapacity:5];
-  for (int i = 0; i < 8; i++) {
-    
-    int randValue = (arc4random() % 3) + 2;
-    
-    NSMutableArray *mutablePlayers = [[NSMutableArray alloc] initWithCapacity:randValue];
-    for (int j = 0; j < randValue; j++) {
-        // hard-coded player properties
-      NSString *playerID = ids[(i + j) % randValue];
-      NSString *playerName = names[(i + j) % randValue];
-      Player *player = [[Player alloc] initWithUniqueID:playerID andPlayerName:playerName andPlayerPicture:nil];
-      [mutablePlayers addObject:player];
-    }
-    
-      // add players to match
-    NSArray *players = [NSArray arrayWithArray:mutablePlayers];
-      // hard-coded match properties for now
-    Match *match = [[Match alloc] initWithPlayers:players andRules:kGameRulesTonal andSkill:kBeginner andType:kPnPGame];
-    
-      // add match to data
-    [self.myMatches insertObject:match atIndex:0];
+  NSMutableArray *players = [NSMutableArray new];
+  for (int i = 0; i < playerNames.count; i++) {
+    Player *player = [[Player alloc] initWithUniqueID:@"" andPlayerName:playerNames[i] andPlayerPicture:nil];
+    [players addObject:player];
   }
+  
+  GameType gameType = (playerNames.count == 1) ? kSelfGame : kPnPGame;
+  Match *newMatch = [[Match alloc] initWithPlayers:players andRules:rules andSkill:skill andType:gameType];
+  [self.myMatches insertObject:newMatch atIndex:0];
   [Model saveMyModel:self];
+  return newMatch;
 }
+
+//-(Match *)instantiateHardCodededPassNPlayMatchForDebugPurposes {
+//
+//  Player *player1 = [[Player alloc] initWithUniqueID:@"12345" andPlayerName:@"Julia" andPlayerPicture:nil];
+//  Player *player2 = [[Player alloc] initWithUniqueID:@"23456" andPlayerName:@"Pamela" andPlayerPicture:nil];
+//  Match *newPnPMatch = [[Match alloc] initWithPlayers:@[player1, player2] andRules:kGameRulesTonal andSkill:kBeginner andType:kPnPGame];
+//  [self.myMatches insertObject:newPnPMatch atIndex:0];
+//  [Model saveMyModel:self];
+//  return newPnPMatch;
+//}
+//
+//-(void)instantiateHardCodedMatchesForDebugPurposes {
+////  NSLog(@"hard coded matches");
+//    //hard coded values
+//  NSArray *names = @[@"Julia", @"Pamela", @"Darcy", @"Mary"];
+//  NSArray *ids = @[@"12345", @"23456", @"34567", @"45678"];
+//
+//  self.myMatches = [[NSMutableArray alloc] initWithCapacity:5];
+//  for (int i = 0; i < 8; i++) {
+//    
+//    int randValue = (arc4random() % 3) + 2;
+//    
+//    NSMutableArray *mutablePlayers = [[NSMutableArray alloc] initWithCapacity:randValue];
+//    for (int j = 0; j < randValue; j++) {
+//        // hard-coded player properties
+//      NSString *playerID = ids[(i + j) % randValue];
+//      NSString *playerName = names[(i + j) % randValue];
+//      Player *player = [[Player alloc] initWithUniqueID:playerID andPlayerName:playerName andPlayerPicture:nil];
+//      [mutablePlayers addObject:player];
+//    }
+//    
+//      // add players to match
+//    NSArray *players = [NSArray arrayWithArray:mutablePlayers];
+//      // hard-coded match properties for now
+//    Match *match = [[Match alloc] initWithPlayers:players andRules:kGameRulesTonal andSkill:kBeginner andType:kPnPGame];
+//    
+//      // add match to data
+//    [self.myMatches insertObject:match atIndex:0];
+//  }
+//  [Model saveMyModel:self];
+//}
 
 -(void)sortMyMatches {
   NSMutableArray *endedGames = [[NSMutableArray alloc] init];

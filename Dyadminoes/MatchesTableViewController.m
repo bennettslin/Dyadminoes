@@ -119,7 +119,6 @@
   [self addShadowToView:self.bottomBar upsideDown:YES];
   
   self.localVC = [self.storyboard instantiateViewControllerWithIdentifier:@"LocalViewController"];
-  self.localVC.view.backgroundColor = [UIColor lightGrayColor];
   self.localVC.delegate = self;
   
   self.helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
@@ -160,6 +159,7 @@
   
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(getModel) name:UIApplicationWillEnterForegroundNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removeChildVCUponEnteringBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationWillTerminateNotification object:nil];
 }
 
@@ -175,7 +175,7 @@
   self.myModel = [Model getMyModel];
   if (!self.myModel) {
     self.myModel = [Model new];
-    [self.myModel instantiateHardCodedMatchesForDebugPurposes];
+//    [self.myModel instantiateHardCodedMatchesForDebugPurposes];
   }
 
   [self.myModel sortMyMatches];
@@ -309,7 +309,7 @@
       // so that overlay doesn't register when user dismisses keyboard
   } else if (!_overlayEnabled) {
     if (self.childVC == self.localVC) {
-      [self.localVC resignTextFieldWithOverlay:YES];
+      [self.localVC resignTextField];
     }
   }
 }
@@ -356,6 +356,20 @@
   } completion:^(BOOL finished) {
     [childVC.view removeFromSuperview];
   }];
+}
+
+-(void)removeChildVCUponEnteringBackground {
+  if (self.childVC) {
+    self.darkOverlay.backgroundColor = [UIColor clearColor];
+    [self.darkOverlay removeFromSuperview];
+    _overlayEnabled = YES;
+    
+    self.topBar.frame = CGRectMake(0, 0, _screenWidth, kMainTopBarHeight);
+    self.bottomBar.frame = CGRectMake(0, _screenHeight - kMainBottomBarHeight, _screenWidth, kMainTopBarHeight);
+    self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
+    [self.childVC.view removeFromSuperview];
+    self.childVC = nil;
+  }
 }
 
 #pragma mark - view animation methods
@@ -471,22 +485,30 @@
   [Model saveMyModel:self.myModel];
 }
 
--(void)startLocalGameWithPlayerName:(NSString *)playerName {
-  
+-(void)startLocalGameWithPlayerNames:(NSMutableArray *)playerNames {
   [self backToMatchesWithAnimateRemoveVC:YES];
   
-  Match *newMatch = [self.myModel instantiateSoloMatchWithName:playerName andRules:kGameRulesTonal andSkill:kBeginner];
+  Match *newMatch = [self.myModel instantiateNewLocalMatchWithNames:playerNames andRules:kGameRulesTonal andSkill:kBeginner];
   [self.tableView reloadData];
   [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
 }
 
--(void)startPnPGame {
-  Match *newMatch = [self.myModel instantiateHardCodededPassNPlayMatchForDebugPurposes];
-  [self backToMatches];
-  [self.myModel sortMyMatches];
-  [self.tableView reloadData];
-  [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
-}
+//-(void)startLocalGameWithPlayerName:(NSString *)playerName {
+//  
+//  [self backToMatchesWithAnimateRemoveVC:YES];
+//  
+//  Match *newMatch = [self.myModel instantiateSoloMatchWithName:playerName andRules:kGameRulesTonal andSkill:kBeginner];
+//  [self.tableView reloadData];
+//  [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
+//}
+
+//-(void)startPnPGame {
+//  Match *newMatch = [self.myModel instantiateHardCodededPassNPlayMatchForDebugPurposes];
+//  [self backToMatches];
+//  [self.myModel sortMyMatches];
+//  [self.tableView reloadData];
+//  [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
+//}
 
 #pragma mark - background view methods
 

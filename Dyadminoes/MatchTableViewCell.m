@@ -116,6 +116,7 @@
   UIColor *clefColour = self.myMatch.gameHasEnded ? kStaveEndedGameColour : kStaveColour;
   UIImage *colouredImage = [UIImage colourImage:clefImage withColor:clefColour];
   self.clefImage.image = colouredImage;
+  self.clefImage.contentMode = UIViewContentModeScaleAspectFit;
 
     // remove fermatas, they will be decided later
   for (UIImageView *fermataImageView in self.fermataImageViewArray) {
@@ -136,7 +137,7 @@
       UILabel *scoreLabel = self.scoreLabelsArray[i];
 
         // score label
-      scoreLabel.text = player ? [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
+      scoreLabel.text = (player && !player.resigned) ? [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
       scoreLabel.adjustsFontSizeToFitWidth = YES;
       
         // player label

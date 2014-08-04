@@ -10,7 +10,8 @@
 
 @protocol LocalGameDelegate <NSObject>
 
--(void)startLocalGameWithPlayerName:(NSString *)playerName;
+//-(void)startLocalGameWithPlayerName:(NSString *)playerName;
+-(void)startLocalGameWithPlayerNames:(NSMutableArray *)playerNames;
 -(void)disableOverlay;
 -(void)enableOverlay;
 
@@ -20,6 +21,6 @@
 
 @property (weak, nonatomic) id<LocalGameDelegate> delegate;
 
--(void)resignTextFieldWithOverlay:(BOOL)overlay;
+-(void)resignTextField;
 
 @end

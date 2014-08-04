@@ -486,7 +486,8 @@
 -(UIColor *)colourForPlayer:(Player *)player {
   if ([self.players containsObject:player]) {
     NSUInteger index = [self.players indexOfObject:player];
-    switch (index) {
+    NSUInteger randomIndex = (index + self.randomNumber1To24) % 4;
+    switch (randomIndex) {
       case 0:
         return kPlayerBlue;
         break;

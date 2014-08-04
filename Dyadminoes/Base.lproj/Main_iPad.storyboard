@@ -587,19 +587,8 @@
                         <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="pbU-ng-nYI">
-                                <rect key="frame" x="259" y="700" width="250" height="55"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="36"/>
-                                <state key="normal" title="Start new game">
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <connections>
-                                    <action selector="startGameTapped:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="wRG-in-HNq"/>
-                                </connections>
-                            </button>
                             <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="bezel" placeholder="Ludwig van Beethoven" minimumFontSize="36" clearButtonMode="whileEditing" id="Kmh-FN-1BU">
-                                <rect key="frame" x="213" y="19" width="343" height="44"/>
+                                <rect key="frame" x="153" y="19" width="343" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="32"/>
                                 <textInputTraits key="textInputTraits"/>
@@ -612,7 +601,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="bezel" placeholder="Ludwig van Beethoven" minimumFontSize="36" clearButtonMode="whileEditing" id="n2R-7c-mmE">
-                                <rect key="frame" x="213" y="71" width="343" height="44"/>
+                                <rect key="frame" x="153" y="71" width="343" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="32"/>
                                 <textInputTraits key="textInputTraits"/>
@@ -625,7 +614,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="bezel" placeholder="Ludwig van Beethoven" minimumFontSize="36" clearButtonMode="whileEditing" id="z9B-6q-a8Z">
-                                <rect key="frame" x="213" y="123" width="343" height="44"/>
+                                <rect key="frame" x="153" y="123" width="343" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="32"/>
                                 <textInputTraits key="textInputTraits"/>
@@ -638,7 +627,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="bezel" placeholder="Ludwig van Beethoven" minimumFontSize="36" clearButtonMode="whileEditing" id="Hsb-5k-eNt">
-                                <rect key="frame" x="213" y="175" width="343" height="44"/>
+                                <rect key="frame" x="153" y="175" width="343" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="32"/>
                                 <textInputTraits key="textInputTraits"/>
@@ -650,13 +639,68 @@
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="V7T-gW-Kyt">
+                                <rect key="frame" x="504" y="26" width="46" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="buttonTapped:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="cjV-FJ-lOv"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="azc-Hb-bT2">
+                                <rect key="frame" x="504" y="78" width="46" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="buttonTapped:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="uGt-HQ-ZSq"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="cWD-Km-eJY">
+                                <rect key="frame" x="504" y="130" width="46" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="buttonTapped:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="YhD-z3-Dva"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="nLh-Kq-Tmf">
+                                <rect key="frame" x="504" y="182" width="46" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="buttonTapped:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="Lvh-SY-NeB"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="pbU-ng-nYI">
+                                <rect key="frame" x="199" y="300" width="250" height="55"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="36"/>
+                                <state key="normal" title="Start new game">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="startGameTapped:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="wRG-in-HNq"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <connections>
+                        <outlet property="player1Button" destination="V7T-gW-Kyt" id="nEF-aS-hF5"/>
                         <outlet property="player1NameField" destination="Kmh-FN-1BU" id="uyH-he-aCr"/>
+                        <outlet property="player2Button" destination="azc-Hb-bT2" id="kbC-Ob-mtz"/>
                         <outlet property="player2NameField" destination="n2R-7c-mmE" id="tKx-Ly-U7Q"/>
+                        <outlet property="player3Button" destination="cWD-Km-eJY" id="vif-RF-3Jd"/>
                         <outlet property="player3NameField" destination="z9B-6q-a8Z" id="8BV-Yr-abj"/>
+                        <outlet property="player4Button" destination="nLh-Kq-Tmf" id="9bI-CV-nAA"/>
                         <outlet property="player4NameField" destination="Hsb-5k-eNt" id="QTM-z4-riJ"/>
                         <outlet property="startGameButton" destination="pbU-ng-nYI" id="p5T-GV-6w3"/>
                     </connections>

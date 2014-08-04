@@ -466,6 +466,7 @@
 
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location {
   
+  
     // leave this alone for now
   /*
   if (_boardZoomedOut) { // only > 1 scale matters
@@ -606,6 +607,7 @@
   
   if (!_replayMode && dyadmino && !dyadmino.isRotating && !_touchedDyadmino && (!_boardZoomedOut || [dyadmino isInRack])) {
     _touchedDyadmino = dyadmino;
+    
 //    NSLog(@"begin touch or pivot of dyadmino");
     [self beginTouchOrPivotOfDyadmino:dyadmino];
   
@@ -891,7 +893,9 @@
 }
 
 -(void)toggleBoardZoomWithTapCentering:(BOOL)tapCentering andCenterLocation:(CGPoint)location {
+  
   if (_hoveringDyadmino) {
+    _hoveringDyadmino.canFlip = NO;
     [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO  andUpdatingBoardBounds:NO];
   }
   

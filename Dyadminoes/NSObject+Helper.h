@@ -158,7 +158,7 @@
 #define kMainDarkerYellow [UIColor colorWithRed:0.85f green:0.85f blue:0.75f alpha:1.f]
 #define kMainSelectedYellow [UIColor colorWithRed:.97f green:.97f blue:.9f alpha:1.f]
 
-#define kResignedGray [UIColor colorWithRed:0.75f green:0.75f blue:0.75f alpha:1.f]
+#define kResignedGray [UIColor colorWithRed:0.8f green:0.77f blue:0.75f alpha:1.f]
 
 #define kMainBarsColour [UIColor colorWithRed:0.37f green:0.24f blue:0.21f alpha:1.f]
 #define kMainButtonsColour [UIColor colorWithRed:0.82f green:0.62f blue:0.f alpha:1.f]

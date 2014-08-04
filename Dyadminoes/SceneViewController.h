@@ -12,6 +12,7 @@
 @class Match;
 @class Player;
 @class MyScene;
+@class MyPinchGestureRecognizer;
 
 @protocol SceneViewDelegate;
 
@@ -23,7 +24,7 @@
 @property (strong, nonatomic) Player *myPlayer;
 @property (weak, nonatomic) id <SceneViewDelegate> delegate;
 
-@property (strong, nonatomic) UIPinchGestureRecognizer *pinchGestureRecogniser;
+@property (strong, nonatomic) MyPinchGestureRecognizer *pinchGestureRecogniser;
 //@property (strong, nonatomic) UITapGestureRecognizer *doubleTapGestureRecogniser;
 
 @end
