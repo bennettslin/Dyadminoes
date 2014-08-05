@@ -112,14 +112,6 @@
   [self updateLabelNamed:@"status" withText:@"default turn info" andColour:nil];
 }
 
--(void)populateWithTopPnPButtons {
-  self.returnButton = [[Button alloc] initWithName:@"return" andColor:[SKColor grayColor]
-                                           andSize:kButtonSize
-                                       andPosition:CGPointMake(kButtonWidth, kButtonYPosition * 2)
-                                      andZPosition:kZPositionTopBarButton];
-  [self enableButton:self.returnButton];
-}
-
 -(void)populateWithBottomPnPButtons {
   self.returnButton = [[Button alloc] initWithName:@"start" andColor:[SKColor grayColor]
                                            andSize:kButtonSize

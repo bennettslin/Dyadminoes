@@ -827,6 +827,7 @@
   float endAngle[9] = {327.5, 147.5, 327.5, 147.5,
                        27.5, 207.5,
                        60, 60, 60};
+  
   NSArray *colourArray = @[kEndedMatchCellDarkColour,
                            kEndedMatchCellDarkColour,
                            kEndedMatchCellDarkColour,
@@ -908,11 +909,8 @@
 
 -(void)showPivotGuide:(SKNode *)pivotGuide forDyadmino:(Dyadmino *)dyadmino {
   if (self.userWantsPivotGuides && !pivotGuide.parent) {
-    if (pivotGuide == self.prePivotGuide || pivotGuide == self.pivotRotateGuide) {
-      pivotGuide.position = dyadmino.position;
-    } else {
-      pivotGuide.position = dyadmino.pivotAroundPoint;
-    }
+    pivotGuide.position = (pivotGuide == self.prePivotGuide || pivotGuide == self.pivotRotateGuide) ?
+        dyadmino.position : dyadmino.pivotAroundPoint;
     
     CGFloat degree = (dyadmino.orientation) * -60.f;
     while (degree > 360.f) {

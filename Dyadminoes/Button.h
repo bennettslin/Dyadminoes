@@ -20,5 +20,7 @@
 -(void)changeName;
 -(SwapCancelOrUndoButton)confirmSwapCancelOrUndo;
 -(PassPlayOrDoneButton)confirmPassPlayOrDone;
+-(void)showSunkIn;
+-(void)showLifted;
 
 @end

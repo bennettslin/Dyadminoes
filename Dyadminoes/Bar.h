@@ -76,7 +76,7 @@
 -(void)populateWithTopReplayButtonsAndLabels;
 -(void)populateWithBottomReplayButtons;
 
--(void)populateWithTopPnPButtons;
+//-(void)populateWithTopPnPButtons;
 -(void)populateWithBottomPnPButtons;
 
 #pragma mark - button methods

@@ -46,7 +46,7 @@
   Bar *_topBar;
   Bar *_replayTop;
   SKNode *_touchNode;
-  Bar *_PnPTop;
+//  Bar *_PnPTop;
   Bar *_PnPBottom;
 
     // touches
@@ -57,6 +57,7 @@
   CGPoint _touchOffsetVector;
   
     // bools and modes
+  BOOL _pnpFieldsUp;
   BOOL _replayMode;
   BOOL _swapMode;
   BOOL _rackExchangeInProgress;
@@ -111,12 +112,31 @@
     [self layoutBoardCover];
     [self layoutSwapField];
     [self layoutReplayFields];
+    [self layoutPnPFields]; // deallocate for non-PnP matches?
     [self layoutTopBar];
   }
   return self;
 }
 
 -(void)loadAfterNewMatchRetrieved {
+  
+  if (self.myMatch.type == kPnPGame) {
+    _pnpFieldsUp = YES;
+    _PnPBottom.position = CGPointZero;
+    _PnPBottom.hidden = NO;
+  } else {
+    _pnpFieldsUp = NO;
+    _PnPBottom.position = CGPointMake(0, -kRackHeight);
+    _PnPBottom.hidden = YES;
+  }
+
+  self.myMatch.delegate = self;
+  [self prepareForNewTurn];
+}
+
+-(void)prepareForNewTurn {
+    // called both when scene is loaded, and when player finalises turn in PnP mode
+  
   [self.mySoundEngine removeAllActions];
   
   _zoomChangedCellsAlpha = NO;
@@ -145,7 +165,6 @@
   _endTouchLocationToMeasureDoubleTap = CGPointMake(2147483647, 2147483647);
   
   _myPlayer = self.myMatch.currentPlayer;
-  self.myMatch.delegate = self;
   self.myMatch.replayTurn = self.myMatch.turns.count;
 }
 
@@ -154,7 +173,6 @@
     // ensures that match's board dyadminoes are reset
   [self.myMatch last];
   
-  [self populateRackArray];
   [self populateBoardSet];
   
     // this only needs the board dyadminoes to determine the board's cells ranges
@@ -170,13 +188,6 @@
   [_topBar.resignButton changeName];
   [self updateTopBarButtons];
   
-  if (self.myMatch.type == kPnPGame) {
-    [self layoutPnPFields];
-  }
-  [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO];
-  
-  [self animateRecentlyPlayedDyadminoes];
-  [self showTurnInfoOrGameResultsForReplay:NO];
     // not for first version
 //  [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
   
@@ -188,7 +199,6 @@
   SKAction *sequence = [SKAction sequence:@[wait, removeActivityIndicator]];
   [self runAction:sequence];
   
-  
     // testing purposes only
 //  for (Cell *cell in _boardField.allCells) {
 //    
@@ -198,10 +208,25 @@
 //      cell.cellNode.hidden = YES;
 //    }
 //  }
+  
+    // don't call just yet if it's a PnP game
+  if (self.myMatch.type != kPnPGame) {
+    [self afterNewPlayerReady];
+  }
+}
+
+-(void)afterNewPlayerReady {
+    // called both when scene is loaded, and when new player is ready in PnP mode
+  
+  [self populateRackArray];
+  [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO];
+  [self animateRecentlyPlayedDyadminoes];
+  [self showTurnInfoOrGameResultsForReplay:NO];
 }
 
 -(void)willMoveFromView:(SKView *)view {
   
+    // ensures that activityIndicator will be stopped if returning from scene immediately
   [self.myDelegate stopActivityIndicator];
   
   NSLog(@"will move from view");
@@ -213,7 +238,6 @@
   [self toggleSwapFieldWithAnimation:NO];
   
   self.boardDyadminoes = [NSSet new];
-  self.playerRackDyadminoes = @[];
   
   for (SKNode *node in _boardField.children) {
     if ([node isKindOfClass:[Dyadmino class]]) {
@@ -225,7 +249,12 @@
   }
   
   [_boardField resetForNewMatch];
-  
+  [self prepareRackForNextPlayer];
+}
+
+-(void)prepareRackForNextPlayer {
+    // called both when leaving scene, and when player finalises turn in PnP mode
+  self.playerRackDyadminoes = @[];
   for (Dyadmino *dyadmino in _rackField.children) {
     if ([dyadmino isKindOfClass:[Dyadmino class]]) {
       [dyadmino resetForNewMatch];
@@ -397,20 +426,12 @@
 }
 
 -(void)layoutPnPFields {
-    // FIXME: use own constants, not replay field constants
-  _PnPTop = [[Bar alloc] initWithColor:kReplayTopColour andSize:CGSizeMake(self.frame.size.width, kTopBarHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, self.frame.size.height) andZPosition:kZPositionReplayTop];
-  _replayTop.name = @"PnPTop";
-  [self addChild:_PnPTop];
   
-  _PnPBottom = [[Bar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, -kRackHeight) andZPosition:kZPositionReplayBottom];
-  _replayBottom.name = @"PnPBottom";
+  _PnPBottom = [[Bar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointZero andZPosition:kZPositionReplayBottom];
+  _PnPBottom.name = @"PnPBottom";
   [self addChild:_PnPBottom];
 
-  [_PnPTop populateWithTopPnPButtons];
   [_PnPBottom populateWithBottomPnPButtons];
-
-  _PnPTop.hidden = YES;
-  _PnPBottom.hidden = YES;
 }
 
 -(void)layoutTopBar {
@@ -569,7 +590,7 @@
       _buttonPressed = (Button *)_touchNode.parent;
     }
       // TODO: make distinction of button pressed better, of course
-    _buttonPressed.alpha = 0.3f;
+    [_buttonPressed showSunkIn];
     return;
   }
   
@@ -582,7 +603,7 @@
   if (!dyadmino.hidden && !_canDoubleTapForDyadminoFlip && ([dyadmino isOnBoard] || ![dyadmino isRotating])) {
     
         // register sound if dyadmino tapped
-    if (!_replayMode && dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
+    if (!_pnpFieldsUp && !_replayMode && dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
       if (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) {
         [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
       }
@@ -594,7 +615,9 @@
       if (face && face.parent != _hoveringDyadmino && !_pivotInProgress) {
         if ([face.parent isKindOfClass:[Dyadmino class]]) {
           Dyadmino *faceParent = (Dyadmino *)face.parent;
-          if (!faceParent.hidden && (!_replayMode || (_replayMode && [faceParent isOnBoard]))) {
+          if (!faceParent.hidden &&
+              (!_pnpFieldsUp || (_pnpFieldsUp && [faceParent isOnBoard])) &&
+              (!_replayMode || (_replayMode && [faceParent isOnBoard]))) {
             if (!_boardZoomedOut || (_boardZoomedOut && [faceParent isInRack])) {
               [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
               _soundedDyadminoFace = face;
@@ -605,7 +628,7 @@
     }
   }
   
-  if (!_replayMode && dyadmino && !dyadmino.isRotating && !_touchedDyadmino && (!_boardZoomedOut || [dyadmino isInRack])) {
+  if (!_pnpFieldsUp && !_replayMode && dyadmino && !dyadmino.isRotating && !_touchedDyadmino && (!_boardZoomedOut || [dyadmino isInRack])) {
     _touchedDyadmino = dyadmino;
     
 //    NSLog(@"begin touch or pivot of dyadmino");
@@ -666,7 +689,12 @@
     // if the touch started on a button, do nothing and return
   if (_buttonPressed) {
     SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
-    _buttonPressed.alpha = (node == _buttonPressed) ? 0.3f : 1.f;
+    if (node == _buttonPressed) {
+      [_buttonPressed showSunkIn];
+    } else {
+      [_buttonPressed showLifted];
+    }
+
     return;
   }
   
@@ -687,7 +715,8 @@
     if (face && face.parent != _hoveringDyadmino) {
       if ([face.parent isKindOfClass:[Dyadmino class]]) {
         Dyadmino *faceParent = (Dyadmino *)face.parent;
-        if (!_replayMode || (_replayMode && [faceParent isOnBoard])) {
+        if ((!_replayMode || (_replayMode && [faceParent isOnBoard])) &&
+            (!_pnpFieldsUp || (_pnpFieldsUp && [faceParent isOnBoard]))) {
           if (!_soundedDyadminoFace) {
             [self.mySoundEngine soundTouchedDyadminoFace:face plucked:NO];
             _soundedDyadminoFace = face;
@@ -836,9 +865,9 @@
         // sound of button release
         // FIXME: sound should work
 //      [self.mySoundEngine soundButton:NO];
+      [_buttonPressed showLifted];
       [self handleButtonPressed];
     }
-    _buttonPressed.alpha = 1.f;
     _buttonPressed = nil;
     return;
   }
@@ -1255,6 +1284,12 @@
     }
     return;
     
+      /// pnp button
+  } else if (_buttonPressed == _PnPBottom.returnButton) {
+    _pnpFieldsUp = NO;
+    [self togglePnPFields];
+    [self afterNewPlayerReady];
+  
       /// swap button
   } else if (_buttonPressed == _topBar.swapCancelOrUndoButton &&
              [_buttonPressed confirmSwapCancelOrUndo] == kSwapButton) {
@@ -1445,8 +1480,10 @@
     [self.myMatch recordDyadminoesFromPlayer:_myPlayer withSwap:NO];
     [self persistChangedBoardDyadminoPositionsAndOrientations]; // for match
 
-    [self populateRackArray];
-    [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
+    if (self.myMatch.type != kPnPGame) {
+      [self populateRackArray];
+      [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
+    }
     
       // update views
     [self updateTopBarLabelsFinalTurn:YES animated:YES];
@@ -1462,8 +1499,15 @@
 }
 
 -(void)handleSwitchToNextPlayer {
-  NSString *nextPlayer = [NSString stringWithFormat:@"Waiting for %@ to play.", self.myMatch.currentPlayer.playerName];
-  [_topBar flashLabelNamed:@"message" withText:nextPlayer andColour:[self.myMatch colourForPlayer:self.myMatch.currentPlayer]];
+//  NSString *nextPlayer = [NSString stringWithFormat:@"Waiting for %@ to play.", self.myMatch.currentPlayer.playerName];
+//  [_topBar flashLabelNamed:@"message" withText:nextPlayer andColour:[self.myMatch colourForPlayer:self.myMatch.currentPlayer]];
+  
+  if (self.myMatch.type == kPnPGame) {
+    _pnpFieldsUp = YES;
+    [self togglePnPFields];
+    [self prepareRackForNextPlayer];
+    [self prepareForNewTurn];
+  }
 }
 
 -(void)handleEndGame {
@@ -2015,6 +2059,13 @@
   if (self.myMatch.turns.count == 0) {
     [_topBar disableButton:_topBar.replayButton];
   }
+  
+  if (_pnpFieldsUp) {
+    [_topBar disableButton:_topBar.replayButton];
+    [_topBar disableButton:_topBar.swapCancelOrUndoButton];
+    [_topBar disableButton:_topBar.passPlayOrDoneButton];
+    [_topBar disableButton:_topBar.resignButton];
+  }
 }
 
 -(void)updateReplayButtons {
@@ -2046,6 +2097,48 @@
 }
 
 #pragma mark - field animation methods
+
+-(void)togglePnPFields {
+
+  /// FIXME: exact same as toggleReplayFields, consider refactoring
+  if (_hoveringDyadmino) {
+    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
+  }
+  
+  if (_pnpFieldsUp) {
+    
+      // sound
+//    [self.mySoundEngine sound:kSoundSwoosh music:NO];
+    _fieldActionInProgress = YES;
+    
+      // scene views
+    _PnPBottom.hidden = NO;
+    SKAction *moveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
+    SKAction *completeAction = [SKAction runBlock:^{
+      _fieldActionInProgress = NO;
+      _rackField.hidden = YES;
+    }];
+    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completeAction]];
+    [_PnPBottom runAction:sequenceAction];
+    
+  } else {
+    
+      // sound
+//    [self.mySoundEngine sound:kSoundSwoosh music:NO];
+    _fieldActionInProgress = YES;
+    
+      // scene views
+    _rackField.hidden = NO;
+    SKAction *moveAction = [SKAction moveToY:-kRackHeight duration:kConstantTime];
+    SKAction *completeAction = [SKAction runBlock:^{
+      _fieldActionInProgress = NO;
+      _PnPBottom.hidden = YES;
+    }];
+    
+    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completeAction]];
+    [_PnPBottom runAction:sequenceAction];
+  }
+}
 
 -(void)toggleReplayFields {
   
@@ -2631,7 +2724,6 @@
 }
 
 -(void)presentResignActionSheet {
-  
   
   NSString *resignString;
   

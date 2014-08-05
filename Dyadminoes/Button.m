@@ -61,4 +61,12 @@
   }
 }
 
+-(void)showSunkIn {
+  self.alpha = 0.3f;
+}
+
+-(void)showLifted {
+  self.alpha = 1.f;
+}
+
 @end
