@@ -137,7 +137,7 @@
       UILabel *scoreLabel = self.scoreLabelsArray[i];
 
         // score label
-      scoreLabel.text = (player && !player.resigned) ? [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
+      scoreLabel.text = (player && !(player.resigned && self.myMatch.type != kSelfGame)) ? [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
       scoreLabel.adjustsFontSizeToFitWidth = YES;
       
         // player label

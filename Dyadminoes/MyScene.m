@@ -1935,23 +1935,24 @@
       
       [_topBar updateLabelNamed:nameLabel.name withText:player.playerName andColour:nil];
       
-        // static player colours
-      if (player.resigned && self.myMatch.type != kSelfGame) {
-        nameLabel.fontColor = [SKColor darkGrayColor];
-      } else {
-        nameLabel.fontColor = [self.myMatch colourForPlayer:player];
-      }
+        // static player colours      
+      nameLabel.fontColor = (player.resigned && self.myMatch.type != kSelfGame) ?
+          kResignedGray : [self.myMatch colourForPlayer:player];
       
-        // FIXME: this will show match results
+        // game still in play, show current player
       if (!self.myMatch.gameHasEnded && player) {
-        nameLabel.fontColor = (player == self.myMatch.currentPlayer) ? [SKColor whiteColor] : [self.myMatch colourForPlayer:player];
+        nameLabel.fontColor = (player == self.myMatch.currentPlayer) ? [SKColor whiteColor] : nameLabel.fontColor;
+        
+          // game ended, show winners
       } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
         nameLabel.fontColor = [SKColor blackColor];
       }
       
       NSString *scoreText;
-        
-      if (player == _myPlayer && self.myMatch.tempScore > 0) {
+      
+      if (player.resigned && self.myMatch.type != kSelfGame) {
+        scoreText = @"";
+      } else if (player == _myPlayer && self.myMatch.tempScore > 0) {
         scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)player.playerScore, (unsigned long)self.myMatch.tempScore];
       } else {
         scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
