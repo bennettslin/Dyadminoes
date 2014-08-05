@@ -21,6 +21,9 @@
 		3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3116CD18CEFC5D0015CC2A /* Rack.m */; };
 		3F3ABBA8198F4CF600015033 /* UIImage+colouredImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3ABBA7198F4CF600015033 /* UIImage+colouredImage.m */; };
 		3F3ABBB2198F68B200015033 /* MyPinchGestureRecognizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3ABBB1198F68B200015033 /* MyPinchGestureRecognizer.m */; };
+		3F3C8FF11990D9EE0061B208 /* ReplayBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3C8FF01990D9EE0061B208 /* ReplayBar.m */; };
+		3F3C8FF41990DA1A0061B208 /* PnPBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3C8FF31990DA1A0061B208 /* PnPBar.m */; };
+		3F3C8FF71990DA4E0061B208 /* TopBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3C8FF61990DA4E0061B208 /* TopBar.m */; };
 		3F55E1FD18D7A8520048E67E /* Button.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F55E1FC18D7A8520048E67E /* Button.m */; };
 		3F580BDC194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */; };
 		3F580BDE194F710F0040B5D0 /* Click2-Sebastian-759472264.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */; };
@@ -110,6 +113,12 @@
 		3F3ABBA7198F4CF600015033 /* UIImage+colouredImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+colouredImage.m"; sourceTree = "<group>"; };
 		3F3ABBB0198F68B200015033 /* MyPinchGestureRecognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyPinchGestureRecognizer.h; sourceTree = "<group>"; };
 		3F3ABBB1198F68B200015033 /* MyPinchGestureRecognizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyPinchGestureRecognizer.m; sourceTree = "<group>"; };
+		3F3C8FEF1990D9EE0061B208 /* ReplayBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReplayBar.h; sourceTree = "<group>"; };
+		3F3C8FF01990D9EE0061B208 /* ReplayBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ReplayBar.m; sourceTree = "<group>"; };
+		3F3C8FF21990DA1A0061B208 /* PnPBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PnPBar.h; sourceTree = "<group>"; };
+		3F3C8FF31990DA1A0061B208 /* PnPBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PnPBar.m; sourceTree = "<group>"; };
+		3F3C8FF51990DA4E0061B208 /* TopBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TopBar.h; sourceTree = "<group>"; };
+		3F3C8FF61990DA4E0061B208 /* TopBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TopBar.m; sourceTree = "<group>"; };
 		3F55E1FB18D7A8520048E67E /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
 		3F55E1FC18D7A8520048E67E /* Button.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Button.m; sourceTree = "<group>"; };
 		3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Electronic_Chime-KevanGC-495939803.wav"; sourceTree = "<group>"; };
@@ -242,6 +251,21 @@
 			);
 			name = "Images and Sounds";
 			path = ..;
+			sourceTree = "<group>";
+		};
+		3F3C8FF81990E04D0061B208 /* Bar Objects */ = {
+			isa = PBXGroup;
+			children = (
+				3F6AE50C18D4D1E7000528C1 /* Bar.h */,
+				3F6AE50D18D4D1E7000528C1 /* Bar.m */,
+				3F3C8FF51990DA4E0061B208 /* TopBar.h */,
+				3F3C8FF61990DA4E0061B208 /* TopBar.m */,
+				3F3C8FF21990DA1A0061B208 /* PnPBar.h */,
+				3F3C8FF31990DA1A0061B208 /* PnPBar.m */,
+				3F3C8FEF1990D9EE0061B208 /* ReplayBar.h */,
+				3F3C8FF01990D9EE0061B208 /* ReplayBar.m */,
+			);
+			name = "Bar Objects";
 			sourceTree = "<group>";
 		};
 		3F4C06B318CC5F12003C4265 /* Logic and Helpers */ = {
@@ -410,6 +434,7 @@
 		3FFD6BE518B3CCE7000D2DA4 /* Scene Objects */ = {
 			isa = PBXGroup;
 			children = (
+				3F3C8FF81990E04D0061B208 /* Bar Objects */,
 				3FBC6AD2194E1BBD00420CB8 /* SoundEngine.h */,
 				3FBC6AD3194E1BBD00420CB8 /* SoundEngine.m */,
 				3FCCA71C18948B0500E0E4B5 /* SceneEngine.h */,
@@ -422,8 +447,6 @@
 				3FD06E2218D6544F00E2FF04 /* Cell.m */,
 				3F8F045918BFEF3300853C4C /* SnapPoint.h */,
 				3F8F045A18BFEF3300853C4C /* SnapPoint.m */,
-				3F6AE50C18D4D1E7000528C1 /* Bar.h */,
-				3F6AE50D18D4D1E7000528C1 /* Bar.m */,
 				3F3116CC18CEFC5D0015CC2A /* Rack.h */,
 				3F3116CD18CEFC5D0015CC2A /* Rack.m */,
 				3F55E1FB18D7A8520048E67E /* Button.h */,
@@ -555,8 +578,10 @@
 			files = (
 				3F3ABBA8198F4CF600015033 /* UIImage+colouredImage.m in Sources */,
 				3F7BD7D5192B09D6009274DE /* MatchesTableViewController.m in Sources */,
+				3F3C8FF41990DA1A0061B208 /* PnPBar.m in Sources */,
 				3FECDE0D19355B2F00D774AB /* RankViewController.m in Sources */,
 				3FCCA71B18948AF200E0E4B5 /* Dyadmino.m in Sources */,
+				3F3C8FF11990D9EE0061B208 /* ReplayBar.m in Sources */,
 				3F7BD7D8192B09FE009274DE /* DebugViewController.m in Sources */,
 				3F8F045B18BFEF3300853C4C /* SnapPoint.m in Sources */,
 				3F28A6D018DA86BA0092B9B2 /* Label.m in Sources */,
@@ -574,6 +599,7 @@
 				3FDD7FD918D4C89B0029DB7D /* Board.m in Sources */,
 				3F7BD7C9192AF45D009274DE /* Match.m in Sources */,
 				3F18924718CDB43300BEE276 /* Player.m in Sources */,
+				3F3C8FF71990DA4E0061B208 /* TopBar.m in Sources */,
 				3F7BD7DE192B0AA8009274DE /* Model.m in Sources */,
 				3F0526C11936C877003D3C04 /* HelpViewController.m in Sources */,
 				3F0526CD1936D12A003D3C04 /* HelpContentViewController.m in Sources */,

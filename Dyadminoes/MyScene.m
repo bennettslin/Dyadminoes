@@ -17,7 +17,10 @@
 #import "Player.h"
 #import "Rack.h"
 #import "Board.h"
-#import "Bar.h"
+//#import "Bar.h"
+#import "TopBar.h"
+#import "PnPBar.h"
+#import "ReplayBar.h"
 #import "Cell.h"
 #import "Button.h"
 #import "Label.h"
@@ -37,17 +40,18 @@
 
 @implementation MyScene {
   
+  Player *_myPlayer;
+  
     // sprites and nodes
   Rack *_rackField;
   Rack *_swapField;
-  Bar *_replayBottom;
   Board *_boardField;
   SKSpriteNode *_boardCover;
-  Bar *_topBar;
-  Bar *_replayTop;
-  SKNode *_touchNode;
-//  Bar *_PnPTop;
-  Bar *_PnPBottom;
+
+  TopBar *_topBar;
+  PnPBar *_PnPBar;
+  ReplayBar *_replayTop;
+  ReplayBar *_replayBottom;
 
     // touches
   UITouch *_currentTouch;
@@ -76,25 +80,23 @@
   SnapPoint *_uponTouchDyadminoNode;
   DyadminoOrientation _uponTouchDyadminoOrientation;
   
-  SKSpriteNode *_soundedDyadminoFace;
-  NSUInteger _hoveringDyadminoBeingCorrected;
-  NSUInteger _hoveringDyadminoFinishedCorrecting;
-  CFTimeInterval _doubleTapTime;
-  
     // pointers
   Dyadmino *_touchedDyadmino;
   Dyadmino *_recentRackDyadmino;
   Dyadmino *_hoveringDyadmino;
   Button *_buttonPressed;
+  SKNode *_touchNode;
+  SKSpriteNode *_soundedDyadminoFace;
 
     // hover and pivot properties
   BOOL _pivotInProgress;
   CFTimeInterval _hoverTime;
+  NSUInteger _hoveringDyadminoBeingCorrected;
+  NSUInteger _hoveringDyadminoFinishedCorrecting;
+  CFTimeInterval _doubleTapTime;
   
     // test
   BOOL _debugMode;
-  
-  Player *_myPlayer;
 }
 
 #pragma mark - init methods
@@ -111,8 +113,8 @@
     [self layoutBoard];
     [self layoutBoardCover];
     [self layoutSwapField];
-    [self layoutReplayFields];
-    [self layoutPnPFields]; // deallocate for non-PnP matches?
+    [self layoutReplayBars];
+    [self layoutPnPBar]; // deallocate for non-PnP matches?
     [self layoutTopBar];
   }
   return self;
@@ -122,12 +124,12 @@
   
   if (self.myMatch.type == kPnPGame) {
     _pnpFieldsUp = YES;
-    _PnPBottom.position = CGPointZero;
-    _PnPBottom.hidden = NO;
+    _PnPBar.position = CGPointZero;
+    _PnPBar.hidden = NO;
   } else {
     _pnpFieldsUp = NO;
-    _PnPBottom.position = CGPointMake(0, -kRackHeight);
-    _PnPBottom.hidden = YES;
+    _PnPBar.position = CGPointMake(0, -kRackHeight);
+    _PnPBar.hidden = YES;
   }
 
   self.myMatch.delegate = self;
@@ -407,40 +409,13 @@
   _swapField.hidden = YES;
 }
 
--(void)layoutReplayFields {
-    // initial position is beyond screen
-  _replayTop = [[Bar alloc] initWithColor:kReplayTopColour andSize:CGSizeMake(self.frame.size.width, kTopBarHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, self.frame.size.height) andZPosition:kZPositionReplayTop];
-  _replayTop.name = @"replayTop";
-  [self addChild:_replayTop];
-  
-  _replayBottom = [[Bar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, -kRackHeight) andZPosition:kZPositionReplayBottom];
-  _replayBottom.name = @"replayBottom";
-  [self addChild:_replayBottom];
-  
-  [_replayTop populateWithTopReplayButtonsAndLabels];
-  [_replayBottom populateWithBottomReplayButtons];
-  
-  _replayMode = NO;
-  _replayTop.hidden = YES;
-  _replayBottom.hidden = YES;
-}
-
--(void)layoutPnPFields {
-  
-  _PnPBottom = [[Bar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointZero andZPosition:kZPositionReplayBottom];
-  _PnPBottom.name = @"PnPBottom";
-  [self addChild:_PnPBottom];
-
-  [_PnPBottom populateWithBottomPnPButtons];
-}
-
 -(void)layoutTopBar {
-
-  _topBar = [[Bar alloc] initWithColor:kBarBrown
-                                  andSize:CGSizeMake(self.frame.size.width, kTopBarHeight)
-                           andAnchorPoint:CGPointZero
-                              andPosition:CGPointMake(0, self.frame.size.height - kTopBarHeight)
-                             andZPosition:kZPositionTopBar];
+  
+  _topBar = [[TopBar alloc] initWithColor:kBarBrown
+                               andSize:CGSizeMake(self.frame.size.width, kTopBarHeight)
+                        andAnchorPoint:CGPointZero
+                           andPosition:CGPointMake(0, self.frame.size.height - kTopBarHeight)
+                          andZPosition:kZPositionTopBar];
   _topBar.name = @"topBar";
   [_topBar populateWithTopBarButtons];
   [_topBar populateWithTopBarLabels];
@@ -450,6 +425,33 @@
   _topBar.boardDyadminoesLabel.hidden = YES;
   _topBar.holdingContainerLabel.hidden = YES;
   _topBar.swapContainerLabel.hidden = YES;
+}
+
+-(void)layoutPnPBar {
+  
+  _PnPBar = [[PnPBar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointZero andZPosition:kZPositionReplayBottom];
+  _PnPBar.name = @"pnpBar";
+  [self addChild:_PnPBar];
+  
+  [_PnPBar populateWithPnPButtons];
+}
+
+-(void)layoutReplayBars {
+    // initial position is beyond screen
+  _replayTop = [[ReplayBar alloc] initWithColor:kReplayTopColour andSize:CGSizeMake(self.frame.size.width, kTopBarHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, self.frame.size.height) andZPosition:kZPositionReplayTop];
+  _replayTop.name = @"replayTop";
+  [self addChild:_replayTop];
+  
+  _replayBottom = [[ReplayBar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, -kRackHeight) andZPosition:kZPositionReplayBottom];
+  _replayBottom.name = @"replayBottom";
+  [self addChild:_replayBottom];
+  
+  [_replayTop populateWithTopReplayButtonsAndLabels];
+  [_replayBottom populateWithBottomReplayButtons];
+  
+  _replayMode = NO;
+  _replayTop.hidden = YES;
+  _replayBottom.hidden = YES;
 }
 
 -(void)layoutOrRefreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation {
@@ -1262,12 +1264,12 @@
 -(void)handleButtonPressed {
   
       /// games button
-  if (_buttonPressed == _topBar.returnButton) {
+  if (_buttonPressed == _topBar.returnOrStartButton) {
     [self goBackToMainViewController];
     return;
     
       /// replay button
-  } else if (_buttonPressed == _topBar.replayButton || _buttonPressed == _replayTop.returnButton) {
+  } else if (_buttonPressed == _topBar.replayButton || _buttonPressed == _replayTop.returnOrStartButton) {
     _replayMode = _replayMode ? NO : YES;
     [self toggleReplayFields];
     
@@ -1285,7 +1287,7 @@
     return;
     
       /// pnp button
-  } else if (_buttonPressed == _PnPBottom.returnButton) {
+  } else if (_buttonPressed == _PnPBar.returnOrStartButton) {
     _pnpFieldsUp = NO;
     [self togglePnPFields];
     [self afterNewPlayerReady];
@@ -1987,7 +1989,7 @@
     // three main possibilities
     // 1. Game has ended for player...
   if (_myPlayer.resigned || self.myMatch.gameHasEnded) {
-    [_topBar enableButton:_topBar.returnButton];
+    [_topBar enableButton:_topBar.returnOrStartButton];
     [_topBar enableButton:_topBar.replayButton];
     [_topBar disableButton:_topBar.swapCancelOrUndoButton];
     [_topBar disableButton:_topBar.passPlayOrDoneButton];
@@ -1996,7 +1998,7 @@
       //2. Still in game but not player's turn
   } else if (_myPlayer != self.myMatch.currentPlayer) {
 
-    [_topBar enableButton:_topBar.returnButton];
+    [_topBar enableButton:_topBar.returnOrStartButton];
     [_topBar enableButton:_topBar.replayButton];
     [_topBar disableButton:_topBar.swapCancelOrUndoButton];
     [_topBar disableButton:_topBar.passPlayOrDoneButton];
@@ -2007,7 +2009,7 @@
     
       // 2a. swap mode
     if (_swapMode) {
-      [_topBar enableButton:_topBar.returnButton];
+      [_topBar enableButton:_topBar.returnOrStartButton];
       [_topBar disableButton:_topBar.replayButton];
       [_topBar enableButton:_topBar.swapCancelOrUndoButton]; // cancel
         if (self.myMatch.swapContainer.count > 0) {
@@ -2022,7 +2024,7 @@
 
         // 2b. not swap mode
     } else {
-      [_topBar enableButton:_topBar.returnButton];
+      [_topBar enableButton:_topBar.returnOrStartButton];
       [_topBar enableButton:_topBar.replayButton];
       [_topBar enableButton:_topBar.swapCancelOrUndoButton];
       [_topBar enableButton:_topBar.passPlayOrDoneButton];
@@ -2112,14 +2114,14 @@
     _fieldActionInProgress = YES;
     
       // scene views
-    _PnPBottom.hidden = NO;
+    _PnPBar.hidden = NO;
     SKAction *moveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
     SKAction *completeAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
       _rackField.hidden = YES;
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completeAction]];
-    [_PnPBottom runAction:sequenceAction];
+    [_PnPBar runAction:sequenceAction];
     
   } else {
     
@@ -2132,11 +2134,11 @@
     SKAction *moveAction = [SKAction moveToY:-kRackHeight duration:kConstantTime];
     SKAction *completeAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
-      _PnPBottom.hidden = YES;
+      _PnPBar.hidden = YES;
     }];
     
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completeAction]];
-    [_PnPBottom runAction:sequenceAction];
+    [_PnPBar runAction:sequenceAction];
   }
 }
 
