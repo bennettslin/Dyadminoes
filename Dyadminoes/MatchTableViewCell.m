@@ -203,82 +203,39 @@
 
 -(void)determinePlayerLabelPositionsBasedOnScores {
   
-  int tempPositionArray[kMaxNumPlayers] = {};
-  NSUInteger maxPosition = 1;
-  
-  for (int i = 0; i < kMaxNumPlayers; i++) {
-    if (i < self.myMatch.players.count) {
-      int iPosition = tempPositionArray[i];
-      iPosition++;
-      tempPositionArray[i] = iPosition;
+    // first create an array of scores
+  NSMutableArray *tempScores = [NSMutableArray new];
+  for (int i = 0; i < self.myMatch.players.count; i++) {
+    Player *player = self.myMatch.players[i];
+    
+      // add score only if player is in game
+    if (!player.resigned || self.myMatch.type == kSelfGame) {
+      NSNumber *playerScore = [NSNumber numberWithUnsignedInteger:player.playerScore];
       
-      for (int j = 0; j < i; j++) {
-        if (i != j) {
-          Player *playerI = self.myMatch.players[i];
-          NSUInteger playerIScore = playerI.playerScore;
-          Player *playerJ = self.myMatch.players[j];
-          NSUInteger playerJScore = playerJ.playerScore;
-          if (playerIScore > playerJScore) {
-            
-              // ensure that no other player is tied with player J
-              // since that means player I was already incremented
-            BOOL alreadyIncremented = NO;
-            for (int k = 0; k < i; k++) {
-              if (k != i && k != j) {
-                if (tempPositionArray[k] == tempPositionArray[j]) {
-                  alreadyIncremented = YES;
-                }
-              }
-            }
-            
-            if (!alreadyIncremented) {
-              int iPosition = tempPositionArray[i];
-              iPosition++;
-              tempPositionArray[i] = iPosition;
-            }
-
-            if (tempPositionArray[i] > maxPosition) {
-              maxPosition = tempPositionArray[i];
-            }
-
-          } else if (playerJScore > playerIScore) {
-            
-            BOOL alreadyIncremented = NO;
-            for (int k = 0; k < i; k++) {
-              if (k != i && k != j) {
-                if (tempPositionArray[k] == tempPositionArray[i]) {
-                  alreadyIncremented = YES;
-                }
-              }
-            }
-            
-            if (!alreadyIncremented) {
-              int jPosition = tempPositionArray[j];
-              jPosition++;
-              tempPositionArray[j] = jPosition;
-            }
-            
-            if (tempPositionArray[j] > maxPosition) {
-              maxPosition = tempPositionArray[j];
-            }
-          }
-        }
+        // ensure no double numbers
+      if (![tempScores containsObject:playerScore]) {
+        [tempScores addObject:playerScore];
       }
     }
   }
+  NSArray *sortedScores = [tempScores sortedArrayUsingSelector:@selector(compare:)];
 
-  for (int i = 0; i < kMaxNumPlayers; i++) {
-//    NSLog(@"Player %i position is %i", i, tempPositionArray[i]);
-
+  for (int i = 0; i < self.myMatch.players.count; i++) {
+    
+    Player *player = self.myMatch.players[i];
     UILabel *playerLabel = self.playerLabelsArray[i];
     CellBackgroundView *labelView = self.playerLabelViewsArray[i];
     UILabel *scoreLabel = self.scoreLabelsArray[i];
-    NSUInteger position = tempPositionArray[i];
+    NSInteger playerPosition = (player.resigned && self.myMatch.type != kSelfGame) ?
+        -1 : [sortedScores indexOfObject:[NSNumber numberWithUnsignedInteger:player.playerScore]] + 1;
 
-    playerLabel.frame = CGRectMake(playerLabel.frame.origin.x, [self labelHeightForMaxPosition:maxPosition andPlayerPosition:position],
+    playerLabel.frame = CGRectMake(playerLabel.frame.origin.x,
+                                   [self labelHeightForMaxPosition:sortedScores.count andPlayerPosition:playerPosition],
                                    playerLabel.frame.size.width, playerLabel.frame.size.height);
-    labelView.center = CGPointMake(playerLabel.center.x + (kScoreLabelWidth / 2), playerLabel.center.y - kPlayerLabelWidthPadding * 0.1f);
-    scoreLabel.frame = CGRectMake(playerLabel.frame.origin.x + playerLabel.frame.size.width + (kPlayerLabelWidthPadding / 4), playerLabel.frame.origin.y, scoreLabel.frame.size.width, scoreLabel.frame.size.height);
+    labelView.center = CGPointMake(playerLabel.center.x + (kScoreLabelWidth / 2),
+                                   playerLabel.center.y - kPlayerLabelWidthPadding * 0.1f);
+    scoreLabel.frame = CGRectMake(playerLabel.frame.origin.x + playerLabel.frame.size.width + (kPlayerLabelWidthPadding / 4),
+                                  playerLabel.frame.origin.y, scoreLabel.frame.size.width, scoreLabel.frame.size.height);
     
     UIImageView *fermataImageView = self.fermataImageViewArray[i];
     if (fermataImageView.superview) {
@@ -289,7 +246,12 @@
   }
 }
 
--(CGFloat)labelHeightForMaxPosition:(NSUInteger)maxPosition andPlayerPosition:(NSUInteger)playerPosition {
+-(CGFloat)labelHeightForMaxPosition:(NSUInteger)maxPosition andPlayerPosition:(NSInteger)playerPosition {
+  
+    // player resigned
+  if (playerPosition == -1) {
+    return 6 * kStaveYHeight - kStaveYHeight - (kPlayerLabelHeightPadding * 0.25f);
+  }
 
   CGFloat multiplier = 0;
   

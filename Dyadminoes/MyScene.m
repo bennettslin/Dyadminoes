@@ -60,7 +60,7 @@
   CGPoint _touchOffsetVector;
   
     // bools and modes
-  BOOL _pnpFieldUp;
+  BOOL _pnpBarUp;
   BOOL _replayMode;
   BOOL _swapMode;
   BOOL _cellAlphasZeroed;
@@ -125,13 +125,13 @@
 -(void)loadAfterNewMatchRetrieved {
   
   if (self.myMatch.type == kPnPGame) {
-    _pnpFieldUp = YES;
+    _pnpBarUp = YES;
     _pnpBar.position = CGPointZero;
     _pnpBar.hidden = NO;
     [self updatePnPLabelForNewPlayer];
     
   } else {
-    _pnpFieldUp = NO;
+    _pnpBarUp = NO;
     _pnpBar.position = CGPointMake(0, -kRackHeight);
     _pnpBar.hidden = YES;
     _rackField.position = CGPointZero;
@@ -609,7 +609,7 @@
   if (!dyadmino.hidden && !_canDoubleTapForDyadminoFlip && ([dyadmino isOnBoard] || ![dyadmino isRotating])) {
     
         // register sound if dyadmino tapped
-    if (!_pnpFieldUp && !_replayMode && dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
+    if (!_pnpBarUp && !_replayMode && dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
       if (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) {
         [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
       }
@@ -622,7 +622,7 @@
         if ([face.parent isKindOfClass:[Dyadmino class]]) {
           Dyadmino *faceParent = (Dyadmino *)face.parent;
           if (!faceParent.hidden &&
-              (!_pnpFieldUp || (_pnpFieldUp && [faceParent isOnBoard])) &&
+              (!_pnpBarUp || (_pnpBarUp && [faceParent isOnBoard])) &&
               (!_replayMode || (_replayMode && [faceParent isOnBoard]))) {
             if (!_boardZoomedOut || (_boardZoomedOut && [faceParent isInRack])) {
               [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
@@ -634,7 +634,7 @@
     }
   }
   
-  if (!_pnpFieldUp && !_replayMode && dyadmino && !dyadmino.isRotating && !_touchedDyadmino && (!_boardZoomedOut || [dyadmino isInRack])) {
+  if (!_pnpBarUp && !_replayMode && dyadmino && !dyadmino.isRotating && !_touchedDyadmino && (!_boardZoomedOut || [dyadmino isInRack])) {
     _touchedDyadmino = dyadmino;
     
 //    NSLog(@"begin touch or pivot of dyadmino");
@@ -722,7 +722,7 @@
       if ([face.parent isKindOfClass:[Dyadmino class]]) {
         Dyadmino *faceParent = (Dyadmino *)face.parent;
         if ((!_replayMode || (_replayMode && [faceParent isOnBoard])) &&
-            (!_pnpFieldUp || (_pnpFieldUp && [faceParent isOnBoard]))) {
+            (!_pnpBarUp || (_pnpBarUp && [faceParent isOnBoard]))) {
           if (!_soundedDyadminoFace) {
             [self.mySoundEngine soundTouchedDyadminoFace:face plucked:NO];
             _soundedDyadminoFace = face;
@@ -1296,8 +1296,8 @@
     
       /// pnp button
   } else if (_buttonPressed == _pnpBar.returnOrStartButton) {
-    _pnpFieldUp = NO;
-    [self togglePnPField];
+    _pnpBarUp = NO;
+    [self togglePnPBar];
     [self afterNewPlayerReady];
   
       /// swap button
@@ -1523,12 +1523,12 @@
 -(void)handleSwitchToNextPlayer {
   
   if (self.myMatch.type == kPnPGame) {
-    _pnpFieldUp = YES;
-    [self togglePnPField];
+    _pnpBarUp = YES;
+    [self togglePnPBar];
     
       // note that prepareRackForNextPlayer and prepareForNewTurn
-      // are called in togglePnPField completion block
-      // this is the only place method is called where pnpFieldUp is YES
+      // are called in togglePnPBar completion block
+      // this is the only place method is called where pnpBarUp is YES
   }
 }
 
@@ -2083,7 +2083,7 @@
     [_topBar disableButton:_topBar.replayButton];
   }
   
-  if (_pnpFieldUp) {
+  if (_pnpBarUp) {
     [_topBar disableButton:_topBar.replayButton];
     [_topBar disableButton:_topBar.swapCancelOrUndoButton];
     [_topBar disableButton:_topBar.passPlayOrDoneButton];
@@ -2148,16 +2148,16 @@
   }
 }
 
--(void)togglePnPField {
+-(void)togglePnPBar {
   
   /// FIXME: exact same as toggleReplayFields, consider refactoring
   [self updatePnPLabelForNewPlayer];
   
-    // cells will toggle faster than pnpFields move
-  _cellAlphasZeroed = _pnpFieldUp;
+    // cells will toggle faster than pnpBar moves
+  _cellAlphasZeroed = _pnpBarUp;
   [self toggleCellsAlphaAnimated:YES];
   
-  if (_pnpFieldUp) {
+  if (_pnpBarUp) {
     
       // sound
 //    [self.mySoundEngine sound:kSoundSwoosh music:NO];
@@ -2199,6 +2199,10 @@
   if (_hoveringDyadmino) {
     [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
   }
+  
+//    // cells will toggle faster than pnpBar moves
+//  _cellAlphasZeroed = _pnpBarUp;
+//  [self toggleCellsAlphaAnimated:YES];
   
   NSLog(@"toggle replay fields");
   
