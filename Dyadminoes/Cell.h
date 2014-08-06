@@ -19,7 +19,7 @@
 @property (nonatomic) CGSize cellNodeSize;
 
   // FIXME: not really necessary now, since they're all 1.f
-@property (nonatomic) CGFloat preZoomAlpha;
+//@property (nonatomic) CGFloat preZoomAlpha;
 
 @property (strong, nonatomic) NSString *name;
 

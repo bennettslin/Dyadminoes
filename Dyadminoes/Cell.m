@@ -26,7 +26,7 @@
     
     self.board = board;
     self.cellNodeTexture = texture;
-    self.preZoomAlpha = -1;
+//    self.preZoomAlpha = -1;
     self.colouredByNeighbouringCells = 0;
 
     [self resetForNewMatch];
@@ -63,7 +63,7 @@
   self.colouredByNeighbouringCells = 0;
   self.myDyadmino = nil;
   self.myPC = -1;
-  self.preZoomAlpha = -1;
+//  self.preZoomAlpha = -1;
   
     // reset colour
   _red = 0.2f;

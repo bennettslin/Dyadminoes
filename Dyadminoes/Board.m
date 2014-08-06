@@ -1026,9 +1026,9 @@
   for (Cell *cell in self.allCells) {
     if ([cell isKindOfClass:[Cell class]]) {
       
-      if (cell.preZoomAlpha == -1) {
-        cell.preZoomAlpha = cell.cellNode.alpha;
-      }
+//      if (cell.preZoomAlpha == -1) {
+//        cell.preZoomAlpha = cell.cellNode.alpha;
+//      }
       
         // only show surrounding coloured cells when zoomed out
       if (_zoomedOut) {
@@ -1044,22 +1044,22 @@
   }
 }
 
--(void)changeAllBoardCellsToPreZoomAlpha {
-  
-//  NSLog(@"change all board cells to pre zoom alpha called");
-  for (Cell *cell in self.allCells) {
-    if ([cell isKindOfClass:[Cell class]]) {
-//      NSLog(@"changed back to preZoom alpha %.2f", cell.preZoomAlpha);
-      
-      if (_zoomedOut) {
-        cell.cellNode.alpha = 0.f;
-      } else {
-        cell.cellNode.alpha = 1.f;
-        cell.preZoomAlpha = -1;
-      }
-    }
-  }
-}
+//-(void)changeAllBoardCellsToPreZoomAlpha {
+//  
+////  NSLog(@"change all board cells to pre zoom alpha called");
+//  for (Cell *cell in self.allCells) {
+//    if ([cell isKindOfClass:[Cell class]]) {
+////      NSLog(@"changed back to preZoom alpha %.2f", cell.preZoomAlpha);
+//      
+//      if (_zoomedOut) {
+//        cell.cellNode.alpha = 0.f;
+//      } else {
+//        cell.cellNode.alpha = 1.f;
+//        cell.preZoomAlpha = -1;
+//      }
+//    }
+//  }
+//}
 
 #pragma mark - legality methods
 

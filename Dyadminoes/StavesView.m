@@ -49,7 +49,8 @@
     UIColor *staveColour = self.gameHasEnded ? kStaveEndedGameColour : kStaveColour;
     
     CGContextRef endLineContext = UIGraphicsGetCurrentContext();
-    CGContextSetLineWidth(endLineContext, lineWidth * 2);
+    CGContextSetLineWidth(endLineContext, lineWidth * 2.5);
+    CGContextSetStrokeColorWithColor(context, staveColour.CGColor);
     CGContextMoveToPoint(endLineContext, kCellWidth - kStaveXBuffer - kStaveYHeight * 0.9, kStaveYHeight * 3);
     CGContextAddLineToPoint(endLineContext, kCellWidth - kStaveXBuffer - kStaveYHeight * 0.9, kStaveYHeight * 7);
     CGContextStrokePath(endLineContext);

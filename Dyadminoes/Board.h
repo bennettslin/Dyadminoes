@@ -85,7 +85,7 @@
 #pragma mark - cell colour methods
 
 -(void)changeAllBoardCellsGivenScale:(CGFloat)alpha; // called when zooming in or out
--(void)changeAllBoardCellsToPreZoomAlpha;
+//-(void)changeAllBoardCellsToPreZoomAlpha;
 -(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign;
 
 #pragma mark - pivot guide methods

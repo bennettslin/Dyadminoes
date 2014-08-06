@@ -182,6 +182,7 @@
       self.backgroundColor = kEndedMatchCellLightColour;
       
         // game ended, so lastPlayed label shows date
+      self.lastPlayedLabel.textColor = kStaveEndedGameColour;
       self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed];
       
     } else {
@@ -189,6 +190,7 @@
       self.backgroundColor = kMainLighterYellow;
       
         // game still in play, so lastPlayed label shows time since last played
+      self.lastPlayedLabel.textColor = kStaveColour;
       self.lastPlayedLabel.text = [self returnLastPlayedStringFromDate:self.myMatch.lastPlayed
                                                                started:(self.myMatch.turns.count == 0 ? YES : NO)];
     }

@@ -16,6 +16,9 @@
 @property (nonatomic) HexCoord myHexCoord;
 @property (nonatomic) NSInteger myRackOrder;
 
+  // only needed for debugging
+@property (strong, nonatomic) NSString *name;
+
 @property (strong, nonatomic) NSArray *turnChanges;
 
 -(id)initWithID:(NSUInteger)id;

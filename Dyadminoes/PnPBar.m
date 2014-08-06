@@ -10,14 +10,26 @@
 #import "Button.h"
 #import "Label.h"
 
+#define kLabelFontSize (kIsIPhone ? 14.f : 18.f)
+
 @implementation PnPBar
 
--(void)populateWithPnPButtons {
+-(void)populateWithPnPButtonsAndLabel {
+  
   self.returnOrStartButton = [[Button alloc] initWithName:@"start" andColor:[SKColor grayColor]
                                            andSize:kButtonSize
                                        andPosition:CGPointMake(kButtonWidth, kButtonYPosition * 2)
                                       andZPosition:kZPositionTopBarButton];
   [self enableButton:self.returnOrStartButton];
+  
+  self.waitingForPlayerLabel = [[Label alloc] initWithName:@"waitPlayer"
+                                    andFontColor:kTestRed
+                                     andFontSize:kLabelFontSize
+                                     andPosition:CGPointMake(5.f, kLabelYPosition)
+                                    andZPosition:kZPositionLogMessage
+                          andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
+  
+  self.allLabels = [NSDictionary dictionaryWithObject:self.waitingForPlayerLabel forKey:self.waitingForPlayerLabel.name];
 }
 
 @end

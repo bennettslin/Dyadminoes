@@ -17,7 +17,6 @@
 #import "Player.h"
 #import "Rack.h"
 #import "Board.h"
-//#import "Bar.h"
 #import "TopBar.h"
 #import "PnPBar.h"
 #import "ReplayBar.h"
@@ -49,7 +48,7 @@
   SKSpriteNode *_boardCover;
 
   TopBar *_topBar;
-  PnPBar *_PnPBar;
+  PnPBar *_pnpBar;
   ReplayBar *_replayTop;
   ReplayBar *_replayBottom;
 
@@ -61,9 +60,10 @@
   CGPoint _touchOffsetVector;
   
     // bools and modes
-  BOOL _pnpFieldsUp;
+  BOOL _pnpFieldUp;
   BOOL _replayMode;
   BOOL _swapMode;
+  BOOL _cellAlphasZeroed;
   BOOL _rackExchangeInProgress;
   BOOL _fieldActionInProgress;
   BOOL _boardToBeMovedOrBeingMoved;
@@ -108,6 +108,8 @@
     self.mySoundEngine = [[SoundEngine alloc] init];
     self.mySceneEngine = [[SceneEngine alloc] init];
     [self addChild:self.mySoundEngine];
+    _swapMode = NO;
+    _cellAlphasZeroed = NO;
     
 //    NSLog(@"layout static scene assets");
     [self layoutBoard];
@@ -123,13 +125,18 @@
 -(void)loadAfterNewMatchRetrieved {
   
   if (self.myMatch.type == kPnPGame) {
-    _pnpFieldsUp = YES;
-    _PnPBar.position = CGPointZero;
-    _PnPBar.hidden = NO;
+    _pnpFieldUp = YES;
+    _pnpBar.position = CGPointZero;
+    _pnpBar.hidden = NO;
+    [self updatePnPLabelForNewPlayer];
+    
   } else {
-    _pnpFieldsUp = NO;
-    _PnPBar.position = CGPointMake(0, -kRackHeight);
-    _PnPBar.hidden = YES;
+    _pnpFieldUp = NO;
+    _pnpBar.position = CGPointMake(0, -kRackHeight);
+    _pnpBar.hidden = YES;
+    _rackField.position = CGPointZero;
+    _rackField.hidden = NO;
+    
   }
 
   self.myMatch.delegate = self;
@@ -150,7 +157,6 @@
   _buttonsUpdatedThisTouch = NO;
   _currentTouch = nil;
   _replayMode = NO;
-  _swapMode = NO;
   _fieldActionInProgress = NO;
   _boardToBeMovedOrBeingMoved = NO;
   _boardBeingCorrectedWithinBounds = NO;
@@ -183,13 +189,6 @@
   [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes];
   [self populateBoardWithDyadminoes];
   
-  [self updateTopBarLabelsFinalTurn:NO animated:NO];
-  
-    // solo mode
-  _topBar.resignButton.name = (self.myMatch.type == kSelfGame) ? @"end game" : @"resign";
-  [_topBar.resignButton changeName];
-  [self updateTopBarButtons];
-  
     // not for first version
 //  [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
   
@@ -201,15 +200,14 @@
   SKAction *sequence = [SKAction sequence:@[wait, removeActivityIndicator]];
   [self runAction:sequence];
   
-    // testing purposes only
-//  for (Cell *cell in _boardField.allCells) {
-//    
-//    if (cell.colouredByNeighbouringCells > 0) {
-//      cell.cellNode.hidden = NO;
-//    } else {
-//      cell.cellNode.hidden = YES;
-//    }
-//  }
+  [self updateTopBarLabelsFinalTurn:NO animated:NO];
+  _topBar.resignButton.name = (self.myMatch.type == kSelfGame) ? @"end game" : @"resign";
+  [_topBar.resignButton changeName];
+  [self updateTopBarButtons];
+  
+    // cell alphas are visible by default, hide if PnP mode
+  _cellAlphasZeroed = (self.myMatch.type == kPnPGame);
+  [self toggleCellsAlphaAnimated:NO];
   
     // don't call just yet if it's a PnP game
   if (self.myMatch.type != kPnPGame) {
@@ -236,8 +234,13 @@
     _debugMode = NO;
     [self toggleDebugMode];
   }
+
+    // establish that cell alphas are back to normal
+  _cellAlphasZeroed = NO;
+  [self toggleCellsAlphaAnimated:NO];
   
   [self toggleSwapFieldWithAnimation:NO];
+  _swapMode = NO;
   
   self.boardDyadminoes = [NSSet new];
   
@@ -291,6 +294,7 @@
   
     // make sure dyadminoes are sorted
   NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
+  [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
   self.playerRackDyadminoes = [tempDyadminoArray sortedArrayUsingDescriptors:@[sortByRackOrder]];
 }
 
@@ -429,11 +433,11 @@
 
 -(void)layoutPnPBar {
   
-  _PnPBar = [[PnPBar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointZero andZPosition:kZPositionReplayBottom];
-  _PnPBar.name = @"pnpBar";
-  [self addChild:_PnPBar];
+  _pnpBar = [[PnPBar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointZero andZPosition:kZPositionReplayBottom];
+  _pnpBar.name = @"pnpBar";
+  [self addChild:_pnpBar];
   
-  [_PnPBar populateWithPnPButtons];
+  [_pnpBar populateWithPnPButtonsAndLabel];
 }
 
 -(void)layoutReplayBars {
@@ -605,7 +609,7 @@
   if (!dyadmino.hidden && !_canDoubleTapForDyadminoFlip && ([dyadmino isOnBoard] || ![dyadmino isRotating])) {
     
         // register sound if dyadmino tapped
-    if (!_pnpFieldsUp && !_replayMode && dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
+    if (!_pnpFieldUp && !_replayMode && dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
       if (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) {
         [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
       }
@@ -618,7 +622,7 @@
         if ([face.parent isKindOfClass:[Dyadmino class]]) {
           Dyadmino *faceParent = (Dyadmino *)face.parent;
           if (!faceParent.hidden &&
-              (!_pnpFieldsUp || (_pnpFieldsUp && [faceParent isOnBoard])) &&
+              (!_pnpFieldUp || (_pnpFieldUp && [faceParent isOnBoard])) &&
               (!_replayMode || (_replayMode && [faceParent isOnBoard]))) {
             if (!_boardZoomedOut || (_boardZoomedOut && [faceParent isInRack])) {
               [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
@@ -630,7 +634,7 @@
     }
   }
   
-  if (!_pnpFieldsUp && !_replayMode && dyadmino && !dyadmino.isRotating && !_touchedDyadmino && (!_boardZoomedOut || [dyadmino isInRack])) {
+  if (!_pnpFieldUp && !_replayMode && dyadmino && !dyadmino.isRotating && !_touchedDyadmino && (!_boardZoomedOut || [dyadmino isInRack])) {
     _touchedDyadmino = dyadmino;
     
 //    NSLog(@"begin touch or pivot of dyadmino");
@@ -718,7 +722,7 @@
       if ([face.parent isKindOfClass:[Dyadmino class]]) {
         Dyadmino *faceParent = (Dyadmino *)face.parent;
         if ((!_replayMode || (_replayMode && [faceParent isOnBoard])) &&
-            (!_pnpFieldsUp || (_pnpFieldsUp && [faceParent isOnBoard]))) {
+            (!_pnpFieldUp || (_pnpFieldUp && [faceParent isOnBoard]))) {
           if (!_soundedDyadminoFace) {
             [self.mySoundEngine soundTouchedDyadminoFace:face plucked:NO];
             _soundedDyadminoFace = face;
@@ -1178,9 +1182,12 @@
   if ([dyadmino belongsInRack] && !undo) {
     _uponTouchDyadminoNode = nil;
     [dyadmino goHomeToRackByPoppingIn:poppingIn andSounding:sounding fromUndo:NO withResize:_boardZoomedOut];
+    [self logRackDyadminoes];
+    
   } else if (undo) {
     _uponTouchDyadminoNode = nil;
     [dyadmino goHomeToRackByPoppingIn:poppingIn andSounding:sounding fromUndo:YES withResize:_boardZoomedOut];
+    [self logRackDyadminoes];
     
   } else {
     dyadmino.tempBoardNode = dyadmino.homeNode;
@@ -1249,6 +1256,7 @@
 
 -(void)goBackToMainViewController {
   
+  [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
   [self.myDelegate backToMainMenu];
 }
 
@@ -1287,9 +1295,9 @@
     return;
     
       /// pnp button
-  } else if (_buttonPressed == _PnPBar.returnOrStartButton) {
-    _pnpFieldsUp = NO;
-    [self togglePnPFields];
+  } else if (_buttonPressed == _pnpBar.returnOrStartButton) {
+    _pnpFieldUp = NO;
+    [self togglePnPField];
     [self afterNewPlayerReady];
   
       /// swap button
@@ -1392,11 +1400,15 @@
     if (dyadmino.belongsInSwap) {
       dyadmino.belongsInSwap = NO;
       [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO withResize:NO];
+      [self logRackDyadminoes];
     }
   }
 }
 
 -(BOOL)finaliseSwap {
+  
+  [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
+  
   NSMutableArray *toPile = [NSMutableArray new];
   
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
@@ -1415,13 +1427,18 @@
         // dyadmino is already a child of rackField,
         // so no need to send dyadmino home through myScene's sendDyadmino method
       [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO withResize:NO];
+      [self logRackDyadminoes];
       [dyadmino removeFromParent];
     }
     
       // then swap in the logic
     [self.myMatch swapDyadminoesFromCurrentPlayer];
-    [self populateRackArray];
-    [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
+    
+    if (self.myMatch.type != kPnPGame) {
+      [self populateRackArray];
+      [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
+    }
+    
     [_topBar flashLabelNamed:@"log" withText:@"Swapped!" andColour:nil];
     return YES;
   }
@@ -1476,6 +1493,9 @@
 }
 
 -(void)finalisePlayerTurn {
+  
+  [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
+  
     // no recent rack dyadmino on board
   if (!_recentRackDyadmino) {
     [self tempStoreForPlayerSceneDataDyadminoes]; // for player view
@@ -1501,14 +1521,14 @@
 }
 
 -(void)handleSwitchToNextPlayer {
-//  NSString *nextPlayer = [NSString stringWithFormat:@"Waiting for %@ to play.", self.myMatch.currentPlayer.playerName];
-//  [_topBar flashLabelNamed:@"message" withText:nextPlayer andColour:[self.myMatch colourForPlayer:self.myMatch.currentPlayer]];
   
   if (self.myMatch.type == kPnPGame) {
-    _pnpFieldsUp = YES;
-    [self togglePnPFields];
-    [self prepareRackForNextPlayer];
-    [self prepareForNewTurn];
+    _pnpFieldUp = YES;
+    [self togglePnPField];
+    
+      // note that prepareRackForNextPlayer and prepareForNewTurn
+      // are called in togglePnPField completion block
+      // this is the only place method is called where pnpFieldUp is YES
   }
 }
 
@@ -1909,7 +1929,7 @@
     // show turn count and pile left if game has not ended
     NSString *pileLeftText = self.myMatch.gameHasEnded ? @"" : [NSString stringWithFormat:@"in pile: %lu",
                                                           (unsigned long)self.myMatch.pile.count];
-  NSString *turnText = self.myMatch.gameHasEnded ? @"" : [NSString stringWithFormat:@"turn %i", self.myMatch.turns.count + 1];
+  NSString *turnText = self.myMatch.gameHasEnded ? @"" : [NSString stringWithFormat:@"turn %lu", (long)(self.myMatch.turns.count + 1)];
   
   [_topBar updateLabelNamed:@"turnCount" withText:turnText andColour:nil];
   [_topBar updateLabelNamed:@"pileCount" withText:pileLeftText andColour:nil];
@@ -2063,7 +2083,7 @@
     [_topBar disableButton:_topBar.replayButton];
   }
   
-  if (_pnpFieldsUp) {
+  if (_pnpFieldUp) {
     [_topBar disableButton:_topBar.replayButton];
     [_topBar disableButton:_topBar.swapCancelOrUndoButton];
     [_topBar disableButton:_topBar.passPlayOrDoneButton];
@@ -2099,30 +2119,61 @@
   }
 }
 
+-(void)updatePnPLabelForNewPlayer {
+  NSString *waitPlayerText = [NSString stringWithFormat:@"%@, it's your turn!", self.myMatch.currentPlayer.playerName];
+  [_pnpBar updateLabelNamed:@"waitPlayer" withText:waitPlayerText andColour:kTestRed];
+}
+
 #pragma mark - field animation methods
 
--(void)togglePnPFields {
-
-  /// FIXME: exact same as toggleReplayFields, consider refactoring
-  if (_hoveringDyadmino) {
-    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
-  }
+-(void)toggleCellsAlphaAnimated:(BOOL)animated {
+    // testing purposes only
   
-  if (_pnpFieldsUp) {
+  CGFloat desiredAlpha = _cellAlphasZeroed ? 0.f : 1.f;
+  SKAction *fadeAlpha = [SKAction fadeAlphaTo:desiredAlpha duration:kConstantTime * 0.9f]; // a little faster than field move
+  
+  for (Cell *cell in _boardField.allCells) {
+    SKAction *completeAction = [SKAction runBlock:^{
+      cell.cellNode.hidden = _cellAlphasZeroed;
+    }];
+
+    SKAction *sequenceAction = [SKAction sequence:@[fadeAlpha, completeAction]];
+    
+    if (animated) {
+      [cell.cellNode runAction:sequenceAction];
+    } else {
+      cell.cellNode.alpha = desiredAlpha;
+      cell.cellNode.hidden = _cellAlphasZeroed;
+    }
+  }
+}
+
+-(void)togglePnPField {
+  
+  /// FIXME: exact same as toggleReplayFields, consider refactoring
+  [self updatePnPLabelForNewPlayer];
+  
+    // cells will toggle faster than pnpFields move
+  _cellAlphasZeroed = _pnpFieldUp;
+  [self toggleCellsAlphaAnimated:YES];
+  
+  if (_pnpFieldUp) {
     
       // sound
 //    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
       // scene views
-    _PnPBar.hidden = NO;
+    _pnpBar.hidden = NO;
     SKAction *moveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
     SKAction *completeAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
       _rackField.hidden = YES;
+      [self prepareRackForNextPlayer];
+      [self prepareForNewTurn];
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completeAction]];
-    [_PnPBar runAction:sequenceAction];
+    [_pnpBar runAction:sequenceAction];
     
   } else {
     
@@ -2135,11 +2186,11 @@
     SKAction *moveAction = [SKAction moveToY:-kRackHeight duration:kConstantTime];
     SKAction *completeAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
-      _PnPBar.hidden = YES;
+      _pnpBar.hidden = YES;
     }];
     
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completeAction]];
-    [_PnPBar runAction:sequenceAction];
+    [_pnpBar runAction:sequenceAction];
   }
 }
 
@@ -2281,6 +2332,17 @@
   }
 }
 
+-(void)updateOrderOfDataDyadsThisTurnToReflectRackOrder {
+  for (int i = 0; i < self.playerRackDyadminoes.count; i++) {
+    Dyadmino *dyadmino = self.playerRackDyadminoes[i];
+    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+    if ([_myPlayer.dataDyadminoesThisTurn containsObject:dataDyad]) {
+      [_myPlayer.dataDyadminoesThisTurn removeObject:dataDyad];
+      [_myPlayer.dataDyadminoesThisTurn insertObject:dataDyad atIndex:i];
+    }
+  }
+}
+
 #pragma mark - undo manager
 
 -(void)reAddToPlayerRackDyadminoes:(Dyadmino *)dyadmino {
@@ -2289,6 +2351,7 @@
     [tempRackArray addObject:dyadmino];
     self.playerRackDyadminoes = [NSArray arrayWithArray:tempRackArray];
   }
+  [self logRackDyadminoes];
 }
 
 -(void)removeFromPlayerRackDyadminoes:(Dyadmino *)dyadmino {
@@ -2355,7 +2418,13 @@
 #pragma mark - data dyadmino methods
 
 -(Dyadmino *)getDyadminoFromDataDyadmino:(DataDyadmino *)dataDyad {
-  return (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
+  
+  Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
+  
+    // testing only
+  dataDyad.name = dyadmino.name;
+  
+  return dyadmino;
 }
 
 -(DataDyadmino *)getDataDyadminoFromDyadmino:(Dyadmino *)dyadmino {
@@ -2365,6 +2434,10 @@
   
   for (DataDyadmino *dataDyad in tempDataDyadSet) {
     if (dataDyad.myID == dyadmino.myID) {
+      
+        // testing only
+      dataDyad.name = dyadmino.name;
+      
       return dataDyad;
     }
   }
@@ -2756,6 +2829,8 @@
       // pass button
   } else if (actionSheet.tag == 1 && ([buttonText isEqualToString:@"Pass"] || [buttonText isEqualToString:@"End game"])) {
     [self finalisePlayerTurn];
+    
+      // swap button
   } else if ([buttonText isEqualToString:@"Swap"]) {
     
       // will swap if successful, if not, message will be flashed in finaliseSwap method
@@ -2763,7 +2838,6 @@
       [self toggleSwapFieldWithAnimation:YES];
       _swapMode = NO;
     } else {
-      
       return;
     }
     
@@ -2869,22 +2943,29 @@
   }
   
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
-    NSLog(@"%@ is at %i", dyadmino.name, dyadmino.myRackOrder);
+    NSLog(@"%@ is at %li", dyadmino.name, (long)dyadmino.myRackOrder);
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-    NSLog(@"data %i is at %i", dataDyad.myID, dataDyad.myRackOrder);
+    NSLog(@"data %lu is at %li", (unsigned long)dataDyad.myID, (long)dataDyad.myRackOrder);
   }
   
   NSMutableArray *tempDyadminoArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
   NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
   NSArray *tempImutableArray = [tempDyadminoArray sortedArrayUsingDescriptors:@[sortByRackOrder]];
   for (Dyadmino *dyadmino in tempImutableArray) {
-    NSLog(@"%@ is now at %i", dyadmino.name, [tempImutableArray indexOfObject:dyadmino]);
+    NSLog(@"%@ is now at %lu", dyadmino.name, (unsigned long)[tempImutableArray indexOfObject:dyadmino]);
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-    NSLog(@"data %i is at %i", dataDyad.myID, dataDyad.myRackOrder);
+    NSLog(@"data %lu is at %li", (unsigned long)dataDyad.myID, (long)dataDyad.myRackOrder);
   }
   
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
+}
+
+-(void)logRackDyadminoes {
+  NSLog(@"dataDyads are:  %@", [[_myPlayer.dataDyadminoesThisTurn valueForKey:@"name"] componentsJoinedByString:@", "]);
+  NSLog(@"Dyadminoes are: %@", [[self.playerRackDyadminoes valueForKey:@"name"] componentsJoinedByString:@", "]);
+  NSLog(@"holdingCon is:  %@", [[self.myMatch.holdingContainer valueForKey:@"name"] componentsJoinedByString:@", "]);
+  NSLog(@"rackDyad order: %@", [[self.playerRackDyadminoes valueForKey:@"myRackOrder"] componentsJoinedByString:@", "]);
 }
 
 @end
