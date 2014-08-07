@@ -32,17 +32,19 @@
 
 #pragma mark - button methods
 
--(void)enableButton:(Button *)button {
-  button.hidden = NO;
-  if (button && !button.parent) {
-    [self addChild:button];
-  }
-}
-
--(void)disableButton:(Button *)button {
-  button.hidden = YES;
-  if (button && button.parent) {
-    [button removeFromParent];
+-(void)button:(SKSpriteNode *)button shouldBeEnabled:(BOOL)enabled {
+  if (button) {
+    if (enabled) {
+      button.hidden = NO;
+      if (!button.parent) {
+        [self addChild:button];
+      }
+    } else {
+      button.hidden = YES;
+      if (button.parent) {
+        [button removeFromParent];
+      }
+    }
   }
 }
 

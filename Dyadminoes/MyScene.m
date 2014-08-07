@@ -2018,116 +2018,61 @@
 }
 
 -(void)updateTopBarButtons {
-    // three main possibilities
-    // 1. Game has ended for player...
-  if (_myPlayer.resigned || self.myMatch.gameHasEnded) {
-    [_topBar enableButton:_topBar.returnOrStartButton];
-    [_topBar enableButton:_topBar.replayButton];
-    [_topBar disableButton:_topBar.swapCancelOrUndoButton];
-    [_topBar disableButton:_topBar.passPlayOrDoneButton];
-    [_topBar disableButton:_topBar.resignButton];
-    
-      //2. Still in game but not player's turn
-  } else if (_myPlayer != self.myMatch.currentPlayer) {
-
-    [_topBar enableButton:_topBar.returnOrStartButton];
-    [_topBar enableButton:_topBar.replayButton];
-    [_topBar disableButton:_topBar.swapCancelOrUndoButton];
-    [_topBar disableButton:_topBar.passPlayOrDoneButton];
-    [_topBar enableButton:_topBar.resignButton];
-    
-      // 2. Player's turn
-  } else if (_myPlayer == self.myMatch.currentPlayer) {
-    
-      // 2a. swap mode
-    if (_swapMode) {
-      [_topBar enableButton:_topBar.returnOrStartButton];
-      [_topBar disableButton:_topBar.replayButton];
-      [_topBar enableButton:_topBar.swapCancelOrUndoButton]; // cancel
-        if (self.myMatch.swapContainer.count > 0) {
-      [_topBar enableButton:_topBar.passPlayOrDoneButton]; // done
-      } else {
-        [_topBar disableButton:_topBar.passPlayOrDoneButton];
-      }
-      [_topBar disableButton:_topBar.resignButton];
-      
-      [_topBar changeSwapCancelOrUndo:kCancelButton];
-      [_topBar changePassPlayOrDone:kDoneButton];
-
-        // 2b. not swap mode
-    } else {
-      [_topBar enableButton:_topBar.returnOrStartButton];
-      [_topBar enableButton:_topBar.replayButton];
-      [_topBar enableButton:_topBar.swapCancelOrUndoButton];
-      [_topBar enableButton:_topBar.passPlayOrDoneButton];
-      [_topBar enableButton:_topBar.resignButton];
-      
-        // any touched or hovering dyadmino
-      if ((_touchedDyadmino) || (_hoveringDyadmino)) {
-        [_topBar changeSwapCancelOrUndo:kCancelButton];
-        [_topBar disableButton:_topBar.passPlayOrDoneButton];
-        
-          // no dyadminoes played, and no recent rack dyadmino
-      } else if (self.myMatch.holdingContainer.count == 0 && !_recentRackDyadmino) {
-        [_topBar changeSwapCancelOrUndo:kSwapButton];
-        
-          // no pass option in self mode
-        if (self.myMatch.type == kSelfGame) {
-          [_topBar disableButton:_topBar.passPlayOrDoneButton];
-        } else {
-          [_topBar changePassPlayOrDone:kPassButton];
-        }
-          // a recent rack dyadmino placed on board
-      } else if (_recentRackDyadmino) { // doesn't matter whether holding container is empty
-        [_topBar changeSwapCancelOrUndo:kCancelButton];
-        [_topBar changePassPlayOrDone:kPlayButton];
-        
-        // holding container is not empty, and no recent rack dyadmino
-      } else {
-        [_topBar changeSwapCancelOrUndo:kUndoButton];
-        [_topBar changePassPlayOrDone:kDoneButton];
-      }
-    }
-  }
-    // no point in replay button if first turn
-  if (self.myMatch.turns.count == 0) {
-    [_topBar disableButton:_topBar.replayButton];
-  }
   
-  if (_pnpBarUp) {
-    [_topBar disableButton:_topBar.replayButton];
-    [_topBar disableButton:_topBar.swapCancelOrUndoButton];
-    [_topBar disableButton:_topBar.passPlayOrDoneButton];
-    [_topBar disableButton:_topBar.resignButton];
+    // three main possibilities: game has ended, in game but not player's turn, in game and player's turn
+  BOOL gameHasEndedForPlayer = _myPlayer.resigned || self.myMatch.gameHasEnded;
+  BOOL currentPlayerHasTurn = _myPlayer == self.myMatch.currentPlayer;
+  BOOL thereIsATouchedOrHoveringDyadmino = _touchedDyadmino || _hoveringDyadmino;
+  BOOL swapContainerNotEmpty = self.myMatch.swapContainer.count > 0;
+  BOOL noDyadminoesPlayedAndNoRecentRackDyadmino = self.myMatch.holdingContainer.count == 0 && !_recentRackDyadmino;
+  
+  [_topBar button:_topBar.returnOrStartButton shouldBeEnabled:YES];
+  [_topBar button:_topBar.replayButton shouldBeEnabled:(gameHasEndedForPlayer || !currentPlayerHasTurn || (currentPlayerHasTurn && !_swapMode)) && (self.myMatch.turns.count > 0) && !_pnpBarUp];
+  [_topBar button:_topBar.swapCancelOrUndoButton shouldBeEnabled:(!gameHasEndedForPlayer && currentPlayerHasTurn) && !_pnpBarUp];
+  [_topBar button:_topBar.passPlayOrDoneButton shouldBeEnabled:(!gameHasEndedForPlayer && currentPlayerHasTurn) && (!thereIsATouchedOrHoveringDyadmino) && !_pnpBarUp && ((_swapMode && swapContainerNotEmpty) || !_swapMode) && (_swapMode || (!noDyadminoesPlayedAndNoRecentRackDyadmino || (noDyadminoesPlayedAndNoRecentRackDyadmino && self.myMatch.type != kSelfGame)))];
+  [_topBar button:_topBar.resignButton shouldBeEnabled:(!gameHasEndedForPlayer && (!currentPlayerHasTurn || (currentPlayerHasTurn && !_swapMode))) && !_pnpBarUp];
+  
+    // FIXME: can be refactored further
+  if (_swapMode) {
+    [_topBar changeSwapCancelOrUndo:kCancelButton];
+    [_topBar changePassPlayOrDone:kDoneButton];
+
+  } else if (thereIsATouchedOrHoveringDyadmino) {
+    [_topBar changeSwapCancelOrUndo:kCancelButton];
+      //        [_topBar disableButton:_topBar.passPlayOrDoneButton];
+    
+      // no dyadminoes played, and no recent rack dyadmino
+  } else if (noDyadminoesPlayedAndNoRecentRackDyadmino) {
+    [_topBar changeSwapCancelOrUndo:kSwapButton];
+    
+      // no pass option in self mode
+    if (self.myMatch.type != kSelfGame) {
+      [_topBar changePassPlayOrDone:kPassButton];
+    }
+    
+      // a recent rack dyadmino placed on board
+     // doesn't matter whether holding container is empty
+  } else if (_recentRackDyadmino) {
+    [_topBar changeSwapCancelOrUndo:kCancelButton];
+    [_topBar changePassPlayOrDone:kPlayButton];
+    
+      // holding container is not empty, and no recent rack dyadmino
+  } else {
+    [_topBar changeSwapCancelOrUndo:kUndoButton];
+    [_topBar changePassPlayOrDone:kDoneButton];
   }
 }
 
 -(void)updateReplayButtons {
   
-  if (self.myMatch.turns.count <= 1) {
-    [_replayBottom disableButton:_replayBottom.firstTurnButton];
-    [_replayBottom disableButton:_replayBottom.previousTurnButton];
-    [_replayBottom disableButton:_replayBottom.nextTurnButton];
-    [_replayBottom disableButton:_replayBottom.lastTurnButton];
-    return;
-  }
+  BOOL zeroTurns = self.myMatch.turns.count <= 1;
+  BOOL firstTurn = self.myMatch.replayTurn == 1;
+  BOOL lastTurn = self.myMatch.replayTurn == self.myMatch.turns.count;
   
-  if (self.myMatch.replayTurn == 1) {
-    [_replayBottom disableButton:_replayBottom.firstTurnButton];
-    [_replayBottom disableButton:_replayBottom.previousTurnButton];
-    [_replayBottom enableButton:_replayBottom.nextTurnButton];
-    [_replayBottom enableButton:_replayBottom.lastTurnButton];
-  } else if (self.myMatch.replayTurn == self.myMatch.turns.count) {
-    [_replayBottom enableButton:_replayBottom.firstTurnButton];
-    [_replayBottom enableButton:_replayBottom.previousTurnButton];
-    [_replayBottom disableButton:_replayBottom.nextTurnButton];
-    [_replayBottom disableButton:_replayBottom.lastTurnButton];
-  } else {
-    [_replayBottom enableButton:_replayBottom.firstTurnButton];
-    [_replayBottom enableButton:_replayBottom.previousTurnButton];
-    [_replayBottom enableButton:_replayBottom.nextTurnButton];
-    [_replayBottom enableButton:_replayBottom.lastTurnButton];
-  }
+  [_replayBottom button:_replayBottom.firstTurnButton shouldBeEnabled:!zeroTurns && !firstTurn];
+  [_replayBottom button:_replayBottom.previousTurnButton shouldBeEnabled:!zeroTurns && !firstTurn];
+  [_replayBottom button:_replayBottom.nextTurnButton shouldBeEnabled:!zeroTurns && !lastTurn];
+  [_replayBottom button:_replayBottom.lastTurnButton shouldBeEnabled:!zeroTurns && !lastTurn];
 }
 
 -(void)updatePnPLabelForNewPlayer {
@@ -2953,42 +2898,24 @@
     [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
   }
   
-  if (_debugMode) {
-    
-    _topBar.pileDyadminoesLabel.hidden = NO;
-    _topBar.pileDyadminoesLabel.zPosition = kZPositionTopBarLabel;
-    _topBar.boardDyadminoesLabel.hidden = NO;
-    _topBar.boardDyadminoesLabel.zPosition = kZPositionTopBarLabel;
-    _topBar.holdingContainerLabel.hidden = NO;
-    _topBar.holdingContainerLabel.zPosition = kZPositionTopBarLabel;
-    _topBar.swapContainerLabel.hidden = NO;
-    _topBar.swapContainerLabel.zPosition = kZPositionTopBarLabel;
-    
-    for (Dyadmino *dyadmino in self.boardDyadminoes) {
-      dyadmino.hidden = YES;
-    }
-    _recentRackDyadmino.hidden = YES;
-    
-  } else {
-    _topBar.pileDyadminoesLabel.hidden = YES;
-    _topBar.pileDyadminoesLabel.zPosition = -1000;
-    _topBar.boardDyadminoesLabel.hidden = YES;
-    _topBar.pileDyadminoesLabel.zPosition = -1000;
-    _topBar.holdingContainerLabel.hidden = YES;
-    _topBar.holdingContainerLabel.zPosition = -1000;
-    _topBar.swapContainerLabel.hidden = YES;
-    _topBar.swapContainerLabel.zPosition = -1000;
-    
-    for (Dyadmino *dyadmino in self.boardDyadminoes) {
-      dyadmino.hidden = NO;
-    }
-    _recentRackDyadmino.hidden = NO;
+  CGFloat zPosition = _debugMode ? kZPositionTopBarLabel : -1000;
+  _topBar.pileDyadminoesLabel.hidden = !_debugMode;
+  _topBar.pileDyadminoesLabel.zPosition = zPosition;
+  _topBar.boardDyadminoesLabel.hidden = !_debugMode;
+  _topBar.boardDyadminoesLabel.zPosition = zPosition;
+  _topBar.holdingContainerLabel.hidden = !_debugMode;
+  _topBar.holdingContainerLabel.zPosition = zPosition;
+  _topBar.swapContainerLabel.hidden = !_debugMode;
+  _topBar.swapContainerLabel.zPosition = zPosition;
+
+  for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
+    dyadmino.hidden = _debugMode;
   }
   
   for (Cell *cell in _boardField.allCells) {
     if ([cell isKindOfClass:[Cell class]]) {
-      cell.hexCoordLabel.hidden = (_debugMode) ? NO : YES;
-      cell.pcLabel.hidden = (_debugMode) ? NO : YES;
+      cell.hexCoordLabel.hidden = !_debugMode;
+      cell.pcLabel.hidden = !_debugMode;
     }
   }
   

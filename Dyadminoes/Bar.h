@@ -25,8 +25,8 @@
 
 #pragma mark - button methods
 
--(void)enableButton:(SKSpriteNode *)button;
--(void)disableButton:(SKSpriteNode *)button;
+-(void)button:(SKSpriteNode *)button shouldBeEnabled:(BOOL)enabled;
+//-(void)disableButton:(SKSpriteNode *)button;
 
 -(BOOL)rotateButtonsBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation;
 

@@ -27,42 +27,42 @@
                                        andPosition:CGPointMake(kButtonWidth, kButtonYPosition)
                                       andZPosition:kZPositionTopBarButton];
   [tempButtons addObject:self.returnOrStartButton];
-  [self enableButton:self.returnOrStartButton];
+//  [self enableButton:self.returnOrStartButton];
   
   self.replayButton = [[Button alloc] initWithName:@"replay" andColor:[SKColor orangeColor]
                                            andSize:kButtonSize
                                        andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition)
                                       andZPosition:kZPositionTopBarButton];
   [tempButtons addObject:self.replayButton];
-  [self enableButton:self.replayButton];
+//  [self enableButton:self.replayButton];
   
   self.swapCancelOrUndoButton = [[Button alloc] initWithName:@"swap" andColor:[SKColor redColor]
                                                      andSize:kButtonSize
                                                  andPosition:CGPointMake(kButtonWidth * 3, kButtonYPosition)
                                                 andZPosition:kZPositionTopBarButton];
   [tempButtons addObject:self.swapCancelOrUndoButton];
-  [self disableButton:self.swapCancelOrUndoButton];
+//  [self disableButton:self.swapCancelOrUndoButton];
   
   self.passPlayOrDoneButton = [[Button alloc] initWithName:@"pass" andColor:[SKColor blueColor]
                                                    andSize:kButtonSize
                                                andPosition:CGPointMake(kButtonWidth * 4, kButtonYPosition)
                                               andZPosition:kZPositionTopBarButton];
   [tempButtons addObject:self.passPlayOrDoneButton];
-  [self enableButton:self.passPlayOrDoneButton];
+//  [self enableButton:self.passPlayOrDoneButton];
   
   self.resignButton = [[Button alloc] initWithName:@"resign" andColor:[SKColor blackColor]
                                            andSize:kButtonSize
                                        andPosition:CGPointMake(kButtonWidth * 5, kButtonYPosition)
                                       andZPosition:kZPositionTopBarButton];
   [tempButtons addObject:self.resignButton];
-  [self enableButton:self.resignButton];
+//  [self enableButton:self.resignButton];
   
   self.debugButton = [[Button alloc] initWithName:@"debug" andColor:[SKColor brownColor]
                                           andSize:kButtonSize
                                       andPosition:CGPointMake(kButtonWidth * 5, kButtonYPosition * 3)
                                      andZPosition:kZPositionTopBarButton];
   [tempButtons addObject:self.debugButton];
-  [self enableButton:self.debugButton];
+//  [self enableButton:self.debugButton];
   
   self.allButtons = [NSSet setWithSet:tempButtons];
 }
