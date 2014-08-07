@@ -248,28 +248,33 @@
 
 -(CGFloat)labelHeightForMaxPosition:(NSUInteger)maxPosition andPlayerPosition:(NSInteger)playerPosition {
   
+    // positions are 3, 3.5, 4, 4.5, 5, with 5 being resigned player
+  
     // player resigned
   if (playerPosition == -1) {
-    return 6 * kStaveYHeight - kStaveYHeight - (kPlayerLabelHeightPadding * 0.25f);
+    return 5 * kStaveYHeight - (kPlayerLabelHeightPadding * 0.25f);
   }
 
-  CGFloat multiplier = 0;
+  CGFloat multFloat = ((maxPosition - playerPosition) / 2.f) + 3.f;
   
-  switch (maxPosition) {
-    case 4:
-      multiplier = 10 - (playerPosition) - 1;
-      break;
-    case 3:
-      multiplier = 10 - (playerPosition) - 1.5;
-      break;
-    case 2:
-      multiplier = 10 - (playerPosition) - 2;
-      break;
-    case 1:
-      multiplier = 10 - (playerPosition) - 2.5;
-      break;
-  }
-  return (multiplier - 3) * kStaveYHeight - (kPlayerLabelHeightPadding * 0.25f);
+//  CGFloat multiplier = 0;
+//  
+//  switch (maxPosition) {
+//    case 4:
+//      multiplier = 10 - (playerPosition) - 1;
+//      break;
+//    case 3:
+//      multiplier = 10 - (playerPosition) - 1.5;
+//      break;
+//    case 2:
+//      multiplier = 10 - (playerPosition) - 2;
+//      break;
+//    case 1:
+//      multiplier = 10 - (playerPosition) - 2.5;
+//      break;
+//  }
+  
+  return multFloat * kStaveYHeight - (kPlayerLabelHeightPadding * 0.25f);
 }
 
 @end
