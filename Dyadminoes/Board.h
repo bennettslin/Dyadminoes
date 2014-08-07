@@ -73,16 +73,15 @@
 
 #pragma mark - background image methods
 
+-(void)initLoadBackgroundNodes;
 -(void)colourBackgroundForReplay;
-
 -(void)colourBackgroundForPnP;
-
 -(void)colourBackgroundForNormalPlay;
 
 #pragma mark - zoom methods
 
 -(void)repositionCellsAndDyadminoesForZoom;
--(void)toggleZoomedInBackgroundZeroed:(BOOL)zeroed animated:(BOOL)animated;
+-(void)toggleBackgroundAlphaZeroed:(BOOL)zeroed animated:(BOOL)animated;
 
 #pragma mark - cell methods
 

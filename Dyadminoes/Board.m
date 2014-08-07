@@ -19,10 +19,9 @@
 
 @property (strong, nonatomic) SKSpriteNode *backgroundNodeZoomedIn;
 @property (strong, nonatomic) SKSpriteNode *backgroundNodeZoomedOut;
+
 @property (strong, nonatomic) NSMutableSet *dequeuedCells;
-
 @property (strong, nonatomic) SKTexture *cellTexture;
-
 @property (nonatomic) BOOL userWantsPivotGuides;
 
 @end
@@ -87,10 +86,6 @@
     self.pivotRotateGuide.name = @"pivotRotateGuide";
     self.pivotAroundGuide = pivotAroundGuide;
     self.pivotAroundGuide.name = @"pivotAroundGuide";
-
-      // zoom background node is always there
-    [self initLoadBackgroundNodes];
-    [self zoomInBackgroundImage];
   }
   return self;
 }
@@ -115,10 +110,9 @@
   for (Cell *cell in tempAllCells) {
     [self ignoreCell:cell];
     [cell resetForNewMatch];
-    cell.cellNode.hidden = NO;
   }
-  NSLog(@"self.all cells count is %lu, dequeued cells is %lu", (unsigned long)self.allCells.count, (unsigned long)self.dequeuedCells.count);
-  NSLog(@"self snappoints count is %lu, %lu, %lu", (unsigned long)self.snapPointsTenOClock.count, (unsigned long)self.snapPointsTwelveOClock.count, (unsigned long)self.snapPointsTwoOClock.count);
+//  NSLog(@"self.all cells count is %lu, dequeued cells is %lu", (unsigned long)self.allCells.count, (unsigned long)self.dequeuedCells.count);
+//  NSLog(@"self snappoints count is %lu, %lu, %lu", (unsigned long)self.snapPointsTenOClock.count, (unsigned long)self.snapPointsTwelveOClock.count, (unsigned long)self.snapPointsTwoOClock.count);
   
   self.zoomedOut = NO;
   [self zoomInBackgroundImage];
@@ -191,6 +185,7 @@
   
   NSLog(@"determineOutermostCells");
     // floats to allow for in-between values for y-coordinates
+  
   CGFloat cellsTopmost = -2147483648;
   CGFloat cellsRightmost = -2147483648;
   CGFloat cellsBottommost = 2147483647;
@@ -242,29 +237,9 @@
     }
   }
 
-    // not needed, eventually delete
-  if (_cellsTopXIsEven) {
-//    NSLog(@"cells top x is even"); // 5.5 cells up
-  } else {
-//    NSLog(@"cells top x is odd"); // 5.5 cells up
-  }
-  
-  if (_cellsBottomXIsEven) {
-//    NSLog(@"cells bottom x is even"); // 5.5 cells down
-  } else {
-//    NSLog(@"cells bottom x is odd"); // 5.5 cells down
-  }
-  
-//  NSLog(@"board size is %.2f, %.2f", self.size.width, self.size.height);
-//  NSLog(@"board origin is %.2f, %.2f", self.origin.x, self.origin.y);
-//  NSLog(@"board homePosition is %.2f, %.2f", self.homePosition.x, self.homePosition.y);
-
   CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
-//  CGFloat factor = 1.f;
   _cellsInVertRange = ((self.origin.y - kRackHeight) / (kDyadminoFaceDiameter * factor));
   _cellsInHorzRange = (self.origin.x / (kDyadminoFaceAverageWideDiameter * factor));
-  
-//  NSLog(@"cells in horz range is %.2f, cells in vert range is %.2f", _cellsInHorzRange * 2, _cellsInVertRange * 2);
 
       // buffer cells beyond outermost dyadmino (keep tweaking these numbers)
   CGFloat extraYCells = (((_cellsInVertRange * 2) - (cellsTopmost - cellsBottommost + 1)) / 2.f) + 1.5f;
@@ -277,14 +252,10 @@
     extraXCells = 4;
   }
   
-//  NSLog(@"extra y cells is %.2f, extra x cells is %.2f", extraYCells, extraXCells);
-  
   _oldCellsTop = self.cellsTop;
   _oldCellsBottom = self.cellsBottom;
   _oldCellsRight = self.cellsRight;
   _oldCellsLeft = self.cellsLeft;
-  
-//  NSLog(@"original top %.2f, right %.2f, bottom %.2f, left %.2f", cellsTopmost, cellsRightmost, cellsBottommost, cellsLeftmost);
   
   self.cellsTop = cellsTopmost + extraYCells;
   self.cellsRight = cellsRightmost + extraXCells;
@@ -312,16 +283,11 @@
 #pragma mark - zoom methods
 
 -(void)repositionCellsAndDyadminoesForZoom {
-  
-//  NSLog(@"reposition cells and dyadminoes for zoom");
-//  self.backgroundNodeZoomedIn.position = [self subtractFromThisPoint:self.position thisPoint:self.origin];
-//  self.backgroundNodeZoomedOut.position = [self subtractFromThisPoint:self.position thisPoint:self.origin];
-  
+
     // zoom out
   if (self.zoomedOut) {
     for (Cell *cell in self.allCells) {
       [cell resizeCell:YES withHexOrigin:_hexOrigin];
-      cell.cellNode.hidden = YES;
     }
 
     [self centerBoardOnDyadminoesAverageCenter];
@@ -331,24 +297,26 @@
   } else {
     for (Cell *cell in self.allCells) {
       [cell resizeCell:NO withHexOrigin:_hexOrigin];
-      cell.cellNode.hidden = NO;
     }
     
     [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:self.postZoomPosition withSwap:NO];
-//    NSLog(@"after zoom back in, reposition to %.2f, %.2f", self.postZoomPosition.x, self.postZoomPosition.y);
     if (_redoLayoutAfterZoom) {
       [self layoutBoardCellsAndSnapPointsOfDyadminoes:[self.delegate allBoardDyadminoesPlusRecentRackDyadmino]];
       _redoLayoutAfterZoom = NO;
     }
+    
     [self.delegate correctBoardForPositionAfterZoom];
     [self zoomInBackgroundImage];
   }
+  
+  NSLog(@"reposition cells and dyadminoes for zoom");
+  self.backgroundNodeZoomedIn.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
+  self.backgroundNodeZoomedOut.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
 }
 
--(void)toggleZoomedInBackgroundZeroed:(BOOL)zeroed animated:(BOOL)animated {
+-(void)toggleBackgroundAlphaZeroed:(BOOL)zeroed animated:(BOOL)animated {
   
   CGFloat desiredAlpha = zeroed ? 0.f : kBackgroundFullAlpha;
-
   SKAction *fadeAlpha = [SKAction fadeAlphaTo:desiredAlpha duration:kConstantTime * 0.9f]; // a little faster than field move
   
   if (animated) {
@@ -718,7 +686,7 @@
     
       // each iteration goes around the cell
     
-    NSInteger range = 6; // was 8
+    NSInteger range = 7; // was 8; when tweaking, also change colourFactor in colourCell method
     for (int i = 1; i < range; i++) {
       xHex = cell.hexCoord.x;
       yHex = cell.hexCoord.y + i;
@@ -777,14 +745,11 @@
   }
   
   if (pc != -1) {
-
-//    CGFloat colourFactor = (factor >= 2) ? factor - 2 : 0;
-    CGFloat colourFactor = factor * 0.5f;
+    CGFloat colourFactor = factor * 0.42f;
     
     NSInteger redMult, greenMult, blueMult;
     CGFloat redVal, greenVal, blueVal, alphaVal;
-    
-//    if (colourFactor > 0) {
+
       // returns the opposite colour. So for example, pc 0 returns red 0, green 4, blue 4
     redMult = 6 - abs(6 - pc);
     redMult = redMult >= 4 ? 4 : redMult;
@@ -792,19 +757,11 @@
     greenMult = greenMult >= 4 ? 4 : greenMult;
     blueMult = 6 - abs(6 - ((pc + 8) % 12));
     blueMult = blueMult >= 4 ? 4 : blueMult;
-//    } else {
-//      redMult = 0;
-//      greenMult = 0;
-//      blueMult = 0;
-//    }
-  
-//      NSLog(@"for pc %i, redMult %i, greenMult %i, blueMult %i", pc, redMult, greenMult, blueMult);
-//    colourFactor;
+
     redVal = (sign * colourFactor * redMult * kCellColourMultiplier);
     greenVal = (sign * colourFactor * greenMult * kCellColourMultiplier);
     blueVal = (sign * colourFactor * blueMult * kCellColourMultiplier);
     alphaVal = (sign * factor * 7 * kCellColourMultiplier);
-//      NSLog(@"for pc %i, redVal %.2f, greenVal %.2f, blueVal %.2f", pc, redVal, greenVal, blueVal);
     
     [cellToColour addColourWithRed:redVal green:greenVal blue:blueVal alpha:alphaVal];
     if (sign) {
@@ -953,7 +910,6 @@
 }
 
 -(void)hidePivotGuideAndShowPrePivotGuideForDyadmino:(Dyadmino *)dyadmino {
-  NSLog(@"hide pivot guide and show prepivot guide");
   [self showPivotGuide:self.prePivotGuide forDyadmino:dyadmino];
   [self hidePivotGuide:self.pivotRotateGuide];
   [self hidePivotGuide:self.pivotAroundGuide];
@@ -1084,50 +1040,10 @@
   self.backgroundNodeZoomedOut.alpha = kBackgroundFullAlpha;
   self.backgroundNodeZoomedOut.texture = backgroundTextureZoomedOut;
   self.backgroundNodeZoomedOut.zPosition = kZPositionBackgroundNode;
+  
+    // zoom background node is always there
+  [self zoomInBackgroundImage];
 }
-
-//-(void)changeAllBoardCellsGivenScale:(CGFloat)scale {
-//    // board doesn't care about pinch scale
-//    // scale here is between 0 and 1
-//  
-//    // cells
-//  for (Cell *cell in self.allCells) {
-//    if ([cell isKindOfClass:[Cell class]]) {
-//      
-////      if (cell.preZoomAlpha == -1) {
-////        cell.preZoomAlpha = cell.cellNode.alpha;
-////      }
-//      
-//        // only show surrounding coloured cells when zoomed out
-//      if (_zoomedOut) {
-//        
-//        if (cell.colouredByNeighbouringCells > 0) {
-////              NSLog(@"cell coloured by %i cells", cell.colouredByNeighbouringCells);
-//          cell.cellNode.alpha = 1 - scale;
-//        }
-//      } else {
-//          cell.cellNode.alpha = 1 - scale;
-//      }
-//    }
-//  }
-//}
-
-//-(void)changeAllBoardCellsToPreZoomAlpha {
-//  
-////  NSLog(@"change all board cells to pre zoom alpha called");
-//  for (Cell *cell in self.allCells) {
-//    if ([cell isKindOfClass:[Cell class]]) {
-////      NSLog(@"changed back to preZoom alpha %.2f", cell.preZoomAlpha);
-//      
-//      if (_zoomedOut) {
-//        cell.cellNode.alpha = 0.f;
-//      } else {
-//        cell.cellNode.alpha = 1.f;
-//        cell.preZoomAlpha = -1;
-//      }
-//    }
-//  }
-//}
 
 #pragma mark - legality methods
 

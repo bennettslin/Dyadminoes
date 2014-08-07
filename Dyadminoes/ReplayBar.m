@@ -14,7 +14,6 @@
 
 @implementation ReplayBar
 
-
 -(void)populateWithTopReplayButtonsAndLabels {
   
   NSMutableSet *tempButtons = [NSMutableSet new];

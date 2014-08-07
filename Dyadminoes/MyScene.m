@@ -59,7 +59,8 @@
   BOOL _pnpBarUp;
   BOOL _replayMode;
   BOOL _swapMode;
-  BOOL _cellAlphasZeroed;
+  BOOL _dyadminoesStationary;
+  BOOL _dyadminoesHollowed;
   BOOL _rackExchangeInProgress;
   BOOL _fieldActionInProgress;
   BOOL _boardToBeMovedOrBeingMoved;
@@ -105,7 +106,8 @@
     self.mySceneEngine = [[SceneEngine alloc] init];
     [self addChild:self.mySoundEngine];
     _swapMode = NO;
-    _cellAlphasZeroed = NO;
+    _dyadminoesStationary = NO;
+    _dyadminoesHollowed = NO;
     
 //    NSLog(@"layout static scene assets");
     [self layoutBoard];
@@ -205,8 +207,8 @@
   [self updateTopBarButtons];
   
     // cell alphas are visible by default, hide if PnP mode
-  _cellAlphasZeroed = (self.myMatch.type == kPnPGame);
-  [self toggleCellsAlphaAnimated:NO];
+  _dyadminoesStationary = (self.myMatch.type == kPnPGame);
+  [self toggleDyadminoesToBeStationaryOrMovableAnimated:NO];
   
     // don't call just yet if it's a PnP game
   if (self.myMatch.type != kPnPGame) {
@@ -235,11 +237,11 @@
   }
 
     // establish that cell alphas are back to normal
-  _cellAlphasZeroed = NO;
-  [self toggleCellsAlphaAnimated:NO];
+  _dyadminoesStationary = NO;
+  [self toggleDyadminoesToBeStationaryOrMovableAnimated:NO];
   
-  [self toggleSwapFieldWithAnimation:NO];
   _swapMode = NO;
+  [self toggleSwapFieldWithAnimation:NO];
   
   self.boardDyadminoes = [NSSet new];
   
@@ -332,6 +334,7 @@
   _boardField = [[Board alloc] initWithColor:[SKColor clearColor] andSize:size andCellTexture:cellTexture];
   _boardField.delegate = self;
   [self addChild:_boardField];
+  [_boardField initLoadBackgroundNodes];
 }
 
 -(void)repositionBoardField {
@@ -934,9 +937,12 @@
     [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO  andUpdatingBoardBounds:NO];
   }
   
-//  _zoomChangedCellsAlpha = NO;
   _boardZoomedOut = _boardZoomedOut ? NO : YES;
   _boardField.zoomedOut = _boardZoomedOut;
+  
+    // conditions for dyadminoes not to be stationary
+  _dyadminoesStationary = (!_boardZoomedOut && !_replayMode && !_pnpBarUp && !_swapMode) ? NO : YES;
+  [self toggleDyadminoesToBeStationaryOrMovableAnimated:NO];
   
   if (_boardZoomedOut) {
     _boardField.postZoomPosition = _boardField.homePosition;
@@ -1304,8 +1310,8 @@
   } else if (_buttonPressed == _topBar.swapCancelOrUndoButton &&
              [_buttonPressed confirmSwapCancelOrUndo] == kSwapButton) {
     if (!_swapMode) {
-      [self toggleSwapFieldWithAnimation:YES];
       _swapMode = YES;
+      [self toggleSwapFieldWithAnimation:YES];
       [self.myMatch resetHoldingContainer];
     }
     
@@ -1315,6 +1321,7 @@
     
       // if in swap mode, cancel swap
     if (_swapMode) {
+      _swapMode = NO;
       [self toggleSwapFieldWithAnimation:YES];
       [self cancelSwappedDyadminoes];
       
@@ -2129,29 +2136,41 @@
 
 #pragma mark - field animation methods
 
--(void)toggleCellsAlphaAnimated:(BOOL)animated {
+-(void)toggleDyadminoesToBeStationaryOrMovableAnimated:(BOOL)animated {
     // also toggle alpha of board's zoomed in background node
   
-  CGFloat desiredAlpha = _cellAlphasZeroed ? 0.f : 1.f;
-  SKAction *fadeAlpha = [SKAction fadeAlphaTo:desiredAlpha duration:kConstantTime * 0.9f]; // a little faster than field move
+    // if dyadminoes already hollowed, just return
+  if (_dyadminoesStationary == _dyadminoesHollowed) {
+    return;
+  }
   
     // alpha is reverse of cells
-  [_boardField toggleZoomedInBackgroundZeroed:!_cellAlphasZeroed animated:animated];
+  [_boardField toggleBackgroundAlphaZeroed:!_dyadminoesStationary animated:animated];
   
-  for (Cell *cell in _boardField.allCells) {
-//    SKAction *completeAction = [SKAction runBlock:^{
-////      cell.cellNode.hidden = _cellAlphasZeroed;
-//    }];
-//
-//    SKAction *sequenceAction = [SKAction sequence:@[fadeAlpha, completeAction]];
-    
+//  CGFloat desiredCellAlpha = _cellAlphasZeroed ? 0.f : 1.f;
+//  SKAction *fadeCellAlpha = [SKAction fadeAlphaTo:desiredCellAlpha duration:kConstantTime * 0.9f]; // a little faster than field move
+//  for (Cell *cell in _boardField.allCells) {
+//    
+//    if (animated) {
+//      [cell.cellNode runAction:fadeCellAlpha];
+//    } else {
+//      cell.cellNode.alpha = desiredCellAlpha;
+//    }
+//  }
+  
+  CGFloat desiredDyadminoAlpha = _dyadminoesStationary ? 0.5f : 1.f;
+  SKAction *fadeDyadminoAlpha = [SKAction fadeAlphaTo:desiredDyadminoAlpha duration:kConstantTime * 0.9f]; // a little faster than field move
+  
+  for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
     if (animated) {
-      [cell.cellNode runAction:fadeAlpha];
+      [dyadmino runAction:fadeDyadminoAlpha];
     } else {
-      cell.cellNode.alpha = desiredAlpha;
-//      cell.cellNode.hidden = _cellAlphasZeroed;
+      dyadmino.alpha = desiredDyadminoAlpha;
     }
   }
+  
+    // confirm that dyadminoes reflect whether they should be stationary
+  _dyadminoesHollowed = _dyadminoesStationary;
 }
 
 -(void)togglePnPBar {
@@ -2160,8 +2179,8 @@
   [self updatePnPLabelForNewPlayer];
   
     // cells will toggle faster than pnpBar moves
-  _cellAlphasZeroed = _pnpBarUp;
-  [self toggleCellsAlphaAnimated:YES];
+  _dyadminoesStationary = _pnpBarUp || _boardZoomedOut;
+  [self toggleDyadminoesToBeStationaryOrMovableAnimated:!_boardZoomedOut]; // only animate if board zoomed in
   
   if (_pnpBarUp) {
     
@@ -2211,12 +2230,9 @@
   }
   
     // cells will toggle faster than pnpBar moves
-  _cellAlphasZeroed = _replayMode;
-  [self toggleCellsAlphaAnimated:YES];
-  
-  NSLog(@"toggle replay fields");
-  
-    // it's in replay mode (opposite of toggle swap field)
+  _dyadminoesStationary = _replayMode || _boardZoomedOut;
+  [self toggleDyadminoesToBeStationaryOrMovableAnimated:!_boardZoomedOut]; // only animate when board is zoomed in
+
   if (_replayMode) {
     
     [_boardField colourBackgroundForReplay];
@@ -2272,7 +2288,6 @@
     // FIXME: make better animation
     // otherwise toggle
   
-  
     // this gets called before scene is removed from view
   if (!animated) {
     _swapField.hidden = YES;
@@ -2280,7 +2295,11 @@
     return;
   }
   
-  if (_swapMode) { // swap mode on, so turn off
+    // cells will toggle faster than pnpBar moves
+  _dyadminoesStationary = _swapMode || _boardZoomedOut;
+  [self toggleDyadminoesToBeStationaryOrMovableAnimated:!_boardZoomedOut]; // only animate if board zoomed in
+  
+  if (!_swapMode) {
 //    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
@@ -2303,7 +2322,7 @@
     SKAction *moveBoardAction = [SKAction moveToY:swapBuffer duration:kConstantTime];
     [_boardField runAction:moveBoardAction];
 
-  } else { // swap mode off, turn on
+  } else {
 //    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     _swapField.hidden = NO;
@@ -2853,8 +2872,8 @@
     
       // will swap if successful, if not, message will be flashed in finaliseSwap method
     if ([self finaliseSwap]) {
-      [self toggleSwapFieldWithAnimation:YES];
       _swapMode = NO;
+      [self toggleSwapFieldWithAnimation:YES];
     } else {
       return;
     }
@@ -2862,6 +2881,7 @@
       // cancel swap
   } else if ([buttonText isEqualToString:@"Cancel"]) {
     if (_swapMode) {
+      _swapMode = NO;
       [self toggleSwapFieldWithAnimation:YES];
       [self cancelSwappedDyadminoes];
     }

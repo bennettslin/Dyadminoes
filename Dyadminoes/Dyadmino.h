@@ -148,13 +148,4 @@
 
 -(NSString *)logThisDyadmino;
 
-  /// this is the first pc
-
-/**
- initialises a dyadmino with pcs and orientation
- @see hello
- @param pc1, pc2, orientation
- @return itself
- **/
-
 @end

@@ -20,15 +20,19 @@
   CGFloat _red, _green, _blue, _alpha;
 }
 
+-(void)setColouredByNeighbouringCells:(NSInteger)colouredByNeighbouringCells {
+  _colouredByNeighbouringCells = colouredByNeighbouringCells;
+  self.cellNode.hidden = (colouredByNeighbouringCells <= 0) ? YES : NO;
+}
+
 -(id)initWithBoard:(Board *)board andTexture:(SKTexture *)texture andHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin {
   self = [super init];
   if (self) {
     
     self.board = board;
     self.cellNodeTexture = texture;
-//    self.preZoomAlpha = -1;
     self.colouredByNeighbouringCells = 0;
-
+    
     [self resetForNewMatch];
     [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin];
   }
@@ -37,6 +41,7 @@
 
 -(void)reuseCellWithHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin {
   
+  self.colouredByNeighbouringCells = NO;
   self.currentlyColouringNeighbouringCells = NO;
   self.hexCoord = hexCoord;
   self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
@@ -63,7 +68,6 @@
   self.colouredByNeighbouringCells = 0;
   self.myDyadmino = nil;
   self.myPC = -1;
-//  self.preZoomAlpha = -1;
   
     // reset colour
   _red = 0.2f;
@@ -95,6 +99,7 @@
   [self addColourWithRed:_red green:_green blue:_blue alpha:_alpha];
   self.cellNode.colorBlendFactor = .9f;
   self.cellNode.size = self.cellNodeSize;
+  self.colouredByNeighbouringCells = NO;
   [self initPositionCellNode];
   
     //// for testing purposes
