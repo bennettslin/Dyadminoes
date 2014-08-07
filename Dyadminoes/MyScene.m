@@ -65,6 +65,10 @@
   BOOL _fieldActionInProgress;
   BOOL _boardToBeMovedOrBeingMoved;
   BOOL _boardBeingCorrectedWithinBounds;
+  
+  BOOL _currentTouchIsDyadmino;
+  BOOL _previousTouchWasDyadmino;
+  
   BOOL _canDoubleTapForBoardZoom;
   BOOL _canDoubleTapForDyadminoFlip;
   BOOL _hoveringDyadminoToStayFixedWhileBoardMoves;
@@ -108,8 +112,7 @@
     _swapMode = NO;
     _dyadminoesStationary = NO;
     _dyadminoesHollowed = NO;
-    
-//    NSLog(@"layout static scene assets");
+
     [self layoutBoard];
     [self layoutBoardCover];
     [self layoutSwapField];
@@ -161,6 +164,8 @@
   _fieldActionInProgress = NO;
   _boardToBeMovedOrBeingMoved = NO;
   _boardBeingCorrectedWithinBounds = NO;
+  _currentTouchIsDyadmino = NO;
+  _previousTouchWasDyadmino = NO;
   _canDoubleTapForBoardZoom = NO;
   _canDoubleTapForDyadminoFlip = NO;
   _hoveringDyadminoToStayFixedWhileBoardMoves = NO;
@@ -277,6 +282,7 @@
   NSMutableArray *tempDyadminoArray = [[NSMutableArray alloc] initWithCapacity:_myPlayer.dataDyadminoesThisTurn.count];
   
   for (DataDyadmino *dataDyad in _myPlayer.dataDyadminoesThisTurn) {
+    
       // only add if it's not in the holding container
       // if it is, then don't add because holding container is added to board set instead
     if (![self.myMatch.holdingContainer containsObject:dataDyad]) {
@@ -284,7 +290,6 @@
       dyadmino.myHexCoord = dataDyad.myHexCoord;
       dyadmino.orientation = dataDyad.myOrientation;
       dyadmino.myRackOrder = dataDyad.myRackOrder;
-//      NSLog(@"this rack order is %i", dyadmino.myRackOrder);
         // not the best place to set tempReturnOrientation for dyadmino
       dyadmino.tempReturnOrientation = dyadmino.orientation;
       
@@ -496,6 +501,21 @@
 
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location {
   
+  if (_hoveringDyadmino) {
+    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+  }
+  
+    // kludge way to fix issue with pinch cancelling touched dyadmino that has not yet been assigned as hovering dyadmino
+  if (_touchedDyadmino) {
+    Dyadmino *dyadmino = _touchedDyadmino;
+    _touchedDyadmino = nil;
+    [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+  }
+  
+    // ensure that pinch can't happen when dyadmino is touched
+  if (_currentTouchIsDyadmino || _previousTouchWasDyadmino) {
+    return;
+  }
   
     // leave this alone for now
   /*
@@ -538,9 +558,7 @@
     // sceneVC sends Y upside down
   CGFloat rightSideUpY = self.size.height - location.y;
   CGFloat bottomFloat = _swapMode ? kRackHeight * 2 : kRackHeight;
-  
-//  NSLog(@"bottom is %.2f, top is %.2f", bottomFloat, self.size.height - kTopBarHeight);
-//  NSLog(@"location.y is %.2f", reverseY);
+
   return (rightSideUpY > bottomFloat && rightSideUpY < self.size.height - kTopBarHeight) ? YES : NO;
 }
 
@@ -561,15 +579,12 @@
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     /// 1. first, make sure there's only one current touch
   
-  if (!_currentTouch) {
-    _currentTouch = [touches anyObject];
-  } else {
-    
-      // handles ending previous touch
+  if (_currentTouch) {
     [self endTouchFromTouches:nil];
-    _currentTouch = [touches anyObject];
   }
-    
+  
+  _currentTouch = [touches anyObject];
+  
   if (_fieldActionInProgress) {
     return;
   }
@@ -638,9 +653,12 @@
   }
   
   if (!_pnpBarUp && !_replayMode && dyadmino && !dyadmino.isRotating && !_touchedDyadmino && (!_boardZoomedOut || [dyadmino isInRack])) {
+    
     _touchedDyadmino = dyadmino;
     
-//    NSLog(@"begin touch or pivot of dyadmino");
+    _previousTouchWasDyadmino = _currentTouchIsDyadmino;
+    _currentTouchIsDyadmino = YES;
+    
     [self beginTouchOrPivotOfDyadmino:dyadmino];
   
     //--------------------------------------------------------------------------
@@ -649,39 +667,35 @@
     // if pivot not in progress, or pivot in progress but dyadmino is not close enough
     // then the board is touched and being moved
   } else if (!_pivotInProgress || (_pivotInProgress && !_touchedDyadmino)) {
+    
+      // establish not a dyadmino (for pinch gesture safety)
+    _previousTouchWasDyadmino = _currentTouchIsDyadmino;
+    _currentTouchIsDyadmino = NO;
+    
     if (_touchNode == _boardField || _touchNode == _boardCover ||
         (_touchNode.parent == _boardField && (![_touchNode isKindOfClass:[Dyadmino class]] || _boardZoomedOut)) ||
         (_touchNode.parent.parent == _boardField && (![_touchNode.parent isKindOfClass:[Dyadmino class]] || _boardZoomedOut))) { // cell label, this one is necessary only for testing purposes
       
-//      if (!_hoveringDyadmino) {
+        // check if double tapped
       if (_canDoubleTapForBoardZoom && !_hoveringDyadmino) {
         CGFloat distance = [self getDistanceFromThisPoint:_beganTouchLocation toThisPoint:_endTouchLocationToMeasureDoubleTap];
         if (distance < kDistanceToDoubleTap) {
-          
-          NSLog(@"distance from %.2f, %.2f to %.2f, %.2f is %.2f", _beganTouchLocation.x, _beganTouchLocation.y, _endTouchLocationToMeasureDoubleTap.x, _endTouchLocationToMeasureDoubleTap.y, distance);
-//            // board will center back to user's touch location once zoomed back in
-//          CGPoint location = CGPointMake((_boardField.homePosition.x - _beganTouchLocation.x) / kZoomResizeFactor + _boardField.origin.x,
-//                                         (_boardField.homePosition.y - _beganTouchLocation.y) / kZoomResizeFactor + _boardField.origin.y);
-//          
           [self handleDoubleTap];
         }
       }
-//      NSLog(@"board to be moved or being moved");
+      
       _boardToBeMovedOrBeingMoved = YES;
       _canDoubleTapForBoardZoom = YES;
       
-        // check to see if hovering dyadmino should stay with board or not
+        // check to see if hovering dyadmino should be moved along with board or not
       if (_hoveringDyadmino) {
         [_boardField hideAllPivotGuides];
         _hoveringDyadminoToStayFixedWhileBoardMoves = NO;
         if ([_boardField validatePlacingDyadmino:_hoveringDyadmino onBoardNode:_hoveringDyadmino.tempBoardNode] != kNoError) {
           _hoveringDyadminoToStayFixedWhileBoardMoves = YES;
-          NSLog(@"update cells for removed called from touches began");
           [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
         }
       }
-
-      return;
     }
   }
 }
@@ -698,12 +712,8 @@
     // if the touch started on a button, do nothing and return
   if (_buttonPressed) {
     SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
-    if (node == _buttonPressed || node.parent == _buttonPressed) {
-      [_buttonPressed showSunkIn];
-    } else {
-      [_buttonPressed showLifted];
-    }
-
+    
+    (node == _buttonPressed || node.parent == _buttonPressed) ? [_buttonPressed showSunkIn] : [_buttonPressed showLifted];
     return;
   }
   
@@ -934,7 +944,7 @@
   
   if (_hoveringDyadmino) {
     _hoveringDyadmino.canFlip = NO;
-    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO  andUpdatingBoardBounds:NO];
+    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:NO];
   }
   
   _boardZoomedOut = _boardZoomedOut ? NO : YES;
@@ -1007,12 +1017,7 @@
 -(void)beginTouchOrPivotOfDyadmino:(Dyadmino *)dyadmino {
   
   if ([dyadmino isOnBoard]) {
-    NSLog(@"update cells for removed dyadmino from begin touch");
-    if (dyadmino != _hoveringDyadmino && ![dyadmino isRotating]) {
-      [self updateCellsForRemovedDyadmino:dyadmino andColour:YES];
-    } else {
-      [self updateCellsForRemovedDyadmino:dyadmino andColour:NO];
-    }
+    [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino != _hoveringDyadmino && ![dyadmino isRotating])];
   }
   
     // record tempReturnOrientation only if it's settled and not hovering
@@ -1022,8 +1027,7 @@
       // board dyadmino sends recent rack dyadmino home upon touch
       // rack dyadmino will do so upon move out of rack
     if (_hoveringDyadmino && [dyadmino isOnBoard]) {
-      NSLog(@"send dyadmino home if hovering dyadmino");
-      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO  andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
     }
   }
   
@@ -1055,8 +1059,6 @@
 }
 
 -(void)getReadyToMoveCurrentDyadmino:(Dyadmino *)dyadmino {
-//  NSLog(@"determine current section from get ready to move");
-//  [self determineCurrentSectionOfDyadmino:dyadmino];
   
   if ([dyadmino isInRack]) {
     _touchOffsetVector = [self subtractFromThisPoint:_beganTouchLocation thisPoint:dyadmino.position];
@@ -1089,20 +1091,16 @@
     
       // if dyadmino belongs in rack (or swap) and *isn't* on board...
     if (([dyadmino belongsInRack] || [dyadmino belongsInSwap]) && ![dyadmino isOnBoard]) {
-//      NSLog(@"touch ended of dyadmino belong in rack");
+      
         // ...flip if possible, or send it home
       if (dyadmino.canFlip) {
         [dyadmino animateFlip];
+        
       } else {
-//        NSLog(@"handle touch end of dyadmino and send dyadmino home");
-        if (dyadmino == _recentRackDyadmino) {
-          [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES  andUpdatingBoardBounds:YES];
-        } else { // dyadmino never left rack, or is hovering
-          [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES  andUpdatingBoardBounds:NO];
-        }
+        [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES
+            andUpdatingBoardBounds:(dyadmino == _recentRackDyadmino)];
           // just settles into rack or swap
         [self updateTopBarButtons];
-//        [self soundDyadminoSettleClick];
       }
       
         // or if dyadmino is in top bar...
@@ -1160,6 +1158,8 @@
 }
 
 -(void)sendDyadminoHome:(Dyadmino *)dyadmino fromUndo:(BOOL)undo byPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding andUpdatingBoardBounds:(BOOL)updateBoardBounds {
+  
+  dyadmino.canFlip = NO;
   
       // reposition if dyadmino is rack dyadmino
   if (dyadmino.parent == _boardField && ([dyadmino belongsInRack] || undo)) {
@@ -1564,7 +1564,8 @@
     dataDyad.myHexCoord = dyadmino.homeNode.myCell.hexCoord;
   }
   
-  dataDyad.myOrientation = ([dyadmino isOnBoard] && [dyadmino belongsInRack]) ? dyadmino.tempReturnOrientation : dyadmino.orientation;
+  dataDyad.myOrientation = ([dyadmino isOnBoard] && [dyadmino belongsInRack]) ?
+      dyadmino.tempReturnOrientation : dyadmino.orientation;
   
   dataDyad.myRackOrder = dyadmino.myRackOrder;
 }
@@ -2680,9 +2681,6 @@
   NSMutableSet *tempDataEnumerationSet = [NSMutableSet setWithSet:self.myMatch.board];
   [tempDataEnumerationSet addObjectsFromArray:self.myMatch.holdingContainer];
   
-    // animate last played only if current player does not have dyadminoes in holding container
-    //  BOOL animateLastPlayedDyadminoes = self.myMatch.holdingContainer.count == 0 ? YES : NO;
-  
   for (DataDyadmino *dataDyad in tempDataEnumerationSet) {
     Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
     
@@ -2729,6 +2727,17 @@
   }
 }
 
+-(void)restoreSceneDyadminoesFromDataAfterReplay {
+  for (Dyadmino *dyadmino in self.boardDyadminoes) {
+    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+    if (![self.myMatch.holdingContainer containsObject:dataDyad]) {
+      dyadmino.myHexCoord = dataDyad.myHexCoord;
+      dyadmino.orientation = dataDyad.myOrientation;
+      dyadmino.myRackOrder = dataDyad.myRackOrder;
+    }
+  }
+}
+
 -(void)startReplay {
   
     // temp store dyadmino position and orientation in data dyadmino
@@ -2752,6 +2761,9 @@
     /// reload data from temp stored data dyadmino positions and orientations
     /// can probably reuse initial load methods, with modifications
     /// make sure this is only done for past turn dyadminoes, not recently played dyadminoes
+  
+  [self restoreSceneDyadminoesFromDataAfterReplay];
+  [self populateBoardWithDyadminoes];
   
     // show all recently played dyadminoes
   for (DataDyadmino *dataDyad in self.myMatch.holdingContainer) {
