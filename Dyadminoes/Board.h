@@ -71,6 +71,14 @@
 
 -(void)centerBoardOnLocation:(CGPoint)location;
 
+#pragma mark - background image methods
+
+-(void)colourBackgroundForReplay;
+
+-(void)colourBackgroundForPnP;
+
+-(void)colourBackgroundForNormalPlay;
+
 #pragma mark - zoom methods
 
 -(void)repositionCellsAndDyadminoesForZoom;

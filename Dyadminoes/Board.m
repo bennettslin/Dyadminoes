@@ -312,6 +312,11 @@
 #pragma mark - zoom methods
 
 -(void)repositionCellsAndDyadminoesForZoom {
+  
+//  NSLog(@"reposition cells and dyadminoes for zoom");
+//  self.backgroundNodeZoomedIn.position = [self subtractFromThisPoint:self.position thisPoint:self.origin];
+//  self.backgroundNodeZoomedOut.position = [self subtractFromThisPoint:self.position thisPoint:self.origin];
+  
     // zoom out
   if (self.zoomedOut) {
     for (Cell *cell in self.allCells) {
@@ -458,7 +463,7 @@
       [cell reuseCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex] andHexOrigin:_hexOrigin];
     } else {
       cell = [[Cell alloc] initWithBoard:self
-                              andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
+                              andTexture:self.cellTexture
                              andHexCoord:[self hexCoordFromX:xHex andY:yHex]
                          andHexOrigin:_hexOrigin];
     }
@@ -1003,6 +1008,21 @@
   // these might be used for replay mode
 #pragma mark - background image methods
 
+-(void)colourBackgroundForReplay {
+  self.backgroundNodeZoomedIn.color = kGold;
+  self.backgroundNodeZoomedOut.color = kGold;
+}
+
+-(void)colourBackgroundForPnP {
+  self.backgroundNodeZoomedIn.color = kSkyBlue;
+  self.backgroundNodeZoomedOut.color = kSkyBlue;
+}
+
+-(void)colourBackgroundForNormalPlay {
+  self.backgroundNodeZoomedIn.color = kBackgroundBoardColour;
+  self.backgroundNodeZoomedOut.color = kBackgroundBoardColour;
+}
+
 -(void)showBackgroundNode:(SKSpriteNode *)backgroundNode {
   backgroundNode.hidden = NO;
   if (!backgroundNode.parent) {
@@ -1043,6 +1063,7 @@
   SKTexture *backgroundTextureZoomedIn = [SKTexture textureWithCGImage:tiledBackgroundZoomedIn.CGImage];
   self.backgroundNodeZoomedIn = [[SKSpriteNode alloc] initWithTexture:backgroundTextureZoomedIn];
   self.backgroundNodeZoomedIn.color = kBackgroundBoardColour;
+  self.backgroundNodeZoomedIn.colorBlendFactor = 0.5f;
   self.backgroundNodeZoomedIn.alpha = kBackgroundFullAlpha;
   self.backgroundNodeZoomedIn.texture = backgroundTextureZoomedIn;
   self.backgroundNodeZoomedIn.zPosition = kZPositionBackgroundNode;
@@ -1059,6 +1080,7 @@
   SKTexture *backgroundTextureZoomedOut = [SKTexture textureWithCGImage:tiledBackgroundZoomedOut.CGImage];
   self.backgroundNodeZoomedOut = [[SKSpriteNode alloc] initWithTexture:backgroundTextureZoomedOut];
   self.backgroundNodeZoomedOut.color = kBackgroundBoardColour;
+  self.backgroundNodeZoomedOut.colorBlendFactor = 0.5f;
   self.backgroundNodeZoomedOut.alpha = kBackgroundFullAlpha;
   self.backgroundNodeZoomedOut.texture = backgroundTextureZoomedOut;
   self.backgroundNodeZoomedOut.zPosition = kZPositionBackgroundNode;

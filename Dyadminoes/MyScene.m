@@ -6,8 +6,6 @@
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
-  // to commit
-
 #import "MyScene.h"
 #import "SceneViewController.h"
 #import "SceneEngine.h"
@@ -126,12 +124,14 @@
     _pnpBarUp = YES;
     _pnpBar.position = CGPointZero;
     _pnpBar.hidden = NO;
+    [_boardField colourBackgroundForPnP];
     [self updatePnPLabelForNewPlayer];
     
   } else {
     _pnpBarUp = NO;
     _pnpBar.position = CGPointMake(0, -kRackHeight);
     _pnpBar.hidden = YES;
+    [_boardField colourBackgroundForNormalPlay];
     _rackField.position = CGPointZero;
     _rackField.hidden = NO;
     
@@ -2165,6 +2165,8 @@
   
   if (_pnpBarUp) {
     
+    [_boardField colourBackgroundForPnP];
+    
       // sound
 //    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
@@ -2182,6 +2184,8 @@
     [_pnpBar runAction:sequenceAction];
     
   } else {
+    
+    [_boardField colourBackgroundForNormalPlay];
     
       // sound
 //    [self.mySoundEngine sound:kSoundSwoosh music:NO];
@@ -2215,6 +2219,8 @@
     // it's in replay mode (opposite of toggle swap field)
   if (_replayMode) {
     
+    [_boardField colourBackgroundForReplay];
+    
       // sound
     [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
@@ -2235,6 +2241,8 @@
     
       // it's not in replay mode
   } else {
+    
+    [_boardField colourBackgroundForNormalPlay];
     
       // sound
     [self.mySoundEngine sound:kSoundSwoosh music:NO];

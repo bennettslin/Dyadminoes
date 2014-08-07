@@ -200,8 +200,6 @@
 #define kYellow [SKColor colorWithRed:0.9f green:0.86f blue:.52f alpha:1.f]
 #define kCyanBlue [SKColor colorWithRed:.62f green:.96f blue:1.f alpha:1.f]
 
-
-
   //----------------------------------------------------------------------------
 
 typedef struct HexCoord {
