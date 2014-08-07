@@ -35,6 +35,12 @@
   return self;
 }
 
+-(SKTexture *)getCellTexture {
+  AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+  SKTextureAtlas *textureAtlas = appDelegate.myAtlas;
+  return [textureAtlas textureNamed:@"blankSpace"];
+}
+
 -(void)createPile {
   
   NSMutableArray *tempAllDyadminoes = [[NSMutableArray alloc] initWithCapacity:kPileCount];

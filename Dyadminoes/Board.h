@@ -56,7 +56,7 @@
   //----------------------------------------------------------------------------
   //----------------------------------------------------------------------------
 
--(id)initWithColor:(UIColor *)color andSize:(CGSize)size;
+-(id)initWithColor:(UIColor *)color andSize:(CGSize)size andCellTexture:(SKTexture *)cellTexture;
 
 -(void)repositionBoardWithHomePosition:(CGPoint)homePosition
                              andOrigin:(CGPoint)origin;
@@ -74,6 +74,7 @@
 #pragma mark - zoom methods
 
 -(void)repositionCellsAndDyadminoesForZoom;
+-(void)toggleZoomedInBackgroundZeroed:(BOOL)zeroed animated:(BOOL)animated;
 
 #pragma mark - cell methods
 
@@ -84,7 +85,7 @@
 
 #pragma mark - cell colour methods
 
--(void)changeAllBoardCellsGivenScale:(CGFloat)alpha; // called when zooming in or out
+//-(void)changeAllBoardCellsGivenScale:(CGFloat)alpha; // called when zooming in or out
 //-(void)changeAllBoardCellsToPreZoomAlpha;
 -(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign;
 

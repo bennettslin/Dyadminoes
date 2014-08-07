@@ -12,7 +12,7 @@
 #import "SceneEngine.h"
 #import "Match.h"
 #import "Model.h"
-#import "MyPinchGestureRecognizer.h"
+//#import "MyPinchGestureRecognizer.h"
 
 @interface SceneViewController () <SceneDelegate, UIGestureRecognizerDelegate>
 
@@ -90,7 +90,7 @@
 #pragma mark - event handling methods
 
 -(void)setUpGestureRecognisers {
-  self.pinchGestureRecogniser = [[MyPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinched:)];
+  self.pinchGestureRecogniser = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinched:)];
   self.pinchGestureRecogniser.delegate = self;
   [self.mySceneView addGestureRecognizer:self.pinchGestureRecogniser];
 }

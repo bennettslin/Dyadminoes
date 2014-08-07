@@ -27,8 +27,6 @@
 #import "DataDyadmino.h"
 #import "SoundEngine.h"
 
-#define kBackgroundBoardColour [SKColor darkGrayColor]
-
 @interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIActionSheetDelegate, MatchDelegate>
 
   // the dyadminoes that the player sees
@@ -138,6 +136,8 @@
     _rackField.hidden = NO;
     
   }
+  
+  _boardZoomedOut = NO;
 
   self.myMatch.delegate = self;
   [self prepareForNewTurn];
@@ -153,7 +153,6 @@
   _buttonPressed = nil;
   _hoveringDyadminoBeingCorrected = 0;
   _hoveringDyadminoFinishedCorrecting = 1;
-  _boardZoomedOut = NO;
   _buttonsUpdatedThisTouch = NO;
   _currentTouch = nil;
   _replayMode = NO;
@@ -329,7 +328,8 @@
   CGSize size = CGSizeMake(self.frame.size.width,
                            (self.frame.size.height - kTopBarHeight - kRackHeight));
 
-  _boardField = [[Board alloc] initWithColor:[SKColor clearColor] andSize:size];
+  SKTexture *cellTexture = [self.mySceneEngine getCellTexture];
+  _boardField = [[Board alloc] initWithColor:[SKColor clearColor] andSize:size andCellTexture:cellTexture];
   _boardField.delegate = self;
   [self addChild:_boardField];
 }
@@ -695,7 +695,7 @@
     // if the touch started on a button, do nothing and return
   if (_buttonPressed) {
     SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
-    if (node == _buttonPressed) {
+    if (node == _buttonPressed || node.parent == _buttonPressed) {
       [_buttonPressed showSunkIn];
     } else {
       [_buttonPressed showLifted];
@@ -1539,7 +1539,10 @@
 
 -(void)tempStoreForPlayerSceneDataDyadminoes {
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
-    [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
+    
+    if (dyadmino != _recentRackDyadmino) { // this should ensure that recent rack dyadmino does not move
+      [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
+    }
   }
   
   for (Dyadmino *dyadmino in self.boardDyadminoes) {
@@ -2127,23 +2130,26 @@
 #pragma mark - field animation methods
 
 -(void)toggleCellsAlphaAnimated:(BOOL)animated {
-    // testing purposes only
+    // also toggle alpha of board's zoomed in background node
   
   CGFloat desiredAlpha = _cellAlphasZeroed ? 0.f : 1.f;
   SKAction *fadeAlpha = [SKAction fadeAlphaTo:desiredAlpha duration:kConstantTime * 0.9f]; // a little faster than field move
   
+    // alpha is reverse of cells
+  [_boardField toggleZoomedInBackgroundZeroed:!_cellAlphasZeroed animated:animated];
+  
   for (Cell *cell in _boardField.allCells) {
-    SKAction *completeAction = [SKAction runBlock:^{
-      cell.cellNode.hidden = _cellAlphasZeroed;
-    }];
-
-    SKAction *sequenceAction = [SKAction sequence:@[fadeAlpha, completeAction]];
+//    SKAction *completeAction = [SKAction runBlock:^{
+////      cell.cellNode.hidden = _cellAlphasZeroed;
+//    }];
+//
+//    SKAction *sequenceAction = [SKAction sequence:@[fadeAlpha, completeAction]];
     
     if (animated) {
-      [cell.cellNode runAction:sequenceAction];
+      [cell.cellNode runAction:fadeAlpha];
     } else {
       cell.cellNode.alpha = desiredAlpha;
-      cell.cellNode.hidden = _cellAlphasZeroed;
+//      cell.cellNode.hidden = _cellAlphasZeroed;
     }
   }
 }
@@ -2200,9 +2206,9 @@
     [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
   }
   
-//    // cells will toggle faster than pnpBar moves
-//  _cellAlphasZeroed = _pnpBarUp;
-//  [self toggleCellsAlphaAnimated:YES];
+    // cells will toggle faster than pnpBar moves
+  _cellAlphasZeroed = _replayMode;
+  [self toggleCellsAlphaAnimated:YES];
   
   NSLog(@"toggle replay fields");
   

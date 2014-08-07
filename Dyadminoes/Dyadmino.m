@@ -553,13 +553,11 @@
   [self removeActionsAndEstablishNotRotating];
   self.color = (SKColor *)colour;
   
-  CGFloat colourBlendFactor = ([colour isEqual:kPlayerOrange]) ? kDyadminoColorBlendFactor * 1.5 : kDyadminoColorBlendFactor;
+  CGFloat colourBlendFactor = [colour isEqual:kPlayerOrange] ?
+      (kDyadminoAnimatedColorBlendFactor * 1.5) : kDyadminoAnimatedColorBlendFactor;
   SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:colourBlendFactor * 1.333 duration:.5f];
-  
   SKAction *wait = [SKAction waitForDuration:1.f];
-  
   SKAction *highlightOut = [SKAction colorizeWithColorBlendFactor:0.f duration:0.5f];
-  
   SKAction *sequence = [SKAction sequence:@[highlightIn, wait, highlightOut]];
   [self runAction:sequence withKey:kActionShowRecentlyPlayed];
 }

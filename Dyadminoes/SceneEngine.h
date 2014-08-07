@@ -10,15 +10,18 @@
 #import "NSObject+Helper.h"
 @class Dyadmino;
 @class Player;
-@class SKTextureAtlas;
+//@class SKTextureAtlas;
+@class SKTexture;
 
 @interface SceneEngine : NSObject
 
-@property (strong, nonatomic) SKTextureAtlas *myAtlas;
+//@property (strong, nonatomic) SKTextureAtlas *myAtlas;
 
   // dyadminoes
 @property (strong, nonatomic) NSArray *allDyadminoes;
 @property (nonatomic) PCMode myPCMode;
+
+-(SKTexture *)getCellTexture;
 
 #pragma mark - player preference methods
 

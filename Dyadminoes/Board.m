@@ -13,17 +13,22 @@
 
 #define kCellColourMultiplier .005f
 
+#define kBackgroundFullAlpha 0.5f
+
 @interface Board ()
 
-@property (strong, nonatomic) SKSpriteNode *zoomBackgroundNode;
+@property (strong, nonatomic) SKSpriteNode *backgroundNodeZoomedIn;
+@property (strong, nonatomic) SKSpriteNode *backgroundNodeZoomedOut;
 @property (strong, nonatomic) NSMutableSet *dequeuedCells;
+
+@property (strong, nonatomic) SKTexture *cellTexture;
 
 @property (nonatomic) BOOL userWantsPivotGuides;
 
 @end
 
 @implementation Board {
-  
+
   CGFloat _cellsInVertRange;
   CGFloat _cellsInHorzRange;
   BOOL _cellsTopXIsEven;
@@ -41,14 +46,15 @@
   CGFloat _oldCellsRight;
 }
 
--(id)initWithColor:(UIColor *)color andSize:(CGSize)size {
+-(id)initWithColor:(UIColor *)color andSize:(CGSize)size andCellTexture:(SKTexture *)cellTexture {
   self = [super init];
   if (self) {
     
     self.name = @"board";
     self.color = color;
-//    self.size = size;
-    self.size = CGSizeMake(size.width, size.height);
+    self.size = size;
+    self.cellTexture = cellTexture;
+//    self.size = CGSizeMake(size.width, size.height);
     self.anchorPoint = CGPointMake(0.5, 0.5);
     self.zPosition = kZPositionBoard;
     
@@ -82,18 +88,19 @@
     self.pivotAroundGuide = pivotAroundGuide;
     self.pivotAroundGuide.name = @"pivotAroundGuide";
 
-      // zoom background node is always there, if 
-    [self initLoadBackgroundImage];
-//    [self addChild:self.zoomBackgroundNode];
+      // zoom background node is always there
+    [self initLoadBackgroundNodes];
+    [self zoomInBackgroundImage];
   }
   return self;
 }
 
 -(void)instantiateDequeuedCells {
+
   NSUInteger times = kIsIPhone ? 125 : 250;
   for (int i = 0; i < times; i++) {
     Cell *cell = [[Cell alloc] initWithBoard:self
-                                  andTexture:[SKTexture textureWithImageNamed:@"blankSpace"]
+                                  andTexture:self.cellTexture
                                  andHexCoord:[self hexCoordFromX:0 andY:0]
                              andHexOrigin:_hexOrigin];
     [self.dequeuedCells addObject:cell];
@@ -110,14 +117,11 @@
     [cell resetForNewMatch];
     cell.cellNode.hidden = NO;
   }
-  NSLog(@"self.all cells count is %i, dequeued cells is %i", self.allCells.count, self.dequeuedCells.count);
-  NSLog(@"self snappoints count is %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
+  NSLog(@"self.all cells count is %lu, dequeued cells is %lu", (unsigned long)self.allCells.count, (unsigned long)self.dequeuedCells.count);
+  NSLog(@"self snappoints count is %lu, %lu, %lu", (unsigned long)self.snapPointsTenOClock.count, (unsigned long)self.snapPointsTwelveOClock.count, (unsigned long)self.snapPointsTwoOClock.count);
   
   self.zoomedOut = NO;
-  self.zoomBackgroundNode.hidden = YES;
-  if (self.zoomBackgroundNode.parent) {
-    [self.zoomBackgroundNode removeFromParent];
-  }
+  [self zoomInBackgroundImage];
 }
 
 #pragma mark - board position methods
@@ -312,16 +316,11 @@
   if (self.zoomedOut) {
     for (Cell *cell in self.allCells) {
       [cell resizeCell:YES withHexOrigin:_hexOrigin];
-//      if (cell.colouredByNeighbouringCells <= 0) {
       cell.cellNode.hidden = YES;
-//      }
     }
 
     [self centerBoardOnDyadminoesAverageCenter];
-    self.zoomBackgroundNode.hidden = NO;
-    if (!self.zoomBackgroundNode.parent) {
-      [self addChild:self.zoomBackgroundNode];
-    }
+    [self zoomOutBackgroundImage];
     
       // zoom back in
   } else {
@@ -337,11 +336,20 @@
       _redoLayoutAfterZoom = NO;
     }
     [self.delegate correctBoardForPositionAfterZoom];
-    
-    self.zoomBackgroundNode.hidden = YES;
-    if (self.zoomBackgroundNode.parent) {
-      [self.zoomBackgroundNode removeFromParent];
-    }
+    [self zoomInBackgroundImage];
+  }
+}
+
+-(void)toggleZoomedInBackgroundZeroed:(BOOL)zeroed animated:(BOOL)animated {
+  
+  CGFloat desiredAlpha = zeroed ? 0.f : kBackgroundFullAlpha;
+
+  SKAction *fadeAlpha = [SKAction fadeAlphaTo:desiredAlpha duration:kConstantTime * 0.9f]; // a little faster than field move
+  
+  if (animated) {
+    [self.backgroundNodeZoomedIn runAction:fadeAlpha];
+  } else {
+    self.backgroundNodeZoomedIn.alpha = desiredAlpha;
   }
 }
 
@@ -995,54 +1003,92 @@
   // these might be used for replay mode
 #pragma mark - background image methods
 
--(void)initLoadBackgroundImage {
-  UIImage *backgroundImage = [UIImage imageNamed:@"BachMassBackgroundCropped"];
-  CGImageRef backgroundCGImage = backgroundImage.CGImage;
-  CGRect textureSize = CGRectMake(self.position.x + self.size.width / 4, self.position.y, backgroundImage.size.width / 2, backgroundImage.size.height / 2);
-  
-  UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
-  CGContextRef context = UIGraphicsGetCurrentContext();
-    // Core Graphics coordinates are upside down from Sprite Kit's
-  CGContextScaleCTM(context, 1.0, -1.0);
-  CGContextDrawTiledImage(context, textureSize, backgroundCGImage);
-  UIImage *tiledBackground = UIGraphicsGetImageFromCurrentImageContext();
-  UIGraphicsEndImageContext();
-  
-  SKTexture *backgroundTexture = [SKTexture textureWithCGImage:tiledBackground.CGImage];
-  self.zoomBackgroundNode = [[SKSpriteNode alloc] initWithTexture:backgroundTexture];
-  self.zoomBackgroundNode.color = [UIColor darkGrayColor];
-  self.zoomBackgroundNode.alpha = 0.25f;
-  self.zoomBackgroundNode.texture = backgroundTexture;
-  self.zoomBackgroundNode.zPosition = kZPositionBackgroundNode;
-  
-//  NSLog(@"background image texture loaded");
-}
-
--(void)changeAllBoardCellsGivenScale:(CGFloat)scale {
-    // board doesn't care about pinch scale
-    // scale here is between 0 and 1
-  
-    // cells
-  for (Cell *cell in self.allCells) {
-    if ([cell isKindOfClass:[Cell class]]) {
-      
-//      if (cell.preZoomAlpha == -1) {
-//        cell.preZoomAlpha = cell.cellNode.alpha;
-//      }
-      
-        // only show surrounding coloured cells when zoomed out
-      if (_zoomedOut) {
-        
-        if (cell.colouredByNeighbouringCells > 0) {
-//              NSLog(@"cell coloured by %i cells", cell.colouredByNeighbouringCells);
-          cell.cellNode.alpha = 1 - scale;
-        }
-      } else {
-          cell.cellNode.alpha = 1 - scale;
-      }
-    }
+-(void)showBackgroundNode:(SKSpriteNode *)backgroundNode {
+  backgroundNode.hidden = NO;
+  if (!backgroundNode.parent) {
+    [self addChild:backgroundNode];
   }
 }
+
+-(void)hideBackgroundNode:(SKSpriteNode *)backgroundNode {
+  backgroundNode.hidden = YES;
+  if (backgroundNode.parent) {
+    [backgroundNode removeFromParent];
+  }
+}
+
+-(void)zoomInBackgroundImage {
+  [self showBackgroundNode:self.backgroundNodeZoomedIn];
+  [self hideBackgroundNode:self.backgroundNodeZoomedOut];
+}
+
+-(void)zoomOutBackgroundImage {
+  [self showBackgroundNode:self.backgroundNodeZoomedOut];
+  [self hideBackgroundNode:self.backgroundNodeZoomedIn];
+}
+
+-(void)initLoadBackgroundNodes {
+  UIImage *backgroundImage = [UIImage imageNamed:@"BachMassBackgroundCropped"];
+  CGImageRef backgroundCGImage = backgroundImage.CGImage;
+  
+  CGRect textureSizeZoomedIn = CGRectMake(self.position.x, self.position.y, backgroundImage.size.width, backgroundImage.size.height);
+  UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
+  CGContextRef contextZoomedIn = UIGraphicsGetCurrentContext();
+    // Core Graphics coordinates are upside down from Sprite Kit's
+  CGContextScaleCTM(contextZoomedIn, 1.0, -1.0);
+  CGContextDrawTiledImage(contextZoomedIn, textureSizeZoomedIn, backgroundCGImage);
+  UIImage *tiledBackgroundZoomedIn = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+  
+  SKTexture *backgroundTextureZoomedIn = [SKTexture textureWithCGImage:tiledBackgroundZoomedIn.CGImage];
+  self.backgroundNodeZoomedIn = [[SKSpriteNode alloc] initWithTexture:backgroundTextureZoomedIn];
+  self.backgroundNodeZoomedIn.color = kBackgroundBoardColour;
+  self.backgroundNodeZoomedIn.alpha = kBackgroundFullAlpha;
+  self.backgroundNodeZoomedIn.texture = backgroundTextureZoomedIn;
+  self.backgroundNodeZoomedIn.zPosition = kZPositionBackgroundNode;
+  
+  CGRect textureSizeZoomedOut = CGRectMake(self.position.x + self.size.width / 2, self.position.y - self.size.height / 2, backgroundImage.size.width, backgroundImage.size.height);
+  UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
+  CGContextRef contextZoomedOut = UIGraphicsGetCurrentContext();
+    // Core Graphics coordinates are upside down from Sprite Kit's
+  CGContextScaleCTM(contextZoomedOut, 0.5, -0.5);
+  CGContextDrawTiledImage(contextZoomedOut, textureSizeZoomedOut, backgroundCGImage);
+  UIImage *tiledBackgroundZoomedOut = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+  
+  SKTexture *backgroundTextureZoomedOut = [SKTexture textureWithCGImage:tiledBackgroundZoomedOut.CGImage];
+  self.backgroundNodeZoomedOut = [[SKSpriteNode alloc] initWithTexture:backgroundTextureZoomedOut];
+  self.backgroundNodeZoomedOut.color = kBackgroundBoardColour;
+  self.backgroundNodeZoomedOut.alpha = kBackgroundFullAlpha;
+  self.backgroundNodeZoomedOut.texture = backgroundTextureZoomedOut;
+  self.backgroundNodeZoomedOut.zPosition = kZPositionBackgroundNode;
+}
+
+//-(void)changeAllBoardCellsGivenScale:(CGFloat)scale {
+//    // board doesn't care about pinch scale
+//    // scale here is between 0 and 1
+//  
+//    // cells
+//  for (Cell *cell in self.allCells) {
+//    if ([cell isKindOfClass:[Cell class]]) {
+//      
+////      if (cell.preZoomAlpha == -1) {
+////        cell.preZoomAlpha = cell.cellNode.alpha;
+////      }
+//      
+//        // only show surrounding coloured cells when zoomed out
+//      if (_zoomedOut) {
+//        
+//        if (cell.colouredByNeighbouringCells > 0) {
+////              NSLog(@"cell coloured by %i cells", cell.colouredByNeighbouringCells);
+//          cell.cellNode.alpha = 1 - scale;
+//        }
+//      } else {
+//          cell.cellNode.alpha = 1 - scale;
+//      }
+//    }
+//  }
+//}
 
 //-(void)changeAllBoardCellsToPreZoomAlpha {
 //  

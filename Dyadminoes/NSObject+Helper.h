@@ -91,6 +91,7 @@
   // dyadmino state constants
 #define kDyadminoHoverResizeFactor 1.17f
 #define kDyadminoColorBlendFactor 0.3f
+#define kDyadminoAnimatedColorBlendFactor 0.35f
 
   // math constants
 #define kSquareRootOfThree 1.73205081f
@@ -107,7 +108,7 @@
 #define kDistanceForTouchingFace (kDyadminoFaceRadius * 0.7f)
 #define kDistanceForTouchingHoveringDyadmino (kDyadminoFaceRadius * kDyadminoHoverResizeFactor) // was 32.f
 #define kDistanceForTouchingRestingDyadmino (kDyadminoFaceRadius * 0.8f) // was 25.f
-#define kDistanceToDoubleTap 24.f // tweak as necessary
+#define kDistanceToDoubleTap 18.f // tweak as necessary
 #define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
 #define kMaxDistanceForPivot (kDyadminoFaceRadius * 3.5f)
 #define kPivotGuideAlpha 0.9f
@@ -153,6 +154,7 @@
   //----------------------------------------------------------------------------
 
   // colours
+#define kBackgroundBoardColour [UIColor colorWithRed:0.2f green:0.15f blue:0.1f alpha:1.f]
 
 #define kMainLighterYellow [UIColor colorWithRed:0.95f green:0.95f blue:0.85f alpha:1.f]
 #define kMainDarkerYellow [UIColor colorWithRed:0.85f green:0.85f blue:0.75f alpha:1.f]
