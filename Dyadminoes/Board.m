@@ -687,6 +687,10 @@
       // each iteration goes around the cell
     
     NSInteger range = 7; // was 8; when tweaking, also change colourFactor in colourCell method
+    
+      // start with self
+    [self colourCellWithXHex:cell.hexCoord.x andYHex:cell.hexCoord.y andFactor:range andSign:sign andPC:cell.myPC];
+    
     for (int i = 1; i < range; i++) {
       xHex = cell.hexCoord.x;
       yHex = cell.hexCoord.y + i;

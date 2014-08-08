@@ -35,9 +35,6 @@
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.statusLabel forKey:self.statusLabel.name];
   self.allLabels = [NSDictionary dictionaryWithDictionary:tempDictionary];
-  
-  [self updateLabelNamed:@"player1Name" withText:@"test" andColour:nil];
-  [self updateLabelNamed:@"status" withText:@"default turn info" andColour:nil];
 }
 
 -(void)populateWithBottomReplayButtons {

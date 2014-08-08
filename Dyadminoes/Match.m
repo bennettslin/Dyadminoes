@@ -553,10 +553,15 @@
 
 -(void)startReplay {
   self.replayBoard = [NSMutableSet setWithSet:self.board];
+  [self last];
+}
+
+-(void)leaveReplay {
+  [self last];
+  [self.replayBoard removeAllObjects];
 }
 
 -(void)first {
-  
   if (self.replayTurn == 0) { // in case the replay is before any turn made
     return;
   }
@@ -616,10 +621,6 @@
       }
     }
   }
-}
-
--(void)leaveReplay {
-  [self.replayBoard removeAllObjects];
 }
 
 @end

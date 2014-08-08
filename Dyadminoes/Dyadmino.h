@@ -48,6 +48,13 @@
 @property (nonatomic) DyadminoOrientation orientation;
 @property (nonatomic) DyadminoOrientation tempReturnOrientation;
 
+  // replay
+  // these properties will be set before each replay; they can be ignored otherwise
+@property (nonatomic) HexCoord preReplayHexCoord;
+@property (nonatomic) DyadminoOrientation preReplayOrientation;
+@property (nonatomic) DyadminoOrientation preReplayTempOrientation;
+@property (nonatomic) NSInteger preReplayRackOrder;
+
   // sprites
 @property (strong, nonatomic) NSArray *rotationFrameArray;
 

@@ -8,6 +8,7 @@
 
 #import "Dyadmino.h"
 #import "Board.h"
+#import "Cell.h"
 //#import <CoreGraphics/CoreGraphics.h>
 //#import <CoreImage/CoreImage.h>
 
@@ -51,7 +52,6 @@
     self.hoveringStatus = kDyadminoNoHoverStatus;
     [self selectAndPositionSprites];
   }
-//  [self addShadow];
   return self;
 }
 
@@ -77,6 +77,7 @@
 #pragma mark - orient, position, and size methods
 
 -(void)establishSizeOfSprite:(SKSpriteNode *)sprite {
+  
   CGFloat hoverResizeFactor = (self.isTouchThenHoverResized) ? kDyadminoHoverResizeFactor : 1.f;
   CGFloat zoomResizeFactor = (self.isZoomResized) ? kZoomResizeFactor : 1.f;
 
@@ -527,6 +528,10 @@
     settledPosition = self.tempBoardNode.position;
   }
   
+    // updates hexCoord for board dyadmino
+  NSLog(@"%@ hexCoord updated", self.name);
+  self.myHexCoord = self.tempBoardNode ? self.tempBoardNode.myCell.hexCoord : self.homeNode.myCell.hexCoord;
+  
   SKAction *moveAction = [SKAction moveTo:settledPosition duration:kConstantTime];
   SKAction *finishAction = [SKAction runBlock:^{
     
@@ -549,7 +554,7 @@
 }
 
 -(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour {
-  NSLog(@"animate dyadminoes recently played");
+//  NSLog(@"animate dyadminoes recently played");
   [self removeActionsAndEstablishNotRotating];
   self.color = (SKColor *)colour;
   
