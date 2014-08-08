@@ -25,7 +25,7 @@
   self.cellNode.hidden = (colouredByNeighbouringCells <= 0) ? YES : NO;
 }
 
--(id)initWithBoard:(Board *)board andTexture:(SKTexture *)texture andHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin {
+-(id)initWithBoard:(Board *)board andTexture:(SKTexture *)texture andHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize {
   self = [super init];
   if (self) {
     
@@ -34,12 +34,12 @@
     self.colouredByNeighbouringCells = 0;
     
     [self resetForNewMatch];
-    [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin];
+    [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin andSize:cellSize];
   }
   return self;
 }
 
--(void)reuseCellWithHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin {
+-(void)reuseCellWithHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize {
   
   self.colouredByNeighbouringCells = NO;
   self.currentlyColouringNeighbouringCells = NO;
@@ -47,7 +47,7 @@
   self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
   
     // establish cell position
-  self.cellNodePosition = [self establishCellPositionWithHexOrigin:hexOrigin forResize:NO];
+  self.cellNodePosition = [Cell establishCellPositionWithCellSize:cellSize andHexOrigin:hexOrigin andHexCoord:self.hexCoord forResize:NO];
   
     // establish logic default
   self.myPC = -1;
@@ -55,11 +55,7 @@
     // create snap points
   [self createSnapPoints];
   
-  if (!self.cellNode) {
-    [self instantiateCellNode];
-  } else {
-    [self initPositionCellNode];
-  }
+  self.cellNode ? [self initPositionCellNodeWithSize:cellSize] : [self instantiateCellNodeWithSize:cellSize];
 }
 
 -(void)resetForNewMatch {
@@ -80,13 +76,11 @@
     self.cellNode.color = [SKColor colorWithRed:0 green:0 blue:0 alpha:0];
     [self addColourWithRed:_red green:_green blue:_blue alpha:_alpha];
   }
-      // establish cell size
-    self.cellNodeSize = [self establishCellSizeForResize:NO];
 }
 
 #pragma mark - cell node methods
 
--(void)instantiateCellNode {
+-(void)instantiateCellNodeWithSize:(CGSize)cellSize {
   
 //  NSLog(@"cell node instantiated for %@", self.name);
     // cellNode properties
@@ -98,9 +92,9 @@
   self.cellNode.zPosition = kZPositionBoardCell;
   [self addColourWithRed:_red green:_green blue:_blue alpha:_alpha];
   self.cellNode.colorBlendFactor = .9f;
-  self.cellNode.size = self.cellNodeSize;
+  self.cellNode.size = cellSize;
   self.colouredByNeighbouringCells = NO;
-  [self initPositionCellNode];
+  [self initPositionCellNodeWithSize:cellSize];
   
     //// for testing purposes
   if (self.cellNode) {
@@ -112,9 +106,9 @@
     // */
 }
 
--(void)initPositionCellNode {
+-(void)initPositionCellNodeWithSize:(CGSize)cellSize {
   self.cellNode.position = self.cellNodePosition;
-  self.cellNode.size = self.cellNodeSize;
+  self.cellNode.size = cellSize;
   [self updateHexCoordLabel];
   [self updatePCLabel];
 }
@@ -190,21 +184,22 @@
 //  self.cellNode.alpha = _alpha;
 }
 
--(void)resizeCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin {
+-(void)resizeCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize {
+  
+  self.cellNode.size = cellSize;
+
   if (resize) {
-    self.cellNode.size = [self establishCellSizeForResize:YES];
-    self.cellNode.position = [self establishCellPositionWithHexOrigin:hexOrigin forResize:YES];
-    [self positionSnapPointsForResize:YES];
+    self.cellNode.position = [Cell establishCellPositionWithCellSize:cellSize andHexOrigin:hexOrigin andHexCoord:self.hexCoord forResize:resize];
   } else {
-    self.cellNode.size = self.cellNodeSize;
     self.cellNode.position = self.cellNodePosition;
-    [self positionSnapPointsForResize:NO];
   }
+  
+  [self positionSnapPointsForResize:resize];
 }
 
 #pragma mark - cell size and position helper methods
 
--(CGSize)establishCellSizeForResize:(BOOL)resize {
++(CGSize)establishCellSizeForResize:(BOOL)resize {
   
   CGFloat factor = resize ? kZoomResizeFactor : 1.f;
   CGFloat ySize = (kDyadminoFaceRadius * 2 - kPaddingBetweenCells) * factor;
@@ -213,18 +208,53 @@
   return CGSizeMake(xSize, ySize);
 }
 
--(CGPoint)establishCellPositionWithHexOrigin:(CGVector)hexOrigin forResize:(BOOL)resize {
++(CGPoint)establishCellPositionWithCellSize:(CGSize)cellSize andHexOrigin:(CGVector)hexOrigin andHexCoord:(HexCoord)hexCoord forResize:(BOOL)resize {
   
     // to make node between two faces the center
   CGFloat factor = resize ? kZoomResizeFactor : 1.f;
   CGFloat yOffset = kDyadminoFaceRadius * factor;
   CGFloat padding = kPaddingBetweenCells * factor;
-  CGFloat cellWidth = self.cellNodeSize.width * factor;
-  CGFloat cellHeight = self.cellNodeSize.height * factor;
-  CGFloat newX = (self.hexCoord.x - hexOrigin.dx) * (0.75 * cellWidth + padding);
-  CGFloat newY = (self.hexCoord.y - hexOrigin.dy + self.hexCoord.x * 0.5) * (cellHeight + padding) - yOffset;
+  
+  CGFloat cellWidth = cellSize.width;
+  CGFloat cellHeight = cellSize.height;
+  CGFloat newX = (hexCoord.x - hexOrigin.dx) * (0.75 * cellWidth + padding);
+  CGFloat newY = (hexCoord.y - hexOrigin.dy + hexCoord.x * 0.5) * (cellHeight + padding) - yOffset;
   
   return CGPointMake(newX, newY);
+}
+
++(CGPoint)positionCellLessDyadminoGivenHexOrigin:(CGVector)hexOrigin andHexCoord:(HexCoord)hexCoord andOrientation:(DyadminoOrientation)orientation andResize:(BOOL)resize {
+  
+    // get hypothetical cellPosition
+  CGSize cellSize = [Cell establishCellSizeForResize:resize];
+  CGPoint cellPosition = [Cell establishCellPositionWithCellSize:cellSize andHexOrigin:hexOrigin andHexCoord:hexCoord forResize:resize];
+  
+    // next get hypothetical cell's snap point
+  CGFloat faceOffset = resize ? kDyadminoFaceRadius * kZoomResizeFactor : kDyadminoFaceRadius;
+  
+    // based on a 30-60-90 degree triangle
+  CGFloat faceOffsetX = faceOffset * 0.5 * kSquareRootOfThree;
+  CGFloat faceOffsetY = faceOffset * 0.5;
+  
+  CGPoint celllessDyadminoPosition;
+  
+  switch (orientation) {
+    case kPC1atTwelveOClock:
+    case kPC1atSixOClock:
+      celllessDyadminoPosition = [self addToThisPoint:cellPosition thisPoint:CGPointMake(0.f, faceOffset)];
+      break;
+    case kPC1atTwoOClock:
+    case kPC1atEightOClock:
+      celllessDyadminoPosition = [self addToThisPoint:cellPosition thisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
+      break;
+    case kPC1atFourOClock:
+    case kPC1atTenOClock:
+      celllessDyadminoPosition = [self addToThisPoint:cellPosition thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
+      break;
+    default:
+      break;
+  }
+  return celllessDyadminoPosition;
 }
 
 #pragma mark - testing methods

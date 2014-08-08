@@ -28,6 +28,8 @@
 
 @implementation Board {
 
+  CGSize _cellSize;
+  
   CGFloat _cellsInVertRange;
   CGFloat _cellsInHorzRange;
   BOOL _cellsTopXIsEven;
@@ -66,6 +68,8 @@
     self.occupiedCells = [NSMutableSet new];
     self.allCells = [NSMutableSet new];
     
+    _cellSize = [Cell establishCellSizeForResize:NO];
+    
       // create new cells from get-go
     self.dequeuedCells = [NSMutableSet new];
     [self instantiateDequeuedCells];
@@ -97,7 +101,8 @@
     Cell *cell = [[Cell alloc] initWithBoard:self
                                   andTexture:self.cellTexture
                                  andHexCoord:[self hexCoordFromX:0 andY:0]
-                             andHexOrigin:_hexOrigin];
+                                andHexOrigin:_hexOrigin
+                                     andSize:_cellSize];
     [self.dequeuedCells addObject:cell];
   }
 }
@@ -284,20 +289,19 @@
 
 -(void)repositionCellsAndDyadminoesForZoom {
 
+  CGSize cellSize = [Cell establishCellSizeForResize:self.zoomedOut];
+  for (Cell *cell in self.allCells) {
+    [cell resizeCell:self.zoomedOut withHexOrigin:_hexOrigin andSize:cellSize];
+  }
+  
     // zoom out
   if (self.zoomedOut) {
-    for (Cell *cell in self.allCells) {
-      [cell resizeCell:YES withHexOrigin:_hexOrigin];
-    }
 
     [self centerBoardOnDyadminoesAverageCenter];
     [self zoomOutBackgroundImage];
     
       // zoom back in
   } else {
-    for (Cell *cell in self.allCells) {
-      [cell resizeCell:NO withHexOrigin:_hexOrigin];
-    }
     
     [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:self.postZoomPosition withSwap:NO];
     if (_redoLayoutAfterZoom) {
@@ -428,12 +432,13 @@
     Cell *poppedCell = [self popDequeuedCell];
     if (poppedCell) {
       cell = poppedCell;
-      [cell reuseCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex] andHexOrigin:_hexOrigin];
+      [cell reuseCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex] andHexOrigin:_hexOrigin andSize:_cellSize];
     } else {
       cell = [[Cell alloc] initWithBoard:self
                               andTexture:self.cellTexture
                              andHexCoord:[self hexCoordFromX:xHex andY:yHex]
-                         andHexOrigin:_hexOrigin];
+                            andHexOrigin:_hexOrigin
+                                 andSize:_cellSize];
     }
     
     if (!cell.cellNode.parent) {

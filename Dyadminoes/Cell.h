@@ -16,7 +16,7 @@
 
 @property (nonatomic) SKTexture *cellNodeTexture;
 @property (nonatomic) CGPoint cellNodePosition;
-@property (nonatomic) CGSize cellNodeSize;
+//@property (nonatomic) CGSize cellNodeSize;
 
 @property (strong, nonatomic) NSString *name;
 
@@ -40,10 +40,11 @@
 -(id)initWithBoard:(Board *)board
         andTexture:(SKTexture *)texture
        andHexCoord:(HexCoord)hexCoord
-      andHexOrigin:(CGVector)hexOrigin;
+      andHexOrigin:(CGVector)hexOrigin
+           andSize:(CGSize)cellSize;
 
   // called to reuse dequeued cell
--(void)reuseCellWithHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin;
+-(void)reuseCellWithHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize;
 
   // called before dismissing scene
 -(void)resetForNewMatch;
@@ -55,7 +56,10 @@
 
 #pragma mark - cell view helper methods
 
--(void)resizeCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin;
++(CGSize)establishCellSizeForResize:(BOOL)resize;
++(CGPoint)positionCellLessDyadminoGivenHexOrigin:(CGVector)hexOrigin andHexCoord:(HexCoord)hexCoord andOrientation:(DyadminoOrientation)orientation andResize:(BOOL)resize;
+
+-(void)resizeCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize;
 -(void)addColourWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha;
 
 #pragma mark - testing methods
