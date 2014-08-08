@@ -35,7 +35,6 @@
   BOOL _cellsTopXIsEven;
   BOOL _cellsBottomXIsEven;
   BOOL _hexOriginSet;
-  CGVector _hexOrigin;
   CGVector _hexCurrent;
   BOOL _cellsTopNeedsBuffer;
   BOOL _cellsBottomNeedsBuffer;
@@ -101,7 +100,7 @@
     Cell *cell = [[Cell alloc] initWithBoard:self
                                   andTexture:self.cellTexture
                                  andHexCoord:[self hexCoordFromX:0 andY:0]
-                                andHexOrigin:_hexOrigin
+                                andHexOrigin:self.hexOrigin
                                      andSize:_cellSize];
     [self.dequeuedCells addObject:cell];
   }
@@ -135,8 +134,8 @@
 
 -(void)centerBoardOnDyadminoesAverageCenter {
   CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
-  CGPoint newPoint = CGPointMake(self.origin.x + (_hexOrigin.dx - _hexCurrent.dx) * kDyadminoFaceWideDiameter * factor,
-                                 self.origin.y + (_hexOrigin.dy - _hexCurrent.dy) * kDyadminoFaceDiameter * factor);
+  CGPoint newPoint = CGPointMake(self.origin.x + (self.hexOrigin.dx - _hexCurrent.dx) * kDyadminoFaceWideDiameter * factor,
+                                 self.origin.y + (self.hexOrigin.dy - _hexCurrent.dy) * kDyadminoFaceDiameter * factor);
   
   [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:newPoint withSwap:NO];
   self.homePosition = newPoint;
@@ -275,10 +274,10 @@
     // this should get called after every method that adds cells or removes them
   
   CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
-  self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange - _hexOrigin.dy) * kDyadminoFaceDiameter * factor;
-  self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange - _hexOrigin.dx) * kDyadminoFaceAverageWideDiameter * factor;
-  self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange - _hexOrigin.dy) * kDyadminoFaceDiameter * factor;
-  self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange - _hexOrigin.dx) * kDyadminoFaceAverageWideDiameter * factor;
+  self.lowestYPos = self.origin.y - (self.cellsTop - _cellsInVertRange - self.hexOrigin.dy) * kDyadminoFaceDiameter * factor;
+  self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange - self.hexOrigin.dx) * kDyadminoFaceAverageWideDiameter * factor;
+  self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange - self.hexOrigin.dy) * kDyadminoFaceDiameter * factor;
+  self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange - self.hexOrigin.dx) * kDyadminoFaceAverageWideDiameter * factor;
   
 //  NSLog(@"lowest y is %.2f, highest y is %.2f", self.lowestYPos, self.highestYPos);
 //  NSLog(@"determine board position bounds, for zoom? %i", self.zoomedOut);
@@ -291,7 +290,7 @@
 
   CGSize cellSize = [Cell establishCellSizeForResize:self.zoomedOut];
   for (Cell *cell in self.allCells) {
-    [cell resizeCell:self.zoomedOut withHexOrigin:_hexOrigin andSize:cellSize];
+    [cell resizeCell:self.zoomedOut withHexOrigin:self.hexOrigin andSize:cellSize];
   }
   
     // zoom out
@@ -336,8 +335,8 @@
 
     // regular hex origin is only set once per scene load, but zoom hex origin is set every time{
   if (!_hexOriginSet) {
-    _hexOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
-    _hexCurrent = _hexOrigin;
+    self.hexOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
+    _hexCurrent = self.hexOrigin;
 //    NSLog(@"determine vector origin (general center) is %.1f, %.1f", _hexOrigin.dx, _hexOrigin.dy);
     _hexOriginSet = YES;
   } else {
@@ -432,12 +431,12 @@
     Cell *poppedCell = [self popDequeuedCell];
     if (poppedCell) {
       cell = poppedCell;
-      [cell reuseCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex] andHexOrigin:_hexOrigin andSize:_cellSize];
+      [cell reuseCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex] andHexOrigin:self.hexOrigin andSize:_cellSize];
     } else {
       cell = [[Cell alloc] initWithBoard:self
                               andTexture:self.cellTexture
                              andHexCoord:[self hexCoordFromX:xHex andY:yHex]
-                            andHexOrigin:_hexOrigin
+                            andHexOrigin:self.hexOrigin
                                  andSize:_cellSize];
     }
     

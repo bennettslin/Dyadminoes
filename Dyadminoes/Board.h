@@ -24,6 +24,7 @@
 
 @property (nonatomic) CGPoint homePosition;
 @property (nonatomic) CGPoint origin;
+@property (nonatomic) CGVector hexOrigin;
 
 @property (nonatomic) BOOL zoomedOut;
 @property (nonatomic) CGPoint postZoomPosition;

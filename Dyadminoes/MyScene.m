@@ -953,11 +953,7 @@
   }
 
     // prep board for bounds and position
-  NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
-  if ([_recentRackDyadmino isOnBoard] && ![dyadminoesOnBoard containsObject:_recentRackDyadmino]) {
-    [dyadminoesOnBoard addObject:_recentRackDyadmino];
-  }
-  [_boardField determineOutermostCellsBasedOnDyadminoes:dyadminoesOnBoard];
+  [_boardField determineOutermostCellsBasedOnDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
   [_boardField determineBoardPositionBounds];
   [_boardField repositionCellsAndDyadminoesForZoom];
   
@@ -975,12 +971,15 @@
   
     // resize dyadminoes
   for (Dyadmino *dyadmino in self.boardDyadminoes) {
-
     [dyadmino removeActionsAndEstablishNotRotating];
     dyadmino.isTouchThenHoverResized = NO;
-    dyadmino.isZoomResized = dyadmino.isZoomResized ? NO : YES;
-    dyadmino.position = dyadmino.tempBoardNode.position;
-    [dyadmino selectAndPositionSprites];
+    dyadmino.isZoomResized = _boardZoomedOut;
+    if (_replayMode) {
+      [self repositionInReplayDyadmino:dyadmino];
+    } else {
+      dyadmino.position = dyadmino.tempBoardNode.position;
+      [dyadmino selectAndPositionSprites];
+    }
   }
   
     // FIXME: silence for now to avoid sound engine error
@@ -2697,23 +2696,32 @@
           [dyadmino unhighlightOutOfPlay];
         }
         
-          // position dyadminoes
+          // get position and orientation attrivutes
         dyadmino.myHexCoord = [dataDyad getHexCoordForTurn:self.myMatch.replayTurn];
         dyadmino.orientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
         dyadmino.tempReturnOrientation = dyadmino.orientation;
-        dyadmino.homeNode = nil; // establish nil so that populateBoard method will assign it a homeNode;
+        
+          // position dyadmino
+        [self repositionInReplayDyadmino:dyadmino];
       }
     }
     
   } else { // leaving replay
     for (Dyadmino *dyadmino in self.boardDyadminoes) {
-      dyadmino.homeNode = nil;
+
+      [self repositionInReplayDyadmino:dyadmino];
       dyadmino.hidden = NO;
     }
   }
   
     /// modify this method so that cells do not get coloured
-  [self populateBoardWithDyadminoes];
+  
+//  [self populateBoardWithDyadminoes];
+}
+
+-(void)repositionInReplayDyadmino:(Dyadmino *)dyadmino {
+  dyadmino.position = [Cell positionCellLessDyadminoGivenHexOrigin:_boardField.hexOrigin andHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.orientation andResize:_boardZoomedOut];
+  [dyadmino selectAndPositionSprites];
 }
 
 -(void)updateViewForReplayInReplay:(BOOL)inReplay {
