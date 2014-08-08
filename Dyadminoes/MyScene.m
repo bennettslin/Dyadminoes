@@ -41,7 +41,6 @@
   Rack *_rackField;
   Rack *_swapField;
   Board *_boardField;
-  SKSpriteNode *_boardCover;
 
   TopBar *_topBar;
   PnPBar *_pnpBar;
@@ -85,6 +84,7 @@
   Dyadmino *_touchedDyadmino;
   Dyadmino *_recentRackDyadmino;
   Dyadmino *_hoveringDyadmino;
+  
   Button *_buttonPressed;
   SKNode *_touchNode;
   SKSpriteNode *_soundedDyadminoFace;
@@ -114,7 +114,6 @@
     _dyadminoesHollowed = NO;
 
     [self layoutBoard];
-    [self layoutBoardCover];
     [self layoutSwapField];
     [self layoutReplayBars];
     [self layoutPnPBar]; // deallocate for non-PnP matches?
@@ -347,18 +346,6 @@
   CGPoint homePosition = CGPointMake(self.frame.size.width * 0.5,
                                      (self.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
   [_boardField repositionBoardWithHomePosition:homePosition andOrigin:(CGPoint)homePosition];
-}
-
--(void)layoutBoardCover {
-    // call this method *after* board has been laid out
-  _boardCover = [[SKSpriteNode alloc] initWithColor:[SKColor blackColor] size:_boardField.size];
-  _boardCover.name = @"boardCover";
-  _boardCover.anchorPoint = CGPointMake(0.5, 0.5);
-  _boardCover.position = CGPointMake(self.frame.size.width * 0.5, (self.frame.size.height + kRackHeight - kTopBarHeight) * 0.5);
-  _boardCover.zPosition = kZPositionBoardCoverHidden;
-  _boardCover.alpha = kBoardCoverAlpha;
-  _boardCover.hidden = YES;
-  [self addChild:_boardCover];
 }
 
 -(void)populateBoardWithDyadminoes {
@@ -672,8 +659,7 @@
     _previousTouchWasDyadmino = _currentTouchIsDyadmino;
     _currentTouchIsDyadmino = NO;
     
-    if (_touchNode == _boardField || _touchNode == _boardCover ||
-        (_touchNode.parent == _boardField && (![_touchNode isKindOfClass:[Dyadmino class]] || _boardZoomedOut)) ||
+    if (_touchNode == _boardField || (_touchNode.parent == _boardField && (![_touchNode isKindOfClass:[Dyadmino class]] || _boardZoomedOut)) ||
         (_touchNode.parent.parent == _boardField && (![_touchNode.parent isKindOfClass:[Dyadmino class]] || _boardZoomedOut))) { // cell label, this one is necessary only for testing purposes
       
         // check if double tapped
@@ -1721,18 +1707,10 @@
   
     // only prevents board move from touch if it's truly out of bounds
     // it's fine if it's still within the buffer
-  if (_boardField.position.x < _boardField.lowestXPos) {
-    _boardBeingCorrectedWithinBounds = YES;
-  }
-  if (_boardField.position.y < _boardField.lowestYPos) {
-    _boardBeingCorrectedWithinBounds = YES;
-  }
-  if (_boardField.position.x > _boardField.highestXPos) {
-    _boardBeingCorrectedWithinBounds = YES;
-  }
-  if (_boardField.position.y > _boardField.highestYPos + swapBuffer) {
-    _boardBeingCorrectedWithinBounds = YES;
-  }
+  _boardBeingCorrectedWithinBounds = ((_boardField.position.x < _boardField.lowestXPos) ||
+                                      (_boardField.position.y < _boardField.lowestYPos) ||
+                                      (_boardField.position.x > _boardField.highestXPos) ||
+                                      (_boardField.position.y > _boardField.highestYPos + swapBuffer)) ? YES : NO;
   
   if (!_boardToBeMovedOrBeingMoved || _boardBeingCorrectedWithinBounds) {
     
@@ -1764,7 +1742,6 @@
   
       // establishes the board is being shifted away from hard edge, not as a correction
     if (_boardField.position.x < lowestXBuffer) {
-//      NSLog(@"board high X corrected");
       _boardJustShiftedNotCorrected = YES;
       thisDistance = (1.f + (lowestXBuffer - _boardField.position.x) / distanceDivisor);
       _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
@@ -1779,7 +1756,6 @@
     }
     
     if (_boardField.position.y < lowestYBuffer) {
-//      NSLog(@"board high Y corrected");
       _boardJustShiftedNotCorrected = YES;
       thisDistance = (1.f + (lowestYBuffer - _boardField.position.y) / distanceDivisor);
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y + thisDistance);
@@ -1794,7 +1770,6 @@
     }
 
     if (_boardField.position.x > highestXBuffer) {
-//      NSLog(@"board low X corrected");
       _boardJustShiftedNotCorrected = YES;
       thisDistance = (1.f + (_boardField.position.x - highestXBuffer) / distanceDivisor);
       _boardField.position = CGPointMake(_boardField.position.x - thisDistance, _boardField.position.y);
@@ -1809,7 +1784,6 @@
     }
 
     if (_boardField.position.y > highestYBuffer) {
-//      NSLog(@"board low Y corrected");
       _boardJustShiftedNotCorrected = YES;
       thisDistance = (1.f + (_boardField.position.y - highestYBuffer) / distanceDivisor);
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
@@ -2039,7 +2013,6 @@
 
   } else if (thereIsATouchedOrHoveringDyadmino) {
     [_topBar changeSwapCancelOrUndo:kCancelButton];
-      //        [_topBar disableButton:_topBar.passPlayOrDoneButton];
     
       // no dyadminoes played, and no recent rack dyadmino
   } else if (noDyadminoesPlayedAndNoRecentRackDyadmino) {
@@ -2237,11 +2210,10 @@
     // this gets called before scene is removed from view
   if (!animated) {
     _swapField.hidden = YES;
-    [self hideBoardCover];
     return;
   }
   
-    // cells will toggle faster than pnpBar moves
+    // cells will toggle faster than field moves
   _dyadminoesStationary = _swapMode || _boardZoomedOut;
   [self toggleDyadminoesToBeStationaryOrMovableAnimated:!_boardZoomedOut]; // only animate if board zoomed in
   
@@ -2254,16 +2226,13 @@
     SKAction *completionAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
       _swapField.hidden = YES;
-      [self hideBoardCover];
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
     [_swapField runAction:sequenceAction];
     
       // board action
-    CGFloat swapBuffer;
-    
       // FIXME: when board is moved to top in swap mode, board goes down, then pops back up
-    swapBuffer = (_boardField.position.y > _boardField.highestYPos) ? _boardField.highestYPos : _boardField.position.y - kRackHeight / 2;
+    CGFloat swapBuffer = (_boardField.position.y > _boardField.highestYPos) ? _boardField.highestYPos : _boardField.position.y - kRackHeight / 2;
       
     SKAction *moveBoardAction = [SKAction moveToY:swapBuffer duration:kConstantTime];
     [_boardField runAction:moveBoardAction];
@@ -2277,7 +2246,6 @@
     SKAction *moveAction = [SKAction moveToY:kRackHeight duration:kConstantTime];
     SKAction *completionAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
-      [self revealBoardCover];
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
     [_swapField runAction:sequenceAction];
@@ -2286,17 +2254,6 @@
     SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y + kRackHeight / 2 duration:kConstantTime];
     [_boardField runAction:moveBoardAction];
   }
-}
-
--(void)revealBoardCover {
-    // TODO: make this animated
-  _boardCover.hidden = NO;
-  _boardCover.zPosition = kZPositionBoardCover;
-}
-
--(void)hideBoardCover {
-  _boardCover.hidden = YES;
-  _boardCover.zPosition = kZPositionBoardCoverHidden;
 }
 
 #pragma mark - match helper methods
