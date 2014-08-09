@@ -26,7 +26,6 @@
 -(void)loadAfterNewMatchRetrieved;
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location;
--(void)cancelPinch;
 -(BOOL)validatePinchLocation:(CGPoint)location;
 
 -(void)tempStoreForPlayerSceneDataDyadminoes;

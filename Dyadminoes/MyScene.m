@@ -153,6 +153,7 @@
   
   _zoomChangedCellsAlpha = NO;
   _rackExchangeInProgress = NO;
+  [_buttonPressed showLifted];
   _buttonPressed = nil;
   _hoveringDyadminoBeingCorrected = 0;
   _hoveringDyadminoFinishedCorrecting = 1;
@@ -498,45 +499,19 @@
     [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
   }
   
+    /// doesn't seem to be needed
     // ensure that pinch can't happen when dyadmino is touched
-  if (_currentTouchIsDyadmino || _previousTouchWasDyadmino) {
-    return;
-  }
-  
-    // leave this alone for now
-  /*
-  if (_boardZoomedOut) { // only > 1 scale matters
-    if (scale > 1.f && scale < kHighPinchScale) {
-      [_boardField changeAllBoardCellsGivenScale:(kHighPinchScale - scale) / (kHighPinchScale - 1)];
-      _zoomChangedCellsAlpha = YES;
-    }
-  } else { // only < 1 scale matters
-    if (scale > kLowPinchScale && scale < 1.f) {
-      [_boardField changeAllBoardCellsGivenScale:(1.f - scale) / (1 - kLowPinchScale)];
-      _zoomChangedCellsAlpha = YES;
-    }
-  }
-   */
-//  NSLog(@"raw pinch location is %.2f, %.2f", location.x, (self.size.height - location.y));
+//  if (_currentTouchIsDyadmino || _previousTouchWasDyadmino) {
+//    return;
+//  }
   
     // sceneVC sends Y upside down
   CGPoint correctLocation = CGPointMake((_boardField.homePosition.x - location.x) / kZoomResizeFactor + _boardField.origin.x,
                                  (_boardField.homePosition.y - (self.size.height - location.y)) / kZoomResizeFactor + _boardField.origin.y);
-//  NSLog(@"processed pinch location is %.2f, %.2f", correctLocation.x, correctLocation.y);
   
   if ((scale < kLowPinchScale && !_boardZoomedOut) || (scale > kHighPinchScale && _boardZoomedOut)) {
     [self toggleBoardZoomWithTapCentering:YES andCenterLocation:correctLocation];
   }
-}
-
--(void)cancelPinch {
-  /*
-  if (_zoomChangedCellsAlpha) {
-    NSLog(@"touches ended, now changing to prezoom alpha");
-    [_boardField changeAllBoardCellsToPreZoomAlpha];
-    _zoomChangedCellsAlpha = NO;
-  }
-   */
 }
 
 -(BOOL)validatePinchLocation:(CGPoint)location {
@@ -582,24 +557,26 @@
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
+
   NSLog(@"%@, zPosition %.2f", _touchNode.name, _touchNode.zPosition);
 
     //--------------------------------------------------------------------------
     /// 3a. button pressed
   
+    // cancels button pressed if there's any other touch
+  if (_buttonPressed) {
+    [self buttonPressedMakeNil];
+    return;
+  }
+  
     // if it's a button, take care of it when touch ended
   if ([_touchNode isKindOfClass:[Button class]] || [_touchNode.parent isKindOfClass:[Button class]]) {
-    
+    Button *touchedButton = [_touchNode isKindOfClass:[Button class]] ? (Button *)_touchNode : (Button *)_touchNode.parent;
       // sound of button tapped
     
       // FIXME: sound should work
 //    [self.mySoundEngine soundButton:YES];
-    if ([_touchNode isKindOfClass:[Button class]]) {
-      _buttonPressed = (Button *)_touchNode;
-    } else if ([_touchNode.parent isKindOfClass:[Button class]]) {
-      _buttonPressed = (Button *)_touchNode.parent;
-    }
-      // TODO: make distinction of button pressed better, of course
+    _buttonPressed = touchedButton;
     [_buttonPressed showSunkIn];
     return;
   }
@@ -698,7 +675,6 @@
     // if the touch started on a button, do nothing and return
   if (_buttonPressed) {
     SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
-    
     (node == _buttonPressed || node.parent == _buttonPressed) ? [_buttonPressed showSunkIn] : [_buttonPressed showLifted];
     return;
   }
@@ -841,16 +817,20 @@
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     /// 1. first check whether to even register the touch ended
   
+    // kludge way of ensuring that buttonPressed is cancelled upon multiple touches
+  
     // this ensures no more than one touch at a time
   UITouch *thisTouch = [touches anyObject];
   _endTouchLocationToMeasureDoubleTap = [self findTouchLocationFromTouches:touches];
   
   if (thisTouch != _currentTouch) {
+    [self buttonPressedMakeNil]; // remarkably, it seems both these calls are needed
     return;
   }
 
   _currentTouch = nil;
   [self endTouchFromTouches:touches];
+  [self buttonPressedMakeNil];
 }
 
 -(void)endTouchFromTouches:(NSSet *)touches {
@@ -860,23 +840,22 @@
   }
   
     //--------------------------------------------------------------------------
-    /// 2a and b. handle button pressed or board moved
+    /// 2a and b. handle button press and  board moved
+
+  SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
   
-    // handle button that was pressed, ensure that touch is still on button when it ends
-  if (_buttonPressed && touches) {
-    SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
-    if (node == _buttonPressed || node.parent == _buttonPressed) {
-      
-        // sound of button release
-        // FIXME: sound should work
-//      [self.mySoundEngine soundButton:NO];
-      [_buttonPressed showLifted];
-      [self handleButtonPressed];
+  if ([node isKindOfClass:[Button class]] || [node.parent isKindOfClass:[Button class]]) {
+    Button *button = [node isKindOfClass:[Button class]] ? (Button *)node : (Button *)node.parent;
+      //     sound of button release
+      //     FIXME: sound should work
+      //          [self.mySoundEngine soundButton:NO];
+
+    if (button == _buttonPressed) {
+      [self handleButtonPressed:_buttonPressed];
     }
-    _buttonPressed = nil;
     return;
   }
-  
+
     // board no longer being moved
   if (_boardToBeMovedOrBeingMoved) {
     _boardToBeMovedOrBeingMoved = NO;
@@ -1248,22 +1227,22 @@
   [self.mySceneEngine toggleBetweenLetterAndNumberMode];
 }
 
--(void)handleButtonPressed {
+-(void)handleButtonPressed:(Button *)button {
   
       /// games button
-  if (_buttonPressed == _topBar.returnOrStartButton) {
+  if (button == _topBar.returnOrStartButton) {
     [self goBackToMainViewController];
     return;
     
       /// pnp button
-  } else if (_buttonPressed == _pnpBar.returnOrStartButton) {
+  } else if (button == _pnpBar.returnOrStartButton) {
     _pnpBarUp = NO;
     [self togglePnPBar];
     [self afterNewPlayerReady];
   
       /// swap button
-  } else if (_buttonPressed == _topBar.swapCancelOrUndoButton &&
-             [_buttonPressed confirmSwapCancelOrUndo] == kSwapButton) {
+  } else if (button == _topBar.swapCancelOrUndoButton &&
+             [button confirmSwapCancelOrUndo] == kSwapButton) {
     if (!_swapMode) {
       _swapMode = YES;
       [self toggleSwapFieldWithAnimation:YES];
@@ -1271,8 +1250,8 @@
     }
     
       /// cancel button
-  } else if (_buttonPressed == _topBar.swapCancelOrUndoButton &&
-             [_buttonPressed confirmSwapCancelOrUndo] == kCancelButton) {
+  } else if (button == _topBar.swapCancelOrUndoButton &&
+             [button confirmSwapCancelOrUndo] == kCancelButton) {
     
       // if in swap mode, cancel swap
     if (_swapMode) {
@@ -1290,19 +1269,19 @@
     }
     
       /// undo button
-  } else if (_buttonPressed == _topBar.swapCancelOrUndoButton &&
-             [_buttonPressed confirmSwapCancelOrUndo] == kUndoButton) {
+  } else if (button == _topBar.swapCancelOrUndoButton &&
+             [button confirmSwapCancelOrUndo] == kUndoButton) {
     
     [self undoLastPlayedDyadmino];
   
       /// play button
-  } else if (_buttonPressed == _topBar.passPlayOrDoneButton &&
-             [_buttonPressed confirmPassPlayOrDone] == kPlayButton) {
+  } else if (button == _topBar.passPlayOrDoneButton &&
+             [button confirmPassPlayOrDone] == kPlayButton) {
     [self playDyadmino:_recentRackDyadmino];
     
       /// pass or done button
-  } else if (_buttonPressed == _topBar.passPlayOrDoneButton &&
-             ([_buttonPressed confirmPassPlayOrDone] == kDoneButton || [_buttonPressed confirmPassPlayOrDone] == kPassButton)) {
+  } else if (button == _topBar.passPlayOrDoneButton &&
+             ([button confirmPassPlayOrDone] == kDoneButton || [button confirmPassPlayOrDone] == kPassButton)) {
     if (!_swapMode) {
       if (self.myMatch.holdingContainer.count == 0) {
           // it's a pass, so confirm with action sheet
@@ -1322,16 +1301,16 @@
     }
     
       /// debug button
-  } else if (_buttonPressed == _topBar.debugButton) {
+  } else if (button == _topBar.debugButton) {
     _debugMode = _debugMode ? NO : YES;
     [self toggleDebugMode];
     
       /// resign button
-  } else if (_buttonPressed == _topBar.resignButton) {
+  } else if (button == _topBar.resignButton) {
     [self presentResignActionSheet];
     
       /// replay button
-  } else if (_buttonPressed == _topBar.replayButton || _buttonPressed == _replayTop.returnOrStartButton) {
+  } else if (button == _topBar.replayButton || button == _replayTop.returnOrStartButton) {
     _replayMode = _replayMode ? NO : YES;
     [self toggleReplayFields];
     
@@ -1358,16 +1337,16 @@
     return;
     
       // replay buttons
-  } else if (_buttonPressed == _replayBottom.firstTurnButton) {
+  } else if (button == _replayBottom.firstTurnButton) {
     [self.myMatch first];
     [self updateViewForReplayInReplay:YES];
-  } else if (_buttonPressed == _replayBottom.previousTurnButton) {
+  } else if (button == _replayBottom.previousTurnButton) {
     [self.myMatch previous];
     [self updateViewForReplayInReplay:YES];
-  } else if (_buttonPressed == _replayBottom.nextTurnButton) {
+  } else if (button == _replayBottom.nextTurnButton) {
     [self.myMatch next];
     [self updateViewForReplayInReplay:YES];
-  } else if (_buttonPressed == _replayBottom.lastTurnButton) {
+  } else if (button == _replayBottom.lastTurnButton) {
     [self.myMatch last];
     [self updateViewForReplayInReplay:YES];
   } else {
@@ -1377,6 +1356,11 @@
     // return to bypass updating labels and buttons
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
+}
+
+-(void)buttonPressedMakeNil {
+  [_buttonPressed showLifted];
+  _buttonPressed = nil;
 }
 
 #pragma mark - match interaction methods
@@ -2629,7 +2613,7 @@
     } else {
       if (self.myMatch.gameHasEnded) {
         turnOrResultsText = [self.myMatch endGameResultsText];
-        
+        colour = [SKColor whiteColor];
           // just say it was the last play, no turn number
       } else {
         turnOrResultsText = [self.myMatch turnTextLastPlayed:YES];
@@ -2769,10 +2753,9 @@
 }
 
 -(void)animateScaleForReplayOfDyadmino:(Dyadmino *)dyadmino toShrink:(BOOL)shrink {
-  
-  CGFloat desiredScale = shrink ? 0.f : 1.f;
+
   if (shrink) {
-    SKAction *shrinkAction = [SKAction scaleTo:desiredScale duration:kConstantTime * 0.5f];
+    SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime * 0.5f];
     SKAction *hideAction = [SKAction runBlock:^{
       dyadmino.hidden = YES;
       dyadmino.zPosition = kZPositionBoardRestingDyadmino;
@@ -2783,7 +2766,7 @@
     [dyadmino runAction:sequence];
     
   } else {
-    SKAction *growAction = [SKAction scaleTo:desiredScale duration:kConstantTime * 0.5f];
+    SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.5f];
     SKAction *completeAction = [SKAction runBlock:^{
       dyadmino.zPosition = kZPositionBoardRestingDyadmino;
     }];

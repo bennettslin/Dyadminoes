@@ -108,7 +108,6 @@
   }
   
   if ([sender state] == UIGestureRecognizerStateEnded) {
-    [self.myScene cancelPinch];
     _pinchStillCounts = YES;
     
   } else if (_pinchStillCounts) {
