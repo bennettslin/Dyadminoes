@@ -528,10 +528,6 @@
     settledPosition = self.tempBoardNode.position;
   }
   
-    // updates hexCoord for board dyadmino
-  NSLog(@"%@ hexCoord updated", self.name);
-  self.myHexCoord = self.tempBoardNode ? self.tempBoardNode.myCell.hexCoord : self.homeNode.myCell.hexCoord;
-  
   SKAction *moveAction = [SKAction moveTo:settledPosition duration:kConstantTime];
   SKAction *finishAction = [SKAction runBlock:^{
     

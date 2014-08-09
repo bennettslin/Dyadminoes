@@ -70,6 +70,7 @@
 
 #pragma mark - board position methods
 
+-(void)centerBoardOnDyadminoesAverageCenter;
 -(void)centerBoardOnLocation:(CGPoint)location;
 
 #pragma mark - background image methods
@@ -81,7 +82,7 @@
 
 #pragma mark - zoom methods
 
--(void)repositionCellsAndDyadminoesForZoom;
+-(void)repositionCellsForZoom;
 -(void)toggleBackgroundAlphaZeroed:(BOOL)zeroed animated:(BOOL)animated;
 
 #pragma mark - cell methods

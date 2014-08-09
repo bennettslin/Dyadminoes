@@ -955,22 +955,10 @@
     // prep board for bounds and position
   [_boardField determineOutermostCellsBasedOnDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
   [_boardField determineBoardPositionBounds];
-  [_boardField repositionCellsAndDyadminoesForZoom];
-  
-    // same as for board dyadminoes
-  if (_recentRackDyadmino) {
-    
-      // these ensure that dyadmino is placed properly when flipped right before board zooms out
-    [_recentRackDyadmino removeActionsAndEstablishNotRotating];
-    _recentRackDyadmino.isTouchThenHoverResized = NO;
-    
-    _recentRackDyadmino.isZoomResized = _recentRackDyadmino.isZoomResized ? NO : YES;
-    _recentRackDyadmino.position = _recentRackDyadmino.tempBoardNode.position;
-    [_recentRackDyadmino selectAndPositionSprites];
-  }
+  [_boardField repositionCellsForZoom];
   
     // resize dyadminoes
-  for (Dyadmino *dyadmino in self.boardDyadminoes) {
+  for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
     [dyadmino removeActionsAndEstablishNotRotating];
     dyadmino.isTouchThenHoverResized = NO;
     dyadmino.isZoomResized = _boardZoomedOut;
@@ -2317,14 +2305,18 @@
 #pragma mark - board helper methods
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour {
-//  NSLog(@"update cells for placed dyadmino");
   if (![dyadmino isRotating]) {
-    [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:(dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode) andColour:colour];
+    
+    SnapPoint *snapPoint = dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode;
+    
+      // update hexCoord of board dyadmino
+    dyadmino.myHexCoord = snapPoint.myCell.hexCoord;
+    
+    [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:snapPoint andColour:colour];
   }
 }
 
 -(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour {
-//  NSLog(@"update cells for removed dyadmino");
   if (![dyadmino isRotating]) {
     [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:(dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode) andColour:colour];
   }
@@ -2337,6 +2329,18 @@
   if ([_recentRackDyadmino isOnBoard] && ![dyadminoesOnBoard containsObject:_recentRackDyadmino]) {
     [dyadminoesOnBoard addObject:_recentRackDyadmino];
   }
+  return [NSSet setWithSet:dyadminoesOnBoard];
+}
+
+-(NSSet *)allBoardDyadminoesNotTurnOrRecentRack {
+  NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
+  NSSet *turnDyadminoesPlusRecentRack = [self allTurnDyadminoesPlusRecentRackDyadmino];
+  for (Dyadmino *dyadmino in turnDyadminoesPlusRecentRack) {
+    if ([dyadminoesOnBoard containsObject:dyadmino]) {
+      [dyadminoesOnBoard removeObject:dyadmino];
+    }
+  }
+
   return [NSSet setWithSet:dyadminoesOnBoard];
 }
 
@@ -2613,24 +2617,25 @@
 -(void)showTurnInfoOrGameResultsForReplay:(BOOL)replay {
   if (self.myMatch.turns.count > 0) {
     
-    // if game has ended, give results
+      // if game has ended, give results
     NSString *turnOrResultsText;
     SKColor *colour;
     
-      // FIXME: refactor to make more efficient
     if (replay) {
       turnOrResultsText = [self.myMatch turnTextLastPlayed:NO];
       Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"player"];
       colour = [self.myMatch colourForPlayer:turnPlayer];
-      
-    } else if (!replay && self.myMatch.gameHasEnded) {
-      turnOrResultsText = [self.myMatch endGameResultsText];
-      
-        // just say it was the last play, no turn number
+
     } else {
-      turnOrResultsText = [self.myMatch turnTextLastPlayed:YES];
-      Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"player"];
-      colour = [self.myMatch colourForPlayer:turnPlayer];
+      if (self.myMatch.gameHasEnded) {
+        turnOrResultsText = [self.myMatch endGameResultsText];
+        
+          // just say it was the last play, no turn number
+      } else {
+        turnOrResultsText = [self.myMatch turnTextLastPlayed:YES];
+        Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"player"];
+        colour = [self.myMatch colourForPlayer:turnPlayer];
+      }
     }
     
     replay ? [_replayTop updateLabelNamed:@"status" withText:turnOrResultsText andColour:colour] :
@@ -2670,26 +2675,36 @@
   }
 }
 
+-(void)updateViewForReplayInReplay:(BOOL)inReplay {
+  [self updateBoardForReplayInReplay:inReplay];
+  [self showTurnInfoOrGameResultsForReplay:inReplay];
+  if (inReplay) {
+    [self updateReplayButtons];
+  }
+}
+
 -(void)updateBoardForReplayInReplay:(BOOL)inReplay {
+  
+  NSMutableSet *dyadminoesOnBoardUpToThisPoint = [NSMutableSet new];
   
   if (inReplay) {
     
       // match already knows the turn number
     Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"player"];
-    NSArray *turnDyadminoes = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"container"];
+    NSArray *turnDataDyadminoes = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"container"];
     
-    for (Dyadmino *dyadmino in self.boardDyadminoes) {
+    for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
       DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
       
-        // only hide or show dyadminoes from past turns here, not recently played ones which were hidden in startReplay
-      if (![self.myMatch.holdingContainer containsObject:dataDyad]) {
+        // only show dyadminoes played up to this turn, and add to set that will be passed to board
+      if (![self.myMatch.replayBoard containsObject:dataDyad]) {
+        dyadmino.hidden = YES;
         
-          // hide or show dyadmino
-          // FIXME: make animations more sophisticated
-        dyadmino.hidden = [self.myMatch.replayBoard containsObject:dataDyad] ? NO : YES;
+      } else {
+        dyadmino.hidden = NO;
         
-          // highlight dyadminoes played this turn
-        if ([turnDyadminoes containsObject:dataDyad]) {
+          // highlight dyadminoes played on this turn
+        if ([turnDataDyadminoes containsObject:dataDyad]) {
           [dyadmino removeActionForKey:kActionShowRecentlyPlayed];
           [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer]];
         } else {
@@ -2703,33 +2718,33 @@
         
           // position dyadmino
         [self repositionInReplayDyadmino:dyadmino];
+        
+        [dyadminoesOnBoardUpToThisPoint addObject:dyadmino];
       }
     }
     
-  } else { // leaving replay
-    for (Dyadmino *dyadmino in self.boardDyadminoes) {
+      // prepare to leave replay
+  } else {
+    
+    dyadminoesOnBoardUpToThisPoint = [NSMutableSet setWithSet:[self allBoardDyadminoesNotTurnOrRecentRack]];
+    
+    for (Dyadmino *dyadmino in dyadminoesOnBoardUpToThisPoint) {
 
       [self repositionInReplayDyadmino:dyadmino];
       dyadmino.hidden = NO;
     }
   }
   
-    /// modify this method so that cells do not get coloured
-  
-//  [self populateBoardWithDyadminoes];
+    // prep board for bounds and position
+  NSLog(@"from scene, outermost cells being determined");
+  [_boardField determineOutermostCellsBasedOnDyadminoes:dyadminoesOnBoardUpToThisPoint];
+  [_boardField determineBoardPositionBounds];
+//  [_boardField centerBoardOnDyadminoesAverageCenter];
 }
 
 -(void)repositionInReplayDyadmino:(Dyadmino *)dyadmino {
   dyadmino.position = [Cell positionCellLessDyadminoGivenHexOrigin:_boardField.hexOrigin andHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.orientation andResize:_boardZoomedOut];
   [dyadmino selectAndPositionSprites];
-}
-
--(void)updateViewForReplayInReplay:(BOOL)inReplay {
-  [self updateBoardForReplayInReplay:inReplay];
-  [self showTurnInfoOrGameResultsForReplay:inReplay];
-  if (inReplay) {
-    [self updateReplayButtons];
-  }
 }
 
 #pragma mark - action sheet methods

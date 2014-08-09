@@ -187,30 +187,16 @@
 
 -(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes {
   
-  NSLog(@"determineOutermostCells");
     // floats to allow for in-between values for y-coordinates
-  
   CGFloat cellsTopmost = -2147483648;
   CGFloat cellsRightmost = -2147483648;
   CGFloat cellsBottommost = 2147483647;
   CGFloat cellsLeftmost = 2147483647;
   
   for (Dyadmino *dyadmino in boardDyadminoes) {
-    
-    HexCoord hexCoord1;
-    HexCoord hexCoord2;
-    
-    if (dyadmino.homeNode) {
-        // different board nodes, depending on whether dyadmino belongs in rack
-      SnapPoint *boardNode = [dyadmino belongsInRack] ? dyadmino.tempBoardNode : dyadmino.homeNode;
-      hexCoord1 = [self hexCoordFromX:boardNode.myCell.hexCoord.x andY:boardNode.myCell.hexCoord.y];
-      hexCoord2 = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:boardNode];
 
-        // if instantiating, dyadmino does not have boardNode
-    } else {
-      hexCoord1 = [self hexCoordFromX:dyadmino.myHexCoord.x andY:dyadmino.myHexCoord.y];
-      hexCoord2 = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil];
-    }
+    HexCoord hexCoord1 = [self hexCoordFromX:dyadmino.myHexCoord.x andY:dyadmino.myHexCoord.y];
+    HexCoord hexCoord2 = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil];
   
     HexCoord hexCoord[2] = {hexCoord1, hexCoord2};
     
@@ -286,7 +272,7 @@
 
 #pragma mark - zoom methods
 
--(void)repositionCellsAndDyadminoesForZoom {
+-(void)repositionCellsForZoom {
 
   CGSize cellSize = [Cell establishCellSizeForResize:self.zoomedOut];
   for (Cell *cell in self.allCells) {
@@ -311,8 +297,7 @@
     [self.delegate correctBoardForPositionAfterZoom];
     [self zoomInBackgroundImage];
   }
-  
-  NSLog(@"reposition cells and dyadminoes for zoom");
+
   self.backgroundNodeZoomedIn.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
   self.backgroundNodeZoomedOut.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
 }
@@ -496,6 +481,7 @@
     
       // this gets the cells based on dyadmino orientation and board node
     Cell *bottomCell = snapPoint.myCell;
+    
     HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
     Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
 
