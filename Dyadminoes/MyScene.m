@@ -70,7 +70,7 @@
   
   BOOL _canDoubleTapForBoardZoom;
   BOOL _canDoubleTapForDyadminoFlip;
-  BOOL _hoveringDyadminoToStayFixedWhileBoardMoves;
+  BOOL _hoveringDyadminoStaysFixedToBoard;
   BOOL _boardJustShiftedNotCorrected;
   BOOL _boardZoomedOut;
   BOOL _buttonsUpdatedThisTouch;
@@ -167,7 +167,7 @@
   _previousTouchWasDyadmino = NO;
   _canDoubleTapForBoardZoom = NO;
   _canDoubleTapForDyadminoFlip = NO;
-  _hoveringDyadminoToStayFixedWhileBoardMoves = NO;
+  _hoveringDyadminoStaysFixedToBoard = NO;
   _boardJustShiftedNotCorrected = NO;
   _uponTouchDyadminoNode = nil;
   _soundedDyadminoFace = nil;
@@ -653,10 +653,11 @@
         // check to see if hovering dyadmino should be moved along with board or not
       if (_hoveringDyadmino) {
         [_boardField hideAllPivotGuides];
-        _hoveringDyadminoToStayFixedWhileBoardMoves = NO;
         if ([_boardField validatePlacingDyadmino:_hoveringDyadmino onBoardNode:_hoveringDyadmino.tempBoardNode] != kNoError) {
-          _hoveringDyadminoToStayFixedWhileBoardMoves = YES;
+          _hoveringDyadminoStaysFixedToBoard = YES;
           [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
+        } else {
+          _hoveringDyadminoStaysFixedToBoard = NO;
         }
       }
     }
@@ -840,7 +841,7 @@
   }
   
     //--------------------------------------------------------------------------
-    /// 2a and b. handle button press and  board moved
+    /// 2a and b. handle button press and board moved
 
   SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
   
@@ -861,7 +862,7 @@
     _boardToBeMovedOrBeingMoved = NO;
     
       // take care of hovering dyadmino
-    if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
+    if (_hoveringDyadminoStaysFixedToBoard) {
       _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
       [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
     }
@@ -897,11 +898,16 @@
     
     CGPoint adjustedNewPosition = [_boardField adjustToNewPositionFromBeganLocation:_beganTouchLocation toCurrentLocation:_currentTouchLocation withSwap:_swapMode];
     
-    if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
+    if (_hoveringDyadminoStaysFixedToBoard) {
+      NSLog(@"hovering dyadmino in moveBoard");
       _hoveringDyadmino.position = [self addToThisPoint:_hoveringDyadmino.position
                                               thisPoint:[self subtractFromThisPoint:_boardField.position
                                                                           thisPoint:adjustedNewPosition]];
     }
+    
+      // this must be established last, because hovering dyadmino
+      // needs to access boardField's original position
+    _boardField.position = adjustedNewPosition;
   }
 }
 
@@ -1723,7 +1729,7 @@
       _boardField.position = CGPointMake(_boardField.position.x + thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
       
-      if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
+      if (_hoveringDyadminoStaysFixedToBoard) {
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x - thisDistance, _hoveringDyadmino.position.y);
       }
       
@@ -1737,7 +1743,7 @@
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y + thisDistance);
       _boardField.homePosition = _boardField.position;
       
-      if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
+      if (_hoveringDyadminoStaysFixedToBoard) {
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x, _hoveringDyadmino.position.y - thisDistance);
       }
       
@@ -1751,7 +1757,7 @@
       _boardField.position = CGPointMake(_boardField.position.x - thisDistance, _boardField.position.y);
       _boardField.homePosition = _boardField.position;
       
-      if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
+      if (_hoveringDyadminoStaysFixedToBoard) {
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x + thisDistance, _hoveringDyadmino.position.y);
       }
       
@@ -1765,7 +1771,7 @@
       _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
       _boardField.homePosition = _boardField.position;
       
-      if (_hoveringDyadminoToStayFixedWhileBoardMoves) {
+      if (_hoveringDyadminoStaysFixedToBoard) {
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x, _hoveringDyadmino.position.y + thisDistance);
       }
       
@@ -2902,9 +2908,9 @@
 
 -(void)toggleDebugMode {
   
-  if (_hoveringDyadmino) {
-    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
-  }
+//  if (_hoveringDyadmino) {
+//    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
+//  }
   
   CGFloat zPosition = _debugMode ? kZPositionTopBarLabel : -1000;
   _topBar.pileDyadminoesLabel.hidden = !_debugMode;
@@ -2933,17 +2939,19 @@
     NSLog(@"data %lu is at %li", (unsigned long)dataDyad.myID, (long)dataDyad.myRackOrder);
   }
   
-  NSMutableArray *tempDyadminoArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
-  NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
-  NSArray *tempImutableArray = [tempDyadminoArray sortedArrayUsingDescriptors:@[sortByRackOrder]];
-  for (Dyadmino *dyadmino in tempImutableArray) {
-    NSLog(@"%@ is now at %lu", dyadmino.name, (unsigned long)[tempImutableArray indexOfObject:dyadmino]);
-    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-    NSLog(@"data %lu is at %li", (unsigned long)dataDyad.myID, (long)dataDyad.myRackOrder);
-  }
+//  NSMutableArray *tempDyadminoArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
+//  NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
+//  NSArray *tempImutableArray = [tempDyadminoArray sortedArrayUsingDescriptors:@[sortByRackOrder]];
+//  for (Dyadmino *dyadmino in tempImutableArray) {
+//    NSLog(@"%@ is now at %lu", dyadmino.name, (unsigned long)[tempImutableArray indexOfObject:dyadmino]);
+//    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+//    NSLog(@"data %lu is at %li", (unsigned long)dataDyad.myID, (long)dataDyad.myRackOrder);
+//  }
   
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
+  
+    NSLog(@"hoveringDyadmino to stay fixed ? %i", _hoveringDyadminoStaysFixedToBoard);
 }
 
 -(void)logRackDyadminoes {

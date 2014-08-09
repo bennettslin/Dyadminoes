@@ -176,11 +176,8 @@
   
   CGPoint adjustedNewPosition = CGPointMake(newX, newY);
   
-    // move board to new position
-  self.position = adjustedNewPosition;
-  
     // move home position to board position, after applying touch offset
-  self.homePosition = [self addToThisPoint:self.position thisPoint:touchOffset];
+  self.homePosition = [self addToThisPoint:adjustedNewPosition thisPoint:touchOffset];
   
   return adjustedNewPosition;
 }
