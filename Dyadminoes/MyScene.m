@@ -896,18 +896,16 @@
   
   if (!_boardBeingCorrectedWithinBounds) {
     
+    CGPoint oldBoardPosition = _boardField.position;
+    
     CGPoint adjustedNewPosition = [_boardField adjustToNewPositionFromBeganLocation:_beganTouchLocation toCurrentLocation:_currentTouchLocation withSwap:_swapMode];
     
     if (_hoveringDyadminoStaysFixedToBoard) {
       NSLog(@"hovering dyadmino in moveBoard");
       _hoveringDyadmino.position = [self addToThisPoint:_hoveringDyadmino.position
-                                              thisPoint:[self subtractFromThisPoint:_boardField.position
+                                              thisPoint:[self subtractFromThisPoint:oldBoardPosition
                                                                           thisPoint:adjustedNewPosition]];
     }
-    
-      // this must be established last, because hovering dyadmino
-      // needs to access boardField's original position
-    _boardField.position = adjustedNewPosition;
   }
 }
 
