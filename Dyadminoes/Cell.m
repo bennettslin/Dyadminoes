@@ -223,7 +223,7 @@
   return CGPointMake(newX, newY);
 }
 
-+(CGPoint)positionCellLessDyadminoGivenHexOrigin:(CGVector)hexOrigin andHexCoord:(HexCoord)hexCoord andOrientation:(DyadminoOrientation)orientation andResize:(BOOL)resize {
++(CGPoint)positionCellAgnosticDyadminoGivenHexOrigin:(CGVector)hexOrigin andHexCoord:(HexCoord)hexCoord andOrientation:(DyadminoOrientation)orientation andResize:(BOOL)resize {
   
     // get hypothetical cellPosition
   CGSize cellSize = [Cell establishCellSizeForResize:resize];

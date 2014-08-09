@@ -108,7 +108,7 @@
 #define kDistanceForTouchingFace (kDyadminoFaceRadius * 0.7f)
 #define kDistanceForTouchingHoveringDyadmino (kDyadminoFaceRadius * kDyadminoHoverResizeFactor) // was 32.f
 #define kDistanceForTouchingRestingDyadmino (kDyadminoFaceRadius * 0.8f) // was 25.f
-#define kDistanceToDoubleTap 18.f // tweak as necessary
+#define kDistanceToDoubleTap 22.f // tweak as necessary
 #define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
 #define kMaxDistanceForPivot (kDyadminoFaceRadius * 3.5f)
 #define kPivotGuideAlpha 0.9f

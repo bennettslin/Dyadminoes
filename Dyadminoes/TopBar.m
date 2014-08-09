@@ -40,7 +40,7 @@
   self.debugButton = tempArray[5];
 
   [self button:self.debugButton shouldBeEnabled:YES];
-  self.allButtons = [NSSet setWithArray:tempArray];
+//  self.allButtons = [NSSet setWithArray:tempArray];
 }
 
 -(void)populateWithTopBarLabels {

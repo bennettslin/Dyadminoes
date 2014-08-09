@@ -10,7 +10,7 @@
 #import "Button.h"
 #import "Label.h"
 
-#define kLabelFontSize (kIsIPhone ? 14.f : 18.f)
+#define kLabelFontSize (kIsIPhone ? 42.f : 54.f)
 
 @implementation PnPBar
 
@@ -25,7 +25,7 @@
   self.waitingForPlayerLabel = [[Label alloc] initWithName:@"waitPlayer"
                                     andFontColor:kTestRed
                                      andFontSize:kLabelFontSize
-                                     andPosition:CGPointMake(5.f, kLabelYPosition)
+                                     andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition * 2)
                                     andZPosition:kZPositionLogMessage
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   

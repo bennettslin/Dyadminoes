@@ -70,9 +70,9 @@
   
   if (rotation != _rotationFromDevice) {
 
-    for (Button *button in self.allButtons) {
-      button.zRotation = [self getRadiansFromDegree:rotation];
-    }
+//    for (Button *button in self.allButtons) {
+//      button.zRotation = [self getRadiansFromDegree:rotation];
+//    }
     
     _rotationFromDevice = rotation;
     return YES;
@@ -83,16 +83,11 @@
 
 #pragma mark - label view methods
 
--(void)updateLabelNamed:(NSString *)name withText:(NSString *)text andColour:(UIColor *)colour {
-  Label *label = [self.allLabels valueForKey:name];
+-(void)updateLabel:(Label *)label withText:(NSString *)text andColour:(UIColor *)colour {
+//  Label *label = [self.allLabels valueForKey:name];
   
   if (label) {
-    
-    if (!colour) {
-      label.fontColor = label.originalFontColour;
-    } else {
-      label.fontColor = colour;
-    }
+      label.fontColor = colour ? colour : label.originalFontColour;
     
     if (!label.parent) {
       [self addChild:label];
@@ -101,19 +96,15 @@
   }
 }
 
--(void)flashLabelNamed:(NSString *)name withText:(NSString *)text andColour:(UIColor *)colour {
-  Label *label = [self.allLabels valueForKey:name];
+-(void)flashLabel:(Label *)label withText:(NSString *)text andColour:(UIColor *)colour {
+//  Label *label = [self.allLabels valueForKey:name];
   if (label) {
     [label removeAllActions];
     if (!label.parent) {
       [self addChild:label];
     }
 
-    if (!colour) {
-      label.fontColor = label.originalFontColour;
-    } else {
-      label.fontColor = colour;
-    }
+    label.fontColor = colour ? colour : label.originalFontColour;
     
     label.text = text;
     label.alpha = 0.f;

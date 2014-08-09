@@ -10,7 +10,7 @@
 #import "Button.h"
 #import "Label.h"
 
-#define kLabelFontSize (kIsIPhone ? 14.f : 18.f)
+#define kLabelFontSize (kIsIPhone ? 28.f : 36.f)
 
 @implementation ReplayBar
 
@@ -24,13 +24,13 @@
   [tempButtons addObject:self.returnOrStartButton];
   [self button:self.returnOrStartButton shouldBeEnabled:YES];
   
-  self.allButtons = [NSSet setWithSet:tempButtons];
+//  self.allButtons = [NSSet setWithSet:tempButtons];
   
   NSMutableDictionary *tempDictionary = [NSMutableDictionary new];
   self.statusLabel = [[Label alloc] initWithName:@"status"
-                                    andFontColor:kTestRed
+                                    andFontColor:[SKColor whiteColor]
                                      andFontSize:kLabelFontSize
-                                     andPosition:CGPointMake(5.f, kLabelYPosition)
+                                     andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition * 2)
                                     andZPosition:kZPositionLogMessage
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.statusLabel forKey:self.statusLabel.name];
@@ -39,37 +39,24 @@
 
 -(void)populateWithBottomReplayButtons {
   
-  NSMutableSet *tempButtons = [NSMutableSet new];
+  NSMutableArray *tempButtons = [NSMutableArray new];
   
-  self.firstTurnButton = [[Button alloc] initWithName:@"first" andColor:[SKColor redColor]
-                                              andSize:kButtonSize
-                                          andPosition:CGPointMake(kButtonWidth, kButtonYPosition * 3)
-                                         andZPosition:kZPositionTopBarButton];
+  NSArray *nameArray = @[@"first", @"previous", @"next", @"last"];
+  NSArray *colourArray = @[[SKColor redColor], [SKColor orangeColor], [SKColor greenColor], [SKColor blueColor]];
+    float xCoord[4] = {kButtonWidth, kButtonWidth * 2, kButtonWidth * 3, kButtonWidth * 4};
+  
+  for (int i = 0; i < 4; i++) {
+    Button *button = [[Button alloc] initWithName:nameArray[i] andColor:colourArray[i] andSize:kButtonSize andPosition:CGPointMake(xCoord[i], kButtonYPosition * 3) andZPosition:kZPositionTopBarButton];
+    [tempButtons addObject:button];
+  }
+  
+  self.firstTurnButton = tempButtons[0];
+  self.previousTurnButton = tempButtons[1];
+  self.nextTurnButton = tempButtons[2];
+  self.lastTurnButton = tempButtons[3];
+
   [tempButtons addObject:self.firstTurnButton];
-//  [self enableButton:self.firstTurnButton];
-  
-  self.previousTurnButton = [[Button alloc] initWithName:@"previous" andColor:[SKColor orangeColor]
-                                                 andSize:kButtonSize
-                                             andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition * 3)
-                                            andZPosition:kZPositionTopBarButton];
-  [tempButtons addObject:self.previousTurnButton];
-//  [self enableButton:self.previousTurnButton];
-  
-  self.nextTurnButton = [[Button alloc] initWithName:@"next" andColor:[SKColor greenColor]
-                                             andSize:kButtonSize
-                                         andPosition:CGPointMake(kButtonWidth * 3, kButtonYPosition * 3)
-                                        andZPosition:kZPositionTopBarButton];
-  [tempButtons addObject:self.nextTurnButton];
-//  [self enableButton:self.nextTurnButton];
-  
-  self.lastTurnButton = [[Button alloc] initWithName:@"last" andColor:[SKColor blueColor]
-                                             andSize:kButtonSize
-                                         andPosition:CGPointMake(kButtonWidth * 4, kButtonYPosition * 3)
-                                        andZPosition:kZPositionTopBarButton];
-  [tempButtons addObject:self.lastTurnButton];
-//  [self enableButton:self.lastTurnButton];
-  
-  self.allButtons = [NSSet setWithSet:tempButtons];
+//  self.allButtons = [NSSet setWithArray:tempButtons];
 }
 
 @end

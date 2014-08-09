@@ -13,7 +13,7 @@
 
 @interface Bar : SKSpriteNode
 
-@property (strong, nonatomic) NSSet *allButtons;
+//@property (strong, nonatomic) NSSet *allButtons; // necessary for device orientation only
 @property (strong, nonatomic) NSDictionary *allLabels;
 
 @property (strong, nonatomic) Button *returnOrStartButton;
@@ -32,7 +32,7 @@
 
 #pragma mark - label methods
 
--(void)updateLabelNamed:(NSString *)name withText:(NSString *)text andColour:(UIColor *)colour;
--(void)flashLabelNamed:(NSString *)name withText:(NSString *)text andColour:(UIColor *)colour;
+-(void)updateLabel:(Label *)label withText:(NSString *)text andColour:(UIColor *)colour;
+-(void)flashLabel:(Label *)label withText:(NSString *)text andColour:(UIColor *)colour;
 
 @end
