@@ -246,15 +246,20 @@
 }
 
   // this should be combined into one method with goHomeToRack
--(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding withResize:(BOOL)resize {
+-(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding {
   if (poppingIn) {
     [self animatePopBackIntoBoardNode];
   } else {
     [self orientBySnapNode:self.homeNode];
     [self animateMoveToPoint:[self getHomeNodePosition] andSounding:sounding];
-//    [self setToHomeZPositionAndSyncOrientation];
   }
   [self finishHovering];
+}
+
+-(void)goToTempBoardNodeBySounding:(BOOL)sounding { // called after replay, perhaps will be used elsewhere
+  SnapPoint *destinationNode = self.tempBoardNode ? self.tempBoardNode : self.homeNode;
+  [self orientBySnapNode:destinationNode];
+  [self animateMoveToPoint:destinationNode.position andSounding:sounding];
 }
 
 -(void)removeActionsAndEstablishNotRotating {

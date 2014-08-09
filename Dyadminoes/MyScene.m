@@ -1170,7 +1170,7 @@
     
   } else {
     dyadmino.tempBoardNode = dyadmino.homeNode;
-    [dyadmino goHomeToBoardByPoppingIn:poppingIn andSounding:sounding withResize:_boardZoomedOut];
+    [dyadmino goHomeToBoardByPoppingIn:poppingIn andSounding:sounding];
   }
 
     // this ensures that pivot guide doesn't disappear if rack exchange
@@ -2653,8 +2653,8 @@
       dyadmino.preReplayRackOrder = dyadmino.myRackOrder;
       
     } else {
-        // hide all player turn dyadminoes
-      dyadmino.hidden = YES;
+        // shrink player turn dyadminoes
+      [self animateScaleForReplayOfDyadmino:dyadmino toShrink:YES];
     }
   }
 }
@@ -2669,8 +2669,8 @@
       dyadmino.myRackOrder = dyadmino.preReplayRackOrder;
       
     } else {
-        // show all player turn dyadminoes
-      dyadmino.hidden = NO;
+        //grow all player turn dyadminoes
+      [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO];
     }
   }
 }
@@ -2698,10 +2698,17 @@
       
         // only show dyadminoes played up to this turn, and add to set that will be passed to board
       if (![self.myMatch.replayBoard containsObject:dataDyad]) {
-        dyadmino.hidden = YES;
+        
+        if (!dyadmino.hidden) {
+            // animate shrinkage
+          [self animateScaleForReplayOfDyadmino:dyadmino toShrink:YES];
+        }
         
       } else {
-        dyadmino.hidden = NO;
+        if (dyadmino.hidden) {
+            // animate growage
+          [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO];
+        }
         
           // highlight dyadminoes played on this turn
         if ([turnDataDyadminoes containsObject:dataDyad]) {
@@ -2726,12 +2733,17 @@
       // prepare to leave replay
   } else {
     
-    dyadminoesOnBoardUpToThisPoint = [NSMutableSet setWithSet:[self allBoardDyadminoesNotTurnOrRecentRack]];
+    dyadminoesOnBoardUpToThisPoint = [NSMutableSet setWithSet:[self allBoardDyadminoesPlusRecentRackDyadmino]];
     
-    for (Dyadmino *dyadmino in dyadminoesOnBoardUpToThisPoint) {
-
-      [self repositionInReplayDyadmino:dyadmino];
+      // these go to homeNode
+    for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
       dyadmino.hidden = NO;
+      [dyadmino goHomeToBoardByPoppingIn:NO andSounding:NO];
+    }
+    
+      // these go to tempNode
+    for (Dyadmino *dyadmino in [self allTurnDyadminoesPlusRecentRackDyadmino]) {
+      [dyadmino goToTempBoardNodeBySounding:NO];
     }
   }
   
@@ -2739,12 +2751,48 @@
   NSLog(@"from scene, outermost cells being determined");
   [_boardField determineOutermostCellsBasedOnDyadminoes:dyadminoesOnBoardUpToThisPoint];
   [_boardField determineBoardPositionBounds];
-//  [_boardField centerBoardOnDyadminoesAverageCenter];
 }
 
 -(void)repositionInReplayDyadmino:(Dyadmino *)dyadmino {
-  dyadmino.position = [Cell positionCellLessDyadminoGivenHexOrigin:_boardField.hexOrigin andHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.orientation andResize:_boardZoomedOut];
+  
+  CGPoint reposition = [Cell positionCellLessDyadminoGivenHexOrigin:_boardField.hexOrigin andHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.orientation andResize:_boardZoomedOut];
+  SKAction *repositionAction = [SKAction moveTo:reposition duration:kConstantTime * 0.5f];
+  SKAction *completeAction = [SKAction runBlock:^{
+    dyadmino.zPosition = kZPositionBoardRestingDyadmino;
+  }];
+  SKAction *sequenceAction = [SKAction sequence:@[repositionAction, completeAction]];
+  
+  [dyadmino removeActionForKey:@"replayAction"];
+  dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
+  [dyadmino runAction:sequenceAction withKey:@"replayAction"];
   [dyadmino selectAndPositionSprites];
+}
+
+-(void)animateScaleForReplayOfDyadmino:(Dyadmino *)dyadmino toShrink:(BOOL)shrink {
+  
+  CGFloat desiredScale = shrink ? 0.f : 1.f;
+  if (shrink) {
+    SKAction *shrinkAction = [SKAction scaleTo:desiredScale duration:kConstantTime * 0.5f];
+    SKAction *hideAction = [SKAction runBlock:^{
+      dyadmino.hidden = YES;
+      dyadmino.zPosition = kZPositionBoardRestingDyadmino;
+    }];
+    SKAction *sequence = [SKAction sequence:@[shrinkAction, hideAction]];
+    
+    dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
+    [dyadmino runAction:sequence];
+    
+  } else {
+    SKAction *growAction = [SKAction scaleTo:desiredScale duration:kConstantTime * 0.5f];
+    SKAction *completeAction = [SKAction runBlock:^{
+      dyadmino.zPosition = kZPositionBoardRestingDyadmino;
+    }];
+    SKAction *sequence = [SKAction sequence:@[growAction, completeAction]];
+    
+    dyadmino.hidden = NO;
+    dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
+    [dyadmino runAction:sequence];
+  }
 }
 
 #pragma mark - action sheet methods

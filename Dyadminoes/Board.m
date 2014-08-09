@@ -739,7 +739,7 @@
   }
   
   if (pc != -1) {
-    CGFloat colourFactor = factor * 0.42f;
+    CGFloat colourFactor = factor * 0.38f;
     
     NSInteger redMult, greenMult, blueMult;
     CGFloat redVal, greenVal, blueVal, alphaVal;

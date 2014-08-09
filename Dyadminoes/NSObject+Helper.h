@@ -130,6 +130,7 @@
 #define kZPositionBackgroundNode 5.f
 #define kZPositionBoardCell 10.f
 #define kZPositionBoardRestingDyadmino 20.f
+#define kZPositionBoardReplayAnimatedDyadmino 30.f
 #define kZPositionPivotGuide 450.f
 #define kZPositionHoveredDyadmino 500.f
 
