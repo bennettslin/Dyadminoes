@@ -10,11 +10,11 @@
 #import "Dyadmino.h"
 #import <AVFoundation/AVFoundation.h>
 
-#define kActionSuck @"suck"
-#define kActionClick @"click"
-#define kActionButton @"button"
-#define kActionSwoosh @"swoosh"
-#define kActionZoom @"zoom"
+//#define kActionSuck @"suck"
+//#define kActionClick @"click"
+//#define kActionButton @"button"
+//#define kActionSwoosh @"swoosh"
+//#define kActionZoom @"zoom"
 
 @interface SoundEngine ()
 
@@ -49,30 +49,17 @@
   return self;
 }
 
--(void)handleNotificationOfSound:(NSNotification *)notification {
-  NSDictionary *userInfo = notification.userInfo;
-  
-  if (userInfo) {
-    NSLog(@"sound received for key: %@, value: %@", @"sound", userInfo[@"sound"]);
-    
-    
-    
-  } else {
-    NSLog(@"no userInfo dictionary");
-  }
-}
-
 -(void)instantiatePlayers {
   
-  NSURL *swooshURL = [[NSBundle mainBundle] URLForResource:kSoundSwoosh withExtension:@"wav"];
-  NSURL *clickURL = [[NSBundle mainBundle] URLForResource:kSoundClick withExtension:@"wav"];
-  NSURL *popURL = [[NSBundle mainBundle] URLForResource:kSoundPop withExtension:@"wav"];
-  self.swooshPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:swooshURL error:nil];
-  self.clickPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:clickURL error:nil];
-  self.popPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:popURL error:nil];
-  [self.swooshPlayer setVolume:self.soundVolume];
-  [self.clickPlayer setVolume:self.soundVolume];
-  [self.popPlayer setVolume:self.soundVolume];
+//  NSURL *swooshURL = [[NSBundle mainBundle] URLForResource:kSoundSwoosh withExtension:@"wav"];
+//  NSURL *clickURL = [[NSBundle mainBundle] URLForResource:kSoundClick withExtension:@"wav"];
+//  NSURL *popURL = [[NSBundle mainBundle] URLForResource:kSoundPop withExtension:@"wav"];
+//  self.swooshPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:swooshURL error:nil];
+//  self.clickPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:clickURL error:nil];
+//  self.popPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:popURL error:nil];
+//  [self.swooshPlayer setVolume:self.soundVolume];
+//  [self.clickPlayer setVolume:self.soundVolume];
+//  [self.popPlayer setVolume:self.soundVolume];
   
   
 //  [self.swooshPlayer prepareToPlay];
@@ -84,77 +71,51 @@
   
 //  float volume = music ? self.musicVolume : self.soundVolume;
 //  NSURL *soundURL = [[NSBundle mainBundle] URLForResource:urlString withExtension:@"wav"];
+//  
+//  AVAudioPlayer *player;
+//  if ([urlString isEqualToString:kSoundSwoosh]) {
+//    player = self.swooshPlayer;
+//  } else if ([urlString isEqualToString:kSoundClick]) {
+//    player = self.clickPlayer;
+//  } else if ([urlString isEqualToString:kSoundPop]) {
+//    player = self.popPlayer;
+//  }
+//
+//  SKAction *playAction = [SKAction runBlock:^{
+//    [player stop];
+//    [player play];
+//  }];
+//  [self runAction:playAction];
+}
+
+#pragma mark - notification methods
+
+-(void)handleNotificationOfSound:(NSNotification *)notification {
+  NSDictionary *userInfo = notification.userInfo;
   
-  AVAudioPlayer *player;
-  if ([urlString isEqualToString:kSoundSwoosh]) {
-    player = self.swooshPlayer;
-  } else if ([urlString isEqualToString:kSoundClick]) {
-    player = self.clickPlayer;
-  } else if ([urlString isEqualToString:kSoundPop]) {
-    player = self.popPlayer;
+  if (userInfo) {
+    NotificationName notificationName = [userInfo[@"sound"] unsignedIntegerValue];
+    NSURL *url = [self urlForNotificationName:notificationName];
+    NSLog(@"url is %@", url);
+    
+  } else {
+    NSLog(@"no userInfo dictionary");
   }
-
-  SKAction *playAction = [SKAction runBlock:^{
-    [player stop];
-    [player play];
-  }];
-  [self runAction:playAction];
 }
 
--(void)soundRackExchangedDyadmino {
-//  NSLog(@"sound rack exchanged dyadmino from sound engine");
-//  SKAction *sound = [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
-//  [self runAction:sound withKey:kActionClick];
-}
+-(NSURL *)urlForNotificationName:(NotificationName)notificationName {
 
--(void)soundSuckedDyadmino {
-//  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
-//  [self runAction:sound withKey:kActionSuck];
-}
-
--(void)soundPivotClickedDyadmino {
-//  NSLog(@"sound pivot clicked dyadmino from sound engine");
-//  SKAction *sound = [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
-//  [self runAction:sound withKey:kActionClick];
-}
-
--(void)soundSettledDyadmino {
-//  NSLog(@"settled dyadmino clicked in sound engine");
-//  SKAction *sound = [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
-//  [self runAction:sound withKey:kActionClick];
-}
-
--(void)soundButton:(BOOL)tap {
-//  NSLog(@"sound button from sound engine");
+  switch (notificationName) {
+//    case ;:
+//      <#statements#>
+//      break;
+      
+    default:
+      break;
+  }
   
-//  NSString *buttonSound = tap ? kSoundPop : kSoundClick;
-  
-//  SKAction *sound = tap ?
-//    [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO] :
-//    [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
-//  [self runAction:sound withKey:kActionButton];
-  
-//  [self sound:buttonSound music:NO];
-}
-
--(void)soundPCToggle {
-//  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
-//  [self runAction:sound withKey:kActionSuck];
-}
-
--(void)soundDeviceOrientation {
-//  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
-//  [self runAction:sound withKey:kActionSuck];
-}
-
--(void)soundSwapFieldSwoosh {
-//  SKAction *sound = [SKAction playSoundFileNamed:kSoundSwoosh waitForCompletion:NO];
-//  [self runAction:sound withKey:kActionSwoosh];
-}
-
--(void)soundBoardZoom {
-//  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
-//  [self runAction:sound withKey:kActionZoom];
+  [[NSBundle mainBundle] URLForResource:kSoundFileClick withExtension:@"wav"];
+  return nil;
 }
 
 -(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked {
@@ -164,9 +125,9 @@
 //    [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO] : // plucked
 //    [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO]; // resonated
   
-  NSURL *soundURL = plucked ? [[NSBundle mainBundle] URLForResource:kSoundRing withExtension:@"wav"] : [[NSBundle mainBundle] URLForResource:kSoundRing withExtension:@"wav"];
-  AVAudioPlayer *player = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:nil];
-  [player setVolume:self.musicVolume];
+//  NSURL *soundURL = plucked ? [[NSBundle mainBundle] URLForResource:kSoundRing withExtension:@"wav"] : [[NSBundle mainBundle] URLForResource:kSoundRing withExtension:@"wav"];
+//  AVAudioPlayer *player = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:nil];
+//  [player setVolume:self.musicVolume];
   
 //  SKAction *sound = [SKAction runBlock:^{
 //    [player play];
@@ -200,9 +161,9 @@
 //    [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO] : // plucked
 //    [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO]; // resonated
   
-  NSURL *soundURL = [[NSBundle mainBundle] URLForResource:kSoundRing withExtension:@"wav"];
-  AVAudioPlayer *player = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:nil];
-  [player setVolume:self.musicVolume];
+//  NSURL *soundURL = [[NSBundle mainBundle] URLForResource:kSoundRing withExtension:@"wav"];
+//  AVAudioPlayer *player = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:nil];
+//  [player setVolume:self.musicVolume];
   
 //  SKAction *sound = [SKAction runBlock:^{
 //    [player play];

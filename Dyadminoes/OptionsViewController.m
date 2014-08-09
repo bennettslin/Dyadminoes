@@ -8,7 +8,7 @@
 
 #import "OptionsViewController.h"
 #import "NSObject+Helper.h"
-#import <AVFoundation/AVFoundation.h>
+//#import <AVFoundation/AVFoundation.h>
 
 @interface OptionsViewController ()
 
@@ -16,11 +16,8 @@
 @property (weak, nonatomic) IBOutlet UISegmentedControl *notationControl;
 @property (weak, nonatomic) IBOutlet UISlider *musicSlider;
 @property (weak, nonatomic) IBOutlet UISlider *soundEffectsSlider;
-
 @property (weak, nonatomic) IBOutlet UIButton *removeDefaultsButton;
-
 @property (strong, nonatomic) NSUserDefaults *defaults;
-@property (strong, nonatomic) AVAudioPlayer *player;
 
 @end
 
@@ -28,9 +25,6 @@
 
 -(void)viewDidLoad {
   [super viewDidLoad];
-  
-//  [self.showPivotGuideSwitch addTarget:self action:@selector(pivotGuideSwitched) forControlEvents:UIControlEventValueChanged];
-  
   self.defaults = [NSUserDefaults standardUserDefaults];
 }
 
@@ -74,17 +68,17 @@
 }
 
 -(IBAction)musicSliderTouchEnded:(UISlider *)sender {
-  NSLog(@"slider value is %.2f", sender.value);
-  [self soundWithVolume:sender.value andMusic:YES];
-  [self.defaults setFloat:sender.value forKey:@"music"];
+  sender.value = [self moduloSliderValue:sender.value];
+//  NSLog(@"slider value is %.2f", sender.value);
+  [self soundWithVolume:sender.value andMusic:(sender == self.musicSlider)];
+  [self.defaults setFloat:sender.value forKey:(sender == self.musicSlider) ? @"music" : @"soundEffects"];
   [self.defaults synchronize];
 }
 
--(IBAction)soundEffectsSliderTouchEnded:(UISlider *)sender {
-  NSLog(@"slider value is %.2f", sender.value);
-  [self soundWithVolume:sender.value andMusic:NO];
-  [self.defaults setFloat:sender.value forKey:@"soundEffects"];
-  [self.defaults synchronize];
+-(float)moduloSliderValue:(float)value {
+  NSUInteger integerValue = value * 100.f;
+  NSUInteger moduloValue = integerValue % 5;
+  return (integerValue - moduloValue) / 100.f;
 }
 
 -(IBAction)removeDefaultsTapped:(UIButton *)sender {
@@ -102,13 +96,10 @@
 
 -(void)soundWithVolume:(float)volume andMusic:(BOOL)music {
   
-  [self.player pause];
-  [self.player stop];
-  NSString *urlString = music ? kSoundRing : kSoundPop;
-  NSURL *soundURL = [[NSBundle mainBundle] URLForResource:urlString withExtension:@"wav"];
-  self.player = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:nil];
-  [self.player setVolume:volume];
-  [self.player play];
+    // can be any two sounds that signify music versus effect
+  NotificationName whichNotification = music ? kNotificationOneNoteStruck : kNotificationBoardZoom;
+  NSNumber *whichNotificationObject = [NSNumber numberWithUnsignedInteger:whichNotification];
+  [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound" object:self userInfo:@{@"sound": whichNotificationObject}];
 }
 
 @end

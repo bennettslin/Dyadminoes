@@ -15,7 +15,7 @@
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour;
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
--(void)postSoundNotification:(NSString *)whichNotification;
+-(void)postSoundNotification:(NotificationName)whichNotification;
 
 -(void)layoutOrRefreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation;
 -(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign;

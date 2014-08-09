@@ -7,6 +7,7 @@
 //
 
 #import <SpriteKit/SpriteKit.h>
+#import "NSObject+Helper.h"
 @class Dyadmino;
 @class SnapPoint;
 @class Board;
@@ -14,7 +15,7 @@
 @protocol FieldNodeDelegate <NSObject>
 
 -(void)recordChangedDataForRackDyadminoes:(NSArray *)rackArray;
--(void)postSoundNotification:(NSString *)whichNotification;
+-(void)postSoundNotification:(NotificationName)whichNotification;
 
 @end
 

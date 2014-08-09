@@ -275,8 +275,9 @@
 
 #pragma mark - sound notification methods
 
--(void)postSoundNotification:(NSString *)whichNotification {
-  [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound" object:self userInfo:@{@"sound": whichNotification}];
+-(void)postSoundNotification:(NotificationName)whichNotification {
+  NSNumber *whichNotificationObject = [NSNumber numberWithUnsignedInteger:whichNotification];
+  [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound" object:self userInfo:@{@"sound": whichNotificationObject}];
 }
 
 #pragma mark - layout methods
@@ -1517,19 +1518,15 @@
 -(void)update:(CFTimeInterval)currentTime {
   
   [self updateForDoubleTap:currentTime];
-  if (_hoveringDyadmino) {
-    [self updateDyadmino:_hoveringDyadmino forHover:currentTime];
-  }
+  _hoveringDyadmino ? [self updateDyadmino:_hoveringDyadmino forHover:currentTime] : nil;
   
     // snap back somewhat from board bounds
-    // TODO: this works, but it feels jumpy
   [self updateForBoardBeingCorrectedWithinBounds];
   [self updateForHoveringDyadminoBeingCorrectedWithinBounds];
   [self updatePivotForDyadminoMoveWithoutBoardCorrected];
 }
 
 -(void)updateForDoubleTap:(CFTimeInterval)currentTime {
-//  if (_canDoubleTapForDyadminoFlip) {
   if (_canDoubleTapForDyadminoFlip || _canDoubleTapForBoardZoom) {
     if (_doubleTapTime == 0.f) {
       _doubleTapTime = currentTime;
@@ -1556,18 +1553,8 @@
     
     CGFloat thisDistance;
     CGFloat distanceDivisor = 5.333f; // tweak this number if desired
-    CGFloat dyadminoBuffer;
-    
-    switch (_hoveringDyadmino.orientation) {
-      case kPC1atTwelveOClock:
-      case kPC1atSixOClock:
-        dyadminoBuffer = kDyadminoFaceWideRadius * 1.5;
-        break;
-        
-      default: // all other cases
-        dyadminoBuffer = kDyadminoFaceWideDiameter * 1.5;
-        break;
-    }
+    CGFloat dyadminoBuffer = (_hoveringDyadmino.orientation == kPC1atTwelveOClock || _hoveringDyadmino.orientation == kPC1atSixOClock) ?
+    kDyadminoFaceWideRadius * 1.5 : kDyadminoFaceWideDiameter * 1.5;
     
     if (_hoveringDyadmino.position.x - dyadminoBuffer < xLowLimit) {
       _hoveringDyadminoBeingCorrected++;

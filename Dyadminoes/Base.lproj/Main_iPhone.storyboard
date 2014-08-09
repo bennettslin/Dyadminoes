@@ -404,8 +404,8 @@
                                 <rect key="frame" x="165" y="136" width="118" height="31"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <connections>
-                                    <action selector="soundEffectsSliderTouchEnded:" destination="iBm-M5-xqB" eventType="touchUpOutside" id="cLo-ZZ-fDY"/>
-                                    <action selector="soundEffectsSliderTouchEnded:" destination="iBm-M5-xqB" eventType="touchUpInside" id="uH1-x2-Qvd"/>
+                                    <action selector="musicSliderTouchEnded:" destination="iBm-M5-xqB" eventType="touchUpInside" id="9JS-8S-ri2"/>
+                                    <action selector="musicSliderTouchEnded:" destination="iBm-M5-xqB" eventType="touchUpOutside" id="MbR-bQ-dUT"/>
                                 </connections>
                             </slider>
                             <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" id="HA8-u9-cRv">
@@ -480,12 +480,6 @@
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="(toggle in game by shaking device)" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="u0f-Aq-Gqd">
-                                <rect key="frame" x="20" y="102" width="193" height="15"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="usG-EM-nLX">
                                 <rect key="frame" x="20" y="255" width="99" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -496,6 +490,18 @@
                                     <action selector="removeDefaultsTapped:" destination="iBm-M5-xqB" eventType="touchUpInside" id="wHZ-Oe-oXd"/>
                                 </connections>
                             </button>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="(recommended for new players)" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="vZ7-4h-Uys">
+                                <rect key="frame" x="20" y="41" width="176" height="15"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="(toggle in game by shaking device)" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="u0f-Aq-Gqd">
+                                <rect key="frame" x="20" y="99" width="193" height="15"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
