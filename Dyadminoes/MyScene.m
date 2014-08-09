@@ -273,6 +273,12 @@
   }
 }
 
+#pragma mark - sound notification methods
+
+-(void)postSoundNotification:(NSString *)whichNotification {
+  [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound" object:self userInfo:@{@"sound": whichNotification}];
+}
+
 #pragma mark - layout methods
 
 -(void)populateRackArray {
@@ -476,11 +482,9 @@
 
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation {
   if ([self.mySceneEngine rotateDyadminoesBasedOnDeviceOrientation:deviceOrientation]) {
-    [self.mySoundEngine soundDeviceOrientation];
+    [self postSoundNotification:kNotificationDeviceOrientation];
   }
-  
-//  NSLog(@"view frame size is %.2f, %.2f", self.view.frame.size.width, self.view.frame.size.height);
-  
+
   [_topBar rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
   [_replayTop rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
   [_replayBottom rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
@@ -540,10 +544,7 @@
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     /// 1. first, make sure there's only one current touch
   
-  if (_currentTouch) {
-    [self endTouchFromTouches:nil];
-  }
-  
+  _currentTouch ? [self endTouchFromTouches:nil] : nil;
   _currentTouch = [touches anyObject];
   
   if (_fieldActionInProgress) {
@@ -574,8 +575,7 @@
     Button *touchedButton = [_touchNode isKindOfClass:[Button class]] ? (Button *)_touchNode : (Button *)_touchNode.parent;
       // sound of button tapped
     
-      // FIXME: sound should work
-//    [self.mySoundEngine soundButton:YES];
+    [self postSoundNotification:kNotificationButtonSunkIn];
     _buttonPressed = touchedButton;
     [_buttonPressed showSunkIn];
     return;
@@ -591,9 +591,8 @@
     
         // register sound if dyadmino tapped
     if (!_pnpBarUp && !_replayMode && dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
-      if (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) {
-        [self.mySoundEngine soundTouchedDyadmino:dyadmino plucked:YES];
-      }
+      (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) ?
+          [self postSoundNotification:kNotificationTwoNotesStruck] : nil;
       
         // register sound if face tapped
     } else {
@@ -601,12 +600,13 @@
       SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
       if (face && face.parent != _hoveringDyadmino && !_pivotInProgress) {
         if ([face.parent isKindOfClass:[Dyadmino class]]) {
-          Dyadmino *faceParent = (Dyadmino *)face.parent;
-          if (!faceParent.hidden &&
-              (!_pnpBarUp || (_pnpBarUp && [faceParent isOnBoard])) &&
-              (!_replayMode || (_replayMode && [faceParent isOnBoard]))) {
-            if (!_boardZoomedOut || (_boardZoomedOut && [faceParent isInRack])) {
-              [self.mySoundEngine soundTouchedDyadminoFace:face plucked:YES];
+          Dyadmino *resonatedDyadmino = (Dyadmino *)face.parent;
+          if (!resonatedDyadmino.hidden &&
+              (!_pnpBarUp || (_pnpBarUp && [resonatedDyadmino isOnBoard])) &&
+              (!_replayMode || (_replayMode && [resonatedDyadmino isOnBoard]))) {
+            if (!_boardZoomedOut || (_boardZoomedOut && [resonatedDyadmino isInRack])) {
+              [self postSoundNotification:kNotificationOneNoteStruck];
+              [resonatedDyadmino animateFace:face];
               _soundedDyadminoFace = face;
             }
           }
@@ -642,9 +642,7 @@
         // check if double tapped
       if (_canDoubleTapForBoardZoom && !_hoveringDyadmino) {
         CGFloat distance = [self getDistanceFromThisPoint:_beganTouchLocation toThisPoint:_endTouchLocationToMeasureDoubleTap];
-        if (distance < kDistanceToDoubleTap) {
-          [self handleDoubleTap];
-        }
+        (distance < kDistanceToDoubleTap) ? [self handleDoubleTap] : nil;
       }
       
       _boardToBeMovedOrBeingMoved = YES;
@@ -696,11 +694,12 @@
     
     if (face && face.parent != _hoveringDyadmino) {
       if ([face.parent isKindOfClass:[Dyadmino class]]) {
-        Dyadmino *faceParent = (Dyadmino *)face.parent;
-        if ((!_replayMode || (_replayMode && [faceParent isOnBoard])) &&
-            (!_pnpBarUp || (_pnpBarUp && [faceParent isOnBoard]))) {
+        Dyadmino *resonatedDyadmino = (Dyadmino *)face.parent;
+        if ((!_replayMode || (_replayMode && [resonatedDyadmino isOnBoard])) &&
+            (!_pnpBarUp || (_pnpBarUp && [resonatedDyadmino isOnBoard]))) {
           if (!_soundedDyadminoFace) {
-            [self.mySoundEngine soundTouchedDyadminoFace:face plucked:NO];
+            [self postSoundNotification:kNotificationOneNoteResonated];
+            [resonatedDyadmino animateFace:face];
             _soundedDyadminoFace = face;
           }
         }
@@ -746,9 +745,7 @@
   if ([_touchedDyadmino belongsInRack] && [_touchedDyadmino isOnBoard]) {
     
       // automatically zoom back in if rack dyadmino moved to board
-    if (_boardZoomedOut) {
-      [self toggleBoardZoomWithTapCentering:NO andCenterLocation:CGPointZero];
-    }
+    _boardZoomedOut ? [self toggleBoardZoomWithTapCentering:NO andCenterLocation:CGPointZero] : nil;
     
       // if rack dyadmino is moved to board, send home recentRack dyadmino
     if (_recentRackDyadmino && _touchedDyadmino != _recentRackDyadmino) {
@@ -768,16 +765,11 @@
   }
   
     // continue to reset hover count
-  if ([_touchedDyadmino isHovering]) {
-    [_touchedDyadmino keepHovering];
-  }
+  [_touchedDyadmino isHovering] ? [_touchedDyadmino keepHovering] : nil;
   
-    // take care of highlighting as it moves between rack and dyadmino
+    //  this is the only place that sets dyadmino highlight to YES
+    //  dyadmino highlight is reset when sent home or finalised
   if ([_touchedDyadmino belongsInRack] && !_swapMode && !_pivotInProgress) {
-    /*
-      this is the only place that sets dyadmino highlight to YES
-      dyadmino highlight is reset when sent home or finalised
-     */
       CGPoint dyadminoOffsetPosition = [self addToThisPoint:_currentTouchLocation thisPoint:_touchOffsetVector];
       [_touchedDyadmino adjustHighlightGivenDyadminoOffsetPosition:dyadminoOffsetPosition];
   }
@@ -792,9 +784,7 @@
   }
   
     // this ensures that pivot guides are not hidden if rack exchange
-  if (_touchedDyadmino == _hoveringDyadmino) {
-    [_boardField hideAllPivotGuides];
-  }
+  (_touchedDyadmino == _hoveringDyadmino) ? [_boardField hideAllPivotGuides] : nil;
   
     // move the dyadmino!
   _touchedDyadmino.position =
@@ -845,16 +835,14 @@
 
   SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
   
-  if ([node isKindOfClass:[Button class]] || [node.parent isKindOfClass:[Button class]]) {
-    Button *button = [node isKindOfClass:[Button class]] ? (Button *)node : (Button *)node.parent;
-      //     sound of button release
-      //     FIXME: sound should work
-      //          [self.mySoundEngine soundButton:NO];
+  if (!_touchedDyadmino) { // ensures dyadmino was not placed over button
+    if ([node isKindOfClass:[Button class]] || [node.parent isKindOfClass:[Button class]]) {
+      Button *button = [node isKindOfClass:[Button class]] ? (Button *)node : (Button *)node.parent;
+      [self postSoundNotification:kNotificationButtonLifted];
 
-    if (button == _buttonPressed) {
-      [self handleButtonPressed:_buttonPressed];
+      (button == _buttonPressed) ? [self handleButtonPressed:_buttonPressed] : nil;
+      return;
     }
-    return;
   }
 
     // board no longer being moved
@@ -910,6 +898,8 @@
 }
 
 -(void)toggleBoardZoomWithTapCentering:(BOOL)tapCentering andCenterLocation:(CGPoint)location {
+
+  [self postSoundNotification:kNotificationBoardZoom];
   
   if (_hoveringDyadmino) {
     _hoveringDyadmino.canFlip = NO;
@@ -947,9 +937,6 @@
     dyadmino.isZoomResized = _boardZoomedOut;
     [self animateRepositionCellAgnosticDyadmino:dyadmino];
   }
-  
-    // FIXME: silence for now to avoid sound engine error
-//  [self.mySoundEngine soundBoardZoom];
 }
 
 -(void)handleUserWantsPivotGuides {
@@ -1019,10 +1006,7 @@
   }
   
     // reset hover count
-  if ([dyadmino isHovering]) {
-    [dyadmino keepHovering];
-  }
-  
+  [dyadmino isHovering] ? [dyadmino keepHovering] : nil;
   [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
   
     //--------------------------------------------------------------------------
@@ -1095,15 +1079,12 @@
       // start hovering
     [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
     
-  //  NSLog(@"prepare for hover, check");
     [self checkWhetherToEaseOrKeepHovering:dyadmino];
     
-  //  NSLog(@"prepare for hover");
     if (dyadmino.isHovering || dyadmino.continuesToHover) {
-  //    NSLog(@"dyadmino hovering status is %i", dyadmino.hoveringStatus);
-      if (![dyadmino isRotating]) { // add !_canDoubleTapForDyadminoFlip to have delay after touch ends
-        [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
-      }
+      
+       // add !_canDoubleTapForDyadminoFlip to have delay after touch ends
+      [dyadmino isRotating] ? nil : [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
     }
   }
 }
@@ -1119,12 +1100,8 @@
     dyadmino.position = newPosition;
   }
   
-  if (dyadmino == _recentRackDyadmino || undo) {
-    [self updateCellsForRemovedDyadmino:dyadmino andColour:YES];
-  } else { // otherwise it's a hovering dyadmino
-//  NSLog(@"update cells for removed dyadmino called from send dyadmino home");
-    [self updateCellsForRemovedDyadmino:dyadmino andColour:NO];
-  }
+    // otherwise it's a hovering dyadmino
+  [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino == _recentRackDyadmino || undo)];
   
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
@@ -1151,16 +1128,13 @@
     [dyadmino goHomeToBoardByPoppingIn:poppingIn andSounding:sounding];
   }
 
-    // this ensures that pivot guide doesn't disappear if rack exchange
-  if (dyadmino == _hoveringDyadmino) {
-    [_boardField hideAllPivotGuides];
-  }
-  
     // make nil all pointers
-  if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
-    _recentRackDyadmino = nil;
-  }
+  (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) ?
+      _recentRackDyadmino = nil : nil;
+  
   if (dyadmino == _hoveringDyadmino) {
+      // this ensures that pivot guide doesn't disappear if rack exchange
+    [_boardField hideAllPivotGuides];
     _hoveringDyadmino = nil;
   }
   
@@ -1220,9 +1194,7 @@
 #pragma mark - button methods
 
 -(void)togglePCsUserShaken:(BOOL)userShaken {
-  if (userShaken) {
-    [self.mySoundEngine soundPCToggle];
-  }
+  userShaken ? [self postSoundNotification:kNotificationTogglePCs] : nil;
   [self.mySceneEngine toggleBetweenLetterAndNumberMode];
 }
 
@@ -1378,15 +1350,12 @@
 }
 
 -(BOOL)finaliseSwap {
-  
   [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
   
   NSMutableArray *toPile = [NSMutableArray new];
   
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
-    if ([dyadmino belongsInSwap]) {
-      [toPile addObject:dyadmino];
-    }
+    [dyadmino belongsInSwap] ? [toPile addObject:dyadmino] : nil;
   }
 
     // extra confirmation; this will have been checked when button was done button was first pressed
@@ -2021,7 +1990,7 @@
 
 -(void)updatePnPLabelForNewPlayer {
   NSString *waitPlayerText = [NSString stringWithFormat:@"%@, it's your turn!", self.myMatch.currentPlayer.playerName];
-  [_pnpBar updateLabel:_pnpBar.waitingForPlayerLabel withText:waitPlayerText andColour:kTestRed];
+  [_pnpBar updateLabel:_pnpBar.waitingForPlayerLabel withText:waitPlayerText andColour:[self.myMatch colourForPlayer:self.myMatch.currentPlayer]];
 }
 
 #pragma mark - field animation methods
@@ -2068,12 +2037,11 @@
   _dyadminoesStationary = _pnpBarUp || _boardZoomedOut;
   [self toggleDyadminoesToBeStationaryOrMovableAnimated:!_boardZoomedOut]; // only animate if board zoomed in
   
+  [self postSoundNotification:kNotificationToggleBarOrField];
+  
   if (_pnpBarUp) {
     
     [_boardField colourBackgroundForPnP];
-    
-      // sound
-//    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
       // scene views
@@ -2091,9 +2059,6 @@
   } else {
     
     [_boardField colourBackgroundForNormalPlay];
-    
-      // sound
-//    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
       // scene views
@@ -2119,12 +2084,10 @@
   _dyadminoesStationary = _replayMode || _boardZoomedOut;
   [self toggleDyadminoesToBeStationaryOrMovableAnimated:!_boardZoomedOut]; // only animate when board is zoomed in
 
+  [self postSoundNotification:kNotificationToggleBarOrField];
+  
   if (_replayMode) {
-    
     [_boardField colourBackgroundForReplay];
-    
-      // sound
-    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
       // scene views
@@ -2143,11 +2106,7 @@
     
       // it's not in replay mode
   } else {
-    
     [_boardField colourBackgroundForNormalPlay];
-    
-      // sound
-    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
       // scene views
@@ -2170,10 +2129,7 @@
 }
 
 -(void)toggleSwapFieldWithAnimation:(BOOL)animated {
-    // TODO: move animations at some point
-    // FIXME: make better animation
-    // otherwise toggle
-  
+
     // this gets called before scene is removed from view
   if (!animated) {
     _swapField.hidden = YES;
@@ -2184,8 +2140,9 @@
   _dyadminoesStationary = _swapMode || _boardZoomedOut;
   [self toggleDyadminoesToBeStationaryOrMovableAnimated:!_boardZoomedOut]; // only animate if board zoomed in
   
+  [self postSoundNotification:kNotificationToggleBarOrField];
+  
   if (!_swapMode) {
-//    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     
       // swap field action
@@ -2205,7 +2162,6 @@
     [_boardField runAction:moveBoardAction];
 
   } else {
-//    [self.mySoundEngine sound:kSoundSwoosh music:NO];
     _fieldActionInProgress = YES;
     _swapField.hidden = NO;
     
@@ -2643,7 +2599,6 @@
       dyadmino.preReplayHexCoord = dyadmino.myHexCoord;
       dyadmino.preReplayOrientation = dyadmino.orientation;
       dyadmino.preReplayTempOrientation = dyadmino.tempReturnOrientation;
-//      dyadmino.preReplayRackOrder = dyadmino.myRackOrder;
     }
   }
 }
@@ -2661,7 +2616,6 @@
       dyadmino.myHexCoord = dyadmino.preReplayHexCoord;
       dyadmino.orientation = dyadmino.preReplayOrientation;
       dyadmino.tempReturnOrientation = dyadmino.preReplayTempOrientation;
-//      dyadmino.myRackOrder = dyadmino.preReplayRackOrder;
     }
   }
 }
@@ -2688,26 +2642,21 @@
   for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     
-      // if in replay only show dyadminoes played up to this turn, and add to set that will be passed to board
+      // if in replay only show dyadminoes played up to this turn,
+      // and add to set that will be passed to board
       // if not in replay, conditional is automatically yes
     BOOL conditionalToHideDyadmino = inReplay ? ![self.myMatch.replayBoard containsObject:dataDyad] : NO;
     
     if (conditionalToHideDyadmino) {
-      
-      if (!dyadmino.hidden) {
           // animate shrinkage
-        [self animateScaleForReplayOfDyadmino:dyadmino toShrink:YES];
-      }
+      dyadmino.hidden ? nil : [self animateScaleForReplayOfDyadmino:dyadmino toShrink:YES];
       
     } else {
-      if (dyadmino.hidden) {
           // animate growage
-        [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO];
-      }
+      dyadmino.hidden ? [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO] : nil;
       
         // highlight dyadminoes played on this turn
       if ([turnDataDyadminoes containsObject:dataDyad]) {
-        [dyadmino removeActionForKey:kActionShowRecentlyPlayed];
         [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer]];
       } else {
         [dyadmino unhighlightOutOfPlay];
@@ -2879,27 +2828,27 @@
 }
 
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino {
-  return (self.boardDyadminoes.count == 1 && dyadmino == [self.boardDyadminoes anyObject] && !_recentRackDyadmino) ? YES : NO;
+  return (self.boardDyadminoes.count == 1 && dyadmino == [self.boardDyadminoes anyObject] && !_recentRackDyadmino);
 }
 
--(void)soundRackExchangedDyadmino:(Dyadmino *)dyadmino {
-    // this will be a click clack sound
-  [self.mySoundEngine sound:kSoundClick music:NO];
-}
-
-  // these methods might be different later, so keep them separate
--(void)soundDyadminoPivotClick {
-  [self.mySoundEngine sound:kSoundClick music:NO];
-}
-
--(void)soundDyadminoSettleClick {
-  NSLog(@"delegate called to sound dyadmino settle click");
-  [self.mySoundEngine sound:kSoundClick music:NO];
-}
-
--(void)soundDyadminoSuck {
-  [self.mySoundEngine sound:kSoundPop music:NO];
-}
+//-(void)soundRackExchangedDyadmino:(Dyadmino *)dyadmino {
+//    // this will be a click clack sound
+//  [self.mySoundEngine sound:kSoundClick music:NO];
+//}
+//
+//  // these methods might be different later, so keep them separate
+//-(void)soundDyadminoPivotClick {
+//  [self.mySoundEngine sound:kSoundClick music:NO];
+//}
+//
+//-(void)soundDyadminoSettleClick {
+//  NSLog(@"delegate called to sound dyadmino settle click");
+//  [self.mySoundEngine sound:kSoundClick music:NO];
+//}
+//
+//-(void)soundDyadminoSuck {
+//  [self.mySoundEngine sound:kSoundPop music:NO];
+//}
 
 -(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign {
   [_boardField changeColoursAroundDyadmino:dyadmino withSign:sign];

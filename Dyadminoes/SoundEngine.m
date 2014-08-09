@@ -43,8 +43,23 @@
     _yOrigin = 0;
     _xBits = 0;
     _yBits = 0;
+    
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleNotificationOfSound:) name:@"playSound" object:nil];
   }
   return self;
+}
+
+-(void)handleNotificationOfSound:(NSNotification *)notification {
+  NSDictionary *userInfo = notification.userInfo;
+  
+  if (userInfo) {
+    NSLog(@"sound received for key: %@, value: %@", @"sound", userInfo[@"sound"]);
+    
+    
+    
+  } else {
+    NSLog(@"no userInfo dictionary");
+  }
 }
 
 -(void)instantiatePlayers {
@@ -86,40 +101,40 @@
   [self runAction:playAction];
 }
 
-//-(void)soundRackExchangedDyadmino {
+-(void)soundRackExchangedDyadmino {
 //  NSLog(@"sound rack exchanged dyadmino from sound engine");
 //  SKAction *sound = [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
 //  [self runAction:sound withKey:kActionClick];
-//}
-//
-//-(void)soundSuckedDyadmino {
+}
+
+-(void)soundSuckedDyadmino {
 //  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
 //  [self runAction:sound withKey:kActionSuck];
-//}
-//
-//-(void)soundPivotClickedDyadmino {
+}
+
+-(void)soundPivotClickedDyadmino {
 //  NSLog(@"sound pivot clicked dyadmino from sound engine");
 //  SKAction *sound = [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
 //  [self runAction:sound withKey:kActionClick];
-//}
-//
-//-(void)soundSettledDyadmino {
+}
+
+-(void)soundSettledDyadmino {
 //  NSLog(@"settled dyadmino clicked in sound engine");
 //  SKAction *sound = [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
 //  [self runAction:sound withKey:kActionClick];
-//}
+}
 
 -(void)soundButton:(BOOL)tap {
-  NSLog(@"sound button from sound engine");
+//  NSLog(@"sound button from sound engine");
   
-  NSString *buttonSound = tap ? kSoundPop : kSoundClick;
+//  NSString *buttonSound = tap ? kSoundPop : kSoundClick;
   
 //  SKAction *sound = tap ?
 //    [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO] :
 //    [SKAction playSoundFileNamed:kSoundClick waitForCompletion:NO];
 //  [self runAction:sound withKey:kActionButton];
   
-  [self sound:buttonSound music:NO];
+//  [self sound:buttonSound music:NO];
 }
 
 -(void)soundPCToggle {
@@ -128,22 +143,22 @@
 }
 
 -(void)soundDeviceOrientation {
-  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
-  [self runAction:sound withKey:kActionSuck];
+//  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
+//  [self runAction:sound withKey:kActionSuck];
 }
 
 -(void)soundSwapFieldSwoosh {
-  SKAction *sound = [SKAction playSoundFileNamed:kSoundSwoosh waitForCompletion:NO];
-  [self runAction:sound withKey:kActionSwoosh];
+//  SKAction *sound = [SKAction playSoundFileNamed:kSoundSwoosh waitForCompletion:NO];
+//  [self runAction:sound withKey:kActionSwoosh];
 }
 
 -(void)soundBoardZoom {
-  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
-  [self runAction:sound withKey:kActionZoom];
+//  SKAction *sound = [SKAction playSoundFileNamed:kSoundPop waitForCompletion:NO];
+//  [self runAction:sound withKey:kActionZoom];
 }
 
 -(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked {
-  NSLog(@"sounding %@", dyadmino.name);
+//  NSLog(@"sounding %@", dyadmino.name);
   
 //  SKAction *sound = plucked ?
 //    [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO] : // plucked
@@ -153,14 +168,14 @@
   AVAudioPlayer *player = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:nil];
   [player setVolume:self.musicVolume];
   
-  SKAction *sound = [SKAction runBlock:^{
-    [player play];
-  }];
+//  SKAction *sound = [SKAction runBlock:^{
+//    [player play];
+//  }];
   
   NSString *noteActionKey1 = [self returnNoteActionKey];
 //  NSLog(@"%@", noteActionKey1);
   [self removeActionForKey:noteActionKey1];
-  [self runAction:sound withKey:noteActionKey1];
+//  [self runAction:sound withKey:noteActionKey1];
   [self incrementNoteCount];
   
 //  NSString *noteActionKey2 = [self returnNoteActionKey];
@@ -189,17 +204,15 @@
   AVAudioPlayer *player = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:nil];
   [player setVolume:self.musicVolume];
   
-  SKAction *sound = [SKAction runBlock:^{
-    [player play];
-  }];
+//  SKAction *sound = [SKAction runBlock:^{
+//    [player play];
+//  }];
 
   NSString *noteActionKey = [self returnNoteActionKey];
 //  NSLog(@"%@", noteActionKey);
   [self removeActionForKey:noteActionKey];
-  [self runAction:sound withKey:noteActionKey];
+//  [self runAction:sound withKey:noteActionKey];
   [self incrementNoteCount];
-  
-  [dyadmino animateFace:dyadminoFace];
 }
 
 -(void)recordFaceHexCoord:(HexCoord)faceHexCoord {

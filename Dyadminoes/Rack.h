@@ -14,7 +14,7 @@
 @protocol FieldNodeDelegate <NSObject>
 
 -(void)recordChangedDataForRackDyadminoes:(NSArray *)rackArray;
--(void)soundRackExchangedDyadmino:(Dyadmino *)dyadmino;
+-(void)postSoundNotification:(NSString *)whichNotification;
 
 @end
 

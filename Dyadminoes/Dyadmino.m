@@ -212,8 +212,9 @@
 }
 
 -(void)highlightBoardDyadminoWithColour:(UIColor *)colour {
+  [self removeActionForKey:kActionShowRecentlyPlayed];
   self.color = (SKColor *)colour;
-    // orange colour is dimmer, so needs to be brightened
+    // orange colour is dimmer, so increase colourBlendFactor to compensate
   self.colorBlendFactor = ([colour isEqual:kPlayerOrange]) ? kDyadminoColorBlendFactor * 1.5 : kDyadminoColorBlendFactor;
 }
 
@@ -351,7 +352,7 @@
         self.orientation = newOrientation;
         
           // sound dyadmino click
-        [self.delegate soundDyadminoPivotClick];
+        [self.delegate postSoundNotification:kNotificationPivotClick];
         
           // if it pivots on center, just go straight to positioning sprites
         if (pivotOnPC != kPivotCentre) {
@@ -425,14 +426,13 @@
 #pragma mark - animation methods
 
 -(void)animateMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding {
-  NSLog(@"animateMoveToPoint called from dyadmino %@", self.name);
+//  NSLog(@"animateMoveToPoint called from dyadmino %@", self.name);
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
-//  CGFloat distance = [self getDistanceFromThisPoint:self.position toThisPoint:point];
   SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime]; // was kConstantSpeed * distance
   moveAction.timingMode = SKActionTimingEaseIn;
   if (sounding) {
     SKAction *completeAction = [SKAction runBlock:^{
-      [self.delegate soundDyadminoSettleClick];
+      [self.delegate postSoundNotification:kNotificationEaseIntoNode];
       [self setToHomeZPositionAndSyncOrientation];
     }];
     SKAction *sequence = [SKAction sequence:@[moveAction, completeAction]];
@@ -443,21 +443,14 @@
 }
 
 -(void)animatePopBackIntoBoardNode {
-  NSLog(@"dyadmino's animate to board node method called");
-//  [self endTouchThenHoverResize];
+//  NSLog(@"dyadmino's animate to board node method called");
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
-    [self.delegate soundDyadminoSuck];
+    [self.delegate postSoundNotification:kNotificationPopIntoNode];
     [self setToHomeZPositionAndSyncOrientation];
-    if ([self belongsInRack]) {
-      [self orientBySnapNode:self.tempBoardNode];
-      self.position = self.tempBoardNode.position;
-    } else {
-//      NSLog(@"this is called because it's a board dyadmino");
-      [self orientBySnapNode:self.homeNode];
-      self.position = self.homeNode.position;
-    }
+    [self orientBySnapNode:([self belongsInRack] ? self.tempBoardNode : self.homeNode)];
+    self.position = [self belongsInRack] ? self.tempBoardNode.position : self.homeNode.position;
     [self.delegate changeColoursAroundDyadmino:self withSign:+1];
   }];
   SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
@@ -470,7 +463,7 @@
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
     self.color = (SKColor *)kNeutralYellow;
-    [self.delegate soundDyadminoSuck];
+    [self.delegate postSoundNotification:kNotificationPopIntoNode];
     [self setToHomeZPositionAndSyncOrientation];
     [self unhighlightOutOfPlay];
     [self orientBySnapNode:self.homeNode];
@@ -511,7 +504,7 @@
       [self setToHomeZPositionAndSyncOrientation];
       [self endTouchThenHoverResize];
       self.isRotating = NO;
-      [self.delegate soundDyadminoSettleClick];
+      [self.delegate postSoundNotification:kNotificationPivotClick];
     }];
       // just to ensure that dyadmino is back in its node position
     self.position = [self getHomeNodePosition];
@@ -547,10 +540,7 @@
     self.hoveringStatus = kDyadminoNoHoverStatus;
     self.initialPivotPosition = self.position;
     
-    NSLog(@"animate ease into node after hover");
-    NSLog(@"dyadmino %@ has homeNode %@ and tempBoardNode %@", self.name, self.homeNode.name, self.tempBoardNode.name);
-    NSLog(@"and orientation %i and temp orientation %i", self.orientation, self.tempReturnOrientation);
-    [self.delegate soundDyadminoSettleClick];
+    [self.delegate postSoundNotification:kNotificationEaseIntoNode];
     [self.delegate changeColoursAroundDyadmino:self withSign:+1];
   }];
   

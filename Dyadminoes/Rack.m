@@ -167,7 +167,7 @@
           scootedDyadmino.zPosition = kZPositionRackRestingDyadmino;
           
             // sound it
-          [self.delegate soundRackExchangedDyadmino:scootedDyadmino];
+          [self.delegate postSoundNotification:kNotificationRackExchangeClick];
         }
           // make the displacedDyadmino the new scootedDyadmino
         displacedDyadmino.homeNode = scootedDyadmino.homeNode;

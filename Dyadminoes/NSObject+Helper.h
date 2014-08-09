@@ -9,11 +9,28 @@
 #import <Foundation/Foundation.h>
 @class Dyadmino;
 
-  // temporary sounds
+  // temporary sound files
 #define kSoundPop @"hitCatLady"
 #define kSoundClick @"Click2-Sebastian-759472264"
 #define kSoundRing @"Electronic_Chime-KevanGC-495939803"
 #define kSoundSwoosh @"Slide_Closed_SoundBible_com_1521580537"
+
+  // sound notifications
+#define kNotificationDeviceOrientation @"deviceOrientation"
+#define kNotificationToggleBarOrField @"toggleBarOrField"
+#define kNotificationBoardZoom @"boardZoom"
+#define kNotificationPopIntoNode @"popIntoNode"
+#define kNotificationPivotClick @"pivotClick"
+#define kNotificationEaseIntoNode @"easeIntoNode"
+#define kNotificationRackExchangeClick @"rackExchangeClick"
+#define kNotificationButtonSunkIn @"buttonSunkIn"
+#define kNotificationButtonLifted @"buttonLifted"
+#define kNotificationTogglePCs @"togglePCs"
+
+  // FIXME: this should know individual pcs
+#define kNotificationTwoNotesStruck @"twoNotesStruck"
+#define kNotificationOneNoteStruck @"oneNoteStruck"
+#define kNotificationOneNoteResonated @"oneNoteResonated"
 
 // constants that differ between iPhone and iPad
 //------------------------------------------------------------------------------
