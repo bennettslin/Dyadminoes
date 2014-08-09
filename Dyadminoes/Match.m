@@ -552,12 +552,12 @@
 #pragma mark - replay methods
 
 -(void)startReplay {
+  self.replayTurn = self.turns.count;
   self.replayBoard = [NSMutableSet setWithSet:self.board];
-  [self last];
 }
 
 -(void)leaveReplay {
-  [self last];
+  self.replayTurn = self.turns.count;
   [self.replayBoard removeAllObjects];
 }
 

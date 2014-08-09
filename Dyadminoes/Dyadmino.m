@@ -262,9 +262,13 @@
   [self animateMoveToPoint:destinationNode.position andSounding:sounding];
 }
 
--(void)removeActionsAndEstablishNotRotating {
-  [self resetFaceScales];
+-(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove {
+  
+  if (includingMove) {
   [self removeActionForKey:kActionMoveToPoint];
+  }
+  
+  [self resetFaceScales];
   [self removeActionForKey:kActionPopIntoRack];
   [self removeActionForKey:kActionFlip];
   [self removeActionForKey:kActionEaseIntoNode];
@@ -422,7 +426,7 @@
 
 -(void)animateMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding {
   NSLog(@"animateMoveToPoint called from dyadmino %@", self.name);
-  [self removeActionsAndEstablishNotRotating];
+  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
 //  CGFloat distance = [self getDistanceFromThisPoint:self.position toThisPoint:point];
   SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime]; // was kConstantSpeed * distance
   moveAction.timingMode = SKActionTimingEaseIn;
@@ -441,7 +445,7 @@
 -(void)animatePopBackIntoBoardNode {
   NSLog(@"dyadmino's animate to board node method called");
 //  [self endTouchThenHoverResize];
-  [self removeActionsAndEstablishNotRotating];
+  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
     [self.delegate soundDyadminoSuck];
@@ -462,7 +466,7 @@
 }
 
 -(void)animatePopBackIntoRackNodeFromUndo:(BOOL)undo withResize:(BOOL)resize {
-  [self removeActionsAndEstablishNotRotating];
+  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
   SKAction *repositionAction = [SKAction runBlock:^{
     self.color = (SKColor *)kNeutralYellow;
@@ -490,7 +494,7 @@
 }
 
 -(void)animateFlip {
-  [self removeActionsAndEstablishNotRotating];
+  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   self.isRotating = YES;
   
   SKAction *nextFrame = [SKAction runBlock:^{
@@ -556,7 +560,7 @@
 
 -(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour {
 //  NSLog(@"animate dyadminoes recently played");
-  [self removeActionsAndEstablishNotRotating];
+  [self removeActionsAndEstablishNotRotatingIncludingMove:NO];
   self.color = (SKColor *)colour;
   
   CGFloat colourBlendFactor = [colour isEqual:kPlayerOrange] ?

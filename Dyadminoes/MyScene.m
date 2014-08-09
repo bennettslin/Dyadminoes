@@ -920,7 +920,7 @@
   _boardField.zoomedOut = _boardZoomedOut;
   
     // conditions for dyadminoes not to be stationary
-  _dyadminoesStationary = (!_boardZoomedOut && !_replayMode && !_pnpBarUp && !_swapMode) ? NO : YES;
+  _dyadminoesStationary = (!_replayMode && !_pnpBarUp && !_swapMode) ? NO : YES;
   [self toggleDyadminoesToBeStationaryOrMovableAnimated:NO];
   
   if (_boardZoomedOut) {
@@ -942,7 +942,7 @@
   
     // resize dyadminoes
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
-    [dyadmino removeActionsAndEstablishNotRotating];
+    [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
     dyadmino.isTouchThenHoverResized = NO;
     dyadmino.isZoomResized = _boardZoomedOut;
     if (_replayMode) {
@@ -1028,7 +1028,7 @@
     [dyadmino keepHovering];
   }
   
-  [dyadmino removeActionsAndEstablishNotRotating];
+  [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
   
     //--------------------------------------------------------------------------
   
@@ -1098,7 +1098,7 @@
     [self updateCellsForPlacedDyadmino:dyadmino andColour:NO];
     
       // start hovering
-    [dyadmino removeActionsAndEstablishNotRotating];
+    [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
     
   //  NSLog(@"prepare for hover, check");
     [self checkWhetherToEaseOrKeepHovering:dyadmino];
@@ -1199,7 +1199,7 @@
 
 -(void)getReadyToPivotHoveringDyadmino:(Dyadmino *)dyadmino {
   
-  [dyadmino removeActionsAndEstablishNotRotating];
+  [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
   
     // this section just determines which pc to pivot on
     // it's not relevant after dyadmino is moved
@@ -1326,11 +1326,11 @@
     } else {
       
         // kludge way to ensure we're on last turn, with one final updateView
-      [self.myMatch last];
-      [self updateViewForReplayInReplay:YES];
+//      [self.myMatch last];
+//      [self updateViewForReplayInReplay:YES];
       
-      [self restoreDyadminoAttributesAfterReplay];
       [self.myMatch leaveReplay];
+      [self restoreDyadminoAttributesAfterReplay];
       [self updateViewForReplayInReplay:NO];
       
         // animate last play, or game results if game ended unless player's turn is already over
@@ -2040,7 +2040,7 @@
   }
   
     // alpha is reverse of cells
-  [_boardField toggleBackgroundAlphaZeroed:!_dyadminoesStationary animated:animated];
+//  [_boardField toggleBackgroundAlphaZeroed:!_dyadminoesStationary animated:animated];
   
 //  CGFloat desiredCellAlpha = _cellAlphasZeroed ? 0.f : 1.f;
 //  SKAction *fadeCellAlpha = [SKAction fadeAlphaTo:desiredCellAlpha duration:kConstantTime * 0.9f]; // a little faster than field move
@@ -2311,6 +2311,7 @@
 }
 
 -(NSSet *)allBoardDyadminoesPlusRecentRackDyadmino {
+  
   NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
   
     // add dyadmino to set if dyadmino is a recent rack dyadmino
@@ -2321,6 +2322,7 @@
 }
 
 -(NSSet *)allBoardDyadminoesNotTurnOrRecentRack {
+  
   NSMutableSet *dyadminoesOnBoard = [NSMutableSet setWithSet:self.boardDyadminoes];
   NSSet *turnDyadminoesPlusRecentRack = [self allTurnDyadminoesPlusRecentRackDyadmino];
   for (Dyadmino *dyadmino in turnDyadminoesPlusRecentRack) {
@@ -2335,13 +2337,14 @@
 -(NSSet *)allTurnDyadminoesPlusRecentRackDyadmino {
   
   NSMutableSet *tempSet = [NSMutableSet new];
-
   for (DataDyadmino *dataDyad in self.myMatch.holdingContainer) {
     Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
-    [tempSet addObject:dyadmino];
+    if (![tempSet containsObject:dyadmino]) {
+      [tempSet addObject:dyadmino];
+    }
   }
   
-  if (_recentRackDyadmino) {
+  if (_recentRackDyadmino && ![tempSet containsObject:_recentRackDyadmino]) {
     [tempSet addObject:_recentRackDyadmino];
   }
   
@@ -2632,33 +2635,38 @@
 }
 
 -(void)storeDyadminoAttributesBeforeReplay {
+  
+    // dyadminoes do not lose their homeNodes or tempNodes
   NSSet *holdingContainerAndRecentRackDyadminoes = [self allTurnDyadminoesPlusRecentRackDyadmino];
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
-    if (![holdingContainerAndRecentRackDyadminoes containsObject:dyadmino]) {
+    
+      // hide player turn dyadminoes
+    if ([holdingContainerAndRecentRackDyadminoes containsObject:dyadmino]) {
+      [self animateScaleForReplayOfDyadmino:dyadmino toShrink:YES];
+      
+    } else {
       dyadmino.preReplayHexCoord = dyadmino.myHexCoord;
       dyadmino.preReplayOrientation = dyadmino.orientation;
       dyadmino.preReplayTempOrientation = dyadmino.tempReturnOrientation;
-      dyadmino.preReplayRackOrder = dyadmino.myRackOrder;
-      
-    } else {
-        // shrink player turn dyadminoes
-      [self animateScaleForReplayOfDyadmino:dyadmino toShrink:YES];
+//      dyadmino.preReplayRackOrder = dyadmino.myRackOrder;
     }
   }
 }
 
 -(void)restoreDyadminoAttributesAfterReplay {
+  
   NSSet *holdingContainerAndRecentRackDyadminoes = [self allTurnDyadminoesPlusRecentRackDyadmino];
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
-    if (![holdingContainerAndRecentRackDyadminoes containsObject:dyadmino]) {
+    
+      // show player turn dyadminoes
+    if ([holdingContainerAndRecentRackDyadminoes containsObject:dyadmino]) {
+      [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO];
+      
+    } else {
       dyadmino.myHexCoord = dyadmino.preReplayHexCoord;
       dyadmino.orientation = dyadmino.preReplayOrientation;
       dyadmino.tempReturnOrientation = dyadmino.preReplayTempOrientation;
-      dyadmino.myRackOrder = dyadmino.preReplayRackOrder;
-      
-    } else {
-        //grow all player turn dyadminoes
-      [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO];
+//      dyadmino.myRackOrder = dyadmino.preReplayRackOrder;
     }
   }
 }
@@ -2673,70 +2681,62 @@
 
 -(void)updateBoardForReplayInReplay:(BOOL)inReplay {
   
-  NSMutableSet *dyadminoesOnBoardUpToThisPoint = [NSMutableSet new];
+  NSMutableSet *dyadminoesOnBoardUpToThisPoint = inReplay ? [NSMutableSet new] :
+      [NSMutableSet setWithSet:[self allBoardDyadminoesPlusRecentRackDyadmino]];
   
-  if (inReplay) {
+    // match already knows the turn number
+  Player *turnPlayer = inReplay ? [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"player"] :
+      _myPlayer;
+  NSArray *turnDataDyadminoes = inReplay ? [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"container"] :
+      @[];
+  
+  for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
+    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     
-      // match already knows the turn number
-    Player *turnPlayer = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"player"];
-    NSArray *turnDataDyadminoes = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:@"container"];
+      // if in replay only show dyadminoes played up to this turn, and add to set that will be passed to board
+      // if not in replay, conditional is automatically yes
+    BOOL conditionalToHideDyadmino = inReplay ? ![self.myMatch.replayBoard containsObject:dataDyad] : NO;
     
-    for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
-      DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+    if (conditionalToHideDyadmino) {
       
-        // only show dyadminoes played up to this turn, and add to set that will be passed to board
-      if (![self.myMatch.replayBoard containsObject:dataDyad]) {
-        
-        if (!dyadmino.hidden) {
-            // animate shrinkage
-          [self animateScaleForReplayOfDyadmino:dyadmino toShrink:YES];
-        }
-        
+      if (!dyadmino.hidden) {
+          // animate shrinkage
+        [self animateScaleForReplayOfDyadmino:dyadmino toShrink:YES];
+      }
+      
+    } else {
+      if (dyadmino.hidden) {
+          // animate growage
+        [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO];
+      }
+      
+        // highlight dyadminoes played on this turn
+      if ([turnDataDyadminoes containsObject:dataDyad]) {
+        [dyadmino removeActionForKey:kActionShowRecentlyPlayed];
+        [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer]];
       } else {
-        if (dyadmino.hidden) {
-            // animate growage
-          [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO];
-        }
-        
-          // highlight dyadminoes played on this turn
-        if ([turnDataDyadminoes containsObject:dataDyad]) {
-          [dyadmino removeActionForKey:kActionShowRecentlyPlayed];
-          [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer]];
-        } else {
-          [dyadmino unhighlightOutOfPlay];
-        }
-        
+        [dyadmino unhighlightOutOfPlay];
+      }
+      
+        // if leaving replay, properties have already been reset
+      if (inReplay) {
           // get position and orientation attrivutes
         dyadmino.myHexCoord = [dataDyad getHexCoordForTurn:self.myMatch.replayTurn];
         dyadmino.orientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
         dyadmino.tempReturnOrientation = dyadmino.orientation;
-        
-          // position dyadmino
-        [self repositionInReplayDyadmino:dyadmino];
-        
-        [dyadminoesOnBoardUpToThisPoint addObject:dyadmino];
       }
-    }
-    
-      // prepare to leave replay
-  } else {
-    
-    dyadminoesOnBoardUpToThisPoint = [NSMutableSet setWithSet:[self allBoardDyadminoesPlusRecentRackDyadmino]];
-    
-      // these go to homeNode
-    for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
-      dyadmino.hidden = NO;
-      [dyadmino goHomeToBoardByPoppingIn:NO andSounding:NO];
-    }
-    
-      // these go to tempNode
-    for (Dyadmino *dyadmino in [self allTurnDyadminoesPlusRecentRackDyadmino]) {
-      [dyadmino goToTempBoardNodeBySounding:NO];
+      
+        // position dyadmino
+      if (inReplay) {
+        [self repositionInReplayDyadmino:dyadmino];
+        [dyadminoesOnBoardUpToThisPoint addObject:dyadmino];
+      } else {
+        [dyadmino goHomeToBoardByPoppingIn:NO andSounding:NO];
+      }
     }
   }
   
     // prep board for bounds and position
-  NSLog(@"from scene, outermost cells being determined");
   [_boardField determineOutermostCellsBasedOnDyadminoes:dyadminoesOnBoardUpToThisPoint];
   [_boardField determineBoardPositionBounds];
 }
@@ -2767,7 +2767,8 @@
     SKAction *sequence = [SKAction sequence:@[shrinkAction, hideAction]];
     
     dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
-    [dyadmino runAction:sequence];
+    [dyadmino removeActionForKey:@"shrink"];
+    [dyadmino runAction:sequence withKey:@"shrink"];
     
   } else {
     SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.5f];
@@ -2778,7 +2779,8 @@
     
     dyadmino.hidden = NO;
     dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
-    [dyadmino runAction:sequence];
+    [dyadmino removeActionForKey:@"shrink"];
+    [dyadmino runAction:sequence withKey:@"shrink"];
   }
 }
 
@@ -2931,12 +2933,12 @@
     }
   }
   
-  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
-    NSLog(@"%@ is at %li", dyadmino.name, (long)dyadmino.myRackOrder);
-    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-    NSLog(@"data %lu is at %li", (unsigned long)dataDyad.myID, (long)dataDyad.myRackOrder);
-  }
-  
+//  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
+//    NSLog(@"%@ is at %li", dyadmino.name, (long)dyadmino.myRackOrder);
+//    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+//    NSLog(@"data %lu is at %li", (unsigned long)dataDyad.myID, (long)dataDyad.myRackOrder);
+//  }
+//  
 //  NSMutableArray *tempDyadminoArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
 //  NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
 //  NSArray *tempImutableArray = [tempDyadminoArray sortedArrayUsingDescriptors:@[sortByRackOrder]];

@@ -53,7 +53,7 @@
 @property (nonatomic) HexCoord preReplayHexCoord;
 @property (nonatomic) DyadminoOrientation preReplayOrientation;
 @property (nonatomic) DyadminoOrientation preReplayTempOrientation;
-@property (nonatomic) NSInteger preReplayRackOrder;
+//@property (nonatomic) NSInteger preReplayRackOrder;
 
   // sprites
 @property (strong, nonatomic) NSArray *rotationFrameArray;
@@ -118,7 +118,7 @@
 -(void)goToTempBoardNodeBySounding:(BOOL)sounding;
 -(void)goHomeToRackByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding fromUndo:(BOOL)undo withResize:(BOOL)resize;
 -(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding;
--(void)removeActionsAndEstablishNotRotating;
+-(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
 
 #pragma mark - pivot methods
 
