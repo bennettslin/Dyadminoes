@@ -32,7 +32,7 @@
 
 @property (strong, nonatomic) NSArray *playerKeys;
 @property (strong, nonatomic) NSArray *placeholderNames;
-@property (strong, nonatomic) NSArray *textFields;
+@property (strong, nonatomic) NSArray *playerNameFields;
 @property (strong, nonatomic) NSArray *playerButtons;
 
 @property (weak, nonatomic) IBOutlet UIButton *startGameButton;
@@ -52,15 +52,20 @@
   self.playerKeys = @[kPlayer1Key, kPlayer2Key, kPlayer3Key, kPlayer4Key];
   self.placeholderNames = @[kPlaceholder1Name, kPlaceholder2Name, kPlaceholder3Name, kPlaceholder4Name];
   
-  self.textFields = @[self.player1NameField, self.player2NameField, self.player3NameField, self.player4NameField];
-  for (UITextField *textField in self.textFields) {
+  self.playerNameFields = @[self.player1NameField, self.player2NameField, self.player3NameField, self.player4NameField];
+  for (UITextField *textField in self.playerNameFields) {
     textField.delegate = self;
     textField.autocapitalizationType = UITextAutocapitalizationTypeWords;
-    NSUInteger index = [self.textFields indexOfObject:textField];
+    NSUInteger index = [self.playerNameFields indexOfObject:textField];
     textField.placeholder = self.placeholderNames[index];
   }
   
   self.playerButtons = @[self.player1Button, self.player2Button, self.player3Button, self.player4Button];
+  for (UIButton *button in self.playerButtons) {
+    [button setTitle:@"Join?" forState:UIControlStateNormal];
+    [button setTitle:@"Joined!" forState:UIControlStateSelected];
+    [button.titleLabel sizeToFit];
+  }
   
   self.defaults = [NSUserDefaults standardUserDefaults];
 }
@@ -76,7 +81,7 @@
       // FIXME: if no player name, get from Game Center *first*
     NSString *userDefaultName = [self.defaults objectForKey:playerKey];
     NSString *placeholderName = self.placeholderNames[i];
-    UITextField *textField = self.textFields[i];
+    UITextField *textField = self.playerNameFields[i];
 
     if (!userDefaultName || [userDefaultName isEqualToString:@""] || [userDefaultName isEqualToString:placeholderName]) {
       textField.text = nil;
@@ -92,7 +97,7 @@
 
 -(void)saveNameForPlayerIndex:(NSUInteger)index {
   
-  UITextField *textField = self.textFields[index];
+  UITextField *textField = self.playerNameFields[index];
   NSString *playerKey = self.playerKeys[index];
   NSString *placeholderName = self.placeholderNames[index];
   
@@ -130,7 +135,7 @@
 -(IBAction)buttonTapped:(UIButton *)button {
   
   NSUInteger index = [self.playerButtons indexOfObject:button];
-  UITextField *textField = self.textFields[index];
+  UITextField *textField = self.playerNameFields[index];
   if (button.selected) {
     button.selected = NO;
     textField.backgroundColor = kEndedMatchCellLightColour;
@@ -160,7 +165,7 @@
   
   for (int i = 1; i < 4; i++) {
     UIButton *button = self.playerButtons[i];
-    UITextField *textField = self.textFields[i];
+    UITextField *textField = self.playerNameFields[i];
     button.selected = NO;
     textField.backgroundColor = kEndedMatchCellLightColour;
     textField.textColor = [UIColor darkGrayColor];
@@ -169,29 +174,42 @@
 
 #pragma mark - text field methods
 
+-(BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
+  NSString *newString = [textField.text stringByReplacingCharactersInRange:range withString:string];
+  return !(newString.length > (kIsIPhone ? 16 : 20));
+}
+
 -(void)textFieldDidBeginEditing:(UITextField *)textField {
   self.startGameButton.enabled = NO;
+  
+    // automatically push join button
+  UIButton *playerButton = self.playerButtons[[self.playerNameFields indexOfObject:textField]];
+  playerButton.selected ? nil : [self buttonTapped:playerButton];
   
   [self.delegate disableOverlay];
 }
 
+-(void)textFieldDidEndEditing:(UITextField *)textField {
+  NSLog(@"text field with %@ did end editing", textField.text);
+  [self resignTextField:textField];
+}
+
 -(BOOL)textFieldShouldReturn:(UITextField *)textField {
-  [self resignTextField];
+  [self resignTextField:textField];
   return YES;
 }
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-  [self resignTextField];
+  [self resignTextField:nil];
 }
 
--(void)resignTextField {
+-(void)resignTextField:(UITextField *)textField {
+  textField = !textField ? [self checkTextFieldFirstResponder] : textField;
   
-  UITextField *textField = [self checkTextFieldFirstResponder];
   if (textField) {
     [textField resignFirstResponder];
-    NSUInteger index = [self.textFields indexOfObject:textField];
+    NSUInteger index = [self.playerNameFields indexOfObject:textField];
     [self saveNameForPlayerIndex:index];
-    
     self.startGameButton.enabled = YES;
     [self.delegate enableOverlay];
   }
@@ -199,7 +217,7 @@
 
 -(UITextField *)checkTextFieldFirstResponder {
   
-  for (UITextField *textField in self.textFields) {
+  for (UITextField *textField in self.playerNameFields) {
     if ([textField isFirstResponder]) {
       return textField;
     }

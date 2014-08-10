@@ -21,6 +21,6 @@
 
 @property (weak, nonatomic) id<LocalGameDelegate> delegate;
 
--(void)resignTextField;
+-(void)resignTextField:(UITextField *)textField;
 
 @end

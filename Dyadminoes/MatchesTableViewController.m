@@ -302,7 +302,7 @@
       // so that overlay doesn't register when user dismisses keyboard
   } else if (!_overlayEnabled) {
     if (self.childVC == self.localVC) {
-      [self.localVC resignTextField];
+      [self.localVC resignTextField:nil];
     }
   }
 }
