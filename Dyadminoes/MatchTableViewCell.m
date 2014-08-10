@@ -15,11 +15,11 @@
 #import "UIImage+colouredImage.h"
 
   // TODO: verify this
-#define kPlayerLabelWidth (kIsIPhone ? 54.f : 109.f)
-#define kPlayerLabelHeightPadding 7.5f
-#define kPlayerLabelWidthPadding 22.5f
-#define kScoreLabelWidth (kPlayerLabelWidthPadding / 2)
-#define kScoreLabelHeight (kScoreLabelWidth * 3)
+#define kPlayerLabelWidth (kIsIPhone ? kCellWidth / 6.f : kCellWidth / 5.8f)
+#define kPlayerLabelHeightPadding (kCellRowHeight / 12)
+#define kPlayerLabelWidthPadding (kPlayerLabelWidth / 4.84444444)
+#define kScoreLabelWidth kPlayerLabelWidth
+#define kScoreLabelHeight (kCellRowHeight / 2.66666667)
 #define kMaxNumPlayers 4
 
 @interface MatchTableViewCell ()
@@ -72,25 +72,26 @@
   
   for (int i = 0; i < 4; i++) {
     UILabel *playerLabel = self.playerLabelsArray[i];
-    playerLabel.font = [UIFont fontWithName:kPlayerNameFont size:kIsIPhone ? 24.f : 32.f];
+    playerLabel.font = [UIFont fontWithName:kPlayerNameFont size:(kIsIPhone ? (kCellRowHeight / 3.4) : (kCellRowHeight / 2.8125))];
     CellBackgroundView *labelView = self.playerLabelViewsArray[i];
     [self insertSubview:labelView belowSubview:playerLabel];
     
     UILabel *scoreLabel = self.scoreLabelsArray[i];
-    scoreLabel.font = [UIFont fontWithName:kPlayerNameFont size:kIsIPhone ? 12.f : 20.f];
+    scoreLabel.font = [UIFont fontWithName:kPlayerNameFont size:(kCellRowHeight / 4.5)];
     scoreLabel.textColor = [UIColor brownColor];
+    scoreLabel.textAlignment = NSTextAlignmentCenter;
     scoreLabel.frame = CGRectMake(scoreLabel.frame.origin.x, scoreLabel.frame.origin.y, kScoreLabelWidth, kScoreLabelHeight);
   }
   
   self.lastPlayedLabel.adjustsFontSizeToFitWidth = YES;
-  self.lastPlayedLabel.frame = CGRectMake(self.lastPlayedLabel.frame.origin.x, (self.frame.size.height / 10) * 11,
-                                          self.lastPlayedLabel.frame.size.width, self.lastPlayedLabel.frame.size.height);
-  
-  self.stavesView = [[StavesView alloc] initWithFrame:CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, 90.f + kCellSeparatorBuffer)];
+  self.lastPlayedLabel.frame = CGRectMake(kStaveXBuffer, (kCellRowHeight / 10) * 11,
+                                          kCellWidth - kStaveXBuffer * 2, kStaveYHeight * 2);
+
+  self.stavesView = [[StavesView alloc] initWithFrame:CGRectMake(self.frame.origin.x, self.frame.origin.y, kCellWidth, kCellRowHeight + kCellSeparatorBuffer)];
   [self insertSubview:self.stavesView belowSubview:self.selectedBackgroundView];
   
   self.clefImage = [UIImageView new];
-  self.clefImage.frame = CGRectMake(kStaveXBuffer, kStaveYHeight * 4, kStaveYHeight * 4, kStaveYHeight * 4);
+  self.clefImage.frame = CGRectMake(kStaveXBuffer, kStaveYHeight * 3, kStaveYHeight * 3.25, kStaveYHeight * 3.25);
   [self addSubview:self.clefImage];
   
   UIImage *fermataImage = [UIImage imageNamed:@"fermata-med"];
@@ -98,15 +99,14 @@
   NSMutableArray *tempFermataImageViewArray = [NSMutableArray new];
   for (int i = 0; i < 4; i++) {
     UIImageView *fermataImageView = [[UIImageView alloc] initWithImage:fermataImage];
+    fermataImageView.frame = CGRectMake(0, kStaveYHeight, kStaveYHeight * 2, kStaveYHeight * 2);
+    fermataImageView.contentMode = UIViewContentModeScaleAspectFit;
     [tempFermataImageViewArray addObject:fermataImageView];
   }
   self.fermataImageViewArray = [NSArray arrayWithArray:tempFermataImageViewArray];
 }
 
 -(void)setProperties {
-
-//  NSLog(@"setProperties");
-//  NSLog(@"random number is %li", (long)self.myMatch.randomNumber1To24);
   
   self.stavesView.gameHasEnded = self.myMatch.gameHasEnded;
   [self.stavesView setNeedsDisplay];
@@ -125,19 +125,18 @@
   
   if (self.myMatch) {
     
+    Player *player;
     for (int i = 0; i < kMaxNumPlayers; i++) {
-      Player *player;
-      
-      if (i < self.myMatch.players.count) {
-        player = self.myMatch.players[i];
-      }
+
+      player = (i < self.myMatch.players.count) ? self.myMatch.players[i] : nil;
       
       UILabel *playerLabel = self.playerLabelsArray[i];
       CellBackgroundView *labelView = self.playerLabelViewsArray[i];
       UILabel *scoreLabel = self.scoreLabelsArray[i];
 
         // score label
-      scoreLabel.text = (player && !(player.resigned && self.myMatch.type != kSelfGame)) ? [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
+      scoreLabel.text = (player && !(player.resigned && self.myMatch.type != kSelfGame)) ?
+          [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
       scoreLabel.adjustsFontSizeToFitWidth = YES;
       
         // player label
@@ -148,12 +147,15 @@
       CGFloat playerLabelFrameWidth = (playerLabel.frame.size.width > kPlayerLabelWidth) ?
           kPlayerLabelWidth : playerLabel.frame.size.width;
       playerLabel.frame = CGRectMake(kStaveXBuffer + kStaveWidthDivision + (i * kStaveWidthDivision * 2), playerLabel.frame.origin.y, playerLabelFrameWidth, playerLabel.frame.size.height);
+        // first kStaveWidthDivision is for clef
+      playerLabel.center = CGPointMake(kStaveXBuffer + (kIsIPhone ? kStaveWidthDivision * 1.6f : kStaveWidthDivision * 1.3f) + (i * kStaveWidthDivision * 2) + kStaveWidthDivision / 2, playerLabel.center.y);
       
         // make font size smaller if it can't fit
       playerLabel.adjustsFontSizeToFitWidth = YES;
-      labelView.frame = CGRectMake(0, 0, playerLabel.frame.size.width + kPlayerLabelWidthPadding + kScoreLabelWidth, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
+      playerLabel.minimumScaleFactor = 0.5f;
+      labelView.frame = CGRectMake(0, 0, playerLabel.frame.size.width + kPlayerLabelWidthPadding, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
 
-      labelView.layer.cornerRadius = labelView.frame.size.height / 2;
+      labelView.layer.cornerRadius = labelView.frame.size.height / 2.f;
       labelView.clipsToBounds = YES;
 
         // static player colours, check if player resigned
@@ -165,11 +167,10 @@
       if (!self.myMatch.gameHasEnded && player == self.myMatch.currentPlayer) {
         labelView.backgroundColor = [kMainDarkerYellow colorWithAlphaComponent:0.8f];
       } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
-//        labelView.backgroundColor = [kEndedMatchCellDarkColour colorWithAlphaComponent:0.8f];
         labelView.backgroundColor = [UIColor clearColor]; // I've decided just fermata, no background for won player
         UIImageView *fermataImageView = self.fermataImageViewArray[i];
         [self addSubview:fermataImageView];
-        
+
       } else {
         labelView.backgroundColor = [UIColor clearColor];
       }
@@ -213,11 +214,10 @@
       NSNumber *playerScore = [NSNumber numberWithUnsignedInteger:player.playerScore];
       
         // ensure no double numbers
-      if (![tempScores containsObject:playerScore]) {
-        [tempScores addObject:playerScore];
-      }
+      ![tempScores containsObject:playerScore] ? [tempScores addObject:playerScore] : nil;
     }
   }
+  
   NSArray *sortedScores = [tempScores sortedArrayUsingSelector:@selector(compare:)];
 
   for (int i = 0; i < self.myMatch.players.count; i++) {
@@ -229,52 +229,28 @@
     NSInteger playerPosition = (player.resigned && self.myMatch.type != kSelfGame) ?
         -1 : [sortedScores indexOfObject:[NSNumber numberWithUnsignedInteger:player.playerScore]] + 1;
 
-    playerLabel.frame = CGRectMake(playerLabel.frame.origin.x,
-                                   [self labelHeightForMaxPosition:sortedScores.count andPlayerPosition:playerPosition],
-                                   playerLabel.frame.size.width, playerLabel.frame.size.height);
-    labelView.center = CGPointMake(playerLabel.center.x + (kScoreLabelWidth / 2),
-                                   playerLabel.center.y - kPlayerLabelWidthPadding * 0.1f);
-    scoreLabel.frame = CGRectMake(playerLabel.frame.origin.x + playerLabel.frame.size.width + (kPlayerLabelWidthPadding / 4),
-                                  playerLabel.frame.origin.y, scoreLabel.frame.size.width, scoreLabel.frame.size.height);
+//    playerLabel.frame = CGRectMake(playerLabel.frame.origin.x,
+//                                   playerLabel.frame.origin.y,
+//                                   playerLabel.frame.size.width,
+//                                   playerLabel.frame.size.height);
+    playerLabel.center = CGPointMake(playerLabel.center.x, [self labelHeightForMaxPosition:sortedScores.count andPlayerPosition:playerPosition]);
+    labelView.center = CGPointMake(playerLabel.center.x,
+                                   playerLabel.center.y - (kCellRowHeight / 40.f));
+    scoreLabel.center = CGPointMake(playerLabel.center.x, playerLabel.center.y + kStaveYHeight * 1.5f);
+//    scoreLabel.frame = CGRectMake(playerLabel.frame.origin.x + playerLabel.frame.size.width + (kIsIPhone ? kPlayerLabelWidthPadding / 6 : kPlayerLabelWidthPadding / 4), scoreLabel.frame.origin.y, scoreLabel.frame.size.width, scoreLabel.frame.size.height);
     
     UIImageView *fermataImageView = self.fermataImageViewArray[i];
     if (fermataImageView.superview) {
-      fermataImageView.frame = CGRectMake(playerLabel.frame.origin.x, kStaveYHeight, kStaveYHeight * 2, kStaveYHeight * 2);
-      
-      fermataImageView.contentMode = UIViewContentModeScaleAspectFit;
+      fermataImageView.center = CGPointMake(playerLabel.center.x, fermataImageView.center.y);
     }
   }
 }
 
 -(CGFloat)labelHeightForMaxPosition:(NSUInteger)maxPosition andPlayerPosition:(NSInteger)playerPosition {
   
-    // positions are 3, 3.5, 4, 4.5, 5, with 5 being resigned player
-  
-    // player resigned
-  if (playerPosition == -1) {
-    return 5 * kStaveYHeight - (kPlayerLabelHeightPadding * 0.25f);
-  }
-
-  CGFloat multFloat = ((maxPosition - playerPosition) / 2.f) + 3.f;
-  
-//  CGFloat multiplier = 0;
-//  
-//  switch (maxPosition) {
-//    case 4:
-//      multiplier = 10 - (playerPosition) - 1;
-//      break;
-//    case 3:
-//      multiplier = 10 - (playerPosition) - 1.5;
-//      break;
-//    case 2:
-//      multiplier = 10 - (playerPosition) - 2;
-//      break;
-//    case 1:
-//      multiplier = 10 - (playerPosition) - 2.5;
-//      break;
-//  }
-  
-  return multFloat * kStaveYHeight - (kPlayerLabelHeightPadding * 0.25f);
+    // positions are 4, 4.5, 5, 5.5, 6 being resigned player
+  CGFloat multFloat = (playerPosition == -1) ? 6 : ((maxPosition - playerPosition) / 2.f) + 4;
+  return (multFloat * kStaveYHeight);
 }
 
 @end

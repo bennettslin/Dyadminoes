@@ -593,7 +593,9 @@
   if (!dyadmino.hidden && !_canDoubleTapForDyadminoFlip && ([dyadmino isOnBoard] || ![dyadmino isRotating])) {
     
         // register sound if dyadmino tapped
-    if (!_pnpBarUp && !_replayMode && dyadmino && !_swapMode && !_pivotInProgress) { // not sure if not being in swapMode is necessary
+    if (!_pnpBarUp && !_replayMode && dyadmino && !_swapMode && !_pivotInProgress) {
+      
+        // whole dyadmino does not sound when board is zoomed
       (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) ?
           [self postSoundNotification:kNotificationTwoNotesStruck] : nil;
       
@@ -604,14 +606,14 @@
       if (face && face.parent != _hoveringDyadmino && !_pivotInProgress) {
         if ([face isKindOfClass:[Face class]]) {
           Dyadmino *resonatedDyadmino = (Dyadmino *)face.parent;
-          if (!resonatedDyadmino.hidden &&
+          if (!resonatedDyadmino.hidden && !_boardZoomedOut &&
               (!_pnpBarUp || (_pnpBarUp && [resonatedDyadmino isOnBoard])) &&
               (!_replayMode || (_replayMode && [resonatedDyadmino isOnBoard]))) {
-            if (!_boardZoomedOut || (_boardZoomedOut && [resonatedDyadmino isInRack])) {
-              [self postSoundNotification:kNotificationOneNoteStruck];
-              [resonatedDyadmino animateFace:face];
-              _soundedDyadminoFace = face;
-            }
+            
+              // face may be sounded when zoomed
+            [self postSoundNotification:kNotificationOneNoteStruck];
+            [resonatedDyadmino animateFace:face];
+            _soundedDyadminoFace = face;
           }
         }
       }

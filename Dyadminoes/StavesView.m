@@ -35,8 +35,8 @@
     CGFloat yPosition = kStaveYHeight * (i + 3);
     CGContextMoveToPoint(context, kStaveXBuffer, yPosition); //start at this point
     
-    CGFloat endXPoint = self.gameHasEnded ? kCellWidth - kStaveXBuffer - kStaveYHeight / 2 : kCellWidth - kStaveXBuffer;
-    
+    CGFloat endXPoint = self.gameHasEnded ? (kCellWidth - kStaveXBuffer - kStaveYHeight / 2) : (kCellWidth - kStaveXBuffer);
+
     CGContextAddLineToPoint(context, endXPoint, yPosition); //draw to this point
     
       // and now draw the Path!

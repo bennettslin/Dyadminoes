@@ -22,15 +22,18 @@
 #import "AboutViewController.h"
 #import "Match.h"
 
-#define kTableViewXMargin (kIsIPhone ? 25.f : 60.f)
-//#define kTableViewTopMargin (kIsIPhone ? 122.f : 122.f)
-//#define kTableViewBottomMargin (kIsIPhone ? 90.f : 90.f)
+#define kTableViewXMargin (kIsIPhone ? 0.f : 60.f)
 #define kMainTopBarHeight (kIsIPhone ? 64.f : 86.f)
-#define kMainBottomBarHeight (kIsIPhone ? 64.f : 90.f)
+#define kMainBottomBarHeight (kIsIPhone ? 60.f : 90.f)
+#define kActivityIndicatorFrame (kIsIPhone ? 75.f : 150.f)
+
 #define kViewControllerSpeed 0.225f
-#define kMainOverlayAlpha 0.6f
+#define kMainOverlayAlpha 0.2f
 
 @interface MatchesTableViewController () <SceneViewDelegate, DebugDelegate, MatchCellDelegate, LocalGameDelegate>
+
+@property (strong, nonatomic) MyScene *myScene;
+@property (strong, nonatomic) UIViewController *childVC;
 
 @property (strong, nonatomic) Model *myModel;
 
@@ -50,8 +53,6 @@
 
 @property (strong, nonatomic) NSArray *allButtons;
 
-@property (strong, nonatomic) UIViewController *childVC;
-
 @property (strong, nonatomic) UIButton *highlightedBottomButton;
 @property (strong, nonatomic) UIButton *darkOverlay;
 @property (nonatomic) BOOL vcIsAnimating;
@@ -64,9 +65,6 @@
 @property (strong, nonatomic) AboutViewController *aboutVC;
 
 @property (strong, nonatomic) UIActivityIndicatorView *activityIndicator;
-
-@property (strong, nonatomic) MyScene *myScene;
-
 @property (strong, nonatomic) UIView *backgroundView;
 
 @end
@@ -75,7 +73,7 @@
   CGFloat _screenWidth;
   CGFloat _screenHeight;
   BOOL _overlayEnabled;
-  BOOL _backgroundShouldBeStill; // this might be extraneous
+  BOOL _backgroundShouldBeStill;
 }
 
 -(void)viewDidLoad {
@@ -85,18 +83,13 @@
   _screenWidth = [UIScreen mainScreen].bounds.size.width;
   _screenHeight = [UIScreen mainScreen].bounds.size.height;
   
-//  self.view.backgroundColor = [UIColor lightGrayColor];
-  
   [self insertImageBackground];
   [self insertGradientBackground];
   
-  self.titleLogo.font = [UIFont fontWithName:kPlayerNameFont size:(kIsIPhone ? 36.f : 60.f)];
+  self.titleLogo.font = [UIFont fontWithName:kPlayerNameFont size:(kIsIPhone ? 30.f : 60.f)];
   
-//  self.tableView.layer.cornerRadius = kCornerRadius;
-//  self.tableView.clipsToBounds = YES;
   self.tableView.backgroundColor = [UIColor clearColor];
   self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
-//  self.tableView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
   self.tableView.showsVerticalScrollIndicator = NO;
   
     // doesn't know screen width or height until viewWillAppear
@@ -104,7 +97,7 @@
   
   self.activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
   self.activityIndicator.backgroundColor = [[UIColor darkGrayColor] colorWithAlphaComponent:0.8f];
-  self.activityIndicator.frame = CGRectMake(0, 0, 150, 150);
+  self.activityIndicator.frame = CGRectMake(0, 0, kActivityIndicatorFrame, kActivityIndicatorFrame);
   self.activityIndicator.layer.cornerRadius = kCornerRadius;
   self.activityIndicator.clipsToBounds = YES;
   self.activityIndicator.center = self.view.center;
@@ -208,7 +201,7 @@
 }
 
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-  return kIsIPhone ? 90.f : 90.f + kCellSeparatorBuffer;
+  return kCellRowHeight + kCellSeparatorBuffer;
 }
 
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {

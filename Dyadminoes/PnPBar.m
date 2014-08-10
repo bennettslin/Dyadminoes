@@ -10,7 +10,7 @@
 #import "Button.h"
 #import "Label.h"
 
-#define kLabelFontSize (kIsIPhone ? 42.f : 54.f)
+#define kLabelFontSize (kIsIPhone ? 28.f : 54.f)
 
 @implementation PnPBar
 

@@ -43,12 +43,13 @@
 #define kCornerRadius 25.f
 
   // table view cell constants
-#define kCellHeight self.frame.size.height
-#define kCellWidth self.frame.size.width
-#define kCellSeparatorBuffer 50.f
-#define kStaveXBuffer 20.f
-#define kStaveYHeight (kCellHeight / 10)
-#define kStaveWidthDivision ((self.frame.size.width - (kStaveXBuffer * 2)) / 9.5)
+#define kCellRowHeight (kIsIPhone ? 72.f : 90.f)
+#define kCellWidth (kIsIPhone ? 320.f : 648.f)
+#define kCellSeparatorBuffer (kCellRowHeight / 1.8f)
+#define kCellHeight (kCellRowHeight + kCellSeparatorBuffer)
+#define kStaveXBuffer (kCellWidth / 32.4f)
+#define kStaveYHeight (kCellHeight / 10.f)
+#define kStaveWidthDivision ((kCellWidth - (kStaveXBuffer * 2.f)) / 9.5f)
 
   // dyadmino size constants
 #define kDyadminoFaceDiameter (kDyadminoFaceRadius * 2)
