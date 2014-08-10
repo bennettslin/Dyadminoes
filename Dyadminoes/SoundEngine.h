@@ -16,7 +16,7 @@
 @property (nonatomic) CGFloat soundVolume;
 @property (nonatomic) CGFloat musicVolume;
 
--(void)instantiatePlayers;
+//-(void)instantiatePlayers;
 //-(void)sound:(NSString *)urlString music:(BOOL)music;
 
 //-(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked;

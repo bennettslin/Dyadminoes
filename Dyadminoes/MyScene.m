@@ -948,7 +948,6 @@
 -(void)handleUserWantsVolume {
   self.mySoundEngine.soundVolume = [[NSUserDefaults standardUserDefaults] floatForKey:@"soundEffects"];
   self.mySoundEngine.musicVolume = [[NSUserDefaults standardUserDefaults] floatForKey:@"music"];
-  [self.mySoundEngine instantiatePlayers];
 }
 
 #pragma mark - dyadmino methods

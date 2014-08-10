@@ -16,11 +16,13 @@
 //#define kActionSwoosh @"swoosh"
 //#define kActionZoom @"zoom"
 
-@interface SoundEngine ()
+@interface SoundEngine () <AVAudioPlayerDelegate>
 
-@property (strong, nonatomic) AVAudioPlayer *swooshPlayer;
-@property (strong, nonatomic) AVAudioPlayer *popPlayer;
+//@property (strong, nonatomic) AVAudioPlayer *swooshPlayer;
+//@property (strong, nonatomic) AVAudioPlayer *popPlayer;
 @property (strong, nonatomic) AVAudioPlayer *clickPlayer;
+
+@property (strong, nonatomic) NSMutableArray *clickPlayers;
 
 @end
 
@@ -44,27 +46,34 @@
     _xBits = 0;
     _yBits = 0;
     
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleNotificationOfSound:) name:@"playSound" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleNotificationOfSound:) name:@"playSound" object:nil];
+    [self instantiatePlayers];
   }
   return self;
 }
 
 -(void)instantiatePlayers {
-  
+
 //  NSURL *swooshURL = [[NSBundle mainBundle] URLForResource:kSoundSwoosh withExtension:@"wav"];
-//  NSURL *clickURL = [[NSBundle mainBundle] URLForResource:kSoundClick withExtension:@"wav"];
+  NSURL *clickURL = [[NSBundle mainBundle] URLForResource:kSoundFileClick withExtension:@"wav"];
 //  NSURL *popURL = [[NSBundle mainBundle] URLForResource:kSoundPop withExtension:@"wav"];
 //  self.swooshPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:swooshURL error:nil];
-//  self.clickPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:clickURL error:nil];
+  self.clickPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:clickURL error:nil];
 //  self.popPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:popURL error:nil];
 //  [self.swooshPlayer setVolume:self.soundVolume];
-//  [self.clickPlayer setVolume:self.soundVolume];
+  [self.clickPlayer setVolume:self.soundVolume];
 //  [self.popPlayer setVolume:self.soundVolume];
-  
+  self.clickPlayer.delegate = self;
   
 //  [self.swooshPlayer prepareToPlay];
 //  [self.popPlayer prepareToPlay];
-//  [self.clickPlayer prepareToPlay];
+  [self.clickPlayer prepareToPlay];
+  
+  self.clickPlayers = [NSMutableArray new];
+  for (int i = 0; i < 10; i++) {
+    AVAudioPlayer *player = [[AVAudioPlayer alloc] initWithContentsOfURL:clickURL error:nil];
+    [self.clickPlayers addObject:player];
+  }
 }
 
 -(void)sound:(NSString *)urlString music:(BOOL)music {
@@ -88,34 +97,66 @@
 //  [self runAction:playAction];
 }
 
-#pragma mark - notification methods
+#pragma mark - notification and sound methods
+
+-(void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag {
+  [player prepareToPlay];
+}
 
 -(void)handleNotificationOfSound:(NSNotification *)notification {
-  NSDictionary *userInfo = notification.userInfo;
-  
-  if (userInfo) {
-    NotificationName notificationName = [userInfo[@"sound"] unsignedIntegerValue];
+  if (notification.userInfo) {
+    NotificationName notificationName = [notification.userInfo[@"sound"] unsignedIntegerValue];
     NSURL *url = [self urlForNotificationName:notificationName];
-    NSLog(@"url is %@", url);
     
-  } else {
-    NSLog(@"no userInfo dictionary");
+//    NSString *urlString = [NSString stringWithFormat:@"%@.wav", url];
+//    SKAction *soundAction = [SKAction playSoundFileNamed:@"hitCatLady.wav" waitForCompletion:NO];
+//    [self runAction:soundAction];
+    
+    [self playSoundAtURL:url];
+
+//    [NSThread detachNewThreadSelector:@selector(playSoundAtURL:) toTarget:self withObject:url];
+//    [self performSelectorInBackground:@selector(playSoundAtURL:) withObject:url];
   }
 }
 
 -(NSURL *)urlForNotificationName:(NotificationName)notificationName {
+  return [[NSBundle mainBundle] URLForResource:kSoundFileClick withExtension:@"wav"];
+}
 
-  switch (notificationName) {
-//    case ;:
-//      <#statements#>
-//      break;
-      
-    default:
-      break;
+-(void)playSoundAtURL:(NSURL *)url {
+  [NSThread detachNewThreadSelector:@selector(playInSeparateThread:) toTarget:self withObject:url];
+}
+
+-(void)playInSeparateThread:(NSURL *)url {
+  
+  AVAudioPlayer *player;
+  NSUInteger index = 0;
+  while (!player && index < self.clickPlayers.count) {
+    AVAudioPlayer *indexPlayer = (AVAudioPlayer *)self.clickPlayers[index];
+    player = indexPlayer.playing ? nil : indexPlayer;
+    index++;
   }
   
-  [[NSBundle mainBundle] URLForResource:kSoundFileClick withExtension:@"wav"];
-  return nil;
+  if (player) {
+    [player setVolume:self.soundVolume];
+    [player play];
+  }
+  
+//  if (self.clickPlayer.playing) {
+//    [self.clickPlayer stop];
+//    [self.clickPlayer prepareToPlay];
+//    [self.clickPlayer play];
+//  } else {
+//    NSLog(@"sound being played with url %@", url);
+  //  AVAudioPlayer *self.clickPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:nil];
+//    NSLog(@"player duration is %.2f", self.clickPlayer.duration);
+//    [self.clickPlayer setVolume:self.soundVolume];
+  //  self.clickPlayer.numberOfLoops = -1;
+      //  [self.clickPlayer stop];
+      //  [self.clickPlayer prepareToPlay];
+//    [self.clickPlayer play];
+//    NSLog(@"player is playing %i", self.clickPlayer.isPlaying);
+//  }
 }
 
 -(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked {

@@ -493,23 +493,6 @@
   [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
 }
 
-//-(void)startLocalGameWithPlayerName:(NSString *)playerName {
-//  
-//  [self backToMatchesWithAnimateRemoveVC:YES];
-//  
-//  Match *newMatch = [self.myModel instantiateSoloMatchWithName:playerName andRules:kGameRulesTonal andSkill:kBeginner];
-//  [self.tableView reloadData];
-//  [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
-//}
-
-//-(void)startPnPGame {
-//  Match *newMatch = [self.myModel instantiateHardCodededPassNPlayMatchForDebugPurposes];
-//  [self backToMatches];
-//  [self.myModel sortMyMatches];
-//  [self.tableView reloadData];
-//  [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
-//}
-
 #pragma mark - background view methods
 
 -(void)animateBackgroundViewFirstTime:(BOOL)firstTime {
