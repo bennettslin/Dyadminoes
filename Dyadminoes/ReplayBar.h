@@ -18,7 +18,7 @@
 @property (strong, nonatomic) Button *nextTurnButton;
 @property (strong, nonatomic) Button *lastTurnButton;
 
--(void)populateWithTopReplayButtonsAndLabels;
+-(void)populateWithTopReplayLabels;
 -(void)populateWithBottomReplayButtons;
 
 @end

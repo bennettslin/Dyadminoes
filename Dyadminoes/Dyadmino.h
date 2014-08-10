@@ -10,6 +10,7 @@
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
 #import "SnapPoint.h"
+@class Face;
 
 @protocol DyadminoDelegate <NSObject>
 
@@ -56,12 +57,12 @@
   // sprites
 @property (strong, nonatomic) NSArray *rotationFrameArray;
 
-@property (strong, nonatomic) SKSpriteNode *pc1LetterSprite;
-@property (strong, nonatomic) SKSpriteNode *pc2LetterSprite;
-@property (strong, nonatomic) SKSpriteNode *pc1NumberSprite;
-@property (strong, nonatomic) SKSpriteNode *pc2NumberSprite;
-@property (strong, nonatomic) SKSpriteNode *pc1Sprite;
-@property (strong, nonatomic) SKSpriteNode *pc2Sprite;
+@property (strong, nonatomic) Face *pc1LetterSprite;
+@property (strong, nonatomic) Face *pc2LetterSprite;
+@property (strong, nonatomic) Face *pc1NumberSprite;
+@property (strong, nonatomic) Face *pc2NumberSprite;
+@property (strong, nonatomic) Face *pc1Sprite;
+@property (strong, nonatomic) Face *pc2Sprite;
 
   // bools and states
 @property (nonatomic) BOOL isInTopBar;

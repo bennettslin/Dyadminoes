@@ -8,24 +8,10 @@
 
 #import <Foundation/Foundation.h>
 #import <SpriteKit/SpriteKit.h>
-@class Dyadmino;
-@class SKSpriteNode;
 
 @interface SoundEngine : SKNode
 
 @property (nonatomic) CGFloat soundVolume;
 @property (nonatomic) CGFloat musicVolume;
-
-//-(void)instantiatePlayers;
-//-(void)sound:(NSString *)urlString music:(BOOL)music;
-
-//-(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked;
-//-(void)soundTouchedDyadminoFace:(SKSpriteNode *)dyadminoFace plucked:(BOOL)plucked;
-//-(void)soundPCToggle;
-//-(void)soundDeviceOrientation;
-//
-//-(void)soundBoardZoom;
-//-(void)soundSwapFieldSwoosh;
-//-(void)soundButton:(BOOL)tap;
 
 @end

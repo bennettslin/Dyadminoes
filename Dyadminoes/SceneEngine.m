@@ -10,6 +10,7 @@
 #import "Dyadmino.h"
 #import "Player.h"
 #import "AppDelegate.h"
+#import "Face.h"
 
 @interface SceneEngine ()
 
@@ -65,10 +66,10 @@
         NSString *pc1NumberString = [NSString stringWithFormat:@"pcNumber%d", pc1];
         NSString *pc2LetterString = [NSString stringWithFormat:@"pcLetter%d", pc2];
         NSString *pc2NumberString = [NSString stringWithFormat:@"pcNumber%d", pc2];
-        SKSpriteNode *pc1LetterSprite = [SKSpriteNode spriteNodeWithTexture:[textureAtlas textureNamed:pc1LetterString]];
-        SKSpriteNode *pc1NumberSprite = [SKSpriteNode spriteNodeWithTexture:[textureAtlas textureNamed:pc1NumberString]];
-        SKSpriteNode *pc2LetterSprite = [SKSpriteNode spriteNodeWithTexture:[textureAtlas textureNamed:pc2LetterString]];
-        SKSpriteNode *pc2NumberSprite = [SKSpriteNode spriteNodeWithTexture:[textureAtlas textureNamed:pc2NumberString]];
+        Face *pc1LetterSprite = [Face spriteNodeWithTexture:[textureAtlas textureNamed:pc1LetterString]];
+        Face *pc1NumberSprite = [Face spriteNodeWithTexture:[textureAtlas textureNamed:pc1NumberString]];
+        Face *pc2LetterSprite = [Face spriteNodeWithTexture:[textureAtlas textureNamed:pc2LetterString]];
+        Face *pc2NumberSprite = [Face spriteNodeWithTexture:[textureAtlas textureNamed:pc2NumberString]];
         pc1LetterSprite.name = [NSString stringWithFormat:@"%i", pc1];
         pc1NumberSprite.name = [NSString stringWithFormat:@"%i", pc1];
         pc2LetterSprite.name = [NSString stringWithFormat:@"%i", pc2];

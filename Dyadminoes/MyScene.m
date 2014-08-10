@@ -6,11 +6,12 @@
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
+#import "NSObject+Helper.h"
 #import "MyScene.h"
 #import "SceneViewController.h"
 #import "SceneEngine.h"
 #import "Dyadmino.h"
-#import "NSObject+Helper.h"
+#import "Face.h"
 #import "SnapPoint.h"
 #import "Player.h"
 #import "Rack.h"
@@ -51,6 +52,7 @@
   UITouch *_currentTouch;
   CGPoint _beganTouchLocation;
   CGPoint _currentTouchLocation;
+  CGPoint _previousTouchLocation; // only used for selectFace, might actually not be needed
   CGPoint _endTouchLocationToMeasureDoubleTap;
   CGPoint _touchOffsetVector;
   
@@ -452,7 +454,7 @@
   _replayBottom.name = @"replayBottom";
   [self addChild:_replayBottom];
   
-  [_replayTop populateWithTopReplayButtonsAndLabels];
+  [_replayTop populateWithTopReplayLabels];
   [_replayBottom populateWithBottomReplayButtons];
   
   _replayMode = NO;
@@ -598,9 +600,9 @@
         // register sound if face tapped
     } else {
       
-      SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
+      Face *face = [self selectFaceWithTouchStruck:YES];
       if (face && face.parent != _hoveringDyadmino && !_pivotInProgress) {
-        if ([face.parent isKindOfClass:[Dyadmino class]]) {
+        if ([face isKindOfClass:[Face class]]) {
           Dyadmino *resonatedDyadmino = (Dyadmino *)face.parent;
           if (!resonatedDyadmino.hidden &&
               (!_pnpBarUp || (_pnpBarUp && [resonatedDyadmino isOnBoard])) &&
@@ -686,19 +688,19 @@
   
     //--------------------------------------------------------------------------
     /// 2. next, update the touch location
-
+  _previousTouchLocation = _currentTouchLocation;
   _currentTouchLocation = [self findTouchLocationFromTouches:touches];
   
     // if touch hits a dyadmino face, sound and continue...
   if (!_boardToBeMovedOrBeingMoved && !_touchedDyadmino) {
-    SKSpriteNode *face = [self selectFaceFromTouchPoint:_currentTouchLocation];
+    Face *face = [self selectFaceWithTouchStruck:NO];
     
     if (face && face.parent != _hoveringDyadmino) {
-      if ([face.parent isKindOfClass:[Dyadmino class]]) {
+      if ([face isKindOfClass:[Face class]]) {
         Dyadmino *resonatedDyadmino = (Dyadmino *)face.parent;
         if ((!_replayMode || (_replayMode && [resonatedDyadmino isOnBoard])) &&
             (!_pnpBarUp || (_pnpBarUp && [resonatedDyadmino isOnBoard]))) {
-          if (!_soundedDyadminoFace) {
+          if (face !=_soundedDyadminoFace) {
             [self postSoundNotification:kNotificationOneNoteResonated];
             [resonatedDyadmino animateFace:face];
             _soundedDyadminoFace = face;
@@ -1281,7 +1283,7 @@
     [self presentResignActionSheet];
     
       /// replay button
-  } else if (button == _topBar.replayButton || button == _replayTop.returnOrStartButton) {
+  } else if (button == _topBar.replayButton || button == _replayBottom.returnOrStartButton) {
     _replayMode = _replayMode ? NO : YES;
     [self toggleReplayFields];
     
@@ -2370,27 +2372,47 @@
     [self subtractFromThisPoint:touchPoint thisPoint:_touchOffsetVector];
 }
 
--(SKSpriteNode *)selectFaceFromTouchPoint:(CGPoint)touchPoint {
-  NSArray *touchNodes = [self nodesAtPoint:touchPoint];
-  for (SKSpriteNode *touchNode in touchNodes) {
-    if ([touchNode.parent isKindOfClass:[Dyadmino class]]) {
-      Dyadmino *dyadmino = (Dyadmino *)touchNode.parent;
-      CGPoint relToDyadmino = [self addToThisPoint:touchNode.position thisPoint:dyadmino.position];
+-(Face *)selectFaceWithTouchStruck:(BOOL)touchStruck {
 
-      if (dyadmino && [dyadmino isOnBoard] && !_swapMode) {
-        
-          // accommodate the fact that dyadmino's position is now relative to board
-        CGPoint relToBoardPoint = [_boardField getOffsetFromPoint:touchPoint];
-        if ([self getDistanceFromThisPoint:relToBoardPoint toThisPoint:relToDyadmino] < kDistanceForTouchingFace) {
-          return touchNode;
-        }
-          // if dyadmino is in rack...
-      } else if (dyadmino && ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap])) {
-        if ([self getDistanceFromThisPoint:touchPoint toThisPoint:relToDyadmino] < kDistanceForTouchingFace) {
-          return touchNode;
-        }
-      }
+//  CGFloat distance = beganTouch ? kDistanceForTouchingFace : kDyadminoFaceRadius;
+  NSArray *touchNodes = [self nodesAtPoint:_currentTouchLocation];
+
+    // in hindsight, touches happening too quickly might not be the problem
+    // it might because it isn't getting the right nodes in the first place
+  if (!touchStruck) {
+    NSMutableArray *newTempTouchNodes = [NSMutableArray arrayWithArray:touchNodes];
+    CGPoint midPoint = CGPointMake(((_currentTouchLocation.x - _previousTouchLocation.x) / 2) + _previousTouchLocation.x,
+                                   ((_currentTouchLocation.y - _previousTouchLocation.y) / 2) + _previousTouchLocation.y);
+    NSArray *newTouchNodes = [self nodesAtPoint:midPoint];
+    [newTempTouchNodes addObjectsFromArray:newTouchNodes];
+    touchNodes = [NSArray arrayWithArray:newTempTouchNodes];
+  }
+  
+  for (SKSpriteNode *touchNode in touchNodes) {
+    if ([touchNode isKindOfClass:[Face class]]) {
+      return (Face *)touchNode;
     }
+    
+//    if ([touchNode.parent isKindOfClass:[Dyadmino class]] || [touchNode isKindOfClass:[Dyadmino class]]) {
+//      Dyadmino *dyadmino = ([touchNode.parent isKindOfClass:[Dyadmino class]]) ?
+//          (Dyadmino *)touchNode.parent : (Dyadmino *)touchNode;
+//      CGPoint relToDyadmino = [self addToThisPoint:touchNode.position thisPoint:dyadmino.position];
+//
+//      if (dyadmino && [dyadmino isOnBoard] && !_swapMode) {
+//        
+//          // accommodate the fact that dyadmino's position is now relative to board
+//        CGPoint relToBoardPoint = [_boardField getOffsetFromPoint:touchPoint];
+//        if ([self getDistanceFromThisPoint:relToBoardPoint toThisPoint:relToDyadmino] < distance) {
+//          return touchNode;
+//        }
+//        
+//          // if dyadmino is in rack...
+//      } else if (dyadmino && ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap])) {
+//        if ([self getDistanceFromThisPoint:touchPoint toThisPoint:relToDyadmino] < distance) {
+//          return touchNode;
+//        }
+//      }
+//    }
   }
   return nil;
 }

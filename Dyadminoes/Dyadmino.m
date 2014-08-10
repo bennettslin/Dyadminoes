@@ -9,6 +9,7 @@
 #import "Dyadmino.h"
 #import "Board.h"
 #import "Cell.h"
+#import "Face.h"
 //#import <CoreGraphics/CoreGraphics.h>
 //#import <CoreImage/CoreImage.h>
 
