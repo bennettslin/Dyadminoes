@@ -185,12 +185,10 @@
     // automatically push join button
   UIButton *playerButton = self.playerButtons[[self.playerNameFields indexOfObject:textField]];
   playerButton.selected ? nil : [self buttonTapped:playerButton];
-  
   [self.delegate disableOverlay];
 }
 
 -(void)textFieldDidEndEditing:(UITextField *)textField {
-  NSLog(@"text field with %@ did end editing", textField.text);
   [self resignTextField:textField];
 }
 

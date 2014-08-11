@@ -437,7 +437,7 @@
 
 -(void)layoutPnPBar {
   
-  _pnpBar = [[PnPBar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointZero andZPosition:kZPositionReplayBottom];
+  _pnpBar = [[PnPBar alloc] initWithColor:kFieldPurple andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointZero andZPosition:kZPositionReplayBottom];
   _pnpBar.name = @"pnpBar";
   [self addChild:_pnpBar];
   
@@ -464,22 +464,33 @@
 
 -(void)layoutOrRefreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation {
   
-  if (!_rackField) {
-    _rackField = [[Rack alloc] initWithBoard:_boardField
-                                   andColour:kPianoBlack
-                                     andSize:CGSizeMake(self.frame.size.width, kRackHeight)
-                              andAnchorPoint:CGPointZero
-                                 andPosition:CGPointZero
-                                andZPosition:kZPositionRackField];
-    _rackField.delegate = self;
-    _rackField.name = @"rack";
-    [self addChild:_rackField];
-  }
-  [_rackField layoutOrRefreshNodesWithCount:self.playerRackDyadminoes.count];
-  [_rackField repositionDyadminoes:self.playerRackDyadminoes fromUndo:undo withAnimation:animation];
   
-  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
-    dyadmino.delegate = self;
+  if (!self.myMatch.gameHasEnded) {
+    if (!_rackField) {
+      _rackField = [[Rack alloc] initWithBoard:_boardField
+                                     andColour:kSolidBlue
+                                       andSize:CGSizeMake(self.frame.size.width, kRackHeight)
+                                andAnchorPoint:CGPointZero
+                                   andPosition:CGPointZero
+                                  andZPosition:kZPositionRackField];
+      _rackField.delegate = self;
+      _rackField.name = @"rack";
+      [self addChild:_rackField];
+    }
+    
+    _rackField.position = CGPointZero;
+    [_rackField layoutOrRefreshNodesWithCount:self.playerRackDyadminoes.count];
+    [_rackField repositionDyadminoes:self.playerRackDyadminoes fromUndo:undo withAnimation:animation];
+    
+    for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
+      dyadmino.delegate = self;
+    }
+    
+      // match has ended
+  } else {
+    if (_rackField) {
+      _rackField.position = CGPointMake(0, -kRackHeight);
+    }
   }
 }
 
@@ -2018,6 +2029,26 @@
   _dyadminoesHollowed = _dyadminoesStationary;
 }
 
+-(void)toggleRackOut:(BOOL)goOut {
+    // this will only happen during PnP or replay animation
+  if (!self.myMatch.gameHasEnded) {
+    CGFloat desiredY = goOut ? -kRackHeight : 0;
+    _rackField.position = goOut ? CGPointZero : CGPointMake(0, -kRackHeight);
+    SKAction *moveAction = [SKAction moveToY:desiredY duration:kConstantTime * 0.9f];
+    [_rackField removeActionForKey:@"toggleRack"];
+    [_rackField runAction:moveAction withKey:@"toggleKey"];
+  }
+}
+
+-(void)toggleTopBarOut:(BOOL)goOut {
+    // this will only happen during replay animation
+  CGFloat desiredY = goOut ? self.frame.size.height : self.frame.size.height - kTopBarHeight;
+  _topBar.position = goOut ? CGPointMake(0, self.frame.size.height - kTopBarHeight) : CGPointMake(0, self.frame.size.height);
+  SKAction *moveAction = [SKAction moveToY:desiredY duration:kConstantTime * 0.9f];
+  [_topBar removeActionForKey:@"toggleBar"];
+  [_topBar runAction:moveAction withKey:@"toggleKey"];
+}
+
 -(void)togglePnPBar {
   
   /// FIXME: exact same as toggleReplayFields, consider refactoring
@@ -2030,12 +2061,14 @@
   [self postSoundNotification:kNotificationToggleBarOrField];
   
   if (_pnpBarUp) {
-    
     [_boardField colourBackgroundForPnP];
     _fieldActionInProgress = YES;
     
       // scene views
     _pnpBar.hidden = NO;
+    SKAction *rackAction = [SKAction runBlock:^{
+      [self toggleRackOut:YES];
+    }];
     SKAction *moveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
     SKAction *completeAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
@@ -2043,23 +2076,27 @@
       [self prepareRackForNextPlayer];
       [self prepareForNewTurn];
     }];
-    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completeAction]];
+    SKAction *sequenceAction = [SKAction sequence:@[rackAction, moveAction, completeAction]];
     [_pnpBar runAction:sequenceAction];
     
   } else {
-    
+
     [_boardField colourBackgroundForNormalPlay];
     _fieldActionInProgress = YES;
     
       // scene views
     _rackField.hidden = NO;
+    
+    SKAction *rackAction = [SKAction runBlock:^{
+      [self toggleRackOut:NO];
+    }];
     SKAction *moveAction = [SKAction moveToY:-kRackHeight duration:kConstantTime];
     SKAction *completeAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
       _pnpBar.hidden = YES;
     }];
     
-    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completeAction]];
+    SKAction *sequenceAction = [SKAction sequence:@[rackAction, moveAction, completeAction]];
     [_pnpBar runAction:sequenceAction];
   }
 }
@@ -2083,16 +2120,25 @@
       // scene views
     _replayTop.hidden = NO;
     _replayBottom.hidden = NO;
+    SKAction *rackAction = [SKAction runBlock:^{
+      [self toggleRackOut:YES];
+    }];
+    SKAction *topBarAction = [SKAction runBlock:^{
+      [self toggleTopBarOut:YES];
+    }];
+    SKAction *BarAndRackGroupAction = [SKAction group:@[rackAction, topBarAction]];
+    
     SKAction *topMoveAction = [SKAction moveToY:self.frame.size.height - kTopBarHeight duration:kConstantTime];
+    SKAction *bottomMoveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
+    [_replayBottom runAction:bottomMoveAction];
     SKAction *topCompleteAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
       _rackField.hidden = YES;
       _topBar.hidden = YES;
     }];
-    SKAction *topSequenceAction = [SKAction sequence:@[topMoveAction, topCompleteAction]];
+    SKAction *topSequenceAction = [SKAction sequence:@[BarAndRackGroupAction, topMoveAction, topCompleteAction]];
     [_replayTop runAction:topSequenceAction];
-    SKAction *bottomMoveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
-    [_replayBottom runAction:bottomMoveAction];
+
     
       // it's not in replay mode
   } else {
@@ -2102,12 +2148,20 @@
       // scene views
     _rackField.hidden = NO;
     _topBar.hidden = NO;
+    
+    SKAction *rackAction = [SKAction runBlock:^{
+      [self toggleRackOut:NO];
+    }];
+    SKAction *topBarAction = [SKAction runBlock:^{
+      [self toggleTopBarOut:NO];
+    }];
+    SKAction *BarAndRackGroupAction = [SKAction group:@[rackAction, topBarAction]];
     SKAction *topMoveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
     SKAction *topCompleteAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
       _replayTop.hidden = YES;
     }];
-    SKAction *topSequenceAction = [SKAction sequence:@[topMoveAction, topCompleteAction]];
+    SKAction *topSequenceAction = [SKAction sequence:@[BarAndRackGroupAction, topMoveAction, topCompleteAction]];
     [_replayTop runAction:topSequenceAction];
     SKAction *bottomMoveAction = [SKAction moveToY:-kRackHeight duration:kConstantTime];
     SKAction *bottomCompleteAction = [SKAction runBlock:^{
@@ -2773,9 +2827,9 @@
   
   if (self.myMatch.type == kSelfGame) {
     resignString = @"Are you sure you want to end the game?";
-  } else if (self.myMatch.type == kPnPGame) {
+  } else if (self.myMatch.type == kPnPGame || self.myMatch.type == kGCFriendGame) {
     resignString = @"Are you sure you want to resign?";
-  } else if (self.myMatch.type == kGCGame) {
+  } else if (self.myMatch.type == kGCRandomGame) {
     resignString = @"Are you sure? This will count as a loss in Game Center.";
   }
   

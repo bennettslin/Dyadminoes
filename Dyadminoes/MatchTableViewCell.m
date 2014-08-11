@@ -73,6 +73,7 @@
   for (int i = 0; i < 4; i++) {
     UILabel *playerLabel = self.playerLabelsArray[i];
     playerLabel.font = [UIFont fontWithName:kPlayerNameFont size:(kIsIPhone ? (kCellRowHeight / 3.4) : (kCellRowHeight / 2.8125))];
+    playerLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     CellBackgroundView *labelView = self.playerLabelViewsArray[i];
     [self insertSubview:labelView belowSubview:playerLabel];
     
@@ -80,6 +81,7 @@
     scoreLabel.font = [UIFont fontWithName:kPlayerNameFont size:(kCellRowHeight / 4.5)];
     scoreLabel.textColor = [UIColor brownColor];
     scoreLabel.textAlignment = NSTextAlignmentCenter;
+    scoreLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     scoreLabel.frame = CGRectMake(scoreLabel.frame.origin.x, scoreLabel.frame.origin.y, kScoreLabelWidth, kScoreLabelHeight);
   }
   
@@ -91,7 +93,7 @@
   [self insertSubview:self.stavesView belowSubview:self.selectedBackgroundView];
   
   self.clefImage = [UIImageView new];
-  self.clefImage.frame = CGRectMake(kStaveXBuffer, kStaveYHeight * 3, kStaveYHeight * 3.25, kStaveYHeight * 3.25);
+  self.clefImage.contentMode = UIViewContentModeScaleAspectFit;
   [self addSubview:self.clefImage];
   
   UIImage *fermataImage = [UIImage imageNamed:@"fermata-med"];
@@ -109,14 +111,8 @@
 -(void)setProperties {
   
   self.stavesView.gameHasEnded = self.myMatch.gameHasEnded;
-  [self.stavesView setNeedsDisplay];
-  
-  UIImage *clefImage = (self.myMatch.players.count == 1) ?
-      [UIImage imageNamed:@"treble-clef-med"] : [UIImage imageNamed:@"bass-clef-md"];
-  UIColor *clefColour = self.myMatch.gameHasEnded ? kStaveEndedGameColour : kStaveColour;
-  UIImage *colouredImage = [UIImage colourImage:clefImage withColor:clefColour];
-  self.clefImage.image = colouredImage;
-  self.clefImage.contentMode = UIViewContentModeScaleAspectFit;
+  [self performSelectorInBackground:@selector(updateStavesInNewThread) withObject:nil];
+  [self performSelectorInBackground:@selector(updateClefInNewThread) withObject:nil];
 
     // remove fermatas, they will be decided later
   for (UIImageView *fermataImageView in self.fermataImageViewArray) {
@@ -198,6 +194,42 @@
   }
   
   [self determinePlayerLabelPositionsBasedOnScores];
+}
+
+#pragma mark - background threaded methods
+
+-(void)updateStavesInNewThread {
+  [self.stavesView setNeedsDisplay];
+}
+
+-(void)updateClefInNewThread {
+  UIImage *rawImage;
+  UIImage *finalImage;
+  
+  switch (self.myMatch.type) {
+        // treble
+    case kSelfGame:
+      self.clefImage.frame = CGRectMake(0 - (kStaveXBuffer / 8), kStaveYHeight * 2.2, kStaveYHeight * 6.3, kStaveYHeight * 6.3);
+      rawImage = [UIImage imageNamed:@"treble-clef-med"];
+      break;
+      
+        // bass
+    case kPnPGame:
+      self.clefImage.frame = CGRectMake(kStaveXBuffer, kStaveYHeight * 3, kStaveYHeight * 3.25, kStaveYHeight * 3.25);
+      rawImage = [UIImage imageNamed:@"bass-clef-md"];
+      break;
+      
+    case kGCFriendGame:
+      break;
+    case kGCRandomGame:
+      break;
+    default:
+      break;
+  }
+
+  UIColor *finalColour = self.myMatch.gameHasEnded ? kStaveEndedGameColour : kStaveColour;
+  finalImage = [UIImage colourImage:rawImage withColor:finalColour];
+  self.clefImage.image = finalImage;
 }
 
 #pragma mark - view helper methods

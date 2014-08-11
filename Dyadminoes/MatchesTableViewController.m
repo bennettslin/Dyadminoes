@@ -222,11 +222,7 @@
 
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
   Match *match = self.myModel.myMatches[indexPath.row];
-  if (match.gameHasEnded || match.type != kGCGame) {
-    return YES;
-  } else {
-    return NO;
-  }
+  return (match.gameHasEnded || (match.type != kGCFriendGame && match.type != kGCRandomGame));
 }
 
 -(void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {

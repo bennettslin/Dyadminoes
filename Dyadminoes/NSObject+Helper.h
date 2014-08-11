@@ -252,7 +252,8 @@ typedef enum gameRules {
 typedef enum gameType {
   kSelfGame,
   kPnPGame,
-  kGCGame
+  kGCFriendGame,
+  kGCRandomGame
 } GameType;
 
 typedef enum gameSkill {
