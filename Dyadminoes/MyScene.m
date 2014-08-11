@@ -95,7 +95,9 @@
   BOOL _pivotInProgress;
   CFTimeInterval _hoverTime;
   NSUInteger _hoveringDyadminoBeingCorrected;
+  NSUInteger _hoveringDyadminoBeingCorrectedY;
   NSUInteger _hoveringDyadminoFinishedCorrecting;
+  NSUInteger _hoveringDyadminoFinishedCorrectingY;
   CFTimeInterval _doubleTapTime;
   
     // test
@@ -126,20 +128,22 @@
 
 -(void)loadAfterNewMatchRetrieved {
   
-  if (self.myMatch.type == kPnPGame) {
+  if (self.myMatch.type == kPnPGame && !self.myMatch.gameHasEnded) {
     _pnpBarUp = YES;
     _pnpBar.position = CGPointZero;
     _pnpBar.hidden = NO;
     [_boardField colourBackgroundForPnP];
     [self updatePnPLabelForNewPlayer];
+    _rackField.position = CGPointMake(0, -kRackHeight);
+    _swapField.position = CGPointMake(0, -kRackHeight);
     
   } else {
     _pnpBarUp = NO;
     _pnpBar.position = CGPointMake(0, -kRackHeight);
     _pnpBar.hidden = YES;
     [_boardField colourBackgroundForNormalPlay];
-    _rackField.position = CGPointZero;
-    _rackField.hidden = NO;
+    _rackField.position = self.myMatch.gameHasEnded ? CGPointMake(0, -kRackHeight) : CGPointZero;
+    _swapField.position = self.myMatch.gameHasEnded ? CGPointMake(0, -kRackHeight) : CGPointZero;
   }
   
   _boardZoomedOut = NO;
@@ -158,7 +162,9 @@
   [_buttonPressed showLifted];
   _buttonPressed = nil;
   _hoveringDyadminoBeingCorrected = 0;
+  _hoveringDyadminoBeingCorrectedY = 0;
   _hoveringDyadminoFinishedCorrecting = 1;
+  _hoveringDyadminoFinishedCorrectingY = 1;
   _buttonsUpdatedThisTouch = NO;
   _currentTouch = nil;
   _replayMode = NO;
@@ -213,7 +219,7 @@
   [self updateTopBarButtons];
   
     // cell alphas are visible by default, hide if PnP mode
-  _dyadminoesStationary = (self.myMatch.type == kPnPGame);
+  _dyadminoesStationary = (self.myMatch.type == kPnPGame && !self.myMatch.gameHasEnded);
   [self toggleDyadminoesToBeStationaryOrMovableAnimated:NO];
   
     // don't call just yet if it's a PnP game
@@ -536,7 +542,14 @@
   
     // sceneVC sends Y upside down
   CGFloat rightSideUpY = self.size.height - location.y;
-  CGFloat bottomFloat = _swapMode ? kRackHeight * 2 : kRackHeight;
+  CGFloat bottomFloat;
+  if (_swapMode) {
+    bottomFloat = kRackHeight * 2;
+  } else if (self.myMatch.gameHasEnded) {
+    bottomFloat = 0.f;
+  } else {
+    bottomFloat = kRackHeight;
+  }
 
   return (rightSideUpY > bottomFloat && rightSideUpY < self.size.height - kTopBarHeight) ? YES : NO;
 }
@@ -905,7 +918,7 @@
     CGPoint adjustedNewPosition = [_boardField adjustToNewPositionFromBeganLocation:_beganTouchLocation toCurrentLocation:_currentTouchLocation withSwap:_swapMode];
     
     if (_hoveringDyadminoStaysFixedToBoard) {
-      NSLog(@"hovering dyadmino in moveBoard");
+//      NSLog(@"hovering dyadmino in moveBoard");
       _hoveringDyadmino.position = [self addToThisPoint:_hoveringDyadmino.position
                                               thisPoint:[self subtractFromThisPoint:oldBoardPosition
                                                                           thisPoint:adjustedNewPosition]];
@@ -1121,7 +1134,7 @@
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
   if (updateBoardBounds) {
-    NSLog(@"update board bounds from send dyadmino home");
+//    NSLog(@"update board bounds from send dyadmino home");
     [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
   }
   
@@ -1567,39 +1580,70 @@
     
     CGFloat thisDistance;
     CGFloat distanceDivisor = 5.333f; // tweak this number if desired
-    CGFloat dyadminoBuffer = (_hoveringDyadmino.orientation == kPC1atTwelveOClock || _hoveringDyadmino.orientation == kPC1atSixOClock) ?
+    CGFloat dyadminoXBuffer = (_hoveringDyadmino.orientation == kPC1atTwelveOClock || _hoveringDyadmino.orientation == kPC1atSixOClock) ?
     kDyadminoFaceWideRadius * 1.5 : kDyadminoFaceWideDiameter * 1.5;
     
-    if (_hoveringDyadmino.position.x - dyadminoBuffer < xLowLimit) {
+    if (_hoveringDyadmino.position.x - dyadminoXBuffer < xLowLimit) {
       _hoveringDyadminoBeingCorrected++;
-      thisDistance = 1.f + (xLowLimit - (_hoveringDyadmino.position.x - dyadminoBuffer)) / distanceDivisor;
+      thisDistance = 1.f + (xLowLimit - (_hoveringDyadmino.position.x - dyadminoXBuffer)) / distanceDivisor;
       _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x + thisDistance, _hoveringDyadmino.position.y);
       
-    } else if (_hoveringDyadmino.position.x + dyadminoBuffer > xHighLimit) {
+    } else if (_hoveringDyadmino.position.x + dyadminoXBuffer > xHighLimit) {
       _hoveringDyadminoBeingCorrected++;
-      thisDistance = 1.f + ((_hoveringDyadmino.position.x + dyadminoBuffer) - xHighLimit) / distanceDivisor;
+      thisDistance = 1.f + ((_hoveringDyadmino.position.x + dyadminoXBuffer) - xHighLimit) / distanceDivisor;
       _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x - thisDistance, _hoveringDyadmino.position.y);
       
     } else {
       _hoveringDyadminoFinishedCorrecting++;
+        // so it doesn't grow insanely big
+      _hoveringDyadminoFinishedCorrecting = _hoveringDyadminoFinishedCorrecting > 2 ? 2 : _hoveringDyadminoFinishedCorrecting;
     }
     
-
+    if (self.myMatch.gameHasEnded) {
+      
+      CGFloat yLowLimit = -_boardField.position.y;
+      CGFloat dyadminoYBuffer = (_hoveringDyadmino.orientation == kPC1atTwelveOClock || _hoveringDyadmino.orientation == kPC1atSixOClock) ?
+      kDyadminoFaceDiameter * 1.5 : kDyadminoFaceDiameter;
+      
+      if (_hoveringDyadmino.position.y - dyadminoYBuffer < yLowLimit) {
+        _hoveringDyadminoBeingCorrectedY++;
+        thisDistance = 1.f + (yLowLimit - (_hoveringDyadmino.position.y - dyadminoYBuffer)) / distanceDivisor;
+        _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x, _hoveringDyadmino.position.y + thisDistance);
+        
+      } else {
+        _hoveringDyadminoFinishedCorrectingY++;
+          // so it doesn't grow insanely big
+        _hoveringDyadminoFinishedCorrectingY = _hoveringDyadminoFinishedCorrectingY > 2 ? 2 : _hoveringDyadminoFinishedCorrectingY;
+      }
+    } else {
+      _hoveringDyadminoBeingCorrectedY = 0;
+      _hoveringDyadminoFinishedCorrectingY = 2;
+    }
+    
+//    NSLog(@"being corrected x %i, finished correcting x %i, being corrected y %i, finished correcting y %i", _hoveringDyadminoBeingCorrected, _hoveringDyadminoFinishedCorrecting,_hoveringDyadminoBeingCorrectedY, _hoveringDyadminoFinishedCorrectingY);
+    
       // only goes through one time
-    if (_hoveringDyadminoBeingCorrected == 1) {
+    if (_hoveringDyadminoBeingCorrected == 1 || _hoveringDyadminoBeingCorrectedY == 1) {
       [_boardField hideAllPivotGuides];
       [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
-      _hoveringDyadminoFinishedCorrecting = 0;
       
-    } else if (_hoveringDyadminoFinishedCorrecting == 1) {
-      [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
-      _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
-      [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
+      _hoveringDyadminoFinishedCorrecting = (_hoveringDyadminoBeingCorrected >= 1) ? 0 : _hoveringDyadminoFinishedCorrecting;
+      _hoveringDyadminoFinishedCorrectingY = (_hoveringDyadminoBeingCorrectedY >= 1) ? 0 : _hoveringDyadminoFinishedCorrectingY;
       
-      if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
-        [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
+    } else if (_hoveringDyadminoFinishedCorrecting == 1 || _hoveringDyadminoFinishedCorrectingY == 1) {
+      
+      if (_hoveringDyadminoFinishedCorrecting >= 1 && _hoveringDyadminoFinishedCorrectingY >= 1) {
+        [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
+        _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
+        [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
+        
+        if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
+          [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
+        }
+        
+        _hoveringDyadminoBeingCorrected = (_hoveringDyadminoFinishedCorrecting >= 1) ? 0 : _hoveringDyadminoBeingCorrected;
+        _hoveringDyadminoBeingCorrectedY = (_hoveringDyadminoFinishedCorrectingY >= 1) ? 0 : _hoveringDyadminoBeingCorrectedY;
       }
-      _hoveringDyadminoBeingCorrected = 0;
     }
   }
 }
@@ -1753,7 +1797,7 @@
         _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
         [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
         
-        if (_hoveringDyadminoBeingCorrected == 0) {
+        if (_hoveringDyadminoBeingCorrected == 0 && _hoveringDyadminoBeingCorrectedY == 0) {
           if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
             [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
           }
@@ -1767,7 +1811,8 @@
 
 -(void)updatePivotForDyadminoMoveWithoutBoardCorrected {
     // if board not shifted or corrected, show prepivot guide
-  if (_hoveringDyadmino && _hoveringDyadminoBeingCorrected == 0 && !_touchedDyadmino && !_currentTouch && !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected && ![_boardField.children containsObject:_boardField.prePivotGuide]) {
+  if (_hoveringDyadmino && _hoveringDyadminoBeingCorrected == 0 && _hoveringDyadminoBeingCorrectedY == 0 && !_touchedDyadmino && !_currentTouch && !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected && ![_boardField.children containsObject:_boardField.prePivotGuide]) {
+//    NSLog(@"hovering dyadmino in update pivot without board corrected");
     if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
       [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
     }
@@ -2395,7 +2440,10 @@
   
     // if it's pivoting, it's on the board, period
     // it's also on board, if not in swap and above rack and below top bar
-  if (_pivotInProgress || (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
+  
+  CGFloat bottomY = self.myMatch.gameHasEnded ? 0 : kRackHeight;
+  
+  if (_pivotInProgress || (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= bottomY &&
       _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight)) {
 //    NSLog(@"it's on the board");
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
