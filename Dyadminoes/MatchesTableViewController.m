@@ -487,7 +487,7 @@
 #pragma mark - background view methods
 
 -(void)animateBackgroundViewFirstTime:(BOOL)firstTime {
-
+  
   if (firstTime) {
     [self.backgroundView.layer removeAllAnimations];
     self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
@@ -514,10 +514,6 @@
   self.backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, backgroundImage.size.width * 4, backgroundImage.size.height * 4)];
   self.backgroundView.backgroundColor = [[UIColor colorWithPatternImage:backgroundImage] colorWithAlphaComponent:0.25f];
   self.backgroundView.center = CGPointMake(_screenWidth, _screenHeight);
-  
-//  NSLog(@"bkg view is %.1f, %.1f", self.backgroundView.frame.size.width, self.backgroundView.frame.size.height);
-//  NSLog(@"image view is %.1f, %.1f", backgroundImage.size.width, backgroundImage.size.height);
-  
   [self.view insertSubview:self.backgroundView belowSubview:self.tableView];
 }
 

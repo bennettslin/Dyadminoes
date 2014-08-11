@@ -2039,6 +2039,7 @@
   } else if (thereIsATouchedOrHoveringDyadmino) {
     [_topBar changeSwapCancelOrUndo:kCancelButton];
     [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:YES];
+    [_topBar node:_topBar.replayButton shouldBeEnabled:NO];
     
       // no dyadminoes played, and no recent rack dyadmino
   } else if (noDyadminoesPlayedAndNoRecentRackDyadmino) {
@@ -2204,7 +2205,7 @@
     _replayTop.hidden = NO;
     _replayBottom.hidden = NO;
     SKAction *rackAction = [SKAction runBlock:^{
-      self.myMatch.gameHasEnded ? [self toggleRackOut:YES] : nil;
+      self.myMatch.gameHasEnded ? nil : [self toggleRackOut:YES];
     }];
     SKAction *topBarAction = [SKAction runBlock:^{
       [self toggleTopBarOut:YES];
@@ -2242,7 +2243,7 @@
     _topBar.hidden = NO;
     
     SKAction *rackAction = [SKAction runBlock:^{
-      self.myMatch.gameHasEnded ? [self toggleRackOut:NO] : nil;
+      self.myMatch.gameHasEnded ? nil : [self toggleRackOut:NO];
     }];
     SKAction *topBarAction = [SKAction runBlock:^{
       [self toggleTopBarOut:NO];

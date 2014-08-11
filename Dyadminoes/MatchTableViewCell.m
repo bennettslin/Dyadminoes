@@ -148,7 +148,7 @@
       
         // make font size smaller if it can't fit
       playerLabel.adjustsFontSizeToFitWidth = YES;
-      playerLabel.minimumScaleFactor = 0.5f;
+//      playerLabel.minimumScaleFactor = 0.5f;
       labelView.frame = CGRectMake(0, 0, playerLabel.frame.size.width + kPlayerLabelWidthPadding, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
 
       labelView.layer.cornerRadius = labelView.frame.size.height / 2.f;
@@ -173,6 +173,8 @@
       labelView.backgroundColourCanBeChanged = NO;
     }
     
+    NSUInteger turn = self.myMatch.turns.count;
+    
     if (self.myMatch.gameHasEnded) {
       
       self.selectedBackgroundView.backgroundColor = kEndedMatchCellSelectedColour;
@@ -180,7 +182,7 @@
       
         // game ended, so lastPlayed label shows date
       self.lastPlayedLabel.textColor = kStaveEndedGameColour;
-      self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed];
+      self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed andTurn:turn];
       
     } else {
       self.selectedBackgroundView.backgroundColor = kMainSelectedYellow;
@@ -188,8 +190,7 @@
       
         // game still in play, so lastPlayed label shows time since last played
       self.lastPlayedLabel.textColor = kStaveColour;
-      self.lastPlayedLabel.text = [self returnLastPlayedStringFromDate:self.myMatch.lastPlayed
-                                                               started:(self.myMatch.turns.count == 0 ? YES : NO)];
+      self.lastPlayedLabel.text = [self returnLastPlayedStringFromDate:self.myMatch.lastPlayed andTurn:turn];
     }
   }
   
@@ -261,15 +262,10 @@
     NSInteger playerPosition = (player.resigned && self.myMatch.type != kSelfGame) ?
         -1 : [sortedScores indexOfObject:[NSNumber numberWithUnsignedInteger:player.playerScore]] + 1;
 
-//    playerLabel.frame = CGRectMake(playerLabel.frame.origin.x,
-//                                   playerLabel.frame.origin.y,
-//                                   playerLabel.frame.size.width,
-//                                   playerLabel.frame.size.height);
     playerLabel.center = CGPointMake(playerLabel.center.x, [self labelHeightForMaxPosition:sortedScores.count andPlayerPosition:playerPosition]);
     labelView.center = CGPointMake(playerLabel.center.x,
                                    playerLabel.center.y - (kCellRowHeight / 40.f));
     scoreLabel.center = CGPointMake(playerLabel.center.x, playerLabel.center.y + kStaveYHeight * 1.5f);
-//    scoreLabel.frame = CGRectMake(playerLabel.frame.origin.x + playerLabel.frame.size.width + (kIsIPhone ? kPlayerLabelWidthPadding / 6 : kPlayerLabelWidthPadding / 4), scoreLabel.frame.origin.y, scoreLabel.frame.size.width, scoreLabel.frame.size.height);
     
     UIImageView *fermataImageView = self.fermataImageViewArray[i];
     if (fermataImageView.superview) {

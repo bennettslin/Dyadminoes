@@ -65,14 +65,14 @@
 
 #pragma mark - date stuff
 
--(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date {
+-(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date andTurn:(NSUInteger)turn {
   NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
   [dateFormatter setDateStyle:NSDateFormatterShortStyle];
 //  [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
   return [NSString stringWithFormat:@"Game ended %@.", [dateFormatter stringFromDate:date]];
 }
 
--(NSString *)returnLastPlayedStringFromDate:(NSDate *)date started:(BOOL)started {
+-(NSString *)returnLastPlayedStringFromDate:(NSDate *)date andTurn:(NSUInteger)turn {
   NSDate *startDate = date;
   NSDate *endDate = [NSDate date];
   
@@ -125,9 +125,9 @@
     dateComponent = [NSString stringWithFormat:@"%i %@", componentQuantity, dateComponent];
   }
   
-  return started ?
+  return (turn == 0) ?
       [NSString stringWithFormat:@"Started %@ ago.", dateComponent] :
-      [NSString stringWithFormat:@"Played %@ ago.", dateComponent];
+      [NSString stringWithFormat:@"Turn %i played %@ ago.", turn, dateComponent];
 }
 
 #pragma mark - view stuff

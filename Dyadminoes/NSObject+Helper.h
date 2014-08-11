@@ -339,8 +339,8 @@ typedef enum passPlayOrDoneButton {
 -(HexCoord)hexCoordFromX:(NSInteger)x andY:(NSInteger)y;
 
   // date stuff
--(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date;
--(NSString *)returnLastPlayedStringFromDate:(NSDate *)date started:(BOOL)started;
+-(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date andTurn:(NSUInteger)turn;
+-(NSString *)returnLastPlayedStringFromDate:(NSDate *)date andTurn:(NSUInteger)turn;
 
   // view stuff
 -(void)addGradientToView:(UIView *)thisView WithColour:(UIColor *)colour andUpsideDown:(BOOL)upsideDown;
