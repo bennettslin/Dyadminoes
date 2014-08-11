@@ -46,7 +46,7 @@
   self.nextTurnButton = tempButtons[3];
   self.lastTurnButton = tempButtons[4];
 
-  [self button:self.returnOrStartButton shouldBeEnabled:YES];
+  [self node:self.returnOrStartButton shouldBeEnabled:YES];
 //  self.allButtons = [NSSet setWithArray:tempButtons];
 }
 

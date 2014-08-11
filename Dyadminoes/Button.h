@@ -9,7 +9,11 @@
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
 
+@protocol ReturnToGamesButtonDelegate;
+
 @interface Button : SKSpriteNode
+
+@property (weak, nonatomic) id<ReturnToGamesButtonDelegate> delegate;
 
 -(id)initWithName:(NSString *)name
          andColor:(UIColor *)color
@@ -22,5 +26,11 @@
 -(PassPlayOrDoneButton)confirmPassPlayOrDone;
 -(void)showSunkIn;
 -(void)showLifted;
+
+@end
+
+@protocol ReturnToGamesButtonDelegate <NSObject>
+
+-(void)goBackToMainViewController;
 
 @end

@@ -28,10 +28,7 @@
   [super viewDidLoad];
   
     // first version of app will not have device orientation
-  /*
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
-  */
-  
+//  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
 
   [self createAndConfigureScene];
@@ -85,6 +82,7 @@
   [self saveModel];
   [self.mySceneView presentScene:nil];
   [self dismissViewControllerAnimated:YES completion:nil];
+  [self.delegate startAnimatingBackground];
 }
 
 #pragma mark - event handling methods
@@ -102,7 +100,6 @@
     CGPoint location1 = [sender locationOfTouch:0 inView:self.view];
     CGPoint location2 = [sender locationOfTouch:1 inView:self.view];
     if (![self.myScene validatePinchLocation:location1] || ![self.myScene validatePinchLocation:location2]) {
-      NSLog(@"pinch still counts is no");
       _pinchStillCounts = NO;
     }
   }

@@ -20,7 +20,7 @@
                                            andSize:kButtonSize
                                        andPosition:CGPointMake(kButtonWidth, kButtonYPosition * 2)
                                       andZPosition:kZPositionTopBarButton];
-  [self button:self.returnOrStartButton shouldBeEnabled:YES];
+  [self node:self.returnOrStartButton shouldBeEnabled:YES];
   
   self.waitingForPlayerLabel = [[Label alloc] initWithName:@"waitPlayer"
                                     andFontColor:kTestRed

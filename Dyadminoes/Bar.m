@@ -32,17 +32,19 @@
 
 #pragma mark - button methods
 
--(void)button:(SKSpriteNode *)button shouldBeEnabled:(BOOL)enabled {
-  if (button) {
+-(void)node:(SKNode *)node shouldBeEnabled:(BOOL)enabled {
+  if (node) {
     if (enabled) {
-      button.hidden = NO;
-      if (!button.parent) {
-        [self addChild:button];
+      node.hidden = NO;
+      node.zPosition = [node isKindOfClass:[Label class]] ? kZPositionTopBarLabel : node.zPosition;
+      if (!node.parent) {
+        [self addChild:node];
       }
     } else {
-      button.hidden = YES;
-      if (button.parent) {
-        [button removeFromParent];
+      node.hidden = YES;
+      node.zPosition = [node isKindOfClass:[Label class]] ? -CGFLOAT_MAX : node.zPosition;
+      if (node.parent) {
+        [node removeFromParent];
       }
     }
   }
@@ -70,9 +72,9 @@
   
   if (rotation != _rotationFromDevice) {
 
-//    for (Button *button in self.allButtons) {
-//      button.zRotation = [self getRadiansFromDegree:rotation];
-//    }
+    for (Button *button in self.allButtons) {
+      button.zRotation = [self getRadiansFromDegree:rotation];
+    }
     
     _rotationFromDevice = rotation;
     return YES;
@@ -84,7 +86,6 @@
 #pragma mark - label view methods
 
 -(void)updateLabel:(Label *)label withText:(NSString *)text andColour:(UIColor *)colour {
-//  Label *label = [self.allLabels valueForKey:name];
   
   if (label) {
       label.fontColor = colour ? colour : label.originalFontColour;
@@ -97,7 +98,7 @@
 }
 
 -(void)flashLabel:(Label *)label withText:(NSString *)text andColour:(UIColor *)colour {
-//  Label *label = [self.allLabels valueForKey:name];
+
   if (label) {
     [label removeAllActions];
     if (!label.parent) {

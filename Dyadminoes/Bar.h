@@ -13,7 +13,7 @@
 
 @interface Bar : SKSpriteNode
 
-//@property (strong, nonatomic) NSSet *allButtons; // necessary for device orientation only
+@property (strong, nonatomic) NSSet *allButtons; // necessary for device orientation only
 @property (strong, nonatomic) NSDictionary *allLabels;
 
 @property (strong, nonatomic) Button *returnOrStartButton;
@@ -25,8 +25,8 @@
 
 #pragma mark - button methods
 
--(void)button:(SKSpriteNode *)button shouldBeEnabled:(BOOL)enabled;
-//-(void)disableButton:(SKSpriteNode *)button;
+  // for both buttons and labels
+-(void)node:(SKNode *)node shouldBeEnabled:(BOOL)enabled;
 
 -(BOOL)rotateButtonsBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation;
 

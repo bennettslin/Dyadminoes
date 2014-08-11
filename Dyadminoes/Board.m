@@ -54,7 +54,6 @@
     self.color = color;
     self.size = size;
     self.cellTexture = cellTexture;
-//    self.size = CGSizeMake(size.width, size.height);
     self.anchorPoint = CGPointMake(0.5, 0.5);
     self.zPosition = kZPositionBoard;
     
@@ -132,23 +131,23 @@
   self.position = self.homePosition;
 }
 
--(void)centerBoardOnDyadminoesAverageCenter {
+-(void)centerBoardOnDyadminoesAverageCenterWithSwap:(BOOL)swap andGameEnded:(BOOL)gameEnded {
   CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
   CGPoint newPoint = CGPointMake(self.origin.x + (self.hexOrigin.dx - _hexCurrent.dx) * kDyadminoFaceWideDiameter * factor,
                                  self.origin.y + (self.hexOrigin.dy - _hexCurrent.dy) * kDyadminoFaceDiameter * factor);
   
-  [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:newPoint withSwap:NO];
+  [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:newPoint withSwap:swap andGameEnded:gameEnded];
   self.homePosition = newPoint;
 }
 
--(void)centerBoardOnLocation:(CGPoint)location {
-  [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:location withSwap:NO];
-  self.homePosition = location;
-}
+//-(void)centerBoardOnLocation:(CGPoint)location withSwap:(BOOL)swap andGameEnded:(BOOL)gameEnded {
+//  [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:location withSwap:swap andGameEnded:gameEnded];
+//  self.homePosition = location;
+//}
 
 #pragma mark - board span methods
 
--(CGPoint)adjustToNewPositionFromBeganLocation:(CGPoint)beganLocation toCurrentLocation:(CGPoint)currentLocation withSwap:(BOOL)swap {
+-(CGPoint)adjustToNewPositionFromBeganLocation:(CGPoint)beganLocation toCurrentLocation:(CGPoint)currentLocation withSwap:(BOOL)swap andGameEnded:(BOOL)gameEnded {
     // first get new board position, after applying touch offset
   CGPoint touchOffset = [self subtractFromThisPoint:beganLocation thisPoint:currentLocation];
   CGPoint newPosition = [self subtractFromThisPoint:self.homePosition thisPoint:touchOffset];
@@ -156,16 +155,13 @@
   CGFloat newX = newPosition.x;
   CGFloat newY = newPosition.y;
   
-  CGFloat swapBuffer = 0.f;
-  
-  if (swap) {
-    swapBuffer = kRackHeight; // the height of the swap field
-  }
-  
+  CGFloat finalBuffer = swap ? kRackHeight : 0.f; // the height of the swap field
+//  CGFloat endGameBuffer = gameEnded ? finalBuffer - kRackHeight : finalBuffer;
+
   if (newPosition.y < self.lowestYPos) {
     newY = self.lowestYPos;
-  } else if (newPosition.y > (self.highestYPos + swapBuffer)) {
-    newY = self.highestYPos + swapBuffer;
+  } else if (newPosition.y > (self.highestYPos + finalBuffer)) {
+    newY = self.highestYPos + finalBuffer;
   }
   
   if (newPosition.x < self.lowestXPos) {
@@ -183,13 +179,13 @@
   return adjustedNewPosition;
 }
 
--(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes {
+-(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes withGameEnded:(BOOL)gameEnded {
   
     // floats to allow for in-between values for y-coordinates
-  CGFloat cellsTopmost = -2147483648;
-  CGFloat cellsRightmost = -2147483648;
-  CGFloat cellsBottommost = 2147483647;
-  CGFloat cellsLeftmost = 2147483647;
+  CGFloat cellsTopmost = -CGFLOAT_MAX;
+  CGFloat cellsRightmost = -CGFLOAT_MAX;
+  CGFloat cellsBottommost = CGFLOAT_MAX;
+  CGFloat cellsLeftmost = CGFLOAT_MAX;
   
   for (Dyadmino *dyadmino in boardDyadminoes) {
 
@@ -226,6 +222,7 @@
   }
 
   CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
+  
   _cellsInVertRange = ((self.origin.y - kRackHeight) / (kDyadminoFaceDiameter * factor));
   _cellsInHorzRange = (self.origin.x / (kDyadminoFaceAverageWideDiameter * factor));
 
@@ -270,7 +267,7 @@
 
 #pragma mark - zoom methods
 
--(void)repositionCellsForZoom {
+-(void)repositionCellsForZoomWithSwap:(BOOL)swap andGameEnded:(BOOL)gameEnded {
 
   CGSize cellSize = [Cell establishCellSizeForResize:self.zoomedOut];
   for (Cell *cell in self.allCells) {
@@ -280,15 +277,15 @@
     // zoom out
   if (self.zoomedOut) {
 
-    [self centerBoardOnDyadminoesAverageCenter];
+    [self centerBoardOnDyadminoesAverageCenterWithSwap:swap andGameEnded:gameEnded];
     [self zoomOutBackgroundImage];
     
       // zoom back in
   } else {
     
-    [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:self.postZoomPosition withSwap:NO];
+    [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:self.postZoomPosition withSwap:swap andGameEnded:gameEnded];
     if (_redoLayoutAfterZoom) {
-      [self layoutBoardCellsAndSnapPointsOfDyadminoes:[self.delegate allBoardDyadminoesPlusRecentRackDyadmino]];
+      [self layoutBoardCellsAndSnapPointsOfDyadminoes:[self.delegate allBoardDyadminoesPlusRecentRackDyadmino] withGameEnded:gameEnded];
       _redoLayoutAfterZoom = NO;
     }
     
@@ -314,16 +311,15 @@
 
 #pragma mark - cell methods
 
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes withGameEnded:(BOOL)gameEnded {
 
-    // regular hex origin is only set once per scene load, but zoom hex origin is set every time{
+    // regular hex origin is only set once per scene load, but zoom hex origin is set every time
   if (!_hexOriginSet) {
-    self.hexOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
+    self.hexOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes withGameEnded:gameEnded];
     _hexCurrent = self.hexOrigin;
-//    NSLog(@"determine vector origin (general center) is %.1f, %.1f", _hexOrigin.dx, _hexOrigin.dy);
     _hexOriginSet = YES;
   } else {
-    _hexCurrent = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
+    _hexCurrent = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes withGameEnded:gameEnded];
   }
   
     // covers all cells in old range plus new range
@@ -340,7 +336,6 @@
 
     // FIXME: (maybe) these extra + or - and 1 or 2 constants ensures that no empty slots show when dyadmino is moved or removed
     // and board bounds are corrected as a result. Seems fine for now, but *might* want to fix later
-//  /*
   for (NSInteger xHex = minCellsLeft - 2; xHex <= maxCellsRight + 2; xHex++) {
     for (NSInteger yHex = minCellsBottom - 1 - maxCellsRight / 2.f; yHex <= maxCellsTop + 2 - minCellsLeft / 2.f; yHex++) {
       
@@ -360,7 +355,6 @@
       }
     }
   }
-//   */
   
     // this block tries to add only cells surrounding dyadminoes
     // unfortunately, getting cell from dyadmino's myHexCoord is not a good way to do it
@@ -382,9 +376,7 @@
   if (!self.zoomedOut) {
     NSMutableSet *tempAllCellsSet = [NSMutableSet setWithSet:self.allCells];
     for (Cell *cell in tempAllCellsSet) {
-      if (![tempAddedCellSet containsObject:cell]) {
-        [self ignoreCell:cell];
-      }
+      [tempAddedCellSet containsObject:cell] ? nil : [self ignoreCell:cell];
     }
   } else {
     _redoLayoutAfterZoom = YES;
@@ -392,8 +384,8 @@
   
   [self determineBoardPositionBounds];
   
-  NSLog(@"self.allCells %i, self.occupiedCells %i, self.dequeuedCells %i", self.allCells.count, self.occupiedCells.count, self.dequeuedCells.count);
-  NSLog(@"board nodes %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
+//  NSLog(@"self.allCells %i, self.occupiedCells %i, self.dequeuedCells %i", self.allCells.count, self.occupiedCells.count, self.dequeuedCells.count);
+//  NSLog(@"board nodes %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
 }
 
 -(Cell *)findCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
@@ -423,9 +415,7 @@
                                  andSize:_cellSize];
     }
     
-    if (!cell.cellNode.parent) {
-      [self addChild:cell.cellNode];
-    }
+    cell.cellNode.parent ? nil : [self addChild:cell.cellNode];
 
     if (![self.allCells containsObject:cell]) {
       [self.allCells addObject:cell];
@@ -442,14 +432,11 @@
 
 -(void)ignoreCell:(Cell *)cell {
   if (cell) {
-    if (cell.cellNode) {
-      [cell.cellNode removeFromParent];
-    }
-      //    NSLog(@"cell %@ removed, self.allCells count %i", cell.name, self.allCells.count);
+    
+    cell.cellNode ? [cell.cellNode removeFromParent] : nil;
     
     if ([self.allCells containsObject:cell]) {
       [self.allCells removeObject:cell];
-        //      NSLog(@"now self.allCells count %i", self.allCells.count);
       [cell removeSnapPointsFromBoard];
     }
     [self pushDequeuedCell:cell];
@@ -457,17 +444,12 @@
 }
 
 -(void)pushDequeuedCell:(Cell *)cell {
-  if (![self.dequeuedCells containsObject:cell]) {
-    [self.dequeuedCells addObject:cell];
-  }
-    //  NSLog(@"pushed cell %@, dequeued cells is %i", cell.name, self.dequeuedCells.count);
+  [self.dequeuedCells containsObject:cell] ? nil : [self.dequeuedCells addObject:cell];
 }
 
 -(Cell *)popDequeuedCell {
   Cell *cell = [self.dequeuedCells anyObject];
-  if ([cell isKindOfClass:[Cell class]]) {
-    [self.dequeuedCells removeObject:cell];
-  }
+  [cell isKindOfClass:[Cell class]] ? [self.dequeuedCells removeObject:cell] : nil;
   return cell;
 }
 
@@ -509,9 +491,7 @@
           // ensures there's only one cell for each dyadmino pc, and vice versa
         [self mapOneCell:cell toOnePCForDyadmino:dyadmino];
         
-        if (colour) {
-          [self changeColoursAroundCell:cell withSign:1];
-        }
+        colour ? [self changeColoursAroundCell:cell withSign:1] : nil;
       }
     }
   }

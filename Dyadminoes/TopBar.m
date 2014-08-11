@@ -39,7 +39,7 @@
   self.resignButton = tempArray[4];
   self.debugButton = tempArray[5];
 
-  [self button:self.debugButton shouldBeEnabled:YES];
+  [self node:self.debugButton shouldBeEnabled:YES];
 //  self.allButtons = [NSSet setWithArray:tempArray];
 }
 
@@ -71,7 +71,7 @@
   NSArray *debuggerNameArray = @[@"holdingContainer", @"swapContainer", @"boardDyadminoes", @"pileDyadminoes"];
   float debuggerYCoord[4] = {-kLabelYPosition, -kLabelYPosition * 4, -kLabelYPosition * 7, -kLabelYPosition * 10};
   for (int i = 0; i < 4; i++) {
-    Label *label = [[Label alloc] initWithName:debuggerNameArray[i] andFontColor:[SKColor whiteColor] andFontSize:kLabelFontSize * 0.8f andPosition:CGPointMake(self.size.width / 2, debuggerYCoord[i]) andZPosition:kZPositionTopBar andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
+    Label *label = [[Label alloc] initWithName:debuggerNameArray[i] andFontColor:[SKColor whiteColor] andFontSize:kLabelFontSize * 0.8f andPosition:CGPointMake(self.size.width / 2, debuggerYCoord[i]) andZPosition:-CGFLOAT_MAX andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
     [tempDebuggerArray addObject:label];
     [tempDictionary setValue:label forKey:label.name];
   }

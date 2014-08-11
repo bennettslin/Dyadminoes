@@ -67,13 +67,14 @@
 @property (strong, nonatomic) UIActivityIndicatorView *activityIndicator;
 @property (strong, nonatomic) UIView *backgroundView;
 
+@property (nonatomic) BOOL backgroundShouldBeStill;
+
 @end
 
 @implementation MatchesTableViewController {
   CGFloat _screenWidth;
   CGFloat _screenHeight;
   BOOL _overlayEnabled;
-  BOOL _backgroundShouldBeStill;
 }
 
 -(void)viewDidLoad {
@@ -168,7 +169,6 @@
   self.myModel = [Model getMyModel];
   if (!self.myModel) {
     self.myModel = [Model new];
-//    [self.myModel instantiateHardCodedMatchesForDebugPurposes];
   }
 
   [self.myModel sortMyMatches];
@@ -176,17 +176,19 @@
 }
 
 -(void)viewDidAppear:(BOOL)animated {
-//  NSLog(@"view will appear");
-  [self startAnimatingBackground];
+  
+    // look into this again
+//  [self startAnimatingBackgroundFirstTime:YES];
 }
 
 -(void)startAnimatingBackground {
-  _backgroundShouldBeStill = NO;
+  self.backgroundShouldBeStill = NO;
   [self animateBackgroundViewFirstTime:YES];
 }
 
 -(void)stopAnimatingBackground {
-  _backgroundShouldBeStill = YES; // this might be extraneous
+  NSLog(@"stopAnimatingBackground method called");
+  self.backgroundShouldBeStill = YES; // this might be extraneous
   [self.backgroundView.layer removeAllAnimations];
 }
 
@@ -485,24 +487,22 @@
 #pragma mark - background view methods
 
 -(void)animateBackgroundViewFirstTime:(BOOL)firstTime {
-  
+
   if (firstTime) {
     [self.backgroundView.layer removeAllAnimations];
     self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
   }
   
   CGFloat seconds = 30;
-
-  [UIView animateWithDuration:seconds delay:0 options:UIViewAnimationOptionCurveLinear animations:^{
+  [UIView animateWithDuration:seconds delay:0 options:UIViewAnimationOptionCurveLinear | UIViewAnimationOptionRepeat animations:^{
     self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, self.backgroundView.frame.size.width / 2, self.backgroundView.frame.size.height / 2);
-    
   } completion:^(BOOL finished) {
-     if (finished) {
-       self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
-       if (!_backgroundShouldBeStill) {
-         [self animateBackgroundViewFirstTime:NO];
-       }
-     }
+    if (finished) {
+      self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
+      if (!self.backgroundShouldBeStill) {
+        self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
+      }
+    }
   }];
 }
 

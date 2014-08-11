@@ -25,7 +25,6 @@
 @property (weak, nonatomic) id <SceneViewDelegate> delegate;
 
 @property (strong, nonatomic) UIPinchGestureRecognizer *pinchGestureRecogniser;
-//@property (strong, nonatomic) UITapGestureRecognizer *doubleTapGestureRecogniser;
 
 @end
 
@@ -33,5 +32,6 @@
 
 -(void)stopActivityIndicator;
 -(void)removeChildViewController:(UIViewController *)childVC;
+-(void)startAnimatingBackground;
 
 @end
