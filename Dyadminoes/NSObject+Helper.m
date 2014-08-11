@@ -68,7 +68,6 @@
 -(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date andTurn:(NSUInteger)turn {
   NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
   [dateFormatter setDateStyle:NSDateFormatterShortStyle];
-//  [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
   return [NSString stringWithFormat:@"Game ended %@.", [dateFormatter stringFromDate:date]];
 }
 
@@ -122,12 +121,22 @@
   }
   
   if (componentQuantity > 0) {
-    dateComponent = [NSString stringWithFormat:@"%i %@", componentQuantity, dateComponent];
+    NSString *componentString = [self wordForNumber:componentQuantity];
+    dateComponent = [NSString stringWithFormat:@"%@ %@", componentString, dateComponent];
   }
   
   return (turn == 0) ?
       [NSString stringWithFormat:@"Started %@ ago.", dateComponent] :
       [NSString stringWithFormat:@"Turn %i played %@ ago.", turn, dateComponent];
+}
+
+-(NSString *)wordForNumber:(NSUInteger)number {
+  NSArray *numberArray = @[@"zero", @"one", @"two", @"three", @"four",
+                           @"five", @"six", @"seven", @"eight", @"nine",
+                           @"ten", @"eleven", @"twelve", @"thirteen", @"fourteen",
+                           @"fifteen", @"sixteen", @"seventeen", @"eighteen", @"nineteen",
+                           @"twenty", @"twenty-one", @"twenty-two", @"twenty-three", @"twenty-four"];
+  return numberArray[number];
 }
 
 #pragma mark - view stuff

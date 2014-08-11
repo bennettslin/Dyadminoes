@@ -24,7 +24,7 @@
 
 @interface MatchTableViewCell ()
 
-@property (weak, nonatomic) IBOutlet UILabel *lastPlayedLabel;
+@property (strong, nonatomic) UILabel *lastPlayedLabel;
 
 @property (strong, nonatomic) NSArray *playerLabelsArray;
 @property (strong, nonatomic) NSArray *playerLabelViewsArray;
@@ -57,14 +57,14 @@
     [self addSubview:labelView];
     
     UILabel *playerLabel = [[UILabel alloc] init];
-    playerLabel.font = [UIFont fontWithName:kPlayerNameFont size:(kIsIPhone ? (kCellRowHeight / 3.4) : (kCellRowHeight / 2.8125))];
+    playerLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? (kCellRowHeight / 3.4) : (kCellRowHeight / 2.8125))];
     playerLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     [tempPlayerLabelsArray addObject:playerLabel];
     [self insertSubview:playerLabel aboveSubview:labelView];
     
     UILabel *scoreLabel = [[UILabel alloc] init];
     [self addSubview:scoreLabel];
-    scoreLabel.font = [UIFont fontWithName:kPlayerNameFont size:(kCellRowHeight / 4.5)];
+    scoreLabel.font = [UIFont fontWithName:kFontModern size:(kCellRowHeight / 4.5)];
     scoreLabel.textColor = [UIColor brownColor];
     scoreLabel.textAlignment = NSTextAlignmentCenter;
     scoreLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
@@ -81,10 +81,6 @@
   self.playerLabelViewsArray = [NSArray arrayWithArray:tempPlayerLabelViewsArray];
   self.scoreLabelsArray = [NSArray arrayWithArray:tempScoreLabelsArray];
   self.fermataImageViewArray = [NSArray arrayWithArray:tempFermataImageViewArray];
-  
-  self.lastPlayedLabel.adjustsFontSizeToFitWidth = YES;
-  self.lastPlayedLabel.frame = CGRectMake(kStaveXBuffer, (kCellRowHeight / 10) * 11,
-                                          kCellWidth - kStaveXBuffer * 2, kStaveYHeight * 2);
 
     // staves and clef
   self.stavesView = [[StavesView alloc] initWithFrame:CGRectMake(self.frame.origin.x, self.frame.origin.y, kCellWidth, kCellRowHeight + kCellSeparatorBuffer)];
@@ -93,6 +89,12 @@
   self.clefImage = [UIImageView new];
   self.clefImage.contentMode = UIViewContentModeScaleAspectFit;
   [self addSubview:self.clefImage];
+  
+  self.lastPlayedLabel = [[UILabel alloc] initWithFrame:CGRectMake(kStaveXBuffer, (kCellRowHeight / 10) * 11.5, kCellWidth - kStaveXBuffer * 2, kStaveYHeight * 2)];
+  self.lastPlayedLabel.textAlignment = NSTextAlignmentRight;
+  self.lastPlayedLabel.adjustsFontSizeToFitWidth = YES;
+  self.lastPlayedLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 20.f : 22.f)];
+  [self insertSubview:self.lastPlayedLabel aboveSubview:self.stavesView];
 }
 
 -(void)setProperties {

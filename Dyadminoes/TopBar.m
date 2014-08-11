@@ -57,11 +57,7 @@
     [tempPlayerRackArray addObject:label];
     [tempDictionary setValue:label forKey:label.name];
   }
-  
-  self.player1Rack = tempPlayerRackArray[0];
-  self.player2Rack = tempPlayerRackArray[1];
-  self.player3Rack = tempPlayerRackArray[2];
-  self.player4Rack = tempPlayerRackArray[3];
+
   self.playerRackLabels = [NSArray arrayWithArray: tempPlayerRackArray];
   
     // debugger labels
@@ -133,15 +129,11 @@
   
   for (int i = 0; i < 4; i++) {
     Label *label = [[Label alloc] initWithName:playerNames[i] andFontColor:[SKColor whiteColor] andFontSize:kPlayerLabelFontSize andPosition:CGPointMake(kTopBarGeneralLeftOffset, yCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
-    label.fontName = kPlayerNameFont;
+    label.fontName = kFontModern;
     [tempDictionary setValue:label forKey:label.name];
     [tempPlayerNames addObject:label];
   }
-  
-  self.player1Name = tempPlayerNames[0];
-  self.player2Name = tempPlayerNames[1];
-  self.player3Name = tempPlayerNames[2];
-  self.player4Name = tempPlayerNames[3];
+
   self.playerNameLabels = [NSArray arrayWithArray:tempPlayerNames];
   
   NSMutableArray *tempPlayerScores = [NSMutableArray new];
@@ -149,15 +141,11 @@
   
   for (int i = 0; i < 4; i++) {
     Label *label = [[Label alloc] initWithName:playerScores[i] andFontColor:[SKColor whiteColor] andFontSize:kPlayerLabelFontSize * 0.8f andPosition:CGPointMake(kTopBarGeneralLeftOffset + 125, yCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
-    label.fontName = kPlayerNameFont;
+    label.fontName = kFontModern;
     [tempDictionary setValue:label forKey:label.name];
     [tempPlayerScores addObject:label];
   }
   
-  self.player1Score = tempPlayerScores[0];
-  self.player2Score = tempPlayerScores[1];
-  self.player3Score = tempPlayerScores[2];
-  self.player4Score = tempPlayerScores[3];
   self.playerScoreLabels = [NSArray arrayWithArray:tempPlayerScores];
   
   [tempDictionary addEntriesFromDictionary:self.allLabels];

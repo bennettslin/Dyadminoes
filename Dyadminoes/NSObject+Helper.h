@@ -68,8 +68,8 @@
 #define kZoomResizeFactor 0.5f
 
   // label constants (maybe temp)
-#define kPlayerNameFont @"FilmotypeModern"
-#define kButtonFont @"FilmotypeHarmony"
+#define kFontModern @"FilmotypeModern"
+#define kFontHarmony @"FilmotypeHarmony"
 
   // pinch gesture constants
   // FIXME: might not need the iPhone constants

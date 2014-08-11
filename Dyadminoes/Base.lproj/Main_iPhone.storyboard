@@ -167,17 +167,8 @@
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="PnH-LI-aWR" id="mXF-7d-Qot">
                                             <rect key="frame" x="0.0" y="0.0" width="280" height="79"/>
                                             <autoresizingMask key="autoresizingMask"/>
-                                            <subviews>
-                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="LastPlayed" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="3Im-la-QA5">
-                                                    <rect key="frame" x="133" y="54" width="167" height="17"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                                    <nil key="highlightedColor"/>
-                                                </label>
-                                            </subviews>
                                         </tableViewCellContentView>
                                         <connections>
-                                            <outlet property="lastPlayedLabel" destination="3Im-la-QA5" id="hpq-0e-Oqs"/>
                                             <segue destination="LVB-YS-i5n" kind="modal" identifier="sceneSegue" modalTransitionStyle="crossDissolve" id="lGu-FF-AGj"/>
                                         </connections>
                                     </tableViewCell>

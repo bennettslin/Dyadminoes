@@ -16,16 +16,7 @@
 @property (strong, nonatomic) Button *resignButton;
 
 @property (strong, nonatomic) NSArray *playerNameLabels;
-@property (strong, nonatomic) Label *player1Name;
-@property (strong, nonatomic) Label *player2Name;
-@property (strong, nonatomic) Label *player3Name;
-@property (strong, nonatomic) Label *player4Name;
-
 @property (strong, nonatomic) NSArray *playerScoreLabels;
-@property (strong, nonatomic) Label *player1Score;
-@property (strong, nonatomic) Label *player2Score;
-@property (strong, nonatomic) Label *player3Score;
-@property (strong, nonatomic) Label *player4Score;
 
 @property (strong, nonatomic) Label *turnLabel;
 @property (strong, nonatomic) Label *pileCountLabel;
@@ -35,10 +26,6 @@
   // debugger labels and button
 @property (strong, nonatomic) Button *debugButton;
 @property (strong, nonatomic) NSArray *playerRackLabels;
-@property (strong, nonatomic) Label *player1Rack;
-@property (strong, nonatomic) Label *player2Rack;
-@property (strong, nonatomic) Label *player3Rack;
-@property (strong, nonatomic) Label *player4Rack;
 @property (strong, nonatomic) Label *logLabel;
 @property (strong, nonatomic) Label *pileDyadminoesLabel;
 @property (strong, nonatomic) Label *boardDyadminoesLabel;

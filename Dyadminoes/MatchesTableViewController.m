@@ -87,7 +87,7 @@
   [self insertImageBackground];
   [self insertGradientBackground];
   
-  self.titleLogo.font = [UIFont fontWithName:kPlayerNameFont size:(kIsIPhone ? 30.f : 60.f)];
+  self.titleLogo.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? 30.f : 60.f)];
   
   self.tableView.backgroundColor = [UIColor clearColor];
   self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
@@ -144,7 +144,7 @@
   self.allButtons = @[self.localGameButton, self.helpButton, self.optionsButton, self.aboutButton];
   
   for (UIButton *button in self.allButtons) {
-    button.titleLabel.font = [UIFont fontWithName:kButtonFont size:(kIsIPhone ? 28 : 48)];
+    button.titleLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? 28 : 48)];
     button.tintColor = kMainButtonsColour;
   }
   

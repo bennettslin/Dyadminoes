@@ -62,13 +62,13 @@
     case kNotificationEaseIntoNode:
     case kNotificationRackExchangeClick:
     case kNotificationButtonSunkIn:
-    case kNotificationButtonLifted:
       return kSoundFileClick;
       break;
     case kNotificationDeviceOrientation:
     case kNotificationPopIntoNode:
     case kNotificationTogglePCs:
     case kNotificationBoardZoom:
+    case kNotificationButtonLifted:
       return kSoundFilePop;
       break;
     case kNotificationTwoNotesStruck:
