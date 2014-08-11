@@ -48,6 +48,7 @@
 
 -(void)populateWithTopBarButtons;
 -(void)populateWithTopBarLabels;
+-(void)populatePlayerLabels;
 
 -(void)changeSwapCancelOrUndo:(SwapCancelOrUndoButton)swapCancelOrUndo;
 -(void)changePassPlayOrDone:(PassPlayOrDoneButton)passPlayOrDone;

@@ -11,8 +11,6 @@
 #import "Label.h"
 
   // bar constants
-#define kMinusForName 425.f
-#define kMinusForScore 350.f
 #define kPlayerLabelFontSize (kIsIPhone ? 20.f : 24.f)
 #define kLabelFontSize (kIsIPhone ? 14.f : 18.f)
 
@@ -21,14 +19,15 @@
 -(void)populateWithTopBarButtons {
   
   NSMutableArray *tempArray = [NSMutableArray new];
+  CGFloat yPosition = kTopBarHeight / 2;
   
   NSArray *nameArray = @[@"games", @"replay", @"swap", @"pass", @"resign", @"debug"];
   NSArray *colourArray = @[[SKColor grayColor], [SKColor orangeColor], [SKColor redColor], [SKColor blueColor], [SKColor blackColor], [SKColor brownColor]];
-  float xCoord[6] = {kButtonWidth, kButtonWidth * 2, kButtonWidth * 3, kButtonWidth * 4, kButtonWidth * 5, kButtonWidth * 5};
-  float yCoord[6] = {kButtonYPosition, kButtonYPosition, kButtonYPosition, kButtonYPosition, kButtonYPosition, kButtonYPosition * 3};
+  float xCoord[6] = {kButtonWidth, kButtonWidth * 2, kButtonWidth * 3, kButtonWidth * 4, kButtonWidth * 5, kButtonWidth * 6};
+  float yCoord[6] = {yPosition, yPosition, yPosition, yPosition, yPosition, yPosition};
   
   for (int i = 0; i < 6; i++) {
-    Button *button = [[Button alloc] initWithName:nameArray[i] andColor:colourArray[i] andSize:kButtonSize andPosition:CGPointMake(xCoord[i], yCoord[i])andZPosition:kZPositionTopBarButton];
+    Button *button = [[Button alloc] initWithName:nameArray[i] andColor:colourArray[i] andSize:kButtonSize andPosition:CGPointMake(xCoord[i] + kTopBarButtonsLeftOffset, yCoord[i])andZPosition:kZPositionTopBarButton];
     [tempArray addObject:button];
   }
   
@@ -122,8 +121,6 @@
   [tempDictionary setValue:self.logLabel forKey:self.logLabel.name];
   
   self.allLabels = [NSDictionary dictionaryWithDictionary:tempDictionary];
-  
-  [self populatePlayerLabels];
 }
 
 -(void)populatePlayerLabels {
@@ -135,7 +132,7 @@
   float yCoord[4] = {kLabelYPosition * 10, kLabelYPosition * 7, kLabelYPosition * 4, kLabelYPosition * 1};
   
   for (int i = 0; i < 4; i++) {
-    Label *label = [[Label alloc] initWithName:playerNames[i] andFontColor:[SKColor whiteColor] andFontSize:kPlayerLabelFontSize andPosition:CGPointMake(self.size.width - kMinusForName, yCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
+    Label *label = [[Label alloc] initWithName:playerNames[i] andFontColor:[SKColor whiteColor] andFontSize:kPlayerLabelFontSize andPosition:CGPointMake(kTopBarGeneralLeftOffset, yCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
     label.fontName = kPlayerNameFont;
     [tempDictionary setValue:label forKey:label.name];
     [tempPlayerNames addObject:label];
@@ -151,7 +148,7 @@
   NSArray *playerScores = @[@"player1Score", @"player2Score", @"player3Score", @"player4Score"];
   
   for (int i = 0; i < 4; i++) {
-    Label *label = [[Label alloc] initWithName:playerScores[i] andFontColor:[SKColor whiteColor] andFontSize:kPlayerLabelFontSize * 0.8f andPosition:CGPointMake(self.size.width - kMinusForScore, yCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
+    Label *label = [[Label alloc] initWithName:playerScores[i] andFontColor:[SKColor whiteColor] andFontSize:kPlayerLabelFontSize * 0.8f andPosition:CGPointMake(kTopBarGeneralLeftOffset + 125, yCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
     label.fontName = kPlayerNameFont;
     [tempDictionary setValue:label forKey:label.name];
     [tempPlayerScores addObject:label];

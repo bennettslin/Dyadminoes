@@ -72,9 +72,10 @@
     //--------------------------------------------------------------------------
   
   [self.mySceneView presentScene:self.myScene];
-  UIView *testView = [[UIView alloc] initWithFrame:CGRectMake(100, 100, 100, 100)];
-  testView.backgroundColor = [UIColor greenColor];
-  [self.view addSubview:testView];
+  
+//  UIView *testView = [[UIView alloc] initWithFrame:CGRectMake(100, 100, 100, 100)];
+//  testView.backgroundColor = [UIColor greenColor];
+//  [self.view addSubview:testView];
 }
 
 -(void)stopActivityIndicator {

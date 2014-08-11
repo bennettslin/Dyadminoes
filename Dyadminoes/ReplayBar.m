@@ -20,7 +20,7 @@
   self.statusLabel = [[Label alloc] initWithName:@"status"
                                     andFontColor:[SKColor whiteColor]
                                      andFontSize:kLabelFontSize
-                                     andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition * 2)
+                                     andPosition:CGPointMake(kTopBarGeneralLeftOffset, kRackHeight / 2)
                                     andZPosition:kZPositionLogMessage
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.statusLabel forKey:self.statusLabel.name];
@@ -29,22 +29,24 @@
 
 -(void)populateWithBottomReplayButtons {
   
+  CGFloat leftOffset = (kLargeButtonWidth / 2) + ((self.frame.size.width - kLargeButtonWidth * 5.5) / 2);
+  
   NSMutableArray *tempButtons = [NSMutableArray new];
   
-  NSArray *nameArray = @[@"return", @"first", @"previous", @"next", @"last"];
-  NSArray *colourArray = @[[SKColor grayColor], [SKColor redColor], [SKColor orangeColor], [SKColor greenColor], [SKColor blueColor]];
-    float xCoord[5] = {kButtonWidth, kButtonWidth * 3, kButtonWidth * 4, kButtonWidth * 5, kButtonWidth * 6};
+  NSArray *nameArray = @[@"first", @"previous", @"next", @"last", @"return"];
+  NSArray *colourArray = @[[SKColor redColor], [SKColor orangeColor], [SKColor greenColor], [SKColor blueColor], [SKColor grayColor]];
+    float xCoord[5] = {0, kLargeButtonWidth, kLargeButtonWidth * 2, kLargeButtonWidth * 3, kLargeButtonWidth * 4.5};
   
   for (int i = 0; i < 5; i++) {
-    Button *button = [[Button alloc] initWithName:nameArray[i] andColor:colourArray[i] andSize:kButtonSize andPosition:CGPointMake(xCoord[i], kButtonYPosition * 3) andZPosition:kZPositionTopBarButton];
+    Button *button = [[Button alloc] initWithName:nameArray[i] andColor:colourArray[i] andSize:kLargeButtonSize andPosition:CGPointMake(leftOffset + xCoord[i], kRackHeight / 2) andZPosition:kZPositionTopBarButton];
     [tempButtons addObject:button];
   }
   
-  self.returnOrStartButton = tempButtons[0];
-  self.firstTurnButton = tempButtons[1];
-  self.previousTurnButton = tempButtons[2];
-  self.nextTurnButton = tempButtons[3];
-  self.lastTurnButton = tempButtons[4];
+  self.firstTurnButton = tempButtons[0];
+  self.previousTurnButton = tempButtons[1];
+  self.nextTurnButton = tempButtons[2];
+  self.lastTurnButton = tempButtons[3];
+  self.returnOrStartButton = tempButtons[4];
 
   [self node:self.returnOrStartButton shouldBeEnabled:YES];
 //  self.allButtons = [NSSet setWithArray:tempButtons];

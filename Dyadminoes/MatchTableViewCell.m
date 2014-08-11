@@ -24,31 +24,15 @@
 
 @interface MatchTableViewCell ()
 
-@property (weak, nonatomic) IBOutlet UILabel *player1Label;
-@property (weak, nonatomic) IBOutlet UILabel *player2Label;
-@property (weak, nonatomic) IBOutlet UILabel *player3Label;
-@property (weak, nonatomic) IBOutlet UILabel *player4Label;
-
-@property (strong, nonatomic) CellBackgroundView *player1LabelView;
-@property (strong, nonatomic) CellBackgroundView *player2LabelView;
-@property (strong, nonatomic) CellBackgroundView *player3LabelView;
-@property (strong, nonatomic) CellBackgroundView *player4LabelView;
-
-@property (weak, nonatomic) IBOutlet UILabel *score1Label;
-@property (weak, nonatomic) IBOutlet UILabel *score2Label;
-@property (weak, nonatomic) IBOutlet UILabel *score3Label;
-@property (weak, nonatomic) IBOutlet UILabel *score4Label;
-
 @property (weak, nonatomic) IBOutlet UILabel *lastPlayedLabel;
-
-@property (strong, nonatomic) UIImageView *clefImage;
-@property (strong, nonatomic) NSArray *fermataImageViewArray;
 
 @property (strong, nonatomic) NSArray *playerLabelsArray;
 @property (strong, nonatomic) NSArray *playerLabelViewsArray;
 @property (strong, nonatomic) NSArray *scoreLabelsArray;
+@property (strong, nonatomic) NSArray *fermataImageViewArray;
 
 @property (strong, nonatomic) StavesView *stavesView;
+@property (strong, nonatomic) UIImageView *clefImage;
 
 @end
 
@@ -60,52 +44,55 @@
   UIView *customColorView = [[UIView alloc] init];
   self.selectedBackgroundView = customColorView;
   
-  self.playerLabelsArray = @[self.player1Label, self.player2Label, self.player3Label, self.player4Label];
+    // labels for each player
+  NSMutableArray *tempPlayerLabelsArray = [NSMutableArray new];
+  NSMutableArray *tempPlayerLabelViewsArray = [NSMutableArray new];
+  NSMutableArray *tempScoreLabelsArray = [NSMutableArray new];
+  NSMutableArray *tempFermataImageViewArray = [NSMutableArray new];
   
-  self.player1LabelView = [[CellBackgroundView alloc] init];
-  self.player2LabelView = [[CellBackgroundView alloc] init];
-  self.player3LabelView = [[CellBackgroundView alloc] init];
-  self.player4LabelView = [[CellBackgroundView alloc] init];
-  self.playerLabelViewsArray = @[self.player1LabelView, self.player2LabelView, self.player3LabelView, self.player4LabelView];
-  
-  self.scoreLabelsArray = @[self.score1Label, self.score2Label, self.score3Label, self.score4Label];
-  
-  for (int i = 0; i < 4; i++) {
-    UILabel *playerLabel = self.playerLabelsArray[i];
+  for (int i = 0; i < kMaxNumPlayers; i++) {
+    
+    CellBackgroundView *labelView = [[CellBackgroundView alloc] init];
+    [tempPlayerLabelViewsArray addObject:labelView];
+    [self addSubview:labelView];
+    
+    UILabel *playerLabel = [[UILabel alloc] init];
     playerLabel.font = [UIFont fontWithName:kPlayerNameFont size:(kIsIPhone ? (kCellRowHeight / 3.4) : (kCellRowHeight / 2.8125))];
     playerLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
-    CellBackgroundView *labelView = self.playerLabelViewsArray[i];
-    [self insertSubview:labelView belowSubview:playerLabel];
+    [tempPlayerLabelsArray addObject:playerLabel];
+    [self insertSubview:playerLabel aboveSubview:labelView];
     
-    UILabel *scoreLabel = self.scoreLabelsArray[i];
+    UILabel *scoreLabel = [[UILabel alloc] init];
+    [self addSubview:scoreLabel];
     scoreLabel.font = [UIFont fontWithName:kPlayerNameFont size:(kCellRowHeight / 4.5)];
     scoreLabel.textColor = [UIColor brownColor];
     scoreLabel.textAlignment = NSTextAlignmentCenter;
     scoreLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     scoreLabel.frame = CGRectMake(scoreLabel.frame.origin.x, scoreLabel.frame.origin.y, kScoreLabelWidth, kScoreLabelHeight);
+    [tempScoreLabelsArray addObject:scoreLabel];
+    
+    UIImageView *fermataImageView = [[UIImageView alloc] initWithImage:[UIImage colourImage:[UIImage imageNamed:@"fermata-med"] withColor:kStaveEndedGameColour]];
+    fermataImageView.frame = CGRectMake(0, kStaveYHeight, kStaveYHeight * 2, kStaveYHeight * 2);
+    fermataImageView.contentMode = UIViewContentModeScaleAspectFit;
+    [tempFermataImageViewArray addObject:fermataImageView];
   }
+  
+  self.playerLabelsArray = [NSArray arrayWithArray:tempPlayerLabelsArray];
+  self.playerLabelViewsArray = [NSArray arrayWithArray:tempPlayerLabelViewsArray];
+  self.scoreLabelsArray = [NSArray arrayWithArray:tempScoreLabelsArray];
+  self.fermataImageViewArray = [NSArray arrayWithArray:tempFermataImageViewArray];
   
   self.lastPlayedLabel.adjustsFontSizeToFitWidth = YES;
   self.lastPlayedLabel.frame = CGRectMake(kStaveXBuffer, (kCellRowHeight / 10) * 11,
                                           kCellWidth - kStaveXBuffer * 2, kStaveYHeight * 2);
 
+    // staves and clef
   self.stavesView = [[StavesView alloc] initWithFrame:CGRectMake(self.frame.origin.x, self.frame.origin.y, kCellWidth, kCellRowHeight + kCellSeparatorBuffer)];
   [self insertSubview:self.stavesView belowSubview:self.selectedBackgroundView];
   
   self.clefImage = [UIImageView new];
   self.clefImage.contentMode = UIViewContentModeScaleAspectFit;
   [self addSubview:self.clefImage];
-  
-  UIImage *fermataImage = [UIImage imageNamed:@"fermata-med"];
-  fermataImage = [UIImage colourImage:fermataImage withColor:kStaveEndedGameColour];
-  NSMutableArray *tempFermataImageViewArray = [NSMutableArray new];
-  for (int i = 0; i < 4; i++) {
-    UIImageView *fermataImageView = [[UIImageView alloc] initWithImage:fermataImage];
-    fermataImageView.frame = CGRectMake(0, kStaveYHeight, kStaveYHeight * 2, kStaveYHeight * 2);
-    fermataImageView.contentMode = UIViewContentModeScaleAspectFit;
-    [tempFermataImageViewArray addObject:fermataImageView];
-  }
-  self.fermataImageViewArray = [NSArray arrayWithArray:tempFermataImageViewArray];
 }
 
 -(void)setProperties {

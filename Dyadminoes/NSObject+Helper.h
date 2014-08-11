@@ -29,10 +29,15 @@
 #define kTopBarHeight (kIsIPhone ? 80.f : 120.f)
 #define kRackHeight (kIsIPhone ? 108.f : 162.f)
 
+#define kTopBarGeneralLeftOffset (kTopBarHeight / 8)
+#define kTopBarButtonsLeftOffset (kTopBarHeight * 1.5)
+
   // label constants
 #define kLabelYPosition (kIsIPhone ? 5.f : 7.5f)
-#define kButtonWidth (kIsIPhone ? 45.f : 60.f)
-#define kButtonYPosition (kIsIPhone ? 20.f : 30.f)
+#define kButtonWidth (kTopBarHeight / 1.6)
+#define kButtonSize CGSizeMake(kButtonWidth, kButtonWidth)
+#define kLargeButtonWidth (kRackHeight / 1.6)
+#define kLargeButtonSize CGSizeMake(kLargeButtonWidth, kLargeButtonWidth)
 
   // animation constants
 #define kConstantSpeed (kIsIPhone ? 0.002f : 0.0013333f)
@@ -63,7 +68,6 @@
 #define kZoomResizeFactor 0.5f
 
   // label constants (maybe temp)
-#define kButtonSize CGSizeMake(kButtonWidth, kButtonWidth)
 #define kPlayerNameFont @"FilmotypeModern"
 #define kButtonFont @"FilmotypeHarmony"
 

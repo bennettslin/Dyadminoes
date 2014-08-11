@@ -228,9 +228,7 @@
   [self toggleDyadminoesToBeStationaryOrMovableAnimated:NO];
   
     // don't call just yet if it's a PnP game
-  if (self.myMatch.type != kPnPGame) {
-    [self afterNewPlayerReady];
-  }
+  self.myMatch.type != kPnPGame ? [self afterNewPlayerReady] : nil;
 }
 
 -(void)afterNewPlayerReady {
@@ -446,13 +444,19 @@
   _topBar.name = @"topBar";
   [_topBar populateWithTopBarButtons];
   [_topBar populateWithTopBarLabels];
+  [_topBar populatePlayerLabels];
   [self addChild:_topBar];
   
-  _topBar.pileDyadminoesLabel.hidden = YES;
-  _topBar.boardDyadminoesLabel.hidden = YES;
-  _topBar.holdingContainerLabel.hidden = YES;
-  _topBar.swapContainerLabel.hidden = YES;
   _topBar.returnOrStartButton.delegate = self;
+  
+    // not DRY, but this is just test code anyway
+  [_topBar node:_topBar.pileDyadminoesLabel shouldBeEnabled:_debugMode];
+  [_topBar node:_topBar.boardDyadminoesLabel shouldBeEnabled:_debugMode];
+  [_topBar node:_topBar.holdingContainerLabel shouldBeEnabled:_debugMode];
+  [_topBar node:_topBar.swapContainerLabel shouldBeEnabled:_debugMode];
+  for (Label *rackLabel in _topBar.playerRackLabels) {
+    [_topBar node:rackLabel shouldBeEnabled:_debugMode];
+  }
 }
 
 -(void)layoutPnPBar {
@@ -1953,18 +1957,11 @@
     Player *player = (i <= self.myMatch.players.count - 1) ? self.myMatch.players[i] : nil;
     Label *nameLabel = _topBar.playerNameLabels[i];
     Label *scoreLabel = _topBar.playerScoreLabels[i];
-    Label *rackLabel = _topBar.playerRackLabels[i];
   
     if (!player) {
-      if (nameLabel.parent) {
-        [nameLabel removeFromParent];
-      }
-      if (scoreLabel.parent) {
-        [scoreLabel removeFromParent];
-      }
-      if (rackLabel.parent) {
-        [rackLabel removeFromParent];
-      }
+      [_topBar node:nameLabel shouldBeEnabled:NO];
+      [_topBar node:scoreLabel shouldBeEnabled:NO];
+
     } else {
       
       [_topBar updateLabel:_topBar.playerNameLabels[i] withText:player.playerName andColour:nil];
@@ -1999,21 +1996,8 @@
       } else {
         [_topBar updateLabel:_topBar.playerScoreLabels[i] withText:scoreText andColour:nil];
       }
-      
-      [_topBar updateLabel:_topBar.playerRackLabels[i] withText:[[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "] andColour:nil];
     }
   }
-  
-  NSString *pileText = [NSString stringWithFormat:@"in pile: %@", [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-  NSMutableArray *tempBoard = [NSMutableArray arrayWithArray:[self.myMatch.board allObjects]];
-  NSString *boardText = [NSString stringWithFormat:@"on board: %@", [[tempBoard valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-  NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-  NSString *swapContainerText = [NSString stringWithFormat:@"in swap container: %@", [[self.myMatch.swapContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-  
-  [_topBar updateLabel:_topBar.pileDyadminoesLabel withText:pileText andColour:nil];
-  [_topBar updateLabel:_topBar.boardDyadminoesLabel withText:boardText andColour:nil];
-  [_topBar updateLabel:_topBar.holdingContainerLabel withText:holdingContainerText andColour:nil];
-  [_topBar updateLabel:_topBar.swapContainerLabel withText:swapContainerText andColour:nil];
 }
 
 -(void)updateTopBarButtons {
@@ -2704,12 +2688,8 @@
     Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
     
       // animate last played dyadminoes, and highlight dyadminoes currently in holding container
-    if ([lastContainer containsObject:dataDyad]) {
-      [dyadmino animateDyadminoesRecentlyPlayedWithColour:[self.myMatch colourForPlayer:lastPlayer]];
-    }
-    if ([self.myMatch.holdingContainer containsObject:dataDyad]) {
-      [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer]];
-    }
+    [lastContainer containsObject:dataDyad] ? [dyadmino animateDyadminoesRecentlyPlayedWithColour:[self.myMatch colourForPlayer:lastPlayer]] : nil;
+    [self.myMatch.holdingContainer containsObject:dataDyad] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer]] : nil;
   }
 }
 
@@ -2781,13 +2761,11 @@
 
 -(void)updateViewForReplayInReplay:(BOOL)inReplay start:(BOOL)start {
   
-    // start BOOL not necessary
+    // start BOOL not necessary>
   
   [self updateBoardForReplayInReplay:inReplay start:start];
   [self showTurnInfoOrGameResultsForReplay:inReplay];
-  if (inReplay) {
-    [self updateReplayButtons];
-  }
+  inReplay ? [self updateReplayButtons] : nil;
 }
 
 -(void)updateBoardForReplayInReplay:(BOOL)inReplay start:(BOOL)start {
@@ -2995,14 +2973,15 @@
 
 -(void)toggleDebugMode {
   
-  if (_hoveringDyadmino) {
-    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
-  }
+  _hoveringDyadmino ? [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES] : nil;
   
   [_topBar node:_topBar.pileDyadminoesLabel shouldBeEnabled:_debugMode];
   [_topBar node:_topBar.boardDyadminoesLabel shouldBeEnabled:_debugMode];
   [_topBar node:_topBar.holdingContainerLabel shouldBeEnabled:_debugMode];
   [_topBar node:_topBar.swapContainerLabel shouldBeEnabled:_debugMode];
+  for (Label *rackLabel in _topBar.playerRackLabels) {
+    [_topBar node:rackLabel shouldBeEnabled:_debugMode];
+  }
 
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
     dyadmino.hidden = _debugMode;
@@ -3014,6 +2993,24 @@
       cell.pcLabel.hidden = !_debugMode;
     }
   }
+  
+  for (int i = 0; i < 4; i++) {
+    Player *player = (i <= self.myMatch.players.count - 1) ? self.myMatch.players[i] : nil;
+    Label *rackLabel = _topBar.playerRackLabels[i];
+    [_topBar updateLabel:_topBar.playerRackLabels[i] withText:[[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "] andColour:nil];
+    player ? nil : [_topBar node:rackLabel shouldBeEnabled:NO];
+  }
+  
+  NSString *pileText = [NSString stringWithFormat:@"in pile: %@", [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+  NSMutableArray *tempBoard = [NSMutableArray arrayWithArray:[self.myMatch.board allObjects]];
+  NSString *boardText = [NSString stringWithFormat:@"on board: %@", [[tempBoard valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+  NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+  NSString *swapContainerText = [NSString stringWithFormat:@"in swap container: %@", [[self.myMatch.swapContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+  
+  [_topBar updateLabel:_topBar.pileDyadminoesLabel withText:pileText andColour:nil];
+  [_topBar updateLabel:_topBar.boardDyadminoesLabel withText:boardText andColour:nil];
+  [_topBar updateLabel:_topBar.holdingContainerLabel withText:holdingContainerText andColour:nil];
+  [_topBar updateLabel:_topBar.swapContainerLabel withText:swapContainerText andColour:nil];
   
 //  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
 //    NSLog(@"%@ is at %li", dyadmino.name, (long)dyadmino.myRackOrder);

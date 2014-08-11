@@ -16,16 +16,18 @@
 
 -(void)populateWithPnPButtonsAndLabel {
   
+  CGFloat leftOffset = kLargeButtonWidth;
+
   self.returnOrStartButton = [[Button alloc] initWithName:@"start" andColor:[SKColor grayColor]
-                                           andSize:kButtonSize
-                                       andPosition:CGPointMake(kButtonWidth, kButtonYPosition * 2)
+                                           andSize:kLargeButtonSize
+                                       andPosition:CGPointMake(self.frame.size.width - (kLargeButtonWidth * 1.5), kRackHeight / 2)
                                       andZPosition:kZPositionTopBarButton];
   [self node:self.returnOrStartButton shouldBeEnabled:YES];
   
   self.waitingForPlayerLabel = [[Label alloc] initWithName:@"waitPlayer"
                                     andFontColor:kTestRed
                                      andFontSize:kLabelFontSize
-                                     andPosition:CGPointMake(kButtonWidth * 2, kButtonYPosition * 2)
+                                     andPosition:CGPointMake(leftOffset, kRackHeight / 2)
                                     andZPosition:kZPositionLogMessage
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   
