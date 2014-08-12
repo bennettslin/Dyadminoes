@@ -32,8 +32,23 @@
 //  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
 
+  [self instantiatePlayerLabels];
   [self createAndConfigureScene];
   [self setUpGestureRecognisers];
+}
+
+-(void)instantiatePlayerLabels {
+  NSMutableArray *tempPlayerLabelsArray = [NSMutableArray new];
+  NSMutableArray *tempPlayerLabelViewsArray = [NSMutableArray new];
+  NSMutableArray *tempScoreLabelsArray = [NSMutableArray new];
+  for (int i = 0; i < 4; i++) {
+    [tempPlayerLabelsArray addObject:[[UILabel alloc] init]];
+    [tempPlayerLabelViewsArray addObject:[[CellBackgroundView alloc] init]];
+    [tempScoreLabelsArray addObject:[[UILabel alloc] init]];
+  }
+  self.playerLabelsArray = [NSArray arrayWithArray:tempPlayerLabelsArray];
+  self.playerLabelViewsArray = [NSArray arrayWithArray:tempPlayerLabelViewsArray];
+  self.scoreLabelsArray = [NSArray arrayWithArray:tempScoreLabelsArray];
 }
 
 -(void)viewWillAppear:(BOOL)animated {
@@ -76,6 +91,7 @@
 }
 
 -(void)setUnchangingPlayerLabelProperties {
+
   for (int i = 0; i < kMaxNumPlayers; i++) {
     UILabel *playerLabel = self.playerLabelsArray[i];
     CellBackgroundView *labelView = self.playerLabelViewsArray[i];
@@ -86,6 +102,7 @@
     [self.view addSubview:scoreLabel];
 
     playerLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? kScenePlayerLabelHeight : kScenePlayerLabelHeight)];
+    playerLabel.adjustsFontSizeToFitWidth = YES;
     playerLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     playerLabel.frame = CGRectMake(kTopBarGeneralLeftOffset, kScenePlayerLabelHeight / 2 + kScenePlayerLabelHeight * i, kScenePlayerLabelWidth, kScenePlayerLabelHeight);
 
@@ -173,8 +190,6 @@
   [self.mySceneView presentScene:nil];
   [self dismissViewControllerAnimated:YES completion:nil];
   [self.delegate startAnimatingBackground];
-  
-  [self.delegate resetMatchCellPlayerLabels:self.playerLabelsArray labelViews:self.playerLabelViewsArray scoreLabels:self.scoreLabelsArray];
 }
 
 #pragma mark - event handling methods

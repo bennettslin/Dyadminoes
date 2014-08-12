@@ -37,6 +37,5 @@
 -(void)stopActivityIndicator;
 -(void)removeChildViewController:(UIViewController *)childVC;
 -(void)startAnimatingBackground;
--(void)resetMatchCellPlayerLabels:(NSArray *)playerLabels labelViews:(NSArray *)labelViews scoreLabels:(NSArray *)scoreLabels;
 
 @end

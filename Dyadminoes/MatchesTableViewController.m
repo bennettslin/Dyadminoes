@@ -11,7 +11,6 @@
 #import "Model.h"
 #import "NSObject+Helper.h"
 #import "MatchTableViewCell.h"
-#import "DebugViewController.h"
 #import "SceneViewController.h"
 
 #import "LocalGameViewController.h"
@@ -31,7 +30,7 @@
 #define kViewControllerSpeed 0.225f
 #define kMainOverlayAlpha 0.2f
 
-@interface MatchesTableViewController () <SceneViewDelegate, DebugDelegate, MatchCellDelegate, LocalGameDelegate>
+@interface MatchesTableViewController () <SceneViewDelegate, MatchCellDelegate, LocalGameDelegate>
 
 @property (strong, nonatomic) MyScene *myScene;
 @property (strong, nonatomic) UIViewController *childVC;
@@ -256,30 +255,10 @@
     SceneViewController *sceneVC = [segue destinationViewController];
     sceneVC.myScene = self.myScene;
 
-    NSIndexPath *indexPath;
-    MatchTableViewCell *cell;
-    if ([sender isKindOfClass:[Match class]]) { // sender is match
+      // sender is either match or tableViewCell
+    NSIndexPath *indexPath = ([sender isKindOfClass:[Match class]]) ?
+        [NSIndexPath indexPathForRow:0 inSection:0] : [self.tableView indexPathForCell:sender];
 
-      indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
-      cell = (MatchTableViewCell *)[self.tableView cellForRowAtIndexPath:indexPath];
-      
-    } else { // sender is tableView cell
-      indexPath = [self.tableView indexPathForCell:sender];
-      cell = sender;
-    }
-    
-    if (cell) {
-      self.currentMatchCell = cell;
-      sceneVC.playerLabelsArray = self.currentMatchCell.playerLabelsArray;
-      sceneVC.playerLabelViewsArray = self.currentMatchCell.playerLabelViewsArray;
-      sceneVC.scoreLabelsArray = self.currentMatchCell.scoreLabelsArray;
-    } else {
-      
-        // FIXME: method to instantiate arrays on the spot, if no cell
-        // create class method in MatchTVCell that takes from its init method
-
-    }
-    
     [self segue:segue ToMatchWithRowNumber:indexPath.row];
   }
 }
@@ -501,10 +480,6 @@
   Match *newMatch = [self.myModel instantiateNewLocalMatchWithNames:playerNames andRules:kGameRulesTonal andSkill:kBeginner];
   
   [self.tableView reloadData];
-  NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
-  MatchTableViewCell *cell = (MatchTableViewCell *)[self.tableView cellForRowAtIndexPath:indexPath];
-  
-  cell ? nil : NSLog(@"no cell instantiated before segue performed");
   [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
 }
 
@@ -531,7 +506,6 @@
 }
 
 -(void)insertImageBackground {
-  
   UIImage *backgroundImage = [UIImage imageNamed:@"BachMassBackgroundCropped"];
   
     // make sure that view size is even multiple of backgroundImage
@@ -577,20 +551,6 @@
 -(void)removeMatch:(Match *)match {
   [self.myModel.myMatches removeObject:match];
   [self saveModel];
-}
-
--(void)resetMatchCellPlayerLabels:(NSArray *)playerLabels labelViews:(NSArray *)labelViews scoreLabels:(NSArray *)scoreLabels {
-  for (int i = 0; i < kMaxNumPlayers; i++) {
-    UILabel *playerLabel = playerLabels[i];
-    CellBackgroundView *labelView = labelViews[i];
-    UILabel *scoreLabel = scoreLabels[i];
-    
-    [self.currentMatchCell addSubview:labelView];
-    [self.currentMatchCell addSubview:playerLabel];
-    [self.currentMatchCell addSubview:scoreLabel];
-  }
-  
-  [self.currentMatchCell recalibrateMatchCellLabels];
 }
 
 #pragma mark - system methods
