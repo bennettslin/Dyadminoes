@@ -29,6 +29,7 @@
     // colour when cell is selected
   UIView *customColorView = [[UIView alloc] init];
   self.selectedBackgroundView = customColorView;
+  self.accessoryType = UITableViewCellAccessoryNone;
   
     // labels for each player
   NSMutableArray *tempPlayerLabelsArray = [NSMutableArray new];

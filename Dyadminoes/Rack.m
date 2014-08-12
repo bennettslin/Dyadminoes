@@ -143,6 +143,8 @@
         iterator = 1; // scoot right
       } else if (touchedDyadminoIndex < newRackNodeIndex) {
         iterator = -1; // scoot left
+      } else {
+        iterator = 0;
       }
       
       Dyadmino *scootedDyadmino = [dyadminoesInArray objectAtIndex:newRackNodeIndex];

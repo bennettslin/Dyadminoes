@@ -60,9 +60,17 @@
   self.topBarMessageLabel.frame = CGRectMake(50, 50, 100, 100);
   self.PnPWaitLabel.frame = CGRectMake(200, 200, 100, 100);
   self.ReplayTurnLabel.frame = CGRectMake(400, 400, 100, 100);
+  
+  [self.view addSubview:self.topBarMessageLabel];
+  [self.view addSubview:self.PnPWaitLabel];
+  [self.view addSubview:self.ReplayTurnLabel];
+  
+  self.topBarMessageLabel.hidden = YES;
+  self.PnPWaitLabel.hidden = YES;
+  self.ReplayTurnLabel.hidden = YES;
 }
 
--(void)barOrRackLabel:(SceneVCLabel)sceneLabel show:(BOOL)show withAnimation:(BOOL)animated withText:(NSString *)text andColour:(UIColor *)colour {
+-(void)barOrRackLabel:(SceneVCLabel)sceneLabel show:(BOOL)show toFade:(BOOL)toFade withText:(NSString *)text andColour:(UIColor *)colour {
   
   UILabel *label;
   switch (sceneLabel) {
@@ -80,10 +88,12 @@
     // make animations later
   label.text = text;
   label.textColor = colour;
-  show ? [self.view addSubview:label] : [label removeFromSuperview];
+  
+  label.hidden = !show;
 }
 
 -(void)viewWillAppear:(BOOL)animated {
+  [super viewWillAppear:animated];
   NSLog(@"sceneVC view will appear");
   _pinchStillCounts = YES;
 }
@@ -208,13 +218,12 @@
         labelView.backgroundColor = [UIColor clearColor];
       }
       labelView.backgroundColourCanBeChanged = NO;
-      
     }
   }
 }
 
 -(void)stopActivityIndicator {
-  [self.delegate stopActivityIndicator];
+  [self.delegate activityIndicatorStart:NO];
 }
 
 -(void)backToMainMenu {

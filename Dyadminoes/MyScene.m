@@ -137,7 +137,7 @@
     _pnpBar.hidden = NO;
     
     [_boardField colourBackgroundForPnP];
-    [self.myDelegate barOrRackLabel:kPnPWaitLabel show:_pnpBarUp withAnimation:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:_myPlayer]];
+    [self.myDelegate barOrRackLabel:kPnPWaitLabel show:_pnpBarUp toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:_myPlayer]];
     _rackField.position = CGPointMake(0, -kRackHeight);
     _swapField.position = CGPointMake(0, -kRackHeight);
     
@@ -1540,7 +1540,7 @@
 }
 
 -(void)handleEndGame {
-  NSString *resultsText = [self.myMatch endGameResultsText];
+//  NSString *resultsText = [self.myMatch endGameResultsText];
   [self doSomethingSpecial:@"acknowledge that game has ended"];
 }
 
@@ -2071,7 +2071,7 @@
 
 -(void)togglePnPBar {
   
-  [self.myDelegate barOrRackLabel:kPnPWaitLabel show:_pnpBarUp withAnimation:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:_myPlayer]];
+  [self.myDelegate barOrRackLabel:kPnPWaitLabel show:_pnpBarUp toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:_myPlayer]];
   
   /// FIXME: exact same as toggle replay fields method
   
@@ -2673,9 +2673,9 @@
     }
     
     if (replay) {
-      [self.myDelegate barOrRackLabel:kReplayTurnLabel show:YES withAnimation:NO withText:turnOrResultsText andColour:colour];
+      [self.myDelegate barOrRackLabel:kReplayTurnLabel show:YES toFade:NO withText:turnOrResultsText andColour:colour];
     } else {
-      [self.myDelegate barOrRackLabel:kTopBarMessageLabel show:YES withAnimation:YES withText:turnOrResultsText andColour:colour];
+      [self.myDelegate barOrRackLabel:kTopBarMessageLabel show:YES toFade:YES withText:turnOrResultsText andColour:colour];
     }
     
 //    replay ? [_replayTop updateLabel:_replayTop.statusLabel withText:turnOrResultsText andColour:colour] :

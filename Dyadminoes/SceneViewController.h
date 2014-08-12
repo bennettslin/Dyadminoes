@@ -38,7 +38,7 @@
 
 @protocol SceneViewDelegate <NSObject>
 
--(void)stopActivityIndicator;
+-(void)activityIndicatorStart:(BOOL)start;
 -(void)removeChildViewController:(UIViewController *)childVC;
 -(void)startAnimatingBackground;
 

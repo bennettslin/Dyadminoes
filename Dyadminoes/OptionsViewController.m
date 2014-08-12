@@ -29,6 +29,7 @@
 }
 
 -(void)viewWillAppear:(BOOL)animated {
+  [super viewWillAppear:animated];
   
     // if first time setting values...
   if (![self.defaults objectForKey:@"pivotGuide"]) {

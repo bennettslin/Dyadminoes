@@ -833,7 +833,10 @@
         // line out
       CGPathAddLineToPoint(shapePath, NULL, maxDistance[i] * cosf([self getRadiansFromDegree:startAngle[i]]),
                            maxDistance[i] * sinf([self getRadiansFromDegree:startAngle[i]]));
+      
       shapeNode.path = shapePath;
+      CGPathRelease(shapePath);
+      
       shapeNode.lineWidth = 0.75;
       shapeNode.alpha = kPivotGuideAlpha;
       shapeNode.strokeColor = colourArray[i];

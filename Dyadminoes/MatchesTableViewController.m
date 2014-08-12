@@ -29,7 +29,6 @@
 #define kActivityIndicatorFrame (kIsIPhone ? 75.f : 150.f)
 
 #define kViewControllerSpeed 0.225f
-#define kMainOverlayAlpha 0.2f
 
 @interface MatchesTableViewController () <SceneViewDelegate, MatchCellDelegate, LocalGameDelegate>
 
@@ -164,6 +163,7 @@
 }
 
 -(void)viewWillAppear:(BOOL)animated {
+  [super viewWillAppear:animated];
   
   [self resetActivityIndicatorAndDarkOverlay];
   self.topBar.frame = CGRectMake(0, 0, _screenWidth, kMainTopBarHeight);
@@ -214,10 +214,7 @@
   
   cell.delegate = self;
   cell.myMatch = self.myModel.myMatches[indexPath.row];
-  
   [cell setProperties];
-  
-  cell.accessoryType = UITableViewCellAccessoryNone;
   
   return cell;
 }
@@ -246,10 +243,7 @@
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
 
   if ([segue.identifier isEqualToString:@"sceneSegue"]) {
-    NSLog(@"prepareForSegue called");
-    [self startActivityIndicator];
-    
-    self.darkOverlay.superview ? nil : [self startFadeInThread];
+    [self activityIndicatorStart:YES];
     
     SceneViewController *sceneVC = [segue destinationViewController];
     sceneVC.myScene = self.myScene;
@@ -279,14 +273,15 @@
   
   if (!self.vcIsAnimating && self.childVC && _overlayEnabled) {
     
-    if (animateRemoveVC == NO) {
-      [self fadeOutOverlay];
+    if (!animateRemoveVC) {
+      [self fadeOverlayIn:NO];
       [self slideInTopBarAndBottomBar];
       [self slideInTableview];
       [self removeChildViewController:self.childVC];
       
     } else { // dismiss soloVC after starting new game
       [self performSelectorInBackground:@selector(removeChildViewController:) withObject:self.childVC];
+//      [self removeChildViewController:self.childVC];
     }
 
     self.childVC = nil;
@@ -304,7 +299,7 @@
   
   self.childVC = childVC;
   if (![self.darkOverlay superview]) {
-    [self fadeInOverlay];
+    [self fadeOverlayIn:YES];
     [self slideOutTopBarAndBottomBar];
     [self slideOutTableview];
   }
@@ -318,8 +313,7 @@
   childVC.view.layer.masksToBounds = YES;
 
   [self.view addSubview:childVC.view];
-  
-  [self performSelector:@selector(animatePresentVC:) withObject:childVC];
+  [self animatePresentVC:childVC];
 }
 
 -(void)animatePresentVC:(UIViewController *)childVC {
@@ -391,32 +385,39 @@
   }];
 }
 
--(void)fadeInOverlay {
-  self.darkOverlay.backgroundColor = [UIColor clearColor];
-  [self.view insertSubview:self.darkOverlay belowSubview:self.activityIndicator];
-  [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-    self.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:kMainOverlayAlpha];
-  } completion:^(BOOL finished) {
-  }];
-}
-
--(void)fadeOutOverlay {
-  [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+-(void)fadeOverlayIn:(BOOL)fadeIn {
+  
+  if (fadeIn) {
+    CGFloat overlayAlpha = kIsIPhone ? 0.2f : 0.5f;
     self.darkOverlay.backgroundColor = [UIColor clearColor];
-  } completion:^(BOOL finished) {
-    [self.darkOverlay removeFromSuperview];
-  }];
+    [self.view insertSubview:self.darkOverlay belowSubview:self.activityIndicator];
+    [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+      self.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:overlayAlpha];
+    } completion:^(BOOL finished) {
+    }];
+  } else {
+    [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+      self.darkOverlay.backgroundColor = [UIColor clearColor];
+    } completion:^(BOOL finished) {
+      [self.darkOverlay removeFromSuperview];
+    }];
+  }
 }
 
--(void)startActivityIndicator {
-  [NSThread detachNewThreadSelector:@selector(threadStartAnimating:) toTarget:self withObject:nil];
+-(void)activityIndicatorStart:(BOOL)start {
+  if (start) {
+  [NSThread detachNewThreadSelector:@selector(transitionToSceneAnimationNewThread:) toTarget:self withObject:nil];
+  } else {
+    [self resetActivityIndicatorAndDarkOverlay];
+    [self stopAnimatingBackground];
+  }
 }
 
--(void)startFadeInThread { // called from prepareForSegue
-  [NSThread detachNewThreadSelector:@selector(fadeInOverlay) toTarget:self withObject:nil];
-}
+//-(void)startFadeInThread { // called from prepareForSegue
+//  [NSThread detachNewThreadSelector:@selector(fadeInOverlay) toTarget:self withObject:nil];
+//}
 
--(void)threadStartAnimating:(id)data {
+-(void)transitionToSceneAnimationNewThread:(id)data {
   self.activityIndicator.hidden = NO;
   [self.activityIndicator startAnimating];
   
@@ -432,16 +433,10 @@
   [self.darkOverlay removeFromSuperview];
 }
 
--(void)stopActivityIndicator {
-  NSLog(@"activityIndicator stops");
-  [self resetActivityIndicatorAndDarkOverlay];
-  [self stopAnimatingBackground];
-}
-
 #pragma mark - button methods
 
 -(IBAction)menuButtonPressedIn:(id)sender {
-  NSLog(@"button pressed in");
+//  NSLog(@"button pressed in");
 }
 
 -(IBAction)menuButtonLifted:(UIButton *)sender {
@@ -486,24 +481,26 @@
 
 -(void)animateBackgroundViewFirstTime:(BOOL)firstTime {
   
-  if (firstTime) {
-    [self.backgroundView.layer removeAllAnimations];
-    self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
-  }
-  
-  CGFloat seconds = 30;
-  [UIView animateWithDuration:seconds delay:0 options:UIViewAnimationOptionCurveLinear | UIViewAnimationOptionRepeat animations:^{
-    self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, self.backgroundView.frame.size.width / 2, self.backgroundView.frame.size.height / 2);
-  } completion:^(BOOL finished) {
-    
-    if (finished) {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if (firstTime) {
+      [self.backgroundView.layer removeAllAnimations];
       self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
-      
-//      if (!self.backgroundShouldBeStill) {
-//        self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
-//      }
     }
-  }];
+    
+    CGFloat seconds = 30;
+    [UIView animateWithDuration:seconds delay:0 options:UIViewAnimationOptionCurveLinear | UIViewAnimationOptionRepeat animations:^{
+      self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, self.backgroundView.frame.size.width / 2, self.backgroundView.frame.size.height / 2);
+    } completion:^(BOOL finished) {
+      
+      if (finished) {
+        self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
+        
+          //      if (!self.backgroundShouldBeStill) {
+          //        self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
+          //      }
+      }
+    }];
+  });
 }
 
 -(void)insertImageBackground {

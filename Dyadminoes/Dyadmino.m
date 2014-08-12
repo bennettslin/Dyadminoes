@@ -373,7 +373,7 @@
           pivotOrientation = pivotOrientation % 6;
           
             // when orientation changes, dyadmino will be in new position
-          CGPoint newPosition;
+          CGPoint newPosition = CGPointZero;
           switch ((self.prePivotDyadminoOrientation + pivotOnPC2Offset) % 6) {
             case 0:
               newPosition = self.initialPivotPosition;
@@ -516,6 +516,10 @@
       [self keepHovering];
       [self.delegate prepareForHoverThisDyadmino:self];
       self.canFlip = NO;
+    }];
+  } else {
+    finishAction = [SKAction runBlock:^{
+        // to ensure that finishAction is not nil
     }];
   }
   

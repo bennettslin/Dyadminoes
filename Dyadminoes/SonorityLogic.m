@@ -57,10 +57,11 @@
     // converts ic normal form to ic prime form
     // if there are two smallest known ICs, then find the one that has the largest known gap
   NSUInteger largestKnownGap = 0; // start out with the minimum
-  int firstICIndex;
+  int firstICIndex = 0;
   for (NSNumber *indexObject in arrayOfSmallestICIndexes) {
     int index = [indexObject integerValue];
-    NSUInteger thisGap = (NSUInteger)icNormalForm[(index - 1) % _cardinality];
+      // ensures no division by zero
+    NSUInteger thisGap = (NSUInteger)icNormalForm[((index - 1) + _cardinality) % _cardinality];
     if (thisGap > largestKnownGap) {
       largestKnownGap = thisGap;
       firstICIndex = index;

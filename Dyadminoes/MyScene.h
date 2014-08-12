@@ -43,6 +43,6 @@
 -(void)stopActivityIndicator;
 -(void)setUnchangingPlayerLabelProperties;
 -(void)updatePlayerLabelsWithFinalTurn:(BOOL)finalTurn andAnimatedScore:(BOOL)animated;
--(void)barOrRackLabel:(SceneVCLabel)sceneLabel show:(BOOL)show withAnimation:(BOOL)animated withText:(NSString *)text andColour:(UIColor *)colour;
+-(void)barOrRackLabel:(SceneVCLabel)sceneLabel show:(BOOL)show toFade:(BOOL)toFade withText:(NSString *)text andColour:(UIColor *)colour;
 
 @end
