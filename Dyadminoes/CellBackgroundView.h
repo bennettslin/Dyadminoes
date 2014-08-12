@@ -10,8 +10,7 @@
 
 @interface CellBackgroundView : UIView
 
-  // kludge way to ensure that view isn't made transparent
-  // when table view cell is selected
+  // ensures that view isn't made transparent
 @property (nonatomic) BOOL backgroundColourCanBeChanged;
 
 @end

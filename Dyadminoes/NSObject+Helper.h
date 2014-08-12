@@ -231,7 +231,7 @@ typedef struct HexCoord {
 } HexCoord;
 
 typedef enum sceneVCLabel {
-  kLastTurnLabel,
+  kTopBarMessageLabel,
   kPnPWaitLabel,
   kReplayTurnLabel,
 } SceneVCLabel;

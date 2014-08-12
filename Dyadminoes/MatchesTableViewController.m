@@ -21,6 +21,7 @@
 #import "AboutViewController.h"
 #import "Match.h"
 #import "CellBackgroundView.h"
+#import "UIImage+colouredImage.h"
 
 #define kTableViewXMargin (kIsIPhone ? 0.f : 60.f)
 #define kMainTopBarHeight (kIsIPhone ? 64.f : 86.f)
@@ -67,8 +68,10 @@
 @property (strong, nonatomic) UIActivityIndicatorView *activityIndicator;
 @property (strong, nonatomic) UIView *backgroundView;
 
+@property (strong, nonatomic) UIImage *bassClef;
+@property (strong, nonatomic) UIImage *trebleClef;
+
 @property (nonatomic) BOOL backgroundShouldBeStill;
-@property (strong, nonatomic) MatchTableViewCell *currentMatchCell;
 
 @end
 
@@ -149,6 +152,8 @@
     button.tintColor = kMainButtonsColour;
   }
   
+  [self instantiateClefs];
+  
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(startAnimatingBackground) name:UIApplicationDidBecomeActiveNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stopAnimatingBackground) name:UIApplicationWillResignActiveNotification object:nil];
   
@@ -174,12 +179,6 @@
 
   [self.myModel sortMyMatches];
   [self.tableView reloadData];
-}
-
--(void)viewDidAppear:(BOOL)animated {
-  
-    // look into this again
-//  [self startAnimatingBackgroundFirstTime:YES];
 }
 
 -(void)startAnimatingBackground {
@@ -256,16 +255,16 @@
     sceneVC.myScene = self.myScene;
 
       // sender is either match or tableViewCell
-    NSIndexPath *indexPath = ([sender isKindOfClass:[Match class]]) ?
-        [NSIndexPath indexPathForRow:0 inSection:0] : [self.tableView indexPathForCell:sender];
-
-    [self segue:segue ToMatchWithRowNumber:indexPath.row];
+    [sender isKindOfClass:[Match class]] ?
+        [self segue:segue ToMatch:sender withRowNumber:NSUIntegerMax] :
+        [self segue:segue ToMatch:nil withRowNumber:[self.tableView indexPathForCell:sender].row];
   }
 }
 
--(void)segue:(UIStoryboardSegue *)segue ToMatchWithRowNumber:(NSUInteger)rowNumber {
-  Match *match = self.myModel.myMatches[rowNumber];
-
+-(void)segue:(UIStoryboardSegue *)segue ToMatch:(Match *)match withRowNumber:(NSUInteger)rowNumber {
+  
+    // match will be nil when sent from tableViewCell
+  match = match ? match : self.myModel.myMatches[rowNumber];
   SceneViewController *sceneVC = [segue destinationViewController];
   sceneVC.myModel = self.myModel;
   sceneVC.myMatch = match;
@@ -496,11 +495,13 @@
   [UIView animateWithDuration:seconds delay:0 options:UIViewAnimationOptionCurveLinear | UIViewAnimationOptionRepeat animations:^{
     self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, self.backgroundView.frame.size.width / 2, self.backgroundView.frame.size.height / 2);
   } completion:^(BOOL finished) {
+    
     if (finished) {
       self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
-      if (!self.backgroundShouldBeStill) {
-        self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
-      }
+      
+//      if (!self.backgroundShouldBeStill) {
+//        self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
+//      }
     }
   }];
 }
@@ -551,6 +552,29 @@
 -(void)removeMatch:(Match *)match {
   [self.myModel.myMatches removeObject:match];
   [self saveModel];
+}
+
+-(void)instantiateClefs {
+  self.bassClef = [UIImage imageNamed:@"bass-clef-md"];
+  self.trebleClef = [UIImage imageNamed:@"treble-clef-med"];
+}
+
+-(UIImage *)returnClefImageForMatchType:(GameType)type andGameEnded:(BOOL)gameEnded {
+  UIImage *rawImage;
+  switch (type) {
+    case kSelfGame:
+      rawImage = self.trebleClef;
+      break;
+    case kPnPGame:
+      rawImage = self.bassClef;
+      break;
+    default:
+      rawImage = nil;
+      break;
+  }
+
+  UIColor *finalColour = gameEnded ? kStaveEndedGameColour : kStaveColour;
+  return [UIImage colourImage:rawImage withColor:finalColour];
 }
 
 #pragma mark - system methods

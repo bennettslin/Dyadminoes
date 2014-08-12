@@ -110,8 +110,9 @@
   if (self = [super initWithSize:size]) {
     self.backgroundColor = kBackgroundBoardColour;
     self.name = @"scene";
-    self.mySoundEngine = [[SoundEngine alloc] init];
-    self.mySceneEngine = [[SceneEngine alloc] init];
+    self.mySoundEngine = [SoundEngine soundEngine];
+    self.mySceneEngine = [SceneEngine sceneEngine];
+    
     [self addChild:self.mySoundEngine];
     _swapMode = NO;
     _dyadminoesStationary = NO;
@@ -134,8 +135,9 @@
     _pnpBarUp = YES;
     _pnpBar.position = CGPointZero;
     _pnpBar.hidden = NO;
+    
     [_boardField colourBackgroundForPnP];
-    [self updatePnPLabelForNewPlayer];
+    [self.myDelegate barOrRackLabel:kPnPWaitLabel show:_pnpBarUp withAnimation:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:_myPlayer]];
     _rackField.position = CGPointMake(0, -kRackHeight);
     _swapField.position = CGPointMake(0, -kRackHeight);
     
@@ -535,12 +537,6 @@
     _touchedDyadmino = nil;
     [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
   }
-  
-    /// doesn't seem to be needed
-    // ensure that pinch can't happen when dyadmino is touched
-//  if (_currentTouchIsDyadmino || _previousTouchWasDyadmino) {
-//    return;
-//  }
   
     // sceneVC sends Y upside down
   CGPoint correctLocation = CGPointMake((_boardField.homePosition.x - location.x) / kZoomResizeFactor + _boardField.origin.x,
@@ -1333,7 +1329,7 @@
     } else if (_swapMode) {
         // confirm that there's enough dyadminoes in the pile
       if (self.myMatch.swapContainer.count > self.myMatch.pile.count) {
-        [_topBar flashLabel:_topBar.messageLabel withText:@"There aren't enough dyadminoes left in the pile." andColour:nil];
+        [self doSomethingSpecial:@"There aren't enough dyadminoes left in the pile."];
         return;
       } else {
         [self presentSwapActionSheet];
@@ -1449,7 +1445,7 @@
       [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
     }
     
-    [_topBar flashLabel:_topBar.logLabel withText:@"Swapped!" andColour:nil];
+    [self doSomethingSpecial:@"dyadminoes have been swapped."];
     return YES;
   }
   return NO;
@@ -1478,7 +1474,7 @@
     dataDyad.myHexCoord = dyadmino.myHexCoord;
     dataDyad.myOrientation = dyadmino.orientation;
   }
-  [_topBar flashLabel:_topBar.chordLabel withText:@"C major triad!" andColour:nil];
+  [self doSomethingSpecial:@"acknowledge that a chord has been played"];
   [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
   
   [self updateTopBarLabelsFinalTurn:NO animated:YES];
@@ -1521,7 +1517,7 @@
       // update views
     [self updateTopBarLabelsFinalTurn:YES animated:YES];
     [self updateTopBarButtons];
-    [_topBar flashLabel:_topBar.logLabel withText:@"Turn done!" andColour:nil];
+    [self doSomethingSpecial:@"acknowledge that turn has been finalised."];
     
     if (self.myMatch.type == kSelfGame) {
       [self animateRecentlyPlayedDyadminoes];
@@ -1545,7 +1541,7 @@
 
 -(void)handleEndGame {
   NSString *resultsText = [self.myMatch endGameResultsText];
-  [_topBar flashLabel:_topBar.messageLabel withText:resultsText andColour:nil];
+  [self doSomethingSpecial:@"acknowledge that game has ended"];
 }
 
 -(void)tempStoreForPlayerSceneDataDyadminoes {
@@ -1925,11 +1921,11 @@
         
             // lone dyadmino
         if (placementResult == kErrorLoneDyadmino) {
-          [_topBar flashLabel:_topBar.messageLabel withText:@"no lone dyadminoes!" andColour:nil];
+          NSLog(@"no lone dyadminoes!");
           
             // stacked dyadminoes
         } else if (placementResult == kErrorStackedDyadminoes) {
-          [_topBar flashLabel:_topBar.messageLabel withText:@"can't stack dyadminoes!" andColour:nil];
+          NSLog(@"can't stack dyadminoes!");
         }
       }
     }
@@ -1937,6 +1933,10 @@
 }
 
 #pragma mark - update label and button methods
+
+-(void)doSomethingSpecial:(NSString *)specialThing {
+  NSLog(@"do this special thing: %@", specialThing);
+}
 
 -(void)updateTopBarLabelsFinalTurn:(BOOL)finalTurn animated:(BOOL)animated {
   
@@ -2011,9 +2011,9 @@
   [_replayBottom node:_replayBottom.lastTurnButton shouldBeEnabled:!zeroTurns && !lastTurn];
 }
 
--(void)updatePnPLabelForNewPlayer {
-  NSString *waitPlayerText = [NSString stringWithFormat:@"%@, it's your turn!", self.myMatch.currentPlayer.playerName];
-  [_pnpBar updateLabel:_pnpBar.waitingForPlayerLabel withText:waitPlayerText andColour:[self.myMatch colourForPlayer:self.myMatch.currentPlayer]];
+-(NSString *)updatePnPLabelForNewPlayer {
+  return [NSString stringWithFormat:@"%@, it's your turn!", self.myMatch.currentPlayer.playerName];
+//  [_pnpBar updateLabel:_pnpBar.waitingForPlayerLabel withText:waitPlayerText andColour:[self.myMatch colourForPlayer:self.myMatch.currentPlayer]];
 }
 
 #pragma mark - field animation methods
@@ -2071,8 +2071,9 @@
 
 -(void)togglePnPBar {
   
+  [self.myDelegate barOrRackLabel:kPnPWaitLabel show:_pnpBarUp withAnimation:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:_myPlayer]];
+  
   /// FIXME: exact same as toggle replay fields method
-  [self updatePnPLabelForNewPlayer];
   
     // cells will toggle faster than pnpBar moves
   _dyadminoesStationary = _pnpBarUp || _boardZoomedOut;
@@ -2671,8 +2672,14 @@
       }
     }
     
-    replay ? [_replayTop updateLabel:_replayTop.statusLabel withText:turnOrResultsText andColour:colour] :
-    [_topBar flashLabel:_topBar.messageLabel withText:turnOrResultsText andColour:colour];
+    if (replay) {
+      [self.myDelegate barOrRackLabel:kReplayTurnLabel show:YES withAnimation:NO withText:turnOrResultsText andColour:colour];
+    } else {
+      [self.myDelegate barOrRackLabel:kTopBarMessageLabel show:YES withAnimation:YES withText:turnOrResultsText andColour:colour];
+    }
+    
+//    replay ? [_replayTop updateLabel:_replayTop.statusLabel withText:turnOrResultsText andColour:colour] :
+//    [_topBar flashLabel:_topBar.messageLabel withText:turnOrResultsText andColour:colour];
   }
 }
 
@@ -2990,6 +2997,18 @@
   NSLog(@"Dyadminoes are: %@", [[self.playerRackDyadminoes valueForKey:@"name"] componentsJoinedByString:@", "]);
   NSLog(@"holdingCon is:  %@", [[self.myMatch.holdingContainer valueForKey:@"name"] componentsJoinedByString:@", "]);
   NSLog(@"rackDyad order: %@", [[self.playerRackDyadminoes valueForKey:@"myRackOrder"] componentsJoinedByString:@", "]);
+}
+
+#pragma mark - singleton method
+
+  // not used
++(MyScene *)myScene {
+  static dispatch_once_t pred;
+  static MyScene *shared = nil;
+  dispatch_once(&pred, ^{
+    shared = [[MyScene alloc] init];
+  });
+  return shared;
 }
 
 @end

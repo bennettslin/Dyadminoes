@@ -14,4 +14,6 @@
 @property (nonatomic) CGFloat soundVolume;
 @property (nonatomic) CGFloat musicVolume;
 
++(SoundEngine *)soundEngine;
+
 @end

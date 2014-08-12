@@ -214,4 +214,15 @@
 }
  */
 
+#pragma mark - singleton method
+
++(SoundEngine *)soundEngine {
+  static dispatch_once_t pred;
+  static SoundEngine *shared = nil;
+  dispatch_once(&pred, ^{
+    shared = [[SoundEngine alloc] init];
+  });
+  return shared;
+}
+
 @end

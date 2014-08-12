@@ -189,22 +189,18 @@
 }
 
 -(void)updateClefInNewThread {
-  UIImage *rawImage;
-  UIImage *finalImage;
-  
+  UIImage *finalImage = [self.delegate returnClefImageForMatchType:self.myMatch.type andGameEnded:self.myMatch.gameHasEnded];
+
   switch (self.myMatch.type) {
         // treble
     case kSelfGame:
       self.clefImage.frame = CGRectMake(0 - (kStaveXBuffer / 8), kStaveYHeight * 2.2, kStaveYHeight * 6.3, kStaveYHeight * 6.3);
-      rawImage = [UIImage imageNamed:@"treble-clef-med"];
       break;
       
         // bass
     case kPnPGame:
       self.clefImage.frame = CGRectMake(kStaveXBuffer, kStaveYHeight * 3, kStaveYHeight * 3.25, kStaveYHeight * 3.25);
-      rawImage = [UIImage imageNamed:@"bass-clef-md"];
       break;
-      
     case kGCFriendGame:
       break;
     case kGCRandomGame:
@@ -212,9 +208,7 @@
     default:
       break;
   }
-
-  UIColor *finalColour = self.myMatch.gameHasEnded ? kStaveEndedGameColour : kStaveColour;
-  finalImage = [UIImage colourImage:rawImage withColor:finalColour];
+  
   self.clefImage.image = finalImage;
 }
 

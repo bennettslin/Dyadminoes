@@ -21,12 +21,16 @@
 @property (strong, nonatomic) MyScene *myScene;
 @property (strong, nonatomic) Model *myModel;
 @property (strong, nonatomic) Match *myMatch;
-//@property (strong, nonatomic) Player *myPlayer;
+
 @property (weak, nonatomic) id <SceneViewDelegate> delegate;
 
 @property (strong, nonatomic) NSArray *playerLabelsArray;
 @property (strong, nonatomic) NSArray *playerLabelViewsArray;
 @property (strong, nonatomic) NSArray *scoreLabelsArray;
+
+@property (strong, nonatomic) UILabel *topBarMessageLabel;
+@property (strong, nonatomic) UILabel *PnPWaitLabel;
+@property (strong, nonatomic) UILabel *ReplayTurnLabel;
 
 @property (strong, nonatomic) UIPinchGestureRecognizer *pinchGestureRecogniser;
 

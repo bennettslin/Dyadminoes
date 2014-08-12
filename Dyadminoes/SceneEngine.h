@@ -21,6 +21,7 @@
 @property (strong, nonatomic) NSArray *allDyadminoes;
 @property (nonatomic) PCMode myPCMode;
 
++(SceneEngine *)sceneEngine;
 -(SKTexture *)getCellTexture;
 
 #pragma mark - player preference methods

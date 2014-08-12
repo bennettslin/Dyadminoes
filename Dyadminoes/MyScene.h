@@ -7,6 +7,7 @@
 //
 
 #import <SpriteKit/SpriteKit.h>
+#import "NSObject+Helper.h"
 @class SceneViewController;
 @class SceneEngine;
 @class Player;
@@ -28,12 +29,11 @@
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location;
 -(BOOL)validatePinchLocation:(CGPoint)location;
-
 -(void)tempStoreForPlayerSceneDataDyadminoes;
-
 -(void)togglePCsUserShaken:(BOOL)userShaken;
 -(void)handleUserWantsPivotGuides;
 -(void)handleUserWantsVolume;
++(MyScene *)myScene;
 
 @end
 
@@ -43,5 +43,6 @@
 -(void)stopActivityIndicator;
 -(void)setUnchangingPlayerLabelProperties;
 -(void)updatePlayerLabelsWithFinalTurn:(BOOL)finalTurn andAnimatedScore:(BOOL)animated;
+-(void)barOrRackLabel:(SceneVCLabel)sceneLabel show:(BOOL)show withAnimation:(BOOL)animated withText:(NSString *)text andColour:(UIColor *)colour;
 
 @end

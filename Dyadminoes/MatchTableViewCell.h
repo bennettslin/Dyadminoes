@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "NSObject+Helper.h"
 @class Match;
 
 @protocol MatchCellDelegate;
@@ -14,7 +15,7 @@
 @interface MatchTableViewCell : UITableViewCell
 
 @property (strong, nonatomic) Match *myMatch;
-@property (weak, nonatomic) id <MatchCellDelegate> delegate;
+@property (weak, nonatomic) id<MatchCellDelegate> delegate;
 
 @property (strong, nonatomic) NSArray *playerLabelsArray;
 @property (strong, nonatomic) NSArray *playerLabelViewsArray;
@@ -27,5 +28,7 @@
 @end
 
 @protocol MatchCellDelegate <NSObject>
+
+-(UIImage *)returnClefImageForMatchType:(GameType)type andGameEnded:(BOOL)gameEnded;
 
 @end

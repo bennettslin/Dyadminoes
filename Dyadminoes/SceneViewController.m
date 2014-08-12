@@ -33,6 +33,7 @@
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
 
   [self instantiatePlayerLabels];
+  [self instantiateBarAndRackLabels];
   [self createAndConfigureScene];
   [self setUpGestureRecognisers];
 }
@@ -49,6 +50,37 @@
   self.playerLabelsArray = [NSArray arrayWithArray:tempPlayerLabelsArray];
   self.playerLabelViewsArray = [NSArray arrayWithArray:tempPlayerLabelViewsArray];
   self.scoreLabelsArray = [NSArray arrayWithArray:tempScoreLabelsArray];
+}
+
+-(void)instantiateBarAndRackLabels {
+  self.topBarMessageLabel = [UILabel new];
+  self.PnPWaitLabel = [UILabel new];
+  self.ReplayTurnLabel = [UILabel new];
+  
+  self.topBarMessageLabel.frame = CGRectMake(50, 50, 100, 100);
+  self.PnPWaitLabel.frame = CGRectMake(200, 200, 100, 100);
+  self.ReplayTurnLabel.frame = CGRectMake(400, 400, 100, 100);
+}
+
+-(void)barOrRackLabel:(SceneVCLabel)sceneLabel show:(BOOL)show withAnimation:(BOOL)animated withText:(NSString *)text andColour:(UIColor *)colour {
+  
+  UILabel *label;
+  switch (sceneLabel) {
+    case kTopBarMessageLabel:
+      label = self.topBarMessageLabel;
+      break;
+    case kPnPWaitLabel:
+      label = self.PnPWaitLabel;
+      break;
+    case kReplayTurnLabel:
+      label = self.ReplayTurnLabel;
+      break;
+  }
+  
+    // make animations later
+  label.text = text;
+  label.textColor = colour;
+  show ? [self.view addSubview:label] : [label removeFromSuperview];
 }
 
 -(void)viewWillAppear:(BOOL)animated {
