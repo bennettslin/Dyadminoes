@@ -283,7 +283,7 @@
   if ([segue.identifier isEqualToString:@"realSceneSegue"]) {
     SceneViewController *sceneVC = [segue destinationViewController];
     sceneVC.myMatch = self.myMatch;
-    sceneVC.myPlayer = self.myMatch.currentPlayer;
+//    sceneVC.myPlayer = self.myMatch.currentPlayer;
   }
 }
 

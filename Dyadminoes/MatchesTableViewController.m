@@ -21,6 +21,7 @@
 #import "OptionsViewController.h"
 #import "AboutViewController.h"
 #import "Match.h"
+#import "CellBackgroundView.h"
 
 #define kTableViewXMargin (kIsIPhone ? 0.f : 60.f)
 #define kMainTopBarHeight (kIsIPhone ? 64.f : 86.f)
@@ -68,6 +69,7 @@
 @property (strong, nonatomic) UIView *backgroundView;
 
 @property (nonatomic) BOOL backgroundShouldBeStill;
+@property (strong, nonatomic) MatchTableViewCell *currentMatchCell;
 
 @end
 
@@ -244,27 +246,41 @@
 #pragma mark - Navigation
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-  
-  NSUInteger rowNumber;
+
   if ([segue.identifier isEqualToString:@"sceneSegue"]) {
     NSLog(@"prepareForSegue called");
     [self startActivityIndicator];
     
-    if (!self.darkOverlay.superview) {
-        [self startFadeInThread];
-    }
+    self.darkOverlay.superview ? nil : [self startFadeInThread];
     
     SceneViewController *sceneVC = [segue destinationViewController];
     sceneVC.myScene = self.myScene;
 
+    NSIndexPath *indexPath;
+    MatchTableViewCell *cell;
     if ([sender isKindOfClass:[Match class]]) { // sender is match
-      rowNumber = [self.myModel.myMatches indexOfObject:sender];
+
+      indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
+      cell = (MatchTableViewCell *)[self.tableView cellForRowAtIndexPath:indexPath];
+      
     } else { // sender is tableView cell
-      NSIndexPath *indexPath = [self.tableView indexPathForCell:sender];
-      rowNumber = indexPath.row;
+      indexPath = [self.tableView indexPathForCell:sender];
+      cell = sender;
     }
     
-    [self segue:segue ToMatchWithRowNumber:rowNumber];
+    if (cell) {
+      self.currentMatchCell = cell;
+      sceneVC.playerLabelsArray = self.currentMatchCell.playerLabelsArray;
+      sceneVC.playerLabelViewsArray = self.currentMatchCell.playerLabelViewsArray;
+      sceneVC.scoreLabelsArray = self.currentMatchCell.scoreLabelsArray;
+    } else {
+      
+        // FIXME: method to instantiate arrays on the spot, if no cell
+        // create class method in MatchTVCell that takes from its init method
+
+    }
+    
+    [self segue:segue ToMatchWithRowNumber:indexPath.row];
   }
 }
 
@@ -299,18 +315,14 @@
     
       // so that overlay doesn't register when user dismisses keyboard
   } else if (!_overlayEnabled) {
-    if (self.childVC == self.localVC) {
-      [self.localVC resignTextField:nil];
-    }
+    (self.childVC == self.localVC) ? [self.localVC resignTextField:nil] : nil;
   }
 }
 
 -(void)presentChildViewController:(UIViewController *)childVC {
   
   self.vcIsAnimating = YES;
-  if (self.childVC && self.childVC != childVC) {
-    [self removeChildViewController:self.childVC];
-  }
+  (self.childVC && self.childVC != childVC) ? [self removeChildViewController:self.childVC] : nil;
   
   self.childVC = childVC;
   if (![self.darkOverlay superview]) {
@@ -429,6 +441,9 @@
 -(void)threadStartAnimating:(id)data {
   self.activityIndicator.hidden = NO;
   [self.activityIndicator startAnimating];
+  
+  [self slideOutTopBarAndBottomBar];
+  [self slideOutTableview];
 }
 
 -(void)resetActivityIndicatorAndDarkOverlay {
@@ -447,7 +462,11 @@
 
 #pragma mark - button methods
 
--(IBAction)menuButtonTapped:(UIButton *)sender {
+-(IBAction)menuButtonPressedIn:(id)sender {
+  NSLog(@"button pressed in");
+}
+
+-(IBAction)menuButtonLifted:(UIButton *)sender {
   UIViewController *buttonVC;
   if (sender == self.helpButton) {
     buttonVC = self.helpVC;
@@ -480,7 +499,12 @@
   [self backToMatchesWithAnimateRemoveVC:YES];
   
   Match *newMatch = [self.myModel instantiateNewLocalMatchWithNames:playerNames andRules:kGameRulesTonal andSkill:kBeginner];
+  
   [self.tableView reloadData];
+  NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
+  MatchTableViewCell *cell = (MatchTableViewCell *)[self.tableView cellForRowAtIndexPath:indexPath];
+  
+  cell ? nil : NSLog(@"no cell instantiated before segue performed");
   [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
 }
 
@@ -553,6 +577,20 @@
 -(void)removeMatch:(Match *)match {
   [self.myModel.myMatches removeObject:match];
   [self saveModel];
+}
+
+-(void)resetMatchCellPlayerLabels:(NSArray *)playerLabels labelViews:(NSArray *)labelViews scoreLabels:(NSArray *)scoreLabels {
+  for (int i = 0; i < kMaxNumPlayers; i++) {
+    UILabel *playerLabel = playerLabels[i];
+    CellBackgroundView *labelView = labelViews[i];
+    UILabel *scoreLabel = scoreLabels[i];
+    
+    [self.currentMatchCell addSubview:labelView];
+    [self.currentMatchCell addSubview:playerLabel];
+    [self.currentMatchCell addSubview:scoreLabel];
+  }
+  
+  [self.currentMatchCell recalibrateMatchCellLabels];
 }
 
 #pragma mark - system methods

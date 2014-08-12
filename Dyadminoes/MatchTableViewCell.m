@@ -14,23 +14,9 @@
 #import "StavesView.h"
 #import "UIImage+colouredImage.h"
 
-  // TODO: verify this
-#define kPlayerLabelWidth (kIsIPhone ? kCellWidth / 6.f : kCellWidth / 5.8f)
-#define kPlayerLabelHeightPadding (kCellRowHeight / 12)
-#define kPlayerLabelWidthPadding (kPlayerLabelWidth / 4.84444444)
-#define kScoreLabelWidth kPlayerLabelWidth
-#define kScoreLabelHeight (kCellRowHeight / 2.66666667)
-#define kMaxNumPlayers 4
-
 @interface MatchTableViewCell ()
 
 @property (strong, nonatomic) UILabel *lastPlayedLabel;
-
-@property (strong, nonatomic) NSArray *playerLabelsArray;
-@property (strong, nonatomic) NSArray *playerLabelViewsArray;
-@property (strong, nonatomic) NSArray *scoreLabelsArray;
-@property (strong, nonatomic) NSArray *fermataImageViewArray;
-
 @property (strong, nonatomic) StavesView *stavesView;
 @property (strong, nonatomic) UIImageView *clefImage;
 
@@ -57,18 +43,16 @@
     [self addSubview:labelView];
     
     UILabel *playerLabel = [[UILabel alloc] init];
-    playerLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? (kCellRowHeight / 3.4) : (kCellRowHeight / 2.8125))];
+    playerLabel.adjustsFontSizeToFitWidth = YES;
     playerLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     [tempPlayerLabelsArray addObject:playerLabel];
-    [self insertSubview:playerLabel aboveSubview:labelView];
+    [self addSubview:playerLabel];
     
     UILabel *scoreLabel = [[UILabel alloc] init];
-    [self addSubview:scoreLabel];
-    scoreLabel.font = [UIFont fontWithName:kFontModern size:(kCellRowHeight / 4.5)];
-    scoreLabel.textColor = [UIColor brownColor];
-    scoreLabel.textAlignment = NSTextAlignmentCenter;
     scoreLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     scoreLabel.frame = CGRectMake(scoreLabel.frame.origin.x, scoreLabel.frame.origin.y, kScoreLabelWidth, kScoreLabelHeight);
+    scoreLabel.adjustsFontSizeToFitWidth = YES;
+    [self addSubview:scoreLabel];
     [tempScoreLabelsArray addObject:scoreLabel];
     
     UIImageView *fermataImageView = [[UIImageView alloc] initWithImage:[UIImage colourImage:[UIImage imageNamed:@"fermata-med"] withColor:kStaveEndedGameColour]];
@@ -95,6 +79,22 @@
   self.lastPlayedLabel.adjustsFontSizeToFitWidth = YES;
   self.lastPlayedLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 20.f : 22.f)];
   [self insertSubview:self.lastPlayedLabel aboveSubview:self.stavesView];
+  
+  [self recalibrateMatchCellLabels];
+}
+
+-(void)recalibrateMatchCellLabels {
+  for (int i = 0; i < kMaxNumPlayers; i++) {
+    UILabel *playerLabel = self.playerLabelsArray[i];
+//    CellBackgroundView *labelView = self.playerLabelViewsArray[i];
+    UILabel *scoreLabel = self.scoreLabelsArray[i];
+    
+    playerLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? (kCellRowHeight / 3.4) : (kCellRowHeight / 2.8125))];
+    
+    scoreLabel.font = [UIFont fontWithName:kFontModern size:(kCellRowHeight / 4.5)];
+    scoreLabel.textColor = [UIColor brownColor];
+    scoreLabel.textAlignment = NSTextAlignmentCenter;
+  }
 }
 
 -(void)setProperties {
@@ -122,7 +122,6 @@
         // score label
       scoreLabel.text = (player && !(player.resigned && self.myMatch.type != kSelfGame)) ?
           [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
-      scoreLabel.adjustsFontSizeToFitWidth = YES;
       
         // player label
       playerLabel.text = player ? player.playerName : @"";
@@ -132,14 +131,11 @@
       CGFloat playerLabelFrameWidth = (playerLabel.frame.size.width > kPlayerLabelWidth) ?
           kPlayerLabelWidth : playerLabel.frame.size.width;
       playerLabel.frame = CGRectMake(kStaveXBuffer + kStaveWidthDivision + (i * kStaveWidthDivision * 2), playerLabel.frame.origin.y, playerLabelFrameWidth, playerLabel.frame.size.height);
-        // first kStaveWidthDivision is for clef
       playerLabel.center = CGPointMake(kStaveXBuffer + (kIsIPhone ? kStaveWidthDivision * 1.6f : kStaveWidthDivision * 1.3f) + (i * kStaveWidthDivision * 2) + kStaveWidthDivision / 2, playerLabel.center.y);
       
-        // make font size smaller if it can't fit
-      playerLabel.adjustsFontSizeToFitWidth = YES;
-//      playerLabel.minimumScaleFactor = 0.5f;
-      labelView.frame = CGRectMake(0, 0, playerLabel.frame.size.width + kPlayerLabelWidthPadding, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
-
+      labelView.frame = CGRectMake(labelView.frame.origin.x, labelView.frame.origin.y, playerLabel.frame.size.width + kPlayerLabelWidthPadding, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
+      labelView.center = CGPointMake(playerLabel.center.x,
+                                     playerLabel.center.y - (kCellRowHeight / 40.f));
       labelView.layer.cornerRadius = labelView.frame.size.height / 2.f;
       labelView.clipsToBounds = YES;
 

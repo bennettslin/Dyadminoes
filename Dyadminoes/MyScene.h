@@ -41,5 +41,7 @@
 
 -(void)backToMainMenu;
 -(void)stopActivityIndicator;
+-(void)setUnchangingPlayerLabelProperties;
+-(void)updatePlayerLabelsWithFinalTurn:(BOOL)finalTurn andAnimatedScore:(BOOL)animated;
 
 @end

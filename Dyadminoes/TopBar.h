@@ -40,6 +40,6 @@
 -(void)changeSwapCancelOrUndo:(SwapCancelOrUndoButton)swapCancelOrUndo;
 -(void)changePassPlayOrDone:(PassPlayOrDoneButton)passPlayOrDone;
 
--(void)afterPlayUpdateScoreLabel:(Label *)scoreLabel withText:(NSString *)scoreText;
+//-(void)afterPlayUpdateScoreLabel:(Label *)scoreLabel withText:(NSString *)scoreText;
 
 @end

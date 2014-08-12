@@ -28,10 +28,10 @@
 
 -(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode
   andRotationFrameArray:(NSArray *)rotationFrameArray
-  andPC1LetterSprite:(SKSpriteNode *)pc1LetterSprite
-  andPC2LetterSprite:(SKSpriteNode *)pc2LetterSprite
-  andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite
-  andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite {
+  andPC1LetterSprite:(Face *)pc1LetterSprite
+  andPC2LetterSprite:(Face *)pc2LetterSprite
+  andPC1NumberSprite:(Face *)pc1NumberSprite
+  andPC2NumberSprite:(Face *)pc2NumberSprite {
   self = [super init];
   if (self) {
       // constants

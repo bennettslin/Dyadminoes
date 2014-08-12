@@ -10,10 +10,6 @@
 #import "Button.h"
 #import "Label.h"
 
-  // bar constants
-#define kPlayerLabelFontSize (kIsIPhone ? 20.f : 24.f)
-#define kLabelFontSize (kIsIPhone ? 14.f : 18.f)
-
 @implementation TopBar
 
 -(void)populateWithTopBarButtons {
@@ -53,7 +49,7 @@
   float debuggerPlayerRackYCoord[4] = {kLabelYPosition * 10, kLabelYPosition * 7, kLabelYPosition * 4, kLabelYPosition * 1};
   
   for (int i = 0; i < 4; i++) {
-    Label *label = [[Label alloc] initWithName:debuggerPlayerRackNameArray[i] andFontColor:[SKColor whiteColor] andFontSize:kLabelFontSize andPosition:CGPointMake(self.size.width - xMinusForPlayerRack, debuggerPlayerRackYCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
+    Label *label = [[Label alloc] initWithName:debuggerPlayerRackNameArray[i] andFontColor:[SKColor whiteColor] andFontSize:kSceneLabelFontSize andPosition:CGPointMake(self.size.width - xMinusForPlayerRack, debuggerPlayerRackYCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
     [tempPlayerRackArray addObject:label];
     [tempDictionary setValue:label forKey:label.name];
   }
@@ -66,7 +62,7 @@
   NSArray *debuggerNameArray = @[@"holdingContainer", @"swapContainer", @"boardDyadminoes", @"pileDyadminoes"];
   float debuggerYCoord[4] = {-kLabelYPosition, -kLabelYPosition * 4, -kLabelYPosition * 7, -kLabelYPosition * 10};
   for (int i = 0; i < 4; i++) {
-    Label *label = [[Label alloc] initWithName:debuggerNameArray[i] andFontColor:[SKColor whiteColor] andFontSize:kLabelFontSize * 0.8f andPosition:CGPointMake(self.size.width / 2, debuggerYCoord[i]) andZPosition:-CGFLOAT_MAX andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
+    Label *label = [[Label alloc] initWithName:debuggerNameArray[i] andFontColor:[SKColor whiteColor] andFontSize:kSceneLabelFontSize * 0.8f andPosition:CGPointMake(self.size.width / 2, debuggerYCoord[i]) andZPosition:-CGFLOAT_MAX andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
     [tempDebuggerArray addObject:label];
     [tempDictionary setValue:label forKey:label.name];
   }
@@ -79,38 +75,40 @@
     // permanent labels  
   self.turnLabel = [[Label alloc] initWithName:@"turnCount"
                                   andFontColor:[SKColor whiteColor]
-                                   andFontSize:kLabelFontSize
-                                   andPosition:CGPointMake(self.size.width - 5.f, 60.f)
+                                   andFontSize:kSceneLabelFontSize * 1.25
+                                   andPosition:CGPointMake(self.size.width - kTopBarGeneralLeftOffset, kTopBarHeight - kScenePlayerLabelHeight * 1.25)
                                   andZPosition:kZPositionTopBarLabel
                         andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
+  self.turnLabel.fontName = kFontHarmony;
   [tempDictionary setValue:self.turnLabel forKey:self.turnLabel.name];
   self.pileCountLabel = [[Label alloc] initWithName:@"pileCount"
                                        andFontColor:[SKColor whiteColor]
-                                        andFontSize:kLabelFontSize
-                                        andPosition:CGPointMake(self.size.width - 5.f, 30.f)
+                                        andFontSize:kSceneLabelFontSize
+                                        andPosition:CGPointMake(self.size.width - kTopBarGeneralLeftOffset, kTopBarHeight - kScenePlayerLabelHeight * 2.25)
                                        andZPosition:kZPositionTopBarLabel
                              andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
+  self.pileCountLabel.fontName = kFontHarmony;
   [tempDictionary setValue:self.pileCountLabel forKey:self.pileCountLabel.name];
   
     // message labels
   
   self.messageLabel = [[Label alloc] initWithName:@"message"
                                      andFontColor:kTestRed
-                                      andFontSize:kLabelFontSize
+                                      andFontSize:kSceneLabelFontSize
                                       andPosition:CGPointMake(5.f, -kLabelYPosition * 3)
                                      andZPosition:kZPositionLogMessage
                            andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
   [tempDictionary setValue:self.messageLabel forKey:self.messageLabel.name];
   self.chordLabel = [[Label alloc] initWithName:@"playedChord"
                                    andFontColor:[SKColor yellowColor]
-                                    andFontSize:kLabelFontSize
+                                    andFontSize:kSceneLabelFontSize
                                     andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 6)
                                    andZPosition:kZPositionLogMessage
                          andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
   [tempDictionary setValue:self.chordLabel forKey:self.chordLabel.name];
   self.logLabel = [[Label alloc] initWithName:@"log"
                                  andFontColor:[SKColor whiteColor]
-                                  andFontSize:kLabelFontSize
+                                  andFontSize:kSceneLabelFontSize
                                   andPosition:CGPointMake(self.size.width - 5.f, -kLabelYPosition * 3)
                                  andZPosition:kZPositionLogMessage
                        andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
@@ -128,7 +126,7 @@
   float yCoord[4] = {kLabelYPosition * 10, kLabelYPosition * 7, kLabelYPosition * 4, kLabelYPosition * 1};
   
   for (int i = 0; i < 4; i++) {
-    Label *label = [[Label alloc] initWithName:playerNames[i] andFontColor:[SKColor whiteColor] andFontSize:kPlayerLabelFontSize andPosition:CGPointMake(kTopBarGeneralLeftOffset, yCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
+    Label *label = [[Label alloc] initWithName:playerNames[i] andFontColor:[SKColor whiteColor] andFontSize:kScenePlayerLabelFontSize andPosition:CGPointMake(kTopBarGeneralLeftOffset, yCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
     label.fontName = kFontModern;
     [tempDictionary setValue:label forKey:label.name];
     [tempPlayerNames addObject:label];
@@ -140,7 +138,7 @@
   NSArray *playerScores = @[@"player1Score", @"player2Score", @"player3Score", @"player4Score"];
   
   for (int i = 0; i < 4; i++) {
-    Label *label = [[Label alloc] initWithName:playerScores[i] andFontColor:[SKColor whiteColor] andFontSize:kPlayerLabelFontSize * 0.8f andPosition:CGPointMake(kTopBarGeneralLeftOffset + 125, yCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
+    Label *label = [[Label alloc] initWithName:playerScores[i] andFontColor:[SKColor whiteColor] andFontSize:kScenePlayerLabelFontSize * 0.8f andPosition:CGPointMake(kTopBarGeneralLeftOffset + 125, yCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
     label.fontName = kFontModern;
     [tempDictionary setValue:label forKey:label.name];
     [tempPlayerScores addObject:label];
@@ -188,34 +186,34 @@
   [self.swapCancelOrUndoButton changeName];
 }
 
--(void)afterPlayUpdateScoreLabel:(Label *)scoreLabel withText:(NSString *)scoreText {
-  
-  NSLog(@"afterPlayUpdateScoreLabel called");
-  if (scoreLabel) {
-    scoreLabel.text = scoreText;
-    SKAction *brightenColour = [SKAction runBlock:^{
-      scoreLabel.fontColor = [SKColor yellowColor];
-    }];
-      // make own constants
-    
-      // keeps score centred
-    CGPoint positionPoint = CGPointMake(scoreLabel.position.x - scoreLabel.frame.size.width * 0.5f, scoreLabel.position.y - scoreLabel.frame.size.height * 0.35f);
-    
-    SKAction *scaleIn = [SKAction scaleTo:kScoreScaleFactor duration:kScoreScaleInTime];
-    SKAction *positionIn = [SKAction moveTo:positionPoint duration:kScoreScaleInTime];
-    SKAction *inGroup = [SKAction group:@[scaleIn, positionIn]];
-    
-    SKAction *scaleOut = [SKAction scaleTo:1.f duration:kScoreScaleOutTime];
-    SKAction *positionOut = [SKAction moveTo:scoreLabel.position duration:kScoreScaleOutTime];
-    SKAction *outGroup = [SKAction group:@[scaleOut, positionOut]];
-    
-    SKAction *finishAnimation = [SKAction runBlock:^{
-      scoreLabel.fontColor = [SKColor whiteColor];
-    }];
-    
-    SKAction *sequence = [SKAction sequence:@[brightenColour, inGroup, outGroup, finishAnimation]];
-    [scoreLabel runAction:sequence withKey:@"score"];
-  }
-}
+//-(void)afterPlayUpdateScoreLabel:(Label *)scoreLabel withText:(NSString *)scoreText {
+//  
+//  NSLog(@"afterPlayUpdateScoreLabel called");
+//  if (scoreLabel) {
+//    scoreLabel.text = scoreText;
+//    SKAction *brightenColour = [SKAction runBlock:^{
+//      scoreLabel.fontColor = [SKColor yellowColor];
+//    }];
+//      // make own constants
+//    
+//      // keeps score centred
+//    CGPoint positionPoint = CGPointMake(scoreLabel.position.x - scoreLabel.frame.size.width * 0.5f, scoreLabel.position.y - scoreLabel.frame.size.height * 0.35f);
+//    
+//    SKAction *scaleIn = [SKAction scaleTo:kScoreScaleFactor duration:kScoreScaleInTime];
+//    SKAction *positionIn = [SKAction moveTo:positionPoint duration:kScoreScaleInTime];
+//    SKAction *inGroup = [SKAction group:@[scaleIn, positionIn]];
+//    
+//    SKAction *scaleOut = [SKAction scaleTo:1.f duration:kScoreScaleOutTime];
+//    SKAction *positionOut = [SKAction moveTo:scoreLabel.position duration:kScoreScaleOutTime];
+//    SKAction *outGroup = [SKAction group:@[scaleOut, positionOut]];
+//    
+//    SKAction *finishAnimation = [SKAction runBlock:^{
+//      scoreLabel.fontColor = [SKColor whiteColor];
+//    }];
+//    
+//    SKAction *sequence = [SKAction sequence:@[brightenColour, inGroup, outGroup, finishAnimation]];
+//    [scoreLabel runAction:sequence withKey:@"score"];
+//  }
+//}
 
 @end

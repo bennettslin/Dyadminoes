@@ -21,8 +21,12 @@
 @property (strong, nonatomic) MyScene *myScene;
 @property (strong, nonatomic) Model *myModel;
 @property (strong, nonatomic) Match *myMatch;
-@property (strong, nonatomic) Player *myPlayer;
+//@property (strong, nonatomic) Player *myPlayer;
 @property (weak, nonatomic) id <SceneViewDelegate> delegate;
+
+@property (strong, nonatomic) NSArray *playerLabelsArray;
+@property (strong, nonatomic) NSArray *playerLabelViewsArray;
+@property (strong, nonatomic) NSArray *scoreLabelsArray;
 
 @property (strong, nonatomic) UIPinchGestureRecognizer *pinchGestureRecogniser;
 
@@ -33,5 +37,6 @@
 -(void)stopActivityIndicator;
 -(void)removeChildViewController:(UIViewController *)childVC;
 -(void)startAnimatingBackground;
+-(void)resetMatchCellPlayerLabels:(NSArray *)playerLabels labelViews:(NSArray *)labelViews scoreLabels:(NSArray *)scoreLabels;
 
 @end

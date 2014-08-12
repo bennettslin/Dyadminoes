@@ -48,7 +48,8 @@
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="menuButtonTapped:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="QhN-TK-MSz"/>
+                                            <action selector="menuButtonLifted:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="jjh-QP-SJc"/>
+                                            <action selector="menuButtonPressedIn:" destination="wBa-AM-Ddr" eventType="touchDown" id="ND3-Mn-LfZ"/>
                                         </connections>
                                     </button>
                                 </subviews>
@@ -66,7 +67,8 @@
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="menuButtonTapped:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="x7d-2i-DM9"/>
+                                            <action selector="menuButtonLifted:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="Ztb-f4-u3Y"/>
+                                            <action selector="menuButtonPressedIn:" destination="wBa-AM-Ddr" eventType="touchDown" id="pFL-7Q-6G2"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="SnC-7K-26T">
@@ -77,7 +79,8 @@
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="menuButtonTapped:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="xpc-Wi-Voi"/>
+                                            <action selector="menuButtonLifted:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="ADh-rt-8ff"/>
+                                            <action selector="menuButtonPressedIn:" destination="wBa-AM-Ddr" eventType="touchDown" id="dRG-8D-I0A"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="Cia-J8-Cgo">
@@ -88,7 +91,8 @@
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="menuButtonTapped:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="2M6-7Z-CFP"/>
+                                            <action selector="menuButtonLifted:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="gtg-EP-ZU3"/>
+                                            <action selector="menuButtonPressedIn:" destination="wBa-AM-Ddr" eventType="touchDown" id="2gs-Tf-V2e"/>
                                         </connections>
                                     </button>
                                 </subviews>

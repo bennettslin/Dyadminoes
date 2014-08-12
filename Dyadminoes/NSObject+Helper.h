@@ -29,15 +29,19 @@
 #define kTopBarHeight (kIsIPhone ? 80.f : 120.f)
 #define kRackHeight (kIsIPhone ? 108.f : 162.f)
 
-#define kTopBarGeneralLeftOffset (kTopBarHeight / 8)
-#define kTopBarButtonsLeftOffset (kTopBarHeight * 1.5)
+#define kTopBarGeneralLeftOffset (kTopBarHeight / 7)
+#define kTopBarButtonsLeftOffset (kTopBarGeneralLeftOffset + kScenePlayerLabelWidth + kSceneScoreLabelWidth)
 
   // label constants
 #define kLabelYPosition (kIsIPhone ? 5.f : 7.5f)
-#define kButtonWidth (kTopBarHeight / 1.6)
+#define kButtonWidth (kTopBarHeight / 1.5)
 #define kButtonSize CGSizeMake(kButtonWidth, kButtonWidth)
 #define kLargeButtonWidth (kRackHeight / 1.6)
 #define kLargeButtonSize CGSizeMake(kLargeButtonWidth, kLargeButtonWidth)
+
+#define kScenePlayerLabelHeight (kTopBarHeight / 5)
+#define kScenePlayerLabelWidth kTopBarHeight
+#define kSceneScoreLabelWidth (kScenePlayerLabelWidth / 8)
 
   // animation constants
 #define kConstantSpeed (kIsIPhone ? 0.002f : 0.0013333f)
@@ -66,6 +70,18 @@
   // view constants
 #define kBoardCoverAlpha 0.4f
 #define kZoomResizeFactor 0.5f
+
+  // cell and scene constants
+#define kPlayerLabelWidth (kIsIPhone ? kCellWidth / 6.f : kCellWidth / 5.8f)
+#define kPlayerLabelHeightPadding (kCellRowHeight / 12)
+#define kPlayerLabelWidthPadding (kPlayerLabelWidth / 4.84444444)
+#define kScoreLabelWidth kPlayerLabelWidth
+#define kScoreLabelHeight (kCellRowHeight / 2.66666667)
+#define kMaxNumPlayers 4
+
+  // scene view constants
+#define kScenePlayerLabelFontSize (kIsIPhone ? 20.f : 24.f)
+#define kSceneLabelFontSize (kIsIPhone ? 14.f : 18.f)
 
   // label constants (maybe temp)
 #define kFontModern @"FilmotypeModern"
@@ -213,6 +229,12 @@ typedef struct HexCoord {
   NSInteger x;
   NSInteger y;
 } HexCoord;
+
+typedef enum sceneVCLabel {
+  kLastTurnLabel,
+  kPnPWaitLabel,
+  kReplayTurnLabel,
+} SceneVCLabel;
 
 typedef enum notificationName {
   kNotificationDeviceOrientation,

@@ -10,7 +10,7 @@
 #import "Button.h"
 #import "Label.h"
 
-#define kLabelFontSize (kIsIPhone ? 28.f : 36.f)
+#define kReplayLabelFontSize (kIsIPhone ? 28.f : 36.f)
 
 @implementation ReplayBar
 
@@ -19,7 +19,7 @@
   NSMutableDictionary *tempDictionary = [NSMutableDictionary new];
   self.statusLabel = [[Label alloc] initWithName:@"status"
                                     andFontColor:[SKColor whiteColor]
-                                     andFontSize:kLabelFontSize
+                                     andFontSize:kReplayLabelFontSize
                                      andPosition:CGPointMake(kTopBarGeneralLeftOffset, kRackHeight / 2)
                                     andZPosition:kZPositionLogMessage
                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];

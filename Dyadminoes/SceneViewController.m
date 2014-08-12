@@ -12,7 +12,8 @@
 #import "SceneEngine.h"
 #import "Match.h"
 #import "Model.h"
-//#import "MyPinchGestureRecognizer.h"
+#import "CellBackgroundView.h"
+#import "Player.h"
 
 @interface SceneViewController () <SceneDelegate, UIGestureRecognizerDelegate>
 
@@ -72,10 +73,95 @@
     //--------------------------------------------------------------------------
   
   [self.mySceneView presentScene:self.myScene];
-  
-//  UIView *testView = [[UIView alloc] initWithFrame:CGRectMake(100, 100, 100, 100)];
-//  testView.backgroundColor = [UIColor greenColor];
-//  [self.view addSubview:testView];
+}
+
+-(void)setUnchangingPlayerLabelProperties {
+  for (int i = 0; i < kMaxNumPlayers; i++) {
+    UILabel *playerLabel = self.playerLabelsArray[i];
+    CellBackgroundView *labelView = self.playerLabelViewsArray[i];
+    UILabel *scoreLabel = self.scoreLabelsArray[i];
+    
+    [self.view addSubview:labelView];
+    [self.view addSubview:playerLabel];
+    [self.view addSubview:scoreLabel];
+
+    playerLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? kScenePlayerLabelHeight : kScenePlayerLabelHeight)];
+    playerLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+    playerLabel.frame = CGRectMake(kTopBarGeneralLeftOffset, kScenePlayerLabelHeight / 2 + kScenePlayerLabelHeight * i, kScenePlayerLabelWidth, kScenePlayerLabelHeight);
+
+    scoreLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? kScenePlayerLabelHeight * 0.8 : kScenePlayerLabelHeight * 0.8)];
+    scoreLabel.textColor = [UIColor brownColor];
+    scoreLabel.textAlignment = NSTextAlignmentRight;
+    scoreLabel.frame = CGRectMake(kTopBarGeneralLeftOffset + kScenePlayerLabelWidth, kScenePlayerLabelHeight / 2 + kScenePlayerLabelHeight * i, kSceneScoreLabelWidth, kScenePlayerLabelHeight);
+    
+    labelView.frame = CGRectMake(0, 0, kScenePlayerLabelWidth + kPlayerLabelWidthPadding + kSceneScoreLabelWidth, playerLabel.frame.size.height + kPlayerLabelHeightPadding / 2);
+    labelView.center = CGPointMake(playerLabel.center.x + kSceneScoreLabelWidth / 2,
+                                   playerLabel.center.y - (kCellRowHeight / 40.f));
+    
+    labelView.layer.cornerRadius = labelView.frame.size.height / 2.f;
+    labelView.clipsToBounds = YES;
+    [self.view insertSubview:labelView atIndex:0];
+  }
+}
+
+-(void)updatePlayerLabelsWithFinalTurn:(BOOL)finalTurn andAnimatedScore:(BOOL)animated {
+  if (self.myMatch) {
+    
+    Player *player;
+    for (int i = 0; i < kMaxNumPlayers; i++) {
+      player = (i < self.myMatch.players.count) ? self.myMatch.players[i] : nil;
+      
+      UILabel *playerLabel = self.playerLabelsArray[i];
+      CellBackgroundView *labelView = self.playerLabelViewsArray[i];
+      UILabel *scoreLabel = self.scoreLabelsArray[i];
+      
+        // static player colours, check if player resigned
+        // player name updated here, just in case labels were instantiated afresh
+      playerLabel.text = player ? player.playerName : @"";
+      playerLabel.textColor = (player.resigned && self.myMatch.type != kSelfGame) ?
+      kResignedGray : [self.myMatch colourForPlayer:player];
+      
+      NSString *scoreText;
+
+      if (!player || (player.resigned && self.myMatch.type != kSelfGame)) {
+        scoreText = @"";
+        
+      } else if (player == self.myMatch.currentPlayer && self.myMatch.tempScore > 0) {
+        scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)player.playerScore, (unsigned long)self.myMatch.tempScore];
+        
+      } else {
+        scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
+      }
+      NSLog(@"scoreText is %@", scoreText);
+      
+        // FIXME: so that this is animated
+        // score label
+      if (player == self.myMatch.currentPlayer && (finalTurn || self.myMatch.tempScore > 0)) {
+        
+          // upon final turn, score is animated
+        if (animated) {
+          scoreLabel.text = scoreText;
+        } else {
+          scoreLabel.text = scoreText;
+        }
+
+      } else {
+        scoreLabel.text = scoreText;
+      }
+      
+        // background colours depending on match results
+      labelView.backgroundColourCanBeChanged = YES;
+      if (!self.myMatch.gameHasEnded && player == self.myMatch.currentPlayer) {
+        labelView.backgroundColor = [kMainDarkerYellow colorWithAlphaComponent:0.5f];
+      } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
+        labelView.backgroundColor = [kEndedMatchCellDarkColour colorWithAlphaComponent:0.5f];
+      } else {
+        labelView.backgroundColor = [UIColor clearColor];
+      }
+      labelView.backgroundColourCanBeChanged = NO;
+      
+    }
+  }
 }
 
 -(void)stopActivityIndicator {
@@ -87,6 +173,8 @@
   [self.mySceneView presentScene:nil];
   [self dismissViewControllerAnimated:YES completion:nil];
   [self.delegate startAnimatingBackground];
+  
+  [self.delegate resetMatchCellPlayerLabels:self.playerLabelsArray labelViews:self.playerLabelViewsArray scoreLabels:self.scoreLabelsArray];
 }
 
 #pragma mark - event handling methods

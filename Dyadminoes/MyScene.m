@@ -128,7 +128,6 @@
 
 -(void)loadAfterNewMatchRetrieved {
   
-//  _boardField.alpha = 1.f;
   _topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
   
   if (self.myMatch.type == kPnPGame && !self.myMatch.gameHasEnded) {
@@ -150,7 +149,6 @@
   }
   
   _boardZoomedOut = NO;
-
   self.myMatch.delegate = self;
   [self prepareForNewTurn];
 }
@@ -218,6 +216,7 @@
   SKAction *sequence = [SKAction sequence:@[wait, removeActivityIndicator]];
   [self runAction:sequence];
   
+  [self.myDelegate setUnchangingPlayerLabelProperties];
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   _topBar.resignButton.name = (self.myMatch.type == kSelfGame) ? @"end game" : @"resign";
   [_topBar.resignButton changeName];
@@ -241,11 +240,7 @@
 }
 
 -(void)willMoveFromView:(SKView *)view {
-  
-    // ensures that activityIndicator will be stopped if returning from scene immediately
-//  [self.myDelegate stopActivityIndicator];
-  
-  NSLog(@"will move from view");
+
   if (_debugMode) {
     _debugMode = NO;
     [self toggleDebugMode];
@@ -444,7 +439,7 @@
   _topBar.name = @"topBar";
   [_topBar populateWithTopBarButtons];
   [_topBar populateWithTopBarLabels];
-  [_topBar populatePlayerLabels];
+//  [_topBar populatePlayerLabels];
   [self addChild:_topBar];
   
   _topBar.returnOrStartButton.delegate = self;
@@ -1397,6 +1392,8 @@
   }
   
     // return to bypass updating labels and buttons
+  
+  NSLog(@"handlebuttonpressed");
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
 }
@@ -1483,6 +1480,7 @@
   }
   [_topBar flashLabel:_topBar.chordLabel withText:@"C major triad!" andColour:nil];
   [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
+  
   [self updateTopBarLabelsFinalTurn:NO animated:YES];
   [self updateTopBarButtons];
 }
@@ -1885,9 +1883,7 @@
       [dyadmino finishHovering];
     }
     
-    if ([dyadmino isFinishedHovering]) {
-      [self checkWhetherToEaseOrKeepHovering:dyadmino];
-    }
+    [dyadmino isFinishedHovering] ? [self checkWhetherToEaseOrKeepHovering:dyadmino] : nil;
   }
 }
 
@@ -1944,60 +1940,16 @@
 
 -(void)updateTopBarLabelsFinalTurn:(BOOL)finalTurn animated:(BOOL)animated {
   
+    // update player labels
+  [self.myDelegate updatePlayerLabelsWithFinalTurn:finalTurn andAnimatedScore:animated];
+  
     // show turn count and pile left if game has not ended
-    NSString *pileLeftText = self.myMatch.gameHasEnded ? @"" : [NSString stringWithFormat:@"in pile: %lu",
+    NSString *pileLeftText = self.myMatch.gameHasEnded ? @"" : [NSString stringWithFormat:@"%lu in pile",
                                                           (unsigned long)self.myMatch.pile.count];
-  NSString *turnText = self.myMatch.gameHasEnded ? @"" : [NSString stringWithFormat:@"turn %lu", (long)(self.myMatch.turns.count + 1)];
+  NSString *turnText = self.myMatch.gameHasEnded ? @"" : [NSString stringWithFormat:@"Turn %lu", (long)(self.myMatch.turns.count + 1)];
   
   [_topBar updateLabel:_topBar.turnLabel withText:turnText andColour:nil];
   [_topBar updateLabel:_topBar.pileCountLabel withText:pileLeftText andColour:nil];
-  
-  for (int i = 0; i < 4; i++) {
-    
-    Player *player = (i <= self.myMatch.players.count - 1) ? self.myMatch.players[i] : nil;
-    Label *nameLabel = _topBar.playerNameLabels[i];
-    Label *scoreLabel = _topBar.playerScoreLabels[i];
-  
-    if (!player) {
-      [_topBar node:nameLabel shouldBeEnabled:NO];
-      [_topBar node:scoreLabel shouldBeEnabled:NO];
-
-    } else {
-      
-      [_topBar updateLabel:_topBar.playerNameLabels[i] withText:player.playerName andColour:nil];
-      
-        // static player colours      
-      nameLabel.fontColor = (player.resigned && self.myMatch.type != kSelfGame) ?
-          kResignedGray : [self.myMatch colourForPlayer:player];
-      
-        // game still in play, show current player
-      if (!self.myMatch.gameHasEnded && player) {
-        nameLabel.fontColor = (player == self.myMatch.currentPlayer) ? [SKColor whiteColor] : nameLabel.fontColor;
-        
-          // game ended, show winners
-      } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
-        nameLabel.fontColor = [SKColor blackColor];
-      }
-      
-      NSString *scoreText;
-      
-      if (player.resigned && self.myMatch.type != kSelfGame) {
-        scoreText = @"";
-      } else if (player == _myPlayer && self.myMatch.tempScore > 0) {
-        scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)player.playerScore, (unsigned long)self.myMatch.tempScore];
-      } else {
-        scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
-      }
-      
-      if (player == _myPlayer && (finalTurn || self.myMatch.tempScore > 0)) {
-          // upon final turn, score is animated
-        animated ? [_topBar afterPlayUpdateScoreLabel:scoreLabel withText:scoreText] : [_topBar updateLabel:_topBar.playerScoreLabels[i] withText:scoreText andColour:nil];
-        
-      } else {
-        [_topBar updateLabel:_topBar.playerScoreLabels[i] withText:scoreText andColour:nil];
-      }
-    }
-  }
 }
 
 -(void)updateTopBarButtons {
