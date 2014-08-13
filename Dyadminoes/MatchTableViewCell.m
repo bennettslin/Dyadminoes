@@ -44,12 +44,16 @@
     [self addSubview:labelView];
     
     UILabel *playerLabel = [[UILabel alloc] init];
+    playerLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? (kCellRowHeight / 3.4) : (kCellRowHeight / 2.8125))];
     playerLabel.adjustsFontSizeToFitWidth = YES;
     playerLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     [tempPlayerLabelsArray addObject:playerLabel];
     [self addSubview:playerLabel];
     
     UILabel *scoreLabel = [[UILabel alloc] init];
+    scoreLabel.font = [UIFont fontWithName:kFontModern size:(kCellRowHeight / 4.5)];
+    scoreLabel.textColor = [UIColor brownColor];
+    scoreLabel.textAlignment = NSTextAlignmentCenter;
     scoreLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     scoreLabel.frame = CGRectMake(scoreLabel.frame.origin.x, scoreLabel.frame.origin.y, kScoreLabelWidth, kScoreLabelHeight);
     scoreLabel.adjustsFontSizeToFitWidth = YES;
@@ -80,52 +84,51 @@
   self.lastPlayedLabel.adjustsFontSizeToFitWidth = YES;
   self.lastPlayedLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 20.f : 22.f)];
   [self insertSubview:self.lastPlayedLabel aboveSubview:self.stavesView];
-  
-  [self recalibrateMatchCellLabels];
-}
-
--(void)recalibrateMatchCellLabels {
-  for (int i = 0; i < kMaxNumPlayers; i++) {
-    UILabel *playerLabel = self.playerLabelsArray[i];
-//    CellBackgroundView *labelView = self.playerLabelViewsArray[i];
-    UILabel *scoreLabel = self.scoreLabelsArray[i];
-    
-    playerLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? (kCellRowHeight / 3.4) : (kCellRowHeight / 2.8125))];
-    
-    scoreLabel.font = [UIFont fontWithName:kFontModern size:(kCellRowHeight / 4.5)];
-    scoreLabel.textColor = [UIColor brownColor];
-    scoreLabel.textAlignment = NSTextAlignmentCenter;
-  }
 }
 
 -(void)setProperties {
   
-  self.stavesView.gameHasEnded = self.myMatch.gameHasEnded;
+  NSUInteger turn = self.myMatch.turns.count;
+  
+    // backgroundColour and lastPlayedLabel are not async
+  if (self.myMatch.gameHasEnded) {
+    self.selectedBackgroundView.backgroundColor = kEndedMatchCellSelectedColour;
+    self.backgroundColor = kEndedMatchCellLightColour;
+    
+      // game ended, so lastPlayed label shows date
+    self.lastPlayedLabel.textColor = kStaveEndedGameColour;
+    self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed andTurn:turn];
+    
+  } else {
+    self.selectedBackgroundView.backgroundColor = kMainSelectedYellow;
+    self.backgroundColor = kMainLighterYellow;
+    
+      // game still in play, so lastPlayed label shows time since last played
+    self.lastPlayedLabel.textColor = kStaveColour;
+    self.lastPlayedLabel.text = [self returnLastPlayedStringFromDate:self.myMatch.lastPlayed andTurn:turn];
+  }
   
   dispatch_async(dispatch_get_main_queue(), ^{
     [self updateStaves];
     [self updateClef];
-  });
-
-    // remove fermatas, they will be decided later
-  for (UIImageView *fermataImageView in self.fermataImageViewArray) {
-    [fermataImageView removeFromSuperview];
-  }
-  
-  if (self.myMatch) {
+    
+      // remove fermatas, they will be decided later
+    for (UIImageView *fermataImageView in self.fermataImageViewArray) {
+      [fermataImageView removeFromSuperview];
+    }
     
     Player *player;
     for (int i = 0; i < kMaxNumPlayers; i++) {
-
+      
       player = (i < self.myMatch.players.count) ? self.myMatch.players[i] : nil;
       
       UILabel *playerLabel = self.playerLabelsArray[i];
       CellBackgroundView *labelView = self.playerLabelViewsArray[i];
       UILabel *scoreLabel = self.scoreLabelsArray[i];
-
+      
         // score label
       scoreLabel.text = (player && !(player.resigned && self.myMatch.type != kSelfGame)) ?
-          [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
+      [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
       
         // player label
       playerLabel.text = player ? player.playerName : @"";
@@ -133,7 +136,7 @@
       
         // frame width can never be greater than maximum label width
       CGFloat playerLabelFrameWidth = (playerLabel.frame.size.width > kPlayerLabelWidth) ?
-          kPlayerLabelWidth : playerLabel.frame.size.width;
+      kPlayerLabelWidth : playerLabel.frame.size.width;
       playerLabel.frame = CGRectMake(kStaveXBuffer + kStaveWidthDivision + (i * kStaveWidthDivision * 2), playerLabel.frame.origin.y, playerLabelFrameWidth, playerLabel.frame.size.height);
       playerLabel.center = CGPointMake(kStaveXBuffer + (kIsIPhone ? kStaveWidthDivision * 1.6f : kStaveWidthDivision * 1.3f) + (i * kStaveWidthDivision * 2) + kStaveWidthDivision / 2, playerLabel.center.y);
       
@@ -142,10 +145,10 @@
                                      playerLabel.center.y - (kCellRowHeight / 40.f));
       labelView.layer.cornerRadius = labelView.frame.size.height / 2.f;
       labelView.clipsToBounds = YES;
-
+      
         // static player colours, check if player resigned
       playerLabel.textColor = (player.resigned && self.myMatch.type != kSelfGame) ?
-          kResignedGray : [self.myMatch colourForPlayer:player];
+      kResignedGray : [self.myMatch colourForPlayer:player];
       
         // background colours depending on match results
       labelView.backgroundColourCanBeChanged = YES;
@@ -155,40 +158,21 @@
         labelView.backgroundColor = [UIColor clearColor]; // I've decided just fermata, no background for won player
         UIImageView *fermataImageView = self.fermataImageViewArray[i];
         [self addSubview:fermataImageView];
-
+        
       } else {
         labelView.backgroundColor = [UIColor clearColor];
       }
       labelView.backgroundColourCanBeChanged = NO;
     }
     
-    NSUInteger turn = self.myMatch.turns.count;
-    
-    if (self.myMatch.gameHasEnded) {
-      
-      self.selectedBackgroundView.backgroundColor = kEndedMatchCellSelectedColour;
-      self.backgroundColor = kEndedMatchCellLightColour;
-      
-        // game ended, so lastPlayed label shows date
-      self.lastPlayedLabel.textColor = kStaveEndedGameColour;
-      self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed andTurn:turn];
-      
-    } else {
-      self.selectedBackgroundView.backgroundColor = kMainSelectedYellow;
-      self.backgroundColor = kMainLighterYellow;
-      
-        // game still in play, so lastPlayed label shows time since last played
-      self.lastPlayedLabel.textColor = kStaveColour;
-      self.lastPlayedLabel.text = [self returnLastPlayedStringFromDate:self.myMatch.lastPlayed andTurn:turn];
-    }
-  }
-  
-  [self determinePlayerLabelPositionsBasedOnScores];
+    [self determinePlayerLabelPositionsBasedOnScores];
+  });
 }
 
 #pragma mark - background threaded methods
 
 -(void)updateStaves {
+  self.stavesView.gameHasEnded = self.myMatch.gameHasEnded;
   [self.stavesView setNeedsDisplay];
 }
 

@@ -1439,7 +1439,7 @@
         // dyadmino is already a child of rackField,
         // so no need to send dyadmino home through myScene's sendDyadmino method
       
-      [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO withResize:NO]; // this will eventually have better animation
+      [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO withResize:NO]; // this will eventually have better animation, and delay finalisation of swap and pnp toggle until it finishes.
       [dyadmino resetForNewMatch];
       
         // for test

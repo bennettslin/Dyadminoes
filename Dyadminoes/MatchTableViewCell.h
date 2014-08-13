@@ -23,7 +23,6 @@
 @property (strong, nonatomic) NSArray *fermataImageViewArray;
 
 -(void)setProperties;
--(void)recalibrateMatchCellLabels;
 
 @end
 
