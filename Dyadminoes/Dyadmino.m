@@ -73,6 +73,8 @@
   self.isZoomResized = NO;
   self.hoveringStatus = kDyadminoNoHoverStatus;
   self.hidden = NO;
+  [self removeFromParent];
+  [self removeAllActions];
 }
 
 #pragma mark - orient, position, and size methods

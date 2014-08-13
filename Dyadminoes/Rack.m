@@ -13,16 +13,12 @@
 
 @implementation Rack {
   SnapPointType _snapNodeType;
-  Board *_board;
   BOOL _exchangeInProgress;
 }
 
 #pragma mark - init and layout methods
 
-  // FIXME: does rackNode need to know board?
--(id)initWithBoard:(Board *)board andColour:(SKColor *)colour
-           andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint
-       andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition {
+-(id)initWithColour:(SKColor *)colour andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition {
   self = [super init];
   if (self) {
     self.rackNodes = [NSMutableArray new];
@@ -31,9 +27,6 @@
     self.anchorPoint = anchorPoint;
     self.position = position;
     self.zPosition = zPosition;
-    _board = board;
-    
-//    [self addGradientToView:self WithColour:self.color andUpsideDown:NO];
   }
   return self;
 }

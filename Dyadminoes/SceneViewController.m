@@ -149,6 +149,7 @@
     playerLabel.frame = CGRectMake(kTopBarGeneralLeftOffset, kScenePlayerLabelHeight / 2 + kScenePlayerLabelHeight * i, kScenePlayerLabelWidth, kScenePlayerLabelHeight);
 
     scoreLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? kScenePlayerLabelHeight * 0.8 : kScenePlayerLabelHeight * 0.8)];
+    scoreLabel.adjustsFontSizeToFitWidth = YES;
     scoreLabel.textColor = [UIColor brownColor];
     scoreLabel.textAlignment = NSTextAlignmentRight;
     scoreLabel.frame = CGRectMake(kTopBarGeneralLeftOffset + kScenePlayerLabelWidth, kScenePlayerLabelHeight / 2 + kScenePlayerLabelHeight * i, kSceneScoreLabelWidth, kScenePlayerLabelHeight);

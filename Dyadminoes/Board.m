@@ -119,6 +119,7 @@
   
   self.zoomedOut = NO;
   [self zoomInBackgroundImage];
+  [self removeAllActions];
 }
 
 #pragma mark - board position methods

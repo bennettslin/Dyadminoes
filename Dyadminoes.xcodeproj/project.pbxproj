@@ -19,6 +19,7 @@
 		3F1931201980C8240034A5B9 /* BachMassBackgroundCropped.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F19311F1980C8240034A5B9 /* BachMassBackgroundCropped.png */; };
 		3F28A6D018DA86BA0092B9B2 /* Label.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F28A6CF18DA86BA0092B9B2 /* Label.m */; };
 		3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3116CD18CEFC5D0015CC2A /* Rack.m */; };
+		3F3715B6199B1C69000C569E /* SonorityLogicTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3715B5199B1C69000C569E /* SonorityLogicTests.m */; };
 		3F3ABBA8198F4CF600015033 /* UIImage+colouredImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3ABBA7198F4CF600015033 /* UIImage+colouredImage.m */; };
 		3F3C8FF11990D9EE0061B208 /* ReplayBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3C8FF01990D9EE0061B208 /* ReplayBar.m */; };
 		3F3C8FF41990DA1A0061B208 /* PnPBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3C8FF31990DA1A0061B208 /* PnPBar.m */; };
@@ -30,7 +31,7 @@
 		3F6AE50E18D4D1E7000528C1 /* Bar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F6AE50D18D4D1E7000528C1 /* Bar.m */; };
 		3F7A30B5197B24C8003DBB1C /* MaryFloral.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3F7A30B4197B24C8003DBB1C /* MaryFloral.jpg */; };
 		3F7BD7C9192AF45D009274DE /* Match.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7C8192AF45D009274DE /* Match.m */; };
-		3F7BD7D5192B09D6009274DE /* MatchesTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7D4192B09D6009274DE /* MatchesTableViewController.m */; };
+		3F7BD7D5192B09D6009274DE /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7D4192B09D6009274DE /* MainViewController.m */; };
 		3F7BD7DB192B0A37009274DE /* MatchTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */; };
 		3F7BD7DE192B0AA8009274DE /* Model.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7DD192B0AA8009274DE /* Model.m */; };
 		3F87AAAB188DEE4B008C4A0D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAA188DEE4B008C4A0D /* Foundation.framework */; };
@@ -108,6 +109,7 @@
 		3F28A6CF18DA86BA0092B9B2 /* Label.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Label.m; sourceTree = "<group>"; };
 		3F3116CC18CEFC5D0015CC2A /* Rack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rack.h; sourceTree = "<group>"; };
 		3F3116CD18CEFC5D0015CC2A /* Rack.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Rack.m; sourceTree = "<group>"; };
+		3F3715B5199B1C69000C569E /* SonorityLogicTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SonorityLogicTests.m; sourceTree = "<group>"; };
 		3F3ABBA6198F4CF600015033 /* UIImage+colouredImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+colouredImage.h"; sourceTree = "<group>"; };
 		3F3ABBA7198F4CF600015033 /* UIImage+colouredImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+colouredImage.m"; sourceTree = "<group>"; };
 		3F3C8FEF1990D9EE0061B208 /* ReplayBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReplayBar.h; sourceTree = "<group>"; };
@@ -127,8 +129,8 @@
 		3F7A30B4197B24C8003DBB1C /* MaryFloral.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = MaryFloral.jpg; sourceTree = "<group>"; };
 		3F7BD7C7192AF45D009274DE /* Match.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Match.h; sourceTree = "<group>"; };
 		3F7BD7C8192AF45D009274DE /* Match.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Match.m; sourceTree = "<group>"; };
-		3F7BD7D3192B09D6009274DE /* MatchesTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MatchesTableViewController.h; sourceTree = "<group>"; };
-		3F7BD7D4192B09D6009274DE /* MatchesTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MatchesTableViewController.m; sourceTree = "<group>"; };
+		3F7BD7D3192B09D6009274DE /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
+		3F7BD7D4192B09D6009274DE /* MainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
 		3F7BD7D9192B0A37009274DE /* MatchTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MatchTableViewCell.h; sourceTree = "<group>"; };
 		3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MatchTableViewCell.m; sourceTree = "<group>"; };
 		3F7BD7DC192B0AA8009274DE /* Model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Model.h; sourceTree = "<group>"; };
@@ -348,6 +350,7 @@
 			isa = PBXGroup;
 			children = (
 				3F87AADF188DEE4C008C4A0D /* DyadminoesTests.m */,
+				3F3715B5199B1C69000C569E /* SonorityLogicTests.m */,
 				3F87AADA188DEE4C008C4A0D /* Supporting Files */,
 			);
 			path = DyadminoesTests;
@@ -374,8 +377,8 @@
 		3FB357CB1935368F0064761C /* Game View Controllers */ = {
 			isa = PBXGroup;
 			children = (
-				3F7BD7D3192B09D6009274DE /* MatchesTableViewController.h */,
-				3F7BD7D4192B09D6009274DE /* MatchesTableViewController.m */,
+				3F7BD7D3192B09D6009274DE /* MainViewController.h */,
+				3F7BD7D4192B09D6009274DE /* MainViewController.m */,
 				3F7BD7D9192B0A37009274DE /* MatchTableViewCell.h */,
 				3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */,
 				3FDA7B7E197CF96A001677D8 /* CellBackgroundView.h */,
@@ -572,7 +575,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3F3ABBA8198F4CF600015033 /* UIImage+colouredImage.m in Sources */,
-				3F7BD7D5192B09D6009274DE /* MatchesTableViewController.m in Sources */,
+				3F7BD7D5192B09D6009274DE /* MainViewController.m in Sources */,
 				3F3C8FF41990DA1A0061B208 /* PnPBar.m in Sources */,
 				3FECDE0D19355B2F00D774AB /* RankViewController.m in Sources */,
 				3FCCA71B18948AF200E0E4B5 /* Dyadmino.m in Sources */,
@@ -616,6 +619,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3F87AAE0188DEE4C008C4A0D /* DyadminoesTests.m in Sources */,
+				3F3715B6199B1C69000C569E /* SonorityLogicTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

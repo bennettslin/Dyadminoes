@@ -190,9 +190,7 @@
 -(void)swapDyadminoesFromCurrentPlayer {
   Player *player = self.currentPlayer;
   for (DataDyadmino *dataDyad in self.swapContainer) {
-    if ([player.dataDyadminoesThisTurn containsObject:dataDyad]) {
-      [player.dataDyadminoesThisTurn removeObject:dataDyad];
-    }
+    [player.dataDyadminoesThisTurn containsObject:dataDyad] ? [player.dataDyadminoesThisTurn removeObject:dataDyad] : nil;
   }
   
   [self fillRackFromPileForPlayer:player];

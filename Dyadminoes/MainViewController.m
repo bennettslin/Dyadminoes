@@ -7,7 +7,7 @@
 //
 
 #import "MyScene.h"
-#import "MatchesTableViewController.h"
+#import "MainViewController.h"
 #import "Model.h"
 #import "NSObject+Helper.h"
 #import "MatchTableViewCell.h"
@@ -30,7 +30,7 @@
 
 #define kViewControllerSpeed 0.225f
 
-@interface MatchesTableViewController () <SceneViewDelegate, MatchCellDelegate, LocalGameDelegate>
+@interface MainViewController () <SceneViewDelegate, MatchCellDelegate, LocalGameDelegate>
 
 @property (strong, nonatomic) MyScene *myScene;
 @property (strong, nonatomic) UIViewController *childVC;
@@ -74,7 +74,7 @@
 
 @end
 
-@implementation MatchesTableViewController {
+@implementation MainViewController {
   CGFloat _screenWidth;
   CGFloat _screenHeight;
   BOOL _overlayEnabled;
@@ -90,13 +90,15 @@
   [self insertImageBackground];
   [self insertGradientBackground];
   
+  self.titleLogo.text = @"Dyadminoes B\u266d C\u266f";
   self.titleLogo.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? 30.f : 60.f)];
+  self.titleLogo.frame = CGRectMake(20, 20, 768, 60);
   
   self.tableView.backgroundColor = [UIColor clearColor];
   self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
   self.tableView.showsVerticalScrollIndicator = NO;
   
-    // doesn't know screen width or height until viewWillAppear
+    // FIXME: set this in viewWillAppear, using natural screen width and height
   self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
   
   self.activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
@@ -412,10 +414,6 @@
     [self stopAnimatingBackground];
   }
 }
-
-//-(void)startFadeInThread { // called from prepareForSegue
-//  [NSThread detachNewThreadSelector:@selector(fadeInOverlay) toTarget:self withObject:nil];
-//}
 
 -(void)transitionToSceneAnimationNewThread:(id)data {
   self.activityIndicator.hidden = NO;

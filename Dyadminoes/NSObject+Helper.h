@@ -41,7 +41,7 @@
 
 #define kScenePlayerLabelHeight (kTopBarHeight / 5)
 #define kScenePlayerLabelWidth kTopBarHeight
-#define kSceneScoreLabelWidth (kScenePlayerLabelWidth / 8)
+#define kSceneScoreLabelWidth (kScenePlayerLabelWidth / 4)
 
   // animation constants
 #define kConstantSpeed (kIsIPhone ? 0.002f : 0.0013333f)

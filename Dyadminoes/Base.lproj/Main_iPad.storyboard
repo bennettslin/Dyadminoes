@@ -4,10 +4,10 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6190.4"/>
     </dependencies>
     <scenes>
-        <!--Matches Table View Controller-->
+        <!--Main View Controller-->
         <scene sceneID="5Wl-i5-2X9">
             <objects>
-                <viewController id="wBa-AM-Ddr" customClass="MatchesTableViewController" sceneMemberID="viewController">
+                <viewController id="wBa-AM-Ddr" customClass="MainViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="BTr-fg-V8g">
                         <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>

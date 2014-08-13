@@ -30,9 +30,7 @@
 
 #pragma mark - init and layout methods
 
--(id)initWithBoard:(Board *)board andColour:(SKColor *)colour
-                   andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint
-               andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition;
+-(id)initWithColour:(SKColor *)colour andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition;
 
 -(void)layoutOrRefreshNodesWithCount:(NSUInteger)countNumber;
 -(void)layoutReplayButtons;

@@ -138,16 +138,22 @@
     
     [_boardField colourBackgroundForPnP];
     [self.myDelegate barOrRackLabel:kPnPWaitLabel show:_pnpBarUp toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:_myPlayer]];
-    _rackField.position = CGPointMake(0, -kRackHeight);
-    _swapField.position = CGPointMake(0, -kRackHeight);
     
   } else {
     _pnpBarUp = NO;
     _pnpBar.position = CGPointMake(0, -kRackHeight);
     _pnpBar.hidden = YES;
     [_boardField colourBackgroundForNormalPlay];
-    _rackField.position = self.myMatch.gameHasEnded ? CGPointMake(0, -kRackHeight) : CGPointZero;
-    _swapField.position = self.myMatch.gameHasEnded ? CGPointMake(0, -kRackHeight) : CGPointZero;
+  }
+  
+  if (self.myMatch.gameHasEnded) {
+    _rackField.position = CGPointMake(0, -kRackHeight);
+    _rackField.hidden = YES;
+    _swapField.position = CGPointMake(0, -kRackHeight);
+  } else {
+    _rackField.position = CGPointZero;
+    _rackField.hidden = NO;
+    _swapField.position = CGPointZero;
   }
   
   _boardZoomedOut = NO;
@@ -239,6 +245,10 @@
   [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO];
   [self animateRecentlyPlayedDyadminoes];
   [self showTurnInfoOrGameResultsForReplay:NO];
+  
+  for (Dyadmino *dyadmino in self.mySceneEngine.allDyadminoes) {
+    NSLog(@"dyadmino %@, homeNode %@, tempNode %@, hex x %i, hex y %i, orientation %i, tempOrientation %i", dyadmino.name, dyadmino.homeNode.myCell.name, dyadmino.tempBoardNode.myCell.name, dyadmino.myHexCoord.x, dyadmino.myHexCoord.y, dyadmino.orientation, dyadmino.tempReturnOrientation);
+  }
 }
 
 -(void)willMoveFromView:(SKView *)view {
@@ -262,7 +272,6 @@
       Dyadmino *dyadmino = (Dyadmino *)node;
       [self updateCellsForRemovedDyadmino:dyadmino andColour:YES];
       [dyadmino resetForNewMatch];
-      [dyadmino removeFromParent];
     }
   }
   
@@ -276,7 +285,6 @@
   for (Dyadmino *dyadmino in _rackField.children) {
     if ([dyadmino isKindOfClass:[Dyadmino class]]) {
       [dyadmino resetForNewMatch];
-      [dyadmino removeFromParent];
     }
   }
 }
@@ -417,12 +425,11 @@
 
 -(void)layoutSwapField {
     // initial instantiation of swap field sprite
-  _swapField = [[Rack alloc] initWithBoard:_boardField
-                                 andColour:kGold
-                                   andSize:CGSizeMake(self.frame.size.width, kRackHeight)
-                            andAnchorPoint:CGPointZero
-                               andPosition:CGPointZero
-                              andZPosition:kZPositionSwapField];
+  _swapField = [[Rack alloc] initWithColour:kGold
+                                    andSize:CGSizeMake(self.frame.size.width, kRackHeight)
+                             andAnchorPoint:CGPointZero
+                                andPosition:CGPointZero
+                               andZPosition:kZPositionSwapField];
   _swapField.name = @"swap";
   [self addChild:_swapField];
   
@@ -433,7 +440,7 @@
 
 -(void)layoutTopBar {
   
-  _topBar = [[TopBar alloc] initWithColor:kBarBrown
+  _topBar = [[TopBar alloc] initWithColor:[UIColor clearColor] // kBarBrown
                                andSize:CGSizeMake(self.frame.size.width, kTopBarHeight)
                         andAnchorPoint:CGPointZero
                            andPosition:CGPointMake(0, self.frame.size.height - kTopBarHeight)
@@ -488,12 +495,11 @@
   
   if (!self.myMatch.gameHasEnded) {
     if (!_rackField) {
-      _rackField = [[Rack alloc] initWithBoard:_boardField
-                                     andColour:kSolidBlue
-                                       andSize:CGSizeMake(self.frame.size.width, kRackHeight)
-                                andAnchorPoint:CGPointZero
-                                   andPosition:CGPointZero
-                                  andZPosition:kZPositionRackField];
+      _rackField = [[Rack alloc] initWithColour:kSolidBlue
+                                        andSize:CGSizeMake(self.frame.size.width, kRackHeight)
+                                 andAnchorPoint:CGPointZero
+                                    andPosition:CGPointZero
+                                   andZPosition:kZPositionRackField];
       _rackField.delegate = self;
       _rackField.name = @"rack";
       [self addChild:_rackField];
@@ -1404,7 +1410,7 @@
 -(void)cancelSwappedDyadminoes {
   _swapMode = NO;
   [self.myMatch.swapContainer removeAllObjects];
-  [self.myMatch resetHoldingContainer];
+  [self.myMatch resetHoldingContainer]; // don't think this is needed
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
       dyadmino.belongsInSwap = NO;
@@ -1420,21 +1426,24 @@
   NSMutableArray *toPile = [NSMutableArray new];
   
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
-    [dyadmino belongsInSwap] ? [toPile addObject:dyadmino] : nil;
+    if ([dyadmino belongsInSwap]) {
+      [toPile addObject:dyadmino];
+    }
   }
 
     // extra confirmation; this will have been checked when button was done button was first pressed
   if (self.myMatch.swapContainer.count <= self.myMatch.pile.count) {
       // first take care of views
     for (Dyadmino *dyadmino in toPile) {
-      dyadmino.belongsInSwap = NO;
       
-        // TODO: this should be a better animation
         // dyadmino is already a child of rackField,
         // so no need to send dyadmino home through myScene's sendDyadmino method
-      [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO withResize:NO];
+      
+      [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO withResize:NO]; // this will eventually have better animation
+      [dyadmino resetForNewMatch];
+      
+        // for test
       [self logRackDyadminoes];
-      [dyadmino removeFromParent];
     }
     
       // then swap in the logic

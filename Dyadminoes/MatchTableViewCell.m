@@ -101,8 +101,11 @@
 -(void)setProperties {
   
   self.stavesView.gameHasEnded = self.myMatch.gameHasEnded;
-  [self performSelectorInBackground:@selector(updateStavesInNewThread) withObject:nil];
-  [self performSelectorInBackground:@selector(updateClefInNewThread) withObject:nil];
+  
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self updateStaves];
+    [self updateClef];
+  });
 
     // remove fermatas, they will be decided later
   for (UIImageView *fermataImageView in self.fermataImageViewArray) {
@@ -185,11 +188,11 @@
 
 #pragma mark - background threaded methods
 
--(void)updateStavesInNewThread {
+-(void)updateStaves {
   [self.stavesView setNeedsDisplay];
 }
 
--(void)updateClefInNewThread {
+-(void)updateClef {
   UIImage *finalImage = [self.delegate returnClefImageForMatchType:self.myMatch.type andGameEnded:self.myMatch.gameHasEnded];
 
   switch (self.myMatch.type) {
