@@ -112,8 +112,8 @@
     self.name = @"scene";
     self.mySoundEngine = [SoundEngine soundEngine];
     self.mySceneEngine = [SceneEngine sceneEngine];
-    
     [self addChild:self.mySoundEngine];
+    
     _swapMode = NO;
     _dyadminoesStationary = NO;
     _dyadminoesHollowed = NO;
