@@ -7,6 +7,7 @@
 //
 
 #import "NSObject+Helper.h"
+#import "SKNode+Animation.h"
 #import "MyScene.h"
 #import "SceneViewController.h"
 #import "SceneEngine.h"
@@ -25,6 +26,13 @@
 #import "Match.h"
 #import "DataDyadmino.h"
 #import "SoundEngine.h"
+
+#define kTopBarIn @"topBarIn"
+#define kTopBarOut @"topBarOut"
+#define kRackIn @"rackIn"
+#define kRackOut @"rackOut"
+#define kPnPBarIn @"pnpBarIn"
+#define kPnPBarOut @"pnpBarOut"
 
 @interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIActionSheetDelegate, MatchDelegate, ReturnToGamesButtonDelegate>
 
@@ -491,7 +499,6 @@
 }
 
 -(void)layoutOrRefreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation {
-  
   
   if (!self.myMatch.gameHasEnded) {
     if (!_rackField) {
@@ -1421,43 +1428,66 @@
 }
 
 -(BOOL)finaliseSwap {
-  [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
   
-  NSMutableArray *toPile = [NSMutableArray new];
-  
-  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
-    if ([dyadmino belongsInSwap]) {
-      [toPile addObject:dyadmino];
-    }
-  }
-
     // extra confirmation; this will have been checked when button was done button was first pressed
   if (self.myMatch.swapContainer.count <= self.myMatch.pile.count) {
+    
+    NSMutableArray *toPile = [NSMutableArray new];
+    for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
+      if ([dyadmino belongsInSwap]) {
+        [toPile addObject:dyadmino];
+      }
+    }
+    
       // first take care of views
-    for (Dyadmino *dyadmino in toPile) {
+    for (int i = 0; i < toPile.count; i++) {
+      Dyadmino *dyadmino = toPile[i];
+      [self removeFromPlayerRackDyadminoes:dyadmino];
       
-        // dyadmino is already a child of rackField,
-        // so no need to send dyadmino home through myScene's sendDyadmino method
-      
-      [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO withResize:NO]; // this will eventually have better animation, and delay finalisation of swap and pnp toggle until it finishes.
-      [dyadmino resetForNewMatch];
-      
-        // for test
-      [self logRackDyadminoes];
+      SKAction *waitAction = [SKAction waitForDuration:i * kWaitTimeForRackDyadminoPopulate];
+      SKAction *soundAction = [SKAction runBlock:^{
+        [self postSoundNotification:kNotificationRackExchangeClick];
+      }];
+      SKAction *moveAction = [SKAction moveToX:0 - _rackField.xIncrementInRack duration:kConstantTime];
+      moveAction.timingMode = SKActionTimingEaseOut;
+      SKAction *completeAction = [SKAction runBlock:^{
+        
+        [dyadmino resetForNewMatch];
+        if (i == toPile.count - 1) {
+          
+          [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
+          
+          _swapMode = NO;
+          [self toggleSwapFieldWithAnimation:YES];
+          
+            // then swap in the logic
+          [self.myMatch swapDyadminoesFromCurrentPlayer];
+          
+          if (self.myMatch.type != kPnPGame) {
+            [self populateRackArray];
+            [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
+          }
+          
+            // call this again because animation delays completion
+          [self updateTopBarLabelsFinalTurn:YES animated:NO];
+          [self updateTopBarButtons];
+          
+          [self doSomethingSpecial:@"dyadminoes have been swapped."];
+        }
+      }];
+      SKAction *sequence = [SKAction sequence:@[waitAction, soundAction, moveAction, completeAction]];
+      [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
+      [dyadmino runAction:sequence withKey:@"swapDyadmino"];
     }
-    
-      // then swap in the logic
-    [self.myMatch swapDyadminoesFromCurrentPlayer];
-    
-    if (self.myMatch.type != kPnPGame) {
-      [self populateRackArray];
-      [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
-    }
-    
-    [self doSomethingSpecial:@"dyadminoes have been swapped."];
     return YES;
+  } else {
+    
+      // FIXME: show action sheet
+    
+    [self updateTopBarLabelsFinalTurn:YES animated:NO];
+    [self updateTopBarButtons];
+    return NO;
   }
-  return NO;
 }
 
 -(void)playDyadmino:(Dyadmino *)dyadmino {
@@ -1504,7 +1534,7 @@
   [self removeFromSceneBoardDyadminoes:undoneDyadmino];
   
     // take care of views
-  [self sendDyadminoHome:undoneDyadmino fromUndo:YES byPoppingIn:YES andSounding:NO  andUpdatingBoardBounds:YES];
+  [self sendDyadminoHome:undoneDyadmino fromUndo:YES byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
   [self tempStoreForPlayerSceneDataDyadmino:undoneDyadmino];
 }
 
@@ -2035,20 +2065,6 @@
     return;
   }
   
-    // alpha is reverse of cells
-//  [_boardField toggleBackgroundAlphaZeroed:!_dyadminoesStationary animated:animated];
-  
-//  CGFloat desiredCellAlpha = _cellAlphasZeroed ? 0.f : 1.f;
-//  SKAction *fadeCellAlpha = [SKAction fadeAlphaTo:desiredCellAlpha duration:kConstantTime * 0.9f]; // a little faster than field move
-//  for (Cell *cell in _boardField.allCells) {
-//    
-//    if (animated) {
-//      [cell.cellNode runAction:fadeCellAlpha];
-//    } else {
-//      cell.cellNode.alpha = desiredCellAlpha;
-//    }
-//  }
-  
   CGFloat desiredDyadminoAlpha = _dyadminoesStationary ? 0.5f : 1.f;
   SKAction *fadeDyadminoAlpha = [SKAction fadeAlphaTo:desiredDyadminoAlpha duration:kConstantTime * 0.9f]; // a little faster than field move
   
@@ -2060,29 +2076,25 @@
   _dyadminoesHollowed = _dyadminoesStationary;
 }
 
--(void)toggleRackOut:(BOOL)goOut {
+-(void)toggleRackGoOut:(BOOL)goOut completionAction:(SKAction *)completionAction {
     // this will only happen during PnP or replay animation
   CGFloat desiredY = goOut ? -kRackHeight : 0;
   _rackField.position = goOut ? CGPointZero : CGPointMake(0, -kRackHeight);
-  SKAction *moveAction = [SKAction moveToY:desiredY duration:kConstantTime * 0.9f];
-  [_rackField removeActionForKey:@"toggleRack"];
-  [_rackField runAction:moveAction withKey:@"toggleRack"];
+  
+  [_rackField moveToYPosition:desiredY withBounce:!goOut duration:kConstantTime * 0.9f key:@"toggleRack" completionAction:completionAction];
 }
 
--(void)toggleTopBarOut:(BOOL)goOut {
+-(void)toggleTopBarGoOut:(BOOL)goOut completionAction:(SKAction *)completionAction {
     // this will only happen during replay animation
   CGFloat desiredY = goOut ? self.frame.size.height : self.frame.size.height - kTopBarHeight;
   _topBar.position = goOut ? CGPointMake(0, self.frame.size.height - kTopBarHeight) : CGPointMake(0, self.frame.size.height);
-  SKAction *moveAction = [SKAction moveToY:desiredY duration:kConstantTime * 0.9f];
-  [_topBar removeActionForKey:@"toggleBar"];
-  [_topBar runAction:moveAction withKey:@"toggleBar"];
+  
+  [_topBar moveToYPosition:desiredY withBounce:!goOut duration:kConstantTime * 0.9f key:@"toggleTopBar" completionAction:completionAction];
 }
 
 -(void)togglePnPBar {
   
   [self.myDelegate barOrRackLabel:kPnPWaitLabel show:_pnpBarUp toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:_myPlayer]];
-  
-  /// FIXME: exact same as toggle replay fields method
   
     // cells will toggle faster than pnpBar moves
   _dyadminoesStationary = _pnpBarUp || _boardZoomedOut;
@@ -2096,8 +2108,20 @@
     
       // scene views
     _pnpBar.hidden = NO;
+    
+//    SKAction *pnpCompleteAction = [SKAction runBlock:^{
+//      _fieldActionInProgress = NO;
+//      _rackField.hidden = YES;
+//      [self prepareRackForNextPlayer];
+//      [self prepareForNewTurn];
+//    }];
+//    SKAction *rackCompleteAction = [SKAction runBlock:^{
+//      [_pnpBar moveToYPosition:0 withBounce:YES duration:kConstantTime key:@"pnpBarIn" completionAction:pnpCompleteAction];
+//    }];
+//    [self toggleRackGoOut:YES completionAction:rackCompleteAction];
+    
     SKAction *rackAction = [SKAction runBlock:^{
-      [self toggleRackOut:YES];
+      [self toggleRackGoOut:YES completionAction:nil];
     }];
     SKAction *moveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
     SKAction *completeAction = [SKAction runBlock:^{
@@ -2117,15 +2141,24 @@
       // scene views
     _rackField.hidden = NO;
     
+//    SKAction *pnpCompleteAction = [SKAction runBlock:^{
+//      _fieldActionInProgress = NO;
+//      _pnpBar.hidden = YES;
+//    }];
+//    SKAction *rackCompleteAction = [SKAction runBlock:^{
+//      [_pnpBar moveToYPosition:-kRackHeight withBounce:NO duration:kConstantTime key:@"pnpBarOut" completionAction:pnpCompleteAction];
+//    }];
+//    [self toggleRackGoOut:NO completionAction:rackCompleteAction];
+    
     SKAction *rackAction = [SKAction runBlock:^{
-      [self toggleRackOut:NO];
+      [self toggleRackGoOut:NO completionAction:nil];
     }];
     SKAction *moveAction = [SKAction moveToY:-kRackHeight duration:kConstantTime];
     SKAction *completeAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
       _pnpBar.hidden = YES;
     }];
-    
+
     SKAction *sequenceAction = [SKAction sequence:@[rackAction, moveAction, completeAction]];
     [_pnpBar runAction:sequenceAction];
   }
@@ -2151,10 +2184,10 @@
     _replayTop.hidden = NO;
     _replayBottom.hidden = NO;
     SKAction *rackAction = [SKAction runBlock:^{
-      self.myMatch.gameHasEnded ? nil : [self toggleRackOut:YES];
+      self.myMatch.gameHasEnded ? nil : [self toggleRackGoOut:YES completionAction:nil];
     }];
     SKAction *topBarAction = [SKAction runBlock:^{
-      [self toggleTopBarOut:YES];
+      [self toggleTopBarGoOut:YES completionAction:nil];
     }];
     SKAction *BarAndRackGroupAction = [SKAction group:@[rackAction, topBarAction]];
     
@@ -2171,12 +2204,8 @@
     
       // board action
     if (self.myMatch.gameHasEnded) {
-      SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y + (kRackHeight / 2) duration:kConstantTime];
-      SKAction *callbackAction = [SKAction runBlock:^{
-
-      }];
-      SKAction *sequenceAction = [SKAction sequence:@[moveBoardAction, callbackAction]];
-      [_boardField runAction:sequenceAction];
+    
+      [_boardField moveToYPosition:_boardField.position.y + (kRackHeight / 2) withBounce:NO duration:kConstantTime key:@"boardMoveReplayBegin" completionAction:nil];
     }
     
       // it's not in replay mode
@@ -2189,10 +2218,10 @@
     _topBar.hidden = NO;
     
     SKAction *rackAction = [SKAction runBlock:^{
-      self.myMatch.gameHasEnded ? nil : [self toggleRackOut:NO];
+      self.myMatch.gameHasEnded ? nil : [self toggleRackGoOut:NO completionAction:nil];
     }];
     SKAction *topBarAction = [SKAction runBlock:^{
-      [self toggleTopBarOut:NO];
+      [self toggleTopBarGoOut:NO completionAction:nil];
     }];
     SKAction *BarAndRackGroupAction = [SKAction group:@[rackAction, topBarAction]];
     SKAction *topMoveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
@@ -2210,12 +2239,10 @@
     [_replayBottom runAction:bottomSequenceAction];
     
       // board action
-      // FIXME: when board is moved to top in swap mode, board goes down, then pops back up
 
     if (self.myMatch.gameHasEnded) {
       CGFloat buffer = (_boardField.position.y > _boardField.highestYPos) ? _boardField.highestYPos : _boardField.position.y - kRackHeight / 2;
-      SKAction *moveBoardAction = [SKAction moveToY:buffer duration:kConstantTime];
-      [_boardField runAction:moveBoardAction];
+      [_boardField moveToYPosition:buffer withBounce:NO duration:kConstantTime key:@"boardMoveReplayEnd" completionAction:nil];
     }
   }
 }
@@ -2288,10 +2315,17 @@
 }
 
 -(void)updateOrderOfDataDyadsThisTurnToReflectRackOrder {
+  
   for (int i = 0; i < self.playerRackDyadminoes.count; i++) {
     Dyadmino *dyadmino = self.playerRackDyadminoes[i];
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-    if ([_myPlayer.dataDyadminoesThisTurn containsObject:dataDyad]) {
+    
+    dataDyad.myOrientation = dyadmino.orientation;
+    dataDyad.myRackOrder = i;
+    
+    if ([_myPlayer.dataDyadminoesThisTurn containsObject:dataDyad] &&
+        ![self.myMatch.swapContainer containsObject:dataDyad]) {
+      
       [_myPlayer.dataDyadminoesThisTurn removeObject:dataDyad];
       [_myPlayer.dataDyadminoesThisTurn insertObject:dataDyad atIndex:i];
     }
@@ -2892,13 +2926,11 @@
       // swap button
   } else if ([buttonText isEqualToString:@"Swap"]) {
     
-      // will swap if successful, if not, message will be flashed in finaliseSwap method
-    if ([self finaliseSwap]) {
-      _swapMode = NO;
-      [self toggleSwapFieldWithAnimation:YES];
-    } else {
-      return;
-    }
+    [self finaliseSwap];
+    
+      // because of swap animation, updating topBar labels and buttons must be delayed
+      // and thus will be called in finaliseSwap; so just return at this point
+    return;
     
       // cancel swap
   } else if ([buttonText isEqualToString:@"Cancel"]) {
@@ -2999,12 +3031,14 @@
   [self updateTopBarButtons];
   
     NSLog(@"hoveringDyadmino to stay fixed ? %i", _hoveringDyadminoStaysFixedToBoard);
+  [self logRackDyadminoes];
 }
 
 -(void)logRackDyadminoes {
   NSLog(@"dataDyads are:  %@", [[_myPlayer.dataDyadminoesThisTurn valueForKey:@"name"] componentsJoinedByString:@", "]);
   NSLog(@"Dyadminoes are: %@", [[self.playerRackDyadminoes valueForKey:@"name"] componentsJoinedByString:@", "]);
   NSLog(@"holdingCon is:  %@", [[self.myMatch.holdingContainer valueForKey:@"name"] componentsJoinedByString:@", "]);
+  NSLog(@"swapContainer:  %@", [[self.myMatch.swapContainer valueForKey:@"name"] componentsJoinedByString:@", "]);
   NSLog(@"rackDyad order: %@", [[self.playerRackDyadminoes valueForKey:@"myRackOrder"] componentsJoinedByString:@", "]);
 }
 

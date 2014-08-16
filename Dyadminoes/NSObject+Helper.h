@@ -96,6 +96,7 @@
 #define kConstantTime 0.175f // was 0.15f
 #define kAnimateHoverTime 0.775f
 #define kDoubleTapTime 0.225f
+#define kWaitTimeForRackDyadminoPopulate 0.05f
 
   // define action constants
 #define kActionShowRecentlyPlayed @"recentlyPlayed"
@@ -219,6 +220,8 @@
 #define kCyanBlue [SKColor colorWithRed:.62f green:.96f blue:1.f alpha:1.f]
 
   //----------------------------------------------------------------------------
+
+typedef void (^myCompletionBlock)(void);
 
 typedef struct HexCoord {
   NSInteger x;

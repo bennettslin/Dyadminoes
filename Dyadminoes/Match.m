@@ -253,6 +253,12 @@
       }
     }
     
+      // reset rack order
+    for (int i = 0; i < player.dataDyadminoesThisTurn.count; i++) {
+      DataDyadmino *dataDyad = player.dataDyadminoesThisTurn[i];
+      dataDyad.myRackOrder = i;
+    }
+    
       // if player ran out and pile is empty, then end game
     if ([self checkPlayerFirstToRunOut]) {
       [self endGame];

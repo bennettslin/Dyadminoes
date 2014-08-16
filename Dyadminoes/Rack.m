@@ -82,36 +82,38 @@
 
     //--------------------------------------------------------------------------
   
-      // to ensure position if swapped
     CGPoint shouldBePosition = [dyadmino getHomeNodePosition];
     
-      // dyadmino is already on rack, just has to animate to new position if not already there
+      // dyadmino is already on rack
     if (dyadmino.parent == self) {
-      NSLog(@"dyadmino is already on rack");
-      if (!CGPointEqualToPoint(dyadmino.position, shouldBePosition) && !(undo && index == dyadminoesInArray.count - 1)) {
-        [dyadmino animateMoveToPoint:shouldBePosition andSounding:NO];
-        
-          // undone dyadmino is popped in
-      } else {
+      
+        // undone dyadmino is popped in
+      if (undo && index == dyadminoesInArray.count - 1) {
         dyadmino.position = shouldBePosition;
         SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
         [dyadmino runAction:growAction];
+        return;
       }
         // dyadmino is *not* already on rack, so add offscreen first and then animate
     } else {
       dyadmino.position = CGPointMake(self.size.width + self.xIncrementInRack, shouldBePosition.y);
       dyadmino.zPosition = kZPositionRackRestingDyadmino;
-      
       [self addChild:dyadmino];
-      
-        // kludge way of ensuring that dyadminoes are oriented properly in rack
       [dyadmino orientBySnapNode:dyadmino.homeNode];
-      
-      if (animation) {
+    }
+    
+    if (animation) {
+      SKAction *waitAction = [SKAction waitForDuration:index * kWaitTimeForRackDyadminoPopulate];
+      SKAction *moveAction = [SKAction runBlock:^{
         [dyadmino animateMoveToPoint:shouldBePosition andSounding:NO];
-      } else {
-        dyadmino.position = shouldBePosition;
-      }
+      }];
+      SKAction *completeAction = [SKAction runBlock:^{
+        [self.delegate postSoundNotification:kNotificationEaseIntoNode];
+      }];
+      SKAction *sequenceAction = [SKAction sequence:@[waitAction, moveAction, completeAction]];
+      [dyadmino runAction:sequenceAction withKey:@"repositionDyadmino"];
+    } else {
+      dyadmino.position = shouldBePosition;
     }
   }
 }

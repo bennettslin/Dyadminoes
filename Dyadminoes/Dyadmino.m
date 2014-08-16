@@ -434,7 +434,7 @@
         }
         
           // or else put this in an animation
-        
+
         [self selectAndPositionSprites];
       }
     }
@@ -497,7 +497,7 @@
       [self.delegate layoutOrRefreshRackFieldAndDyadminoesFromUndo:YES withAnimation:NO];
     }
   }];
-  SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime * 5];
+  SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
   SKAction *sequenceAction = undo ?
     [SKAction sequence:@[shrinkAction, repositionAction]] :
     [SKAction sequence:@[shrinkAction, repositionAction, growAction]];
@@ -508,24 +508,29 @@
   
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   self.isRotating = YES;
-  [self animateOneThirdFlipClockwise:YES times:3 withFullFlip:YES];
+  [self animateOneThirdFlipClockwise:YES aroundAnchorPoint:self.anchorPoint times:3 withFullFlip:YES];
 }
 
--(void)animateOneThirdFlipClockwise:(BOOL)clockwise times:(NSUInteger)times withFullFlip:(BOOL)fullFlip {
+-(void)animateOneThirdFlipClockwise:(BOOL)clockwise aroundAnchorPoint:(CGPoint)anchorPoint times:(NSUInteger)times withFullFlip:(BOOL)fullFlip {
+  
+  self.anchorPoint = anchorPoint;
+  
   CGFloat radians = [self getRadiansFromDegree:60] * (clockwise ? 1 : -1);
   __block NSUInteger counter = times;
+  CGFloat duration = kConstantTime / 4.5;
   
-  SKAction *turnDyadmino = [SKAction rotateByAngle:-radians duration:kConstantTime / 3.5];
-  SKAction *turnFace = [SKAction rotateByAngle:radians duration:kConstantTime / 3.5];
+  SKAction *turnDyadmino = [SKAction rotateByAngle:-radians duration:duration];
+  SKAction *turnFace = [SKAction rotateByAngle:radians duration:duration];
   SKAction *turnAction = [SKAction runBlock:^{
     [self.pc1Sprite runAction:turnFace];
     [self.pc2Sprite runAction:turnFace];
     [self runAction:turnDyadmino completion:^{
       self.orientation = (self.orientation + 1) % 6;
+      
       [self selectAndPositionSprites];
       counter--;
       if (counter > 0) {
-        [self animateOneThirdFlipClockwise:clockwise times:counter withFullFlip:fullFlip];
+        [self animateOneThirdFlipClockwise:clockwise aroundAnchorPoint:anchorPoint times:counter withFullFlip:fullFlip];
       } else {
         if (fullFlip) {
           [self animateCompletionOfFullFlip];
@@ -535,6 +540,9 @@
   }];
   
   [self runAction:turnAction];
+  
+    // reset anchorPoint after each and every time
+  self.anchorPoint = CGPointMake(0.5f, 0.5f);
 }
 
 -(void)animateCompletionOfFullFlip {

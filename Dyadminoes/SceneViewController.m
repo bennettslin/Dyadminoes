@@ -198,7 +198,7 @@
       } else {
         scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
       }
-      NSLog(@"scoreText is %@", scoreText);
+//      NSLog(@"scoreText is %@", scoreText);
       
         // FIXME: so that this is animated
         // score label
