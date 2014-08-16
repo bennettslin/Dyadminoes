@@ -159,12 +159,12 @@
   if (self.myMatch.gameHasEnded) {
     _rackField.position = CGPointMake(0, -kRackHeight);
     _rackField.hidden = YES;
-    _swapField.position = CGPointMake(0, -kRackHeight);
   } else {
     _rackField.position = CGPointZero;
     _rackField.hidden = NO;
-    _swapField.position = CGPointZero;
   }
+  
+  _swapField.position = CGPointMake(self.frame.size.width, kRackHeight);
   
   _boardZoomedOut = NO;
   self.myMatch.delegate = self;
@@ -439,7 +439,7 @@
   _swapField = [[Rack alloc] initWithColour:kGold
                                     andSize:CGSizeMake(self.frame.size.width, kRackHeight)
                              andAnchorPoint:CGPointZero
-                                andPosition:CGPointZero
+                                andPosition:CGPointMake(self.frame.size.width, kRackHeight)
                                andZPosition:kZPositionSwapField];
   _swapField.name = @"swap";
   [self addChild:_swapField];
@@ -2087,6 +2087,11 @@
   _rackField.position = goOut ? CGPointZero : CGPointMake(0, -kRackHeight);
   
   [_rackField moveToYPosition:desiredY withBounce:!goOut duration:kConstantTime * 0.9f key:@"toggleRack" completionAction:completionAction];
+  
+  if (goOut && self.myMatch.gameHasEnded) {
+    CGFloat buffer = (_boardField.position.y > _boardField.highestYPos) ? _boardField.highestYPos : _boardField.position.y - kRackHeight / 2;
+    [_boardField moveToYPosition:buffer withBounce:NO duration:kConstantTime key:@"boardMoveReplayEnd" completionAction:nil];
+  }
 }
 
 -(void)toggleTopBarGoOut:(BOOL)goOut completionAction:(SKAction *)completionAction {
@@ -2244,7 +2249,6 @@
     [_replayBottom runAction:bottomSequenceAction];
     
       // board action
-
     if (self.myMatch.gameHasEnded) {
       CGFloat buffer = (_boardField.position.y > _boardField.highestYPos) ? _boardField.highestYPos : _boardField.position.y - kRackHeight / 2;
       [_boardField moveToYPosition:buffer withBounce:NO duration:kConstantTime key:@"boardMoveReplayEnd" completionAction:nil];
@@ -2270,7 +2274,7 @@
     _fieldActionInProgress = YES;
     
       // swap field action
-    SKAction *moveAction = [SKAction moveToY:0.f duration:kConstantTime];
+    SKAction *moveAction = [SKAction moveToX:-self.frame.size.width duration:kConstantTime];
     SKAction *completionAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
       _swapField.hidden = YES;
@@ -2288,9 +2292,10 @@
   } else {
     _fieldActionInProgress = YES;
     _swapField.hidden = NO;
+    _swapField.position = CGPointMake(self.frame.size.width, kRackHeight);
     
       // swap field action
-    SKAction *moveAction = [SKAction moveToY:kRackHeight duration:kConstantTime];
+    SKAction *moveAction = [SKAction moveToX:0 duration:kConstantTime];
     SKAction *completionAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
     }];
@@ -2877,9 +2882,12 @@
 #pragma mark - action sheet methods
 
 -(void)doSomethingSpecial:(NSString *)specialThing {
+    // FIXME: eventually show a screen of some kind
+  /*
   UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:specialThing delegate:self cancelButtonTitle:@"OK" destructiveButtonTitle:nil otherButtonTitles:nil, nil];
   actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
   [actionSheet showInView:self.view];
+   */
 }
 
 -(void)presentPassActionSheet {
