@@ -84,8 +84,14 @@
   
     CGPoint shouldBePosition = [dyadmino getHomeNodePosition];
     
+    SKAction *completeAction;
+    
       // dyadmino is already on rack
     if (dyadmino.parent == self) {
+      
+        // no sound if dyadmino is already on rack
+      completeAction = [SKAction runBlock:^{
+      }];
       
         // undone dyadmino is popped in
       if (undo && index == dyadminoesInArray.count - 1) {
@@ -96,6 +102,11 @@
       }
         // dyadmino is *not* already on rack, so add offscreen first and then animate
     } else {
+      
+      completeAction = [SKAction runBlock:^{
+        [self.delegate postSoundNotification:kNotificationEaseIntoNode];
+      }];
+      
       dyadmino.position = CGPointMake(self.size.width + self.xIncrementInRack, shouldBePosition.y);
       dyadmino.zPosition = kZPositionRackRestingDyadmino;
       [self addChild:dyadmino];
@@ -106,9 +117,6 @@
       SKAction *waitAction = [SKAction waitForDuration:index * kWaitTimeForRackDyadminoPopulate];
       SKAction *moveAction = [SKAction runBlock:^{
         [dyadmino animateMoveToPoint:shouldBePosition andSounding:NO];
-      }];
-      SKAction *completeAction = [SKAction runBlock:^{
-        [self.delegate postSoundNotification:kNotificationEaseIntoNode];
       }];
       SKAction *sequenceAction = [SKAction sequence:@[waitAction, moveAction, completeAction]];
       [dyadmino runAction:sequenceAction withKey:@"repositionDyadmino"];

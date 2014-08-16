@@ -235,6 +235,8 @@
 
 -(void)backToMainMenu {
   [self saveModel];
+  [self.delegate rememberMostRecentMatch:self.myMatch];
+  
   [self.mySceneView presentScene:nil];
   [self dismissViewControllerAnimated:YES completion:nil];
   [self.delegate startAnimatingBackground];

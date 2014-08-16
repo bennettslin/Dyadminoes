@@ -36,6 +36,8 @@
 @property (strong, nonatomic) UIViewController *childVC;
 
 @property (strong, nonatomic) Model *myModel;
+@property (strong, nonatomic) Match *mostRecentMatch;
+@property (strong, nonatomic) NSIndexPath *indexPathForMostRecentMatch;
 
 @property (weak, nonatomic) IBOutlet UILabel *titleLogo; // make custom image eventually
 
@@ -166,7 +168,7 @@
 
 -(void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
-  
+
   [self resetActivityIndicatorAndDarkOverlay];
   self.topBar.frame = CGRectMake(0, 0, _screenWidth, kMainTopBarHeight);
   self.bottomBar.frame = CGRectMake(0, _screenHeight - kMainBottomBarHeight, _screenWidth, kMainTopBarHeight);
@@ -178,9 +180,15 @@
   if (!self.myModel) {
     self.myModel = [Model new];
   }
-
+  
   [self.myModel sortMyMatches];
   [self.tableView reloadData];
+  
+    // FIXME: doesn't work
+  [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+  if (self.mostRecentMatch) {
+    [self.tableView scrollToRowAtIndexPath:self.indexPathForMostRecentMatch atScrollPosition:UITableViewScrollPositionTop animated:YES];
+  }
 }
 
 -(void)startAnimatingBackground {
@@ -216,6 +224,11 @@
   
   cell.delegate = self;
   cell.myMatch = self.myModel.myMatches[indexPath.row];
+  NSLog(@"myMatch is %@", cell.myMatch);
+  if (cell.myMatch == self.mostRecentMatch) {
+    NSLog(@"indexPath is %i", indexPath.row);
+    self.indexPathForMostRecentMatch = indexPath;
+  }
   [cell setProperties];
   
   return cell;
@@ -547,6 +560,10 @@
 -(void)removeMatch:(Match *)match {
   [self.myModel.myMatches removeObject:match];
   [self saveModel];
+}
+
+-(void)rememberMostRecentMatch:(Match *)match {
+  self.mostRecentMatch = match;
 }
 
 -(void)instantiateClefs {

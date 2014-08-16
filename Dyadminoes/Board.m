@@ -118,7 +118,7 @@
 //  NSLog(@"self snappoints count is %lu, %lu, %lu", (unsigned long)self.snapPointsTenOClock.count, (unsigned long)self.snapPointsTwelveOClock.count, (unsigned long)self.snapPointsTwoOClock.count);
   
   self.zoomedOut = NO;
-  [self zoomInBackgroundImage];
+//  [self zoomInBackgroundImage];
   [self removeAllActions];
 }
 
@@ -279,7 +279,7 @@
   if (self.zoomedOut) {
 
     [self centerBoardOnDyadminoesAverageCenterWithSwap:swap andGameEnded:gameEnded];
-    [self zoomOutBackgroundImage];
+//    [self zoomOutBackgroundImage];
     
       // zoom back in
   } else {
@@ -291,7 +291,7 @@
     }
     
     [self.delegate correctBoardForPositionAfterZoom];
-    [self zoomInBackgroundImage];
+//    [self zoomInBackgroundImage];
   }
 
   self.backgroundNodeZoomedIn.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
@@ -1018,7 +1018,7 @@
   self.backgroundNodeZoomedOut.zPosition = kZPositionBackgroundNode;
   
     // zoom background node is always there
-  [self zoomInBackgroundImage];
+//  [self zoomInBackgroundImage];
 }
 
 #pragma mark - legality methods

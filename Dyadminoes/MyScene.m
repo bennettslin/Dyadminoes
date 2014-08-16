@@ -117,6 +117,8 @@
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
     self.backgroundColor = kBackgroundBoardColour;
+//    UIImage *backgroundImage = [UIImage imageNamed:@"BachMassBackgroundCropped"];
+//    self.backgroundColor = [UIColor colorWithPatternImage:backgroundImage];
     self.name = @"scene";
     self.mySoundEngine = [SoundEngine soundEngine];
     self.mySceneEngine = [SceneEngine sceneEngine];
@@ -240,7 +242,7 @@
   
     // cell alphas are visible by default, hide if PnP mode
   _dyadminoesStationary = (self.myMatch.type == kPnPGame && !self.myMatch.gameHasEnded);
-  [self toggleDyadminoesToBeStationaryOrMovableAnimated:NO];
+  [self toggleCellsAndDyadminoesAlphaAnimated:NO];
   
     // don't call just yet if it's a PnP game
   self.myMatch.type != kPnPGame ? [self afterNewPlayerReady] : nil;
@@ -266,9 +268,10 @@
     [self toggleDebugMode];
   }
 
-    // establish that cell alphas are back to normal
+    // establish that cell and dyadmino alphas are normal
+    // important because next match might have different dyadminoes
   _dyadminoesStationary = NO;
-  [self toggleDyadminoesToBeStationaryOrMovableAnimated:NO];
+  [self toggleCellsAndDyadminoesAlphaAnimated:NO];
   
   _swapMode = NO;
   [self toggleSwapFieldWithAnimation:NO];
@@ -375,7 +378,7 @@
   _boardField = [[Board alloc] initWithColor:[SKColor clearColor] andSize:size andCellTexture:cellTexture];
   _boardField.delegate = self;
   [self addChild:_boardField];
-  [_boardField initLoadBackgroundNodes];
+//  [_boardField initLoadBackgroundNodes];
 }
 
 -(void)repositionBoardField {
@@ -592,7 +595,7 @@
 
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     /// 1. first, make sure there's only one current touch
-  
+
   _currentTouch ? [self endTouchFromTouches:nil] : nil;
   _currentTouch = [touches anyObject];
   
@@ -961,8 +964,8 @@
   _boardField.zoomedOut = _boardZoomedOut;
   
     // conditions for dyadminoes not to be stationary
-  _dyadminoesStationary = (!_boardZoomedOut && !_replayMode && !_pnpBarUp && !_swapMode) ? NO : YES;
-  [self toggleDyadminoesToBeStationaryOrMovableAnimated:NO];
+//  _dyadminoesStationary = (!_boardZoomedOut && !_replayMode && !_pnpBarUp && !_swapMode) ? NO : YES;
+//  [self toggleDyadminoesToBeStationaryOrMovableAnimated:NO];
   
   if (_boardZoomedOut) {
     _boardField.postZoomPosition = _boardField.homePosition;
@@ -1233,8 +1236,10 @@
 
 -(void)goBackToMainViewController {  
   [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
-  
   [self postSoundNotification:kNotificationToggleBarOrField];
+  
+  _dyadminoesStationary = YES;
+  [self toggleCellsAndDyadminoesAlphaAnimated:YES];
   
     // totally not DRY, but needs the code in the completion block
   SKSpriteNode *bottomField;
@@ -1264,9 +1269,6 @@
   
 //  SKAction *fadeAcion = [SKAction fadeAlphaTo:0.5f duration:kConstantTime];
 //  [_boardField runAction:fadeAcion];
-  
-  _dyadminoesStationary = YES;
-  [self toggleDyadminoesToBeStationaryOrMovableAnimated:YES];
 }
 
 #pragma mark - button methods
@@ -1342,7 +1344,8 @@
     } else if (_swapMode) {
         // confirm that there's enough dyadminoes in the pile
       if (self.myMatch.swapContainer.count > self.myMatch.pile.count) {
-        [self doSomethingSpecial:@"There aren't enough dyadminoes left in the pile."];
+        
+        [self presentNotEnoughInPileActionSheet];
         return;
       } else {
         [self presentSwapActionSheet];
@@ -1579,7 +1582,8 @@
 }
 
 -(void)handleEndGame {
-//  NSString *resultsText = [self.myMatch endGameResultsText];
+  [self updateTopBarLabelsFinalTurn:NO animated:YES];
+  [self toggleRackGoOut:YES completionAction:nil];
   [self doSomethingSpecial:@"acknowledge that game has ended"];
 }
 
@@ -1973,10 +1977,6 @@
 
 #pragma mark - update label and button methods
 
--(void)doSomethingSpecial:(NSString *)specialThing {
-  NSLog(@"do this special thing: %@", specialThing);
-}
-
 -(void)updateTopBarLabelsFinalTurn:(BOOL)finalTurn animated:(BOOL)animated {
   
     // update player labels
@@ -2057,7 +2057,7 @@
 
 #pragma mark - field animation methods
 
--(void)toggleDyadminoesToBeStationaryOrMovableAnimated:(BOOL)animated {
+-(void)toggleCellsAndDyadminoesAlphaAnimated:(BOOL)animated {
     // also toggle alpha of board's zoomed in background node
   
     // if dyadminoes already hollowed, just return
@@ -2065,9 +2065,14 @@
     return;
   }
   
+  CGFloat desiredCellAlpha = _dyadminoesStationary ? 0.f : 1.f;
+  SKAction *fadeCellAlpha = [SKAction fadeAlphaTo:desiredCellAlpha duration:kConstantTime * 0.9f];
+  for (Cell *cell in _boardField.allCells) {
+    animated ? [cell.cellNode runAction:fadeCellAlpha] : [cell.cellNode setAlpha:desiredCellAlpha];
+  }
+  
   CGFloat desiredDyadminoAlpha = _dyadminoesStationary ? 0.5f : 1.f;
   SKAction *fadeDyadminoAlpha = [SKAction fadeAlphaTo:desiredDyadminoAlpha duration:kConstantTime * 0.9f]; // a little faster than field move
-  
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
     animated ? [dyadmino runAction:fadeDyadminoAlpha] : [dyadmino setAlpha:desiredDyadminoAlpha];
   }
@@ -2097,8 +2102,8 @@
   [self.myDelegate barOrRackLabel:kPnPWaitLabel show:_pnpBarUp toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:_myPlayer]];
   
     // cells will toggle faster than pnpBar moves
-  _dyadminoesStationary = _pnpBarUp || _boardZoomedOut;
-  [self toggleDyadminoesToBeStationaryOrMovableAnimated:!_boardZoomedOut]; // only animate if board zoomed in
+  _dyadminoesStationary = _pnpBarUp;
+  [self toggleCellsAndDyadminoesAlphaAnimated:YES];
   
   [self postSoundNotification:kNotificationToggleBarOrField];
   
@@ -2170,9 +2175,9 @@
     [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
   }
   
-    // cells will toggle faster than pnpBar moves
-  _dyadminoesStationary = _replayMode || _boardZoomedOut;
-  [self toggleDyadminoesToBeStationaryOrMovableAnimated:!_boardZoomedOut]; // only animate when board is zoomed in
+    // cells will toggle faster than replayBars moves
+  _dyadminoesStationary = _replayMode;
+  [self toggleCellsAndDyadminoesAlphaAnimated:YES];
 
   [self postSoundNotification:kNotificationToggleBarOrField];
   
@@ -2256,8 +2261,8 @@
   }
   
     // cells will toggle faster than field moves
-  _dyadminoesStationary = _swapMode || _boardZoomedOut;
-  [self toggleDyadminoesToBeStationaryOrMovableAnimated:!_boardZoomedOut]; // only animate if board zoomed in
+  _dyadminoesStationary = _swapMode;
+  [self toggleCellsAndDyadminoesAlphaAnimated:YES]; // only animate if board zoomed in
   
   [self postSoundNotification:kNotificationToggleBarOrField];
   
@@ -2871,6 +2876,12 @@
 
 #pragma mark - action sheet methods
 
+-(void)doSomethingSpecial:(NSString *)specialThing {
+  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:specialThing delegate:self cancelButtonTitle:@"OK" destructiveButtonTitle:nil otherButtonTitles:nil, nil];
+  actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
+  [actionSheet showInView:self.view];
+}
+
 -(void)presentPassActionSheet {
   NSString *passString = (self.myMatch.type == kSelfGame) ?
     @"Are you sure? Passing once in solo mode ends the game." :
@@ -2881,6 +2892,14 @@
   UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:passString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:buttonText otherButtonTitles:nil, nil];
   actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
   actionSheet.tag = 1;
+  [actionSheet showInView:self.view];
+}
+
+-(void)presentNotEnoughInPileActionSheet {
+  NSString *notEnoughString = @"There aren't enough dyadminoes left in the pile.";
+
+  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:notEnoughString delegate:self cancelButtonTitle:@"OK" destructiveButtonTitle:nil otherButtonTitles:nil, nil];
+  actionSheet.actionSheetStyle = UIActionSheetStyleBlackOpaque;
   [actionSheet showInView:self.view];
 }
 
@@ -2913,6 +2932,7 @@
 }
 
 -(void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+  NSLog(@"will dismiss action sheet");
   NSString *buttonText = [actionSheet buttonTitleAtIndex:buttonIndex];
   
     // resign button

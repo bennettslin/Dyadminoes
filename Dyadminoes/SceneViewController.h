@@ -41,5 +41,6 @@
 -(void)activityIndicatorStart:(BOOL)start;
 -(void)removeChildViewController:(UIViewController *)childVC;
 -(void)startAnimatingBackground;
+-(void)rememberMostRecentMatch:(Match *)match;
 
 @end
