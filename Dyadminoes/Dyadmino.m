@@ -102,6 +102,14 @@
   [self establishSizeOfSprite:self.pc2Sprite];
 }
 
+-(void)selectAndPositionFace:(Face *)face {
+  
+}
+
+-(void)selectAndPositionDyadmino {
+  
+}
+
 -(void)selectAndPositionSprites {
   if (self.pcMode == kPCModeLetter) {
     if (!self.pc1Sprite || self.pc1Sprite == self.pc1NumberSprite) {
@@ -122,6 +130,10 @@
       [self addChild:self.pc2Sprite];
     }
   }
+  
+  self.zRotation = 0.f;
+  self.pc1Sprite.zRotation = 0.f;
+  self.pc2Sprite.zRotation = 0.f;
   
   CGFloat hoverResizeFactor = (self.isTouchThenHoverResized) ? kDyadminoHoverResizeFactor : 1.f;
   CGFloat zoomResizeFactor = (self.isZoomResized) ? kZoomResizeFactor : 1.f;
@@ -170,6 +182,7 @@
 }
 
 -(void)orientBySnapNode:(SnapPoint *)snapNode {
+  
   switch (snapNode.snapPointType) {
     case kSnapPointRack:
       self.orientation = (self.orientation <= 1 || self.orientation >= 5) ? 0 : 3;
@@ -178,6 +191,7 @@
       self.orientation = self.tempReturnOrientation;
       break;
   }
+  
   [self selectAndPositionSprites];
 }
 
@@ -420,6 +434,7 @@
         }
         
           // or else put this in an animation
+        
         [self selectAndPositionSprites];
       }
     }
@@ -482,7 +497,7 @@
       [self.delegate layoutOrRefreshRackFieldAndDyadminoesFromUndo:YES withAnimation:NO];
     }
   }];
-  SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
+  SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime * 5];
   SKAction *sequenceAction = undo ?
     [SKAction sequence:@[shrinkAction, repositionAction]] :
     [SKAction sequence:@[shrinkAction, repositionAction, growAction]];
@@ -490,14 +505,39 @@
 }
 
 -(void)animateFlip {
+  
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   self.isRotating = YES;
+  [self animateOneThirdFlipClockwise:YES times:3 withFullFlip:YES];
+}
+
+-(void)animateOneThirdFlipClockwise:(BOOL)clockwise times:(NSUInteger)times withFullFlip:(BOOL)fullFlip {
+  CGFloat radians = [self getRadiansFromDegree:60] * (clockwise ? 1 : -1);
+  __block NSUInteger counter = times;
   
-  SKAction *nextFrame = [SKAction runBlock:^{
-    self.orientation = (self.orientation + 1) % 6;
-    [self selectAndPositionSprites];
+  SKAction *turnDyadmino = [SKAction rotateByAngle:-radians duration:kConstantTime / 3.5];
+  SKAction *turnFace = [SKAction rotateByAngle:radians duration:kConstantTime / 3.5];
+  SKAction *turnAction = [SKAction runBlock:^{
+    [self.pc1Sprite runAction:turnFace];
+    [self.pc2Sprite runAction:turnFace];
+    [self runAction:turnDyadmino completion:^{
+      self.orientation = (self.orientation + 1) % 6;
+      [self selectAndPositionSprites];
+      counter--;
+      if (counter > 0) {
+        [self animateOneThirdFlipClockwise:clockwise times:counter withFullFlip:fullFlip];
+      } else {
+        if (fullFlip) {
+          [self animateCompletionOfFullFlip];
+        }
+      }
+    }];
   }];
-  SKAction *waitTime = [SKAction waitForDuration:kRotateWait];
+  
+  [self runAction:turnAction];
+}
+
+-(void)animateCompletionOfFullFlip {
   SKAction *finishAction;
   
     // rotation
@@ -524,9 +564,7 @@
         // to ensure that finishAction is not nil
     }];
   }
-  
-  SKAction *completeAction = [SKAction sequence:@[nextFrame, waitTime, nextFrame, waitTime, nextFrame, finishAction]];
-  [self runAction:completeAction withKey:kActionFlip];
+  [self runAction:finishAction];
 }
 
 -(void)animateEaseIntoNodeAfterHover {
@@ -571,19 +609,19 @@
 
 -(void)animateFace:(SKSpriteNode *)face {
   if (face.parent == self) {
-      [face removeAllActions];
+    [face removeAllActions];
+    
     SKAction *begin = [SKAction runBlock:^{
       [self resetFaceScales];
     }];
-    SKAction *scaleIn = [SKAction scaleTo:kFaceScaleFactor duration:kFaceScaleInTime];
-    SKAction *scaleOut = [SKAction scaleTo:1.f duration:kFaceScaleOutTime];
-    
-      // FIXME: kludge way of ensuring that face is reset to right size
-      // when face is sounded immediately after dyadmino flip, and before ease into node
+    SKAction *scaleUp = [SKAction scaleTo:1.5f duration:0.05f];
+    SKAction *scaleOvershootDown = [SKAction scaleTo:0.75f duration:0.1f];
+    SKAction *scaleBounceBackUp = [SKAction scaleTo:1.f duration:0.025];
     SKAction *complete = [SKAction runBlock:^{
       [self establishSizeOfSprite:face];
     }];
-    SKAction *sequence = [SKAction sequence:@[begin, scaleIn, scaleOut, complete]];
+    SKAction *sequence = [SKAction sequence:@[begin, scaleUp, scaleOvershootDown, scaleBounceBackUp, complete]];
+    
     [face runAction:sequence withKey:kActionSoundFace];
   }
 }

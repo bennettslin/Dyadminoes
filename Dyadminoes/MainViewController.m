@@ -408,7 +408,7 @@
 
 -(void)activityIndicatorStart:(BOOL)start {
   if (start) {
-  [NSThread detachNewThreadSelector:@selector(transitionToSceneAnimationNewThread:) toTarget:self withObject:nil];
+    [NSThread detachNewThreadSelector:@selector(transitionToSceneAnimationNewThread:) toTarget:self withObject:nil];
   } else {
     [self resetActivityIndicatorAndDarkOverlay];
     [self stopAnimatingBackground];

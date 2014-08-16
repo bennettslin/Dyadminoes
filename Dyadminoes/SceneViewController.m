@@ -57,9 +57,15 @@
   self.PnPWaitLabel = [UILabel new];
   self.ReplayTurnLabel = [UILabel new];
   
-  self.topBarMessageLabel.frame = CGRectMake(50, 50, 100, 100);
-  self.PnPWaitLabel.frame = CGRectMake(200, 200, 100, 100);
-  self.ReplayTurnLabel.frame = CGRectMake(400, 400, 100, 100);
+  self.topBarMessageLabel.frame = CGRectMake(0, kTopBarHeight, self.view.frame.size.width, kTopBarHeight);
+  self.PnPWaitLabel.frame = CGRectMake(0, self.view.frame.size.height - kRackHeight, self.view.frame.size.width, kRackHeight);
+  self.ReplayTurnLabel.frame = CGRectMake(0, 0, self.view.frame.size.width, kTopBarHeight);
+  
+  self.topBarMessageLabel.adjustsFontSizeToFitWidth = YES;
+  self.PnPWaitLabel.adjustsFontSizeToFitWidth = YES;
+  self.ReplayTurnLabel.adjustsFontSizeToFitWidth = YES;
+  
+  
   
   [self.view addSubview:self.topBarMessageLabel];
   [self.view addSubview:self.PnPWaitLabel];

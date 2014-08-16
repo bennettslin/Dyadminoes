@@ -645,7 +645,7 @@
       if (face && face.parent != _hoveringDyadmino && !_pivotInProgress) {
         if ([face isKindOfClass:[Face class]]) {
           Dyadmino *resonatedDyadmino = (Dyadmino *)face.parent;
-          if (!resonatedDyadmino.hidden && !_boardZoomedOut &&
+          if (!resonatedDyadmino.hidden && !resonatedDyadmino.isRotating && !_boardZoomedOut &&
               (!_pnpBarUp || (_pnpBarUp && [resonatedDyadmino isOnBoard])) &&
               (!_replayMode || (_replayMode && [resonatedDyadmino isOnBoard]))) {
             

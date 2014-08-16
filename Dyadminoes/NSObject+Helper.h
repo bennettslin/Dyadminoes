@@ -93,17 +93,12 @@
 #define kHighPinchScale (kIsIPhone ? 1.3f : 1.15f)
 
   // animation constants
-#define kRotateWait 0.06f
 #define kConstantTime 0.175f // was 0.15f
 #define kAnimateHoverTime 0.775f
 #define kDoubleTapTime 0.225f
 
   // define action constants
 #define kActionShowRecentlyPlayed @"recentlyPlayed"
-
-#define kFaceScaleFactor 1.5f
-#define kFaceScaleInTime 0.05f
-#define kFaceScaleOutTime 0.125f
 
 #define kScoreScaleFactor 2.f
 #define kScoreScaleInTime 0.1f
