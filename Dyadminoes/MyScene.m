@@ -1405,7 +1405,7 @@
   
     // return to bypass updating labels and buttons
   
-  NSLog(@"handlebuttonpressed");
+//  NSLog(@"handlebuttonpressed");
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
 }
@@ -1485,8 +1485,7 @@
     return YES;
   } else {
     
-      // FIXME: show action sheet
-    
+      // won't get called unless error
     [self updateTopBarLabelsFinalTurn:YES animated:NO];
     [self updateTopBarButtons];
     return NO;
@@ -2139,7 +2138,11 @@
         [self.myDelegate animatePnPLabelGoOut:NO];
       }];
       SKAction *rackSequence = [SKAction sequence:@[rackMove, rackComplete]];
-      [_rackField runAction:rackSequence withKey:@"toggleRackField"];
+      
+      // FIXME: duplicate key yields exc_bad_access error
+      // removed keys; however, this does mean that something is being retained in block
+      // and that's not good!
+      [_rackField runAction:rackSequence];
       
     } else {
       [_pnpBar runAction:pnpSequenceAction withKey:@"togglePnpBar"];
@@ -2163,7 +2166,7 @@
       
       pnpCompleteAction = [SKAction runBlock:^{
         _pnpBar.hidden = YES;
-        [_rackField runAction:rackSequence withKey:@"toggleRackField"];
+        [_rackField runAction:rackSequence];
       }];
 
     } else {
@@ -2307,14 +2310,14 @@
       _swapField.hidden = YES;
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
-    [_swapField runAction:sequenceAction];
+    [_swapField runAction:sequenceAction withKey:@"toggleSwap"];
     
       // board action
       // FIXME: when board is moved to top in swap mode, board goes down, then pops back up
     CGFloat swapBuffer = (_boardField.position.y > _boardField.highestYPos) ? _boardField.highestYPos : _boardField.position.y - (kRackHeight / 2);
       
     SKAction *moveBoardAction = [SKAction moveToY:swapBuffer duration:kConstantTime];
-    [_boardField runAction:moveBoardAction];
+    [_boardField runAction:moveBoardAction withKey:@"boardMoveFromSwap"];
 
   } else {
     _fieldActionInProgress = YES;
@@ -2327,11 +2330,11 @@
       _fieldActionInProgress = NO;
     }];
     SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
-    [_swapField runAction:sequenceAction];
+    [_swapField runAction:sequenceAction withKey:@"toggleSwap"];
     
       // board action
     SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y + kRackHeight / 2 duration:kConstantTime];
-    [_boardField runAction:moveBoardAction];
+    [_boardField runAction:moveBoardAction withKey:@"boardMoveFromSwap"];
   }
 }
 

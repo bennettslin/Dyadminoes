@@ -17,8 +17,8 @@
 
 @interface Board ()
 
-@property (strong, nonatomic) SKSpriteNode *backgroundNodeZoomedIn;
-@property (strong, nonatomic) SKSpriteNode *backgroundNodeZoomedOut;
+//@property (strong, nonatomic) SKSpriteNode *backgroundNodeZoomedIn;
+//@property (strong, nonatomic) SKSpriteNode *backgroundNodeZoomedOut;
 
 @property (strong, nonatomic) NSMutableSet *dequeuedCells;
 @property (strong, nonatomic) SKTexture *cellTexture;
@@ -294,21 +294,21 @@
 //    [self zoomInBackgroundImage];
   }
 
-  self.backgroundNodeZoomedIn.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
-  self.backgroundNodeZoomedOut.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
+//  self.backgroundNodeZoomedIn.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
+//  self.backgroundNodeZoomedOut.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
 }
 
--(void)toggleBackgroundAlphaZeroed:(BOOL)zeroed animated:(BOOL)animated {
-  
-  CGFloat desiredAlpha = zeroed ? 0.f : kBackgroundFullAlpha;
-  SKAction *fadeAlpha = [SKAction fadeAlphaTo:desiredAlpha duration:kConstantTime * 0.9f]; // a little faster than field move
-  
-  if (animated) {
-    [self.backgroundNodeZoomedIn runAction:fadeAlpha];
-  } else {
-    self.backgroundNodeZoomedIn.alpha = desiredAlpha;
-  }
-}
+//-(void)toggleBackgroundAlphaZeroed:(BOOL)zeroed animated:(BOOL)animated {
+//  
+//  CGFloat desiredAlpha = zeroed ? 0.f : kBackgroundFullAlpha;
+//  SKAction *fadeAlpha = [SKAction fadeAlphaTo:desiredAlpha duration:kConstantTime * 0.9f]; // a little faster than field move
+//  
+//  if (animated) {
+//    [self.backgroundNodeZoomedIn runAction:fadeAlpha];
+//  } else {
+//    self.backgroundNodeZoomedIn.alpha = desiredAlpha;
+//  }
+//}
 
 #pragma mark - cell methods
 
@@ -940,86 +940,86 @@
   // these might be used for replay mode
 #pragma mark - background image methods
 
--(void)colourBackgroundForReplay {
-  self.backgroundNodeZoomedIn.color = kGold;
-  self.backgroundNodeZoomedOut.color = kGold;
-}
-
--(void)colourBackgroundForPnP {
-  self.backgroundNodeZoomedIn.color = kSkyBlue;
-  self.backgroundNodeZoomedOut.color = kSkyBlue;
-}
-
--(void)colourBackgroundForNormalPlay {
-  self.backgroundNodeZoomedIn.color = kBackgroundBoardColour;
-  self.backgroundNodeZoomedOut.color = kBackgroundBoardColour;
-}
-
--(void)showBackgroundNode:(SKSpriteNode *)backgroundNode {
-  backgroundNode.hidden = NO;
-  if (!backgroundNode.parent) {
-    [self addChild:backgroundNode];
-  }
-}
-
--(void)hideBackgroundNode:(SKSpriteNode *)backgroundNode {
-  backgroundNode.hidden = YES;
-  if (backgroundNode.parent) {
-    [backgroundNode removeFromParent];
-  }
-}
-
--(void)zoomInBackgroundImage {
-  [self showBackgroundNode:self.backgroundNodeZoomedIn];
-  [self hideBackgroundNode:self.backgroundNodeZoomedOut];
-}
-
--(void)zoomOutBackgroundImage {
-  [self showBackgroundNode:self.backgroundNodeZoomedOut];
-  [self hideBackgroundNode:self.backgroundNodeZoomedIn];
-}
-
--(void)initLoadBackgroundNodes {
-  UIImage *backgroundImage = [UIImage imageNamed:@"BachMassBackgroundCropped"];
-  CGImageRef backgroundCGImage = backgroundImage.CGImage;
-  
-  CGRect textureSizeZoomedIn = CGRectMake(self.position.x, self.position.y, backgroundImage.size.width, backgroundImage.size.height);
-  UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
-  CGContextRef contextZoomedIn = UIGraphicsGetCurrentContext();
-    // Core Graphics coordinates are upside down from Sprite Kit's
-  CGContextScaleCTM(contextZoomedIn, 1.0, -1.0);
-  CGContextDrawTiledImage(contextZoomedIn, textureSizeZoomedIn, backgroundCGImage);
-  UIImage *tiledBackgroundZoomedIn = UIGraphicsGetImageFromCurrentImageContext();
-  UIGraphicsEndImageContext();
-  
-  SKTexture *backgroundTextureZoomedIn = [SKTexture textureWithCGImage:tiledBackgroundZoomedIn.CGImage];
-  self.backgroundNodeZoomedIn = [[SKSpriteNode alloc] initWithTexture:backgroundTextureZoomedIn];
-  self.backgroundNodeZoomedIn.color = kBackgroundBoardColour;
-  self.backgroundNodeZoomedIn.colorBlendFactor = 0.5f;
-  self.backgroundNodeZoomedIn.alpha = kBackgroundFullAlpha;
-  self.backgroundNodeZoomedIn.texture = backgroundTextureZoomedIn;
-  self.backgroundNodeZoomedIn.zPosition = kZPositionBackgroundNode;
-  
-  CGRect textureSizeZoomedOut = CGRectMake(self.position.x + self.size.width / 2, self.position.y - self.size.height / 2, backgroundImage.size.width, backgroundImage.size.height);
-  UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
-  CGContextRef contextZoomedOut = UIGraphicsGetCurrentContext();
-    // Core Graphics coordinates are upside down from Sprite Kit's
-  CGContextScaleCTM(contextZoomedOut, 0.5, -0.5);
-  CGContextDrawTiledImage(contextZoomedOut, textureSizeZoomedOut, backgroundCGImage);
-  UIImage *tiledBackgroundZoomedOut = UIGraphicsGetImageFromCurrentImageContext();
-  UIGraphicsEndImageContext();
-  
-  SKTexture *backgroundTextureZoomedOut = [SKTexture textureWithCGImage:tiledBackgroundZoomedOut.CGImage];
-  self.backgroundNodeZoomedOut = [[SKSpriteNode alloc] initWithTexture:backgroundTextureZoomedOut];
-  self.backgroundNodeZoomedOut.color = kBackgroundBoardColour;
-  self.backgroundNodeZoomedOut.colorBlendFactor = 0.5f;
-  self.backgroundNodeZoomedOut.alpha = kBackgroundFullAlpha;
-  self.backgroundNodeZoomedOut.texture = backgroundTextureZoomedOut;
-  self.backgroundNodeZoomedOut.zPosition = kZPositionBackgroundNode;
-  
-    // zoom background node is always there
+//-(void)colourBackgroundForReplay {
+//  self.backgroundNodeZoomedIn.color = kGold;
+//  self.backgroundNodeZoomedOut.color = kGold;
+//}
+//
+//-(void)colourBackgroundForPnP {
+//  self.backgroundNodeZoomedIn.color = kSkyBlue;
+//  self.backgroundNodeZoomedOut.color = kSkyBlue;
+//}
+//
+//-(void)colourBackgroundForNormalPlay {
+//  self.backgroundNodeZoomedIn.color = kBackgroundBoardColour;
+//  self.backgroundNodeZoomedOut.color = kBackgroundBoardColour;
+//}
+//
+//-(void)showBackgroundNode:(SKSpriteNode *)backgroundNode {
+//  backgroundNode.hidden = NO;
+//  if (!backgroundNode.parent) {
+//    [self addChild:backgroundNode];
+//  }
+//}
+//
+//-(void)hideBackgroundNode:(SKSpriteNode *)backgroundNode {
+//  backgroundNode.hidden = YES;
+//  if (backgroundNode.parent) {
+//    [backgroundNode removeFromParent];
+//  }
+//}
+//
+//-(void)zoomInBackgroundImage {
+//  [self showBackgroundNode:self.backgroundNodeZoomedIn];
+//  [self hideBackgroundNode:self.backgroundNodeZoomedOut];
+//}
+//
+//-(void)zoomOutBackgroundImage {
+//  [self showBackgroundNode:self.backgroundNodeZoomedOut];
+//  [self hideBackgroundNode:self.backgroundNodeZoomedIn];
+//}
+//
+//-(void)initLoadBackgroundNodes {
+//  UIImage *backgroundImage = [UIImage imageNamed:@"BachMassBackgroundCropped"];
+//  CGImageRef backgroundCGImage = backgroundImage.CGImage;
+//  
+//  CGRect textureSizeZoomedIn = CGRectMake(self.position.x, self.position.y, backgroundImage.size.width, backgroundImage.size.height);
+//  UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
+//  CGContextRef contextZoomedIn = UIGraphicsGetCurrentContext();
+//    // Core Graphics coordinates are upside down from Sprite Kit's
+//  CGContextScaleCTM(contextZoomedIn, 1.0, -1.0);
+//  CGContextDrawTiledImage(contextZoomedIn, textureSizeZoomedIn, backgroundCGImage);
+//  UIImage *tiledBackgroundZoomedIn = UIGraphicsGetImageFromCurrentImageContext();
+//  UIGraphicsEndImageContext();
+//  
+//  SKTexture *backgroundTextureZoomedIn = [SKTexture textureWithCGImage:tiledBackgroundZoomedIn.CGImage];
+//  self.backgroundNodeZoomedIn = [[SKSpriteNode alloc] initWithTexture:backgroundTextureZoomedIn];
+//  self.backgroundNodeZoomedIn.color = kBackgroundBoardColour;
+//  self.backgroundNodeZoomedIn.colorBlendFactor = 0.5f;
+//  self.backgroundNodeZoomedIn.alpha = kBackgroundFullAlpha;
+//  self.backgroundNodeZoomedIn.texture = backgroundTextureZoomedIn;
+//  self.backgroundNodeZoomedIn.zPosition = kZPositionBackgroundNode;
+//  
+//  CGRect textureSizeZoomedOut = CGRectMake(self.position.x + self.size.width / 2, self.position.y - self.size.height / 2, backgroundImage.size.width, backgroundImage.size.height);
+//  UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
+//  CGContextRef contextZoomedOut = UIGraphicsGetCurrentContext();
+//    // Core Graphics coordinates are upside down from Sprite Kit's
+//  CGContextScaleCTM(contextZoomedOut, 0.5, -0.5);
+//  CGContextDrawTiledImage(contextZoomedOut, textureSizeZoomedOut, backgroundCGImage);
+//  UIImage *tiledBackgroundZoomedOut = UIGraphicsGetImageFromCurrentImageContext();
+//  UIGraphicsEndImageContext();
+//  
+//  SKTexture *backgroundTextureZoomedOut = [SKTexture textureWithCGImage:tiledBackgroundZoomedOut.CGImage];
+//  self.backgroundNodeZoomedOut = [[SKSpriteNode alloc] initWithTexture:backgroundTextureZoomedOut];
+//  self.backgroundNodeZoomedOut.color = kBackgroundBoardColour;
+//  self.backgroundNodeZoomedOut.colorBlendFactor = 0.5f;
+//  self.backgroundNodeZoomedOut.alpha = kBackgroundFullAlpha;
+//  self.backgroundNodeZoomedOut.texture = backgroundTextureZoomedOut;
+//  self.backgroundNodeZoomedOut.zPosition = kZPositionBackgroundNode;
+//  
+//    // zoom background node is always there
 //  [self zoomInBackgroundImage];
-}
+//}
 
 #pragma mark - legality methods
 

@@ -178,6 +178,7 @@
         self.currentPlayer = nextPlayer;
         
         [self.delegate handleSwitchToNextPlayer];
+        
         return nextPlayer;
       }
     }

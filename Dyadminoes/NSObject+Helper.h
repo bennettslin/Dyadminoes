@@ -86,11 +86,11 @@
 
   // scene view constants
 #define kScenePlayerLabelFontSize (kIsIPhone ? 20.f : 24.f)
-#define kSceneLabelFontSize (kIsIPhone ? 14.f : 18.f)
+#define kSceneLabelFontSize (kIsIPhone ? 17.5f : 22.5f)
 
 #define kTopBarTurnPileLabelsWidth (kTopBarHeight / 2)
 #define kTopBarPlayerLabelHeight (kTopBarHeight / 5)
-#define kTopBarPlayerLabelWidth kTopBarHeight
+#define kTopBarPlayerLabelWidth (kTopBarHeight * 1.25)
 #define kTopBarScoreLabelWidth (kTopBarPlayerLabelWidth / 3)
 #define kTopBarXEdgeBuffer (kTopBarHeight / 6)
 

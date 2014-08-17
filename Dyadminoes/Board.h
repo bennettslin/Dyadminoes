@@ -84,7 +84,7 @@
 #pragma mark - zoom methods
 
 -(void)repositionCellsForZoomWithSwap:(BOOL)swap andGameEnded:(BOOL)gameEnded;
--(void)toggleBackgroundAlphaZeroed:(BOOL)zeroed animated:(BOOL)animated;
+//-(void)toggleBackgroundAlphaZeroed:(BOOL)zeroed animated:(BOOL)animated;
 
 #pragma mark - cell methods
 

@@ -62,7 +62,7 @@
 -(void)instantiateBarAndRackLabels {
   
   self.turnLabel = [UILabel new];
-  self.turnLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneLabelFontSize * 1.25];
+  self.turnLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneLabelFontSize];
   self.turnLabel.adjustsFontSizeToFitWidth = YES;
   [self.turnPileCountView addSubview:self.turnLabel];
   
@@ -101,7 +101,7 @@
   
   self.turnLabel.frame = CGRectMake(self.view.frame.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize);
   
-  self.pileCountLabel.frame = CGRectMake(self.view.frame.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer + kSceneLabelFontSize * 1.25, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize);
+  self.pileCountLabel.frame = CGRectMake(self.view.frame.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer + kSceneLabelFontSize, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize);
   
   self.topBarMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, kTopBarHeight, self.view.frame.size.width - (kTopBarXEdgeBuffer * 2), kScenePlayerLabelFontSize);
   
