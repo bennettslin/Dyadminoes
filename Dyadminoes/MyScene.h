@@ -48,5 +48,6 @@
 -(void)animateTopBarLabelsGoOut:(BOOL)goOut;
 -(void)animateReplayLabelGoOut:(BOOL)goOut;
 -(void)animatePnPLabelGoOut:(BOOL)goOut;
+-(void)animateScoreLabelFlash:(UILabel *)scoreLabel;
 
 @end

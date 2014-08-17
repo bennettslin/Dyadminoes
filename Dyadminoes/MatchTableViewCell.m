@@ -52,7 +52,6 @@
     
     UILabel *scoreLabel = [[UILabel alloc] init];
     scoreLabel.font = [UIFont fontWithName:kFontModern size:(kCellRowHeight / 4.5)];
-    scoreLabel.textColor = [UIColor brownColor];
     scoreLabel.textAlignment = NSTextAlignmentCenter;
     scoreLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     scoreLabel.frame = CGRectMake(scoreLabel.frame.origin.x, scoreLabel.frame.origin.y, kScoreLabelWidth, kScoreLabelHeight);
@@ -130,6 +129,16 @@
       scoreLabel.text = (player && !(player.resigned && self.myMatch.type != kSelfGame)) ?
       [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
       
+      if (self.myMatch.gameHasEnded) {
+        if ([self.myMatch.wonPlayers containsObject:player]) {
+          scoreLabel.textColor = kScoreWonGold;
+        } else {
+          scoreLabel.textColor = kScoreLostGray;
+        }
+      } else {
+        scoreLabel.textColor = kScoreNormalBrown;
+      }
+      
         // player label
       playerLabel.text = player ? player.playerName : @"";
       [playerLabel sizeToFit];
@@ -142,7 +151,7 @@
       
       labelView.frame = CGRectMake(labelView.frame.origin.x, labelView.frame.origin.y, playerLabel.frame.size.width + kPlayerLabelWidthPadding, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
       labelView.center = CGPointMake(playerLabel.center.x,
-                                     playerLabel.center.y - (kCellRowHeight / 40.f));
+                                     playerLabel.center.y - (playerLabel.frame.size.height / 40.f));
       labelView.layer.cornerRadius = labelView.frame.size.height / 2.f;
       labelView.clipsToBounds = YES;
       
@@ -232,7 +241,7 @@
     playerLabel.center = CGPointMake(playerLabel.center.x, [self labelHeightForMaxPosition:sortedScores.count andPlayerPosition:playerPosition]);
     labelView.center = CGPointMake(playerLabel.center.x,
                                    playerLabel.center.y - (kCellRowHeight / 40.f));
-    scoreLabel.center = CGPointMake(playerLabel.center.x, playerLabel.center.y + kStaveYHeight * 1.5f);
+    scoreLabel.center = CGPointMake(playerLabel.center.x, playerLabel.center.y + kStaveYHeight * 1.75f);
     
     UIImageView *fermataImageView = self.fermataImageViewArray[i];
     if (fermataImageView.superview) {

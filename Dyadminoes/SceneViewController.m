@@ -74,7 +74,7 @@
   self.topBarMessageLabel = [UILabel new];
   self.topBarMessageLabel.font = [UIFont fontWithName:kFontHarmony size:kScenePlayerLabelFontSize * 1.25];
   self.topBarMessageLabel.adjustsFontSizeToFitWidth = YES;
-  [self.view addSubview:self.topBarMessageLabel];
+  [self.view insertSubview:self.topBarMessageLabel aboveSubview:self.playerLabelsView];
 //  self.topBarMessageLabel.hidden = YES;
 
   self.ReplayTurnLabel = [UILabel new];
@@ -99,11 +99,11 @@
     //  NSLog(@"sceneVC view will appear");
   _pinchStillCounts = YES;
   
-  self.turnLabel.frame = CGRectMake(self.view.frame.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize);
+  self.turnLabel.frame = CGRectMake(self.view.frame.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize * 1.25);
   
-  self.pileCountLabel.frame = CGRectMake(self.view.frame.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer + kSceneLabelFontSize, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize);
+  self.pileCountLabel.frame = CGRectMake(self.view.frame.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer + kSceneLabelFontSize, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize * 1.25);
   
-  self.topBarMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, kTopBarHeight, self.view.frame.size.width - (kTopBarXEdgeBuffer * 2), kScenePlayerLabelFontSize);
+  self.topBarMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, kTopBarHeight, self.view.frame.size.width - (kTopBarXEdgeBuffer * 2), kScenePlayerLabelFontSize * 1.25);
   
   CGFloat desiredPnPY = (self.myMatch.type == kPnPGame && !self.myMatch.gameHasEnded) ?
   self.view.frame.size.height - (kRackHeight * 0.95) :
@@ -148,8 +148,15 @@
 
 -(void)setUnchangingPlayerLabelProperties {
   
-  CGFloat topBarPadding = (self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2) - kTopBarPlayerLabelWidth - kTopBarScoreLabelWidth - (kButtonWidth * 5) - kTopBarTurnPileLabelsWidth) / 3;
-  CGFloat playerLabelHeight = (kTopBarHeight - (kTopBarYEdgeBuffer * 2)) / self.myMatch.players.count;
+  CGFloat topBarXPadding = (self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2) - kTopBarPlayerLabelWidth - kTopBarScoreLabelWidth - (kButtonWidth * 5) - kTopBarTurnPileLabelsWidth) / 3;
+  
+  CGFloat yPadding = kTopBarYEdgeBuffer / 2;
+  
+    // if less than four players, divide in three; otherwise divide in four
+    // slightly larger than topBarHeight
+  CGFloat playerLabelHeight = (self.myMatch.players.count < 4) ?
+  (kTopBarHeight * 1.12 - (kTopBarYEdgeBuffer) - (yPadding * 2)) / 3 :
+  (kTopBarHeight * 1.12 - (kTopBarYEdgeBuffer) - (yPadding * 3)) / 4;
   
   for (int i = 0; i < kMaxNumPlayers; i++) {
     CellBackgroundView *labelView = self.playerLabelViewsArray[i];
@@ -159,20 +166,20 @@
     [self.playerLabelsView addSubview:playerLabel];
     [self.playerLabelsView addSubview:scoreLabel];
     
-    playerLabel.font = [UIFont fontWithName:kFontModern size:kTopBarPlayerLabelHeight * 1.2];
+    playerLabel.font = [UIFont fontWithName:kFontModern size:playerLabelHeight];
     playerLabel.adjustsFontSizeToFitWidth = YES;
     playerLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
-    playerLabel.frame = CGRectMake(kTopBarXEdgeBuffer, kTopBarYEdgeBuffer + playerLabelHeight * i, kTopBarPlayerLabelWidth, playerLabelHeight);
+    playerLabel.frame = CGRectMake(kTopBarXEdgeBuffer, kTopBarYEdgeBuffer + (playerLabelHeight + yPadding) * i, kTopBarPlayerLabelWidth, playerLabelHeight);
     
-    scoreLabel.font = [UIFont fontWithName:kFontModern size:kTopBarPlayerLabelHeight];
+    scoreLabel.font = [UIFont fontWithName:kFontModern size:playerLabelHeight * 0.9];
     scoreLabel.adjustsFontSizeToFitWidth = YES;
-    scoreLabel.textColor = [UIColor brownColor];
+    scoreLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     scoreLabel.textAlignment = NSTextAlignmentRight;
-    scoreLabel.frame = CGRectMake(kTopBarXEdgeBuffer + kTopBarPlayerLabelWidth + topBarPadding, kTopBarYEdgeBuffer + playerLabelHeight * i, kTopBarScoreLabelWidth, playerLabelHeight);
+    scoreLabel.frame = CGRectMake(kTopBarXEdgeBuffer + kTopBarPlayerLabelWidth + topBarXPadding, kTopBarYEdgeBuffer + (playerLabelHeight + yPadding) * i + (playerLabel.frame.size.height / 30.f), kTopBarScoreLabelWidth, playerLabelHeight);
     
-    labelView.frame = CGRectMake(0, 0, kTopBarPlayerLabelWidth + topBarPadding + kTopBarScoreLabelWidth + kPlayerLabelWidthPadding, kTopBarPlayerLabelHeight * 1.2);
-    labelView.center = CGPointMake(playerLabel.center.x + (kTopBarScoreLabelWidth + topBarPadding) / 2,
-                                   playerLabel.center.y - (kCellRowHeight / 40.f));
+    labelView.frame = CGRectMake(0, 0, kTopBarPlayerLabelWidth + topBarXPadding + kTopBarScoreLabelWidth + kPlayerLabelWidthPadding, playerLabelHeight * 1.12);
+    labelView.center = CGPointMake(playerLabel.center.x + (kTopBarScoreLabelWidth + topBarXPadding) / 2,
+                                   playerLabel.center.y - (playerLabel.frame.size.height / 20.f));
     
     labelView.layer.cornerRadius = labelView.frame.size.height / 2.f;
     labelView.clipsToBounds = YES;
@@ -204,7 +211,34 @@
     // make animations later
   label.text = text;
   label.textColor = colour;
-  label.hidden = !show;
+  
+  if (toFade) {
+    
+    [label.layer removeAllAnimations];
+    label.hidden = NO;
+    label.alpha = 0.f;
+    
+    [UIView animateWithDuration:2.f delay:0.f options:UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionAutoreverse animations:^{
+      label.alpha = 1.f;
+    } completion:^(BOOL finished) {
+      label.alpha = 0.f;
+    }];
+    
+//    [UIView animateWithDuration:.25f animations:^{
+//      label.alpha = 1.f;
+//    } completion:^(BOOL finished) {
+//      [UIView animateWithDuration:1.75f animations:^{
+//        label.alpha = 1.f;
+//      } completion:^(BOOL finished) {
+//        [UIView animateWithDuration:0.5f animations:^{
+//          label.alpha = 0.f;
+//        } completion:^(BOOL finished) {
+//        }];
+//      }];
+//    }];
+  } else {
+    label.hidden = !show;
+  }
 }
 
 -(void)updatePlayerLabelsWithFinalTurn:(BOOL)finalTurn andAnimatedScore:(BOOL)animated {
@@ -235,8 +269,17 @@
       } else {
         scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
       }
-//      NSLog(@"scoreText is %@", scoreText);
       
+      if (self.myMatch.gameHasEnded) {
+        if ([self.myMatch.wonPlayers containsObject:player]) {
+          scoreLabel.textColor = kScoreWonGold;
+        } else {
+          scoreLabel.textColor = kScoreLostGray;
+        }
+      } else {
+        scoreLabel.textColor = kScoreNormalBrown;
+      }
+
         // FIXME: so that this is animated
         // score label
       if (player == self.myMatch.currentPlayer && (finalTurn || self.myMatch.tempScore > 0)) {
@@ -251,13 +294,13 @@
       } else {
         scoreLabel.text = scoreText;
       }
-      
+
         // background colours depending on match results
       labelView.backgroundColourCanBeChanged = YES;
       if (!self.myMatch.gameHasEnded && player == self.myMatch.currentPlayer) {
         labelView.backgroundColor = [kMainDarkerYellow colorWithAlphaComponent:0.5f];
-      } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
-        labelView.backgroundColor = [kEndedMatchCellDarkColour colorWithAlphaComponent:0.5f];
+//      } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
+//        labelView.backgroundColor = [kEndedMatchCellDarkColour colorWithAlphaComponent:0.5f];
       } else {
         labelView.backgroundColor = [UIColor clearColor];
       }
@@ -278,7 +321,7 @@
   
   CGFloat desiredMessageLabelX = goOut ? -self.view.frame.size.width : kTopBarXEdgeBuffer;
   [UIView animateWithDuration:kConstantTime delay:0 options:option animations:^{
-    self.topBarMessageLabel.frame = CGRectMake(desiredMessageLabelX, kTopBarHeight, self.view.frame.size.width - (kTopBarXEdgeBuffer * 2), kScenePlayerLabelFontSize);
+    self.topBarMessageLabel.frame = CGRectMake(desiredMessageLabelX, kTopBarHeight, self.view.frame.size.width - (kTopBarXEdgeBuffer * 2), kScenePlayerLabelFontSize * 1.25);
   } completion:nil];
   
   CGFloat desiredTurnPileLabelsX = goOut ? kTopBarXEdgeBuffer + kTopBarTurnPileLabelsWidth : 0;
@@ -306,6 +349,10 @@
   [UIView animateWithDuration:kConstantTime delay:0 options:option animations:^{
       self.PnPWaitLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredY, self.view.frame.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
     } completion:nil];
+}
+
+-(void)animateScoreLabelFlash:(UILabel *)scoreLabel {
+  
 }
 
 -(void)stopActivityIndicator {

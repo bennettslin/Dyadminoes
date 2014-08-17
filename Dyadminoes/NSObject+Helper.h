@@ -88,6 +88,7 @@
 #define kScenePlayerLabelFontSize (kIsIPhone ? 20.f : 24.f)
 #define kSceneLabelFontSize (kIsIPhone ? 17.5f : 22.5f)
 
+  // topBar total is: buffer + playerLabel + padding + scoreLabel + padding + five buttons + padding + pileTurnLabels + buffer
 #define kTopBarTurnPileLabelsWidth (kTopBarHeight / 2)
 #define kTopBarPlayerLabelHeight (kTopBarHeight / 5)
 #define kTopBarPlayerLabelWidth (kTopBarHeight * 1.25)
@@ -192,9 +193,12 @@
 
 #define kResignedGray [UIColor colorWithRed:0.8f green:0.77f blue:0.75f alpha:1.f]
 
-#define kMainBarsColour [UIColor colorWithRed:0.37f green:0.24f blue:0.21f alpha:1.f]
-#define kMainButtonsColour [UIColor colorWithRed:0.82f green:0.62f blue:0.f alpha:1.f]
+#define kScoreNormalBrown [UIColor brownColor]
+#define kScoreWonGold [UIColor colorWithRed:0.82f green:0.62f blue:0.f alpha:1.f]
+#define kScoreLostGray [UIColor colorWithRed:0.7f green:0.67f blue:0.65f alpha:1.f]
 
+#define kMainBarsColour [UIColor colorWithRed:0.37f green:0.24f blue:0.21f alpha:1.f]
+#define kMainButtonsColour [UIColor colorWithRed:.64f green:.57f blue:.38f alpha:1.f]
 #define kEndedMatchCellLightColour [UIColor colorWithRed:0.94f green:0.85f blue:0.71f alpha:1.f]
 #define kEndedMatchCellDarkColour [UIColor colorWithRed:0.83f green:0.74f blue:0.6f alpha:1.f]
 #define kEndedMatchCellSelectedColour [UIColor colorWithRed:0.96f green:.88f blue:0.76f alpha:1.f]
@@ -214,7 +218,7 @@
 #define kSkyBlue [SKColor colorWithRed:.7f green:.8f blue:.9f alpha:1.f]
 #define kFieldPurple [SKColor colorWithRed:.3f green:.2f blue:.4f alpha:1.f]
 #define kSolidBlue [SKColor colorWithRed:.15f green:.19f blue:.55f alpha:1.f]
-#define kGold [SKColor colorWithRed:.64f green:.57f blue:.38f alpha:1.f]
+//#define kGold 
 #define kTestRed [SKColor colorWithRed:1.f green:.7f blue:.7f alpha:1.f]
 #define kDarkGreen [SKColor colorWithRed:0.f green:.6f blue:.2f alpha:1.f]
 #define kBarBrown [SKColor colorWithRed:0.3f green:0.15f blue:0.1f alpha:1.f]

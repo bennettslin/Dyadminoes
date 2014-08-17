@@ -440,7 +440,7 @@
 
 -(void)layoutSwapField {
     // initial instantiation of swap field sprite
-  _swapField = [[Rack alloc] initWithColour:kGold
+  _swapField = [[Rack alloc] initWithColour:kScoreWonGold
                                     andSize:CGSizeMake(self.frame.size.width, kRackHeight)
                              andAnchorPoint:CGPointZero
                                 andPosition:CGPointMake(self.frame.size.width, kRackHeight)
