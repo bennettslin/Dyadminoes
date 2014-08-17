@@ -45,4 +45,8 @@
 -(void)updatePlayerLabelsWithFinalTurn:(BOOL)finalTurn andAnimatedScore:(BOOL)animated;
 -(void)barOrRackLabel:(SceneVCLabel)sceneLabel show:(BOOL)show toFade:(BOOL)toFade withText:(NSString *)text andColour:(UIColor *)colour;
 
+-(void)animateTopBarLabelsGoOut:(BOOL)goOut;
+-(void)animateReplayLabelGoOut:(BOOL)goOut;
+-(void)animatePnPLabelGoOut:(BOOL)goOut;
+
 @end

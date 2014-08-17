@@ -76,10 +76,10 @@
 
 #pragma mark - background image methods
 
--(void)initLoadBackgroundNodes;
--(void)colourBackgroundForReplay;
--(void)colourBackgroundForPnP;
--(void)colourBackgroundForNormalPlay;
+//-(void)initLoadBackgroundNodes;
+//-(void)colourBackgroundForReplay;
+//-(void)colourBackgroundForPnP;
+//-(void)colourBackgroundForNormalPlay;
 
 #pragma mark - zoom methods
 

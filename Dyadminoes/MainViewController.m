@@ -184,10 +184,14 @@
   [self.myModel sortMyMatches];
   [self.tableView reloadData];
   
-    // FIXME: doesn't work
-  [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+//  [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+}
+
+-(void)viewDidAppear:(BOOL)animated {
   if (self.mostRecentMatch) {
-    [self.tableView scrollToRowAtIndexPath:self.indexPathForMostRecentMatch atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self.tableView scrollToRowAtIndexPath:self.indexPathForMostRecentMatch atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    });
   }
 }
 
@@ -197,7 +201,7 @@
 }
 
 -(void)stopAnimatingBackground {
-  NSLog(@"stopAnimatingBackground method called");
+//  NSLog(@"stopAnimatingBackground method called");
   self.backgroundShouldBeStill = YES; // this might be extraneous
   [self.backgroundView.layer removeAllAnimations];
 }
@@ -224,9 +228,9 @@
   
   cell.delegate = self;
   cell.myMatch = self.myModel.myMatches[indexPath.row];
-  NSLog(@"myMatch is %@", cell.myMatch);
+//  NSLog(@"myMatch is %@", cell.myMatch);
   if (cell.myMatch == self.mostRecentMatch) {
-    NSLog(@"indexPath is %i", indexPath.row);
+//    NSLog(@"indexPath is %i", indexPath.row);
     self.indexPathForMostRecentMatch = indexPath;
   }
   [cell setProperties];

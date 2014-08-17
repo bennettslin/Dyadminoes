@@ -20,7 +20,7 @@
 
   self.returnOrStartButton = [[Button alloc] initWithName:@"start" andColor:[SKColor grayColor]
                                            andSize:kLargeButtonSize
-                                       andPosition:CGPointMake(self.frame.size.width - (kLargeButtonWidth * 1.5), kRackHeight / 2)
+                                       andPosition:CGPointMake(self.frame.size.width - (kLargeButtonWidth * 0.5) - kPnPXEdgeBuffer, kRackHeight / 2)
                                       andZPosition:kZPositionTopBarButton];
   [self node:self.returnOrStartButton shouldBeEnabled:YES];
   

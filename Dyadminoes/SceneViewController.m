@@ -53,27 +53,32 @@
 }
 
 -(void)instantiateBarAndRackLabels {
+  
   self.topBarMessageLabel = [UILabel new];
-  self.PnPWaitLabel = [UILabel new];
-  self.ReplayTurnLabel = [UILabel new];
-  
-  self.topBarMessageLabel.frame = CGRectMake(0, kTopBarHeight, self.view.frame.size.width, kTopBarHeight);
-  self.PnPWaitLabel.frame = CGRectMake(0, self.view.frame.size.height - kRackHeight, self.view.frame.size.width, kRackHeight);
-  self.ReplayTurnLabel.frame = CGRectMake(0, 0, self.view.frame.size.width, kTopBarHeight);
-  
+  self.topBarMessageLabel.frame = CGRectMake(kTopBarGeneralLeftOffset, kTopBarHeight, self.view.frame.size.width, kScenePlayerLabelFontSize * 1.25);
+  self.topBarMessageLabel.font = [UIFont fontWithName:kFontHarmony size:kScenePlayerLabelFontSize * 1.25];
+  self.topBarMessageLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
   self.topBarMessageLabel.adjustsFontSizeToFitWidth = YES;
-  self.PnPWaitLabel.adjustsFontSizeToFitWidth = YES;
-  self.ReplayTurnLabel.adjustsFontSizeToFitWidth = YES;
-  
-  
-  
   [self.view addSubview:self.topBarMessageLabel];
-  [self.view addSubview:self.PnPWaitLabel];
+//  self.topBarMessageLabel.hidden = YES;
+
+  self.ReplayTurnLabel = [UILabel new];
+  self.ReplayTurnLabel.frame = CGRectMake(kReplayXEdgeBuffer, kTopBarHeight * 0.05, self.view.frame.size.width - (kReplayXEdgeBuffer * 2), kTopBarHeight);
+  self.ReplayTurnLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 24 : 48)];
+  self.ReplayTurnLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+  self.ReplayTurnLabel.textAlignment = NSTextAlignmentCenter;
+  self.ReplayTurnLabel.adjustsFontSizeToFitWidth = YES;
   [self.view addSubview:self.ReplayTurnLabel];
+//  self.ReplayTurnLabel.hidden = YES;
   
-  self.topBarMessageLabel.hidden = YES;
-  self.PnPWaitLabel.hidden = YES;
-  self.ReplayTurnLabel.hidden = YES;
+  self.PnPWaitLabel = [UILabel new];
+  self.PnPWaitLabel.frame = CGRectMake(kPnPXEdgeBuffer, self.view.frame.size.height - (kRackHeight * 0.95), self.view.frame.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
+  self.PnPWaitLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 96 : 192)];
+  self.PnPWaitLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+  self.PnPWaitLabel.textAlignment = NSTextAlignmentCenter;
+  self.PnPWaitLabel.adjustsFontSizeToFitWidth = YES;
+  [self.view addSubview:self.PnPWaitLabel];
+//  self.PnPWaitLabel.hidden = YES;
 }
 
 -(void)barOrRackLabel:(SceneVCLabel)sceneLabel show:(BOOL)show toFade:(BOOL)toFade withText:(NSString *)text andColour:(UIColor *)colour {
@@ -100,14 +105,22 @@
 
 -(void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
-  NSLog(@"sceneVC view will appear");
+//  NSLog(@"sceneVC view will appear");
   _pinchStillCounts = YES;
+  
+  self.topBarMessageLabel.frame = CGRectMake(kTopBarGeneralLeftOffset, kTopBarHeight, self.view.frame.size.width, kScenePlayerLabelFontSize * 1.25);
+  
+  CGFloat desiredPnPY = (self.myMatch.type == kPnPGame && !self.myMatch.gameHasEnded) ?
+      self.view.frame.size.height - (kRackHeight * 0.95) :
+      self.view.frame.size.height + (kRackHeight * 0.05);
+  self.PnPWaitLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredPnPY, self.view.frame.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
+  
+  self.ReplayTurnLabel.frame = CGRectMake(kReplayXEdgeBuffer, -kTopBarHeight * 0.95, self.view.frame.size.width - (kReplayXEdgeBuffer * 2), kTopBarHeight);
 }
 
 -(void)createAndConfigureScene {
     // Configure the scene view
   self.mySceneView = (SKView *)self.view;
-  
   self.mySceneView.showsDrawCount = YES;
   self.mySceneView.showsFPS = YES;
   self.mySceneView.showsNodeCount = YES;
@@ -140,6 +153,8 @@
 
 -(void)setUnchangingPlayerLabelProperties {
 
+  CGFloat playerLabelHeight = (kTopBarHeight - (kTopBarYEdgeBuffer * 2)) / self.myMatch.players.count;
+  
   for (int i = 0; i < kMaxNumPlayers; i++) {
     UILabel *playerLabel = self.playerLabelsArray[i];
     CellBackgroundView *labelView = self.playerLabelViewsArray[i];
@@ -149,18 +164,18 @@
     [self.view addSubview:playerLabel];
     [self.view addSubview:scoreLabel];
 
-    playerLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? kScenePlayerLabelHeight : kScenePlayerLabelHeight)];
+    playerLabel.font = [UIFont fontWithName:kFontModern size:kScenePlayerLabelHeight * 1.2];
     playerLabel.adjustsFontSizeToFitWidth = YES;
     playerLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
-    playerLabel.frame = CGRectMake(kTopBarGeneralLeftOffset, kScenePlayerLabelHeight / 2 + kScenePlayerLabelHeight * i, kScenePlayerLabelWidth, kScenePlayerLabelHeight);
+    playerLabel.frame = CGRectMake(kTopBarGeneralLeftOffset, kTopBarYEdgeBuffer + playerLabelHeight * i, kScenePlayerLabelWidth, playerLabelHeight);
 
-    scoreLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? kScenePlayerLabelHeight * 0.8 : kScenePlayerLabelHeight * 0.8)];
+    scoreLabel.font = [UIFont fontWithName:kFontModern size:kScenePlayerLabelHeight];
     scoreLabel.adjustsFontSizeToFitWidth = YES;
     scoreLabel.textColor = [UIColor brownColor];
     scoreLabel.textAlignment = NSTextAlignmentRight;
-    scoreLabel.frame = CGRectMake(kTopBarGeneralLeftOffset + kScenePlayerLabelWidth, kScenePlayerLabelHeight / 2 + kScenePlayerLabelHeight * i, kSceneScoreLabelWidth, kScenePlayerLabelHeight);
+    scoreLabel.frame = CGRectMake(kTopBarGeneralLeftOffset + kScenePlayerLabelWidth, kTopBarYEdgeBuffer + playerLabelHeight * i, kSceneScoreLabelWidth, playerLabelHeight);
     
-    labelView.frame = CGRectMake(0, 0, kScenePlayerLabelWidth + kPlayerLabelWidthPadding + kSceneScoreLabelWidth, playerLabel.frame.size.height + kPlayerLabelHeightPadding / 2);
+    labelView.frame = CGRectMake(0, 0, kScenePlayerLabelWidth + kPlayerLabelWidthPadding + kSceneScoreLabelWidth, kScenePlayerLabelHeight * 1.2);
     labelView.center = CGPointMake(playerLabel.center.x + kSceneScoreLabelWidth / 2,
                                    playerLabel.center.y - (kCellRowHeight / 40.f));
     
@@ -229,17 +244,49 @@
   }
 }
 
+-(void)animateTopBarLabelsGoOut:(BOOL)goOut {
+  
+  
+  
+}
+
+-(void)animateReplayLabelGoOut:(BOOL)goOut {
+  
+  CGFloat desiredY = goOut ? -kTopBarHeight * 0.95 : kTopBarHeight * 0.05;
+  
+  UIViewAnimationOptions option = goOut ? UIViewAnimationOptionCurveEaseIn : UIViewAnimationOptionCurveEaseOut;
+  [UIView animateWithDuration:kConstantTime delay:0 options:option animations:^{
+      self.ReplayTurnLabel.frame = CGRectMake(kReplayXEdgeBuffer, desiredY, self.view.frame.size.width - (kReplayXEdgeBuffer * 2), kTopBarHeight);
+    } completion:nil];
+}
+
+-(void)animatePnPLabelGoOut:(BOOL)goOut {
+  
+  CGFloat desiredY = goOut ? self.view.frame.size.height + (kRackHeight * 0.05) :
+      self.view.frame.size.height - (kRackHeight * 0.95);
+  
+  UIViewAnimationOptions option = goOut ? UIViewAnimationOptionCurveEaseIn : UIViewAnimationOptionCurveEaseOut;
+  [UIView animateWithDuration:kConstantTime delay:0 options:option animations:^{
+      self.PnPWaitLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredY, self.view.frame.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
+    } completion:nil];
+}
+
 -(void)stopActivityIndicator {
   [self.delegate activityIndicatorStart:NO];
 }
 
 -(void)backToMainMenu {
+  
+  self.topBarMessageLabel.text = @"";
+  self.PnPWaitLabel.text = @"";
+  self.ReplayTurnLabel.text = @"";
+  
+  [self.delegate startAnimatingBackground];
   [self saveModel];
   [self.delegate rememberMostRecentMatch:self.myMatch];
   
   [self.mySceneView presentScene:nil];
   [self dismissViewControllerAnimated:YES completion:nil];
-  [self.delegate startAnimatingBackground];
 }
 
 #pragma mark - event handling methods

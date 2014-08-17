@@ -24,6 +24,15 @@
   BOOL _alreadyAddedChildren;
 }
 
+#pragma mark - custom setters and getters
+
+//-(void)setZRotation:(CGFloat)zRotation {
+//  NSLog(@"set Z rotation of dyadmino %@", self.name);
+//  [super setZRotation:zRotation];
+//  self.pc1Sprite.zRotation = -zRotation;
+//  self.pc2Sprite.zRotation = -zRotation;
+//}
+
 #pragma mark - init and layout methods
 
 -(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode

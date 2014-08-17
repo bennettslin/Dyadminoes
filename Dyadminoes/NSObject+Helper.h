@@ -60,6 +60,16 @@
 #define kStaveYHeight (kCellHeight / 10.f)
 #define kStaveWidthDivision ((kCellWidth - (kStaveXBuffer * 2.f)) / 9.5f)
 
+  // top bar constants
+#define kTopBarYEdgeBuffer (kTopBarHeight / 10)
+
+  // PnP bar constants
+#define kPnPXEdgeBuffer (kRackHeight / 2)
+#define kPnPPaddingBetweenLabelAndButton (kPnPXEdgeBuffer / 2)
+
+  // replay bar constants
+#define kReplayXEdgeBuffer (kTopBarHeight / 2)
+
   // dyadmino size constants
 #define kDyadminoFaceDiameter (kDyadminoFaceRadius * 2)
 #define kDyadminoFaceWideRadius (kDyadminoFaceRadius * kTwoOverSquareRootOfThree)
