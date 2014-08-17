@@ -14,18 +14,18 @@
 
 @implementation ReplayBar
 
--(void)populateWithTopReplayLabels {
-  
-  NSMutableDictionary *tempDictionary = [NSMutableDictionary new];
-  self.statusLabel = [[Label alloc] initWithName:@"status"
-                                    andFontColor:[SKColor whiteColor]
-                                     andFontSize:kReplayLabelFontSize
-                                     andPosition:CGPointMake(kTopBarGeneralLeftOffset, kRackHeight / 2)
-                                    andZPosition:kZPositionLogMessage
-                          andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
-  [tempDictionary setValue:self.statusLabel forKey:self.statusLabel.name];
-  self.allLabels = [NSDictionary dictionaryWithDictionary:tempDictionary];
-}
+//-(void)populateWithTopReplayLabels {
+//  
+//  NSMutableDictionary *tempDictionary = [NSMutableDictionary new];
+//  self.statusLabel = [[Label alloc] initWithName:@"status"
+//                                    andFontColor:[SKColor whiteColor]
+//                                     andFontSize:kReplayLabelFontSize
+//                                     andPosition:CGPointMake(kTopBarGeneralLeftOffset, kRackHeight / 2)
+//                                    andZPosition:kZPositionLogMessage
+//                          andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
+//  [tempDictionary setValue:self.statusLabel forKey:self.statusLabel.name];
+//  self.allLabels = [NSDictionary dictionaryWithDictionary:tempDictionary];
+//}
 
 -(void)populateWithBottomReplayButtons {
   

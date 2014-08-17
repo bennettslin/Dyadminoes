@@ -28,6 +28,8 @@
 @property (strong, nonatomic) NSArray *playerLabelViewsArray;
 @property (strong, nonatomic) NSArray *scoreLabelsArray;
 
+@property (strong, nonatomic) UILabel *pileCountLabel;
+@property (strong, nonatomic) UILabel *turnLabel;
 @property (strong, nonatomic) UILabel *topBarMessageLabel;
 @property (strong, nonatomic) UILabel *PnPWaitLabel;
 @property (strong, nonatomic) UILabel *ReplayTurnLabel;

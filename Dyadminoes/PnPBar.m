@@ -15,8 +15,6 @@
 @implementation PnPBar
 
 -(void)populateWithPnPButtonsAndLabel {
-  
-  CGFloat leftOffset = kLargeButtonWidth;
 
   self.returnOrStartButton = [[Button alloc] initWithName:@"start" andColor:[SKColor grayColor]
                                            andSize:kLargeButtonSize
@@ -24,14 +22,14 @@
                                       andZPosition:kZPositionTopBarButton];
   [self node:self.returnOrStartButton shouldBeEnabled:YES];
   
-  self.waitingForPlayerLabel = [[Label alloc] initWithName:@"waitPlayer"
-                                    andFontColor:kTestRed
-                                     andFontSize:kPnPLabelFontSize
-                                     andPosition:CGPointMake(leftOffset, kRackHeight / 2)
-                                    andZPosition:kZPositionLogMessage
-                          andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
-  
-  self.allLabels = [NSDictionary dictionaryWithObject:self.waitingForPlayerLabel forKey:self.waitingForPlayerLabel.name];
+//  self.waitingForPlayerLabel = [[Label alloc] initWithName:@"waitPlayer"
+//                                    andFontColor:kTestRed
+//                                     andFontSize:kPnPLabelFontSize
+//                                     andPosition:CGPointMake(leftOffset, kRackHeight / 2)
+//                                    andZPosition:kZPositionLogMessage
+//                          andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
+//  
+//  self.allLabels = [NSDictionary dictionaryWithObject:self.waitingForPlayerLabel forKey:self.waitingForPlayerLabel.name];
 }
 
 @end

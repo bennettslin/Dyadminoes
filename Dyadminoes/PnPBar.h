@@ -10,7 +10,7 @@
 
 @interface PnPBar : Bar
 
-@property (strong, nonatomic) Label *waitingForPlayerLabel;
+//@property (strong, nonatomic) Label *waitingForPlayerLabel;
 
 -(void)populateWithPnPButtonsAndLabel;
 

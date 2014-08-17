@@ -10,7 +10,7 @@
 
 @interface ReplayBar : Bar
 
-@property (strong, nonatomic) Label *statusLabel;
+//@property (strong, nonatomic) Label *statusLabel;
 
   // replay buttons
 @property (strong, nonatomic) Button *firstTurnButton;
@@ -18,7 +18,7 @@
 @property (strong, nonatomic) Button *nextTurnButton;
 @property (strong, nonatomic) Button *lastTurnButton;
 
--(void)populateWithTopReplayLabels;
+//-(void)populateWithTopReplayLabels;
 -(void)populateWithBottomReplayButtons;
 
 @end
