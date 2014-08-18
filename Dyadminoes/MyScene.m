@@ -2056,8 +2056,9 @@
 }
 
 -(NSString *)updatePnPLabelForNewPlayer {
-  return [NSString stringWithFormat:@"%@, it's your turn!", self.myMatch.currentPlayer.playerName];
-//  [_pnpBar updateLabel:_pnpBar.waitingForPlayerLabel withText:waitPlayerText andColour:[self.myMatch colourForPlayer:self.myMatch.currentPlayer]];
+  return kIsIPhone ?
+      [NSString stringWithFormat:@"%@,\nit's your turn!", self.myMatch.currentPlayer.playerName] :
+      [NSString stringWithFormat:@"%@, it's your turn!", self.myMatch.currentPlayer.playerName];
 }
 
 #pragma mark - field animation methods
@@ -2222,19 +2223,22 @@
     
     SKAction *bottomMoveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
     bottomMoveAction.timingMode = SKActionTimingEaseOut;
-    
-    _rackField.position = CGPointZero;
-    SKAction *rackMove = [SKAction moveToY:-kRackHeight duration:kConstantTime];
-    rackMove.timingMode = SKActionTimingEaseIn;
-    SKAction *rackComplete = [SKAction runBlock:^{
-      [_replayBottom runAction:bottomMoveAction withKey:@"toggleReplayBottom"];
-    }];
-    SKAction *rackSequence = [SKAction sequence:@[rackMove, rackComplete]];
-    [_rackField runAction:rackSequence withKey:@"toggleRackField"];
 
-      // board action
-    if (self.myMatch.gameHasEnded) {
+    if (!self.myMatch.gameHasEnded) {
+      
+      _rackField.position = CGPointZero;
+      SKAction *rackMove = [SKAction moveToY:-kRackHeight duration:kConstantTime];
+      rackMove.timingMode = SKActionTimingEaseIn;
+      SKAction *rackComplete = [SKAction runBlock:^{
+        [_replayBottom runAction:bottomMoveAction withKey:@"toggleReplayBottom"];
+      }];
+      SKAction *rackSequence = [SKAction sequence:@[rackMove, rackComplete]];
+      [_rackField runAction:rackSequence withKey:@"toggleRackField"];
+      
+    } else {
+        [_replayBottom runAction:bottomMoveAction withKey:@"toggleReplayBottom"];
     
+        // board action
       [_boardField moveToYPosition:_boardField.position.y + (kRackHeight / 2) withBounce:NO duration:kConstantTime key:@"boardMoveReplayBegin" completionAction:nil];
     }
     
@@ -2259,30 +2263,40 @@
     SKAction *topReplaySequenceAction = [SKAction sequence:@[topReplayMoveAction, topReplayCompleteAction]];
     [_replayTop runAction:topReplaySequenceAction withKey:@"toggleReplayTop"];
     [self.myDelegate animateReplayLabelGoOut:YES];
-    
-    _rackField.hidden = NO;
-    _rackField.position = CGPointMake(0, -kRackHeight);
-    SKAction *rackMove = [SKAction moveToY:0 duration:kConstantTime];
-    rackMove.timingMode = SKActionTimingEaseOut;
-    SKAction *rackComplete = [SKAction runBlock:^{
-      _fieldActionInProgress = NO;
-    }];
-    SKAction *rackSequence = [SKAction sequence:@[rackMove, rackComplete]];
-    
+
     SKAction *bottomReplayMoveAction = [SKAction moveToY:-kRackHeight duration:kConstantTime];
     bottomReplayMoveAction.timingMode = SKActionTimingEaseIn;
-    SKAction *bottomReplayCompleteAction = [SKAction runBlock:^{
-      _replayBottom.hidden = YES;
-      [_rackField runAction:rackSequence withKey:@"toggleRackField"];
-    }];
-    SKAction *bottomSequenceAction = [SKAction sequence:@[bottomReplayMoveAction, bottomReplayCompleteAction]];
-    [_replayBottom runAction:bottomSequenceAction withKey:@"toggleReplayBottom"];
+    SKAction *bottomReplayCompleteAction;
     
-      // board action
-    if (self.myMatch.gameHasEnded) {
+    if (!self.myMatch.gameHasEnded) {
+      
+      _rackField.hidden = NO;
+      _rackField.position = CGPointMake(0, -kRackHeight);
+      SKAction *rackMove = [SKAction moveToY:0 duration:kConstantTime];
+      rackMove.timingMode = SKActionTimingEaseOut;
+      SKAction *rackComplete = [SKAction runBlock:^{
+        _fieldActionInProgress = NO;
+      }];
+      SKAction *rackSequence = [SKAction sequence:@[rackMove, rackComplete]];
+      
+      bottomReplayCompleteAction = [SKAction runBlock:^{
+        _replayBottom.hidden = YES;
+        [_rackField runAction:rackSequence withKey:@"toggleRackField"];
+      }];
+
+    } else {
+      
+      bottomReplayCompleteAction = [SKAction runBlock:^{
+        _replayBottom.hidden = YES;
+      }];
+    
+        // board action
       CGFloat buffer = (_boardField.position.y > _boardField.highestYPos) ? _boardField.highestYPos : _boardField.position.y - kRackHeight / 2;
       [_boardField moveToYPosition:buffer withBounce:NO duration:kConstantTime key:@"boardMoveReplayEnd" completionAction:nil];
     }
+    
+    SKAction *bottomSequenceAction = [SKAction sequence:@[bottomReplayMoveAction, bottomReplayCompleteAction]];
+    [_replayBottom runAction:bottomSequenceAction withKey:@"toggleReplayBottom"];
   }
 }
 

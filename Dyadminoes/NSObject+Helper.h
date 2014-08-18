@@ -35,7 +35,7 @@
 #define kLabelYPosition (kIsIPhone ? 5.f : 7.5f)
 #define kButtonWidth (kTopBarHeight / 1.5)
 #define kButtonSize CGSizeMake(kButtonWidth, kButtonWidth)
-#define kLargeButtonWidth (kRackHeight / 1.6)
+#define kLargeButtonWidth (kIsIPhone ? (kRackHeight / 2) : (kRackHeight / 1.6))
 #define kLargeButtonSize CGSizeMake(kLargeButtonWidth, kLargeButtonWidth)
 
   // animation constants
@@ -56,14 +56,14 @@
 #define kStaveWidthDivision ((kCellWidth - (kStaveXBuffer * 2.f)) / 9.5f)
 
   // top bar constants
-#define kTopBarYEdgeBuffer (kTopBarHeight / 10)
+#define kTopBarYEdgeBuffer (kIsIPhone ? (kTopBarHeight / 5) : (kTopBarHeight / 10))
 
   // PnP bar constants
-#define kPnPXEdgeBuffer (kRackHeight / 2)
-#define kPnPPaddingBetweenLabelAndButton (kPnPXEdgeBuffer / 2)
+#define kPnPXEdgeBuffer (kIsIPhone ? (kRackHeight / 7.5) : (kRackHeight / 2))
+#define kPnPPaddingBetweenLabelAndButton (kIsIPhone ? kPnPXEdgeBuffer : (kPnPXEdgeBuffer / 2))
 
   // replay bar constants
-#define kReplayXEdgeBuffer (kTopBarHeight / 2)
+#define kReplayXEdgeBuffer (kTopBarHeight / 2) // for labels
 
   // dyadmino size constants
 #define kDyadminoFaceDiameter (kDyadminoFaceRadius * 2)
@@ -85,13 +85,13 @@
 #define kMaxNumPlayers 4
 
   // scene view constants
-#define kScenePlayerLabelFontSize (kIsIPhone ? 20.f : 24.f)
-#define kSceneLabelFontSize (kIsIPhone ? 17.5f : 22.5f)
+#define kSceneMessageLabelFontSize 30.f
+#define kSceneLabelFontSize 22.5f
 
   // topBar total is: buffer + playerLabel + padding + scoreLabel + padding + five buttons + padding + pileTurnLabels + buffer
-#define kTopBarTurnPileLabelsWidth (kTopBarHeight / 2)
+#define kTopBarTurnPileLabelsWidth (kIsIPhone ? kTopBarHeight : (kTopBarHeight / 2))
 #define kTopBarPlayerLabelHeight (kTopBarHeight / 5)
-#define kTopBarPlayerLabelWidth (kTopBarHeight * 1.25)
+#define kTopBarPlayerLabelWidth (kIsIPhone ? (kTopBarHeight * 1.25) : (kTopBarHeight * 1.25))
 #define kTopBarScoreLabelWidth (kTopBarPlayerLabelWidth / 3)
 #define kTopBarXEdgeBuffer (kTopBarHeight / 6)
 

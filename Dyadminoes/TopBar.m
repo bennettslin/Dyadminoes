@@ -15,15 +15,15 @@
 -(void)populateWithTopBarButtons {
   
   CGFloat topBarPadding = (self.frame.size.width - (kTopBarXEdgeBuffer * 2) - kTopBarPlayerLabelWidth - kTopBarScoreLabelWidth - (kButtonWidth * 5) - kTopBarTurnPileLabelsWidth) / 3;
-  CGFloat topBarLeftOffset = kTopBarXEdgeBuffer + kTopBarPlayerLabelWidth + kTopBarScoreLabelWidth + (topBarPadding * 2) + (kButtonWidth / 2);
+  CGFloat topBarLeftOffset = kIsIPhone ?
+      ((self.frame.size.width - (kButtonWidth * 5)) / 2) + (kButtonWidth / 2) :
+      kTopBarXEdgeBuffer + kTopBarPlayerLabelWidth + kTopBarScoreLabelWidth + (topBarPadding * 2) + (kButtonWidth / 2);
   
   NSMutableArray *tempArray = [NSMutableArray new];
   CGFloat yPosition = kTopBarHeight / 2;
   
   NSArray *nameArray = @[@"games", @"replay", @"swap", @"pass", @"resign", @"debug"];
   NSArray *colourArray = @[[SKColor grayColor], [SKColor orangeColor], [SKColor redColor], [SKColor blueColor], [SKColor blackColor], [SKColor brownColor]];
-//  float xCoord[6] = {kButtonWidth, kButtonWidth * 2, kButtonWidth * 3, kButtonWidth * 4, kButtonWidth * 5, kButtonWidth * 6};
-//  float yCoord[6] = {yPosition, yPosition, yPosition, yPosition, yPosition, yPosition};
   
   for (int i = 0; i < 6; i++) {
     Button *button = [[Button alloc] initWithName:nameArray[i] andColor:colourArray[i] andSize:kButtonSize andPosition:CGPointMake(kButtonWidth * i + topBarLeftOffset, yPosition) andZPosition:kZPositionTopBarButton];

@@ -29,10 +29,10 @@
 
 -(void)viewDidLoad {
   [super viewDidLoad];
-  self.playerLabelsView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height)];
+  self.playerLabelsView = [[UIView alloc] initWithFrame:CGRectMake(0, (kIsIPhone ? kTopBarHeight - kTopBarYEdgeBuffer : 0), self.view.bounds.size.width, self.view.bounds.size.height)];
   [self.view addSubview:self.playerLabelsView];
   
-  self.turnPileCountView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height)];
+  self.turnPileCountView = [[UIView alloc] initWithFrame:CGRectMake(0, (kIsIPhone ? kTopBarHeight - kTopBarYEdgeBuffer : 0), self.view.bounds.size.width, self.view.bounds.size.height)];
   [self.view addSubview:self.turnPileCountView];
   
     // first version of app will not have device orientation
@@ -64,18 +64,19 @@
   self.turnLabel = [UILabel new];
   self.turnLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneLabelFontSize];
   self.turnLabel.adjustsFontSizeToFitWidth = YES;
+  self.turnLabel.textAlignment = NSTextAlignmentRight;
   [self.turnPileCountView addSubview:self.turnLabel];
   
   self.pileCountLabel = [UILabel new];
   self.pileCountLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneLabelFontSize];
   self.pileCountLabel.adjustsFontSizeToFitWidth = YES;
+  self.pileCountLabel.textAlignment = NSTextAlignmentRight;
   [self.turnPileCountView addSubview:self.pileCountLabel];
   
   self.topBarMessageLabel = [UILabel new];
-  self.topBarMessageLabel.font = [UIFont fontWithName:kFontHarmony size:kScenePlayerLabelFontSize * 1.25];
+  self.topBarMessageLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneMessageLabelFontSize];
   self.topBarMessageLabel.adjustsFontSizeToFitWidth = YES;
   [self.view insertSubview:self.topBarMessageLabel aboveSubview:self.playerLabelsView];
-//  self.topBarMessageLabel.hidden = YES;
 
   self.ReplayTurnLabel = [UILabel new];
   self.ReplayTurnLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 24 : 48)];
@@ -83,15 +84,14 @@
   self.ReplayTurnLabel.textAlignment = NSTextAlignmentCenter;
   self.ReplayTurnLabel.adjustsFontSizeToFitWidth = YES;
   [self.view addSubview:self.ReplayTurnLabel];
-//  self.ReplayTurnLabel.hidden = YES;
   
   self.PnPWaitLabel = [UILabel new];
   self.PnPWaitLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 96 : 192)];
   self.PnPWaitLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
   self.PnPWaitLabel.textAlignment = NSTextAlignmentCenter;
   self.PnPWaitLabel.adjustsFontSizeToFitWidth = YES;
+  self.PnPWaitLabel.numberOfLines = kIsIPhone ? 2 : 1;
   [self.view addSubview:self.PnPWaitLabel];
-//  self.PnPWaitLabel.hidden = YES;
 }
 
 -(void)viewWillAppear:(BOOL)animated {
@@ -103,7 +103,7 @@
   
   self.pileCountLabel.frame = CGRectMake(self.view.frame.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer + kSceneLabelFontSize, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize * 1.25);
   
-  self.topBarMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, kTopBarHeight, self.view.frame.size.width - (kTopBarXEdgeBuffer * 2), kScenePlayerLabelFontSize * 1.25);
+  self.topBarMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, kTopBarHeight * 1.125, self.view.frame.size.width - (kTopBarXEdgeBuffer * 2), kSceneMessageLabelFontSize);
   
   CGFloat desiredPnPY = (self.myMatch.type == kPnPGame && !self.myMatch.gameHasEnded) ?
   self.view.frame.size.height - (kRackHeight * 0.95) :
@@ -148,13 +148,15 @@
 
 -(void)setUnchangingPlayerLabelProperties {
   
-  CGFloat topBarXPadding = (self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2) - kTopBarPlayerLabelWidth - kTopBarScoreLabelWidth - (kButtonWidth * 5) - kTopBarTurnPileLabelsWidth) / 3;
+  CGFloat topBarXPadding = kIsIPhone ?
+  kTopBarScoreLabelWidth / 3 :
+  (self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2) - kTopBarPlayerLabelWidth - kTopBarScoreLabelWidth - (kButtonWidth * 5) - kTopBarTurnPileLabelsWidth) / 3;
   
   CGFloat yPadding = kTopBarYEdgeBuffer / 2;
   
     // if less than four players, divide in three; otherwise divide in four
     // slightly larger than topBarHeight
-  CGFloat playerLabelHeight = (self.myMatch.players.count < 4) ?
+  CGFloat playerLabelHeight = (kIsIPhone || self.myMatch.players.count < 4) ?
   (kTopBarHeight * 1.12 - (kTopBarYEdgeBuffer) - (yPadding * 2)) / 3 :
   (kTopBarHeight * 1.12 - (kTopBarYEdgeBuffer) - (yPadding * 3)) / 4;
   
@@ -311,22 +313,26 @@
 
 -(void)animateTopBarLabelsGoOut:(BOOL)goOut {
   
-  CGFloat topBarPadding = (self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2) - kTopBarPlayerLabelWidth - kTopBarScoreLabelWidth - (kButtonWidth * 5) - kTopBarTurnPileLabelsWidth) / 3;
+  CGFloat topBarXPadding = kIsIPhone ?
+  kTopBarScoreLabelWidth / 3 :
+  (self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2) - kTopBarPlayerLabelWidth - kTopBarScoreLabelWidth - (kButtonWidth * 5) - kTopBarTurnPileLabelsWidth) / 3;
   
-  CGFloat desiredPlayerLabelsX = goOut ? -(kTopBarXEdgeBuffer + kTopBarPlayerLabelWidth + topBarPadding + kTopBarScoreLabelWidth + kPlayerLabelWidthPadding / 2) : 0;
-  UIViewAnimationOptions option = goOut ? UIViewAnimationOptionCurveEaseIn : UIViewAnimationOptionCurveEaseOut;
+  CGFloat desiredPlayerLabelsX = goOut ? -(kTopBarXEdgeBuffer + kTopBarPlayerLabelWidth + topBarXPadding + kTopBarScoreLabelWidth + kPlayerLabelWidthPadding / 2) : 0;
+  UIViewAnimationOptions option = goOut ?
+  UIViewAnimationOptionCurveEaseIn | UIViewAnimationOptionBeginFromCurrentState :
+  UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState;
   [UIView animateWithDuration:kConstantTime - 0.05 delay:0.05 options:option animations:^{
-    self.playerLabelsView.frame = CGRectMake(desiredPlayerLabelsX, 0, self.view.frame.size.width, self.view.frame.size.height);
+    self.playerLabelsView.frame = CGRectMake(desiredPlayerLabelsX, (kIsIPhone ? kTopBarHeight - kTopBarYEdgeBuffer : 0), self.view.frame.size.width, self.view.frame.size.height);
   } completion:nil];
   
   CGFloat desiredMessageLabelX = goOut ? -self.view.frame.size.width : kTopBarXEdgeBuffer;
   [UIView animateWithDuration:kConstantTime delay:0 options:option animations:^{
-    self.topBarMessageLabel.frame = CGRectMake(desiredMessageLabelX, kTopBarHeight, self.view.frame.size.width - (kTopBarXEdgeBuffer * 2), kScenePlayerLabelFontSize * 1.25);
+    self.topBarMessageLabel.frame = CGRectMake(desiredMessageLabelX, kTopBarHeight * 1.125, self.view.frame.size.width - (kTopBarXEdgeBuffer * 2), kSceneMessageLabelFontSize);
   } completion:nil];
   
   CGFloat desiredTurnPileLabelsX = goOut ? kTopBarXEdgeBuffer + kTopBarTurnPileLabelsWidth : 0;
   [UIView animateWithDuration:kConstantTime delay:0 options:option animations:^{
-    self.turnPileCountView.frame = CGRectMake(desiredTurnPileLabelsX, 0, self.view.frame.size.width, self.view.frame.size.height);
+    self.turnPileCountView.frame = CGRectMake(desiredTurnPileLabelsX, (kIsIPhone ? kTopBarHeight - kTopBarYEdgeBuffer : 0), self.view.frame.size.width, self.view.frame.size.height);
   } completion:nil];
 }
 
