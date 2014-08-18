@@ -17,11 +17,6 @@
 @property (strong, nonatomic) Match *myMatch;
 @property (weak, nonatomic) id<MatchCellDelegate> delegate;
 
-@property (strong, nonatomic) NSArray *playerLabelsArray;
-@property (strong, nonatomic) NSArray *playerLabelViewsArray;
-@property (strong, nonatomic) NSArray *scoreLabelsArray;
-@property (strong, nonatomic) NSArray *fermataImageViewArray;
-
 -(void)setProperties;
 
 @end

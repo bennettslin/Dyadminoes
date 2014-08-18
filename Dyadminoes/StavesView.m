@@ -32,7 +32,7 @@
     CGContextSetStrokeColorWithColor(context, [staveColour colorWithAlphaComponent:0.7f].CGColor);
     CGContextSetLineWidth(context, lineWidth);
     
-    CGFloat yPosition = kStaveYHeight * (i + 3);
+    CGFloat yPosition = kStaveYHeight * (i + (kIsIPhone ? 2.5 : 3));
     CGContextMoveToPoint(context, kStaveXBuffer, yPosition); //start at this point
     
     CGFloat endXPoint = self.gameHasEnded ? (kCellWidth - kStaveXBuffer - kStaveYHeight / 2) : (kCellWidth - kStaveXBuffer);
@@ -51,13 +51,13 @@
     CGContextRef endLineContext = UIGraphicsGetCurrentContext();
     CGContextSetLineWidth(endLineContext, lineWidth * 2.5);
     CGContextSetStrokeColorWithColor(context, staveColour.CGColor);
-    CGContextMoveToPoint(endLineContext, kCellWidth - kStaveXBuffer - kStaveYHeight * 0.9, kStaveYHeight * 3);
-    CGContextAddLineToPoint(endLineContext, kCellWidth - kStaveXBuffer - kStaveYHeight * 0.9, kStaveYHeight * 7);
+    CGContextMoveToPoint(endLineContext, kCellWidth - kStaveXBuffer - kStaveYHeight * 0.9, kStaveYHeight * (kIsIPhone ? 2.5 : 3));
+    CGContextAddLineToPoint(endLineContext, kCellWidth - kStaveXBuffer - kStaveYHeight * 0.9, kStaveYHeight * (kIsIPhone ? 6.5 : 7));
     CGContextStrokePath(endLineContext);
     
     CGContextRef endBoxContext = UIGraphicsGetCurrentContext();
     CGContextSetFillColorWithColor(endBoxContext, staveColour.CGColor);
-    CGRect endRect = CGRectMake(kCellWidth - kStaveXBuffer - kStaveYHeight / 2, kStaveYHeight * 3 - lineWidth, kStaveYHeight / 2, kStaveYHeight * 4 + (lineWidth * 2));
+    CGRect endRect = CGRectMake(kCellWidth - kStaveXBuffer - kStaveYHeight / 2, kStaveYHeight * (kIsIPhone ? 2.5 : 3) - lineWidth, kStaveYHeight / 2, kStaveYHeight * 4 + (lineWidth * 2));
     CGContextFillRect(endBoxContext, endRect);
   }
 }

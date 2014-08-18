@@ -47,24 +47,23 @@
 #define kCornerRadius 25.f
 
   // table view cell constants
-#define kCellRowHeight (kIsIPhone ? 72.f : 90.f)
-#define kCellWidth (kIsIPhone ? 320.f : 648.f)
+#define kCellRowHeight (kIsIPhone ? 90.f : 90.f)
 #define kCellSeparatorBuffer (kCellRowHeight / 1.8f)
 #define kCellHeight (kCellRowHeight + kCellSeparatorBuffer)
-#define kStaveXBuffer (kCellWidth / 32.4f)
-#define kStaveYHeight (kCellHeight / 10.f)
-//#define kStaveWidthDivision ((kCellWidth - (kStaveXBuffer * 2.f)) / 9.5f)
 
-#define kCellClefWidth (kStaveYHeight * 3)
-#define kCellEndBarlineWidth (kCellClefWidth / 2) // not used to measure barline, only to figure out playerSlotWidth
-#define kCellPlayerSlotWidth ((kCellWidth - (kStaveXBuffer * 2) - kCellClefWidth - kCellEndBarlineWidth) / 4)
-#define kCellPlayerLabelWidth (kCellPlayerSlotWidth - kPlayerLabelWidthPadding) // leaves space for labelView padding
+#define kCellWidth (kIsIPhone ? 320.f : 648.f)
+#define kStaveXBuffer (kCellWidth / 36.f)
+#define kStaveYHeight (kIsIPhone ? (kCellHeight / 9.f) : (kCellHeight / 10.f))
+
+#define kCellClefWidth (kIsIPhone ? (kStaveYHeight * 2) : (kStaveYHeight * 3))
+#define kCellKeySigWidth (kIsIPhone ? (kCellClefWidth * 2) : (kCellClefWidth * 1.5))
+#define kCellEndBarlineWidth (kCellClefWidth / 3) // not used to measure barline, only to figure out playerSlotWidth
+#define kCellPlayerSlotWidth (kIsIPhone ? (kCellWidth - (kStaveXBuffer * 2) - kCellClefWidth - kCellKeySigWidth - kCellEndBarlineWidth - kPlayerLabelWidthPadding) : ((kCellWidth - (kStaveXBuffer * 2) - kCellClefWidth - kCellKeySigWidth - kCellEndBarlineWidth) / 4))
+#define kCellPlayerLabelWidth (kIsIPhone ? (kCellPlayerSlotWidth * 0.75) : (kCellPlayerSlotWidth - (kPlayerLabelWidthPadding / 2)))
 
   // cell and scene constants
-  //#define kPlayerLabelWidth (kIsIPhone ? kCellWidth / 6.f : kCellWidth / 5.8f)
 #define kPlayerLabelHeightPadding (kCellRowHeight / 12)
 #define kPlayerLabelWidthPadding (kCellWidth / 20)
-  //#define kScoreLabelWidth kPlayerLabelWidth
 #define kScoreLabelHeight (kCellRowHeight / 2.66666667)
 #define kMaxNumPlayers 4
 
