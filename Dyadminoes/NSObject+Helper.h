@@ -53,7 +53,20 @@
 #define kCellHeight (kCellRowHeight + kCellSeparatorBuffer)
 #define kStaveXBuffer (kCellWidth / 32.4f)
 #define kStaveYHeight (kCellHeight / 10.f)
-#define kStaveWidthDivision ((kCellWidth - (kStaveXBuffer * 2.f)) / 9.5f)
+//#define kStaveWidthDivision ((kCellWidth - (kStaveXBuffer * 2.f)) / 9.5f)
+
+#define kCellClefWidth (kStaveYHeight * 3)
+#define kCellEndBarlineWidth (kCellClefWidth / 2) // not used to measure barline, only to figure out playerSlotWidth
+#define kCellPlayerSlotWidth ((kCellWidth - (kStaveXBuffer * 2) - kCellClefWidth - kCellEndBarlineWidth) / 4)
+#define kCellPlayerLabelWidth (kCellPlayerSlotWidth - kPlayerLabelWidthPadding) // leaves space for labelView padding
+
+  // cell and scene constants
+  //#define kPlayerLabelWidth (kIsIPhone ? kCellWidth / 6.f : kCellWidth / 5.8f)
+#define kPlayerLabelHeightPadding (kCellRowHeight / 12)
+#define kPlayerLabelWidthPadding (kCellWidth / 20)
+  //#define kScoreLabelWidth kPlayerLabelWidth
+#define kScoreLabelHeight (kCellRowHeight / 2.66666667)
+#define kMaxNumPlayers 4
 
   // top bar constants
 #define kTopBarYEdgeBuffer (kIsIPhone ? (kTopBarHeight / 5) : (kTopBarHeight / 10))
@@ -75,14 +88,6 @@
   // view constants
 #define kBoardCoverAlpha 0.4f
 #define kZoomResizeFactor 0.5f
-
-  // cell and scene constants
-#define kPlayerLabelWidth (kIsIPhone ? kCellWidth / 6.f : kCellWidth / 5.8f)
-#define kPlayerLabelHeightPadding (kCellRowHeight / 12)
-#define kPlayerLabelWidthPadding (kPlayerLabelWidth / 4.84444444)
-#define kScoreLabelWidth kPlayerLabelWidth
-#define kScoreLabelHeight (kCellRowHeight / 2.66666667)
-#define kMaxNumPlayers 4
 
   // scene view constants
 #define kSceneMessageLabelFontSize 30.f

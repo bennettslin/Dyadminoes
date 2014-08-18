@@ -179,7 +179,7 @@
     scoreLabel.textAlignment = NSTextAlignmentRight;
     scoreLabel.frame = CGRectMake(kTopBarXEdgeBuffer + kTopBarPlayerLabelWidth + topBarXPadding, kTopBarYEdgeBuffer + (playerLabelHeight + yPadding) * i + (playerLabel.frame.size.height / 30.f), kTopBarScoreLabelWidth, playerLabelHeight);
     
-    labelView.frame = CGRectMake(0, 0, kTopBarPlayerLabelWidth + topBarXPadding + kTopBarScoreLabelWidth + kPlayerLabelWidthPadding, playerLabelHeight * 1.12);
+    labelView.frame = CGRectMake(0, 0, kTopBarPlayerLabelWidth + topBarXPadding + kTopBarScoreLabelWidth  + kTopBarPlayerLabelWidth / 5, playerLabelHeight * 1.12); // playerLabelWidth / 5 is extra space at ends of labelView
     labelView.center = CGPointMake(playerLabel.center.x + (kTopBarScoreLabelWidth + topBarXPadding) / 2,
                                    playerLabel.center.y - (playerLabel.frame.size.height / 20.f));
     
@@ -317,7 +317,7 @@
   kTopBarScoreLabelWidth / 3 :
   (self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2) - kTopBarPlayerLabelWidth - kTopBarScoreLabelWidth - (kButtonWidth * 5) - kTopBarTurnPileLabelsWidth) / 3;
   
-  CGFloat desiredPlayerLabelsX = goOut ? -(kTopBarXEdgeBuffer + kTopBarPlayerLabelWidth + topBarXPadding + kTopBarScoreLabelWidth + kPlayerLabelWidthPadding / 2) : 0;
+  CGFloat desiredPlayerLabelsX = goOut ? -(kTopBarXEdgeBuffer + kTopBarPlayerLabelWidth + topBarXPadding + kTopBarScoreLabelWidth + kTopBarPlayerLabelWidth / 5) : 0;
   UIViewAnimationOptions option = goOut ?
   UIViewAnimationOptionCurveEaseIn | UIViewAnimationOptionBeginFromCurrentState :
   UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState;

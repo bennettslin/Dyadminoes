@@ -1250,7 +1250,7 @@
     [self togglePnPBarSyncWithRack:YES animated:YES];
   } else {
     if (!self.myMatch.gameHasEnded) {
-      [self toggleRackGoOut:YES completionAction:nil];
+      [self toggleRackGoOut:YES];
     }
   }
 
@@ -1586,7 +1586,7 @@
 
 -(void)handleEndGame {
   [self updateTopBarLabelsFinalTurn:NO animated:YES];
-  [self toggleRackGoOut:YES completionAction:nil];
+  [self toggleRackGoOut:YES];
   [self doSomethingSpecial:@"acknowledge that game has ended"];
 }
 
@@ -2087,16 +2087,16 @@
   _dyadminoesHollowed = _dyadminoesStationary;
 }
 
--(void)toggleRackGoOut:(BOOL)goOut completionAction:(SKAction *)completionAction {
+-(void)toggleRackGoOut:(BOOL)goOut {
     // this will only happen during PnP or replay animation
   CGFloat desiredY = goOut ? -kRackHeight : 0;
   _rackField.position = goOut ? CGPointZero : CGPointMake(0, -kRackHeight);
   
-  [_rackField moveToYPosition:desiredY withBounce:!goOut duration:kConstantTime key:@"toggleRackField" completionAction:completionAction];
+  [_rackField moveToYPosition:desiredY withBounce:!goOut duration:kConstantTime key:@"toggleRackField"];
   
   if (goOut && self.myMatch.gameHasEnded) {
     CGFloat buffer = (_boardField.position.y > _boardField.highestYPos) ? _boardField.highestYPos : _boardField.position.y - kRackHeight / 2;
-    [_boardField moveToYPosition:buffer withBounce:NO duration:kConstantTime key:@"boardMoveReplayEnd" completionAction:nil];
+    [_boardField moveToYPosition:buffer withBounce:NO duration:kConstantTime key:@"boardMoveReplayEnd"];
   }
 }
 
@@ -2239,7 +2239,7 @@
         [_replayBottom runAction:bottomMoveAction withKey:@"toggleReplayBottom"];
     
         // board action
-      [_boardField moveToYPosition:_boardField.position.y + (kRackHeight / 2) withBounce:NO duration:kConstantTime key:@"boardMoveReplayBegin" completionAction:nil];
+      [_boardField moveToYPosition:_boardField.position.y + (kRackHeight / 2) withBounce:NO duration:kConstantTime key:@"boardMoveReplayBegin"];
     }
     
       // it's not in replay mode
@@ -2292,7 +2292,7 @@
     
         // board action
       CGFloat buffer = (_boardField.position.y > _boardField.highestYPos) ? _boardField.highestYPos : _boardField.position.y - kRackHeight / 2;
-      [_boardField moveToYPosition:buffer withBounce:NO duration:kConstantTime key:@"boardMoveReplayEnd" completionAction:nil];
+      [_boardField moveToYPosition:buffer withBounce:NO duration:kConstantTime key:@"boardMoveReplayEnd"];
     }
     
     SKAction *bottomSequenceAction = [SKAction sequence:@[bottomReplayMoveAction, bottomReplayCompleteAction]];

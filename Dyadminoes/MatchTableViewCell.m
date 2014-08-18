@@ -19,6 +19,9 @@
 @property (strong, nonatomic) UILabel *lastPlayedLabel;
 @property (strong, nonatomic) StavesView *stavesView;
 @property (strong, nonatomic) UIImageView *clefImage;
+@property (strong, nonatomic) UIImageView *quarterRestImage;
+@property (strong, nonatomic) UIImageView *halfRestImage;
+
 
 @end
 
@@ -54,7 +57,6 @@
     scoreLabel.font = [UIFont fontWithName:kFontModern size:(kCellRowHeight / 4.5)];
     scoreLabel.textAlignment = NSTextAlignmentCenter;
     scoreLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
-    scoreLabel.frame = CGRectMake(scoreLabel.frame.origin.x, scoreLabel.frame.origin.y, kScoreLabelWidth, kScoreLabelHeight);
     scoreLabel.adjustsFontSizeToFitWidth = YES;
     [self addSubview:scoreLabel];
     [tempScoreLabelsArray addObject:scoreLabel];
@@ -77,6 +79,14 @@
   self.clefImage = [UIImageView new];
   self.clefImage.contentMode = UIViewContentModeScaleAspectFit;
   [self addSubview:self.clefImage];
+  
+  self.quarterRestImage = [UIImageView new];
+  self.quarterRestImage.contentMode = UIViewContentModeScaleAspectFit;
+  [self addSubview:self.quarterRestImage];
+  
+  self.halfRestImage = [UIImageView new];
+  self.halfRestImage.contentMode = UIViewContentModeScaleAspectFit;
+  [self addSubview:self.halfRestImage];
   
   self.lastPlayedLabel = [[UILabel alloc] initWithFrame:CGRectMake(kStaveXBuffer, (kCellRowHeight / 10) * 11.5, kCellWidth - kStaveXBuffer * 2, kStaveYHeight * 2)];
   self.lastPlayedLabel.textAlignment = NSTextAlignmentRight;
@@ -108,8 +118,10 @@
   }
   
   dispatch_async(dispatch_get_main_queue(), ^{
+    
     [self updateStaves];
     [self updateClef];
+    [self updateRestImages];
     
       // remove fermatas, they will be decided later
     for (UIImageView *fermataImageView in self.fermataImageViewArray) {
@@ -125,56 +137,73 @@
       CellBackgroundView *labelView = self.playerLabelViewsArray[i];
       UILabel *scoreLabel = self.scoreLabelsArray[i];
       
-        // score label
-      scoreLabel.text = (player && !(player.resigned && self.myMatch.type != kSelfGame)) ?
-      [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
-      
-      if (self.myMatch.gameHasEnded) {
-        if ([self.myMatch.wonPlayers containsObject:player]) {
-          scoreLabel.textColor = kScoreWonGold;
-        } else {
-          scoreLabel.textColor = kScoreLostGray;
-        }
-      } else {
-        scoreLabel.textColor = kScoreNormalBrown;
-      }
-      
-        // player label
-      playerLabel.text = player ? player.playerName : @"";
-      [playerLabel sizeToFit];
-      
-        // frame width can never be greater than maximum label width
-      CGFloat playerLabelFrameWidth = (playerLabel.frame.size.width > kPlayerLabelWidth) ?
-      kPlayerLabelWidth : playerLabel.frame.size.width;
-      playerLabel.frame = CGRectMake(kStaveXBuffer + kStaveWidthDivision + (i * kStaveWidthDivision * 2), playerLabel.frame.origin.y, playerLabelFrameWidth, playerLabel.frame.size.height);
-      playerLabel.center = CGPointMake(kStaveXBuffer + (kIsIPhone ? kStaveWidthDivision * 1.6f : kStaveWidthDivision * 1.3f) + (i * kStaveWidthDivision * 2) + kStaveWidthDivision / 2, playerLabel.center.y);
-      
-      labelView.frame = CGRectMake(labelView.frame.origin.x, labelView.frame.origin.y, playerLabel.frame.size.width + kPlayerLabelWidthPadding, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
-      labelView.center = CGPointMake(playerLabel.center.x,
-                                     playerLabel.center.y - (playerLabel.frame.size.height / 40.f));
-      labelView.layer.cornerRadius = labelView.frame.size.height / 2.f;
-      labelView.clipsToBounds = YES;
-      
-        // static player colours, check if player resigned
-      playerLabel.textColor = (player.resigned && self.myMatch.type != kSelfGame) ?
-      kResignedGray : [self.myMatch colourForPlayer:player];
-      
-        // background colours depending on match results
-      labelView.backgroundColourCanBeChanged = YES;
-      if (!self.myMatch.gameHasEnded && player == self.myMatch.currentPlayer) {
-        labelView.backgroundColor = [kMainDarkerYellow colorWithAlphaComponent:0.8f];
-      } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
-        labelView.backgroundColor = [UIColor clearColor]; // I've decided just fermata, no background for won player
-        UIImageView *fermataImageView = self.fermataImageViewArray[i];
-        [self addSubview:fermataImageView];
+      if (!player) {
+        playerLabel.text = @"";
+        scoreLabel.text = @"";
+        labelView.backgroundColourCanBeChanged = YES;
+        labelView.backgroundColor = [UIColor clearColor];
+        labelView.backgroundColourCanBeChanged = NO;
         
       } else {
-        labelView.backgroundColor = [UIColor clearColor];
+      
+          // player label
+        playerLabel.text = player ? player.playerName : @"";
+        [playerLabel sizeToFit];
+          // frame width can never be greater than maximum label width
+        CGFloat playerLabelFrameWidth = (playerLabel.frame.size.width > kCellPlayerLabelWidth) ?
+            kCellPlayerLabelWidth : playerLabel.frame.size.width;
+        
+        playerLabel.frame = CGRectMake(kStaveXBuffer + kCellClefWidth + (i * kCellPlayerSlotWidth),
+                                       playerLabel.frame.origin.y,
+                                       playerLabelFrameWidth,
+                                       playerLabel.frame.size.height);
+        
+  //      CGFloat playerSlotWidth = (self.frame.size.width - (kStaveXBuffer * 2)) / (self.myMatch.players.count);
+        playerLabel.center = CGPointMake(kStaveXBuffer + kCellClefWidth + ((i + 0.5) * kCellPlayerSlotWidth), playerLabel.center.y);
+        
+          // score label
+        scoreLabel.text = (player && !(player.resigned && self.myMatch.type != kSelfGame)) ?
+        [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
+        scoreLabel.frame = CGRectMake(scoreLabel.frame.origin.x, scoreLabel.frame.origin.y, kCellPlayerSlotWidth, kScoreLabelHeight);
+        
+        if (self.myMatch.gameHasEnded) {
+          if ([self.myMatch.wonPlayers containsObject:player]) {
+            scoreLabel.textColor = kScoreWonGold;
+          } else {
+            scoreLabel.textColor = kScoreLostGray;
+          }
+        } else {
+          scoreLabel.textColor = kScoreNormalBrown;
+        }
+        
+          // labelView
+        labelView.frame = CGRectMake(labelView.frame.origin.x, labelView.frame.origin.y, playerLabelFrameWidth + kPlayerLabelWidthPadding, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
+        labelView.center = CGPointMake(playerLabel.center.x,
+                                       playerLabel.center.y - (playerLabel.frame.size.height / 40.f));
+        labelView.layer.cornerRadius = labelView.frame.size.height / 2.f;
+        labelView.clipsToBounds = YES;
+        
+          // static player colours, check if player resigned
+        playerLabel.textColor = (player.resigned && self.myMatch.type != kSelfGame) ?
+        kResignedGray : [self.myMatch colourForPlayer:player];
+        
+          // background colours depending on match results
+        labelView.backgroundColourCanBeChanged = YES;
+        if (!self.myMatch.gameHasEnded && player == self.myMatch.currentPlayer) {
+          labelView.backgroundColor = [kMainDarkerYellow colorWithAlphaComponent:0.8f];
+        } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
+          labelView.backgroundColor = [UIColor clearColor]; // I've decided just fermata, no background for won player
+          UIImageView *fermataImageView = self.fermataImageViewArray[i];
+          [self addSubview:fermataImageView];
+          
+        } else {
+          labelView.backgroundColor = [UIColor clearColor];
+        }
+        labelView.backgroundColourCanBeChanged = NO;
       }
-      labelView.backgroundColourCanBeChanged = NO;
+      
+      [self determinePlayerLabelPositionsBasedOnScores];
     }
-    
-    [self determinePlayerLabelPositionsBasedOnScores];
   });
 }
 
@@ -207,6 +236,27 @@
   }
   
   self.clefImage.image = finalImage;
+}
+
+-(void)updateRestImages {
+
+  UIColor *finalColour = self.myMatch.gameHasEnded ? kStaveEndedGameColour : kStaveColour;
+  
+  UIImage *quarterRest = [UIImage imageNamed:@"quarter-rest"];
+  UIImage *halfRest = [UIImage imageNamed:@"half-rest.gif"];
+  
+  self.quarterRestImage.image = [UIImage colourImage:quarterRest withColor:finalColour];
+  self.halfRestImage.image = [UIImage colourImage:halfRest withColor:finalColour];
+  
+  self.quarterRestImage.hidden = (self.myMatch.players.count % 2 == 0);
+  self.halfRestImage.hidden = (self.myMatch.players.count > 2);
+  
+  CGFloat xFactor = ((self.myMatch.players.count == 1) ? 1.5 : 3.5);
+  self.quarterRestImage.frame = CGRectMake(0, 0, 50, 50);
+  self.halfRestImage.frame = CGRectMake(0, 0, 50, 50);
+  
+  self.quarterRestImage.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellPlayerSlotWidth * xFactor, kCellHeight / 2);
+  self.halfRestImage.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellPlayerSlotWidth * 2.5, kCellHeight / 2);
 }
 
 #pragma mark - view helper methods

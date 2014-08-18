@@ -10,18 +10,10 @@
 
 @implementation SKNode (Animation)
 
--(void)moveToYPosition:(CGFloat)yPosition withBounce:(BOOL)bounce duration:(CGFloat)duration key:(NSString *)key completionAction:(SKAction *)completionAction {
+-(void)moveToYPosition:(CGFloat)yPosition withBounce:(BOOL)bounce duration:(CGFloat)duration key:(NSString *)key {
   
   SKAction *moveAction = [SKAction moveToY:yPosition duration:duration];
-  
-  if (!completionAction) {
-    completionAction = [SKAction runBlock:^{
-      [[NSNotificationCenter defaultCenter] postNotificationName:key object:self];
-    }];
-  }
-  
-  SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
-  [self runAction:sequenceAction withKey:key];
+  [self runAction:moveAction withKey:key];
 }
 
 @end

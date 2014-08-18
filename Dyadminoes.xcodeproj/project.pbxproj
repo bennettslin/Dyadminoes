@@ -35,6 +35,8 @@
 		3F7BD7DB192B0A37009274DE /* MatchTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */; };
 		3F7BD7DE192B0AA8009274DE /* Model.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7DD192B0AA8009274DE /* Model.m */; };
 		3F7D0EE3199EE60300F1FBD2 /* SKNode+Animation.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7D0EE2199EE60300F1FBD2 /* SKNode+Animation.m */; };
+		3F7D0EE719A1D35300F1FBD2 /* quarter-rest.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F7D0EE619A1D35300F1FBD2 /* quarter-rest.png */; };
+		3F7D0EE919A1D58C00F1FBD2 /* half-rest.gif in Resources */ = {isa = PBXBuildFile; fileRef = 3F7D0EE819A1D58C00F1FBD2 /* half-rest.gif */; };
 		3F87AAAB188DEE4B008C4A0D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAA188DEE4B008C4A0D /* Foundation.framework */; };
 		3F87AAAD188DEE4B008C4A0D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAC188DEE4B008C4A0D /* CoreGraphics.framework */; };
 		3F87AAAF188DEE4B008C4A0D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAE188DEE4B008C4A0D /* UIKit.framework */; };
@@ -138,6 +140,8 @@
 		3F7BD7DD192B0AA8009274DE /* Model.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Model.m; sourceTree = "<group>"; };
 		3F7D0EE1199EE60300F1FBD2 /* SKNode+Animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SKNode+Animation.h"; sourceTree = "<group>"; };
 		3F7D0EE2199EE60300F1FBD2 /* SKNode+Animation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "SKNode+Animation.m"; sourceTree = "<group>"; };
+		3F7D0EE619A1D35300F1FBD2 /* quarter-rest.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "quarter-rest.png"; sourceTree = "<group>"; };
+		3F7D0EE819A1D58C00F1FBD2 /* half-rest.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = "half-rest.gif"; sourceTree = "<group>"; };
 		3F87AAA7188DEE4B008C4A0D /* Dyadminoes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dyadminoes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F87AAAA188DEE4B008C4A0D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		3F87AAAC188DEE4B008C4A0D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -233,6 +237,8 @@
 		3F0526C21936CE92003D3C04 /* Images and Sounds */ = {
 			isa = PBXGroup;
 			children = (
+				3F7D0EE619A1D35300F1FBD2 /* quarter-rest.png */,
+				3F7D0EE819A1D58C00F1FBD2 /* half-rest.gif */,
 				3F88E69B198F0E5A004E3533 /* fermata-med.png */,
 				3F88E69C198F0E5A004E3533 /* bass-clef-md.png */,
 				3F88E69D198F0E5A004E3533 /* treble-clef-med.png */,
@@ -554,8 +560,10 @@
 				3F580BE0194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav in Resources */,
 				3F87AAC0188DEE4B008C4A0D /* Main_iPhone.storyboard in Resources */,
 				3F580BDC194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav in Resources */,
+				3F7D0EE919A1D58C00F1FBD2 /* half-rest.gif in Resources */,
 				3F0526CA1936CE9F003D3C04 /* page1.png in Resources */,
 				3F7A30B5197B24C8003DBB1C /* MaryFloral.jpg in Resources */,
+				3F7D0EE719A1D35300F1FBD2 /* quarter-rest.png in Resources */,
 				3F87AAB7188DEE4B008C4A0D /* InfoPlist.strings in Resources */,
 				3F88E6A0198F0E5A004E3533 /* treble-clef-med.png in Resources */,
 				3FF255C3197A3F6500B40D8D /* Filmotype-Modern.otf in Resources */,
