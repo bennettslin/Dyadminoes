@@ -575,24 +575,6 @@
   self.trebleClef = [UIImage imageNamed:@"treble-clef-med"];
 }
 
--(UIImage *)returnClefImageForMatchType:(GameType)type andGameEnded:(BOOL)gameEnded {
-  UIImage *rawImage;
-  switch (type) {
-    case kSelfGame:
-      rawImage = self.trebleClef;
-      break;
-    case kPnPGame:
-      rawImage = self.bassClef;
-      break;
-    default:
-      rawImage = nil;
-      break;
-  }
-
-  UIColor *finalColour = gameEnded ? kStaveEndedGameColour : kStaveColour;
-  return [UIImage colourImage:rawImage withColor:finalColour];
-}
-
 #pragma mark - system methods
 
 -(BOOL)prefersStatusBarHidden {

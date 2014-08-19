@@ -205,7 +205,7 @@
       charIndex = 211;
       break;
     case kSymbolQuarterRest:
-      charIndex = 103;
+      charIndex = 206;
       break;
     case kSymbolHalfRest:
       charIndex = 238;
@@ -219,6 +219,26 @@
   }
   unichar myChar[1] = {(unichar)charIndex};
   return [NSString stringWithCharacters:myChar length:1];
+}
+
+-(MusicSymbol)musicSymbolForMatchType:(GameType)type {
+  switch (type) {
+    case kSelfGame:
+      return kSymbolTrebleClef;
+      break;
+    case kPnPGame:
+      return kSymbolAltoClef;
+      break;
+    case kGCFriendGame:
+      return kSymbolTenorClef;
+      break;
+    case kGCRandomGame:
+      return kSymbolBassClef;
+      break;
+    default:
+      return -1;
+      break;
+  }
 }
 
 #pragma mark - chord label methods

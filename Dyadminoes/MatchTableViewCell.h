@@ -23,6 +23,4 @@
 
 @protocol MatchCellDelegate <NSObject>
 
--(UIImage *)returnClefImageForMatchType:(GameType)type andGameEnded:(BOOL)gameEnded;
-
 @end

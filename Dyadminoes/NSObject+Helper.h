@@ -403,6 +403,7 @@ typedef enum passPlayOrDoneButton {
 -(void)addShadowToView:(UIView *)thisView upsideDown:(BOOL)upsideDown;
 
 -(NSString *)stringForMusicSymbol:(MusicSymbol)symbol;
+-(MusicSymbol)musicSymbolForMatchType:(GameType)type;
 
   // chord label stuff
 -(NSString *)stringForChord:(ChordType)chordType;

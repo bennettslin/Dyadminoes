@@ -18,14 +18,15 @@
 
 @property (strong, nonatomic) NSArray *playerLabelsArray;
 @property (strong, nonatomic) NSArray *scoreLabelsArray;
-@property (strong, nonatomic) NSArray *fermataImageViewArray;
+@property (strong, nonatomic) NSArray *fermataLabelsArray;
 
 @property (strong, nonatomic) CellBackgroundView *labelView;
 @property (strong, nonatomic) UILabel *lastPlayedLabel;
+
 @property (strong, nonatomic) StavesView *stavesView;
-@property (strong, nonatomic) UIImageView *clefImage;
-@property (strong, nonatomic) UIImageView *quarterRestImage;
-@property (strong, nonatomic) UIImageView *halfRestImage;
+@property (strong, nonatomic) UILabel *clefLabel;
+@property (strong, nonatomic) UILabel *quarterRestImage;
+@property (strong, nonatomic) UILabel *halfRestImage;
 
 
 @end
@@ -71,9 +72,9 @@
   self.stavesView = [[StavesView alloc] initWithFrame:CGRectMake(self.frame.origin.x, self.frame.origin.y, kCellWidth, kCellRowHeight + kCellSeparatorBuffer)];
   [self insertSubview:self.stavesView belowSubview:self.selectedBackgroundView];
   
-  self.clefImage = [UIImageView new];
-  self.clefImage.contentMode = UIViewContentModeScaleAspectFit;
-  [self addSubview:self.clefImage];
+  self.clefLabel = [UILabel new];
+  self.clefLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight];
+  [self insertSubview:self.clefLabel aboveSubview:self.stavesView];
   
   self.lastPlayedLabel = [[UILabel alloc] initWithFrame:CGRectMake(kStaveXBuffer, (kCellRowHeight / 10) * 11.5, kCellWidth - kStaveXBuffer * 2, kStaveYHeight * 2)];
   self.lastPlayedLabel.textAlignment = NSTextAlignmentRight;
@@ -83,21 +84,31 @@
   
     // fermatas and rests are for iPad only
   if (!kIsIPhone) {
-    NSMutableArray *tempFermataImageViewArray = [NSMutableArray new];
+    NSMutableArray *tempFermataLabelsArray = [NSMutableArray new];
     for (int i = 0; i < kMaxNumPlayers; i++) {
-      UIImageView *fermataImageView = [[UIImageView alloc] initWithImage:[UIImage colourImage:[UIImage imageNamed:@"fermata-med"] withColor:kStaveEndedGameColour]];
-      fermataImageView.frame = CGRectMake(0, kStaveYHeight, kStaveYHeight * 2, kStaveYHeight * 2);
-      fermataImageView.contentMode = UIViewContentModeScaleAspectFit;
-      [tempFermataImageViewArray addObject:fermataImageView];
+      UILabel *fermataLabel = [UILabel new];
+      fermataLabel.text = [self stringForMusicSymbol:kSymbolFermata];
+      fermataLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4];
+      fermataLabel.textColor = kStaveEndedGameColour;
+      fermataLabel.textAlignment = NSTextAlignmentCenter;
+      fermataLabel.frame = CGRectMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + (i * kCellPlayerSlotWidth),
+                                      (kIsIPhone ? -0.5: 0), kCellPlayerSlotWidth, kStaveYHeight * 4);
+      fermataLabel.hidden = YES;
+      [self addSubview:fermataLabel];
+      [tempFermataLabelsArray addObject:fermataLabel];
     }
-    self.fermataImageViewArray = [NSArray arrayWithArray:tempFermataImageViewArray];
+    self.fermataLabelsArray = [NSArray arrayWithArray:tempFermataLabelsArray];
     
-    self.quarterRestImage = [UIImageView new];
-    self.quarterRestImage.contentMode = UIViewContentModeScaleAspectFit;
+    self.quarterRestImage = [UILabel new];
+    self.quarterRestImage.text = [self stringForMusicSymbol:kSymbolQuarterRest];
+    self.quarterRestImage.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4];
+    self.quarterRestImage.textAlignment = NSTextAlignmentCenter;
     [self addSubview:self.quarterRestImage];
     
-    self.halfRestImage = [UIImageView new];
-    self.halfRestImage.contentMode = UIViewContentModeScaleAspectFit;
+    self.halfRestImage = [UILabel new];
+    self.halfRestImage.text = [self stringForMusicSymbol:kSymbolHalfRest];
+    self.halfRestImage.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4];
+    self.halfRestImage.textAlignment = NSTextAlignmentCenter;
     [self addSubview:self.halfRestImage];
   }
 }
@@ -131,11 +142,6 @@
     
     if (!kIsIPhone) {
       [self updateRestImages];
-      
-        // remove fermatas for now, they will be decided with labelViews
-      for (UIImageView *fermataImageView in self.fermataImageViewArray) {
-        [fermataImageView removeFromSuperview];
-      }
     }
     
     Player *player;
@@ -197,9 +203,8 @@
         self.labelView.backgroundColourCanBeChanged = NO;
         
           // fermata
-        if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
-          kIsIPhone ? nil : [self addSubview:self.fermataImageViewArray[i]];
-        }
+        UILabel *fermataLabel = self.fermataLabelsArray[i];
+        fermataLabel.hidden = !(!kIsIPhone && self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]);
       }
       
       [self setYPositionsForPlayerLabels];
@@ -215,48 +220,34 @@
 }
 
 -(void)updateClef {
-  UIImage *finalImage = [self.delegate returnClefImageForMatchType:self.myMatch.type andGameEnded:self.myMatch.gameHasEnded];
-
-  switch (self.myMatch.type) {
-        // treble
-    case kSelfGame:
-      self.clefImage.frame = CGRectMake(0 - (kStaveXBuffer / 8), kStaveYHeight * (kIsIPhone ? 1.7 : 2.2), kStaveYHeight * 6.3, kStaveYHeight * 6.3);
-      break;
-      
-        // bass
-    case kPnPGame:
-      self.clefImage.frame = CGRectMake(kStaveXBuffer, kStaveYHeight * (kIsIPhone ? 2.5 : 3), kStaveYHeight * 3.25, kStaveYHeight * 3.25);
-      break;
-    case kGCFriendGame:
-      break;
-    case kGCRandomGame:
-      break;
-    default:
-      break;
-  }
   
-  self.clefImage.image = finalImage;
+  MusicSymbol symbol = [self musicSymbolForMatchType:self.myMatch.type];
+  self.clefLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4.0];
+  self.clefLabel.text = [self stringForMusicSymbol:symbol];
+  self.clefLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+  self.clefLabel.textColor = (self.myMatch.gameHasEnded) ? kStaveEndedGameColour : kStaveColour;
+  
+  CGFloat tenorFactor = (symbol == kSymbolTenorClef) ? -1 : 0;
+  self.clefLabel.frame = CGRectMake(kStaveXBuffer, kStaveYHeight * ((kIsIPhone ? 1 : 1.5) + tenorFactor),
+                                    kCellWidth - (kStaveXBuffer * 2), kCellHeight);
 }
 
 -(void)updateRestImages {
 
   UIColor *finalColour = self.myMatch.gameHasEnded ? kStaveEndedGameColour : kStaveColour;
-  
-  UIImage *quarterRest = [UIImage imageNamed:@"quarter-rest"];
-  UIImage *halfRest = [UIImage imageNamed:@"half-rest.gif"];
-  
-  self.quarterRestImage.image = [UIImage colourImage:quarterRest withColor:finalColour];
-  self.halfRestImage.image = [UIImage colourImage:halfRest withColor:finalColour];
-  
+  self.quarterRestImage.textColor = finalColour;
   self.quarterRestImage.hidden = (self.myMatch.players.count % 2 == 0);
+  
+  self.halfRestImage.textColor = finalColour;
   self.halfRestImage.hidden = (self.myMatch.players.count > 2);
   
   CGFloat xFactor = ((self.myMatch.players.count == 1) ? 1.5 : 3.5);
-  self.quarterRestImage.frame = CGRectMake(0, 0, 35, 35);
-  self.halfRestImage.frame = CGRectMake(0, 0, 35, 35);
+  self.quarterRestImage.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kCellHeight);
+  self.halfRestImage.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kCellHeight);
   
-  self.quarterRestImage.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + kCellPlayerSlotWidth * xFactor, kCellHeight / 2);
-  self.halfRestImage.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + kCellPlayerSlotWidth * 2.5, kCellHeight / 2);
+  self.quarterRestImage.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + kCellPlayerSlotWidth * xFactor, kCellHeight / 2 - kStaveYHeight / 2);
+  self.halfRestImage.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + kCellPlayerSlotWidth * 2.5,
+      kCellHeight / 2 - kStaveYHeight / 2 - (kCellHeight / 120.f));
 }
 
 #pragma mark - view helper methods
@@ -293,13 +284,6 @@
       self.labelView.center = CGPointMake(centerX, playerLabel.center.y - (kCellRowHeight / 40.f));
     }
     scoreLabel.center = CGPointMake(centerX, playerLabel.center.y + kStaveYHeight * 1.75f);
-    
-    if (!kIsIPhone) {
-      UIImageView *fermataImageView = self.fermataImageViewArray[i];
-      if (fermataImageView.superview) {
-        fermataImageView.center = CGPointMake(playerLabel.center.x, fermataImageView.center.y);
-      }
-    }
   }
 }
 
