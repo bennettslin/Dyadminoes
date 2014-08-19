@@ -19,7 +19,6 @@
   return self;
 }
 
-  // draws staves
 -(void)drawRect:(CGRect)rect {
   
   [super drawRect:rect];

@@ -223,14 +223,17 @@
   
   cell.delegate = self;
   cell.myMatch = self.myModel.myMatches[indexPath.row];
-//  NSLog(@"myMatch is %@", cell.myMatch);
   if (cell.myMatch == self.mostRecentMatch) {
-//    NSLog(@"indexPath is %i", indexPath.row);
     self.indexPathForMostRecentMatch = indexPath;
   }
   [cell setProperties];
   
   return cell;
+}
+
+-(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+  MatchTableViewCell *matchCell = (MatchTableViewCell *)cell;
+  [matchCell setProperties];
 }
 
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {

@@ -55,11 +55,12 @@
 #define kStaveXBuffer (kCellWidth / 36.f)
 #define kStaveYHeight (kIsIPhone ? (kCellHeight / 9.f) : (kCellHeight / 10.f))
 
-#define kCellClefWidth (kIsIPhone ? (kStaveYHeight * 2) : (kStaveYHeight * 3))
+#define kCellClefWidth (kStaveYHeight * 3)
 #define kCellKeySigWidth (kIsIPhone ? (kCellClefWidth * 2) : (kCellClefWidth * 1.5))
 #define kCellEndBarlineWidth (kCellClefWidth / 3) // not used to measure barline, only to figure out playerSlotWidth
 #define kCellPlayerSlotWidth (kIsIPhone ? (kCellWidth - (kStaveXBuffer * 2) - kCellClefWidth - kCellKeySigWidth - kCellEndBarlineWidth - kPlayerLabelWidthPadding) : ((kCellWidth - (kStaveXBuffer * 2) - kCellClefWidth - kCellKeySigWidth - kCellEndBarlineWidth) / 4))
 #define kCellPlayerLabelWidth (kIsIPhone ? (kCellPlayerSlotWidth * 0.75) : (kCellPlayerSlotWidth - (kPlayerLabelWidthPadding / 2)))
+#define kCellIPhoneScoreLabelWidth (kCellPlayerSlotWidth * 0.25)
 
   // cell and scene constants
 #define kPlayerLabelHeightPadding (kCellRowHeight / 12)
@@ -102,6 +103,7 @@
   // label constants (maybe temp)
 #define kFontModern @"FilmotypeModern"
 #define kFontHarmony @"FilmotypeHarmony"
+#define kFontSonata @"Sonata"
 
   // pinch gesture constants
   // FIXME: might not need the iPhone constants

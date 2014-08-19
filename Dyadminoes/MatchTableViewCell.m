@@ -51,14 +51,12 @@
     [self insertSubview:self.labelView atIndex:0];
     
     UILabel *playerLabel = [[UILabel alloc] init];
-    playerLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? (kCellRowHeight / 3.4) : (kCellRowHeight / 2.8125))];
     playerLabel.adjustsFontSizeToFitWidth = YES;
     playerLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     [tempPlayerLabelsArray addObject:playerLabel];
     [self insertSubview:playerLabel aboveSubview:self.labelView];
     
     UILabel *scoreLabel = [[UILabel alloc] init];
-    scoreLabel.font = [UIFont fontWithName:kFontModern size:(kCellRowHeight / 4.5)];
     scoreLabel.textAlignment = NSTextAlignmentCenter;
     scoreLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     scoreLabel.adjustsFontSizeToFitWidth = YES;
@@ -74,11 +72,12 @@
   [self insertSubview:self.stavesView belowSubview:self.selectedBackgroundView];
   
   self.clefLabel = [UILabel new];
-  self.clefLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4];
+  self.clefLabel.font = [UIFont fontWithName:kFontSonata size:kStaveYHeight * 4];
+  self.clefLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
   [self addSubview:self.clefLabel];
   
   self.endBarlineLabel = [UILabel new];
-  self.endBarlineLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4];
+  self.endBarlineLabel.font = [UIFont fontWithName:kFontSonata size:kStaveYHeight * 4];
   [self addSubview:self.endBarlineLabel];
   
   self.lastPlayedLabel = [[UILabel alloc] initWithFrame:CGRectMake(kStaveXBuffer, (kCellRowHeight / 10) * 11.5, kCellWidth - kStaveXBuffer * 2, kStaveYHeight * 2)];
@@ -93,7 +92,7 @@
     for (int i = 0; i < kMaxNumPlayers; i++) {
       UILabel *fermataLabel = [UILabel new];
       fermataLabel.text = [self stringForMusicSymbol:kSymbolFermata];
-      fermataLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4];
+      fermataLabel.font = [UIFont fontWithName:kFontSonata size:kStaveYHeight * 4];
       fermataLabel.textColor = kStaveEndedGameColour;
       fermataLabel.textAlignment = NSTextAlignmentCenter;
       fermataLabel.frame = CGRectMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + (i * kCellPlayerSlotWidth),
@@ -106,16 +105,22 @@
     
     self.quarterRestLabel = [UILabel new];
     self.quarterRestLabel.text = [self stringForMusicSymbol:kSymbolQuarterRest];
-    self.quarterRestLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4];
+    self.quarterRestLabel.font = [UIFont fontWithName:kFontSonata size:kStaveYHeight * 4];
     self.quarterRestLabel.textAlignment = NSTextAlignmentCenter;
+    self.quarterRestLabel.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kCellHeight);
+    self.quarterRestLabel.hidden = YES;
     [self addSubview:self.quarterRestLabel];
     
     self.halfRestLabel = [UILabel new];
     self.halfRestLabel.text = [self stringForMusicSymbol:kSymbolHalfRest];
-    self.halfRestLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4];
+    self.halfRestLabel.font = [UIFont fontWithName:kFontSonata size:kStaveYHeight * 4];
     self.halfRestLabel.textAlignment = NSTextAlignmentCenter;
+    self.halfRestLabel.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kCellHeight);
+    self.halfRestLabel.hidden = YES;
     [self addSubview:self.halfRestLabel];
   }
+  
+//  [self setProperties];
 }
 
 -(void)setProperties {
@@ -164,16 +169,14 @@
         fermataLabel.hidden = YES;
         
       } else {
-      
           // player label
         playerLabel.text = player ? player.playerName : @"";
         [playerLabel sizeToFit];
           // frame width can never be greater than maximum label width
         CGFloat playerLabelFrameWidth = (playerLabel.frame.size.width > kCellPlayerLabelWidth) ?
             kCellPlayerLabelWidth : playerLabel.frame.size.width;
-        
         playerLabel.frame = CGRectMake(0, 0, playerLabelFrameWidth, playerLabel.frame.size.height);
-        playerLabel.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + ((i + 0.5) * kCellPlayerSlotWidth), playerLabel.center.y);
+        
           // static player colours, check if player resigned
         playerLabel.textColor = (player.resigned && self.myMatch.type != kSelfGame) ?
             kResignedGray : [self.myMatch colourForPlayer:player];
@@ -181,16 +184,46 @@
           // score label
         scoreLabel.text = (player && !(player.resigned && self.myMatch.type != kSelfGame)) ?
         [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
-        scoreLabel.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kScoreLabelHeight);
+        scoreLabel.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kStaveYHeight * 2);
         
         if (self.myMatch.gameHasEnded) {
-          if ([self.myMatch.wonPlayers containsObject:player]) {
-            scoreLabel.textColor = kScoreWonGold;
-          } else {
-            scoreLabel.textColor = kScoreLostGray;
-          }
+          scoreLabel.textColor = [self.myMatch.wonPlayers containsObject:player] ? kScoreWonGold : kScoreLostGray;
         } else {
           scoreLabel.textColor = kScoreNormalBrown;
+        }
+        
+          // iPhone positioning is different
+        if (kIsIPhone) {
+          CGFloat xPosition = kIsIPhone ? kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + playerLabelFrameWidth / 2 : 0;
+          CGFloat yPosition = 0;
+          CGFloat playerFontSize = 0;
+          switch (self.myMatch.players.count) {
+            case 4:
+              yPosition = kStaveYHeight * (i + 3);
+              playerFontSize = kStaveYHeight;
+              break;
+            case 3:
+              yPosition = kStaveYHeight * (i * 1.5 + 3);
+              playerFontSize = kStaveYHeight * 1.4;
+              break;
+            case 2:
+              yPosition = kStaveYHeight * (i * 2 + 3.5);
+              playerFontSize = kStaveYHeight * 1.8;
+              break;
+            case 1:
+              yPosition = kStaveYHeight * 3.5;
+              playerFontSize = kStaveYHeight * 2.0;
+              break;
+          }
+          playerLabel.font = [UIFont fontWithName:kFontModern size:playerFontSize];
+          playerLabel.center = CGPointMake(xPosition, yPosition);
+          
+          scoreLabel.font = [UIFont fontWithName:kFontModern size:playerFontSize * 0.9];
+          scoreLabel.center = CGPointMake(self.frame.size.width - kStaveXBuffer - kCellEndBarlineWidth - kCellIPhoneScoreLabelWidth / 2, yPosition);
+          
+        } else {
+          playerLabel.font = [UIFont fontWithName:kFontModern size:(kStaveYHeight * 2.25)];
+          scoreLabel.font = [UIFont fontWithName:kFontModern size:kStaveYHeight * 1.5];
         }
         
         // labelView
@@ -205,6 +238,11 @@
             
               // background colours depending on match results
             self.labelView.backgroundColor = [kMainDarkerYellow colorWithAlphaComponent:0.8f];
+            
+              // set labelView here for iPhone only
+            if (kIsIPhone) {
+              self.labelView.center = CGPointMake(playerLabel.center.x, playerLabel.center.y - (kCellRowHeight / 40.f));
+            }
           }
         }
         self.labelView.backgroundColourCanBeChanged = NO;
@@ -213,7 +251,7 @@
         fermataLabel.hidden = !(!kIsIPhone && self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]);
       }
       
-      [self setYPositionsForPlayerLabels];
+      kIsIPhone ? nil : [self setYPositionsForPlayerLabels];
     }
   });
 }
@@ -226,34 +264,32 @@
 }
 
 -(void)updateClef {
-  
   MusicSymbol symbol = [self musicSymbolForMatchType:self.myMatch.type];
   self.clefLabel.text = [self stringForMusicSymbol:symbol];
-  self.clefLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
   self.clefLabel.textColor = (self.myMatch.gameHasEnded) ? kStaveEndedGameColour : kStaveColour;
   
   CGFloat tenorFactor = (symbol == kSymbolTenorClef) ? -1 : 0;
-  self.clefLabel.frame = CGRectMake(kStaveXBuffer, kStaveYHeight * ((kIsIPhone ? 1 : 1.5) + tenorFactor),
+  self.clefLabel.frame = CGRectMake(kStaveXBuffer, kStaveYHeight * (1.5 + tenorFactor),
                                     kCellWidth - (kStaveXBuffer * 2), kCellHeight);
 }
 
 -(void)updateBarline {
   if (self.myMatch.gameHasEnded) {
-    self.endBarlineLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4.0];
+    self.endBarlineLabel.font = [UIFont fontWithName:kFontSonata size:kStaveYHeight * 4.0];
     self.endBarlineLabel.text = [self stringForMusicSymbol:kSymbolEndBarline];
     self.endBarlineLabel.textAlignment = NSTextAlignmentRight;
     self.endBarlineLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
-    self.endBarlineLabel.textColor = (self.myMatch.gameHasEnded) ? kStaveEndedGameColour : kStaveColour;
     self.endBarlineLabel.frame = CGRectMake(self.frame.size.width - kStaveXBuffer - kCellEndBarlineWidth * 2 + (kStaveXBuffer * 0.025),
-                                            kStaveYHeight * ((kIsIPhone ? 1 : 1.5)) - (kCellHeight / 150.f),
+                                            (kStaveYHeight * 1.5) - (kCellHeight / 150.f),
                                             kCellEndBarlineWidth * 2, kCellHeight);
+    self.endBarlineLabel.textColor = (self.myMatch.gameHasEnded) ? kStaveEndedGameColour : kStaveColour;
+
   } else {
     self.endBarlineLabel.text = @"";
   }
 }
 
 -(void)updateRestImages {
-
   UIColor *finalColour = self.myMatch.gameHasEnded ? kStaveEndedGameColour : kStaveColour;
   self.quarterRestLabel.textColor = finalColour;
   self.quarterRestLabel.hidden = (self.myMatch.players.count % 2 == 0);
@@ -262,9 +298,6 @@
   self.halfRestLabel.hidden = (self.myMatch.players.count > 2);
   
   CGFloat xFactor = ((self.myMatch.players.count == 1) ? 1.5 : 3.5);
-  self.quarterRestLabel.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kCellHeight);
-  self.halfRestLabel.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kCellHeight);
-  
   self.quarterRestLabel.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + kCellPlayerSlotWidth * xFactor, kCellHeight / 2 - kStaveYHeight / 2);
   self.halfRestLabel.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + kCellPlayerSlotWidth * 2.5,
       kCellHeight / 2 - kStaveYHeight / 2 - (kCellHeight / 150.f));
@@ -291,19 +324,18 @@
   NSArray *sortedScores = [tempScores sortedArrayUsingSelector:@selector(compare:)];
 
   for (int i = 0; i < self.myMatch.players.count; i++) {
-    
     Player *player = self.myMatch.players[i];
     UILabel *playerLabel = self.playerLabelsArray[i];
     UILabel *scoreLabel = self.scoreLabelsArray[i];
     NSInteger playerPosition = (player.resigned && self.myMatch.type != kSelfGame) ?
         -1 : [sortedScores indexOfObject:[NSNumber numberWithUnsignedInteger:player.playerScore]] + 1;
 
-    CGFloat centerX = playerLabel.center.x;
-    playerLabel.center = CGPointMake(centerX, [self yPositionForMaxPosition:sortedScores.count andPlayerPosition:playerPosition]);
+    playerLabel.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + ((i + 0.5) * kCellPlayerSlotWidth),
+                                     [self yPositionForMaxPosition:sortedScores.count andPlayerPosition:playerPosition]);
     if (player == self.myMatch.currentPlayer) {
-      self.labelView.center = CGPointMake(centerX, playerLabel.center.y - (kCellRowHeight / 40.f));
+      self.labelView.center = CGPointMake(playerLabel.center.x, playerLabel.center.y - (kCellRowHeight / 40.f));
     }
-    scoreLabel.center = CGPointMake(centerX, playerLabel.center.y + kStaveYHeight * 1.75f);
+    scoreLabel.center = CGPointMake(playerLabel.center.x, playerLabel.center.y + kStaveYHeight * 1.75f);
   }
 }
 
