@@ -25,8 +25,9 @@
 
 @property (strong, nonatomic) StavesView *stavesView;
 @property (strong, nonatomic) UILabel *clefLabel;
-@property (strong, nonatomic) UILabel *quarterRestImage;
-@property (strong, nonatomic) UILabel *halfRestImage;
+@property (strong, nonatomic) UILabel *quarterRestLabel;
+@property (strong, nonatomic) UILabel *halfRestLabel;
+@property (strong, nonatomic) UILabel *endBarlineLabel;
 
 
 @end
@@ -73,8 +74,12 @@
   [self insertSubview:self.stavesView belowSubview:self.selectedBackgroundView];
   
   self.clefLabel = [UILabel new];
-  self.clefLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight];
-  [self insertSubview:self.clefLabel aboveSubview:self.stavesView];
+  self.clefLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4];
+  [self addSubview:self.clefLabel];
+  
+  self.endBarlineLabel = [UILabel new];
+  self.endBarlineLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4];
+  [self addSubview:self.endBarlineLabel];
   
   self.lastPlayedLabel = [[UILabel alloc] initWithFrame:CGRectMake(kStaveXBuffer, (kCellRowHeight / 10) * 11.5, kCellWidth - kStaveXBuffer * 2, kStaveYHeight * 2)];
   self.lastPlayedLabel.textAlignment = NSTextAlignmentRight;
@@ -99,17 +104,17 @@
     }
     self.fermataLabelsArray = [NSArray arrayWithArray:tempFermataLabelsArray];
     
-    self.quarterRestImage = [UILabel new];
-    self.quarterRestImage.text = [self stringForMusicSymbol:kSymbolQuarterRest];
-    self.quarterRestImage.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4];
-    self.quarterRestImage.textAlignment = NSTextAlignmentCenter;
-    [self addSubview:self.quarterRestImage];
+    self.quarterRestLabel = [UILabel new];
+    self.quarterRestLabel.text = [self stringForMusicSymbol:kSymbolQuarterRest];
+    self.quarterRestLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4];
+    self.quarterRestLabel.textAlignment = NSTextAlignmentCenter;
+    [self addSubview:self.quarterRestLabel];
     
-    self.halfRestImage = [UILabel new];
-    self.halfRestImage.text = [self stringForMusicSymbol:kSymbolHalfRest];
-    self.halfRestImage.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4];
-    self.halfRestImage.textAlignment = NSTextAlignmentCenter;
-    [self addSubview:self.halfRestImage];
+    self.halfRestLabel = [UILabel new];
+    self.halfRestLabel.text = [self stringForMusicSymbol:kSymbolHalfRest];
+    self.halfRestLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4];
+    self.halfRestLabel.textAlignment = NSTextAlignmentCenter;
+    [self addSubview:self.halfRestLabel];
   }
 }
 
@@ -139,6 +144,7 @@
     
     [self updateStaves];
     [self updateClef];
+    [self updateBarline];
     
     if (!kIsIPhone) {
       [self updateRestImages];
@@ -148,13 +154,14 @@
     for (int i = 0; i < kMaxNumPlayers; i++) {
       
       player = (i < self.myMatch.players.count) ? self.myMatch.players[i] : nil;
-      
       UILabel *playerLabel = self.playerLabelsArray[i];
       UILabel *scoreLabel = self.scoreLabelsArray[i];
+      UILabel *fermataLabel = self.fermataLabelsArray[i];
       
       if (!player) {
         playerLabel.text = @"";
         scoreLabel.text = @"";
+        fermataLabel.hidden = YES;
         
       } else {
       
@@ -203,7 +210,6 @@
         self.labelView.backgroundColourCanBeChanged = NO;
         
           // fermata
-        UILabel *fermataLabel = self.fermataLabelsArray[i];
         fermataLabel.hidden = !(!kIsIPhone && self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]);
       }
       
@@ -222,7 +228,6 @@
 -(void)updateClef {
   
   MusicSymbol symbol = [self musicSymbolForMatchType:self.myMatch.type];
-  self.clefLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4.0];
   self.clefLabel.text = [self stringForMusicSymbol:symbol];
   self.clefLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
   self.clefLabel.textColor = (self.myMatch.gameHasEnded) ? kStaveEndedGameColour : kStaveColour;
@@ -232,22 +237,37 @@
                                     kCellWidth - (kStaveXBuffer * 2), kCellHeight);
 }
 
+-(void)updateBarline {
+  if (self.myMatch.gameHasEnded) {
+    self.endBarlineLabel.font = [UIFont fontWithName:@"Sonata" size:kStaveYHeight * 4.0];
+    self.endBarlineLabel.text = [self stringForMusicSymbol:kSymbolEndBarline];
+    self.endBarlineLabel.textAlignment = NSTextAlignmentRight;
+    self.endBarlineLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+    self.endBarlineLabel.textColor = (self.myMatch.gameHasEnded) ? kStaveEndedGameColour : kStaveColour;
+    self.endBarlineLabel.frame = CGRectMake(self.frame.size.width - kStaveXBuffer - kCellEndBarlineWidth * 2 + (kStaveXBuffer * 0.025),
+                                            kStaveYHeight * ((kIsIPhone ? 1 : 1.5)) - (kCellHeight / 150.f),
+                                            kCellEndBarlineWidth * 2, kCellHeight);
+  } else {
+    self.endBarlineLabel.text = @"";
+  }
+}
+
 -(void)updateRestImages {
 
   UIColor *finalColour = self.myMatch.gameHasEnded ? kStaveEndedGameColour : kStaveColour;
-  self.quarterRestImage.textColor = finalColour;
-  self.quarterRestImage.hidden = (self.myMatch.players.count % 2 == 0);
+  self.quarterRestLabel.textColor = finalColour;
+  self.quarterRestLabel.hidden = (self.myMatch.players.count % 2 == 0);
   
-  self.halfRestImage.textColor = finalColour;
-  self.halfRestImage.hidden = (self.myMatch.players.count > 2);
+  self.halfRestLabel.textColor = finalColour;
+  self.halfRestLabel.hidden = (self.myMatch.players.count > 2);
   
   CGFloat xFactor = ((self.myMatch.players.count == 1) ? 1.5 : 3.5);
-  self.quarterRestImage.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kCellHeight);
-  self.halfRestImage.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kCellHeight);
+  self.quarterRestLabel.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kCellHeight);
+  self.halfRestLabel.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kCellHeight);
   
-  self.quarterRestImage.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + kCellPlayerSlotWidth * xFactor, kCellHeight / 2 - kStaveYHeight / 2);
-  self.halfRestImage.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + kCellPlayerSlotWidth * 2.5,
-      kCellHeight / 2 - kStaveYHeight / 2 - (kCellHeight / 120.f));
+  self.quarterRestLabel.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + kCellPlayerSlotWidth * xFactor, kCellHeight / 2 - kStaveYHeight / 2);
+  self.halfRestLabel.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + kCellPlayerSlotWidth * 2.5,
+      kCellHeight / 2 - kStaveYHeight / 2 - (kCellHeight / 150.f));
 }
 
 #pragma mark - view helper methods

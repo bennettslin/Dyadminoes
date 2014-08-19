@@ -69,9 +69,6 @@
 @property (strong, nonatomic) UIActivityIndicatorView *activityIndicator;
 @property (strong, nonatomic) UIView *backgroundView;
 
-@property (strong, nonatomic) UIImage *bassClef;
-@property (strong, nonatomic) UIImage *trebleClef;
-
 @property (nonatomic) BOOL backgroundShouldBeStill;
 
 @end
@@ -154,8 +151,6 @@
     button.titleLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? 28 : 48)];
     button.tintColor = kMainButtonsColour;
   }
-  
-  [self instantiateClefs];
   
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(startAnimatingBackground) name:UIApplicationDidBecomeActiveNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stopAnimatingBackground) name:UIApplicationWillResignActiveNotification object:nil];
@@ -568,11 +563,6 @@
 
 -(void)rememberMostRecentMatch:(Match *)match {
   self.mostRecentMatch = match;
-}
-
--(void)instantiateClefs {
-  self.bassClef = [UIImage imageNamed:@"bass-clef-md"];
-  self.trebleClef = [UIImage imageNamed:@"treble-clef-med"];
 }
 
 #pragma mark - system methods
