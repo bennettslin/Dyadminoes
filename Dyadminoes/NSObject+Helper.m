@@ -182,7 +182,47 @@
   thisView.layer.shadowOpacity = .35f;
 }
 
+-(NSString *)stringForMusicSymbol:(MusicSymbol)symbol {
+  NSUInteger charIndex = 0;
+
+  switch (symbol) {
+    case kSymbolTrebleClef:
+      charIndex = 38;
+      break;
+    case kSymbolAltoClef:
+      charIndex = 66;
+      break;
+    case kSymbolTenorClef:
+      charIndex = 66;
+      break;
+    case kSymbolBassClef:
+      charIndex = 63;
+      break;
+    case kSymbolFermata:
+      charIndex = 85;
+      break;
+    case kSymbolEndBarline:
+      charIndex = 211;
+      break;
+    case kSymbolQuarterRest:
+      charIndex = 103;
+      break;
+    case kSymbolHalfRest:
+      charIndex = 238;
+      break;
+    case kSymbolFlat:
+      charIndex = 98;
+      break;
+    case kSymbolSharp:
+      charIndex = 35;
+      break;
+  }
+  unichar myChar[1] = {(unichar)charIndex};
+  return [NSString stringWithCharacters:myChar length:1];
+}
+
 #pragma mark - chord label methods
+
 -(NSString *)stringForChord:(ChordType)chordType {
   switch (chordType) {
     case kChordMinorTriad:

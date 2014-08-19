@@ -490,27 +490,65 @@
 
 -(UIColor *)colourForPlayer:(Player *)player {
   if ([self.players containsObject:player]) {
-    NSUInteger index = [self.players indexOfObject:player];
-    NSUInteger randomIndex = (index + self.randomNumber1To24) % 4;
-    switch (randomIndex) {
-      case 0:
-        return kPlayerBlue;
-        break;
-      case 1:
-        return kPlayerRed;
-        break;
-      case 2:
-        return kPlayerGreen;
-        break;
-      case 3:
-        return kPlayerOrange;
-        break;
-      default:
-        return nil;
-        break;
+    
+    NSUInteger playerIndex = [self.players indexOfObject:player];
+    
+      // originally
+    NSUInteger randomIndex = (playerIndex + self.randomNumber1To24) % 4;
+    return [self colourForIndex:randomIndex];
+    
+    /*
+      // this method truly randomises the colours, but it's slower
+      // and also too random to be aesthetically pleasing, I think
+     
+      // first pool starts out between 0 and 23
+    NSUInteger firstPool = self.randomNumber1To24 - 1;
+    NSUInteger firstRange = firstPool / 6; // will yield integer between 0 and 3
+    
+    NSUInteger secondPool = firstPool % 6; // second pool is between 0 and 5
+    NSUInteger secondRange = secondPool / 2; // will yield integer between 0 and 2
+    
+    NSUInteger thirdPool = secondPool % 2; // third pool is between 0 and 1
+    NSUInteger thirdRange = thirdPool; // will yield integer between 0 and 1, etc
+    
+    NSUInteger fourthRange = 0;
+    
+    NSUInteger ranges[4] = {firstRange, secondRange, thirdRange, fourthRange};
+
+    UIColor *myColour;
+    NSMutableArray *colours = [NSMutableArray arrayWithArray:@[kPlayerBlue, kPlayerRed, kPlayerGreen, kPlayerOrange]];
+    
+    for (int i = 0; i < playerIndex + 1; i++) {
+      UIColor *colour = [colours objectAtIndex:ranges[i]];
+      [colours removeObjectAtIndex:ranges[i]];
+      if (i == playerIndex) {
+        myColour = colour;
+      }
     }
-  } else {
-    return nil;
+    return myColour;
+    */
+    
+  }
+  return nil;
+}
+
+-(UIColor *)colourForIndex:(NSUInteger)index {
+  switch (index) {
+    case 0:
+      return kPlayerBlue;
+      break;
+    case 1:
+      return kPlayerRed;
+      break;
+    case 2:
+      return kPlayerGreen;
+      break;
+    case 3:
+      return kPlayerOrange;
+      break;
+    default:
+      return nil;
+      break;
   }
 }
 

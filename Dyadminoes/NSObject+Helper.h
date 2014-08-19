@@ -197,7 +197,7 @@
 
 #define kResignedGray [UIColor colorWithRed:0.8f green:0.77f blue:0.75f alpha:1.f]
 
-#define kScoreNormalBrown [UIColor brownColor]
+#define kScoreNormalBrown [UIColor colorWithRed:0.62f green:0.42f blue:0.1f alpha:1.f]
 #define kScoreWonGold [UIColor colorWithRed:0.82f green:0.62f blue:0.f alpha:1.f]
 #define kScoreLostGray [UIColor colorWithRed:0.7f green:0.67f blue:0.65f alpha:1.f]
 
@@ -207,8 +207,8 @@
 #define kEndedMatchCellDarkColour [UIColor colorWithRed:0.83f green:0.74f blue:0.6f alpha:1.f]
 #define kEndedMatchCellSelectedColour [UIColor colorWithRed:0.96f green:.88f blue:0.76f alpha:1.f]
 
-#define kStaveColour [UIColor colorWithRed:0.5f green:0.38f blue:0.3f alpha:1.f]
-#define kStaveEndedGameColour [UIColor colorWithRed:0.42f green:0.32f blue:0.26f alpha:1.f]
+#define kStaveColour [UIColor colorWithRed:0.7f green:0.58f blue:0.5f alpha:1.f]
+#define kStaveEndedGameColour [UIColor colorWithRed:0.62f green:0.52f blue:0.46f alpha:1.f]
 
 #define kScrollingBackgroundFade [UIColor colorWithRed:0.33f green:.30f blue:0.24f alpha:1.f]
 
@@ -240,12 +240,23 @@
 
   //----------------------------------------------------------------------------
 
-typedef void (^myCompletionBlock)(void);
-
 typedef struct HexCoord {
   NSInteger x;
   NSInteger y;
 } HexCoord;
+
+typedef enum musicSymbol {
+  kSymbolTrebleClef,
+  kSymbolAltoClef,
+  kSymbolTenorClef,
+  kSymbolBassClef,
+  kSymbolFermata,
+  kSymbolEndBarline,
+  kSymbolQuarterRest,
+  kSymbolHalfRest,
+  kSymbolSharp,
+  kSymbolFlat
+} MusicSymbol;
 
 typedef enum sceneVCLabel {
   kTopBarTurnLabel,
@@ -390,6 +401,8 @@ typedef enum passPlayOrDoneButton {
   // view stuff
 -(void)addGradientToView:(UIView *)thisView WithColour:(UIColor *)colour andUpsideDown:(BOOL)upsideDown;
 -(void)addShadowToView:(UIView *)thisView upsideDown:(BOOL)upsideDown;
+
+-(NSString *)stringForMusicSymbol:(MusicSymbol)symbol;
 
   // chord label stuff
 -(NSString *)stringForChord:(ChordType)chordType;
