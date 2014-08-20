@@ -29,8 +29,6 @@
 #define kTopBarHeight (kIsIPhone ? 80.f : 120.f)
 #define kRackHeight (kIsIPhone ? 108.f : 162.f)
 
-//#define kTopBarButtonsLeftOffset (kTopBarGeneralLeftOffset + kScenePlayerLabelWidth + kSceneScoreLabelWidth)
-
   // label constants
 #define kLabelYPosition (kIsIPhone ? 5.f : 7.5f)
 #define kButtonWidth (kTopBarHeight / 1.5)
@@ -91,13 +89,13 @@
 
   // scene view constants
 #define kSceneMessageLabelFontSize 30.f
-#define kSceneLabelFontSize 22.5f
+#define kSceneLabelFontSize 24.f
 
-  // topBar total is: buffer + playerLabel + padding + scoreLabel + padding + five buttons + padding + pileTurnLabels + buffer
-#define kTopBarTurnPileLabelsWidth (kIsIPhone ? kTopBarHeight : (kTopBarHeight / 2))
+  // topBar total is: buffer + playerLabel + scoreLabel + five buttons + pileTurnLabels + buffer
+#define kTopBarPaddingBetweenStuff (kLargeButtonWidth / 4)
 #define kTopBarPlayerLabelHeight (kTopBarHeight / 5)
-#define kTopBarPlayerLabelWidth (kIsIPhone ? (kTopBarHeight * 1.25) : (kTopBarHeight * 1.25))
 #define kTopBarScoreLabelWidth (kTopBarPlayerLabelWidth / 3)
+#define kTopBarTurnPileLabelsWidth (kIsIPhone ? kTopBarHeight : (kTopBarHeight / 2))
 #define kTopBarXEdgeBuffer (kTopBarHeight / 6)
 
   // label constants (maybe temp)

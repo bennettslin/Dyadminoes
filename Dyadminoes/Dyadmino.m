@@ -526,7 +526,7 @@
   
   CGFloat radians = [self getRadiansFromDegree:60] * (clockwise ? 1 : -1);
   __block NSUInteger counter = times;
-  CGFloat duration = kConstantTime / 4.5;
+  CGFloat duration = kConstantTime / 6.f; // 4.5;
   
   SKAction *turnDyadmino = [SKAction rotateByAngle:-radians duration:duration];
   SKAction *turnFace = [SKAction rotateByAngle:radians duration:duration];

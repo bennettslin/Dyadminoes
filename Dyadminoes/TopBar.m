@@ -14,11 +14,6 @@
 
 -(void)populateWithTopBarButtons {
   
-  CGFloat topBarPadding = (self.frame.size.width - (kTopBarXEdgeBuffer * 2) - kTopBarPlayerLabelWidth - kTopBarScoreLabelWidth - (kButtonWidth * 5) - kTopBarTurnPileLabelsWidth) / 3;
-  CGFloat topBarLeftOffset = kIsIPhone ?
-      ((self.frame.size.width - (kButtonWidth * 5)) / 2) + (kButtonWidth / 2) :
-      kTopBarXEdgeBuffer + kTopBarPlayerLabelWidth + kTopBarScoreLabelWidth + (topBarPadding * 2) + (kButtonWidth / 2);
-  
   NSMutableArray *tempArray = [NSMutableArray new];
   CGFloat yPosition = kTopBarHeight / 2;
   
@@ -26,7 +21,11 @@
   NSArray *colourArray = @[[SKColor grayColor], [SKColor orangeColor], [SKColor redColor], [SKColor blueColor], [SKColor blackColor], [SKColor brownColor]];
   
   for (int i = 0; i < 6; i++) {
-    Button *button = [[Button alloc] initWithName:nameArray[i] andColor:colourArray[i] andSize:kButtonSize andPosition:CGPointMake(kButtonWidth * i + topBarLeftOffset, yPosition) andZPosition:kZPositionTopBarButton];
+    
+      // divide padding in half here, just for aesthetic reasons
+      // so that buttons are closer to turn and pile count labels
+    CGFloat xPosition = self.frame.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth - (kTopBarPaddingBetweenStuff / 2) - kButtonWidth * (4.5 - i);
+    Button *button = [[Button alloc] initWithName:nameArray[i] andColor:colourArray[i] andSize:kButtonSize andPosition:CGPointMake(xPosition, yPosition) andZPosition:kZPositionTopBarButton];
     [tempArray addObject:button];
   }
   

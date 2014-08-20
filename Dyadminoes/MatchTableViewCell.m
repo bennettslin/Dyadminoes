@@ -29,7 +29,6 @@
 @property (strong, nonatomic) UILabel *halfRestLabel;
 @property (strong, nonatomic) UILabel *endBarlineLabel;
 
-
 @end
 
 @implementation MatchTableViewCell
@@ -138,6 +137,7 @@
         self.labelView.backgroundColourCanBeChanged = YES;
         if (self.myMatch.gameHasEnded) {
           self.labelView.backgroundColor = [UIColor clearColor];
+          
         } else {
           if (player == self.myMatch.currentPlayer) {
             self.labelView.frame = CGRectMake(0, 0, playerLabelFrameWidth + kPlayerLabelWidthPadding, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
