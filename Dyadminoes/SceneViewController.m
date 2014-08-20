@@ -103,9 +103,9 @@
 }
 
 -(void)instantiatePlayerLabels {
-  NSMutableArray *tempPlayerLabelsArray = [NSMutableArray new];
-  NSMutableArray *tempScoreLabelsArray = [NSMutableArray new];
-  for (int i = 0; i < 4; i++) {
+  NSMutableArray *tempPlayerLabelsArray = [NSMutableArray arrayWithCapacity:kMaxNumPlayers];
+  NSMutableArray *tempScoreLabelsArray = [NSMutableArray arrayWithCapacity:kMaxNumPlayers];
+  for (int i = 0; i < kMaxNumPlayers; i++) {
     [tempPlayerLabelsArray addObject:[[UILabel alloc] init]];
     [tempScoreLabelsArray addObject:[[UILabel alloc] init]];
   }

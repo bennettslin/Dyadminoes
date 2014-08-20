@@ -28,6 +28,7 @@
 		3F580BDC194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */; };
 		3F580BDE194F710F0040B5D0 /* Click2-Sebastian-759472264.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */; };
 		3F580BE0194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDF194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav */; };
+		3F582EF519A4A4E90022C92E /* GameEndedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F582EF419A4A4E90022C92E /* GameEndedViewController.m */; };
 		3F6AE50E18D4D1E7000528C1 /* Bar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F6AE50D18D4D1E7000528C1 /* Bar.m */; };
 		3F7A30B5197B24C8003DBB1C /* MaryFloral.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3F7A30B4197B24C8003DBB1C /* MaryFloral.jpg */; };
 		3F7BD7C9192AF45D009274DE /* Match.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7C8192AF45D009274DE /* Match.m */; };
@@ -127,6 +128,8 @@
 		3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Electronic_Chime-KevanGC-495939803.wav"; sourceTree = "<group>"; };
 		3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Click2-Sebastian-759472264.wav"; sourceTree = "<group>"; };
 		3F580BDF194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Slide_Closed_SoundBible_com_1521580537.wav; sourceTree = "<group>"; };
+		3F582EF319A4A4E90022C92E /* GameEndedViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameEndedViewController.h; sourceTree = "<group>"; };
+		3F582EF419A4A4E90022C92E /* GameEndedViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameEndedViewController.m; sourceTree = "<group>"; };
 		3F59D92019784B6A00A1265D /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		3F6AE50C18D4D1E7000528C1 /* Bar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bar.h; sourceTree = "<group>"; };
 		3F6AE50D18D4D1E7000528C1 /* Bar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Bar.m; sourceTree = "<group>"; };
@@ -422,6 +425,8 @@
 				3FECDE0F19355B3A00D774AB /* OptionsViewController.m */,
 				3FECDE1119355B4400D774AB /* AboutViewController.h */,
 				3FECDE1219355B4400D774AB /* AboutViewController.m */,
+				3F582EF319A4A4E90022C92E /* GameEndedViewController.h */,
+				3F582EF419A4A4E90022C92E /* GameEndedViewController.m */,
 			);
 			name = "Other View Controllers";
 			sourceTree = "<group>";
@@ -602,6 +607,7 @@
 				3F88EDB719638FBF005CC9A4 /* LocalGameViewController.m in Sources */,
 				3F7BD7DB192B0A37009274DE /* MatchTableViewCell.m in Sources */,
 				3FBC6AD4194E1BBD00420CB8 /* SoundEngine.m in Sources */,
+				3F582EF519A4A4E90022C92E /* GameEndedViewController.m in Sources */,
 				3F8F045818BFB1B300853C4C /* NSObject+Helper.m in Sources */,
 				3F0B477D1953C7B700BDE0BA /* Chord.m in Sources */,
 				3FDA7B80197CF96A001677D8 /* CellBackgroundView.m in Sources */,

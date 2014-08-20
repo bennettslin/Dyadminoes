@@ -28,7 +28,7 @@
 @property (strong, nonatomic) UILabel *quarterRestLabel;
 @property (strong, nonatomic) UILabel *halfRestLabel;
 @property (strong, nonatomic) UILabel *endBarlineLabel;
-
+@property (strong, nonatomic) NSArray *keySigLabelsArray;
 @end
 
 @implementation MatchTableViewCell
@@ -54,6 +54,7 @@
     [self updateLastPlayedLabel];
     [self updateStaves];
     [self updateClef];
+    [self updateKeySigLabel];
     [self updateBarline];
     kIsIPhone ? nil : [self updateRestLabels];
     
@@ -236,8 +237,8 @@
 
 -(void)instantiatePlayerLabels {
     // labels for each player
-  NSMutableArray *tempPlayerLabelsArray = [NSMutableArray new];
-  NSMutableArray *tempScoreLabelsArray = [NSMutableArray new];
+  NSMutableArray *tempPlayerLabelsArray = [NSMutableArray arrayWithCapacity:kMaxNumPlayers];
+  NSMutableArray *tempScoreLabelsArray = [NSMutableArray arrayWithCapacity:kMaxNumPlayers];
   
   for (int i = 0; i < kMaxNumPlayers; i++) {
     
@@ -272,6 +273,16 @@
   self.clefLabel.font = [UIFont fontWithName:kFontSonata size:kStaveYHeight * 4];
   self.clefLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
   [self addSubview:self.clefLabel];
+  
+  NSMutableArray *tempKeySigLabelsArray = [NSMutableArray arrayWithCapacity:6];
+  for (int i = 0; i < 6; i++) {
+    UILabel *keySigLabel = [UILabel new];
+    keySigLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+    keySigLabel.font = [UIFont fontWithName:kFontSonata size:kStaveYHeight * 3];
+    [self addSubview:keySigLabel];
+    [tempKeySigLabelsArray addObject:keySigLabel];
+  }
+  self.keySigLabelsArray = [NSArray arrayWithArray:tempKeySigLabelsArray];
   
   self.endBarlineLabel = [UILabel new];
   self.endBarlineLabel.font = [UIFont fontWithName:kFontSonata size:kStaveYHeight * 4];
@@ -330,6 +341,17 @@
   CGFloat tenorFactor = (symbol == kSymbolTenorClef) ? -1 : 0;
   self.clefLabel.frame = CGRectMake(kStaveXBuffer, kStaveYHeight * (1.5 + tenorFactor),
                                     kCellWidth - (kStaveXBuffer * 2), kCellHeight);
+}
+
+-(void)updateKeySigLabel {
+  for (int i = 0; i < 6; i++) {
+    UILabel *keySigLabel = self.keySigLabelsArray[i];
+    keySigLabel.text = [self stringForMusicSymbol:kSymbolSharp];
+    keySigLabel.textColor = (self.myMatch.gameHasEnded) ? kStaveEndedGameColour : kStaveColour;
+    keySigLabel.frame = CGRectMake(kStaveXBuffer + kCellClefWidth + (i * kCellKeySigWidth / 6),
+                                   kStaveYHeight * i * 0.5,
+                                   kCellKeySigWidth / 2, kCellHeight / 2);
+  }
 }
 
 -(void)updateBarline {

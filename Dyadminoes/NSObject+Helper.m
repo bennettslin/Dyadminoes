@@ -127,7 +127,7 @@
   
   return (turn == 0) ?
       [NSString stringWithFormat:@"Started %@ ago.", dateComponent] :
-      [NSString stringWithFormat:@"Turn %i played %@ ago.", turn, dateComponent];
+      [NSString stringWithFormat:@"Turn %lu played %@ ago.", (unsigned long)turn, dateComponent];
 }
 
 -(NSString *)wordForNumber:(NSUInteger)number {
@@ -439,7 +439,7 @@
       [attString addAttribute:NSKernAttributeName value:@(-size * .05) range:NSMakeRange(i, 1)];
     }
   }
-  
+
   return attString;
 }
 
