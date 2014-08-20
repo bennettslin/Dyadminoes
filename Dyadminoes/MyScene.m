@@ -1279,6 +1279,11 @@
   
       /// games button
   if (button == _topBar.returnOrStartButton) {
+    if (_swapMode) {
+      _swapMode = NO;
+      [self toggleSwapFieldWithAnimation:YES];
+      [self cancelSwappedDyadminoes];
+    }
     [self goBackToMainViewController];
     return;
     
