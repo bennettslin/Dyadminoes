@@ -216,6 +216,9 @@
     case kSymbolSharp:
       charIndex = 35;
       break;
+    case kSymbolBullet:
+      charIndex = 183;
+      break;
   }
   unichar myChar[1] = {(unichar)charIndex};
   return [NSString stringWithCharacters:myChar length:1];
@@ -405,6 +408,39 @@
     }
   }
   return nil;
+}
+
+-(NSAttributedString *)stringWithAccidentals:(NSString *)myString fontSize:(CGFloat)size {
+
+    // first replace all instances of (#) and (b) with pound and yen characters
+  unichar pound[1] = {(unichar)163};
+  unichar yen[1] = {(unichar)165};
+  
+  myString = [myString stringByReplacingOccurrencesOfString:@"(#)" withString:[NSString stringWithCharacters:pound length:1]];
+  myString = [myString stringByReplacingOccurrencesOfString:@"(b)" withString:[NSString stringWithCharacters:yen length:1]];
+  
+  NSMutableAttributedString *attString = [[NSMutableAttributedString alloc] initWithString:myString];
+  
+  for (int i = 0; i < myString.length; i++) {
+    unichar myChar = [myString characterAtIndex:i];
+    
+    if (myChar == (unichar)163) {
+      [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolSharp]];
+      [attString addAttribute:NSBaselineOffsetAttributeName value:@(size / 2.75) range:NSMakeRange(i, 1)];
+      [attString addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontSonata size:size * 0.85] range:NSMakeRange(i, 1)];
+
+    } else if (myChar == (unichar)165) {
+      [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolFlat]];
+      [attString addAttribute:NSBaselineOffsetAttributeName value:@(size / 4.8) range:NSMakeRange(i, 1)];
+      [attString addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontSonata size:size * 0.95] range:NSMakeRange(i, 1)];
+      
+    } else if (myChar == (unichar)45) { // hyphen
+      [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolBullet]];
+      [attString addAttribute:NSKernAttributeName value:@(-size * .05) range:NSMakeRange(i, 1)];
+    }
+  }
+  
+  return attString;
 }
 
 @end

@@ -88,9 +88,9 @@
   
   [self insertImageBackground];
   [self insertGradientBackground];
-  
-  self.titleLogo.text = @"Dyadminoes B\u266d C\u266f";
+
   self.titleLogo.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? 30.f : 60.f)];
+  self.titleLogo.attributedText = [self stringWithAccidentals:@"Dyadminoes C(#)/D(b)-F(#)/G(b)" fontSize:60.f];
   self.titleLogo.frame = CGRectMake(20, 20, 768, 60);
   
   self.tableView.backgroundColor = [UIColor clearColor];

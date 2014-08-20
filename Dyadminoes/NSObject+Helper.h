@@ -255,7 +255,8 @@ typedef enum musicSymbol {
   kSymbolQuarterRest,
   kSymbolHalfRest,
   kSymbolSharp,
-  kSymbolFlat
+  kSymbolFlat,
+  kSymbolBullet
 } MusicSymbol;
 
 typedef enum sceneVCLabel {
@@ -408,5 +409,7 @@ typedef enum passPlayOrDoneButton {
   // chord label stuff
 -(NSString *)stringForChord:(ChordType)chordType;
 -(NSString *)stringForRoot:(NSUInteger)root andChordType:(ChordType)chordType;
+
+-(NSAttributedString *)stringWithAccidentals:(NSString *)myString fontSize:(CGFloat)size;
 
 @end
