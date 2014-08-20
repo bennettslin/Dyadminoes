@@ -64,7 +64,7 @@
 
   // cell and scene constants
 #define kPlayerLabelHeightPadding (kCellRowHeight / 12)
-#define kPlayerLabelWidthPadding (kCellWidth / 20)
+#define kPlayerLabelWidthPadding (kCellWidth / 25)
 #define kScoreLabelHeight (kCellRowHeight / 2.66666667)
 #define kMaxNumPlayers 4
 

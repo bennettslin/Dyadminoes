@@ -47,16 +47,15 @@
 
 -(void)instantiatePlayerLabels {
   NSMutableArray *tempPlayerLabelsArray = [NSMutableArray new];
-  NSMutableArray *tempPlayerLabelViewsArray = [NSMutableArray new];
   NSMutableArray *tempScoreLabelsArray = [NSMutableArray new];
   for (int i = 0; i < 4; i++) {
     [tempPlayerLabelsArray addObject:[[UILabel alloc] init]];
-    [tempPlayerLabelViewsArray addObject:[[CellBackgroundView alloc] init]];
     [tempScoreLabelsArray addObject:[[UILabel alloc] init]];
   }
   self.playerLabelsArray = [NSArray arrayWithArray:tempPlayerLabelsArray];
-  self.playerLabelViewsArray = [NSArray arrayWithArray:tempPlayerLabelViewsArray];
   self.scoreLabelsArray = [NSArray arrayWithArray:tempScoreLabelsArray];
+  
+  self.labelView = [[CellBackgroundView alloc] init];
 }
 
 -(void)instantiateBarAndRackLabels {
@@ -151,7 +150,6 @@
   CGFloat topBarXPadding = kIsIPhone ?
   kTopBarScoreLabelWidth / 3 :
   (self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2) - kTopBarPlayerLabelWidth - kTopBarScoreLabelWidth - (kButtonWidth * 5) - kTopBarTurnPileLabelsWidth) / 3;
-  
   CGFloat yPadding = kTopBarYEdgeBuffer / 2;
   
     // if less than four players, divide in three; otherwise divide in four
@@ -161,7 +159,7 @@
   (kTopBarHeight * 1.12 - (kTopBarYEdgeBuffer) - (yPadding * 3)) / 4;
   
   for (int i = 0; i < kMaxNumPlayers; i++) {
-    CellBackgroundView *labelView = self.playerLabelViewsArray[i];
+    
     UILabel *playerLabel = self.playerLabelsArray[i];
     UILabel *scoreLabel = self.scoreLabelsArray[i];
     
@@ -178,14 +176,6 @@
     scoreLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     scoreLabel.textAlignment = NSTextAlignmentRight;
     scoreLabel.frame = CGRectMake(kTopBarXEdgeBuffer + kTopBarPlayerLabelWidth + topBarXPadding, kTopBarYEdgeBuffer + (playerLabelHeight + yPadding) * i + (playerLabel.frame.size.height / 30.f), kTopBarScoreLabelWidth, playerLabelHeight);
-    
-    labelView.frame = CGRectMake(0, 0, kTopBarPlayerLabelWidth + topBarXPadding + kTopBarScoreLabelWidth  + kTopBarPlayerLabelWidth / 5, playerLabelHeight * 1.12); // playerLabelWidth / 5 is extra space at ends of labelView
-    labelView.center = CGPointMake(playerLabel.center.x + (kTopBarScoreLabelWidth + topBarXPadding) / 2,
-                                   playerLabel.center.y - (playerLabel.frame.size.height / 20.f));
-    
-    labelView.layer.cornerRadius = labelView.frame.size.height / 2.f;
-    labelView.clipsToBounds = YES;
-    [self.playerLabelsView insertSubview:labelView atIndex:0];
   }
 }
 
@@ -244,6 +234,13 @@
 }
 
 -(void)updatePlayerLabelsWithFinalTurn:(BOOL)finalTurn andAnimatedScore:(BOOL)animated {
+  
+  CGFloat iPhonePlayerLabeWidthAdjust = 0;
+  CGFloat yPadding = kTopBarYEdgeBuffer / 2;
+  CGFloat playerLabelHeight = (kIsIPhone || self.myMatch.players.count < 4) ?
+  (kTopBarHeight * 1.12 - (kTopBarYEdgeBuffer) - (yPadding * 2)) / 3 :
+  (kTopBarHeight * 1.12 - (kTopBarYEdgeBuffer) - (yPadding * 3)) / 4;
+  
   if (self.myMatch) {
     
     Player *player;
@@ -251,7 +248,6 @@
       player = (i < self.myMatch.players.count) ? self.myMatch.players[i] : nil;
       
       UILabel *playerLabel = self.playerLabelsArray[i];
-      CellBackgroundView *labelView = self.playerLabelViewsArray[i];
       UILabel *scoreLabel = self.scoreLabelsArray[i];
       
         // static player colours, check if player resigned
@@ -260,14 +256,20 @@
       playerLabel.textColor = (player.resigned && self.myMatch.type != kSelfGame) ?
       kResignedGray : [self.myMatch colourForPlayer:player];
       
+        // for iPhone only, ensures that playerLabel won't be too far from scoreLabel
+      if (kIsIPhone) {
+        [playerLabel sizeToFit];
+        if (playerLabel.frame.size.width > iPhonePlayerLabeWidthAdjust) {
+          iPhonePlayerLabeWidthAdjust = playerLabel.frame.size.width;
+        }
+      }
+      
       NSString *scoreText;
 
       if (!player || (player.resigned && self.myMatch.type != kSelfGame)) {
         scoreText = @"";
-        
       } else if (player == self.myMatch.currentPlayer && self.myMatch.tempScore > 0) {
         scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)player.playerScore, (unsigned long)self.myMatch.tempScore];
-        
       } else {
         scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
       }
@@ -298,15 +300,37 @@
       }
 
         // background colours depending on match results
-      labelView.backgroundColourCanBeChanged = YES;
-      if (!self.myMatch.gameHasEnded && player == self.myMatch.currentPlayer) {
-        labelView.backgroundColor = [kMainDarkerYellow colorWithAlphaComponent:0.5f];
-//      } else if (self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]) {
-//        labelView.backgroundColor = [kEndedMatchCellDarkColour colorWithAlphaComponent:0.5f];
+      self.labelView.backgroundColourCanBeChanged = YES;
+      if (self.myMatch.gameHasEnded) {
+        self.labelView.backgroundColor = [UIColor clearColor];
+        
       } else {
-        labelView.backgroundColor = [UIColor clearColor];
+        if (player == self.myMatch.currentPlayer) {
+          self.labelView.backgroundColor = [kMainDarkerYellow colorWithAlphaComponent:0.5f];
+
+          self.labelView.frame = CGRectMake(0, 0, kTopBarPlayerLabelWidth + kTopBarScoreLabelWidth  + kTopBarPlayerLabelWidth / 5, playerLabelHeight * 1.12); // playerLabelWidth / 5 is extra space at ends of labelView
+          self.labelView.center = CGPointMake(playerLabel.center.x + (kTopBarScoreLabelWidth) / 2,
+                                              playerLabel.center.y - (playerLabel.frame.size.height / 20.f));
+          
+          self.labelView.layer.cornerRadius = self.labelView.frame.size.height / 2.f;
+          self.labelView.clipsToBounds = YES;
+          [self.playerLabelsView insertSubview:self.labelView atIndex:0];
+        }
       }
-      labelView.backgroundColourCanBeChanged = NO;
+      self.labelView.backgroundColourCanBeChanged = NO;
+    }
+  }
+  
+  if (kIsIPhone) {
+      // totally not DRY...
+//    CGFloat topBarXPadding = kIsIPhone ? kTopBarScoreLabelWidth / 3 :
+//    (self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2) - kTopBarPlayerLabelWidth - kTopBarScoreLabelWidth - (kButtonWidth * 5) - kTopBarTurnPileLabelsWidth) / 3;
+    
+    for (int i = 0; i < self.myMatch.players.count; i++) {
+      UILabel *scoreLabel = self.scoreLabelsArray[i];
+      UILabel *playerLabel = self.playerLabelsArray[i];
+      scoreLabel.frame = CGRectMake(kTopBarXEdgeBuffer + iPhonePlayerLabeWidthAdjust,
+                                    kTopBarYEdgeBuffer + (playerLabelHeight + yPadding) * i + (playerLabel.frame.size.height / 30.f), kTopBarScoreLabelWidth, playerLabelHeight);
     }
   }
 }

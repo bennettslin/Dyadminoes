@@ -533,9 +533,9 @@
   SKAction *turnAction = [SKAction runBlock:^{
     [self.pc1Sprite runAction:turnFace];
     [self.pc2Sprite runAction:turnFace];
+    
     [self runAction:turnDyadmino completion:^{
       self.orientation = (self.orientation + 1) % 6;
-      
       [self selectAndPositionSprites];
       counter--;
       if (counter > 0) {

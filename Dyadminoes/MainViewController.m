@@ -226,14 +226,14 @@
   if (cell.myMatch == self.mostRecentMatch) {
     self.indexPathForMostRecentMatch = indexPath;
   }
-  [cell setProperties];
+  [cell setViewProperties];
   
   return cell;
 }
 
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
   MatchTableViewCell *matchCell = (MatchTableViewCell *)cell;
-  [matchCell setProperties];
+  [matchCell setViewProperties];
 }
 
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {

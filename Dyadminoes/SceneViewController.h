@@ -12,7 +12,7 @@
 @class Match;
 @class Player;
 @class MyScene;
-//@class MyPinchGestureRecognizer;
+@class CellBackgroundView;
 
 @protocol SceneViewDelegate;
 
@@ -25,8 +25,8 @@
 @property (weak, nonatomic) id <SceneViewDelegate> delegate;
 
 @property (strong, nonatomic) NSArray *playerLabelsArray;
-@property (strong, nonatomic) NSArray *playerLabelViewsArray;
 @property (strong, nonatomic) NSArray *scoreLabelsArray;
+@property (strong, nonatomic) CellBackgroundView *labelView;
 
 @property (strong, nonatomic) UILabel *pileCountLabel;
 @property (strong, nonatomic) UILabel *turnLabel;

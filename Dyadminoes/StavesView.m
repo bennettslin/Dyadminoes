@@ -22,7 +22,7 @@
 -(void)drawRect:(CGRect)rect {
   
   [super drawRect:rect];
-  CGFloat lineWidth = 0.5f;
+  CGFloat lineWidth = 0.75f;
   
   UIColor *staveColour = self.gameHasEnded ? kStaveEndedGameColour : kStaveColour;
   

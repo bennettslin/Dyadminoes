@@ -17,7 +17,7 @@
 @property (strong, nonatomic) Match *myMatch;
 @property (weak, nonatomic) id<MatchCellDelegate> delegate;
 
--(void)setProperties;
+-(void)setViewProperties;
 
 @end
 
