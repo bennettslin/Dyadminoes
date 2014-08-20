@@ -26,7 +26,7 @@
 #define kTableViewXMargin (kIsIPhone ? 0.f : 60.f)
 #define kMainTopBarHeight (kIsIPhone ? 64.f : 86.f)
 #define kMainBottomBarHeight (kIsIPhone ? 60.f : 90.f)
-#define kActivityIndicatorFrame (kIsIPhone ? 75.f : 150.f)
+#define kActivityIndicatorFrame (kIsIPhone ? 120.f : 150.f)
 
 #define kViewControllerSpeed 0.225f
 
@@ -90,7 +90,7 @@
   [self insertGradientBackground];
 
   self.titleLogo.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? 30.f : 60.f)];
-  self.titleLogo.attributedText = [self stringWithAccidentals:@"Dyadminoes C(#)/D(b)-F(#)/G(b)" fontSize:60.f];
+  self.titleLogo.attributedText = [self stringWithAccidentals:@"Dyadminoes C(#)/D(b)-F(#)/G(b)" fontSize:(kIsIPhone ? 30.f : 60.f)];
   self.titleLogo.frame = CGRectMake(20, 20, 768, 60);
   
   self.tableView.backgroundColor = [UIColor clearColor];

@@ -27,6 +27,9 @@
 -(void)showSunkIn;
 -(void)showLifted;
 
+-(BOOL)isEnabled;
+-(void)enable:(BOOL)isEnabled;
+
 @end
 
 @protocol ReturnToGamesButtonDelegate <NSObject>

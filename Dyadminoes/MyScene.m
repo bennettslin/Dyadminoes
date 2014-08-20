@@ -462,7 +462,7 @@
                           andZPosition:kZPositionTopBar];
   _topBar.name = @"topBar";
   [_topBar populateWithTopBarButtons];
-  [_topBar populateWithTopBarLabels];
+  [_topBar populateWithTopBarDebuggerLabels];
 //  [_topBar populatePlayerLabels];
   [self addChild:_topBar];
   
@@ -630,11 +630,12 @@
   if ([_touchNode isKindOfClass:[Button class]] || [_touchNode.parent isKindOfClass:[Button class]]) {
     Button *touchedButton = [_touchNode isKindOfClass:[Button class]] ? (Button *)_touchNode : (Button *)_touchNode.parent;
       // sound of button tapped
-    
-    [self postSoundNotification:kNotificationButtonSunkIn];
-    _buttonPressed = touchedButton;
-    [_buttonPressed showSunkIn];
-    return;
+    if ([touchedButton isEnabled]) {
+      [self postSoundNotification:kNotificationButtonSunkIn];
+      _buttonPressed = touchedButton;
+      [_buttonPressed showSunkIn];
+      return;
+    }
   }
   
     //--------------------------------------------------------------------------

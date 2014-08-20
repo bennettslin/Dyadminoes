@@ -34,18 +34,29 @@
 
 -(void)node:(SKNode *)node shouldBeEnabled:(BOOL)enabled {
   if (node) {
+    
+    if ([node isKindOfClass:[Button class]]) {
+      Button *button = (Button *)node;
+      [button enable:enabled];
+    }
+    
     if (enabled) {
-      node.hidden = NO;
-      node.zPosition = [node isKindOfClass:[Label class]] ? kZPositionTopBarLabel : node.zPosition;
-      if (!node.parent) {
-        [self addChild:node];
-      }
+      
+      node.alpha = 1.f;
+      
+//      node.hidden = NO;
+//      node.zPosition = [node isKindOfClass:[Label class]] ? kZPositionTopBarLabel : node.zPosition;
+//      if (!node.parent) {
+//        [self addChild:node];
+//      }
     } else {
-      node.hidden = YES;
-      node.zPosition = [node isKindOfClass:[Label class]] ? -CGFLOAT_MAX : node.zPosition;
-      if (node.parent) {
-        [node removeFromParent];
-      }
+      
+      node.alpha = 0.2f;
+//      node.hidden = YES;
+//      node.zPosition = [node isKindOfClass:[Label class]] ? -CGFLOAT_MAX : node.zPosition;
+//      if (node.parent) {
+//        [node removeFromParent];
+//      }
     }
   }
 }

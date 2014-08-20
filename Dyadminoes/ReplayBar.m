@@ -14,19 +14,6 @@
 
 @implementation ReplayBar
 
-//-(void)populateWithTopReplayLabels {
-//  
-//  NSMutableDictionary *tempDictionary = [NSMutableDictionary new];
-//  self.statusLabel = [[Label alloc] initWithName:@"status"
-//                                    andFontColor:[SKColor whiteColor]
-//                                     andFontSize:kReplayLabelFontSize
-//                                     andPosition:CGPointMake(kTopBarGeneralLeftOffset, kRackHeight / 2)
-//                                    andZPosition:kZPositionLogMessage
-//                          andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
-//  [tempDictionary setValue:self.statusLabel forKey:self.statusLabel.name];
-//  self.allLabels = [NSDictionary dictionaryWithDictionary:tempDictionary];
-//}
-
 -(void)populateWithBottomReplayButtons {
   
   CGFloat leftOffset = (kLargeButtonWidth / 2) + ((self.frame.size.width - kLargeButtonWidth * 5.5) / 2);
@@ -39,6 +26,7 @@
   
   for (int i = 0; i < 5; i++) {
     Button *button = [[Button alloc] initWithName:nameArray[i] andColor:colourArray[i] andSize:kLargeButtonSize andPosition:CGPointMake(leftOffset + xCoord[i], kRackHeight / 2) andZPosition:kZPositionTopBarButton];
+    [self addChild:button];
     [tempButtons addObject:button];
   }
   
@@ -49,7 +37,6 @@
   self.returnOrStartButton = tempButtons[4];
 
   [self node:self.returnOrStartButton shouldBeEnabled:YES];
-//  self.allButtons = [NSSet setWithArray:tempButtons];
 }
 
 @end

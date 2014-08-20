@@ -60,7 +60,6 @@
 #define kCellPlayerLabelWidth (kIsIPhone ? (kCellPlayerSlotWidth * 0.75) : (kCellPlayerSlotWidth - (kPlayerLabelWidthPadding / 2)))
 #define kCellIPhoneScoreLabelWidth (kCellPlayerSlotWidth * 0.25)
 
-  // cell and scene constants
 #define kPlayerLabelHeightPadding (kCellRowHeight / 12)
 #define kPlayerLabelWidthPadding (kCellWidth / 25)
 #define kScoreLabelHeight (kCellRowHeight / 2.66666667)

@@ -20,16 +20,8 @@
                                            andSize:kLargeButtonSize
                                        andPosition:CGPointMake(self.frame.size.width - (kLargeButtonWidth * 0.5) - kPnPXEdgeBuffer, kRackHeight / 2)
                                       andZPosition:kZPositionTopBarButton];
+  [self addChild:self.returnOrStartButton];
   [self node:self.returnOrStartButton shouldBeEnabled:YES];
-  
-//  self.waitingForPlayerLabel = [[Label alloc] initWithName:@"waitPlayer"
-//                                    andFontColor:kTestRed
-//                                     andFontSize:kPnPLabelFontSize
-//                                     andPosition:CGPointMake(leftOffset, kRackHeight / 2)
-//                                    andZPosition:kZPositionLogMessage
-//                          andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
-//  
-//  self.allLabels = [NSDictionary dictionaryWithObject:self.waitingForPlayerLabel forKey:self.waitingForPlayerLabel.name];
 }
 
 @end

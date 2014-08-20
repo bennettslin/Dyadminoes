@@ -170,7 +170,9 @@
 
 -(void)setUnchangingPlayerLabelProperties {
   
-  self.topBarPlayerLabelWidth = ((self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2) - kTopBarTurnPileLabelsWidth - (kButtonWidth * 5) - (kTopBarPaddingBetweenStuff * 2)) * 0.75);
+  self.topBarPlayerLabelWidth = kIsIPhone ?
+      self.view.bounds.size.width / 3 :
+      ((self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2) - kTopBarTurnPileLabelsWidth - (kButtonWidth * 5) - (kTopBarPaddingBetweenStuff * 2)) * 0.75);
   
   _widestPlayerLabelWidth = 0;
   

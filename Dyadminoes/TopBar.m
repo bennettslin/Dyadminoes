@@ -24,8 +24,14 @@
     
       // divide padding in half here, just for aesthetic reasons
       // so that buttons are closer to turn and pile count labels
-    CGFloat xPosition = self.frame.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth - (kTopBarPaddingBetweenStuff / 2) - kButtonWidth * (4.5 - i);
+    
+    CGFloat xIPhoneSidePadding = (self.frame.size.width - (kButtonWidth * 5)) / 2;
+    CGFloat xPosition = kIsIPhone ?
+        xIPhoneSidePadding + (kButtonWidth * (i + 0.5)) :
+        self.frame.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth -
+        (kTopBarPaddingBetweenStuff / 2) - kButtonWidth * (4.5 - i);
     Button *button = [[Button alloc] initWithName:nameArray[i] andColor:colourArray[i] andSize:kButtonSize andPosition:CGPointMake(xPosition, yPosition) andZPosition:kZPositionTopBarButton];
+    [self addChild:button];
     [tempArray addObject:button];
   }
   
@@ -37,10 +43,9 @@
   self.debugButton = tempArray[5];
 
   [self node:self.debugButton shouldBeEnabled:YES];
-//  self.allButtons = [NSSet setWithArray:tempArray];
 }
 
--(void)populateWithTopBarLabels {
+-(void)populateWithTopBarDebuggerLabels {
   
   NSMutableDictionary *tempDictionary = [NSMutableDictionary new];
   
@@ -74,83 +79,8 @@
   self.boardDyadminoesLabel = tempDebuggerArray[2];
   self.pileDyadminoesLabel = tempDebuggerArray[3];
   
-    // permanent labels  
-//  self.turnLabel = [[Label alloc] initWithName:@"turnCount"
-//                                  andFontColor:[SKColor whiteColor]
-//                                   andFontSize:kSceneLabelFontSize * 1.25
-//                                   andPosition:CGPointMake(self.frame.size.width - kTopBarXEdgeBuffer, kTopBarHeight - kTopBarPlayerLabelHeight * 1.25)
-//                                  andZPosition:kZPositionTopBarLabel
-//                        andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
-//  self.turnLabel.fontName = kFontHarmony;
-//  [tempDictionary setValue:self.turnLabel forKey:self.turnLabel.name];
-//  self.pileCountLabel = [[Label alloc] initWithName:@"pileCount"
-//                                       andFontColor:[SKColor whiteColor]
-//                                        andFontSize:kSceneLabelFontSize
-//                                        andPosition:CGPointMake(self.frame.size.width - kTopBarXEdgeBuffer, kTopBarHeight - kTopBarPlayerLabelHeight * 2.25)
-//                                       andZPosition:kZPositionTopBarLabel
-//                             andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
-//  self.pileCountLabel.fontName = kFontHarmony;
-//  [tempDictionary setValue:self.pileCountLabel forKey:self.pileCountLabel.name];
-  
-    // message labels
-  
-  self.messageLabel = [[Label alloc] initWithName:@"message"
-                                     andFontColor:kTestRed
-                                      andFontSize:kSceneLabelFontSize
-                                      andPosition:CGPointMake(5.f, -kLabelYPosition * 3)
-                                     andZPosition:kZPositionLogMessage
-                           andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
-  [tempDictionary setValue:self.messageLabel forKey:self.messageLabel.name];
-  self.chordLabel = [[Label alloc] initWithName:@"playedChord"
-                                   andFontColor:[SKColor yellowColor]
-                                    andFontSize:kSceneLabelFontSize
-                                    andPosition:CGPointMake(self.size.width / 2, -kLabelYPosition * 6)
-                                   andZPosition:kZPositionLogMessage
-                         andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
-  [tempDictionary setValue:self.chordLabel forKey:self.chordLabel.name];
-  self.logLabel = [[Label alloc] initWithName:@"log"
-                                 andFontColor:[SKColor whiteColor]
-                                  andFontSize:kSceneLabelFontSize
-                                  andPosition:CGPointMake(self.size.width - 5.f, -kLabelYPosition * 3)
-                                 andZPosition:kZPositionLogMessage
-                       andHorizontalAlignment:SKLabelHorizontalAlignmentModeRight];
-  [tempDictionary setValue:self.logLabel forKey:self.logLabel.name];
-  
   self.allLabels = [NSDictionary dictionaryWithDictionary:tempDictionary];
 }
-
-//-(void)populatePlayerLabels {
-//  
-//  NSMutableDictionary *tempDictionary = [NSMutableDictionary new];
-//  NSMutableArray *tempPlayerNames = [NSMutableArray new];
-//  
-//  NSArray *playerNames = @[@"player1Name", @"player2Name", @"player3Name", @"player4Name"];
-//  float yCoord[4] = {kLabelYPosition * 10, kLabelYPosition * 7, kLabelYPosition * 4, kLabelYPosition * 1};
-//  
-//  for (int i = 0; i < 4; i++) {
-//    Label *label = [[Label alloc] initWithName:playerNames[i] andFontColor:[SKColor whiteColor] andFontSize:kScenePlayerLabelFontSize andPosition:CGPointMake(kTopBarGeneralLeftOffset, yCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
-//    label.fontName = kFontModern;
-//    [tempDictionary setValue:label forKey:label.name];
-//    [tempPlayerNames addObject:label];
-//  }
-//
-//  self.playerNameLabels = [NSArray arrayWithArray:tempPlayerNames];
-//  
-//  NSMutableArray *tempPlayerScores = [NSMutableArray new];
-//  NSArray *playerScores = @[@"player1Score", @"player2Score", @"player3Score", @"player4Score"];
-//  
-//  for (int i = 0; i < 4; i++) {
-//    Label *label = [[Label alloc] initWithName:playerScores[i] andFontColor:[SKColor whiteColor] andFontSize:kScenePlayerLabelFontSize * 0.8f andPosition:CGPointMake(kTopBarGeneralLeftOffset + 125, yCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
-//    label.fontName = kFontModern;
-//    [tempDictionary setValue:label forKey:label.name];
-//    [tempPlayerScores addObject:label];
-//  }
-//  
-//  self.playerScoreLabels = [NSArray arrayWithArray:tempPlayerScores];
-//  
-//  [tempDictionary addEntriesFromDictionary:self.allLabels];
-//  self.allLabels = [NSDictionary dictionaryWithDictionary:tempDictionary];
-//}
 
 -(void)changePassPlayOrDone:(PassPlayOrDoneButton)passPlayOrDone {
   switch (passPlayOrDone) {

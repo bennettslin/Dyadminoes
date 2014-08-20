@@ -34,7 +34,7 @@
 @property (strong, nonatomic) Label *lastActionLabel;
 
 -(void)populateWithTopBarButtons;
--(void)populateWithTopBarLabels;
+-(void)populateWithTopBarDebuggerLabels;
 //-(void)populatePlayerLabels;
 
 -(void)changeSwapCancelOrUndo:(SwapCancelOrUndoButton)swapCancelOrUndo;

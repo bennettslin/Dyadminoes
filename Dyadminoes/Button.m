@@ -10,6 +10,7 @@
 
 @implementation Button {
   SKLabelNode *_labelNode;
+  BOOL _isEnabled;
 }
 
 -(id)initWithName:(NSString *)name andColor:(UIColor *)color
@@ -21,6 +22,7 @@
     self.size = size;
     self.position = position;
     self.zPosition = zPosition;
+    _isEnabled = NO;
     
     _labelNode = [SKLabelNode new];
     _labelNode.text = self.name;
@@ -67,6 +69,14 @@
 
 -(void)showLifted {
   self.alpha = 1.f;
+}
+
+-(BOOL)isEnabled {
+  return _isEnabled;
+}
+
+-(void)enable:(BOOL)isEnabled {
+  _isEnabled = isEnabled;
 }
 
 @end
