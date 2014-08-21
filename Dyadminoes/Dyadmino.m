@@ -22,9 +22,16 @@
 
 @implementation Dyadmino {
   BOOL _alreadyAddedChildren;
+  DyadminoOrientation _pivotPromisedOrientation;
+  BOOL _isPivotAnimating;
 }
 
 #pragma mark - custom setters and getters
+
+-(void)setOrientation:(DyadminoOrientation)orientation {
+  _orientation = orientation;
+  _pivotPromisedOrientation = orientation;
+}
 
 //-(void)setZRotation:(CGFloat)zRotation {
 //  NSLog(@"set Z rotation of dyadmino %@", self.name);
@@ -374,8 +381,9 @@
       NSUInteger newOrientation = (self.prePivotDyadminoOrientation + i) % 6;
       
         // if orientation hasn't changed, just return
-      if (self.orientation != newOrientation) {
-        self.orientation = newOrientation;
+//      if (self.orientation != newOrientation) {
+      if (_pivotPromisedOrientation != newOrientation) {
+        _pivotPromisedOrientation = newOrientation;
         
           // sound dyadmino click
         [self.delegate postSoundNotification:kNotificationPivotClick];
@@ -399,6 +407,9 @@
           
             // when orientation changes, dyadmino will be in new position
           CGPoint newPosition = CGPointZero;
+          
+            //------------------------------------------------------------------
+          
           switch ((self.prePivotDyadminoOrientation + pivotOnPC2Offset) % 6) {
             case 0:
               newPosition = self.initialPivotPosition;
@@ -440,11 +451,23 @@
               self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(xIncrement, yIncrement)];
               break;
           }
+            //------------------------------------------------------------------
         }
         
           // or else put this in an animation
-
+        
+          // either animate and uncomment this...
+//        if (newOrientation == (self.orientation + 1) % 6) {
+//          [self animateOneThirdFlipClockwise:YES aroundAnchorPoint:CGPointMake(0.5, 0.5) times:1 withFullFlip:NO];
+//        } else if (newOrientation == (self.orientation + 5) % 6) {
+//          [self animateOneThirdFlipClockwise:NO aroundAnchorPoint:CGPointMake(0.5, 0.5) times:1 withFullFlip:NO];
+//        }
+        
+          // or don't animate and uncomment this
+        self.orientation = newOrientation;
         [self selectAndPositionSprites];
+        
+        self.anchorPoint = CGPointMake(0.5, 0.5); // reset anchor point
       }
     }
   }
@@ -521,37 +544,44 @@
 }
 
 -(void)animateOneThirdFlipClockwise:(BOOL)clockwise aroundAnchorPoint:(CGPoint)anchorPoint times:(NSUInteger)times withFullFlip:(BOOL)fullFlip {
-  
-  self.anchorPoint = anchorPoint;
-  
-  CGFloat radians = [self getRadiansFromDegree:60] * (clockwise ? 1 : -1);
-  __block NSUInteger counter = times;
-  CGFloat duration = kConstantTime / 6.f; // 4.5;
-  
-  SKAction *turnDyadmino = [SKAction rotateByAngle:-radians duration:duration];
-  SKAction *turnFace = [SKAction rotateByAngle:radians duration:duration];
-  SKAction *turnAction = [SKAction runBlock:^{
-    [self.pc1Sprite runAction:turnFace];
-    [self.pc2Sprite runAction:turnFace];
+  if (!_isPivotAnimating) {
+    self.anchorPoint = anchorPoint;
     
-    [self runAction:turnDyadmino completion:^{
-      self.orientation = (self.orientation + 1) % 6;
-      [self selectAndPositionSprites];
-      counter--;
-      if (counter > 0) {
-        [self animateOneThirdFlipClockwise:clockwise aroundAnchorPoint:anchorPoint times:counter withFullFlip:fullFlip];
-      } else {
-        if (fullFlip) {
-          [self animateCompletionOfFullFlip];
+    CGFloat radians = [self getRadiansFromDegree:60] * (clockwise ? 1 : -1);
+    __block NSUInteger counter = times;
+    CGFloat duration = kConstantTime / 6.0; // 4.5;
+    
+    SKAction *turnDyadmino = [SKAction rotateByAngle:-radians duration:duration];
+    SKAction *turnFace = [SKAction rotateByAngle:radians duration:duration];
+    SKAction *turnAction = [SKAction runBlock:^{
+      [self.pc1Sprite runAction:turnFace];
+      [self.pc2Sprite runAction:turnFace];
+      
+      [self runAction:turnDyadmino completion:^{
+        self.orientation = (self.orientation + (clockwise ? 1 : 5)) % 6;
+        [self selectAndPositionSprites];
+        counter--;
+        _isPivotAnimating = NO;
+        if (counter > 0) {
+          [self animateOneThirdFlipClockwise:clockwise aroundAnchorPoint:anchorPoint times:counter withFullFlip:fullFlip];
+        } else {
+          if (fullFlip) {
+            [self animateCompletionOfFullFlip];
+          }
         }
-      }
+      }];
     }];
-  }];
-  
-  [self runAction:turnAction];
-  
-    // reset anchorPoint after each and every time
-  self.anchorPoint = CGPointMake(0.5f, 0.5f);
+    
+    _isPivotAnimating = YES;
+    [self runAction:turnAction];
+    
+      // reset anchorPoint after each and every time
+    self.anchorPoint = CGPointMake(0.5f, 0.5f);
+    
+      // if already animating, just add to orientation.
+  } else {
+    self.orientation = (self.orientation + (clockwise ? 1 : 5)) % 6;
+  }
 }
 
 -(void)animateCompletionOfFullFlip {

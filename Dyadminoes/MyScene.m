@@ -1196,7 +1196,8 @@
 
 #pragma mark - view controller methods
 
--(void)goBackToMainViewController {  
+-(void)goBackToMainViewController {
+  
   [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
   [self postSoundNotification:kNotificationToggleBarOrField];
   
@@ -1929,7 +1930,7 @@
   BOOL swapContainerNotEmpty = self.myMatch.swapContainer.count > 0;
   BOOL noDyadminoesPlayedAndNoRecentRackDyadmino = self.myMatch.holdingContainer.count == 0 && !_recentRackDyadmino;
   
-  [_topBar node:_topBar.returnOrStartButton shouldBeEnabled:YES];
+  [_topBar node:_topBar.returnOrStartButton shouldBeEnabled:!_swapMode && !thereIsATouchedOrHoveringDyadmino];
   [_topBar node:_topBar.replayButton shouldBeEnabled:(gameHasEndedForPlayer || !currentPlayerHasTurn || (currentPlayerHasTurn && !_swapMode)) && (self.myMatch.turns.count > 0) && !_pnpBarUp];
   [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:(!gameHasEndedForPlayer && currentPlayerHasTurn) && !_pnpBarUp];
   [_topBar node:_topBar.passPlayOrDoneButton shouldBeEnabled:(!gameHasEndedForPlayer && currentPlayerHasTurn) && (!thereIsATouchedOrHoveringDyadmino) && !_pnpBarUp && ((_swapMode && swapContainerNotEmpty) || !_swapMode) && (_swapMode || (!noDyadminoesPlayedAndNoRecentRackDyadmino || (noDyadminoesPlayedAndNoRecentRackDyadmino && self.myMatch.type != kSelfGame)))];

@@ -344,15 +344,25 @@
 }
 
 -(void)updateKeySigLabel {
+  
+    // yields number between 0 and 11
+  NSUInteger keySig = (self.myMatch.randomNumber1To24 - 1) / 2;
+    // sharps are 0-5, flats are 6-11
+  MusicSymbol symbol = (keySig < 6) ? kSymbolSharp : kSymbolFlat;
+  
   for (int i = 0; i < 6; i++) {
     UILabel *keySigLabel = self.keySigLabelsArray[i];
-    MusicSymbol symbol = (self.myMatch.randomNumber1To24 <= 12) ? kSymbolSharp : kSymbolFlat;
-    keySigLabel.text = [self stringForMusicSymbol:symbol];
-    keySigLabel.textColor = (self.myMatch.gameHasEnded) ? kStaveEndedGameColour : kStaveColour;
-    CGFloat index = [self stavePositionForAccidentalIndex:i];
-    keySigLabel.frame = CGRectMake(kStaveXBuffer + kCellClefWidth + ((i + 0.5) * kCellKeySigWidth / 6.5),
-                                   kStaveYHeight * index * 0.5,
-                                   kCellKeySigWidth / 2, kCellHeight / 2);
+    if ((symbol == kSymbolSharp && i < keySig) ||
+        (symbol == kSymbolFlat && i <= (keySig - 6))) {
+      keySigLabel.text = [self stringForMusicSymbol:symbol];
+      keySigLabel.textColor = (self.myMatch.gameHasEnded) ? kStaveEndedGameColour : kStaveColour;
+      CGFloat factor = [self stavePositionForAccidentalIndex:i];
+      keySigLabel.frame = CGRectMake(kStaveXBuffer + kCellClefWidth + ((i + 0.5) * kCellKeySigWidth / 6.5),
+                                     kStaveYHeight * factor * 0.5,
+                                     kCellKeySigWidth / 2, kCellHeight / 2);
+    } else {
+      keySigLabel.text = @"";
+    }
   }
 }
 
