@@ -103,9 +103,7 @@
   BOOL _pivotInProgress;
   CFTimeInterval _hoverTime;
   NSUInteger _hoveringDyadminoBeingCorrected;
-  NSUInteger _hoveringDyadminoBeingCorrectedY;
   NSUInteger _hoveringDyadminoFinishedCorrecting;
-  NSUInteger _hoveringDyadminoFinishedCorrectingY;
   CFTimeInterval _doubleTapTime;
   
     // test
@@ -128,6 +126,7 @@
     _dyadminoesStationary = NO;
     _dyadminoesHollowed = NO;
 
+    [self layoutRackField];
     [self layoutBoard];
     [self layoutSwapField];
     [self layoutReplayBars];
@@ -160,13 +159,13 @@
 //    [_boardField colourBackgroundForNormalPlay];
   }
   
-  if (self.myMatch.type == kPnPGame || self.myMatch.gameHasEnded) {
-    _rackField.position = CGPointMake(0, -kRackHeight);
-    _rackField.hidden = YES;
-  } else {
-    _rackField.position = CGPointZero;
-    _rackField.hidden = NO;
-  }
+//  if (self.myMatch.type == kPnPGame || self.myMatch.gameHasEnded) {
+//    _rackField.position = CGPointMake(0, -kRackHeight);
+//    _rackField.hidden = YES;
+//  } else {
+  _rackField.position = CGPointZero;
+  _rackField.hidden = NO;
+//  }
   
   _swapField.position = CGPointMake(self.frame.size.width, kRackHeight);
   
@@ -185,9 +184,7 @@
   [_buttonPressed showLifted];
   _buttonPressed = nil;
   _hoveringDyadminoBeingCorrected = 0;
-  _hoveringDyadminoBeingCorrectedY = 0;
   _hoveringDyadminoFinishedCorrecting = 1;
-  _hoveringDyadminoFinishedCorrectingY = 1;
   _buttonsUpdatedThisTouch = NO;
   _currentTouch = nil;
   _replayMode = NO;
@@ -210,8 +207,6 @@
   
   _myPlayer = self.myMatch.currentPlayer;
   self.myMatch.replayTurn = self.myMatch.turns.count;
-  
-  [self resizeBoard]; // if game has ended
 }
 
 -(void)didMoveToView:(SKView *)view {
@@ -224,7 +219,7 @@
     // this only needs the board dyadminoes to determine the board's cells ranges
     // this populates the board cells
   [self repositionBoardField];
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes withGameEnded:self.myMatch.gameHasEnded];
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes];
   [self populateBoardWithDyadminoes];
   
     // not for first version
@@ -256,7 +251,7 @@
     // called both when scene is loaded, and when new player is ready in PnP mode
   
   [self populateRackArray];
-  [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO];
+  [self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO];
   [self animateRecentlyPlayedDyadminoes];
   [self showTurnInfoOrGameResultsForReplay:NO];
   
@@ -366,17 +361,10 @@
   self.boardDyadminoes = [NSSet setWithSet:tempSet];
 }
 
--(CGSize)resizeBoard { // if game has ended
-  CGFloat height = (self.myMatch && self.myMatch.gameHasEnded) ?
-        self.frame.size.height - kTopBarHeight : self.frame.size.height - kTopBarHeight - kRackHeight;
-  
-  return CGSizeMake(self.frame.size.width, height);
-}
-
 -(void)layoutBoard {
   
   NSLog(@"frame width %.2f, height %.2f", self.frame.size.width, self.frame.size.height);
-  CGSize size = [self resizeBoard];
+  CGSize size = CGSizeMake(self.frame.size.width, self.frame.size.height - kTopBarHeight - kRackHeight);
 
   SKTexture *cellTexture = [self.mySceneEngine getCellTexture];
   _boardField = [[Board alloc] initWithColor:[SKColor clearColor] andSize:size andCellTexture:cellTexture];
@@ -388,9 +376,8 @@
 -(void)repositionBoardField {
     // home position is changed with board movement, but origin never changes
   
-  CGFloat yPosition = self.myMatch.gameHasEnded ? self.frame.size.height - kTopBarHeight : self.frame.size.height - kTopBarHeight + kRackHeight;
-  CGPoint homePosition = CGPointMake(self.frame.size.width * 0.5,
-                                     yPosition * 0.5);
+  CGFloat yPosition = self.frame.size.height - kTopBarHeight + kRackHeight;
+  CGPoint homePosition = CGPointMake(self.frame.size.width * 0.5, yPosition * 0.5);
   [_boardField repositionBoardWithHomePosition:homePosition andOrigin:(CGPoint)homePosition];
 }
 
@@ -496,8 +483,7 @@
   _replayBottom = [[ReplayBar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, -kRackHeight) andZPosition:kZPositionReplayBottom];
   _replayBottom.name = @"replayBottom";
   [self addChild:_replayBottom];
-  
-//  [_replayTop populateWithTopReplayLabels];
+
   [_replayBottom populateWithBottomReplayButtons];
   
   _replayMode = NO;
@@ -505,21 +491,21 @@
   _replayBottom.hidden = YES;
 }
 
--(void)layoutOrRefreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation {
+-(void)layoutRackField {
+  _rackField = [[Rack alloc] initWithColour:kSolidBlue
+                                    andSize:CGSizeMake(self.frame.size.width, kRackHeight)
+                             andAnchorPoint:CGPointZero
+                                andPosition:(self.myMatch.type == kPnPGame ? CGPointMake(0, -kRackHeight) : CGPointZero)
+                               andZPosition:kZPositionRackField];
+  _rackField.delegate = self;
+  _rackField.name = @"rack";
+  [self addChild:_rackField];
+}
+
+-(void)refreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation {
   
   if (!self.myMatch.gameHasEnded) {
-    if (!_rackField) {
-      _rackField = [[Rack alloc] initWithColour:kSolidBlue
-                                        andSize:CGSizeMake(self.frame.size.width, kRackHeight)
-                                 andAnchorPoint:CGPointZero
-                                    andPosition:(self.myMatch.type == kPnPGame ? CGPointMake(0, -kRackHeight) : CGPointZero)
-                                   andZPosition:kZPositionRackField];
-      _rackField.delegate = self;
-      _rackField.name = @"rack";
-      [self addChild:_rackField];
-    }
-    
-//    _rackField.position = CGPointZero;
+
     [_rackField layoutOrRefreshNodesWithCount:self.playerRackDyadminoes.count];
     [_rackField repositionDyadminoes:self.playerRackDyadminoes fromUndo:undo withAnimation:animation];
     
@@ -529,9 +515,8 @@
     
       // match has ended
   } else {
-    if (_rackField) {
-//      _rackField.position = CGPointMake(0, -kRackHeight);
-    }
+
+    NSLog(@"do this thing");
   }
 }
 
@@ -574,8 +559,6 @@
   CGFloat bottomFloat;
   if (_swapMode) {
     bottomFloat = kRackHeight * 2;
-  } else if (self.myMatch.gameHasEnded) {
-    bottomFloat = 0.f;
   } else {
     bottomFloat = kRackHeight;
   }
@@ -945,7 +928,7 @@
     
     CGPoint oldBoardPosition = _boardField.position;
     
-    CGPoint adjustedNewPosition = [_boardField adjustToNewPositionFromBeganLocation:_beganTouchLocation toCurrentLocation:_currentTouchLocation withSwap:[self needRackSpace] andGameEnded:self.myMatch.gameHasEnded];
+    CGPoint adjustedNewPosition = [_boardField adjustToNewPositionFromBeganLocation:_beganTouchLocation toCurrentLocation:_currentTouchLocation withSwap:_swapMode];
     
     if (_hoveringDyadminoStaysFixedToBoard) {
 //      NSLog(@"hovering dyadmino in moveBoard");
@@ -985,9 +968,9 @@
   }
 
     // prep board for bounds and position
-  [_boardField determineOutermostCellsBasedOnDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino] withGameEnded:self.myMatch.gameHasEnded];
+  [_boardField determineOutermostCellsBasedOnDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
   [_boardField determineBoardPositionBounds];
-  [_boardField repositionCellsForZoomWithSwap:[self needRackSpace] andGameEnded:self.myMatch.gameHasEnded];
+  [_boardField repositionCellsForZoomWithSwap:_swapMode];
   
     // resize dyadminoes
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
@@ -1163,7 +1146,7 @@
   
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
-  updateBoardBounds ? [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino] withGameEnded:self.myMatch.gameHasEnded] : nil;
+  updateBoardBounds ? [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]] : nil;
   
   [dyadmino endTouchThenHoverResize];
     // this makes nil tempBoardNode
@@ -1250,9 +1233,9 @@
     _pnpBarUp = NO;
     [self togglePnPBarSyncWithRack:YES animated:YES];
   } else {
-    if (!self.myMatch.gameHasEnded) {
-      [self toggleRackGoOut:YES];
-    }
+//    if (!self.myMatch.gameHasEnded) {
+    [self toggleRackGoOut:YES];
+//    }
   }
 
     // totally not DRY, but needs the code in the completion block
@@ -1474,7 +1457,7 @@
           
           if (self.myMatch.type != kPnPGame) {
             [self populateRackArray];
-            [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
+            [self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
           }
           
             // call this again because animation delays completion
@@ -1522,7 +1505,7 @@
     dataDyad.myOrientation = dyadmino.orientation;
   }
   [self doSomethingSpecial:@"acknowledge that a chord has been played"];
-  [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
+  [self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
   
   [self updateTopBarLabelsFinalTurn:NO animated:YES];
   [self updateTopBarButtons];
@@ -1558,7 +1541,7 @@
 
     if (self.myMatch.type != kPnPGame) {
       [self populateRackArray];
-      [self layoutOrRefreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
+      [self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
     }
     
       // update views
@@ -1689,40 +1672,16 @@
       _hoveringDyadminoFinishedCorrecting = _hoveringDyadminoFinishedCorrecting > 2 ? 2 : _hoveringDyadminoFinishedCorrecting;
     }
     
-    if (self.myMatch.gameHasEnded) {
-      
-      CGFloat yLowLimit = -_boardField.position.y;
-      CGFloat dyadminoYBuffer = (_hoveringDyadmino.orientation == kPC1atTwelveOClock || _hoveringDyadmino.orientation == kPC1atSixOClock) ?
-      kDyadminoFaceDiameter * 1.5 : kDyadminoFaceDiameter;
-      
-      if (_hoveringDyadmino.position.y - dyadminoYBuffer < yLowLimit) {
-        _hoveringDyadminoBeingCorrectedY++;
-        thisDistance = 1.f + (yLowLimit - (_hoveringDyadmino.position.y - dyadminoYBuffer)) / distanceDivisor;
-        _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x, _hoveringDyadmino.position.y + thisDistance);
-        
-      } else {
-        _hoveringDyadminoFinishedCorrectingY++;
-          // so it doesn't grow insanely big
-        _hoveringDyadminoFinishedCorrectingY = _hoveringDyadminoFinishedCorrectingY > 2 ? 2 : _hoveringDyadminoFinishedCorrectingY;
-      }
-    } else {
-      _hoveringDyadminoBeingCorrectedY = 0;
-      _hoveringDyadminoFinishedCorrectingY = 2;
-    }
-    
-//    NSLog(@"being corrected x %i, finished correcting x %i, being corrected y %i, finished correcting y %i", _hoveringDyadminoBeingCorrected, _hoveringDyadminoFinishedCorrecting,_hoveringDyadminoBeingCorrectedY, _hoveringDyadminoFinishedCorrectingY);
-    
       // only goes through one time
-    if (_hoveringDyadminoBeingCorrected == 1 || _hoveringDyadminoBeingCorrectedY == 1) {
+    if (_hoveringDyadminoBeingCorrected == 1) {
       [_boardField hideAllPivotGuides];
       [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
       
       _hoveringDyadminoFinishedCorrecting = (_hoveringDyadminoBeingCorrected >= 1) ? 0 : _hoveringDyadminoFinishedCorrecting;
-      _hoveringDyadminoFinishedCorrectingY = (_hoveringDyadminoBeingCorrectedY >= 1) ? 0 : _hoveringDyadminoFinishedCorrectingY;
       
-    } else if (_hoveringDyadminoFinishedCorrecting == 1 || _hoveringDyadminoFinishedCorrectingY == 1) {
+    } else if (_hoveringDyadminoFinishedCorrecting == 1) {
       
-      if (_hoveringDyadminoFinishedCorrecting >= 1 && _hoveringDyadminoFinishedCorrectingY >= 1) {
+      if (_hoveringDyadminoFinishedCorrecting >= 1) {
         [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
         _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
         [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
@@ -1732,7 +1691,6 @@
         }
         
         _hoveringDyadminoBeingCorrected = (_hoveringDyadminoFinishedCorrecting >= 1) ? 0 : _hoveringDyadminoBeingCorrected;
-        _hoveringDyadminoBeingCorrectedY = (_hoveringDyadminoFinishedCorrectingY >= 1) ? 0 : _hoveringDyadminoBeingCorrectedY;
       }
     }
   }
@@ -1887,7 +1845,7 @@
         _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
         [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
         
-        if (_hoveringDyadminoBeingCorrected == 0 && _hoveringDyadminoBeingCorrectedY == 0) {
+        if (_hoveringDyadminoBeingCorrected == 0) {
           if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
             [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
           }
@@ -1901,7 +1859,7 @@
 
 -(void)updatePivotForDyadminoMoveWithoutBoardCorrected {
     // if board not shifted or corrected, show prepivot guide
-  if (_hoveringDyadmino && _hoveringDyadminoBeingCorrected == 0 && _hoveringDyadminoBeingCorrectedY == 0 && !_touchedDyadmino && !_currentTouch && !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected && ![_boardField.children containsObject:_boardField.prePivotGuide]) {
+  if (_hoveringDyadmino && _hoveringDyadminoBeingCorrected == 0 && !_touchedDyadmino && !_currentTouch && !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected && ![_boardField.children containsObject:_boardField.prePivotGuide]) {
 //    NSLog(@"hovering dyadmino in update pivot without board corrected");
     if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
       [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
@@ -1962,7 +1920,7 @@
         
           // this is one of two places where board bounds are updated
           // the other is when rack dyadmino is sent home
-        [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino] withGameEnded:self.myMatch.gameHasEnded];
+        [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
         
         [_boardField hideAllPivotGuides];
         [dyadmino animateEaseIntoNodeAfterHover];
@@ -2094,23 +2052,13 @@
     // this will only happen during PnP or replay animation
   CGFloat desiredY = goOut ? -kRackHeight : 0;
   _rackField.position = goOut ? CGPointZero : CGPointMake(0, -kRackHeight);
-  
   [_rackField moveToYPosition:desiredY withBounce:!goOut duration:kConstantTime key:@"toggleRackField"];
-  
-  if (goOut && self.myMatch.gameHasEnded) {
-    CGFloat buffer = (_boardField.position.y > _boardField.highestYPos) ? _boardField.highestYPos : _boardField.position.y - kRackHeight / 2;
-    [_boardField moveToYPosition:buffer withBounce:NO duration:kConstantTime key:@"boardMoveReplayEnd"];
-  }
-}
-
-//-(void)toggleTopBarGoOut:(BOOL)goOut completionAction:(SKAction *)completionAction {
-//    // this will only happen during replay animation
-//  CGFloat desiredY = goOut ? self.frame.size.height : self.frame.size.height - kTopBarHeight;
-//  _topBar.position = goOut ? CGPointMake(0, self.frame.size.height - kTopBarHeight) : CGPointMake(0, self.frame.size.height);
 //  
-//  [_topBar moveToYPosition:desiredY withBounce:!goOut duration:kConstantTime key:@"toggleTopBar" completionAction:completionAction];
-//  [self.myDelegate animateTopBarLabelsGoOut:goOut];
-//}
+//  if (goOut && self.myMatch.gameHasEnded) {
+//    CGFloat buffer = (_boardField.position.y > _boardField.highestYPos) ? _boardField.highestYPos : _boardField.position.y - kRackHeight / 2;
+//    [_boardField moveToYPosition:buffer withBounce:NO duration:kConstantTime key:@"boardMoveReplayEnd"];
+//  }
+}
 
 -(void)togglePnPBarSyncWithRack:(BOOL)sync animated:(BOOL)animated {
   
@@ -2227,23 +2175,20 @@
     SKAction *bottomMoveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
     bottomMoveAction.timingMode = SKActionTimingEaseOut;
 
-    if (!self.myMatch.gameHasEnded) {
-      
-      _rackField.position = CGPointZero;
-      SKAction *rackMove = [SKAction moveToY:-kRackHeight duration:kConstantTime];
-      rackMove.timingMode = SKActionTimingEaseIn;
-      SKAction *rackComplete = [SKAction runBlock:^{
-        [_replayBottom runAction:bottomMoveAction withKey:@"toggleReplayBottom"];
-      }];
-      SKAction *rackSequence = [SKAction sequence:@[rackMove, rackComplete]];
-      [_rackField runAction:rackSequence withKey:@"toggleRackField"];
-      
-    } else {
-        [_replayBottom runAction:bottomMoveAction withKey:@"toggleReplayBottom"];
+//    if (!self.myMatch.gameHasEnded) {
     
-        // board action
-      [_boardField moveToYPosition:_boardField.position.y + (kRackHeight / 2) withBounce:NO duration:kConstantTime key:@"boardMoveReplayBegin"];
-    }
+    _rackField.position = CGPointZero;
+    SKAction *rackMove = [SKAction moveToY:-kRackHeight duration:kConstantTime];
+    rackMove.timingMode = SKActionTimingEaseIn;
+    SKAction *rackComplete = [SKAction runBlock:^{
+      [_replayBottom runAction:bottomMoveAction withKey:@"toggleReplayBottom"];
+    }];
+    SKAction *rackSequence = [SKAction sequence:@[rackMove, rackComplete]];
+    [_rackField runAction:rackSequence withKey:@"toggleRackField"];
+//      
+//    } else {
+//        [_replayBottom runAction:bottomMoveAction withKey:@"toggleReplayBottom"];
+//    }
     
       // it's not in replay mode
   } else {
@@ -2271,32 +2216,28 @@
     bottomReplayMoveAction.timingMode = SKActionTimingEaseIn;
     SKAction *bottomReplayCompleteAction;
     
-    if (!self.myMatch.gameHasEnded) {
-      
-      _rackField.hidden = NO;
-      _rackField.position = CGPointMake(0, -kRackHeight);
-      SKAction *rackMove = [SKAction moveToY:0 duration:kConstantTime];
-      rackMove.timingMode = SKActionTimingEaseOut;
-      SKAction *rackComplete = [SKAction runBlock:^{
-        _fieldActionInProgress = NO;
-      }];
-      SKAction *rackSequence = [SKAction sequence:@[rackMove, rackComplete]];
-      
-      bottomReplayCompleteAction = [SKAction runBlock:^{
-        _replayBottom.hidden = YES;
-        [_rackField runAction:rackSequence withKey:@"toggleRackField"];
-      }];
-
-    } else {
-      
-      bottomReplayCompleteAction = [SKAction runBlock:^{
-        _replayBottom.hidden = YES;
-      }];
+//    if (!self.myMatch.gameHasEnded) {
     
-        // board action
-      CGFloat buffer = (_boardField.position.y > _boardField.highestYPos) ? _boardField.highestYPos : _boardField.position.y - kRackHeight / 2;
-      [_boardField moveToYPosition:buffer withBounce:NO duration:kConstantTime key:@"boardMoveReplayEnd"];
-    }
+    _rackField.hidden = NO;
+    _rackField.position = CGPointMake(0, -kRackHeight);
+    SKAction *rackMove = [SKAction moveToY:0 duration:kConstantTime];
+    rackMove.timingMode = SKActionTimingEaseOut;
+    SKAction *rackComplete = [SKAction runBlock:^{
+      _fieldActionInProgress = NO;
+    }];
+    SKAction *rackSequence = [SKAction sequence:@[rackMove, rackComplete]];
+    
+    bottomReplayCompleteAction = [SKAction runBlock:^{
+      _replayBottom.hidden = YES;
+      [_rackField runAction:rackSequence withKey:@"toggleRackField"];
+    }];
+//
+//    } else {
+//      
+//      bottomReplayCompleteAction = [SKAction runBlock:^{
+//        _replayBottom.hidden = YES;
+//      }];
+//    }
     
     SKAction *bottomSequenceAction = [SKAction sequence:@[bottomReplayMoveAction, bottomReplayCompleteAction]];
     [_replayBottom runAction:bottomSequenceAction withKey:@"toggleReplayBottom"];
@@ -2492,10 +2433,6 @@
   return [NSSet setWithSet:tempSet];
 }
 
--(BOOL)needRackSpace {
-  return (_swapMode); // ||(self.myMatch.gameHasEnded && _replayMode)
-}
-
 #pragma mark - touch helper methods
 
 -(void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -2546,9 +2483,7 @@
     // if it's pivoting, it's on the board, period
     // it's also on board, if not in swap and above rack and below top bar
   
-  CGFloat bottomY = self.myMatch.gameHasEnded ? 0 : kRackHeight;
-  
-  if (_pivotInProgress || (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= bottomY &&
+  if (_pivotInProgress || (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
       _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight)) {
 //    NSLog(@"it's on the board");
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
@@ -2772,14 +2707,9 @@
       }
     }
     
-    if (replay) {
-      [self.myDelegate barOrRackLabel:kReplayTurnLabel show:YES toFade:NO withText:turnOrResultsText andColour:colour];
-    } else {
-      [self.myDelegate barOrRackLabel:kTopBarMessageLabel show:YES toFade:YES withText:turnOrResultsText andColour:colour];
-    }
-    
-//    replay ? [_replayTop updateLabel:_replayTop.statusLabel withText:turnOrResultsText andColour:colour] :
-//    [_topBar flashLabel:_topBar.messageLabel withText:turnOrResultsText andColour:colour];
+    replay ?
+        [self.myDelegate barOrRackLabel:kReplayTurnLabel show:YES toFade:NO withText:turnOrResultsText andColour:colour] :
+        [self.myDelegate barOrRackLabel:kTopBarMessageLabel show:YES toFade:YES withText:turnOrResultsText andColour:colour];
   }
 }
 
@@ -2873,7 +2803,7 @@
     }
   }
 
-  [_boardField determineOutermostCellsBasedOnDyadminoes:dyadminoesOnBoardUpToThisPoint withGameEnded:self.myMatch.gameHasEnded];
+  [_boardField determineOutermostCellsBasedOnDyadminoes:dyadminoesOnBoardUpToThisPoint];
   [_boardField determineBoardPositionBounds];
 }
 

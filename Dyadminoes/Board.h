@@ -64,14 +64,13 @@
 
 -(CGPoint)adjustToNewPositionFromBeganLocation:(CGPoint)beganLocation
                              toCurrentLocation:(CGPoint)currentLocation
-                                      withSwap:(BOOL)swap
-                                  andGameEnded:(BOOL)gameEnded;
+                                      withSwap:(BOOL)swap;
 
 -(void)resetForNewMatch;
 
 #pragma mark - board position methods
 
--(void)centerBoardOnDyadminoesAverageCenterWithSwap:(BOOL)swap andGameEnded:(BOOL)gameEnded;
+-(void)centerBoardOnDyadminoesAverageCenterWithSwap:(BOOL)swap;
 //-(void)centerBoardOnLocation:(CGPoint)location withSwap:(BOOL)swap andGameEnded:(BOOL)gameEnded;
 
 #pragma mark - background image methods
@@ -83,12 +82,12 @@
 
 #pragma mark - zoom methods
 
--(void)repositionCellsForZoomWithSwap:(BOOL)swap andGameEnded:(BOOL)gameEnded;
+-(void)repositionCellsForZoomWithSwap:(BOOL)swap;
 //-(void)toggleBackgroundAlphaZeroed:(BOOL)zeroed animated:(BOOL)animated;
 
 #pragma mark - cell methods
 
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes withGameEnded:(BOOL)gameEnded;
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes;
 -(Cell *)acknowledgeOrAddCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex; // called by scene's replay methods
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
@@ -110,7 +109,7 @@
 
 #pragma mark - board span methods
 
--(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes withGameEnded:(BOOL)gameEnded; // called by scene's toggle board zoom method only
+-(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes; // called by scene's toggle board zoom method only
 -(void)determineBoardPositionBounds;
 
 #pragma mark - legality methods

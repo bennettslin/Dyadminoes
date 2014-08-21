@@ -61,10 +61,6 @@
   }
 }
 
--(void)layoutReplayButtons {
-  
-}
-
 #pragma mark - reposition methods
 
 -(void)repositionDyadminoes:(NSArray *)dyadminoesInArray fromUndo:(BOOL)undo withAnimation:(BOOL)animation {
@@ -114,7 +110,7 @@
     }
     
     if (animation) {
-      SKAction *waitAction = [SKAction waitForDuration:index * kWaitTimeForRackDyadminoPopulate];
+      SKAction *waitAction = [SKAction waitForDuration:(undo ? 0 : index * kWaitTimeForRackDyadminoPopulate)];
       SKAction *moveAction = [SKAction runBlock:^{
         [dyadmino animateMoveToPoint:shouldBePosition andSounding:NO];
       }];

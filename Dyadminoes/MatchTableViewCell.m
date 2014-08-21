@@ -100,7 +100,6 @@
 
           // iPhone properties for player and score labels----------------------
         if (kIsIPhone) {
-//          CGFloat xPosition = kIsIPhone ? kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + playerLabelFrameWidth / 2 : 0;
           CGFloat xPosition = self.frame.size.width - kStaveXBuffer - kCellEndBarlineWidth - kCellIPhoneScoreLabelWidth - playerLabelFrameWidth / 2;
           CGFloat yPosition = 0;
           CGFloat playerFontSize = 0;

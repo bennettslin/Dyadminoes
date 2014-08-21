@@ -503,7 +503,7 @@
     
     self.position = [self getHomeNodePosition];
     if (undo) {
-      [self.delegate layoutOrRefreshRackFieldAndDyadminoesFromUndo:YES withAnimation:NO];
+      [self.delegate refreshRackFieldAndDyadminoesFromUndo:YES withAnimation:YES];
     }
   }];
   SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];

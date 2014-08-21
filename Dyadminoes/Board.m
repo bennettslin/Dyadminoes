@@ -132,23 +132,23 @@
   self.position = self.homePosition;
 }
 
--(void)centerBoardOnDyadminoesAverageCenterWithSwap:(BOOL)swap andGameEnded:(BOOL)gameEnded {
+-(void)centerBoardOnDyadminoesAverageCenterWithSwap:(BOOL)swap {
   CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
   CGPoint newPoint = CGPointMake(self.origin.x + (self.hexOrigin.dx - _hexCurrent.dx) * kDyadminoFaceWideDiameter * factor,
                                  self.origin.y + (self.hexOrigin.dy - _hexCurrent.dy) * kDyadminoFaceDiameter * factor);
   
-  [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:newPoint withSwap:swap andGameEnded:gameEnded];
+  [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:newPoint withSwap:swap];
   self.homePosition = newPoint;
 }
 
-//-(void)centerBoardOnLocation:(CGPoint)location withSwap:(BOOL)swap andGameEnded:(BOOL)gameEnded {
-//  [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:location withSwap:swap andGameEnded:gameEnded];
+//-(void)centerBoardOnLocation:(CGPoint)location withSwap:(BOOL)swap {
+//  [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:location withSwap:swap];
 //  self.homePosition = location;
 //}
 
 #pragma mark - board span methods
 
--(CGPoint)adjustToNewPositionFromBeganLocation:(CGPoint)beganLocation toCurrentLocation:(CGPoint)currentLocation withSwap:(BOOL)swap andGameEnded:(BOOL)gameEnded {
+-(CGPoint)adjustToNewPositionFromBeganLocation:(CGPoint)beganLocation toCurrentLocation:(CGPoint)currentLocation withSwap:(BOOL)swap {
     // first get new board position, after applying touch offset
   CGPoint touchOffset = [self subtractFromThisPoint:beganLocation thisPoint:currentLocation];
   CGPoint newPosition = [self subtractFromThisPoint:self.homePosition thisPoint:touchOffset];
@@ -157,7 +157,6 @@
   CGFloat newY = newPosition.y;
   
   CGFloat finalBuffer = swap ? kRackHeight : 0.f; // the height of the swap field
-//  CGFloat endGameBuffer = gameEnded ? finalBuffer - kRackHeight : finalBuffer;
 
   if (newPosition.y < self.lowestYPos) {
     newY = self.lowestYPos;
@@ -180,7 +179,7 @@
   return adjustedNewPosition;
 }
 
--(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes withGameEnded:(BOOL)gameEnded {
+-(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes {
   
     // floats to allow for in-between values for y-coordinates
   CGFloat cellsTopmost = -CGFLOAT_MAX;
@@ -268,7 +267,7 @@
 
 #pragma mark - zoom methods
 
--(void)repositionCellsForZoomWithSwap:(BOOL)swap andGameEnded:(BOOL)gameEnded {
+-(void)repositionCellsForZoomWithSwap:(BOOL)swap {
 
   CGSize cellSize = [Cell establishCellSizeForResize:self.zoomedOut];
   for (Cell *cell in self.allCells) {
@@ -278,15 +277,15 @@
     // zoom out
   if (self.zoomedOut) {
 
-    [self centerBoardOnDyadminoesAverageCenterWithSwap:swap andGameEnded:gameEnded];
+    [self centerBoardOnDyadminoesAverageCenterWithSwap:swap];
 //    [self zoomOutBackgroundImage];
     
       // zoom back in
   } else {
     
-    [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:self.postZoomPosition withSwap:swap andGameEnded:gameEnded];
+    [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:self.postZoomPosition withSwap:swap];
     if (_redoLayoutAfterZoom) {
-      [self layoutBoardCellsAndSnapPointsOfDyadminoes:[self.delegate allBoardDyadminoesPlusRecentRackDyadmino] withGameEnded:gameEnded];
+      [self layoutBoardCellsAndSnapPointsOfDyadminoes:[self.delegate allBoardDyadminoesPlusRecentRackDyadmino]];
       _redoLayoutAfterZoom = NO;
     }
     
@@ -312,15 +311,15 @@
 
 #pragma mark - cell methods
 
--(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes withGameEnded:(BOOL)gameEnded {
+-(void)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
 
     // regular hex origin is only set once per scene load, but zoom hex origin is set every time
   if (!_hexOriginSet) {
-    self.hexOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes withGameEnded:gameEnded];
+    self.hexOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
     _hexCurrent = self.hexOrigin;
     _hexOriginSet = YES;
   } else {
-    _hexCurrent = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes withGameEnded:gameEnded];
+    _hexCurrent = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
   }
   
     // covers all cells in old range plus new range
