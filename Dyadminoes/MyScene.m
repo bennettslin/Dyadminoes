@@ -629,7 +629,7 @@
     // if it's a button, take care of it when touch ended
   if ([_touchNode isKindOfClass:[Button class]] || [_touchNode.parent isKindOfClass:[Button class]]) {
     Button *touchedButton = [_touchNode isKindOfClass:[Button class]] ? (Button *)_touchNode : (Button *)_touchNode.parent;
-      // sound of button tapped
+    
     if ([touchedButton isEnabled]) {
       [self postSoundNotification:kNotificationButtonSunkIn];
       _buttonPressed = touchedButton;
@@ -1998,8 +1998,6 @@
   
   [self.myDelegate barOrRackLabel:kTopBarTurnLabel show:YES toFade:NO withText:turnText andColour:[UIColor whiteColor]];
   [self.myDelegate barOrRackLabel:kTopBarPileCountLabel show:YES toFade:NO withText:pileLeftText andColour:[UIColor whiteColor]];
-//  [_topBar updateLabel:_topBar.turnLabel withText:turnText andColour:nil];
-//  [_topBar updateLabel:_topBar.pileCountLabel withText:pileLeftText andColour:nil];
 }
 
 -(void)updateTopBarButtons {
@@ -2032,9 +2030,8 @@
     [_topBar changeSwapCancelOrUndo:kSwapButton];
     
       // no pass option in self mode
-    if (self.myMatch.type != kSelfGame) {
-      [_topBar changePassPlayOrDone:kPassButton];
-    }
+    (self.myMatch.type == kSelfGame) ? [_topBar changePassPlayOrDone:kPlayButton] :
+        [_topBar changePassPlayOrDone:kPassButton];
     
       // a recent rack dyadmino placed on board
      // doesn't matter whether holding container is empty
@@ -3053,10 +3050,10 @@
   
   _hoveringDyadmino ? [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES] : nil;
   
-  [_topBar node:_topBar.pileDyadminoesLabel shouldBeEnabled:_debugMode];
-  [_topBar node:_topBar.boardDyadminoesLabel shouldBeEnabled:_debugMode];
-  [_topBar node:_topBar.holdingContainerLabel shouldBeEnabled:_debugMode];
-  [_topBar node:_topBar.swapContainerLabel shouldBeEnabled:_debugMode];
+//  [_topBar node:_topBar.pileDyadminoesLabel shouldBeEnabled:_debugMode];
+//  [_topBar node:_topBar.boardDyadminoesLabel shouldBeEnabled:_debugMode];
+//  [_topBar node:_topBar.holdingContainerLabel shouldBeEnabled:_debugMode];
+//  [_topBar node:_topBar.swapContainerLabel shouldBeEnabled:_debugMode];
   for (Label *rackLabel in _topBar.playerRackLabels) {
     [_topBar node:rackLabel shouldBeEnabled:_debugMode];
   }

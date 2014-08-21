@@ -29,6 +29,7 @@
     [self addChild:button];
     [tempButtons addObject:button];
   }
+  self.allButtons = [NSSet setWithArray:tempButtons];
   
   self.firstTurnButton = tempButtons[0];
   self.previousTurnButton = tempButtons[1];

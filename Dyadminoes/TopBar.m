@@ -14,7 +14,7 @@
 
 -(void)populateWithTopBarButtons {
   
-  NSMutableArray *tempArray = [NSMutableArray new];
+  NSMutableArray *tempArray = [NSMutableArray arrayWithCapacity:6];
   CGFloat yPosition = kTopBarHeight / 2;
   
   NSArray *nameArray = @[@"games", @"replay", @"swap", @"pass", @"resign", @"debug"];
@@ -34,6 +34,7 @@
     [self addChild:button];
     [tempArray addObject:button];
   }
+  self.allButtons = [NSSet setWithArray:tempArray];
   
   self.returnOrStartButton = tempArray[0];
   self.replayButton = tempArray[1];

@@ -16,10 +16,14 @@
 
 -(void)populateWithPnPButtonsAndLabel {
 
+  NSMutableSet *tempSet = [NSMutableSet setWithCapacity:1];
   self.returnOrStartButton = [[Button alloc] initWithName:@"start" andColor:[SKColor grayColor]
                                            andSize:kLargeButtonSize
                                        andPosition:CGPointMake(self.frame.size.width - (kLargeButtonWidth * 0.5) - kPnPXEdgeBuffer, kRackHeight / 2)
                                       andZPosition:kZPositionTopBarButton];
+  [tempSet addObject:self.returnOrStartButton];
+  self.allButtons = [NSSet setWithSet:tempSet];
+  
   [self addChild:self.returnOrStartButton];
   [self node:self.returnOrStartButton shouldBeEnabled:YES];
 }
