@@ -346,12 +346,59 @@
 -(void)updateKeySigLabel {
   for (int i = 0; i < 6; i++) {
     UILabel *keySigLabel = self.keySigLabelsArray[i];
-    keySigLabel.text = [self stringForMusicSymbol:kSymbolSharp];
+    MusicSymbol symbol = (self.myMatch.randomNumber1To24 <= 12) ? kSymbolSharp : kSymbolFlat;
+    keySigLabel.text = [self stringForMusicSymbol:symbol];
     keySigLabel.textColor = (self.myMatch.gameHasEnded) ? kStaveEndedGameColour : kStaveColour;
-    keySigLabel.frame = CGRectMake(kStaveXBuffer + kCellClefWidth + (i * kCellKeySigWidth / 6),
-                                   kStaveYHeight * i * 0.5,
+    CGFloat index = [self stavePositionForAccidentalIndex:i];
+    keySigLabel.frame = CGRectMake(kStaveXBuffer + kCellClefWidth + ((i + 0.5) * kCellKeySigWidth / 6.5),
+                                   kStaveYHeight * index * 0.5,
                                    kCellKeySigWidth / 2, kCellHeight / 2);
   }
+}
+
+-(CGFloat)stavePositionForAccidentalIndex:(NSUInteger)index {
+  
+  CGFloat finalValue = 0;
+  
+    // sharps
+  if (self.myMatch.randomNumber1To24 <= 12) {
+      //------------------------------------------------------------------------
+      // even or odd index (default is tenor clef)
+    finalValue = (index % 2 == 0) ?
+        6 - index * 0.5 :
+        2.5 - index * 0.5;
+      //------------------------------------------------------------------------
+    
+      // all other keys but tenor clef have first and third accidentals raised
+    if (self.myMatch.type != kGCFriendGame) {
+      finalValue = (index == 0 || index == 2) ? (finalValue - 7) : finalValue;
+    }
+    
+    // flats
+  } else {
+      //------------------------------------------------------------------------
+      // even or odd index (default is tenor clef)
+    finalValue = (index % 2 == 0) ?
+        3 + index * 0.5 :
+        -0.5 + index * 0.5;
+      //------------------------------------------------------------------------
+  }
+  
+  switch (self.myMatch.type) {
+    case kSelfGame: // treble clef
+      finalValue = finalValue + 1;
+      break;
+    case kPnPGame: // alto clef
+      finalValue = finalValue + 2;
+      break;
+    case kGCRandomGame: // bass clef
+      finalValue = finalValue + 3;
+      break;
+    default:
+      break;
+  }
+
+  return finalValue;
 }
 
 -(void)updateBarline {

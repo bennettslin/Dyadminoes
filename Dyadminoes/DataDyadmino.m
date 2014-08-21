@@ -55,7 +55,7 @@
     // return nothing if dyadmino was added after queried turn
   if (turn < [self getTurnAdded]) {
 //    NSLog(@"data dyadmino %i was added turn %i, after queried turn %i", self.myID, [self getTurnAdded], turn);
-    return [self hexCoordFromX:2147483647 andY:2147483647];
+    return [self hexCoordFromX:NSIntegerMax andY:NSIntegerMax];
   }
   
   NSNumber *lastHexX;
@@ -78,7 +78,7 @@
   
   if (!lastHexX || !lastHexY) {
 //    NSLog(@"error: no last hexX or hexY for data dyadmino %i for turn %i for queried turn %i", self.myID, [self getTurnAdded], turn);
-    return [self hexCoordFromX:2147483647 andY:2147483647]; // this should *never* get called
+    return [self hexCoordFromX:NSIntegerMax andY:NSIntegerMax]; // this should *never* get called
   } else {
     return [self hexCoordFromX:[lastHexX integerValue] andY:[lastHexY integerValue]];
   }
@@ -90,7 +90,7 @@
     // return nothing if dyadmino was added after queried turn
   if (turn < [self getTurnAdded]) {
 //    NSLog(@"data dyadmino %i was added turn %i, after queried turn %i", self.myID, [self getTurnAdded], turn);
-    return 2147483647;
+    return NSIntegerMax;
   }
   
     // start with most recent turn changes by iterating backwards
