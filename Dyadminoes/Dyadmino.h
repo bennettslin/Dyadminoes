@@ -100,6 +100,7 @@
 -(void)selectAndPositionSprites;
 -(void)orientBySnapNode:(SnapPoint *)snapNode;
 -(CGPoint)getHomeNodePosition;
+-(void)correctZRotationAfterHoverThenDetermineAnchorPoint:(BOOL)determineAnchorPoint;
 
 #pragma mark - change status methods
 

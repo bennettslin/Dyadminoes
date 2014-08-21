@@ -1071,6 +1071,7 @@
       
         // otherwise, prepare it for hover
     } else {
+      [dyadmino correctZRotationAfterHoverThenDetermineAnchorPoint:YES];
       [self prepareForHoverThisDyadmino:dyadmino];
     }
   }
