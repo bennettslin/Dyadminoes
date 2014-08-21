@@ -271,6 +271,7 @@
   if (poppingIn) {
     [self animatePopBackIntoRackNodeFromUndo:undo withResize:resize];
   } else {
+    self.colorBlendFactor = 0.f;
     [self orientBySnapNode:self.homeNode];
     [self animateMoveToPoint:[self getHomeNodePosition] andSounding:sounding];
 //    [self setToHomeZPositionAndSyncOrientation];

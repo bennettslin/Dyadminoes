@@ -928,11 +928,6 @@
 
   [self postSoundNotification:kNotificationBoardZoom];
   
-  if (_hoveringDyadmino) {
-    _hoveringDyadmino.canFlip = NO;
-    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:NO];
-  }
-  
   _boardZoomedOut = _boardZoomedOut ? NO : YES;
   _boardField.zoomedOut = _boardZoomedOut;
   
@@ -1062,7 +1057,7 @@
         
           // it's a rack dyadmino
       } else {
-        dyadmino.colorBlendFactor = 0.f;
+          // moved colorBlendFactor reset here to dyadmino's goHomeToRack method
       }
       
       [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES  andUpdatingBoardBounds:YES];
@@ -1163,7 +1158,7 @@
   
   CGPoint touchBoardOffset = [_boardField getOffsetFromPoint:_currentTouchLocation];
   
-  [_boardField pivotGuidesBasedOnTouchLocation:touchBoardOffset forDyadmino:dyadmino];
+  [_boardField pivotGuidesBasedOnTouchLocation:touchBoardOffset forDyadmino:dyadmino firstTime:NO];
   [dyadmino pivotBasedOnTouchLocation:touchBoardOffset andPivotOnPC:_boardField.pivotOnPC];
 }
 
@@ -1191,7 +1186,7 @@
   dyadmino.initialPivotPosition = dyadmino.position;
   [_boardField determinePivotOnPCForDyadmino:dyadmino];
   [dyadmino determinePivotAroundPointBasedOnPivotOnPC:_boardField.pivotOnPC];
-  [_boardField pivotGuidesBasedOnTouchLocation:touchBoardOffset forDyadmino:dyadmino];
+  [_boardField pivotGuidesBasedOnTouchLocation:touchBoardOffset forDyadmino:dyadmino firstTime:YES];
 }
 
 #pragma mark - view controller methods
@@ -1894,11 +1889,11 @@
         
             // lone dyadmino
         if (placementResult == kErrorLoneDyadmino) {
-          NSLog(@"no lone dyadminoes!");
+//          NSLog(@"no lone dyadminoes!");
           
             // stacked dyadminoes
         } else if (placementResult == kErrorStackedDyadminoes) {
-          NSLog(@"can't stack dyadminoes!");
+//          NSLog(@"can't stack dyadminoes!");
         }
       }
     }

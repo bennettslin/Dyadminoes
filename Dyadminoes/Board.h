@@ -105,7 +105,7 @@
 #pragma mark - pivot methods
 
 -(PivotOnPC)determinePivotOnPCForDyadmino:(Dyadmino *)dyadmino;
--(void)pivotGuidesBasedOnTouchLocation:(CGPoint)touchLocation forDyadmino:(Dyadmino *)dyadmino;
+-(void)pivotGuidesBasedOnTouchLocation:(CGPoint)touchLocation forDyadmino:(Dyadmino *)dyadmino firstTime:(BOOL)firstTime;
 
 #pragma mark - board span methods
 

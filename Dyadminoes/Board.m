@@ -44,6 +44,8 @@
   CGFloat _oldCellsBottom;
   CGFloat _oldCellsLeft;
   CGFloat _oldCellsRight;
+  
+  CGFloat _touchPivotOffsetAngle;
 }
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size andCellTexture:(SKTexture *)cellTexture {
@@ -923,17 +925,65 @@
   return self.pivotOnPC;
 }
 
--(void)pivotGuidesBasedOnTouchLocation:(CGPoint)touchLocation forDyadmino:(Dyadmino *)dyadmino {
-
+-(void)pivotGuidesBasedOnTouchLocation:(CGPoint)touchLocation forDyadmino:(Dyadmino *)dyadmino firstTime:(BOOL)firstTime {
+  
     // establish angles
   CGFloat touchAngle = [self findAngleInDegreesFromThisPoint:touchLocation toThisPoint:dyadmino.pivotAroundPoint];
+  while (touchAngle < 0) {
+    touchAngle += 360.f;
+  }
   
+  while (touchAngle > 360) {
+    touchAngle -= 360.f;
+  }
+  
+  NSUInteger dyadOrient = 360 - dyadmino.orientation * 60;
+
+  CGFloat orientationOffset = 0;
+  if (firstTime) {
+    
+    
+      // FIXME: ranges are incorrect for any orientation other than pc1AtTwelve
+      // so they all show dyadmino's right
+    if (touchAngle > (dyadOrient + 330) % 360 ||
+        touchAngle < (dyadOrient + 30) % 360) {
+      NSLog(@"dyadmino's right");
+      orientationOffset = 0 + dyadOrient;
+      
+    } else if (touchAngle > (dyadOrient + 30) % 360 &&
+               touchAngle <= (dyadOrient + 150) % 360) {
+      NSLog(@"dyadmino's top");
+      orientationOffset = 90 + dyadOrient;
+      
+    } else if (touchAngle > (dyadOrient + 150) % 360 &&
+               touchAngle <= (dyadOrient + 210) % 360) {
+      NSLog(@"dyadmino's left");
+      orientationOffset = 180 + dyadOrient;
+      
+    } else if (touchAngle > (dyadOrient + 210) % 360 &&
+               touchAngle <= (dyadOrient + 330) % 360) {
+      NSLog(@"dyadmino's bottom");
+      orientationOffset = 270 + dyadOrient;
+    }
+    
+    while (orientationOffset > 360) {
+      orientationOffset -= 360;
+    }
+
+    _touchPivotOffsetAngle = touchAngle - orientationOffset;
+    NSLog(@"touch angle is %.2f, orientationOffset is %.2f, offset angle is %.2f", touchAngle, orientationOffset, _touchPivotOffsetAngle);
+  }
+  
+  CGFloat totalTouchAngle = (touchAngle - _touchPivotOffsetAngle);
+  
+  NSLog(@"now touch angle is %.2f, touch angle is %.2f, offset angle is %.2f", totalTouchAngle, touchAngle, _touchPivotOffsetAngle);
+
     //// pivot guide positions and rotations should be established in determinePivotOnPC methods
     //// Here, they are adjusted. This should change, obviously
   self.pivotAroundGuide.position = dyadmino.pivotAroundPoint;
   self.pivotRotateGuide.position = dyadmino.pivotAroundPoint;
-  self.pivotAroundGuide.zRotation = [self getRadiansFromDegree:touchAngle];
-  self.pivotRotateGuide.zRotation = [self getRadiansFromDegree:touchAngle];
+  self.pivotAroundGuide.zRotation = [self getRadiansFromDegree:totalTouchAngle];
+  self.pivotRotateGuide.zRotation = [self getRadiansFromDegree:totalTouchAngle];
 }
 
   // these might be used for replay mode
