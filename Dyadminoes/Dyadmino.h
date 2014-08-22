@@ -100,13 +100,12 @@
 -(void)selectAndPositionSprites;
 -(void)orientBySnapNode:(SnapPoint *)snapNode;
 -(CGPoint)getHomeNodePosition;
--(void)correctZRotationAfterHoverThenDetermineAnchorPoint:(BOOL)determineAnchorPoint;
+-(void)correctZRotationAfterHover;
 
 #pragma mark - change status methods
 
 -(void)startTouchThenHoverResize;
 -(void)endTouchThenHoverResize;
-//-(void)startHovering;
 -(void)keepHovering;
 -(void)finishHovering;
 -(void)unhighlightOutOfPlay;

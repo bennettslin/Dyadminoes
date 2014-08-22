@@ -10,8 +10,6 @@
 #import "Board.h"
 #import "Cell.h"
 #import "Face.h"
-//#import <CoreGraphics/CoreGraphics.h>
-//#import <CoreImage/CoreImage.h>
 
 #define kActionMoveToPoint @"moveToPoint"
 #define kActionPopIntoBoard @"popIntoBoard"
@@ -22,25 +20,10 @@
 
 @implementation Dyadmino {
   BOOL _alreadyAddedChildren;
-//  DyadminoOrientation _pivotPromisedOrientation;
   BOOL _isPivotAnimating;
   PivotOnPC _pivotOnPC;
   BOOL _movedDueToChangeInAnchorPoint;
 }
-
-#pragma mark - custom setters and getters
-
-//-(void)setOrientation:(DyadminoOrientation)orientation {
-//  _orientation = orientation;
-//  _pivotPromisedOrientation = orientation;
-//}
-
-//-(void)setZRotation:(CGFloat)zRotation {
-//  NSLog(@"set Z rotation of dyadmino %@", self.name);
-//  [super setZRotation:zRotation];
-//  self.pc1Sprite.zRotation = -zRotation;
-//  self.pc2Sprite.zRotation = -zRotation;
-//}
 
 #pragma mark - init and layout methods
 
@@ -76,6 +59,8 @@
 
 -(void)resetForNewMatch {
 
+  _isPivotAnimating = NO;
+  
     // reset these init values
   self.color = (SKColor *)kNeutralYellow;
   self.colorBlendFactor = 0.f;
@@ -120,14 +105,6 @@
   [self establishSizeOfSprite:self.pc2Sprite];
 }
 
--(void)selectAndPositionFace:(Face *)face {
-  
-}
-
--(void)selectAndPositionDyadmino {
-  
-}
-
 -(void)selectAndPositionSprites {
   self.hidden = YES;
   
@@ -154,8 +131,6 @@
   self.zRotation = 0.f;
   self.pc1Sprite.zRotation = 0.f;
   self.pc2Sprite.zRotation = 0.f;
-  
-//  [self correctZRotationAfterHoverThenDetermineAnchorPoint:NO];
   
   CGFloat hoverResizeFactor = (self.isTouchThenHoverResized) ? kDyadminoHoverResizeFactor : 1.f;
   CGFloat zoomResizeFactor = (self.isZoomResized) ? kZoomResizeFactor : 1.f;
@@ -224,7 +199,7 @@
       self.homeNode.position;
 }
 
--(void)correctZRotationAfterHoverThenDetermineAnchorPoint:(BOOL)determineAnchorPoint {
+-(void)correctZRotationAfterHover {
   NSLog(@"correctZRotationAfterHover");
   if (self.zRotation != 0) {
     SKAction *zRotationAction = [SKAction rotateToAngle:0.f duration:kConstantTime / 2.f shortestUnitArc:YES];
@@ -232,9 +207,7 @@
     [self.pc1Sprite runAction:zRotationAction];
     [self.pc2Sprite runAction:zRotationAction];
   }
-  if (determineAnchorPoint) {
-    [self determineNewAnchorPointDuringPivot:NO];
-  }
+  [self determineNewAnchorPointDuringPivot:NO];
 }
 
 #pragma mark - change status methods
@@ -409,8 +382,6 @@
       
         // if orientation hasn't changed, just return
       if (self.orientation != newOrientation) {
-//      if (_pivotPromisedOrientation != newOrientation) {
-//        _pivotPromisedOrientation = newOrientation;
         
           // sound dyadmino click
         [self.delegate postSoundNotification:kNotificationPivotClick];
@@ -480,17 +451,7 @@
           }
             //------------------------------------------------------------------
         }
-        
-          // or else put this in an animation
-        
-          // either animate and uncomment this...
-//        if (newOrientation == (self.orientation + 1) % 6) {
-//          [self animateOneThirdFlipClockwise:YES aroundAnchorPoint:CGPointMake(0.5, 0.5) times:1 withFullFlip:NO];
-//        } else if (newOrientation == (self.orientation + 5) % 6) {
-//          [self animateOneThirdFlipClockwise:NO aroundAnchorPoint:CGPointMake(0.5, 0.5) times:1 withFullFlip:NO];
-//        }
-        
-          // or don't animate and uncomment this
+
         self.orientation = newOrientation;
         [self selectAndPositionSprites];
         [self determineNewAnchorPointDuringPivot:YES];
@@ -511,29 +472,37 @@
   CGPoint originalPC1Position = self.pc1Sprite.position;
   CGPoint originalPC2Position = self.pc2Sprite.position;
   
+  CGPoint positionOffset;
+  
   switch (self.orientation) {
     case kPC1atTwelveOClock:
       newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0.5, 0.75) : CGPointMake(0.5, 0.25);
+      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0, kDyadminoFaceRadius) : CGPointMake(0, -kDyadminoFaceRadius);
       break;
     case kPC1atTwoOClock:
       newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(5/7.f, 2/3.f) : CGPointMake(2/7.f, 1/3.f);
+      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0.75 * kDyadminoFaceWideRadius, 0.5 * kDyadminoFaceRadius) : CGPointMake(-0.75 * kDyadminoFaceWideRadius, -0.5 * kDyadminoFaceRadius);
       break;
     case kPC1atFourOClock:
       newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(5/7.f, 1/3.f) : CGPointMake(2/7.f, 2/3.f);
+      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0.75 * kDyadminoFaceWideRadius, -0.5 * kDyadminoFaceRadius) : CGPointMake(-0.75 * kDyadminoFaceWideRadius, 0.5 * kDyadminoFaceRadius);
       break;
     case kPC1atSixOClock:
       newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0.5, 0.25) : CGPointMake(0.5, 0.75);
+      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0, -kDyadminoFaceRadius) : CGPointMake(0, kDyadminoFaceRadius);
       break;
     case kPC1atEightOClock:
       newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(2/7.f, 1/3.f) : CGPointMake(5/7.f, 2/3.f);
+      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(-0.75 * kDyadminoFaceWideRadius, -0.5 * kDyadminoFaceRadius) : CGPointMake(0.75 * kDyadminoFaceWideRadius, 0.5 * kDyadminoFaceRadius);
       break;
     case kPC1atTenOClock:
       newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(2/7.f, 2/3.f) : CGPointMake(5/7.f, 1/3.f);
+      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(-0.75 * kDyadminoFaceWideRadius, 0.5 * kDyadminoFaceRadius) : CGPointMake(0.75 * kDyadminoFaceWideRadius, -0.5 * kDyadminoFaceRadius);
       break;
   }
   
-  CGPoint positionOffset = CGPointMake((newAnchorPoint.x - 0.5) * self.frame.size.width,
-                                       (newAnchorPoint.y - 0.5) * self.frame.size.height);
+  positionOffset = CGPointMake(positionOffset.x * kDyadminoHoverResizeFactor,
+                               positionOffset.y * kDyadminoHoverResizeFactor);
   
   if (during) {
     self.anchorPoint = newAnchorPoint;
