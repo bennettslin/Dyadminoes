@@ -17,12 +17,7 @@
 +(void)saveMyModel:(Model *)myModel;
 +(Model *)getMyModel;
 
-//-(Match *)instantiateSoloMatchWithName:(NSString *)playerName andRules:(GameRules)rules andSkill:(GameSkill)skill;
-
 -(Match *)instantiateNewLocalMatchWithNames:(NSMutableArray *)playerNames andRules:(GameRules)rules andSkill:(GameSkill)skill;
-
-//-(Match *)instantiateHardCodededPassNPlayMatchForDebugPurposes;
-//-(void)instantiateHardCodedMatchesForDebugPurposes;
 -(void)sortMyMatches;
 
 @end

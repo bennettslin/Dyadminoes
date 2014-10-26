@@ -488,6 +488,20 @@
   }
 }
 
+  // FIXME: obviously
+-(NSString *)keySigString {
+    // yields number between 0 and 11
+  NSUInteger keySig = (self.randomNumber1To24 - 1) / 2;
+  
+  NSString *majorOrMinor = (self.randomNumber1To24 % 2 == 0) ? @"Major" : @"minor";
+  
+    // sharps are 0-5, flats are 6-11
+  MusicSymbol symbol = (keySig < 6) ? kSymbolSharp : kSymbolFlat;
+  
+  
+  return nil;
+}
+
 -(UIColor *)colourForPlayer:(Player *)player {
   if ([self.players containsObject:player]) {
     

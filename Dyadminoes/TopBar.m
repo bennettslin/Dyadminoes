@@ -119,34 +119,4 @@
   [self.swapCancelOrUndoButton changeName];
 }
 
-//-(void)afterPlayUpdateScoreLabel:(Label *)scoreLabel withText:(NSString *)scoreText {
-//  
-//  NSLog(@"afterPlayUpdateScoreLabel called");
-//  if (scoreLabel) {
-//    scoreLabel.text = scoreText;
-//    SKAction *brightenColour = [SKAction runBlock:^{
-//      scoreLabel.fontColor = [SKColor yellowColor];
-//    }];
-//      // make own constants
-//    
-//      // keeps score centred
-//    CGPoint positionPoint = CGPointMake(scoreLabel.position.x - scoreLabel.frame.size.width * 0.5f, scoreLabel.position.y - scoreLabel.frame.size.height * 0.35f);
-//    
-//    SKAction *scaleIn = [SKAction scaleTo:kScoreScaleFactor duration:kScoreScaleInTime];
-//    SKAction *positionIn = [SKAction moveTo:positionPoint duration:kScoreScaleInTime];
-//    SKAction *inGroup = [SKAction group:@[scaleIn, positionIn]];
-//    
-//    SKAction *scaleOut = [SKAction scaleTo:1.f duration:kScoreScaleOutTime];
-//    SKAction *positionOut = [SKAction moveTo:scoreLabel.position duration:kScoreScaleOutTime];
-//    SKAction *outGroup = [SKAction group:@[scaleOut, positionOut]];
-//    
-//    SKAction *finishAnimation = [SKAction runBlock:^{
-//      scoreLabel.fontColor = [SKColor whiteColor];
-//    }];
-//    
-//    SKAction *sequence = [SKAction sequence:@[brightenColour, inGroup, outGroup, finishAnimation]];
-//    [scoreLabel runAction:sequence withKey:@"score"];
-//  }
-//}
-
 @end

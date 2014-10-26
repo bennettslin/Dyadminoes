@@ -75,6 +75,7 @@
   self.isTouchThenHoverResized = NO;
   self.isZoomResized = NO;
   self.hoveringStatus = kDyadminoNoHoverStatus;
+  self.zRotationCorrectedAfterPivot = NO;
   self.hidden = NO;
   [self removeFromParent];
   [self removeAllActions];
@@ -181,15 +182,19 @@
 
 -(void)orientBySnapNode:(SnapPoint *)snapNode {
   
+  NSInteger currentOrientation = self.orientation;
+  NSInteger shouldBeOrientation;
+  
   switch (snapNode.snapPointType) {
     case kSnapPointRack:
-      self.orientation = (self.orientation <= 1 || self.orientation >= 5) ? 0 : 3;
+      shouldBeOrientation = (currentOrientation <= 1 || currentOrientation >= 5) ? 0 : 3;
       break;
     default: // snapNode is on board
-      self.orientation = self.tempReturnOrientation;
+      shouldBeOrientation = self.tempReturnOrientation;
       break;
   }
   
+  self.orientation = shouldBeOrientation;
   [self selectAndPositionSprites];
 }
 
@@ -201,21 +206,32 @@
 
 -(void)correctZRotationAfterHover {
   NSLog(@"correctZRotationAfterHover");
-  if (self.zRotation != 0) {
-    SKAction *zRotationAction = [SKAction rotateToAngle:0.f duration:kConstantTime / 2.f shortestUnitArc:YES];
-    [self runAction:zRotationAction];
+  if (self.zRotation != 0.f) {
+    SKAction *zRotationAction = [SKAction rotateToAngle:0.f duration:kConstantTime / 4.f shortestUnitArc:YES];
+    
+    __weak typeof(self) weakSelf = self;
+    SKAction *zCompletion = [SKAction runBlock:^{
+      [weakSelf determineNewAnchorPointDuringPivot:NO];
+      weakSelf.zRotationCorrectedAfterPivot = YES;
+      [weakSelf.delegate prepareForHoverThisDyadmino:self];
+    }];
+    SKAction *sequence = [SKAction sequence:@[zRotationAction, zCompletion]];
+    [self runAction:sequence];
     [self.pc1Sprite runAction:zRotationAction];
     [self.pc2Sprite runAction:zRotationAction];
+  } else {
+    [self determineNewAnchorPointDuringPivot:NO];
+    self.zRotationCorrectedAfterPivot = YES;
+    [self.delegate prepareForHoverThisDyadmino:self];
   }
-  [self determineNewAnchorPointDuringPivot:NO];
 }
 
 #pragma mark - change status methods
 
 -(void)startTouchThenHoverResize {
-    self.isTouchThenHoverResized = YES;
-    [self resize];
-    [self selectAndPositionSprites];
+  self.isTouchThenHoverResized = YES;
+  [self resize];
+  [self selectAndPositionSprites];
 }
 
 -(void)endTouchThenHoverResize {
@@ -505,6 +521,7 @@
                                positionOffset.y * kDyadminoHoverResizeFactor);
   
   if (during) {
+    NSLog(@"anchorPoint being set to %.2f, %.2f", newAnchorPoint.x, newAnchorPoint.y);
     self.anchorPoint = newAnchorPoint;
     _movedDueToChangeInAnchorPoint = YES;
     self.position = [self addToThisPoint:originalPosition thisPoint:positionOffset];
@@ -512,14 +529,13 @@
     self.pc2Sprite.position = [self subtractFromThisPoint:originalPC2Position thisPoint:positionOffset];
     
   } else {
-    self.anchorPoint = CGPointMake(0.5, 0.5);
     if (_movedDueToChangeInAnchorPoint) {
       self.position = [self subtractFromThisPoint:originalPosition thisPoint:positionOffset];
       self.pc1Sprite.position = [self addToThisPoint:originalPC1Position thisPoint:positionOffset];
       self.pc2Sprite.position = [self addToThisPoint:originalPC2Position thisPoint:positionOffset];
-      
       _movedDueToChangeInAnchorPoint = NO;
     }
+    self.anchorPoint = CGPointMake(0.5, 0.5);
   }
 }
 
@@ -530,10 +546,12 @@
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime]; // was kConstantSpeed * distance
   moveAction.timingMode = SKActionTimingEaseIn;
+  
+  __weak typeof(self) weakSelf = self;
   if (sounding) {
     SKAction *completeAction = [SKAction runBlock:^{
-      [self.delegate postSoundNotification:kNotificationEaseIntoNode];
-      [self setToHomeZPositionAndSyncOrientation];
+      [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
+      [weakSelf setToHomeZPositionAndSyncOrientation];
     }];
     SKAction *sequence = [SKAction sequence:@[moveAction, completeAction]];
     [self runAction:sequence withKey:kActionMoveToPoint];
@@ -546,12 +564,14 @@
 //  NSLog(@"dyadmino's animate to board node method called");
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
+  
+  __weak typeof(self) weakSelf = self;
   SKAction *repositionAction = [SKAction runBlock:^{
-    [self.delegate postSoundNotification:kNotificationPopIntoNode];
-    [self setToHomeZPositionAndSyncOrientation];
-    [self orientBySnapNode:([self belongsInRack] ? self.tempBoardNode : self.homeNode)];
-    self.position = [self belongsInRack] ? self.tempBoardNode.position : self.homeNode.position;
-    [self.delegate changeColoursAroundDyadmino:self withSign:+1];
+    [weakSelf.delegate postSoundNotification:kNotificationPopIntoNode];
+    [weakSelf setToHomeZPositionAndSyncOrientation];
+    [weakSelf orientBySnapNode:([weakSelf belongsInRack] ? weakSelf.tempBoardNode : weakSelf.homeNode)];
+    weakSelf.position = [weakSelf belongsInRack] ? weakSelf.tempBoardNode.position : weakSelf.homeNode.position;
+    [weakSelf.delegate changeColoursAroundDyadmino:weakSelf withSign:+1];
   }];
   SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
   SKAction *sequenceAction = [SKAction sequence:@[shrinkAction, repositionAction, growAction]];
@@ -561,22 +581,24 @@
 -(void)animatePopBackIntoRackNodeFromUndo:(BOOL)undo withResize:(BOOL)resize {
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
+  
+  __weak typeof(self) weakSelf = self;
   SKAction *repositionAction = [SKAction runBlock:^{
-    self.color = (SKColor *)kNeutralYellow;
-    [self.delegate postSoundNotification:kNotificationPopIntoNode];
-    [self setToHomeZPositionAndSyncOrientation];
-    [self unhighlightOutOfPlay];
-    [self orientBySnapNode:self.homeNode];
+    weakSelf.color = (SKColor *)kNeutralYellow;
+    [weakSelf.delegate postSoundNotification:kNotificationPopIntoNode];
+    [weakSelf setToHomeZPositionAndSyncOrientation];
+    [weakSelf unhighlightOutOfPlay];
+    [weakSelf orientBySnapNode:self.homeNode];
     
     if (resize) {
-      self.isZoomResized = NO;
-      [self resize];
-      [self selectAndPositionSprites];
+      weakSelf.isZoomResized = NO;
+      [weakSelf resize];
+      [weakSelf selectAndPositionSprites];
     }
     
-    self.position = [self getHomeNodePosition];
+    weakSelf.position = [weakSelf getHomeNodePosition];
     if (undo) {
-      [self.delegate refreshRackFieldAndDyadminoesFromUndo:YES withAnimation:YES];
+      [weakSelf.delegate refreshRackFieldAndDyadminoesFromUndo:YES withAnimation:YES];
     }
   }];
   SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
@@ -590,12 +612,11 @@
   
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   self.isRotating = YES;
-  [self animateOneThirdFlipClockwise:YES aroundAnchorPoint:self.anchorPoint times:3 withFullFlip:YES];
+  [self animateOneThirdFlipClockwise:YES times:3 withFullFlip:YES];
 }
 
--(void)animateOneThirdFlipClockwise:(BOOL)clockwise aroundAnchorPoint:(CGPoint)anchorPoint times:(NSUInteger)times withFullFlip:(BOOL)fullFlip {
+-(void)animateOneThirdFlipClockwise:(BOOL)clockwise times:(NSUInteger)times withFullFlip:(BOOL)fullFlip {
   if (!_isPivotAnimating) {
-    self.anchorPoint = anchorPoint;
     
     CGFloat radians = [self getRadiansFromDegree:60] * (clockwise ? 1 : -1);
     __block NSUInteger counter = times;
@@ -603,20 +624,24 @@
     
     SKAction *turnDyadmino = [SKAction rotateByAngle:-radians duration:duration];
     SKAction *turnFace = [SKAction rotateByAngle:radians duration:duration];
+    
+    __weak typeof(self) weakSelf = self;
     SKAction *turnAction = [SKAction runBlock:^{
-      [self.pc1Sprite runAction:turnFace];
-      [self.pc2Sprite runAction:turnFace];
+      if (counter > 1) {
+        [weakSelf.pc1Sprite runAction:turnFace];
+        [weakSelf.pc2Sprite runAction:turnFace];
+      }
       
-      [self runAction:turnDyadmino completion:^{
-        self.orientation = (self.orientation + (clockwise ? 1 : 5)) % 6;
-        [self selectAndPositionSprites];
+      [weakSelf runAction:turnDyadmino completion:^{
+        weakSelf.orientation = (weakSelf.orientation + (clockwise ? 1 : 5)) % 6;
+        [weakSelf selectAndPositionSprites];
         counter--;
         _isPivotAnimating = NO;
         if (counter > 0) {
-          [self animateOneThirdFlipClockwise:clockwise aroundAnchorPoint:anchorPoint times:counter withFullFlip:fullFlip];
+          [weakSelf animateOneThirdFlipClockwise:clockwise times:counter withFullFlip:fullFlip];
         } else {
           if (fullFlip) {
-            [self animateCompletionOfFullFlip];
+            [weakSelf animateCompletionOfFullFlip];
           }
         }
       }];
@@ -637,24 +662,26 @@
 -(void)animateCompletionOfFullFlip {
   SKAction *finishAction;
   
+  __weak typeof(self) weakSelf = self;
+  
     // rotation
   if ([self isInRack] || [self isOrBelongsInSwap]) {
     finishAction = [SKAction runBlock:^{
-      [self finishHovering];
-      [self setToHomeZPositionAndSyncOrientation];
-      [self endTouchThenHoverResize];
-      self.isRotating = NO;
-      [self.delegate postSoundNotification:kNotificationPivotClick];
+      [weakSelf finishHovering];
+      [weakSelf setToHomeZPositionAndSyncOrientation];
+      [weakSelf endTouchThenHoverResize];
+      weakSelf.isRotating = NO;
+      [weakSelf.delegate postSoundNotification:kNotificationPivotClick];
     }];
       // just to ensure that dyadmino is back in its node position
     self.position = [self getHomeNodePosition];
     
   } else if ([self isOnBoard]) {
     finishAction = [SKAction runBlock:^{
-      self.isRotating = NO;
-      [self keepHovering];
-      [self.delegate prepareForHoverThisDyadmino:self];
-      self.canFlip = NO;
+      weakSelf.isRotating = NO;
+      [weakSelf keepHovering];
+      [weakSelf.delegate prepareForHoverThisDyadmino:weakSelf];
+      weakSelf.canFlip = NO;
     }];
   } else {
     finishAction = [SKAction runBlock:^{
@@ -673,17 +700,19 @@
   }
   
   SKAction *moveAction = [SKAction moveTo:settledPosition duration:kConstantTime];
+  
+  __weak typeof(self) weakSelf = self;
   SKAction *finishAction = [SKAction runBlock:^{
     
-    [self endTouchThenHoverResize];
-    [self setToHomeZPositionAndSyncOrientation];
+    [weakSelf endTouchThenHoverResize];
+    [weakSelf setToHomeZPositionAndSyncOrientation];
     
-    self.canFlip = NO;
-    self.hoveringStatus = kDyadminoNoHoverStatus;
-    self.initialPivotPosition = self.position;
+    weakSelf.canFlip = NO;
+    weakSelf.hoveringStatus = kDyadminoNoHoverStatus;
+    weakSelf.initialPivotPosition = self.position;
     
-    [self.delegate postSoundNotification:kNotificationEaseIntoNode];
-    [self.delegate changeColoursAroundDyadmino:self withSign:+1];
+    [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
+    [weakSelf.delegate changeColoursAroundDyadmino:weakSelf withSign:+1];
   }];
   
   SKAction *sequence = [SKAction sequence:@[moveAction, finishAction]];
@@ -708,14 +737,16 @@
   if (face.parent == self) {
     [face removeAllActions];
     
+    __weak typeof(self) weakSelf = self;
     SKAction *begin = [SKAction runBlock:^{
-      [self resetFaceScales];
+      [weakSelf resetFaceScales];
     }];
     SKAction *scaleUp = [SKAction scaleTo:1.5f duration:0.05f];
     SKAction *scaleOvershootDown = [SKAction scaleTo:0.75f duration:0.1f];
     SKAction *scaleBounceBackUp = [SKAction scaleTo:1.f duration:0.025];
+    
     SKAction *complete = [SKAction runBlock:^{
-      [self establishSizeOfSprite:face];
+      [weakSelf establishSizeOfSprite:face];
     }];
     SKAction *sequence = [SKAction sequence:@[begin, scaleUp, scaleOvershootDown, scaleBounceBackUp, complete]];
     

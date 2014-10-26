@@ -72,6 +72,7 @@
 @property (nonatomic) BOOL isTouchThenHoverResized;
 @property (nonatomic) BOOL isZoomResized;
 @property (nonatomic) DyadminoHoveringStatus hoveringStatus;
+@property (nonatomic) BOOL zRotationCorrectedAfterPivot;
 
   // pivot properties
 @property (nonatomic) CGFloat initialPivotAngle;

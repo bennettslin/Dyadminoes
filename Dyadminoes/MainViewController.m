@@ -45,11 +45,7 @@
 @property (weak, nonatomic) IBOutlet UIView *bottomBar;
 
 @property (weak, nonatomic) IBOutlet UIButton *localGameButton;
-//@property (weak, nonatomic) IBOutlet UIButton *GCGameButton;
-
 @property (weak, nonatomic) IBOutlet UIButton *helpButton;
-//@property (weak, nonatomic) IBOutlet UIButton *storeButton;
-//@property (weak, nonatomic) IBOutlet UIButton *rankButton;
 @property (weak, nonatomic) IBOutlet UIButton *optionsButton;
 @property (weak, nonatomic) IBOutlet UIButton *aboutButton;
 
@@ -61,8 +57,6 @@
 
 @property (strong, nonatomic) LocalGameViewController *localVC;
 @property (strong, nonatomic) HelpViewController *helpVC;
-//@property (strong, nonatomic) StoreViewController *storeVC;
-//@property (strong, nonatomic) RankViewController *rankVC;
 @property (strong, nonatomic) OptionsViewController *optionsVC;
 @property (strong, nonatomic) AboutViewController *aboutVC;
 
@@ -122,12 +116,6 @@
   self.helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
   self.helpVC.view.backgroundColor = [UIColor redColor];
   
-//  self.storeVC = [[StoreViewController alloc] init];
-//  self.storeVC.view.backgroundColor = [UIColor orangeColor];
-//  
-//  self.rankVC = [[RankViewController alloc] init];
-//  self.rankVC.view.backgroundColor = [UIColor yellowColor];
-  
   self.optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"OptionsViewController"];
   self.optionsVC.view.backgroundColor = kPlayerGreen;
   
@@ -178,14 +166,15 @@
   
   [self.myModel sortMyMatches];
   [self.tableView reloadData];
-  
-//  [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
 }
 
 -(void)viewDidAppear:(BOOL)animated {
+  
+  __weak typeof(self) weakSelf = self;
+  
   if (self.mostRecentMatch) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [self.tableView scrollToRowAtIndexPath:self.indexPathForMostRecentMatch atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+      [weakSelf.tableView scrollToRowAtIndexPath:weakSelf.indexPathForMostRecentMatch atScrollPosition:UITableViewScrollPositionTop animated:YES];
     });
   }
 }
@@ -196,8 +185,7 @@
 }
 
 -(void)stopAnimatingBackground {
-//  NSLog(@"stopAnimatingBackground method called");
-  self.backgroundShouldBeStill = YES; // this might be extraneous
+  self.backgroundShouldBeStill = YES;
   [self.backgroundView.layer removeAllAnimations];
 }
 
@@ -369,40 +357,36 @@
 -(void)slideOutTopBarAndBottomBar {
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
     self.topBar.frame = CGRectMake(0, -kMainTopBarHeight, _screenWidth, kMainTopBarHeight);
-  } completion:^(BOOL finished) {
-  }];
+  } completion:nil];
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
     self.bottomBar.frame = CGRectMake(0, _screenHeight, _screenWidth, kMainBottomBarHeight);
-  } completion:^(BOOL finished) {
-  }];
+  } completion:nil];
 }
 
 -(void)slideInTopBarAndBottomBar {
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
     self.topBar.frame = CGRectMake(0, 0, _screenWidth, kMainTopBarHeight);
-  } completion:^(BOOL finished) {
-  }];
+  } completion:nil];
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
     self.bottomBar.frame = CGRectMake(0, _screenHeight - kMainBottomBarHeight, _screenWidth, kMainTopBarHeight);
-  } completion:^(BOOL finished) {
-  }];
+  } completion:nil];
 }
 
 -(void)slideOutTableview {
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.tableView.frame = CGRectMake(kTableViewXMargin, _screenHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
-  } completion:^(BOOL finished) {
-  }];
+  } completion:nil];
 }
 
 -(void)slideInTableview {
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
     self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
-  } completion:^(BOOL finished) {
-  }];
+  } completion:nil];
 }
 
 -(void)fadeOverlayIn:(BOOL)fadeIn {
+  
+  __weak typeof(self) weakSelf = self;
   
   if (fadeIn) {
     CGFloat overlayAlpha = kIsIPhone ? 0.2f : 0.5f;
@@ -410,13 +394,12 @@
     [self.view insertSubview:self.darkOverlay belowSubview:self.activityIndicator];
     [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
       self.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:overlayAlpha];
-    } completion:^(BOOL finished) {
-    }];
+    } completion:nil];
   } else {
     [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
       self.darkOverlay.backgroundColor = [UIColor clearColor];
     } completion:^(BOOL finished) {
-      [self.darkOverlay removeFromSuperview];
+      [weakSelf.darkOverlay removeFromSuperview];
     }];
   }
 }
@@ -433,7 +416,6 @@
 -(void)transitionToSceneAnimationNewThread:(id)data {
   self.activityIndicator.hidden = NO;
   [self.activityIndicator startAnimating];
-  
   [self slideOutTopBarAndBottomBar];
   [self slideOutTableview];
 }
@@ -441,7 +423,6 @@
 -(void)resetActivityIndicatorAndDarkOverlay {
   [self.activityIndicator stopAnimating];
   self.activityIndicator.hidden = YES;
-  
   self.darkOverlay.backgroundColor = [UIColor clearColor];
   [self.darkOverlay removeFromSuperview];
 }
@@ -494,23 +475,21 @@
 
 -(void)animateBackgroundViewFirstTime:(BOOL)firstTime {
   
+  __weak typeof(self) weakSelf = self;
+  
   dispatch_async(dispatch_get_main_queue(), ^{
     if (firstTime) {
-      [self.backgroundView.layer removeAllAnimations];
-      self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
+      [weakSelf.backgroundView.layer removeAllAnimations];
+      weakSelf.backgroundView.frame = CGRectOffset(weakSelf.backgroundView.frame, -weakSelf.backgroundView.frame.size.width / 2, -weakSelf.backgroundView.frame.size.height / 2);
     }
     
     CGFloat seconds = 30;
     [UIView animateWithDuration:seconds delay:0 options:UIViewAnimationOptionCurveLinear | UIViewAnimationOptionRepeat animations:^{
-      self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, self.backgroundView.frame.size.width / 2, self.backgroundView.frame.size.height / 2);
+      weakSelf.backgroundView.frame = CGRectOffset(weakSelf.backgroundView.frame, weakSelf.backgroundView.frame.size.width / 2, weakSelf.backgroundView.frame.size.height / 2);
     } completion:^(BOOL finished) {
       
       if (finished) {
-        self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
-        
-          //      if (!self.backgroundShouldBeStill) {
-          //        self.backgroundView.frame = CGRectOffset(self.backgroundView.frame, -self.backgroundView.frame.size.width / 2, -self.backgroundView.frame.size.height / 2);
-          //      }
+        weakSelf.backgroundView.frame = CGRectOffset(weakSelf.backgroundView.frame, -weakSelf.backgroundView.frame.size.width / 2, -weakSelf.backgroundView.frame.size.height / 2);
       }
     }];
   });

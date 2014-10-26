@@ -18,8 +18,6 @@
 @property (strong, nonatomic) NSArray *playerNameLabels;
 @property (strong, nonatomic) NSArray *playerScoreLabels;
 
-//@property (strong, nonatomic) Label *turnLabel;
-//@property (strong, nonatomic) Label *pileCountLabel;
 @property (strong, nonatomic) Label *messageLabel;
 @property (strong, nonatomic) Label *chordLabel;
 

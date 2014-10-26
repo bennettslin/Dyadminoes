@@ -71,6 +71,7 @@
   // label methods
 -(NSString *)endGameResultsText;
 -(NSString *)turnTextLastPlayed:(BOOL)lastPlayed;
+-(NSString *)keySigString;
 
 #pragma mark - helper methods
 

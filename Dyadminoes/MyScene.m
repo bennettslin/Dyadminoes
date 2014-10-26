@@ -34,7 +34,7 @@
 #define kPnPBarIn @"pnpBarIn"
 #define kPnPBarOut @"pnpBarOut"
 
-@interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIActionSheetDelegate, MatchDelegate, ReturnToGamesButtonDelegate>
+@interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIActionSheetDelegate, UIAlertViewDelegate, MatchDelegate, ReturnToGamesButtonDelegate>
 
   // the dyadminoes that the player sees
 @property (strong, nonatomic) NSArray *playerRackDyadminoes;
@@ -115,8 +115,6 @@
 -(id)initWithSize:(CGSize)size {
   if (self = [super initWithSize:size]) {
     self.backgroundColor = kBackgroundBoardColour;
-//    UIImage *backgroundImage = [UIImage imageNamed:@"BachMassBackgroundCropped"];
-//    self.backgroundColor = [UIColor colorWithPatternImage:backgroundImage];
     self.name = @"scene";
     self.mySoundEngine = [SoundEngine soundEngine];
     self.mySceneEngine = [SceneEngine sceneEngine];
@@ -222,8 +220,10 @@
   
     // kludge way to remove activity indicator
   SKAction *wait = [SKAction waitForDuration:1.f];
+  
+  __weak typeof(self) weakSelf = self;
   SKAction *removeActivityIndicator = [SKAction runBlock:^{
-    [self.myDelegate stopActivityIndicator];
+    [weakSelf.myDelegate stopActivityIndicator];
   }];
   SKAction *sequence = [SKAction sequence:@[wait, removeActivityIndicator]];
   [self runAction:sequence];
@@ -1072,12 +1072,13 @@
         // otherwise, prepare it for hover
     } else {
       [dyadmino correctZRotationAfterHover];
-      [self prepareForHoverThisDyadmino:dyadmino];
+        // prepareForHover will get called in correctZRotation completion
     }
   }
 }
 
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino {
+  
   if (dyadmino != _touchedDyadmino) {
     _hoveringDyadmino = dyadmino;
     
@@ -1095,6 +1096,7 @@
     if (dyadmino.isHovering || dyadmino.continuesToHover) {
       
        // add !_canDoubleTapForDyadminoFlip to have delay after touch ends
+      NSLog(@"prepareForHover");
       [dyadmino isRotating] ? nil : [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
     }
   }
@@ -1124,12 +1126,12 @@
   if ([dyadmino belongsInRack] && !undo) {
     _uponTouchDyadminoNode = nil;
     [dyadmino goHomeToRackByPoppingIn:poppingIn andSounding:sounding fromUndo:NO withResize:_boardZoomedOut];
-    [self logRackDyadminoes];
+//    [self logRackDyadminoes];
     
   } else if (undo) {
     _uponTouchDyadminoNode = nil;
     [dyadmino goHomeToRackByPoppingIn:poppingIn andSounding:sounding fromUndo:YES withResize:_boardZoomedOut];
-    [self logRackDyadminoes];
+//    [self logRackDyadminoes];
     
   } else {
     dyadmino.tempBoardNode = dyadmino.homeNode;
@@ -1183,6 +1185,7 @@
   dyadmino.initialPivotAngle = [self findAngleInDegreesFromThisPoint:touchBoardOffset
                                                          toThisPoint:dyadmino.position];
   
+  dyadmino.zRotationCorrectedAfterPivot = NO;
   dyadmino.prePivotDyadminoOrientation = dyadmino.orientation;
   dyadmino.initialPivotPosition = dyadmino.position;
   [_boardField determinePivotOnPCForDyadmino:dyadmino];
@@ -1210,8 +1213,10 @@
     // totally not DRY, but needs the code in the completion block
   _topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
   SKAction *moveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
+  
+  __weak typeof(self) weakSelf = self;
   SKAction *completionAction = [SKAction runBlock:^{
-    [self.myDelegate backToMainMenu];
+    [weakSelf.myDelegate backToMainMenu];
   }];
   SKAction *sequence = [SKAction sequence:@[moveAction, completionAction]];
   [_topBar runAction:sequence withKey:@"toggleTopBar"];
@@ -1377,12 +1382,14 @@
     if (dyadmino.belongsInSwap) {
       dyadmino.belongsInSwap = NO;
       [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO withResize:NO];
-      [self logRackDyadminoes];
+//      [self logRackDyadminoes];
     }
   }
 }
 
 -(BOOL)finaliseSwap {
+  
+  __weak typeof(self) weakSelf = self;
   
     // extra confirmation; this will have been checked when button was done button was first pressed
   if (self.myMatch.swapContainer.count <= self.myMatch.pile.count) {
@@ -1398,8 +1405,9 @@
       [self removeFromPlayerRackDyadminoes:dyadmino];
       
       SKAction *waitAction = [SKAction waitForDuration:i * kWaitTimeForRackDyadminoPopulate];
+      
       SKAction *soundAction = [SKAction runBlock:^{
-        [self postSoundNotification:kNotificationRackExchangeClick];
+        [weakSelf postSoundNotification:kNotificationRackExchangeClick];
       }];
       SKAction *moveAction = [SKAction moveToX:0 - _rackField.xIncrementInRack duration:kConstantTime];
       moveAction.timingMode = SKActionTimingEaseOut;
@@ -1408,24 +1416,24 @@
         [dyadmino resetForNewMatch];
         if (i == toPile.count - 1) {
           
-          [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
+          [weakSelf updateOrderOfDataDyadsThisTurnToReflectRackOrder];
           
           _swapMode = NO;
-          [self toggleSwapFieldWithAnimation:YES];
+          [weakSelf toggleSwapFieldWithAnimation:YES];
           
             // then swap in the logic
-          [self.myMatch swapDyadminoesFromCurrentPlayer];
+          [weakSelf.myMatch swapDyadminoesFromCurrentPlayer];
           
-          if (self.myMatch.type != kPnPGame) {
-            [self populateRackArray];
-            [self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
+          if (weakSelf.myMatch.type != kPnPGame) {
+            [weakSelf populateRackArray];
+            [weakSelf refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
           }
           
             // call this again because animation delays completion
-          [self updateTopBarLabelsFinalTurn:YES animated:NO];
-          [self updateTopBarButtons];
+          [weakSelf updateTopBarLabelsFinalTurn:YES animated:NO];
+          [weakSelf updateTopBarButtons];
           
-          [self doSomethingSpecial:@"dyadminoes have been swapped."];
+          [weakSelf doSomethingSpecial:@"dyadminoes have been swapped."];
         }
       }];
       SKAction *sequence = [SKAction sequence:@[waitAction, soundAction, moveAction, completeAction]];
@@ -1467,6 +1475,7 @@
   }
   [self doSomethingSpecial:@"acknowledge that a chord has been played"];
   [self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
+  [self recordChangedDataForRackDyadminoes:self.playerRackDyadminoes];
   
   [self updateTopBarLabelsFinalTurn:NO animated:YES];
   [self updateTopBarButtons];
@@ -1475,15 +1484,15 @@
 -(void)undoLastPlayedDyadmino {
     // remove data dyadmino from holding container
   DataDyadmino *undoneDataDyadmino = [self.myMatch undoDyadminoToHoldingContainer];
-  Dyadmino *undoneDyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[undoneDataDyadmino.myID - 1];
+  Dyadmino *undoneDyadmino = [self getDyadminoFromDataDyadmino:undoneDataDyadmino];
   undoneDyadmino.tempReturnOrientation = undoneDataDyadmino.myOrientation;
   undoneDyadmino.orientation = undoneDataDyadmino.myOrientation;
-  undoneDyadmino.myRackOrder = self.playerRackDyadminoes.count;
   undoneDyadmino.homeNode = nil;
   
     // re-add dyadmino to player rack, remove from scene board
   [self reAddToPlayerRackDyadminoes:undoneDyadmino];
   [self removeFromSceneBoardDyadminoes:undoneDyadmino];
+  [self recordChangedDataForRackDyadminoes:self.playerRackDyadminoes];
   
     // take care of views
   [self sendDyadminoHome:undoneDyadmino fromUndo:YES byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
@@ -1646,6 +1655,7 @@
         [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
         
         if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
+          NSLog(@"updateForHoveringDyadmino");
           [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
         }
         
@@ -1806,6 +1816,7 @@
         
         if (_hoveringDyadminoBeingCorrected == 0) {
           if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
+            NSLog(@"updateForBoard");
             [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
           }
         }
@@ -1818,8 +1829,9 @@
 
 -(void)updatePivotForDyadminoMoveWithoutBoardCorrected {
     // if board not shifted or corrected, show prepivot guide
-  if (_hoveringDyadmino && _hoveringDyadminoBeingCorrected == 0 && !_touchedDyadmino && !_currentTouch && !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected && ![_boardField.children containsObject:_boardField.prePivotGuide]) {
-//    NSLog(@"hovering dyadmino in update pivot without board corrected");
+  if (_hoveringDyadmino && _hoveringDyadminoBeingCorrected == 0 && _hoveringDyadmino.zRotationCorrectedAfterPivot && !_touchedDyadmino && !_currentTouch && !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected && ![_boardField.children containsObject:_boardField.prePivotGuide]) {
+    NSLog(@"hovering dyadmino in update pivot without board corrected");
+    NSLog(@"anchor point is %.2f, %.2f", _hoveringDyadmino.anchorPoint.x, _hoveringDyadmino.anchorPoint.y);
     if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
       [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
     }
@@ -2016,6 +2028,8 @@
 
 -(void)togglePnPBarSyncWithRack:(BOOL)sync animated:(BOOL)animated {
   
+  __weak typeof(self) weakSelf = self;
+  
     // cells will toggle faster than pnpBar moves
   [self postSoundNotification:kNotificationToggleBarOrField];
   
@@ -2027,11 +2041,12 @@
     _pnpBar.hidden = NO;
     SKAction *pnpMoveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
     pnpMoveAction.timingMode = SKActionTimingEaseOut;
+    
     SKAction *pnpCompleteAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
       _rackField.hidden = YES;
-      [self prepareRackForNextPlayer];
-      [self prepareForNewTurn];
+      [weakSelf prepareRackForNextPlayer];
+      [weakSelf prepareForNewTurn];
     }];
     SKAction *pnpSequenceAction = [SKAction sequence:@[pnpMoveAction, pnpCompleteAction]];
     
@@ -2041,13 +2056,9 @@
       rackMove.timingMode = SKActionTimingEaseIn;
       SKAction *rackComplete = [SKAction runBlock:^{
         [_pnpBar runAction:pnpSequenceAction withKey:@"togglePnpBar"];
-        [self.myDelegate animatePnPLabelGoOut:NO];
+        [weakSelf.myDelegate animatePnPLabelGoOut:NO];
       }];
       SKAction *rackSequence = [SKAction sequence:@[rackMove, rackComplete]];
-      
-      // FIXME: duplicate key yields exc_bad_access error
-      // removed keys; however, this does mean that something is being retained in block
-      // and that's not good!
       [_rackField runAction:rackSequence];
       
     } else {
@@ -2106,6 +2117,8 @@
     _replayTop.hidden = NO;
     _replayBottom.hidden = NO;
     
+    __weak typeof(self) weakSelf = self;
+    
     SKAction *topReplayMoveAction = [SKAction moveToY:self.frame.size.height - kTopBarHeight duration:kConstantTime];
     topReplayMoveAction.timingMode = SKActionTimingEaseOut;
     SKAction *topReplayCompleteAction = [SKAction runBlock:^{
@@ -2120,7 +2133,7 @@
     topBarMove.timingMode = SKActionTimingEaseIn;
     SKAction *topBarComplete = [SKAction runBlock:^{
       [_replayTop runAction:topReplaySequenceAction withKey:@"toggleReplayTop"];
-      [self.myDelegate animateReplayLabelGoOut:NO];
+      [weakSelf.myDelegate animateReplayLabelGoOut:NO];
     }];
     SKAction *topBarSequence = [SKAction sequence:@[topBarMove, topBarComplete]];
     [_topBar runAction:topBarSequence withKey:@"toggleTopBar"];
@@ -2151,10 +2164,12 @@
     
     SKAction *topReplayMoveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
     topReplayMoveAction.timingMode = SKActionTimingEaseIn;
+    
+    __weak typeof(self) weakSelf = self;
     SKAction *topReplayCompleteAction = [SKAction runBlock:^{
       _replayTop.hidden = YES;
       [_topBar runAction:topBarSequence withKey:@"toggleTopBar"];
-      [self.myDelegate animateTopBarLabelsGoOut:NO];
+      [weakSelf.myDelegate animateTopBarLabelsGoOut:NO];
     }];
     SKAction *topReplaySequenceAction = [SKAction sequence:@[topReplayMoveAction, topReplayCompleteAction]];
     [_replayTop runAction:topReplaySequenceAction withKey:@"toggleReplayTop"];
@@ -2277,7 +2292,7 @@
     [tempRackArray addObject:dyadmino];
     self.playerRackDyadminoes = [NSArray arrayWithArray:tempRackArray];
   }
-  [self logRackDyadminoes];
+//  [self logRackDyadminoes];
 }
 
 -(void)removeFromPlayerRackDyadminoes:(Dyadmino *)dyadmino {
@@ -2297,10 +2312,13 @@
 }
 
 -(void)removeFromSceneBoardDyadminoes:(Dyadmino *)dyadmino {
-  if ([self.boardDyadminoes containsObject:dyadmino]) {
-    NSMutableSet *tempSet = [NSMutableSet setWithSet:self.boardDyadminoes];
-    [tempSet removeObject:dyadmino];
-    self.boardDyadminoes = [NSSet setWithSet:tempSet];
+    // not sure why fast enumeration works but containsObject method doesn't?!
+  for (Dyadmino *boardDyadmino in self.boardDyadminoes) {
+    if (boardDyadmino == dyadmino) {
+      NSMutableSet *tempSet = [NSMutableSet setWithSet:self.boardDyadminoes];
+      [tempSet removeObject:dyadmino];
+      self.boardDyadminoes = [NSSet setWithSet:tempSet];
+    }
   }
 }
 
@@ -2821,6 +2839,9 @@
 -(void)presentNotEnoughInPileActionSheet {
   NSString *notEnoughString = @"There aren't enough dyadminoes left in the pile.";
 
+//  UIAlertView *notEnoughAlert = [[UIAlertView alloc] initWithTitle:@"Oops!" message:notEnoughString delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+//  [notEnoughAlert show];
+
   UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:notEnoughString delegate:self cancelButtonTitle:@"OK" destructiveButtonTitle:nil otherButtonTitles:nil, nil];
   actionSheet.actionSheetStyle = UIActionSheetStyleBlackOpaque;
   [actionSheet showInView:self.view];
@@ -2983,6 +3004,9 @@
   NSLog(@"holdingCon is:  %@", [[self.myMatch.holdingContainer valueForKey:@"name"] componentsJoinedByString:@", "]);
   NSLog(@"swapContainer:  %@", [[self.myMatch.swapContainer valueForKey:@"name"] componentsJoinedByString:@", "]);
   NSLog(@"rackDyad order: %@", [[self.playerRackDyadminoes valueForKey:@"myRackOrder"] componentsJoinedByString:@", "]);
+  NSLog(@"board is:       %@", self.boardDyadminoes);
+  NSLog(@"rack is:        %@", self.playerRackDyadminoes);
+  NSLog(@"recent rack is: %@", _recentRackDyadmino.name);
 }
 
 #pragma mark - singleton method

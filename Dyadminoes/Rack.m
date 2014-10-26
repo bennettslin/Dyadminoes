@@ -99,8 +99,9 @@
         // dyadmino is *not* already on rack, so add offscreen first and then animate
     } else {
       
+      __weak typeof(self) weakSelf = self;
       completeAction = [SKAction runBlock:^{
-        [self.delegate postSoundNotification:kNotificationEaseIntoNode];
+        [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
       }];
       
       dyadmino.position = CGPointMake(self.size.width + self.xIncrementInRack, shouldBePosition.y);

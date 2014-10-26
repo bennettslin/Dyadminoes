@@ -878,7 +878,6 @@
     }];
     SKAction *scaleUp = [SKAction scaleTo:1.f duration:.08f];
     SKAction *sequence = [SKAction sequence:@[scaleStart, unhide, scaleUp]];
-    NSLog(@"pivot guide scaling now");
     [pivotGuide runAction:sequence withKey:@"pivotGuideScale"];
   }
 }

@@ -129,6 +129,12 @@
   self.pileCountLabel.textAlignment = NSTextAlignmentRight;
   [self.turnPileCountField addSubview:self.pileCountLabel];
   
+  self.keySigLabel = [UILabel new];
+  self.keySigLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneLabelFontSize];
+  self.keySigLabel.adjustsFontSizeToFitWidth = YES;
+  self.keySigLabel.textAlignment = NSTextAlignmentRight;
+  [self.turnPileCountField addSubview:self.keySigLabel];
+  
   self.topBarMessageLabel = [UILabel new];
   self.topBarMessageLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneMessageLabelFontSize];
   self.topBarMessageLabel.textAlignment = NSTextAlignmentRight;
@@ -155,6 +161,8 @@
   
   self.pileCountLabel.frame = CGRectMake(self.view.bounds.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer + kSceneLabelFontSize, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize * 1.25);
   
+  self.keySigLabel.frame = CGRectMake(self.view.bounds.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer + kSceneLabelFontSize * 2, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize * 1.25);
+  
   CGFloat messageLabelWidth = (kButtonWidth * 5) + kTopBarPaddingBetweenStuff + kTopBarTurnPileLabelsWidth;
   self.topBarMessageLabel.frame = CGRectMake(self.view.bounds.size.width - messageLabelWidth - kTopBarXEdgeBuffer, kTopBarHeight, messageLabelWidth, kSceneMessageLabelFontSize);
   
@@ -169,6 +177,8 @@
 #pragma mark - label data methods
 
 -(void)setUnchangingPlayerLabelProperties {
+  
+  self.keySigLabel.text = [self.myMatch keySigString];
   
   self.topBarPlayerLabelWidth = kIsIPhone ?
       self.view.bounds.size.width / 3 :
@@ -453,10 +463,10 @@
   }
 }
 
--(void)orientationChanged:(NSNotification *)note {
-  UIDevice *device = note.object;
-  [self.myScene handleDeviceOrientationChange:device.orientation];
-}
+//-(void)orientationChanged:(NSNotification *)note {
+//  UIDevice *device = note.object;
+//  [self.myScene handleDeviceOrientationChange:device.orientation];
+//}
 
 -(BOOL)shouldAutorotate {
   return YES;

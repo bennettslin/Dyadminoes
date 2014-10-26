@@ -49,120 +49,117 @@
 
 -(void)setViewProperties {
   
-  dispatch_async(dispatch_get_main_queue(), ^{
+  [self updateLastPlayedLabel];
+  [self updateStaves];
+  [self updateClef];
+  [self updateKeySigLabel];
+  [self updateBarline];
+  kIsIPhone ? nil : [self updateRestLabels];
+  
+  Player *player;
+  for (int i = 0; i < kMaxNumPlayers; i++) {
     
-    [self updateLastPlayedLabel];
-    [self updateStaves];
-    [self updateClef];
-    [self updateKeySigLabel];
-    [self updateBarline];
-    kIsIPhone ? nil : [self updateRestLabels];
+    player = (i < self.myMatch.players.count) ? self.myMatch.players[i] : nil;
+    UILabel *playerLabel = self.playerLabelsArray[i];
+    UILabel *scoreLabel = self.scoreLabelsArray[i];
+    UILabel *fermataLabel = self.fermataLabelsArray[i];
     
-    Player *player;
-    for (int i = 0; i < kMaxNumPlayers; i++) {
+    if (!player) {
+      playerLabel.text = @"";
+      scoreLabel.text = @"";
+      fermataLabel.hidden = YES;
       
-      player = (i < self.myMatch.players.count) ? self.myMatch.players[i] : nil;
-      UILabel *playerLabel = self.playerLabelsArray[i];
-      UILabel *scoreLabel = self.scoreLabelsArray[i];
-      UILabel *fermataLabel = self.fermataLabelsArray[i];
+    } else {
       
-      if (!player) {
-        playerLabel.text = @"";
-        scoreLabel.text = @"";
-        fermataLabel.hidden = YES;
+        // player label-------------------------------------------------------
+      playerLabel.text = player ? player.playerName : @"";
+      [playerLabel sizeToFit];
+      
+        // frame width can never be greater than maximum label width
+      CGFloat playerLabelFrameWidth = (playerLabel.frame.size.width > kCellPlayerLabelWidth) ?
+      kCellPlayerLabelWidth : playerLabel.frame.size.width;
+      
+      playerLabel.frame = CGRectMake(0, 0, playerLabelFrameWidth, playerLabel.frame.size.height);
+      
+        // static player colours, check if player resigned
+      playerLabel.textColor = (player.resigned && self.myMatch.type != kSelfGame) ?
+      kResignedGray : [self.myMatch colourForPlayer:player];
+      
+        // score label--------------------------------------------------------
+      scoreLabel.text = (player && !(player.resigned && self.myMatch.type != kSelfGame)) ?
+      [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
+      scoreLabel.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kStaveYHeight * 2);
+      
+      if (self.myMatch.gameHasEnded) {
+        scoreLabel.textColor = [self.myMatch.wonPlayers containsObject:player] ? kScoreWonGold : kScoreLostGray;
+      } else {
+        scoreLabel.textColor = kScoreNormalBrown;
+      }
+
+        // iPhone properties for player and score labels----------------------
+      if (kIsIPhone) {
+        CGFloat xPosition = self.frame.size.width - kStaveXBuffer - kCellEndBarlineWidth - kCellIPhoneScoreLabelWidth - playerLabelFrameWidth / 2;
+        CGFloat yPosition = 0;
+        CGFloat playerFontSize = 0;
+        switch (self.myMatch.players.count) {
+          case 4:
+            yPosition = kStaveYHeight * (i + 3);
+            playerFontSize = kStaveYHeight;
+            break;
+          case 3:
+            yPosition = kStaveYHeight * (i * 1.5 + 3);
+            playerFontSize = kStaveYHeight * 1.4;
+            break;
+          case 2:
+            yPosition = kStaveYHeight * (i * 2 + 3.5);
+            playerFontSize = kStaveYHeight * 1.8;
+            break;
+          case 1:
+            yPosition = kStaveYHeight * 3.5;
+            playerFontSize = kStaveYHeight * 2.0;
+            break;
+        }
+        
+        playerLabel.font = [UIFont fontWithName:kFontModern size:playerFontSize];
+        playerLabel.center = CGPointMake(xPosition, yPosition);
+        
+        scoreLabel.font = [UIFont fontWithName:kFontModern size:playerFontSize * 0.9];
+        scoreLabel.center = CGPointMake(self.frame.size.width - kStaveXBuffer - kCellEndBarlineWidth - kCellIPhoneScoreLabelWidth / 2, yPosition);
+        
+          // iPad
+      } else {
+        playerLabel.font = [UIFont fontWithName:kFontModern size:(kStaveYHeight * 2.25)];
+        scoreLabel.font = [UIFont fontWithName:kFontModern size:kStaveYHeight * 1.5];
+      }
+
+        // labelView----------------------------------------------------------
+      self.labelView.backgroundColourCanBeChanged = YES;
+      if (self.myMatch.gameHasEnded) {
+        self.labelView.backgroundColor = [UIColor clearColor];
         
       } else {
-        
-          // player label-------------------------------------------------------
-        playerLabel.text = player ? player.playerName : @"";
-        [playerLabel sizeToFit];
-        
-          // frame width can never be greater than maximum label width
-        CGFloat playerLabelFrameWidth = (playerLabel.frame.size.width > kCellPlayerLabelWidth) ?
-        kCellPlayerLabelWidth : playerLabel.frame.size.width;
-        
-        playerLabel.frame = CGRectMake(0, 0, playerLabelFrameWidth, playerLabel.frame.size.height);
-        
-          // static player colours, check if player resigned
-        playerLabel.textColor = (player.resigned && self.myMatch.type != kSelfGame) ?
-        kResignedGray : [self.myMatch colourForPlayer:player];
-        
-          // score label--------------------------------------------------------
-        scoreLabel.text = (player && !(player.resigned && self.myMatch.type != kSelfGame)) ?
-        [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
-        scoreLabel.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kStaveYHeight * 2);
-        
-        if (self.myMatch.gameHasEnded) {
-          scoreLabel.textColor = [self.myMatch.wonPlayers containsObject:player] ? kScoreWonGold : kScoreLostGray;
-        } else {
-          scoreLabel.textColor = kScoreNormalBrown;
-        }
-
-          // iPhone properties for player and score labels----------------------
-        if (kIsIPhone) {
-          CGFloat xPosition = self.frame.size.width - kStaveXBuffer - kCellEndBarlineWidth - kCellIPhoneScoreLabelWidth - playerLabelFrameWidth / 2;
-          CGFloat yPosition = 0;
-          CGFloat playerFontSize = 0;
-          switch (self.myMatch.players.count) {
-            case 4:
-              yPosition = kStaveYHeight * (i + 3);
-              playerFontSize = kStaveYHeight;
-              break;
-            case 3:
-              yPosition = kStaveYHeight * (i * 1.5 + 3);
-              playerFontSize = kStaveYHeight * 1.4;
-              break;
-            case 2:
-              yPosition = kStaveYHeight * (i * 2 + 3.5);
-              playerFontSize = kStaveYHeight * 1.8;
-              break;
-            case 1:
-              yPosition = kStaveYHeight * 3.5;
-              playerFontSize = kStaveYHeight * 2.0;
-              break;
-          }
+        if (player == self.myMatch.currentPlayer) {
+          self.labelView.frame = CGRectMake(0, 0, playerLabelFrameWidth + kPlayerLabelWidthPadding, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
+          self.labelView.layer.cornerRadius = self.labelView.frame.size.height / 2.f;
+          self.labelView.clipsToBounds = YES;
           
-          playerLabel.font = [UIFont fontWithName:kFontModern size:playerFontSize];
-          playerLabel.center = CGPointMake(xPosition, yPosition);
+            // background colours depending on match results
+          self.labelView.backgroundColor = [kMainDarkerYellow colorWithAlphaComponent:0.8f];
           
-          scoreLabel.font = [UIFont fontWithName:kFontModern size:playerFontSize * 0.9];
-          scoreLabel.center = CGPointMake(self.frame.size.width - kStaveXBuffer - kCellEndBarlineWidth - kCellIPhoneScoreLabelWidth / 2, yPosition);
-          
-            // iPad
-        } else {
-          playerLabel.font = [UIFont fontWithName:kFontModern size:(kStaveYHeight * 2.25)];
-          scoreLabel.font = [UIFont fontWithName:kFontModern size:kStaveYHeight * 1.5];
-        }
-
-          // labelView----------------------------------------------------------
-        self.labelView.backgroundColourCanBeChanged = YES;
-        if (self.myMatch.gameHasEnded) {
-          self.labelView.backgroundColor = [UIColor clearColor];
-          
-        } else {
-          if (player == self.myMatch.currentPlayer) {
-            self.labelView.frame = CGRectMake(0, 0, playerLabelFrameWidth + kPlayerLabelWidthPadding, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
-            self.labelView.layer.cornerRadius = self.labelView.frame.size.height / 2.f;
-            self.labelView.clipsToBounds = YES;
-            
-              // background colours depending on match results
-            self.labelView.backgroundColor = [kMainDarkerYellow colorWithAlphaComponent:0.8f];
-            
-              // set labelView here for iPhone only
-            if (kIsIPhone) {
-              self.labelView.center = CGPointMake(playerLabel.center.x, playerLabel.center.y - (kCellRowHeight / 40.f));
-            }
+            // set labelView here for iPhone only
+          if (kIsIPhone) {
+            self.labelView.center = CGPointMake(playerLabel.center.x, playerLabel.center.y - (kCellRowHeight / 40.f));
           }
         }
-        self.labelView.backgroundColourCanBeChanged = NO;
-        
-          // fermata------------------------------------------------------------
-        fermataLabel.hidden = !(!kIsIPhone && self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]);
       }
+      self.labelView.backgroundColourCanBeChanged = NO;
       
-      kIsIPhone ? nil : [self setYPositionsForPlayerLabels];
+        // fermata------------------------------------------------------------
+      fermataLabel.hidden = !(!kIsIPhone && self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]);
     }
-  });
+    
+    kIsIPhone ? nil : [self setYPositionsForPlayerLabels];
+  }
 }
 
 -(void)setYPositionsForPlayerLabels {
