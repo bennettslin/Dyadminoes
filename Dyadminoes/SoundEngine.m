@@ -9,7 +9,10 @@
 #import "SoundEngine.h"
 #import "Dyadmino.h"
 
-@interface SoundEngine ()
+#import "BPianoDelegate.h"
+#import "BAudioController.h"
+
+@interface SoundEngine () <BPianoDelegate>
 
 @end
 
@@ -21,6 +24,7 @@
   int _yOrigin;
   int32_t _xBits;
   int32_t _yBits;
+  BAudioController *_audioController;
 }
 
 -(id)init {
@@ -33,18 +37,43 @@
     _xBits = 0;
     _yBits = 0;
     
+    _audioController = [[BAudioController alloc] init];
+    [_audioController setInputVolume:1 withBus:0];
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleNotificationOfSound:) name:@"playSound" object:nil];
   }
   return self;
 }
 
+#pragma mark - piano delegate methods
+
+-(void) noteOn:(Byte)note {
+  CGFloat volume = [[NSUserDefaults standardUserDefaults] floatForKey:@"music"] * 127;
+  MusicDeviceMIDIEvent(_audioController.samplerUnit, 0x90, note, volume, 0);
+}
+
+-(void) noteOff:(Byte)note {
+  CGFloat volume = [[NSUserDefaults standardUserDefaults] floatForKey:@"music"] * 127;
+  MusicDeviceMIDIEvent(_audioController.samplerUnit, 0x80, note, volume, 0);
+}
+
 #pragma mark - notification and sound methods
+
+-(void)handleMusicNote:(NSUInteger)note {
+  [self noteOn:note + 72];
+}
 
 -(void)handleNotificationOfSound:(NSNotification *)notification {
   if (notification.userInfo) {
     NotificationName notificationName = (NotificationName)[notification.userInfo[@"sound"] unsignedIntegerValue];
     NSString *soundFile = [self fileNameForNotificationName:notificationName];
-    [self playSoundFile:soundFile];
+    
+      // called from options page
+    if ([soundFile isEqualToString:kSoundFileRing]) {
+      [self noteOn:72];
+    } else {
+      [self playSoundFile:soundFile];
+    }
   }
 }
 

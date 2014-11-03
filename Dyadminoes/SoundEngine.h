@@ -14,6 +14,7 @@
 @property (nonatomic) CGFloat soundVolume;
 @property (nonatomic) CGFloat musicVolume;
 
+-(void)handleMusicNote:(NSUInteger)note;
 +(SoundEngine *)soundEngine;
 
 @end

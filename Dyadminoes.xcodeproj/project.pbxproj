@@ -67,6 +67,11 @@
 		3FD06E2318D6544F00E2FF04 /* Cell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FD06E2218D6544F00E2FF04 /* Cell.m */; };
 		3FDA7B80197CF96A001677D8 /* CellBackgroundView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FDA7B7F197CF96A001677D8 /* CellBackgroundView.m */; };
 		3FDD7FD918D4C89B0029DB7D /* Board.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FDD7FD818D4C89B0029DB7D /* Board.m */; };
+		3FE8CD4F19FCA02700D097B6 /* BPianoKey.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8CD4C19FCA02700D097B6 /* BPianoKey.m */; };
+		3FE8CD5019FCA02700D097B6 /* BPianoView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8CD4E19FCA02700D097B6 /* BPianoView.m */; };
+		3FE8CD5719FCA24E00D097B6 /* BAudioController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8CD5619FCA24E00D097B6 /* BAudioController.m */; };
+		3FE8CD6C19FCA26E00D097B6 /* AJH_Piano.sf2 in Resources */ = {isa = PBXBuildFile; fileRef = 3FE8CD5919FCA26E00D097B6 /* AJH_Piano.sf2 */; };
+		3FE8CD7F19FCA5B900D097B6 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FE8CD7E19FCA5B800D097B6 /* AudioToolbox.framework */; };
 		3FEBC8ED193B9CC700DA3560 /* DataDyadmino.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FEBC8EC193B9CC700DA3560 /* DataDyadmino.m */; };
 		3FECDE0A19355B1600D774AB /* StoreViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FECDE0919355B1600D774AB /* StoreViewController.m */; };
 		3FECDE0D19355B2F00D774AB /* RankViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FECDE0C19355B2F00D774AB /* RankViewController.m */; };
@@ -185,6 +190,16 @@
 		3FDA7B7F197CF96A001677D8 /* CellBackgroundView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CellBackgroundView.m; sourceTree = "<group>"; };
 		3FDD7FD718D4C89B0029DB7D /* Board.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Board.h; sourceTree = "<group>"; };
 		3FDD7FD818D4C89B0029DB7D /* Board.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Board.m; sourceTree = "<group>"; };
+		3FE8CD4919FCA02700D097B6 /* bKeyType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bKeyType.h; sourceTree = "<group>"; };
+		3FE8CD4A19FCA02700D097B6 /* BPianoDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BPianoDelegate.h; sourceTree = "<group>"; };
+		3FE8CD4B19FCA02700D097B6 /* BPianoKey.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BPianoKey.h; sourceTree = "<group>"; };
+		3FE8CD4C19FCA02700D097B6 /* BPianoKey.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BPianoKey.m; sourceTree = "<group>"; };
+		3FE8CD4D19FCA02700D097B6 /* BPianoView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BPianoView.h; sourceTree = "<group>"; };
+		3FE8CD4E19FCA02700D097B6 /* BPianoView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BPianoView.m; sourceTree = "<group>"; };
+		3FE8CD5519FCA24E00D097B6 /* BAudioController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BAudioController.h; sourceTree = "<group>"; };
+		3FE8CD5619FCA24E00D097B6 /* BAudioController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BAudioController.m; sourceTree = "<group>"; };
+		3FE8CD5919FCA26E00D097B6 /* AJH_Piano.sf2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = AJH_Piano.sf2; sourceTree = "<group>"; };
+		3FE8CD7E19FCA5B800D097B6 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		3FEBC8EB193B9CC700DA3560 /* DataDyadmino.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataDyadmino.h; sourceTree = "<group>"; };
 		3FEBC8EC193B9CC700DA3560 /* DataDyadmino.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DataDyadmino.m; sourceTree = "<group>"; };
 		3FECDE0819355B1600D774AB /* StoreViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StoreViewController.h; sourceTree = "<group>"; };
@@ -206,6 +221,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3FE8CD7F19FCA5B900D097B6 /* AudioToolbox.framework in Frameworks */,
 				3FCD39851979D4FA00F17DF4 /* AVFoundation.framework in Frameworks */,
 				3F87AAAD188DEE4B008C4A0D /* CoreGraphics.framework in Frameworks */,
 				3F87AAAF188DEE4B008C4A0D /* UIKit.framework in Frameworks */,
@@ -284,6 +300,8 @@
 		3F87AA9E188DEE4B008C4A0D = {
 			isa = PBXGroup;
 			children = (
+				3FE8CD5819FCA26E00D097B6 /* Resources */,
+				3FE8CD4819FCA02700D097B6 /* Piano Classes */,
 				3F87AAB2188DEE4B008C4A0D /* Dyadminoes */,
 				3F87AAD9188DEE4C008C4A0D /* DyadminoesTests */,
 				3F87AAA9188DEE4B008C4A0D /* Frameworks */,
@@ -303,6 +321,7 @@
 		3F87AAA9188DEE4B008C4A0D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3FE8CD7E19FCA5B800D097B6 /* AudioToolbox.framework */,
 				3F59D92019784B6A00A1265D /* AVFoundation.framework */,
 				3F87AAAA188DEE4B008C4A0D /* Foundation.framework */,
 				3F87AAAC188DEE4B008C4A0D /* CoreGraphics.framework */,
@@ -388,6 +407,29 @@
 				3F87AAC5188DEE4B008C4A0D /* SceneViewController.m */,
 			);
 			name = "Game View Controllers";
+			sourceTree = "<group>";
+		};
+		3FE8CD4819FCA02700D097B6 /* Piano Classes */ = {
+			isa = PBXGroup;
+			children = (
+				3FE8CD5519FCA24E00D097B6 /* BAudioController.h */,
+				3FE8CD5619FCA24E00D097B6 /* BAudioController.m */,
+				3FE8CD4919FCA02700D097B6 /* bKeyType.h */,
+				3FE8CD4A19FCA02700D097B6 /* BPianoDelegate.h */,
+				3FE8CD4B19FCA02700D097B6 /* BPianoKey.h */,
+				3FE8CD4C19FCA02700D097B6 /* BPianoKey.m */,
+				3FE8CD4D19FCA02700D097B6 /* BPianoView.h */,
+				3FE8CD4E19FCA02700D097B6 /* BPianoView.m */,
+			);
+			path = "Piano Classes";
+			sourceTree = "<group>";
+		};
+		3FE8CD5819FCA26E00D097B6 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				3FE8CD5919FCA26E00D097B6 /* AJH_Piano.sf2 */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		3FEBC8EE193BBCA100DA3560 /* Other View Controllers */ = {
@@ -546,6 +588,7 @@
 				3F87AAC3188DEE4B008C4A0D /* Main_iPad.storyboard in Resources */,
 				3F0526C91936CE9F003D3C04 /* page2.png in Resources */,
 				3F580BE0194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav in Resources */,
+				3FE8CD6C19FCA26E00D097B6 /* AJH_Piano.sf2 in Resources */,
 				3F87AAC0188DEE4B008C4A0D /* Main_iPhone.storyboard in Resources */,
 				3F580BDC194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav in Resources */,
 				3F0526CA1936CE9F003D3C04 /* page1.png in Resources */,
@@ -572,6 +615,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3FE8CD4F19FCA02700D097B6 /* BPianoKey.m in Sources */,
 				3F3ABBA8198F4CF600015033 /* UIImage+colouredImage.m in Sources */,
 				3F7BD7D5192B09D6009274DE /* MainViewController.m in Sources */,
 				3F3C8FF41990DA1A0061B208 /* PnPBar.m in Sources */,
@@ -592,11 +636,13 @@
 				3F87AAC9188DEE4B008C4A0D /* MyScene.m in Sources */,
 				3F87AAC6188DEE4B008C4A0D /* SceneViewController.m in Sources */,
 				3FDD7FD918D4C89B0029DB7D /* Board.m in Sources */,
+				3FE8CD5719FCA24E00D097B6 /* BAudioController.m in Sources */,
 				3F7BD7C9192AF45D009274DE /* Match.m in Sources */,
 				3F18924718CDB43300BEE276 /* Player.m in Sources */,
 				3F3C8FF71990DA4E0061B208 /* TopBar.m in Sources */,
 				3F7BD7DE192B0AA8009274DE /* Model.m in Sources */,
 				3F0526C11936C877003D3C04 /* HelpViewController.m in Sources */,
+				3FE8CD5019FCA02700D097B6 /* BPianoView.m in Sources */,
 				3F0526CD1936D12A003D3C04 /* HelpContentViewController.m in Sources */,
 				3F193119198064C10034A5B9 /* StavesView.m in Sources */,
 				3FECDE1019355B3A00D774AB /* OptionsViewController.m in Sources */,

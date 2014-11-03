@@ -81,7 +81,7 @@
   [self.myScene handleUserWantsPivotGuides];
   
     // volume
-  [self.myScene handleUserWantsVolume];
+//  [self.myScene handleUserWantsVolume];
   
     //--------------------------------------------------------------------------
   

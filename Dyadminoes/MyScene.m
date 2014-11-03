@@ -113,6 +113,7 @@
 #pragma mark - init methods
 
 -(id)initWithSize:(CGSize)size {
+  
   if (self = [super initWithSize:size]) {
     self.backgroundColor = kBackgroundBoardColour;
     self.name = @"scene";
@@ -290,11 +291,32 @@
   }
 }
 
-#pragma mark - sound notification methods
+#pragma mark - sound methods
 
 -(void)postSoundNotification:(NotificationName)whichNotification {
   NSNumber *whichNotificationObject = [NSNumber numberWithUnsignedInteger:whichNotification];
   [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound" object:self userInfo:@{@"sound": whichNotificationObject}];
+}
+
+-(void)soundDyadmino:(Dyadmino *)dyadmino withFace:(Face *)face {
+  
+    // just sound the face
+  if (face) {
+    NSInteger pc;
+    if (face == dyadmino.pc1Sprite) {
+      pc = dyadmino.pc1;
+    } else if (face == dyadmino.pc2Sprite) {
+      pc = dyadmino.pc2;
+    } else {
+      pc = -1;
+    }
+    [self.mySoundEngine handleMusicNote:pc];
+    
+      // no face means sound whole dyadmino
+  } else {
+    [self.mySoundEngine handleMusicNote:dyadmino.pc1];
+    [self.mySoundEngine handleMusicNote:dyadmino.pc2];
+  }
 }
 
 #pragma mark - layout methods
@@ -618,8 +640,11 @@
     if (!_pnpBarUp && !_replayMode && dyadmino && !_swapMode && !_pivotInProgress) {
       
         // whole dyadmino does not sound when board is zoomed
-      (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) ?
-          [self postSoundNotification:kNotificationTwoNotesStruck] : nil;
+      if (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) {
+        
+          // when face is nil, sound both faces
+        [self soundDyadmino:dyadmino withFace:nil];
+      }
       
         // register sound if face tapped
     } else {
@@ -633,7 +658,8 @@
               (!_replayMode || (_replayMode && [resonatedDyadmino isOnBoard]))) {
             
               // face may be sounded when zoomed
-            [self postSoundNotification:kNotificationOneNoteStruck];
+//            [self postSoundNotification:kNotificationOneNoteStruck];
+            [self soundDyadmino:resonatedDyadmino withFace:face];
             [resonatedDyadmino animateFace:face];
             _soundedDyadminoFace = face;
           }
@@ -725,7 +751,10 @@
         if ((!_replayMode || (_replayMode && [resonatedDyadmino isOnBoard])) &&
             (!_pnpBarUp || (_pnpBarUp && [resonatedDyadmino isOnBoard]))) {
           if (face !=_soundedDyadminoFace) {
-            [self postSoundNotification:kNotificationOneNoteResonated];
+//            [self postSoundNotification:kNotificationOneNoteResonated];
+
+            [self soundDyadmino:resonatedDyadmino withFace:face];
+            
             [resonatedDyadmino animateFace:face];
             _soundedDyadminoFace = face;
           }
@@ -962,10 +991,10 @@
   [_boardField hideAllPivotGuides];
 }
 
--(void)handleUserWantsVolume {
-  self.mySoundEngine.soundVolume = [[NSUserDefaults standardUserDefaults] floatForKey:@"soundEffects"];
-  self.mySoundEngine.musicVolume = [[NSUserDefaults standardUserDefaults] floatForKey:@"music"];
-}
+//-(void)handleUserWantsVolume {
+//  self.mySoundEngine.soundVolume = [[NSUserDefaults standardUserDefaults] floatForKey:@"soundEffects"];
+//  self.mySoundEngine.musicVolume = [[NSUserDefaults standardUserDefaults] floatForKey:@"music"];
+//}
 
 #pragma mark - dyadmino methods
 

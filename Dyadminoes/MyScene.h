@@ -32,7 +32,7 @@
 -(void)tempStoreForPlayerSceneDataDyadminoes;
 -(void)togglePCsUserShaken:(BOOL)userShaken;
 -(void)handleUserWantsPivotGuides;
--(void)handleUserWantsVolume;
+//-(void)handleUserWantsVolume;
 +(MyScene *)myScene;
 
 @end

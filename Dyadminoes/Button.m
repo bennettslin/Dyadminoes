@@ -68,7 +68,10 @@
 }
 
 -(void)showLifted {
-  self.alpha = 1.f;
+  __weak typeof(self) weakSelf = self;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    weakSelf.alpha = 1.f;
+  });
 }
 
 -(BOOL)isEnabled {
