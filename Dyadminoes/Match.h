@@ -26,29 +26,32 @@
 
   // player properties
 @property (strong, nonatomic) NSSet *players; // was array
-@property (strong, nonatomic) Player *currentPlayer;
+@property (assign, nonatomic) NSUInteger currentPlayerIndex;
+//@property (strong, nonatomic) Player *currentPlayer;
 //@property (strong, nonatomic) NSSet *wonPlayers; // was array
 @property (assign, nonatomic) BOOL gameHasEnded;
 
   // data dyadmino arrays
-@property (strong, nonatomic) NSMutableArray *pile; // was mutable array
-@property (strong, nonatomic) NSMutableSet *board; // was mutable set
+@property (strong, nonatomic) NSSet *dataDyadminoes;
+@property (assign, nonatomic) NSUInteger firstDataDyadIndex;
 
   // turns and undo
 @property (assign, nonatomic) NSUInteger tempScore;
-@property (strong, nonatomic) NSArray *holdingContainer; // was array
-@property (strong, nonatomic) NSMutableArray *swapContainer; // was mutable array
 @property (assign, nonatomic) NSUInteger replayTurn;
-@property (strong, nonatomic) NSMutableArray *turns; // turns start from 1 // was mutable array
+@property (strong, nonatomic) NSArray *turns; // turns start from 1 // was mutable array
+@property (strong, nonatomic) NSArray *holdingIndexContainer; // contains dataDyad indices as NSNumbers // was array
+@property (strong, nonatomic) NSSet *swapIndexContainer; // contains dataDyad indices as NSNumbers // was mutable array
 
-@property (nonatomic) NSUInteger numberOfConsecutivePasses;
-@property (strong, nonatomic) DataDyadmino *firstDyadmino;
-
+@property (assign, nonatomic) NSUInteger numberOfConsecutivePasses;
 @property (assign, nonatomic) NSInteger randomNumber1To24;
 
   // these are not persisted
 @property (strong, nonatomic) NSMutableSet *replayBoard;
 @property (weak, nonatomic) id <MatchDelegate> delegate;
+
+  // these will be lazily loaded by dataDyadminoes, depending on place status
+@property (readonly, nonatomic) NSMutableArray *pile; // was mutable array
+@property (readonly, nonatomic) NSMutableSet *board; // was mutable set
 
   // establish initial properties method
 -(void)initialPlayers:(NSArray *)players andRules:(GameRules)rules andSkill:(GameSkill)skill;
@@ -81,10 +84,22 @@
   // helper methods
 -(NSUInteger)wonPlayersCount;
 -(Player *)playerForIndex:(NSUInteger)index;
+-(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index;
+
+  // holding container helper methods
+-(BOOL)holdingsContainsDataDyadmino:(DataDyadmino *)dataDyad;
+-(NSArray *)dataDyadsInHoldingContainer:(NSArray *)holdingContainer;
+
+  // swap container helper methods
+-(BOOL)swapContainerContainsDataDyadmino:(DataDyadmino *)dataDyad;
+-(void)addToSwapDataDyadmino:(DataDyadmino *)dataDyad;
+-(void)removeFromSwapDataDyadmino:(DataDyadmino *)dataDyad;
+-(void)removeAllSwaps;
 
 #pragma mark - helper methods
 
 -(UIColor *)colourForPlayer:(Player *)player;
+-(Player *)currentPlayer;
 
 @end
 

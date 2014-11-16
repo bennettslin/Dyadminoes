@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
+@class DataDyadmino;
+@class Match;
 
 @protocol PlayerDelegate;
 
@@ -20,15 +22,24 @@
 
   // game state properties
 @property (nonatomic) NSUInteger playerScore;
-@property (strong, nonatomic) NSMutableArray *dataDyadminoesThisTurn;
+@property (strong, nonatomic) NSArray *dataDyadminoesThisTurn;
 @property (nonatomic) BOOL resigned;
 @property (assign, nonatomic) BOOL won;
 
+@property (strong, nonatomic) Match *match;
+
 @property (weak, nonatomic) id <PlayerDelegate> delegate;
 
--(id)initWithUniqueID:(NSString *)uniqueID
-        andPlayerName:(NSString *)playerName
-     andPlayerPicture:(UIImage *)playerPicture;
+-(void)initialUniqueID:(NSString *)uniqueID
+       andPlayerName:(NSString *)playerName
+    andPlayerPicture:(UIImage *)playerPicture;
+
+-(BOOL)thisTurnContainsDataDyadmino:(DataDyadmino *)dataDyad;
+-(void)addToThisTurnsDataDyadmino:(DataDyadmino *)dataDyad;
+-(void)insertInThisTurnsDataDyadmino:(DataDyadmino *)dataDyad atIndex:(NSUInteger)index;
+-(void)removeFromThisTurnsDataDyadmino:(DataDyadmino *)dataDyad;
+-(void)removeAllDataDyadminoesThisTurn;
+-(NSArray *)dataDyadsForThisTurn;
 
 @end
 

@@ -7,6 +7,7 @@
 //
 
 #import "Player.h"
+#import "DataDyadmino.h"
 #import "NSObject+Helper.h"
 
 @interface Player ()
@@ -22,6 +23,11 @@
 @dynamic dataDyadminoesThisTurn;
 @dynamic resigned;
 @dynamic won;
+
+@dynamic match;
+
+  // FIXME: is this right?
+@dynamic delegate;
 
 //-(id)initWithCoder:(NSCoder *)aDecoder {
 //  self = [super init];
@@ -43,23 +49,78 @@
 //  [aCoder encodeBool:self.resigned forKey:@"resigned"];
 //}
 
--(id)initWithUniqueID:(NSString *)uniqueID
-        andPlayerName:(NSString *)playerName
-     andPlayerPicture:(UIImage *)playerPicture  {
+-(void)initialUniqueID:(NSString *)uniqueID
+         andPlayerName:(NSString *)playerName
+      andPlayerPicture:(UIImage *)playerPicture  {
   
-  self = [super init];
+//  self = [super init];
+//  
+//  if (self) {
+  self.uniqueID = uniqueID;
+  self.playerName = playerName;
   
-  if (self) {
-    self.uniqueID = uniqueID;
-    self.playerName = playerName;
-    
-      // game state
-    self.dataDyadminoesThisTurn = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
-    self.resigned = NO;
-    self.won = NO;
+    // game state
+  self.dataDyadminoesThisTurn = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
+  self.resigned = NO;
+  self.won = NO;
+//  }
+//  
+//  return self;
+}
+
+-(BOOL)thisTurnContainsDataDyadmino:(DataDyadmino *)dataDyad {
+  return [self.dataDyadminoesThisTurn containsObject:[NSNumber numberWithUnsignedInteger:dataDyad.myID]];
+}
+
+-(void)addToThisTurnsDataDyadmino:(DataDyadmino *)dataDyad {
+  NSNumber *number = [NSNumber numberWithUnsignedInteger:dataDyad.myID];
+  if (![self thisTurnContainsDataDyadmino:dataDyad]) {
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.dataDyadminoesThisTurn];
+    [tempArray addObject:number];
+    self.dataDyadminoesThisTurn = [NSArray arrayWithArray:tempArray];
   }
-  
-  return self;
+}
+
+-(void)insertInThisTurnsDataDyadmino:(DataDyadmino *)dataDyad atIndex:(NSUInteger)index {
+  NSNumber *number = [NSNumber numberWithUnsignedInteger:dataDyad.myID];
+  if (![self thisTurnContainsDataDyadmino:dataDyad]) {
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.dataDyadminoesThisTurn];
+    [tempArray insertObject:number atIndex:index];
+    self.dataDyadminoesThisTurn = [NSArray arrayWithArray:tempArray];
+  }
+}
+
+-(void)removeFromThisTurnsDataDyadmino:(DataDyadmino *)dataDyad {
+  NSNumber *number = [NSNumber numberWithUnsignedInteger:dataDyad.myID];
+  if ([self thisTurnContainsDataDyadmino:dataDyad]) {
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.dataDyadminoesThisTurn];
+    [tempArray removeObject:number];
+    self.dataDyadminoesThisTurn = [NSArray arrayWithArray:tempArray];
+  }
+}
+
+-(void)removeAllDataDyadminoesThisTurn {
+  self.dataDyadminoesThisTurn = nil;
+  self.dataDyadminoesThisTurn = [NSMutableArray new];
+}
+
+-(NSArray *)dataDyadsForThisTurn {
+  NSMutableArray *tempArray = [NSMutableArray new];
+  for (NSNumber *number in self.dataDyadminoesThisTurn) {
+    DataDyadmino *dataDyad = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
+    [tempArray addObject:dataDyad];
+  }
+  return [NSArray arrayWithArray:tempArray];
+}
+
+  // repeated in Match class
+-(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index {
+  for (DataDyadmino *dataDyadmino in self.dataDyadminoesThisTurn) {
+    if (dataDyadmino.myID == index) {
+      return dataDyadmino;
+    }
+  }
+  return nil;
 }
 
 @end

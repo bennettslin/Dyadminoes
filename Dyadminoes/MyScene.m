@@ -149,7 +149,7 @@
     _pnpBar.hidden = NO;
     
 //    [_boardField colourBackgroundForPnP];
-    [self.myDelegate barOrRackLabel:kPnPWaitLabel show:_pnpBarUp toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:self.myMatch.currentPlayer]];
+    [self.myDelegate barOrRackLabel:kPnPWaitLabel show:_pnpBarUp toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:[self.myMatch currentPlayer]]];
     
   } else {
     _pnpBarUp = NO;
@@ -325,13 +325,13 @@
 -(void)populateRackArray {
     // keep player's order and orientation of dyadminoes until turn is submitted
   
-  NSMutableArray *tempDyadminoArray = [[NSMutableArray alloc] initWithCapacity:_myPlayer.dataDyadminoesThisTurn.count];
+  NSMutableArray *tempDyadminoArray = [NSMutableArray new];
   
-  for (DataDyadmino *dataDyad in _myPlayer.dataDyadminoesThisTurn) {
+  for (DataDyadmino *dataDyad in [_myPlayer dataDyadsForThisTurn]) {
     
       // only add if it's not in the holding container
       // if it is, then don't add because holding container is added to board set instead
-    if (![self.myMatch.holdingContainer containsObject:dataDyad]) {
+    if (![self.myMatch holdingsContainsDataDyadmino:dataDyad]) {
       Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
       dyadmino.myHexCoord = dataDyad.myHexCoord;
       dyadmino.orientation = dataDyad.myOrientation;
@@ -354,7 +354,7 @@
   
     // board must enumerate over both board and holding container dyadminoes
   NSMutableSet *tempDataEnumerationSet = [NSMutableSet setWithSet:self.myMatch.board];
-  [tempDataEnumerationSet addObjectsFromArray:self.myMatch.holdingContainer];
+  [tempDataEnumerationSet addObjectsFromArray:[self.myMatch dataDyadsInHoldingContainer:self.myMatch.holdingIndexContainer]];
   
   NSMutableSet *tempSet = [[NSMutableSet alloc] initWithCapacity:tempDataEnumerationSet.count];
   
@@ -1326,7 +1326,7 @@
   } else if (button == _topBar.passPlayOrDoneButton &&
              ([button confirmPassPlayOrDone] == kDoneButton || [button confirmPassPlayOrDone] == kPassButton)) {
     if (!_swapMode) {
-      if (self.myMatch.holdingContainer.count == 0) {
+      if (self.myMatch.holdingIndexContainer.count == 0) {
           // it's a pass, so confirm with action sheet
         [self presentPassActionSheet];
       } else {
@@ -1335,7 +1335,7 @@
           // finalising a swap
     } else if (_swapMode) {
         // confirm that there's enough dyadminoes in the pile
-      if (self.myMatch.swapContainer.count > self.myMatch.pile.count) {
+      if (self.myMatch.swapIndexContainer.count > self.myMatch.pile.count) {
         
         [self presentNotEnoughInPileActionSheet];
         return;
@@ -1408,7 +1408,8 @@
 
 -(void)cancelSwappedDyadminoes {
   _swapMode = NO;
-  [self.myMatch.swapContainer removeAllObjects];
+//  [self.myMatch.swapContainer removeAllObjects];
+  [self.myMatch removeAllSwaps];
   [self.myMatch resetHoldingContainer]; // don't think this is needed
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
@@ -1424,7 +1425,7 @@
   __weak typeof(self) weakSelf = self;
   
     // extra confirmation; this will have been checked when button was done button was first pressed
-  if (self.myMatch.swapContainer.count <= self.myMatch.pile.count) {
+  if (self.myMatch.swapIndexContainer.count <= self.myMatch.pile.count) {
     
     NSMutableArray *toPile = [NSMutableArray new];
     for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
@@ -1967,8 +1968,8 @@
   BOOL gameHasEndedForPlayer = _myPlayer.resigned || self.myMatch.gameHasEnded;
   BOOL currentPlayerHasTurn = _myPlayer == self.myMatch.currentPlayer;
   BOOL thereIsATouchedOrHoveringDyadmino = _touchedDyadmino || _hoveringDyadmino;
-  BOOL swapContainerNotEmpty = self.myMatch.swapContainer.count > 0;
-  BOOL noDyadminoesPlayedAndNoRecentRackDyadmino = self.myMatch.holdingContainer.count == 0 && !_recentRackDyadmino;
+  BOOL swapContainerNotEmpty = self.myMatch.swapIndexContainer.count > 0;
+  BOOL noDyadminoesPlayedAndNoRecentRackDyadmino = self.myMatch.holdingIndexContainer.count == 0 && !_recentRackDyadmino;
   
   [_topBar node:_topBar.returnOrStartButton shouldBeEnabled:!_swapMode && !thereIsATouchedOrHoveringDyadmino];
   [_topBar node:_topBar.replayButton shouldBeEnabled:(gameHasEndedForPlayer || !currentPlayerHasTurn || (currentPlayerHasTurn && !_swapMode)) && (self.myMatch.turns.count > 0) && !_pnpBarUp];
@@ -2286,16 +2287,18 @@
 
 -(void)addDataDyadminoToSwapContainerForDyadmino:(Dyadmino *)dyadmino {
   DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-  if (![self.myMatch.swapContainer containsObject:dataDyad]) {
-    [self.myMatch.swapContainer addObject:dataDyad];
-  }
+//  if (![self.myMatch.swapContainer containsObject:dataDyad]) {
+//    [self.myMatch.swapContainer addObject:dataDyad];
+    [self.myMatch addToSwapDataDyadmino:dataDyad];
+//  }
 }
 
 -(void)removeDataDyadminoFromSwapContainerForDyadmino:(Dyadmino *)dyadmino {
   DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-  if ([self.myMatch.swapContainer containsObject:dataDyad]) {
-    [self.myMatch.swapContainer removeObject:dataDyad];
-  }
+//  if ([self.myMatch.swapContainer containsObject:dataDyad]) {
+//    [self.myMatch.swapContainer removeObject:dataDyad];
+    [self.myMatch removeFromSwapDataDyadmino:dataDyad];
+//  }
 }
 
 -(void)updateOrderOfDataDyadsThisTurnToReflectRackOrder {
@@ -2307,11 +2310,12 @@
     dataDyad.myOrientation = dyadmino.orientation;
     dataDyad.myRackOrder = i;
     
-    if ([_myPlayer.dataDyadminoesThisTurn containsObject:dataDyad] &&
-        ![self.myMatch.swapContainer containsObject:dataDyad]) {
+    if ([_myPlayer thisTurnContainsDataDyadmino:dataDyad] &&
+        ![self.myMatch swapContainerContainsDataDyadmino:dataDyad]) {
       
-      [_myPlayer.dataDyadminoesThisTurn removeObject:dataDyad];
-      [_myPlayer.dataDyadminoesThisTurn insertObject:dataDyad atIndex:i];
+//      [_myPlayer.dataDyadminoesThisTurn removeObject:dataDyad];
+      [_myPlayer removeFromThisTurnsDataDyadmino:dataDyad];
+      [_myPlayer insertInThisTurnsDataDyadmino:dataDyad atIndex:i];
     }
   }
 }
@@ -2408,7 +2412,7 @@
 -(NSSet *)allTurnDyadminoesPlusRecentRackDyadmino {
   
   NSMutableSet *tempSet = [NSMutableSet new];
-  for (DataDyadmino *dataDyad in self.myMatch.holdingContainer) {
+  for (DataDyadmino *dataDyad in [self.myMatch dataDyadsInHoldingContainer:self.myMatch.holdingIndexContainer]) {
     Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
     if (![tempSet containsObject:dyadmino]) {
       [tempSet addObject:dyadmino];
@@ -2440,20 +2444,20 @@
   Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[dataDyad.myID - 1];
   
     // testing only
-  dataDyad.name = dyadmino.name;
+//  dataDyad.name = dyadmino.name;
   return dyadmino;
 }
 
 -(DataDyadmino *)getDataDyadminoFromDyadmino:(Dyadmino *)dyadmino {
   
   NSMutableSet *tempDataDyadSet = [NSMutableSet setWithSet:self.myMatch.board];
-  [tempDataDyadSet addObjectsFromArray:_myPlayer.dataDyadminoesThisTurn];
+  [tempDataDyadSet addObjectsFromArray:[_myPlayer dataDyadsForThisTurn]];
   
   for (DataDyadmino *dataDyad in tempDataDyadSet) {
     if (dataDyad.myID == dyadmino.myID) {
       
         // testing only
-      dataDyad.name = dyadmino.name;
+//      dataDyad.name = dyadmino.name;
       
       return dataDyad;
     }
@@ -2658,14 +2662,14 @@
   
     // board must enumerate over both board and holding container dyadminoes
   NSMutableSet *tempDataEnumerationSet = [NSMutableSet setWithSet:self.myMatch.board];
-  [tempDataEnumerationSet addObjectsFromArray:self.myMatch.holdingContainer];
+  [tempDataEnumerationSet addObjectsFromArray:[self.myMatch dataDyadsInHoldingContainer:self.myMatch.holdingIndexContainer]];
   
   for (DataDyadmino *dataDyad in tempDataEnumerationSet) {
     Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
     
       // animate last played dyadminoes, and highlight dyadminoes currently in holding container
     [lastContainer containsObject:dataDyad] ? [dyadmino animateDyadminoesRecentlyPlayedWithColour:[self.myMatch colourForPlayer:lastPlayer]] : nil;
-    [self.myMatch.holdingContainer containsObject:dataDyad] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer]] : nil;
+    [self.myMatch holdingsContainsDataDyadmino:dataDyad] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer]] : nil;
   }
 }
 
@@ -2993,15 +2997,15 @@
   for (int i = 0; i < kMaxNumPlayers; i++) {
     Player *player = (i <= self.myMatch.players.count - 1) ? [self.myMatch playerForIndex:i] : nil;
     Label *rackLabel = _topBar.playerRackLabels[i];
-    [_topBar updateLabel:_topBar.playerRackLabels[i] withText:[[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "] andColour:nil];
+    [_topBar updateLabel:_topBar.playerRackLabels[i] withText:[[player.dataDyadminoesThisTurn valueForKey:@"description"] componentsJoinedByString:@", "] andColour:nil];
     player ? nil : [_topBar node:rackLabel shouldBeEnabled:NO];
   }
   
   NSString *pileText = [NSString stringWithFormat:@"in pile: %@", [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
   NSMutableArray *tempBoard = [NSMutableArray arrayWithArray:[self.myMatch.board allObjects]];
   NSString *boardText = [NSString stringWithFormat:@"on board: %@", [[tempBoard valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-  NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-  NSString *swapContainerText = [NSString stringWithFormat:@"in swap container: %@", [[self.myMatch.swapContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+  NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingIndexContainer valueForKey:@"description"] componentsJoinedByString:@", "]];
+  NSString *swapContainerText = [NSString stringWithFormat:@"in swap container: %@", [[self.myMatch.swapIndexContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
   
   [_topBar updateLabel:_topBar.pileDyadminoesLabel withText:pileText andColour:nil];
   [_topBar updateLabel:_topBar.boardDyadminoesLabel withText:boardText andColour:nil];
@@ -3031,10 +3035,10 @@
 }
 
 -(void)logRackDyadminoes {
-  NSLog(@"dataDyads are:  %@", [[_myPlayer.dataDyadminoesThisTurn valueForKey:@"name"] componentsJoinedByString:@", "]);
+  NSLog(@"dataDyads are:  %@", [[_myPlayer.dataDyadminoesThisTurn valueForKey:@"description"] componentsJoinedByString:@", "]);
   NSLog(@"Dyadminoes are: %@", [[self.playerRackDyadminoes valueForKey:@"name"] componentsJoinedByString:@", "]);
-  NSLog(@"holdingCon is:  %@", [[self.myMatch.holdingContainer valueForKey:@"name"] componentsJoinedByString:@", "]);
-  NSLog(@"swapContainer:  %@", [[self.myMatch.swapContainer valueForKey:@"name"] componentsJoinedByString:@", "]);
+  NSLog(@"holdingCon is:  %@", [[self.myMatch.holdingIndexContainer valueForKey:@"description"] componentsJoinedByString:@", "]);
+  NSLog(@"swapContainer:  %@", [[self.myMatch.swapIndexContainer valueForKey:@"description"] componentsJoinedByString:@", "]);
   NSLog(@"rackDyad order: %@", [[self.playerRackDyadminoes valueForKey:@"myRackOrder"] componentsJoinedByString:@", "]);
   NSLog(@"board is:       %@", self.boardDyadminoes);
   NSLog(@"rack is:        %@", self.playerRackDyadminoes);

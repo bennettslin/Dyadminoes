@@ -340,6 +340,12 @@ typedef enum pivotOnPC {
   kPivotOnPC2
 } PivotOnPC;
 
+typedef enum placeStatus {
+  kInPile,
+  kInRack,
+  kOnBoard
+} PlaceStatus;
+
 typedef enum physicalPlacementResult {
   kNoError,
   kErrorStackedDyadminoes,

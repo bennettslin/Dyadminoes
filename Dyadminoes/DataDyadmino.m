@@ -20,9 +20,11 @@
 @dynamic hexY;
 @dynamic myRackOrder;
 @dynamic turnChanges;
+@dynamic placeStatus;
+@dynamic match;
 
+//@dynamic name;
 @synthesize myHexCoord = _myHexCoord;
-@synthesize name;
 
 -(HexCoord)myHexCoord {
   return [self hexCoordFromX:self.hexX andY:self.hexY];
@@ -55,16 +57,17 @@
 //  [aCoder encodeInteger:self.myRackOrder forKey:@"myRackOrder"];
 //}
 
--(id)initWithID:(NSUInteger)myID {
-  self = [super init];
-  if (self) {
+-(void)initialID:(NSUInteger)myID {
+//  self = [super init];
+//  if (self) {
     self.myID = myID;
+    self.placeStatus = kInPile;
     
       // set rack orientation randomly
     int randNum = arc4random() % 2;
     self.myOrientation = (randNum == 0) ? kPC1atTwelveOClock : kPC1atSixOClock;
-  }
-  return self;
+//  }
+//  return self;
 }
 
 -(NSUInteger)getTurnAdded {

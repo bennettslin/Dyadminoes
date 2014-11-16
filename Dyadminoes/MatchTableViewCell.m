@@ -141,7 +141,7 @@
         self.labelView.backgroundColor = [UIColor clearColor];
         
       } else {
-        if (player == self.myMatch.currentPlayer) {
+        if (player.playerOrder == self.myMatch.currentPlayerIndex) {
           self.labelView.frame = CGRectMake(0, 0, playerLabelFrameWidth + kPlayerLabelWidthPadding, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
           self.labelView.layer.cornerRadius = self.labelView.frame.size.height / 2.f;
           self.labelView.clipsToBounds = YES;
@@ -203,7 +203,7 @@
 
     scoreLabel.center = CGPointMake(playerLabel.center.x, playerLabel.center.y + kStaveYHeight * 1.75f);
     
-    if (player == self.myMatch.currentPlayer) {
+    if (player.playerOrder == self.myMatch.currentPlayerIndex) {
       self.labelView.center = CGPointMake(playerLabel.center.x, playerLabel.center.y - (kCellRowHeight / 40.f));
     }
   }

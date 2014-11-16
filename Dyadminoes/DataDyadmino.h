@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 #import "NSObject+Helper.h"
+@class Match;
 
 @interface DataDyadmino : NSManagedObject
 
@@ -21,13 +22,19 @@
 
 @property (assign, nonatomic) NSInteger myRackOrder;
 
-  // only needed for debugging
-@property (strong, nonatomic) NSString *name;
+@property (assign, nonatomic) PlaceStatus placeStatus;
 
   // for replay mode, remembers turns that involved change of state
 @property (strong, nonatomic) NSArray *turnChanges;
 
--(id)initWithID:(NSUInteger)myID;
+@property (strong, nonatomic) Match *match;
+
+  // only needed for debugging
+//@property (strong, nonatomic) NSString *name;
+
+
+
+-(void)initialID:(NSUInteger)myID;
 -(HexCoord)getHexCoordForTurn:(NSUInteger)turn;
 -(DyadminoOrientation)getOrientationForTurn:(NSUInteger)turn;
 

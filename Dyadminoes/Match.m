@@ -12,6 +12,9 @@
 
 @interface Match () <PlayerDelegate>
 
+@property (strong, nonatomic) NSMutableArray *pile; // was mutable array
+@property (strong, nonatomic) NSMutableSet *board; // was mutable set
+
 @end
 
 @implementation Match
@@ -21,23 +24,27 @@
 @dynamic type;
 @dynamic lastPlayed;
 @dynamic players;
-@dynamic currentPlayer;
+@dynamic currentPlayerIndex;
 //@dynamic wonPlayers;
 @dynamic gameHasEnded;
-@dynamic pile;
-@dynamic board;
+@dynamic dataDyadminoes;
+//@dynamic pile;
+//@dynamic board;
 @dynamic tempScore;
-@dynamic holdingContainer;
-@dynamic swapContainer;
+@dynamic holdingIndexContainer;
+@dynamic swapIndexContainer;
 @dynamic replayTurn;
 @dynamic turns;
 @dynamic numberOfConsecutivePasses;
-@dynamic firstDyadmino;
+@dynamic firstDataDyadIndex;
 @dynamic randomNumber1To24;
 
   // FIXME: make sure this is correct
-@synthesize replayBoard;
-@synthesize delegate;
+@dynamic replayBoard;
+@dynamic delegate;
+
+@synthesize pile = _pile;
+@synthesize board = _board;
 
 #pragma mark - archiver methods
 
@@ -119,7 +126,7 @@
   self.numberOfConsecutivePasses = 0;
   
   self.players = [NSSet setWithArray:players];
-  self.currentPlayer = players[0];
+  self.currentPlayerIndex = 0;
   
   self.randomNumber1To24 = [self randomIntegerUpTo:24] + 1;
   
@@ -129,26 +136,34 @@
     player.delegate = self;
   }
   
-  self.holdingContainer = @[];
-  self.swapContainer = [NSMutableArray new];
+  self.holdingIndexContainer = [NSMutableArray new];
+  self.swapIndexContainer = [NSMutableSet new];
   
-  self.pile = [[NSMutableArray alloc] initWithCapacity:kPileCount];
-  self.board = [[NSMutableSet alloc] initWithCapacity:kPileCount];
+//  self.pile = [[NSMutableArray alloc] initWithCapacity:kPileCount];
+//  self.board = [[NSMutableSet alloc] initWithCapacity:kPileCount];
   self.turns = [NSMutableArray new];
   self.replayTurn = 0;
   
-  [self generatePile];
+  [self generateDataDyadminoes];
   [self placeFirstDyadminoOnBoard];
   [self distributePileAmongstPlayers];
 //  }
 //  return self;
 }
 
--(void)generatePile {
-  for (int i = 1; i <= kPileCount; i++) {
-    DataDyadmino *dataDyad = [[DataDyadmino alloc] initWithID:i];
-    [self.pile addObject:dataDyad];
+-(void)generateDataDyadminoes {
+  NSMutableSet *tempSet = [NSMutableSet new];
+  
+    // start index at 0 (previously started at 1)
+  for (int i = 0; i < kPileCount; i++) {
+    
+    DataDyadmino *dataDyad = [DataDyadmino new];
+    [dataDyad initialID:i];
+//    DataDyadmino *dataDyad = [[DataDyadmino alloc] initialID:i];
+//    [self.pile addObject:dataDyad];
+    [tempSet addObject:dataDyad];
   }
+  self.dataDyadminoes = [NSSet setWithSet:tempSet];
 }
 
 -(void)distributePileAmongstPlayers {
@@ -156,19 +171,29 @@
     [self fillRackFromPileForPlayer:player];
     
       // this won't be here in real game, should keep player's desired order
-    [self sortDyadminoes:player.dataDyadminoesThisTurn];
+//    [self sortDyadminoes:player.dataDyadminoesThisTurn];
   }
 }
 
 -(void)placeFirstDyadminoOnBoard {
+  
   while (self.board.count == 0 && self.pile.count > 0) {
+    
     NSUInteger randIndex = [self randomIntegerUpTo:self.pile.count];
-    self.firstDyadmino = [self.pile objectAtIndex:randIndex];
-    struct HexCoord myHex = {0, 0};
-    self.firstDyadmino.myHexCoord = myHex;
-    [self.pile removeObjectAtIndex:randIndex];
-    [self.board addObject:self.firstDyadmino];
-    [self persistChangedPositionForBoardDataDyadmino:self.firstDyadmino];
+    self.firstDataDyadIndex = randIndex;
+    DataDyadmino *firstDyadmino = [self dataDyadminoForIndex:randIndex];
+    
+    if ([self.pile containsObject:firstDyadmino]) {
+      struct HexCoord myHex = {0, 0};
+      firstDyadmino.myHexCoord = myHex;
+      
+        // establish first dyadmino is out of pile and now on board
+      firstDyadmino.placeStatus = kOnBoard;
+      [self.pile removeObjectAtIndex:randIndex];
+      [self.board addObject:firstDyadmino];
+
+      [self persistChangedPositionForBoardDataDyadmino:firstDyadmino];
+    }
   }
 }
 
@@ -179,11 +204,14 @@
 
   while (player.dataDyadminoesThisTurn.count < kNumDyadminoesInRack && self.pile.count > 0) {
     NSUInteger randIndex = [self randomIntegerUpTo:self.pile.count];
-    DataDyadmino *dataDyad = [self.pile objectAtIndex:randIndex];
+    DataDyadmino *dataDyad = self.pile[randIndex];
       // rack order is total count at the time
     dataDyad.myRackOrder = player.dataDyadminoesThisTurn.count;
+    
+      // establish dyadmino is out of pile and in rack
+    dataDyad.placeStatus = kInRack;
     [self.pile removeObjectAtIndex:randIndex];
-    [player.dataDyadminoesThisTurn addObject:dataDyad];
+    [player addToThisTurnsDataDyadmino:dataDyad];
   }
 }
 
@@ -198,7 +226,7 @@
       if (nextPlayer.resigned) {
         index++;
       } else {
-        self.currentPlayer = nextPlayer;
+        self.currentPlayerIndex = nextPlayer.playerOrder;
         
         [self.delegate handleSwitchToNextPlayer];
         
@@ -212,14 +240,22 @@
 #pragma mark - game state change methods
 
 -(void)swapDyadminoesFromCurrentPlayer {
-  Player *player = self.currentPlayer;
-  for (DataDyadmino *dataDyad in self.swapContainer) {
-    [player.dataDyadminoesThisTurn containsObject:dataDyad] ? [player.dataDyadminoesThisTurn removeObject:dataDyad] : nil;
+  Player *player = [self playerForIndex:self.currentPlayerIndex];
+  
+  for (NSNumber *number in self.swapIndexContainer) {
+    DataDyadmino *dataDyad = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
+    dataDyad.placeStatus = kInPile;
+    [player removeFromThisTurnsDataDyadmino:dataDyad];
+    
+    [self.pile addObject:dataDyad];
   }
+//  [self.pile addObjectsFromArray:self.swapContainer];
+//  [self.pile addObjectsFromArray:[self.swapContainer allObjects]];
   
   [self fillRackFromPileForPlayer:player];
-  [self.pile addObjectsFromArray:self.swapContainer];
-  [self.swapContainer removeAllObjects];
+  
+//  [self.swapContainer removeAllObjects];
+  [self removeAllSwaps];
   
   [self resetHoldingContainer];
   [self recordDyadminoesFromPlayer:player withSwap:YES]; // this records turn as a pass
@@ -232,13 +268,13 @@
     // a pass has an empty holding container, while a resign has *no* holding container
   NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:
                               self.currentPlayer, @"player",
-                              self.holdingContainer, @"container", nil];
+                              self.holdingIndexContainer, @"container", nil];
   
-  [self.turns addObject:dictionary];
+  [self addTurn:dictionary];
   self.replayTurn = self.turns.count;
   
     // player passes
-  if (self.holdingContainer.count == 0) {
+  if (self.holdingIndexContainer.count == 0) {
     
       // if solo game, ends right away
       // FIXME: this will need to be changed to accommodate when board dyadmino
@@ -269,13 +305,15 @@
       /// and will consider chords formed
     player.playerScore += self.tempScore;
     
-    [self.board addObjectsFromArray:self.holdingContainer];
-    
-    for (DataDyadmino *dataDyad in self.holdingContainer) {
+    for (DataDyadmino *dataDyad in [self dataDyadsInHoldingContainer:self.holdingIndexContainer]) {
       if ([player.dataDyadminoesThisTurn containsObject:dataDyad]) {
-        [player.dataDyadminoesThisTurn removeObject:dataDyad];
+        dataDyad.placeStatus = kOnBoard;
+        [player removeFromThisTurnsDataDyadmino:dataDyad];
+        [self.board addObject:dataDyad];
       }
     }
+    
+//    [self.board addObjectsFromArray:dataDyadsInHoldingContainer];
     
       // reset rack order
     for (int i = 0; i < player.dataDyadminoesThisTurn.count; i++) {
@@ -373,16 +411,20 @@
   if (self.type != kSelfGame) {
     NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:self.currentPlayer, @"player", nil];
     
-    [self.turns addObject:dictionary];
+    [self addTurn:dictionary];
     self.replayTurn = self.turns.count;
   }
 
   player.resigned = YES;
+  for (DataDyadmino *dataDyad in player.dataDyadminoesThisTurn) {
+    dataDyad.placeStatus = kInPile;
+  }
+  
   [self.pile addObjectsFromArray:player.dataDyadminoesThisTurn];
   [self sortBoardAndPileArrays];
   
   [self resetHoldingContainer];
-  [player.dataDyadminoesThisTurn removeAllObjects];
+  [player removeAllDataDyadminoesThisTurn];
   if (![self switchToNextPlayer]) {
     [self endGame];
   }
@@ -391,7 +433,7 @@
 }
 
 -(void)endGame {
-  self.currentPlayer = nil;
+  self.currentPlayerIndex = 0;
   [self resetHoldingContainer];
   
     // if solo game, sole player is winner if any score at all
@@ -436,11 +478,7 @@
 #pragma mark - helper methods
 
 -(BOOL)checkPlayerFirstToRunOut {
-  if (self.currentPlayer.dataDyadminoesThisTurn.count == 0 && self.pile.count == 0) {
-    return YES;
-  } else {
-    return NO;
-  }
+  return (self.currentPlayer.dataDyadminoesThisTurn.count == 0 && self.pile.count == 0);
 }
 
 -(NSUInteger)checkNumberOfPlayersStillInGame {
@@ -606,10 +644,17 @@
     // especially since this will be used to call swap as well
   self.tempScore++;
   
-  if (![self.holdingContainer containsObject:dataDyad]) {
-    NSMutableArray *tempContainer = [NSMutableArray arrayWithArray:self.holdingContainer];
-    [tempContainer addObject:dataDyad];
-    self.holdingContainer = [NSArray arrayWithArray:tempContainer];
+//  if (![self.holdingContainer containsObject:dataDyad]) {
+//    NSMutableArray *tempContainer = [NSMutableArray arrayWithArray:self.holdingContainer];
+//    [tempContainer addObject:dataDyad];
+//    self.holdingContainer = [NSArray arrayWithArray:tempContainer];
+//  }
+  
+  NSNumber *number = [NSNumber numberWithUnsignedInteger:dataDyad.myID];
+  if (![self holdingsContainsDataDyadmino:dataDyad]) {
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.holdingIndexContainer];
+    [tempArray addObject:number];
+    self.holdingIndexContainer = [NSArray arrayWithArray:tempArray];
   }
 }
 
@@ -622,19 +667,25 @@
 //}
 
 -(DataDyadmino *)undoDyadminoToHoldingContainer {
-  if (self.holdingContainer.count > 0) {
+  
+  if (self.holdingIndexContainer.count > 0) {
+    
+      // FIXME: this should be changed
     self.tempScore--;
-    DataDyadmino *lastDataDyadmino = [self.holdingContainer lastObject];
-    NSMutableArray *tempContainer = [NSMutableArray arrayWithArray:self.holdingContainer];
-    [tempContainer removeObject:lastDataDyadmino];
-    self.holdingContainer = [NSArray arrayWithArray:tempContainer];
+    
+    NSNumber *number = [self.holdingIndexContainer lastObject];
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.holdingIndexContainer];
+    [tempArray removeObject:number];
+    self.holdingIndexContainer = [NSArray arrayWithArray:tempArray];
+    DataDyadmino *lastDataDyadmino = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
     return lastDataDyadmino;
   }
   return nil;
 }
 
 -(void)resetHoldingContainer {
-  self.holdingContainer = @[];
+  self.holdingIndexContainer = nil;
+  self.holdingIndexContainer = [NSMutableArray new];
   self.tempScore = 0;
 }
 
@@ -657,9 +708,9 @@
   
   self.replayTurn = 1;
   [self.replayBoard removeAllObjects];
-  [self.replayBoard addObject:self.firstDyadmino];
-  NSArray *container = [self.turns[self.replayTurn - 1] objectForKey:@"container"];
-  for (DataDyadmino *dataDyad in container) {
+  [self.replayBoard addObject:[self dataDyadminoForIndex:self.firstDataDyadIndex]];
+  NSArray *holdingContainer = [self.turns[self.replayTurn - 1] objectForKey:@"container"];
+  for (DataDyadmino *dataDyad in [self dataDyadsInHoldingContainer:holdingContainer]) {
     if (![self.replayBoard containsObject:dataDyad]) {
       [self.replayBoard addObject:dataDyad];
     }
@@ -672,8 +723,8 @@
     return NO;
     
   } else {
-      NSArray *container = [self.turns[self.replayTurn - 1] objectForKey:@"container"];
-      for (DataDyadmino *dataDyad in container) {
+      NSArray *holdingContainer = [self.turns[self.replayTurn - 1] objectForKey:@"container"];
+      for (DataDyadmino *dataDyad in [self dataDyadsInHoldingContainer:holdingContainer]) {
         if ([self.replayBoard containsObject:dataDyad]) {
           [self.replayBoard removeObject:dataDyad];
         }
@@ -690,8 +741,8 @@
     
   } else {
     self.replayTurn++;
-      NSArray *container = [self.turns[self.replayTurn - 1] objectForKey:@"container"];
-      for (DataDyadmino *dataDyad in container) {
+      NSArray *holdingContainer = [self.turns[self.replayTurn - 1] objectForKey:@"container"];
+      for (DataDyadmino *dataDyad in [self dataDyadsInHoldingContainer:holdingContainer]) {
         if (![self.replayBoard containsObject:dataDyad]) {
           [self.replayBoard addObject:dataDyad];
         }
@@ -703,13 +754,47 @@
 -(void)last {
   self.replayTurn = self.turns.count;
   for (int i = 0; i < self.turns.count; i++) {
-    NSArray *container = [self.turns[i] objectForKey:@"container"];
-    for (DataDyadmino *dataDyad in container) {
+    NSArray *holdingContainer = [self.turns[i] objectForKey:@"container"];
+    for (DataDyadmino *dataDyad in [self dataDyadsInHoldingContainer:holdingContainer]) {
       if (![self.replayBoard containsObject:dataDyad]) {
         [self.replayBoard addObject:dataDyad];
       }
     }
   }
+}
+
+#pragma mark - custom accessor methods
+
+-(NSArray *)pile {
+  if (!_pile) {
+    _pile = [NSMutableArray new];
+    for (DataDyadmino *dataDyad in self.dataDyadminoes) {
+      if (dataDyad.placeStatus == kInPile) {
+        [_pile addObject:dataDyad];
+      }
+    }
+  }
+  return _pile;
+}
+
+-(void)setPile:(NSMutableArray *)pile {
+  _pile = pile;
+}
+
+-(NSSet *)board {
+  if (!_board) {
+    _board = [NSMutableSet new];
+    for (DataDyadmino *dataDyad in self.dataDyadminoes) {
+      if (dataDyad.placeStatus == kOnBoard) {
+        [_board addObject:dataDyad];
+      }
+    }
+  }
+  return _board;
+}
+
+-(void)setBoard:(NSMutableSet *)board {
+  _board = board;
 }
 
 #pragma mark - helper methods
@@ -731,6 +816,65 @@
     }
   }
   return nil;
+}
+
+-(Player *)currentPlayer {
+  return [self playerForIndex:self.currentPlayerIndex];
+}
+
+-(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index {
+  for (DataDyadmino *dataDyadmino in self.pile) {
+    if (dataDyadmino.myID == index) {
+      return dataDyadmino;
+    }
+  }
+  return nil;
+}
+
+#pragma mark = holding container helper methods
+
+-(BOOL)holdingsContainsDataDyadmino:(DataDyadmino *)dataDyad {
+  return [self.holdingIndexContainer containsObject:[NSNumber numberWithUnsignedInteger:dataDyad.myID]];
+}
+
+-(NSArray *)dataDyadsInHoldingContainer:(NSArray *)holdingContainer {
+  NSMutableArray *tempArray = [NSMutableArray new];
+  for (NSNumber *number in holdingContainer) {
+    DataDyadmino *dataDyad = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
+    [tempArray addObject:dataDyad];
+  }
+  return [NSArray arrayWithArray:tempArray];
+}
+
+#pragma mark - swap container helper methods
+
+-(BOOL)swapContainerContainsDataDyadmino:(DataDyadmino *)dataDyad {
+  return [self.swapIndexContainer containsObject:[NSNumber numberWithUnsignedInteger:dataDyad.myID]];
+}
+
+-(void)addToSwapDataDyadmino:(DataDyadmino *)dataDyad {
+  NSMutableSet *tempSet = [NSMutableSet setWithSet:self.swapIndexContainer];
+  [tempSet addObject:[NSNumber numberWithUnsignedInteger:dataDyad.myID]];
+  self.swapIndexContainer = [NSSet setWithSet:tempSet];
+}
+
+-(void)removeFromSwapDataDyadmino:(DataDyadmino *)dataDyad {
+  NSMutableSet *tempSet = [NSMutableSet setWithSet:self.swapIndexContainer];
+  [tempSet removeObject:[NSNumber numberWithUnsignedInteger:dataDyad.myID]];
+  self.swapIndexContainer = [NSSet setWithSet:tempSet];
+}
+
+-(void)removeAllSwaps {
+  self.swapIndexContainer = nil;
+  self.swapIndexContainer = [NSMutableSet new];
+}
+
+#pragma mark - turns methods
+
+-(void)addTurn:(NSDictionary *)turn {
+  NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.turns];
+  [tempArray addObject:turn];
+  self.turns = [NSArray arrayWithArray:tempArray];
 }
 
 @end
