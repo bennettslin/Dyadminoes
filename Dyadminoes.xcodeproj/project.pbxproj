@@ -34,7 +34,6 @@
 		3F7BD7C9192AF45D009274DE /* Match.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7C8192AF45D009274DE /* Match.m */; };
 		3F7BD7D5192B09D6009274DE /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7D4192B09D6009274DE /* MainViewController.m */; };
 		3F7BD7DB192B0A37009274DE /* MatchTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */; };
-		3F7BD7DE192B0AA8009274DE /* Model.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7DD192B0AA8009274DE /* Model.m */; };
 		3F7D0EE3199EE60300F1FBD2 /* SKNode+Animation.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7D0EE2199EE60300F1FBD2 /* SKNode+Animation.m */; };
 		3F7D0F2519A2CE0300F1FBD2 /* Sonata.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3F7D0F2419A2CE0300F1FBD2 /* Sonata.ttf */; };
 		3F87AAAB188DEE4B008C4A0D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAA188DEE4B008C4A0D /* Foundation.framework */; };
@@ -140,8 +139,6 @@
 		3F7BD7D4192B09D6009274DE /* MainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
 		3F7BD7D9192B0A37009274DE /* MatchTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MatchTableViewCell.h; sourceTree = "<group>"; };
 		3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MatchTableViewCell.m; sourceTree = "<group>"; };
-		3F7BD7DC192B0AA8009274DE /* Model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Model.h; sourceTree = "<group>"; };
-		3F7BD7DD192B0AA8009274DE /* Model.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Model.m; sourceTree = "<group>"; };
 		3F7D0EE1199EE60300F1FBD2 /* SKNode+Animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SKNode+Animation.h"; sourceTree = "<group>"; };
 		3F7D0EE2199EE60300F1FBD2 /* SKNode+Animation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "SKNode+Animation.m"; sourceTree = "<group>"; };
 		3F7D0F2419A2CE0300F1FBD2 /* Sonata.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Sonata.ttf; sourceTree = "<group>"; };
@@ -461,8 +458,6 @@
 			isa = PBXGroup;
 			children = (
 				3F463CBC1A182498004544AB /* Dyadminoes.xcdatamodeld */,
-				3F7BD7DC192B0AA8009274DE /* Model.h */,
-				3F7BD7DD192B0AA8009274DE /* Model.m */,
 				3F7BD7C7192AF45D009274DE /* Match.h */,
 				3F7BD7C8192AF45D009274DE /* Match.m */,
 				3F18924518CDB43300BEE276 /* Player.h */,
@@ -644,7 +639,6 @@
 				3F7BD7C9192AF45D009274DE /* Match.m in Sources */,
 				3F18924718CDB43300BEE276 /* Player.m in Sources */,
 				3F3C8FF71990DA4E0061B208 /* TopBar.m in Sources */,
-				3F7BD7DE192B0AA8009274DE /* Model.m in Sources */,
 				3F0526C11936C877003D3C04 /* HelpViewController.m in Sources */,
 				3FE8CD5019FCA02700D097B6 /* BPianoView.m in Sources */,
 				3F0526CD1936D12A003D3C04 /* HelpContentViewController.m in Sources */,

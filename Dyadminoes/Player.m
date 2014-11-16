@@ -16,18 +16,18 @@
 
 @implementation Player
 
+  // persisted
 @dynamic uniqueID;
 @dynamic playerName;
 @dynamic playerOrder;
 @dynamic playerScore;
-@dynamic dataDyadminoesThisTurn;
+@dynamic dataDyadminoIndexesThisTurn;
 @dynamic resigned;
 @dynamic won;
-
 @dynamic match;
 
-  // FIXME: is this right?
-@dynamic delegate;
+  // not persisted
+//@synthesize delegate;
 
 //-(id)initWithCoder:(NSCoder *)aDecoder {
 //  self = [super init];
@@ -51,76 +51,116 @@
 
 -(void)initialUniqueID:(NSString *)uniqueID
          andPlayerName:(NSString *)playerName
-      andPlayerPicture:(UIImage *)playerPicture  {
+        andPlayerOrder:(NSUInteger)playerOrder {
   
 //  self = [super init];
 //  
 //  if (self) {
   self.uniqueID = uniqueID;
   self.playerName = playerName;
+  self.playerOrder = [NSNumber numberWithUnsignedInteger:playerOrder];
   
     // game state
-  self.dataDyadminoesThisTurn = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
-  self.resigned = NO;
-  self.won = NO;
+  self.dataDyadminoIndexesThisTurn = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
+  self.resigned = [NSNumber numberWithBool:NO];
+  self.won = [NSNumber numberWithBool:NO];
 //  }
 //  
 //  return self;
 }
 
 -(BOOL)thisTurnContainsDataDyadmino:(DataDyadmino *)dataDyad {
-  return [self.dataDyadminoesThisTurn containsObject:[NSNumber numberWithUnsignedInteger:dataDyad.myID]];
+  return [self.dataDyadminoIndexesThisTurn containsObject:[NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]]];
 }
 
 -(void)addToThisTurnsDataDyadmino:(DataDyadmino *)dataDyad {
-  NSNumber *number = [NSNumber numberWithUnsignedInteger:dataDyad.myID];
+  NSNumber *number = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]];
   if (![self thisTurnContainsDataDyadmino:dataDyad]) {
-    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.dataDyadminoesThisTurn];
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.dataDyadminoIndexesThisTurn];
     [tempArray addObject:number];
-    self.dataDyadminoesThisTurn = [NSArray arrayWithArray:tempArray];
+    self.dataDyadminoIndexesThisTurn = [NSArray arrayWithArray:tempArray];
   }
 }
 
 -(void)insertInThisTurnsDataDyadmino:(DataDyadmino *)dataDyad atIndex:(NSUInteger)index {
-  NSNumber *number = [NSNumber numberWithUnsignedInteger:dataDyad.myID];
+  NSNumber *number = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]];
   if (![self thisTurnContainsDataDyadmino:dataDyad]) {
-    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.dataDyadminoesThisTurn];
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.dataDyadminoIndexesThisTurn];
     [tempArray insertObject:number atIndex:index];
-    self.dataDyadminoesThisTurn = [NSArray arrayWithArray:tempArray];
+    self.dataDyadminoIndexesThisTurn = [NSArray arrayWithArray:tempArray];
   }
 }
 
 -(void)removeFromThisTurnsDataDyadmino:(DataDyadmino *)dataDyad {
-  NSNumber *number = [NSNumber numberWithUnsignedInteger:dataDyad.myID];
+  NSNumber *number = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]];
   if ([self thisTurnContainsDataDyadmino:dataDyad]) {
-    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.dataDyadminoesThisTurn];
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.dataDyadminoIndexesThisTurn];
     [tempArray removeObject:number];
-    self.dataDyadminoesThisTurn = [NSArray arrayWithArray:tempArray];
+    self.dataDyadminoIndexesThisTurn = [NSArray arrayWithArray:tempArray];
   }
 }
 
 -(void)removeAllDataDyadminoesThisTurn {
-  self.dataDyadminoesThisTurn = nil;
-  self.dataDyadminoesThisTurn = [NSMutableArray new];
+  self.dataDyadminoIndexesThisTurn = nil;
+  self.dataDyadminoIndexesThisTurn = [NSMutableArray new];
 }
 
--(NSArray *)dataDyadsForThisTurn {
-  NSMutableArray *tempArray = [NSMutableArray new];
-  for (NSNumber *number in self.dataDyadminoesThisTurn) {
-    DataDyadmino *dataDyad = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
-    [tempArray addObject:dataDyad];
-  }
-  return [NSArray arrayWithArray:tempArray];
-}
+//-(NSArray *)dataDyadsForThisTurn {
+//  NSMutableArray *tempArray = [NSMutableArray new];
+//  NSLog(@"data dyadmino indices this turn %@", self.dataDyadminoIndexesThisTurn);
+//  for (NSNumber *number in self.dataDyadminoIndexesThisTurn) {
+//    DataDyadmino *dataDyad = [self.match dataDyadminoForIndex:[number unsignedIntegerValue]];
+//    [tempArray addObject:dataDyad];
+//  }
+//  return [NSArray arrayWithArray:tempArray];
+//}
 
   // repeated in Match class
--(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index {
-  for (DataDyadmino *dataDyadmino in self.dataDyadminoesThisTurn) {
-    if (dataDyadmino.myID == index) {
-      return dataDyadmino;
-    }
-  }
-  return nil;
+//-(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index {
+//  for (NSNumber *number in self.dataDyadminoIndexesThisTurn) {
+//    if ([number unsignedIntegerValue] == index) {
+//      return [self.match dataDyadminoForIndex:index];
+//    }
+//  }
+//  return nil;
+//}
+
+#pragma mark - return query properties
+
+-(NSUInteger)returnPlayerOrder {
+  return [self.playerOrder unsignedIntegerValue];
+}
+
+-(NSUInteger)returnPlayerScore {
+  return [self.playerScore unsignedIntegerValue];
+}
+
+-(BOOL)returnResigned {
+  return [self.resigned boolValue];
+}
+
+-(BOOL)returnWon {
+  return [self.won boolValue];
+}
+
+@end
+
+@implementation DataDyadminoIndexesThisTurn
+
++(Class)transformedValueClass {
+  return [NSArray class];
+}
+
++(BOOL)allowsReverseTransformation {
+  return YES;
+}
+
+-(id)transformedValue:(id)value {
+  return [NSKeyedArchiver archivedDataWithRootObject:value];
+}
+
+-(id)reverseTransformedValue:(id)value {
+  return [NSKeyedUnarchiver unarchiveObjectWithData:value];
 }
 
 @end

@@ -16,34 +16,36 @@
 
 @interface Match : NSManagedObject
 
+#pragma mark - query number methods
+
   // match properties
-@property (assign, nonatomic) GameRules rules;
-@property (assign, nonatomic) GameSkill skill;
-@property (assign, nonatomic) GameType type;
+@property (retain, nonatomic) NSNumber *rules;
+@property (retain, nonatomic) NSNumber *skill;
+@property (retain, nonatomic) NSNumber *type;
 
   // date
 @property (strong, nonatomic) NSDate *lastPlayed;
 
   // player properties
 @property (strong, nonatomic) NSSet *players; // was array
-@property (assign, nonatomic) NSUInteger currentPlayerIndex;
+@property (retain, nonatomic) NSNumber *currentPlayerIndex;
 //@property (strong, nonatomic) Player *currentPlayer;
 //@property (strong, nonatomic) NSSet *wonPlayers; // was array
-@property (assign, nonatomic) BOOL gameHasEnded;
+@property (retain, nonatomic) NSNumber *gameHasEnded;
 
   // data dyadmino arrays
 @property (strong, nonatomic) NSSet *dataDyadminoes;
-@property (assign, nonatomic) NSUInteger firstDataDyadIndex;
+@property (retain, nonatomic) NSNumber *firstDataDyadIndex;
 
   // turns and undo
-@property (assign, nonatomic) NSUInteger tempScore;
-@property (assign, nonatomic) NSUInteger replayTurn;
-@property (strong, nonatomic) NSArray *turns; // turns start from 1 // was mutable array
-@property (strong, nonatomic) NSArray *holdingIndexContainer; // contains dataDyad indices as NSNumbers // was array
-@property (strong, nonatomic) NSSet *swapIndexContainer; // contains dataDyad indices as NSNumbers // was mutable array
+@property (retain, nonatomic) NSNumber *tempScore;
+@property (retain, nonatomic) NSNumber *replayTurn;
+@property (retain, nonatomic) id turns; // turns start from 1 // was mutable array
+@property (retain, nonatomic) id holdingIndexContainer; // contains dataDyad indices as NSNumbers // was array
+@property (retain, nonatomic) id swapIndexContainer; // contains dataDyad indices as NSNumbers // was mutable array
 
-@property (assign, nonatomic) NSUInteger numberOfConsecutivePasses;
-@property (assign, nonatomic) NSInteger randomNumber1To24;
+@property (retain, nonatomic) NSNumber *numberOfConsecutivePasses;
+@property (retain, nonatomic) NSNumber *randomNumber1To24;
 
   // these are not persisted
 @property (strong, nonatomic) NSMutableSet *replayBoard;
@@ -54,7 +56,7 @@
 @property (readonly, nonatomic) NSMutableSet *board; // was mutable set
 
   // establish initial properties method
--(void)initialPlayers:(NSArray *)players andRules:(GameRules)rules andSkill:(GameSkill)skill;
+-(void)initialPlayers:(NSSet *)players andRules:(GameRules)rules andSkill:(GameSkill)skill withContext:(NSManagedObjectContext *)managedObjectContext;
 
   // game state change methods
 -(Player *)switchToNextPlayer;
@@ -88,7 +90,7 @@
 
   // holding container helper methods
 -(BOOL)holdingsContainsDataDyadmino:(DataDyadmino *)dataDyad;
--(NSArray *)dataDyadsInHoldingContainer:(NSArray *)holdingContainer;
+-(NSArray *)dataDyadsInIndexContainer:(NSArray *)holdingContainer;
 
   // swap container helper methods
 -(BOOL)swapContainerContainsDataDyadmino:(DataDyadmino *)dataDyad;
@@ -96,10 +98,35 @@
 -(void)removeFromSwapDataDyadmino:(DataDyadmino *)dataDyad;
 -(void)removeAllSwaps;
 
+#pragma mark - query number methods
+
+-(GameRules)returnRules;
+-(GameSkill)returnSkill;
+-(GameType)returnType;
+-(NSUInteger)returnCurrentPlayerIndex;
+-(BOOL)returnGameHasEnded;
+-(NSUInteger)returnFirstDataDyadIndex;
+-(NSUInteger)returnTempScore;
+-(NSUInteger)returnReplayTurn;
+-(NSUInteger)returnNumberOfConsecutivePasses;
+-(NSInteger)returnRandomNumber1To24;
+
 #pragma mark - helper methods
 
 -(UIColor *)colourForPlayer:(Player *)player;
--(Player *)currentPlayer;
+-(Player *)returnCurrentPlayer;
+
+@end
+
+@interface Turns : NSValueTransformer
+
+@end
+
+@interface HoldingIndexContainer : NSValueTransformer
+
+@end
+
+@interface SwapIndexContainer : NSValueTransformer
 
 @end
 

@@ -166,7 +166,7 @@
   CGFloat messageLabelWidth = (kButtonWidth * 5) + kTopBarPaddingBetweenStuff + kTopBarTurnPileLabelsWidth;
   self.topBarMessageLabel.frame = CGRectMake(self.view.bounds.size.width - messageLabelWidth - kTopBarXEdgeBuffer, kTopBarHeight, messageLabelWidth, kSceneMessageLabelFontSize);
   
-  CGFloat desiredPnPY = (self.myMatch.type == kPnPGame && !self.myMatch.gameHasEnded) ?
+  CGFloat desiredPnPY = ([self.myMatch returnType] == kPnPGame && ![self.myMatch returnGameHasEnded]) ?
   self.view.bounds.size.height - (kRackHeight * 0.95) :
   self.view.bounds.size.height + (kRackHeight * 0.05);
   self.PnPWaitLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredPnPY, self.view.bounds.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
@@ -245,28 +245,28 @@
       UILabel *scoreLabel = self.scoreLabelsArray[i];
       
         // colour changes if player resigned
-      playerLabel.textColor = (player.resigned && self.myMatch.type != kSelfGame) ?
+      playerLabel.textColor = ([player returnResigned] && [self.myMatch returnType] != kSelfGame) ?
           kResignedGray : [self.myMatch colourForPlayer:player];
       
       NSString *scoreText;
       
-      if (!player || (player.resigned && self.myMatch.type != kSelfGame)) {
+      if (!player || ([player returnResigned] && [self.myMatch returnType] != kSelfGame)) {
         scoreText = @"";
-      } else if (player == self.myMatch.currentPlayer && self.myMatch.tempScore > 0) {
-        scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)player.playerScore, (unsigned long)self.myMatch.tempScore];
+      } else if (player == [self.myMatch returnCurrentPlayer] && [self.myMatch returnTempScore] > 0) {
+        scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)[player returnPlayerScore], (unsigned long)[self.myMatch returnTempScore]];
       } else {
-        scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore];
+        scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)[player returnPlayerScore]];
       }
       
-      if (self.myMatch.gameHasEnded) {
-        scoreLabel.textColor = player.won ? kScoreWonGold : kScoreLostGray;
+      if ([self.myMatch returnGameHasEnded]) {
+        scoreLabel.textColor = [player returnWon] ? kScoreWonGold : kScoreLostGray;
       } else {
         scoreLabel.textColor = kScoreNormalBrown;
       }
       
         // FIXME: so that this is animated
         // score label
-      if (player == self.myMatch.currentPlayer && (finalTurn || self.myMatch.tempScore > 0)) {
+      if (player == [self.myMatch returnCurrentPlayer] && (finalTurn || [self.myMatch returnTempScore] > 0)) {
         
           // upon final turn, score is animated
         if (animated) {
@@ -281,11 +281,11 @@
       
         // background colours depending on match results
       self.labelView.backgroundColourCanBeChanged = YES;
-      if (self.myMatch.gameHasEnded) {
+      if ([self.myMatch returnGameHasEnded]) {
         self.labelView.backgroundColor = [UIColor clearColor];
         
       } else {
-        if (player == self.myMatch.currentPlayer) {
+        if (player == [self.myMatch returnCurrentPlayer]) {
           self.labelView.backgroundColor = [kMainDarkerYellow colorWithAlphaComponent:0.8f];
           
           CGFloat labelWidthPadding = _topBarScoreLabelWidth / 4; // not the best way to set it, but oh well

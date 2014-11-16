@@ -85,16 +85,16 @@
       playerLabel.frame = CGRectMake(0, 0, playerLabelFrameWidth, playerLabel.frame.size.height);
       
         // static player colours, check if player resigned
-      playerLabel.textColor = (player.resigned && self.myMatch.type != kSelfGame) ?
+      playerLabel.textColor = ([player returnResigned] && [self.myMatch returnType] != kSelfGame) ?
       kResignedGray : [self.myMatch colourForPlayer:player];
       
         // score label--------------------------------------------------------
-      scoreLabel.text = (player && !(player.resigned && self.myMatch.type != kSelfGame)) ?
-      [NSString stringWithFormat:@"%lu", (unsigned long)player.playerScore] : @"";
+      scoreLabel.text = (player && !([player returnResigned] && [self.myMatch returnType] != kSelfGame)) ?
+      [NSString stringWithFormat:@"%lu", (unsigned long)[player returnPlayerScore]] : @"";
       scoreLabel.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kStaveYHeight * 2);
       
-      if (self.myMatch.gameHasEnded) {
-        scoreLabel.textColor = player.won ? kScoreWonGold : kScoreLostGray;
+      if ([self.myMatch returnGameHasEnded]) {
+        scoreLabel.textColor = [player returnWon] ? kScoreWonGold : kScoreLostGray;
       } else {
         scoreLabel.textColor = kScoreNormalBrown;
       }
@@ -137,11 +137,11 @@
 
         // labelView----------------------------------------------------------
       self.labelView.backgroundColourCanBeChanged = YES;
-      if (self.myMatch.gameHasEnded) {
+      if ([self.myMatch returnGameHasEnded]) {
         self.labelView.backgroundColor = [UIColor clearColor];
         
       } else {
-        if (player.playerOrder == self.myMatch.currentPlayerIndex) {
+        if ([player returnPlayerOrder] == [self.myMatch returnCurrentPlayerIndex]) {
           self.labelView.frame = CGRectMake(0, 0, playerLabelFrameWidth + kPlayerLabelWidthPadding, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
           self.labelView.layer.cornerRadius = self.labelView.frame.size.height / 2.f;
           self.labelView.clipsToBounds = YES;
@@ -158,7 +158,7 @@
       self.labelView.backgroundColourCanBeChanged = NO;
       
         // fermata------------------------------------------------------------
-      fermataLabel.hidden = !(!kIsIPhone && self.myMatch.gameHasEnded && player.won);
+      fermataLabel.hidden = !(!kIsIPhone && [self.myMatch returnGameHasEnded] && [player returnWon]);
     }
     
     kIsIPhone ? nil : [self setYPositionsForPlayerLabels];
@@ -175,8 +175,8 @@
 //    Player *player = self.myMatch.players[i];
     
       // add score only if player is in game
-    if (!player.resigned || self.myMatch.type == kSelfGame) {
-      NSNumber *playerScore = [NSNumber numberWithUnsignedInteger:player.playerScore];
+    if (![player returnResigned] || [self.myMatch returnType] == kSelfGame) {
+      NSNumber *playerScore = [NSNumber numberWithUnsignedInteger:[player returnPlayerScore]];
       
         // ensure no double numbers
       ![tempScores containsObject:playerScore] ? [tempScores addObject:playerScore] : nil;
@@ -191,19 +191,19 @@
 
 //    Player *player = self.myMatch.players[i];
     
-    NSUInteger index = player.playerOrder;
+    NSUInteger index = [player returnPlayerOrder];
     UILabel *playerLabel = self.playerLabelsArray[index];
     UILabel *scoreLabel = self.scoreLabelsArray[index];
     
-    NSInteger playerPosition = (player.resigned && self.myMatch.type != kSelfGame) ?
-        -1 : [sortedScores indexOfObject:[NSNumber numberWithUnsignedInteger:player.playerScore]] + 1;
+    NSInteger playerPosition = ([player returnResigned] && [self.myMatch returnType] != kSelfGame) ?
+        -1 : [sortedScores indexOfObject:[NSNumber numberWithUnsignedInteger:[player returnPlayerScore]]] + 1;
 
     playerLabel.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + ((index + 0.5) * kCellPlayerSlotWidth),
                                      [self yPositionForMaxPosition:sortedScores.count andPlayerPosition:playerPosition]);
 
     scoreLabel.center = CGPointMake(playerLabel.center.x, playerLabel.center.y + kStaveYHeight * 1.75f);
     
-    if (player.playerOrder == self.myMatch.currentPlayerIndex) {
+    if ([player returnPlayerOrder] == [self.myMatch returnCurrentPlayerIndex]) {
       self.labelView.center = CGPointMake(playerLabel.center.x, playerLabel.center.y - (kCellRowHeight / 40.f));
     }
   }
@@ -219,10 +219,11 @@
 #pragma mark - label update methods
 
 -(void)updateLastPlayedLabel {
-  NSUInteger turn = self.myMatch.turns.count;
+  NSArray *turns = self.myMatch.turns;
+  NSUInteger turn = turns.count;
   
     // backgroundColour and lastPlayedLabel are not async
-  if (self.myMatch.gameHasEnded) {
+  if ([self.myMatch returnGameHasEnded]) {
     self.selectedBackgroundView.backgroundColor = kEndedMatchCellSelectedColour;
     self.backgroundColor = kEndedMatchCellLightColour;
     
@@ -336,14 +337,14 @@
 }
 
 -(void)updateStaves {
-  self.stavesView.gameHasEnded = self.myMatch.gameHasEnded;
+  self.stavesView.gameHasEnded = [self.myMatch returnGameHasEnded];
   [self.stavesView setNeedsDisplay];
 }
 
 -(void)updateClef {
-  MusicSymbol symbol = [self musicSymbolForMatchType:self.myMatch.type];
+  MusicSymbol symbol = [self musicSymbolForMatchType:[self.myMatch returnType]];
   self.clefLabel.text = [self stringForMusicSymbol:symbol];
-  self.clefLabel.textColor = (self.myMatch.gameHasEnded) ? kStaveEndedGameColour : kStaveColour;
+  self.clefLabel.textColor = [self.myMatch returnGameHasEnded] ? kStaveEndedGameColour : kStaveColour;
   
   CGFloat tenorFactor = (symbol == kSymbolTenorClef) ? -1 : 0;
   self.clefLabel.frame = CGRectMake(kStaveXBuffer, kStaveYHeight * (1.5 + tenorFactor),
@@ -353,7 +354,7 @@
 -(void)updateKeySigLabel {
   
     // yields number between 0 and 11
-  NSUInteger keySig = (self.myMatch.randomNumber1To24 - 1) / 2;
+  NSUInteger keySig = ([self.myMatch returnRandomNumber1To24] - 1) / 2;
     // sharps are 0-5, flats are 6-11
   MusicSymbol symbol = (keySig < 6) ? kSymbolSharp : kSymbolFlat;
   
@@ -362,7 +363,7 @@
     if ((symbol == kSymbolSharp && i < keySig) ||
         (symbol == kSymbolFlat && i <= (keySig - 6))) {
       keySigLabel.text = [self stringForMusicSymbol:symbol];
-      keySigLabel.textColor = (self.myMatch.gameHasEnded) ? kStaveEndedGameColour : kStaveColour;
+      keySigLabel.textColor = [self.myMatch returnGameHasEnded] ? kStaveEndedGameColour : kStaveColour;
       CGFloat factor = [self stavePositionForAccidentalIndex:i];
       keySigLabel.frame = CGRectMake(kStaveXBuffer + kCellClefWidth + ((i + 0.5) * kCellKeySigWidth / 6.5),
                                      kStaveYHeight * factor * 0.5,
@@ -378,7 +379,7 @@
   CGFloat finalValue = 0;
   
     // sharps
-  if (self.myMatch.randomNumber1To24 <= 12) {
+  if ([self.myMatch returnRandomNumber1To24] <= 12) {
       //------------------------------------------------------------------------
       // even or odd index (default is tenor clef)
     finalValue = (index % 2 == 0) ?
@@ -387,7 +388,7 @@
       //------------------------------------------------------------------------
     
       // all other keys but tenor clef have first and third accidentals raised
-    if (self.myMatch.type != kGCFriendGame) {
+    if ([self.myMatch returnType] != kGCFriendGame) {
       finalValue = (index == 0 || index == 2) ? (finalValue - 7) : finalValue;
     }
     
@@ -401,7 +402,7 @@
       //------------------------------------------------------------------------
   }
   
-  switch (self.myMatch.type) {
+  switch ([self.myMatch returnType]) {
     case kSelfGame: // treble clef
       finalValue = finalValue + 1;
       break;
@@ -419,7 +420,7 @@
 }
 
 -(void)updateBarline {
-  if (self.myMatch.gameHasEnded) {
+  if ([self.myMatch returnGameHasEnded]) {
     self.endBarlineLabel.font = [UIFont fontWithName:kFontSonata size:kStaveYHeight * 4.0];
     self.endBarlineLabel.text = [self stringForMusicSymbol:kSymbolEndBarline];
     self.endBarlineLabel.textAlignment = NSTextAlignmentRight;
@@ -427,7 +428,7 @@
     self.endBarlineLabel.frame = CGRectMake(self.frame.size.width - kStaveXBuffer - kCellEndBarlineWidth * 2 + (kStaveXBuffer * 0.025),
                                             (kStaveYHeight * 1.5) - (kCellHeight / 150.f),
                                             kCellEndBarlineWidth * 2, kCellHeight);
-    self.endBarlineLabel.textColor = (self.myMatch.gameHasEnded) ? kStaveEndedGameColour : kStaveColour;
+    self.endBarlineLabel.textColor = ([self.myMatch returnGameHasEnded]) ? kStaveEndedGameColour : kStaveColour;
     
   } else {
     self.endBarlineLabel.text = @"";
@@ -435,7 +436,7 @@
 }
 
 -(void)updateRestLabels {
-  UIColor *finalColour = self.myMatch.gameHasEnded ? kStaveEndedGameColour : kStaveColour;
+  UIColor *finalColour = [self.myMatch returnGameHasEnded] ? kStaveEndedGameColour : kStaveColour;
   self.quarterRestLabel.textColor = finalColour;
   self.quarterRestLabel.hidden = (self.myMatch.players.count % 2 == 0);
   

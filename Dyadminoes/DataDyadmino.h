@@ -13,29 +13,36 @@
 
 @interface DataDyadmino : NSManagedObject
 
-@property (assign, nonatomic) NSUInteger myID;
-@property (assign, nonatomic) DyadminoOrientation myOrientation;
+@property (retain, nonatomic) NSNumber *myID;
+@property (retain, nonatomic) NSNumber *myOrientation;
 
-@property (assign, nonatomic) NSInteger hexX;
-@property (assign, nonatomic) NSInteger hexY;
+@property (retain, nonatomic) NSNumber *hexX;
+@property (retain, nonatomic) NSNumber *hexY;
 @property (assign, nonatomic) HexCoord myHexCoord; // not persisted
 
-@property (assign, nonatomic) NSInteger myRackOrder;
-
-@property (assign, nonatomic) PlaceStatus placeStatus;
+@property (retain, nonatomic) NSNumber *myRackOrder;
+@property (retain, nonatomic) NSNumber *placeStatus;
 
   // for replay mode, remembers turns that involved change of state
-@property (strong, nonatomic) NSArray *turnChanges;
+@property (retain, nonatomic) id turnChanges;
 
 @property (strong, nonatomic) Match *match;
 
   // only needed for debugging
 //@property (strong, nonatomic) NSString *name;
 
-
+  // query number properties
+-(NSUInteger)returnMyID;
+-(DyadminoOrientation)returnMyOrientation;
+-(NSInteger)returnMyRackOrder;
+-(PlaceStatus)returnPlaceStatus;
 
 -(void)initialID:(NSUInteger)myID;
 -(HexCoord)getHexCoordForTurn:(NSUInteger)turn;
 -(DyadminoOrientation)getOrientationForTurn:(NSUInteger)turn;
+
+@end
+
+@interface TurnChanges : NSValueTransformer
 
 @end

@@ -20,6 +20,7 @@
 #import "OptionsViewController.h"
 #import "AboutViewController.h"
 #import "Match.h"
+#import "Player.h"
 #import "CellBackgroundView.h"
 #import "UIImage+colouredImage.h"
 
@@ -233,7 +234,8 @@
 
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
   Match *match = [self.fetchedResultsController objectAtIndexPath:indexPath];
-  return (match.gameHasEnded || (match.type != kGCFriendGame && match.type != kGCRandomGame));
+  GameType type = [match returnType];
+  return ([match returnGameHasEnded] || (type != kGCFriendGame && type != kGCRandomGame));
 }
 
 -(void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -485,7 +487,15 @@
   
   Match *newMatch = [NSEntityDescription insertNewObjectForEntityForName:@"Match" inManagedObjectContext:self.managedObjectContext];
   
-  [newMatch initialPlayers:playerNames andRules:kGameRulesTonal andSkill:kBeginner];
+  NSMutableSet *tempSet = [NSMutableSet new];
+  for (NSUInteger i = 0; i < playerNames.count; i++) {
+    Player *newPlayer = [NSEntityDescription insertNewObjectForEntityForName:@"Player" inManagedObjectContext:self.managedObjectContext];
+    [newPlayer initialUniqueID:@"" andPlayerName:playerNames[i] andPlayerOrder:i];
+    [tempSet addObject:newPlayer];
+  }
+  NSSet *players = [NSSet setWithSet:tempSet];
+  
+  [newMatch initialPlayers:players andRules:kGameRulesTonal andSkill:kBeginner withContext:self.managedObjectContext];
   
   NSError *error = nil;
   if (![self.managedObjectContext save:&error]) {

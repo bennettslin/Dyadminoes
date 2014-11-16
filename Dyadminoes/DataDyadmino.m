@@ -14,6 +14,7 @@
 
 @implementation DataDyadmino
 
+  // persisted
 @dynamic myID;
 @dynamic myOrientation;
 @dynamic hexX;
@@ -23,11 +24,13 @@
 @dynamic placeStatus;
 @dynamic match;
 
-//@dynamic name;
+  // not persisted
 @synthesize myHexCoord = _myHexCoord;
 
+#pragma mark - custom accessor methods
+
 -(HexCoord)myHexCoord {
-  return [self hexCoordFromX:self.hexX andY:self.hexY];
+  return [self hexCoordFromX:[self.hexX integerValue] andY:[self.hexY integerValue]];
 }
 
 -(void)setMyHexCoord:(HexCoord)myHexCoord {
@@ -60,12 +63,12 @@
 -(void)initialID:(NSUInteger)myID {
 //  self = [super init];
 //  if (self) {
-    self.myID = myID;
-    self.placeStatus = kInPile;
+    self.myID = [NSNumber numberWithUnsignedInteger:myID];
+    self.placeStatus = [NSNumber numberWithUnsignedInteger:kInPile];
     
       // set rack orientation randomly
     int randNum = arc4random() % 2;
-    self.myOrientation = (randNum == 0) ? kPC1atTwelveOClock : kPC1atSixOClock;
+    self.myOrientation = (randNum == 0) ? [NSNumber numberWithUnsignedInteger:kPC1atTwelveOClock] : [NSNumber numberWithUnsignedInteger:kPC1atSixOClock];
 //  }
 //  return self;
 }
@@ -87,7 +90,8 @@
   NSNumber *lastHexY;
   
     // start with most recent turn changes by iterating backwards
-  NSInteger hexCoordCounter = self.turnChanges.count - 1;
+  NSArray *turnChanges = self.turnChanges;
+  NSInteger hexCoordCounter = turnChanges.count - 1;
   while ((!lastHexX || !lastHexY) && hexCoordCounter >= 0) {
     NSDictionary *lastDictionary = (NSDictionary *)self.turnChanges[hexCoordCounter];
     
@@ -120,7 +124,8 @@
   }
   
     // start with most recent turn changes by iterating backwards
-  NSInteger orientationCounter = self.turnChanges.count - 1;
+  NSArray *turnChanges = self.turnChanges;
+  NSInteger orientationCounter = turnChanges.count - 1;
   while (!lastOrientation && orientationCounter >= 0) {
     NSDictionary *lastDictionary = (NSDictionary *)self.turnChanges[orientationCounter];
     
@@ -139,6 +144,44 @@
   } else {
     return (DyadminoOrientation)[lastOrientation unsignedIntegerValue];
   }
+}
+
+#pragma mark - return query properties
+
+-(NSUInteger)returnMyID {
+  return [self.myID unsignedIntegerValue];
+}
+
+-(DyadminoOrientation)returnMyOrientation {
+  return (DyadminoOrientation)[self.myOrientation unsignedIntegerValue];
+}
+
+-(NSInteger)returnMyRackOrder {
+  return [self.myRackOrder integerValue];
+}
+
+-(PlaceStatus)returnPlaceStatus {
+  return (PlaceStatus)[self.placeStatus unsignedIntegerValue];
+}
+
+@end
+
+@implementation TurnChanges
+
++(Class)transformedValueClass {
+  return [NSArray class];
+}
+
++(BOOL)allowsReverseTransformation {
+  return YES;
+}
+
+-(id)transformedValue:(id)value {
+  return [NSKeyedArchiver archivedDataWithRootObject:value];
+}
+
+-(id)reverseTransformedValue:(id)value {
+  return [NSKeyedUnarchiver unarchiveObjectWithData:value];
 }
 
 @end
