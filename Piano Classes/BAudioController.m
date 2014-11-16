@@ -172,9 +172,11 @@
                                                  selector: @selector(handleInterruption:)
                                                      name: AVAudioSessionInterruptionNotification
                                                    object: [AVAudioSession sharedInstance]];
-    }
-    else {
-        [_audioSession setDelegate:self];
+    } else {
+      
+        // see if this fixes the deprecated warning (and works)
+//        [_audioSession setDelegate:self];
+      [_audioSession setActive:YES error:nil];
     }
     
     
@@ -205,13 +207,24 @@
         if (audioSessionError != nil) {
             NSLog (@"Error setting audio session category.");
         }
-        
+      
+        // see if this fixes deprecated warning (and works)
+        AVAudioSession *session = [AVAudioSession sharedInstance];
+        NSError *setCategoryError = nil;
+        if (![session setCategory:AVAudioSessionCategoryPlayback
+                      withOptions:AVAudioSessionCategoryOptionMixWithOthers
+                            error:&setCategoryError]) {
+          NSLog (@"Error enabling mixing.");
+        }
+      
+      /*
         OSStatus propertySetError = 0;
         UInt32 allowMixing = true;
         propertySetError = AudioSessionSetProperty (kAudioSessionProperty_OverrideCategoryMixWithOthers,
                                                     sizeof (allowMixing),                               
                                                     &allowMixing);
         NSLog (@"Error enabling mixing.");
+       */
         
     }
     

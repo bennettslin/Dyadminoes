@@ -115,6 +115,7 @@
 
 #pragma mark = player preference methods
 
+/*
 -(BOOL)rotateDyadminoesBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation {
   
   NSUInteger rotation = _rotationFromDevice;
@@ -148,9 +149,9 @@
     return NO;
   }
 }
+ */
 
 -(void)toggleBetweenLetterAndNumberMode {
-
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
   
     // change values
@@ -168,20 +169,14 @@
   
     // change views
   for (Dyadmino *dyadmino in self.allDyadminoes) {
-    if (dyadmino.pcMode == kPCModeLetter) {
-      dyadmino.pcMode = kPCModeNumber;
-    } else {
-      dyadmino.pcMode = kPCModeLetter;
-    }
+    dyadmino.pcMode = (dyadmino.pcMode == kPCModeLetter) ? kPCModeNumber : kPCModeLetter;
     [dyadmino selectAndPositionSprites];
   }
 }
 
 #pragma mark - singleton method
 
-#pragma mark - singleton method
-
-+(SceneEngine *)sceneEngine {
++(SceneEngine *)sharedSceneEngine {
   static dispatch_once_t pred;
   static SceneEngine *shared = nil;
   dispatch_once(&pred, ^{

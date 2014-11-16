@@ -7,11 +7,19 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <CoreData/CoreData.h>
 @class SKTextureAtlas;
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 @property (strong, nonatomic) SKTextureAtlas *myAtlas;
+
+@property (readonly, nonatomic) NSManagedObjectContext *managedObjectContext;
+@property (readonly, nonatomic) NSManagedObjectModel *managedObjectModel;
+@property (readonly, nonatomic) NSPersistentStoreCoordinator *persistentStoreCoordinator;
+
+-(void)saveContext;
+-(NSURL *)applicationDocumentsDirectory;
 
 @end

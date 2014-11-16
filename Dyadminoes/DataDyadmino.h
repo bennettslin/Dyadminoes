@@ -7,21 +7,27 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <CoreData/CoreData.h>
 #import "NSObject+Helper.h"
 
-@interface DataDyadmino : NSObject <NSCoding>
+@interface DataDyadmino : NSManagedObject
 
-@property (nonatomic) NSUInteger myID;
-@property (nonatomic) DyadminoOrientation myOrientation;
-@property (nonatomic) HexCoord myHexCoord;
-@property (nonatomic) NSInteger myRackOrder;
+@property (assign, nonatomic) NSUInteger myID;
+@property (assign, nonatomic) DyadminoOrientation myOrientation;
+
+@property (assign, nonatomic) NSInteger hexX;
+@property (assign, nonatomic) NSInteger hexY;
+@property (assign, nonatomic) HexCoord myHexCoord; // not persisted
+
+@property (assign, nonatomic) NSInteger myRackOrder;
 
   // only needed for debugging
 @property (strong, nonatomic) NSString *name;
 
+  // for replay mode, remembers turns that involved change of state
 @property (strong, nonatomic) NSArray *turnChanges;
 
--(id)initWithID:(NSUInteger)id;
+-(id)initWithID:(NSUInteger)myID;
 -(HexCoord)getHexCoordForTurn:(NSUInteger)turn;
 -(DyadminoOrientation)getOrientationForTurn:(NSUInteger)turn;
 

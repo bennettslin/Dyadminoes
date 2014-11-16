@@ -8,13 +8,13 @@
 
 #import <Foundation/Foundation.h>
 #import <SpriteKit/SpriteKit.h>
+#import "NSObject+Helper.h"
 
 @interface SoundEngine : SKNode
 
-@property (nonatomic) CGFloat soundVolume;
-@property (nonatomic) CGFloat musicVolume;
-
 -(void)handleMusicNote:(NSUInteger)note;
-+(SoundEngine *)soundEngine;
+-(void)handleMusicNote1:(NSUInteger)note1 andNote2:(NSUInteger)note2 withOrientation:(DyadminoOrientation)dyadminoOrientation;
+
++(SoundEngine *)sharedSoundEngine;
 
 @end

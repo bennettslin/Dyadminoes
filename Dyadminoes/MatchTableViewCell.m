@@ -33,6 +33,8 @@
 
 @implementation MatchTableViewCell
 
+
+  // FIXME: maybe put in initWithCoder instead?
 -(void)awakeFromNib {
   
     // colour when cell is selected
@@ -56,10 +58,11 @@
   [self updateBarline];
   kIsIPhone ? nil : [self updateRestLabels];
   
-  Player *player;
+//  Player *player;
   for (int i = 0; i < kMaxNumPlayers; i++) {
     
-    player = (i < self.myMatch.players.count) ? self.myMatch.players[i] : nil;
+    Player *player = [self.myMatch playerForIndex:i];
+    
     UILabel *playerLabel = self.playerLabelsArray[i];
     UILabel *scoreLabel = self.scoreLabelsArray[i];
     UILabel *fermataLabel = self.fermataLabelsArray[i];
@@ -91,7 +94,7 @@
       scoreLabel.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kStaveYHeight * 2);
       
       if (self.myMatch.gameHasEnded) {
-        scoreLabel.textColor = [self.myMatch.wonPlayers containsObject:player] ? kScoreWonGold : kScoreLostGray;
+        scoreLabel.textColor = player.won ? kScoreWonGold : kScoreLostGray;
       } else {
         scoreLabel.textColor = kScoreNormalBrown;
       }
@@ -155,7 +158,7 @@
       self.labelView.backgroundColourCanBeChanged = NO;
       
         // fermata------------------------------------------------------------
-      fermataLabel.hidden = !(!kIsIPhone && self.myMatch.gameHasEnded && [self.myMatch.wonPlayers containsObject:player]);
+      fermataLabel.hidden = !(!kIsIPhone && self.myMatch.gameHasEnded && player.won);
     }
     
     kIsIPhone ? nil : [self setYPositionsForPlayerLabels];
@@ -166,8 +169,10 @@
   
     // first create an array of scores
   NSMutableArray *tempScores = [NSMutableArray new];
-  for (int i = 0; i < self.myMatch.players.count; i++) {
-    Player *player = self.myMatch.players[i];
+//  for (int i = 0; i < self.myMatch.players.count; i++) {
+  for (Player *player in self.myMatch.players) {
+//
+//    Player *player = self.myMatch.players[i];
     
       // add score only if player is in game
     if (!player.resigned || self.myMatch.type == kSelfGame) {
@@ -180,15 +185,20 @@
   
   NSArray *sortedScores = [tempScores sortedArrayUsingSelector:@selector(compare:)];
 
-  for (int i = 0; i < self.myMatch.players.count; i++) {
-    Player *player = self.myMatch.players[i];
-    UILabel *playerLabel = self.playerLabelsArray[i];
-    UILabel *scoreLabel = self.scoreLabelsArray[i];
+//  for (int i = 0; i < self.myMatch.players.count; i++) {
+  
+  for (Player *player in self.myMatch.players) {
+
+//    Player *player = self.myMatch.players[i];
+    
+    NSUInteger index = player.playerOrder;
+    UILabel *playerLabel = self.playerLabelsArray[index];
+    UILabel *scoreLabel = self.scoreLabelsArray[index];
     
     NSInteger playerPosition = (player.resigned && self.myMatch.type != kSelfGame) ?
         -1 : [sortedScores indexOfObject:[NSNumber numberWithUnsignedInteger:player.playerScore]] + 1;
 
-    playerLabel.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + ((i + 0.5) * kCellPlayerSlotWidth),
+    playerLabel.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + ((index + 0.5) * kCellPlayerSlotWidth),
                                      [self yPositionForMaxPosition:sortedScores.count andPlayerPosition:playerPosition]);
 
     scoreLabel.center = CGPointMake(playerLabel.center.x, playerLabel.center.y + kStaveYHeight * 1.75f);
@@ -434,8 +444,7 @@
   
   CGFloat xFactor = ((self.myMatch.players.count == 1) ? 1.5 : 3.5);
   self.quarterRestLabel.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + kCellPlayerSlotWidth * xFactor, kCellHeight / 2 - kStaveYHeight / 2);
-  self.halfRestLabel.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + kCellPlayerSlotWidth * 2.5,
-                                          kCellHeight / 2 - kStaveYHeight / 2 - (kCellHeight / 150.f));
+  self.halfRestLabel.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + kCellPlayerSlotWidth * 2.5,kCellHeight / 2 - kStaveYHeight / 2 - (kCellHeight / 150.f));
 }
 
 @end

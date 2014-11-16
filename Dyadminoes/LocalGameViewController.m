@@ -128,9 +128,8 @@
     }
   }
   if (tempSelectedPlayers.count > 0) {
-    [self.delegate startLocalGameWithPlayerNames:tempSelectedPlayers];
+    [self.delegate startLocalGameWithPlayerNames:[NSArray arrayWithArray:tempSelectedPlayers]];
   }
-//  [self.delegate startLocalGameWithPlayerName:[self.defaults objectForKey:kPlayer1Key]];
 }
 
 -(IBAction)buttonTapped:(UIButton *)button {

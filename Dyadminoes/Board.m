@@ -216,13 +216,13 @@
       CGFloat trialTopmost = ((CGFloat)xHex + (2 * yHex)) / 2.f;
       if (trialTopmost > cellsTopmost) {
         cellsTopmost = trialTopmost;
-        _cellsTopXIsEven = (abs(xHex) % 2 == 0) ? YES : NO; // pretty sure not needed, but keep for my assurance for the time being
+        _cellsTopXIsEven = (ABS(xHex) % 2 == 0) ? YES : NO; // pretty sure not needed, but keep for my assurance for the time being
       }
       
       CGFloat trialBottommost = ((CGFloat)xHex + (2 * yHex)) / 2.f;
       if (trialBottommost < cellsBottommost) {
         cellsBottommost = trialBottommost;
-        _cellsBottomXIsEven = (abs(xHex) % 2 == 0) ? YES : NO; // ditto
+        _cellsBottomXIsEven = (ABS(xHex) % 2 == 0) ? YES : NO; // ditto
       }
     }
   }
@@ -729,11 +729,11 @@
     CGFloat redVal, greenVal, blueVal, alphaVal;
 
       // returns the opposite colour. So for example, pc 0 returns red 0, green 4, blue 4
-    redMult = 6 - abs(6 - pc);
+    redMult = 6 - ABS(6 - pc);
     redMult = redMult >= 4 ? 4 : redMult;
-    greenMult = 6 - abs(6 - ((pc + 4) % 12));
+    greenMult = 6 - ABS(6 - ((pc + 4) % 12));
     greenMult = greenMult >= 4 ? 4 : greenMult;
-    blueMult = 6 - abs(6 - ((pc + 8) % 12));
+    blueMult = 6 - ABS(6 - ((pc + 8) % 12));
     blueMult = blueMult >= 4 ? 4 : blueMult;
 
     redVal = (sign * colourFactor * redMult * kCellColourMultiplier);
@@ -822,7 +822,7 @@
     return nil;
   }
   
-  for (int i = initialNumber; i < conditionalNumber; i++) {
+  for (NSUInteger i = initialNumber; i < conditionalNumber; i++) {
     if (i != 2 && i != 3) { // for now, leave out second, double-speed guide
       SKShapeNode *shapeNode = [SKShapeNode new];
       CGMutablePathRef shapePath = CGPathCreateMutable();

@@ -12,114 +12,136 @@
 
 @interface Match () <PlayerDelegate>
 
-@property (nonatomic) NSUInteger numberOfConsecutivePasses;
-@property (strong, nonatomic) DataDyadmino *firstDyadmino;
-
 @end
 
 @implementation Match
 
+@dynamic rules;
+@dynamic skill;
+@dynamic type;
+@dynamic lastPlayed;
+@dynamic players;
+@dynamic currentPlayer;
+//@dynamic wonPlayers;
+@dynamic gameHasEnded;
+@dynamic pile;
+@dynamic board;
+@dynamic tempScore;
+@dynamic holdingContainer;
+@dynamic swapContainer;
+@dynamic replayTurn;
+@dynamic turns;
+@dynamic numberOfConsecutivePasses;
+@dynamic firstDyadmino;
+@dynamic randomNumber1To24;
+
+  // FIXME: make sure this is correct
+@synthesize replayBoard;
+@synthesize delegate;
+
 #pragma mark - archiver methods
 
--(id)initWithCoder:(NSCoder *)aDecoder {
-  self = [super init];
-  if (self) {
-    self.rules = [[aDecoder decodeObjectForKey:@"rules"] unsignedIntValue];
-    self.skill = [[aDecoder decodeObjectForKey:@"skill"] unsignedIntValue];
-    self.type = [[aDecoder decodeObjectForKey:@"type"] unsignedIntValue];
-    
-    self.lastPlayed = [aDecoder decodeObjectForKey:@"lastPlayed"];
-    
-    self.players = [aDecoder decodeObjectForKey:@"players"];
-    
-    for (Player *player in self.players) {
-      player.delegate = self;
-    }
-    
-    self.currentPlayer = [aDecoder decodeObjectForKey:@"currentPlayer"];
-    self.wonPlayers = [aDecoder decodeObjectForKey:@"wonPlayers"];
-    self.gameHasEnded = [aDecoder decodeBoolForKey:@"gameHasEnded"];
-    
-    self.pile = [aDecoder decodeObjectForKey:@"pile"];
-    self.board = [aDecoder decodeObjectForKey:@"board"];
-    
-    self.tempScore = [[aDecoder decodeObjectForKey:@"tempScore"] unsignedIntegerValue];
-    self.holdingContainer = [aDecoder decodeObjectForKey:@"holdingContainer"];
-    self.swapContainer = [aDecoder decodeObjectForKey:@"swapContainer"];
-    self.replayTurn = [[aDecoder decodeObjectForKey:@"replayCounter"] unsignedIntegerValue];
-    self.turns = [aDecoder decodeObjectForKey:@"turns"];
-    
-    self.numberOfConsecutivePasses = [[aDecoder decodeObjectForKey:@"consecutivePasses"] unsignedIntegerValue];
-    self.firstDyadmino = [aDecoder decodeObjectForKey:@"firstDyadmino"];
-    
-    self.randomNumber1To24 = [aDecoder decodeIntegerForKey:@"randomNumber1To24"];
-  }
-  return self;
-}
+//-(id)initWithCoder:(NSCoder *)aDecoder {
+//  self = [super init];
+//  if (self) {
+//    self.rules = [[aDecoder decodeObjectForKey:@"rules"] unsignedIntValue];
+//    self.skill = [[aDecoder decodeObjectForKey:@"skill"] unsignedIntValue];
+//    self.type = [[aDecoder decodeObjectForKey:@"type"] unsignedIntValue];
+//
+//    self.lastPlayed = [aDecoder decodeObjectForKey:@"lastPlayed"];
+//    
+//    self.players = [aDecoder decodeObjectForKey:@"players"];
+//    
+//    for (Player *player in self.players) {
+//      player.delegate = self;
+//    }
+//    
+//    self.currentPlayer = [aDecoder decodeObjectForKey:@"currentPlayer"];
+//    self.wonPlayers = [aDecoder decodeObjectForKey:@"wonPlayers"];
+//    self.gameHasEnded = [aDecoder decodeBoolForKey:@"gameHasEnded"];
+//    
+//    self.pile = [aDecoder decodeObjectForKey:@"pile"];
+//    self.board = [aDecoder decodeObjectForKey:@"board"];
+//    
+//    self.tempScore = [[aDecoder decodeObjectForKey:@"tempScore"] unsignedIntegerValue];
+//    self.holdingContainer = [aDecoder decodeObjectForKey:@"holdingContainer"];
+//    self.swapContainer = [aDecoder decodeObjectForKey:@"swapContainer"];
+//    self.replayTurn = [[aDecoder decodeObjectForKey:@"replayCounter"] unsignedIntegerValue];
+//    self.turns = [aDecoder decodeObjectForKey:@"turns"];
+//    
+//    self.numberOfConsecutivePasses = [[aDecoder decodeObjectForKey:@"consecutivePasses"] unsignedIntegerValue];
+//    self.firstDyadmino = [aDecoder decodeObjectForKey:@"firstDyadmino"];
+//    
+//    self.randomNumber1To24 = [aDecoder decodeIntegerForKey:@"randomNumber1To24"];
+//  }
+//  return self;
+//}
 
--(void)encodeWithCoder:(NSCoder *)aCoder {
-  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.rules] forKey:@"rules"];
-  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.skill] forKey:@"skill"];
-  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.type] forKey:@"type"];
-
-  [aCoder encodeObject:self.lastPlayed forKey:@"lastPlayed"];
-  
-  [aCoder encodeObject:self.players forKey:@"players"];
-  [aCoder encodeObject:self.currentPlayer forKey:@"currentPlayer"];
-  [aCoder encodeObject:self.wonPlayers forKey:@"wonPlayers"];
-  [aCoder encodeBool:self.gameHasEnded forKey:@"gameHasEnded"];
-  
-  [aCoder encodeObject:self.pile forKey:@"pile"];
-  [aCoder encodeObject:self.board forKey:@"board"];
-  
-  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.tempScore] forKey:@"tempScore"];
-  [aCoder encodeObject:self.holdingContainer forKey:@"holdingContainer"];
-  [aCoder encodeObject:self.swapContainer forKey:@"swapContainer"];
-  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.replayTurn] forKey:@"replayCounter"];
-  [aCoder encodeObject:self.turns forKey:@"turns"];
-  
-  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.numberOfConsecutivePasses] forKey:@"consecutivePasses"];
-  [aCoder encodeObject:self.firstDyadmino forKey:@"firstDyadmino"];
-  
-  [aCoder encodeInteger:self.randomNumber1To24 forKey:@"randomNumber1To24"];
-}
+//-(void)encodeWithCoder:(NSCoder *)aCoder {
+//  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.rules] forKey:@"rules"];
+//  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.skill] forKey:@"skill"];
+//  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.type] forKey:@"type"];
+//
+//  [aCoder encodeObject:self.lastPlayed forKey:@"lastPlayed"];
+//  
+//  [aCoder encodeObject:self.players forKey:@"players"];
+//  [aCoder encodeObject:self.currentPlayer forKey:@"currentPlayer"];
+//  [aCoder encodeObject:self.wonPlayers forKey:@"wonPlayers"];
+//  [aCoder encodeBool:self.gameHasEnded forKey:@"gameHasEnded"];
+//  
+//  [aCoder encodeObject:self.pile forKey:@"pile"];
+//  [aCoder encodeObject:self.board forKey:@"board"];
+//  
+//  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.tempScore] forKey:@"tempScore"];
+//  [aCoder encodeObject:self.holdingContainer forKey:@"holdingContainer"];
+//  [aCoder encodeObject:self.swapContainer forKey:@"swapContainer"];
+//  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.replayTurn] forKey:@"replayCounter"];
+//  [aCoder encodeObject:self.turns forKey:@"turns"];
+//  
+//  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.numberOfConsecutivePasses] forKey:@"consecutivePasses"];
+//  [aCoder encodeObject:self.firstDyadmino forKey:@"firstDyadmino"];
+//  
+//  [aCoder encodeInteger:self.randomNumber1To24 forKey:@"randomNumber1To24"];
+//}
 
 #pragma mark - init methods
 
--(id)initWithPlayers:(NSArray *)players andRules:(GameRules)rules andSkill:(GameSkill)skill andType:(GameType)type {
-  self = [super init];
-  if (self) {
-    
-    self.rules = rules;
-    self.skill = skill;
-    self.type = type;
-    
-    self.lastPlayed = [NSDate date];
-    self.gameHasEnded = NO;
-    self.numberOfConsecutivePasses = 0;
-    
-    self.players = players;
-    self.currentPlayer = players[0];
-    
-    self.randomNumber1To24 = [self randomIntegerUpTo:24] + 1;
-    
-    for (Player *player in self.players) {
-      player.delegate = self;
-    }
-    
-    self.holdingContainer = @[];
-    self.swapContainer = [NSMutableArray new];
-    
-    self.pile = [[NSMutableArray alloc] initWithCapacity:kPileCount];
-    self.board = [[NSMutableSet alloc] initWithCapacity:kPileCount];
-    self.turns = [NSMutableArray new];
-    self.replayTurn = 0;
-    
-    [self generatePile];
-    [self placeFirstDyadminoOnBoard];
-    [self distributePileAmongstPlayers];
+-(void)initialPlayers:(NSArray *)players andRules:(GameRules)rules andSkill:(GameSkill)skill {
+//  self = [super init];
+//  if (self) {
+  
+  self.rules = rules;
+  self.skill = skill;
+  self.type = (players.count == 1) ? kSelfGame : kPnPGame;
+  
+  self.lastPlayed = [NSDate date];
+  self.gameHasEnded = NO;
+  self.numberOfConsecutivePasses = 0;
+  
+  self.players = [NSSet setWithArray:players];
+  self.currentPlayer = players[0];
+  
+  self.randomNumber1To24 = [self randomIntegerUpTo:24] + 1;
+  
+  for (int i = 0; i < players.count; i++) {
+    Player *player = players[i];
+    player.playerOrder = i;
+    player.delegate = self;
   }
-  return self;
+  
+  self.holdingContainer = @[];
+  self.swapContainer = [NSMutableArray new];
+  
+  self.pile = [[NSMutableArray alloc] initWithCapacity:kPileCount];
+  self.board = [[NSMutableSet alloc] initWithCapacity:kPileCount];
+  self.turns = [NSMutableArray new];
+  self.replayTurn = 0;
+  
+  [self generatePile];
+  [self placeFirstDyadminoOnBoard];
+  [self distributePileAmongstPlayers];
+//  }
+//  return self;
 }
 
 -(void)generatePile {
@@ -167,11 +189,12 @@
 
 -(Player *)switchToNextPlayer {
   
-  NSUInteger index = [self.players indexOfObject:self.currentPlayer];
+//  NSUInteger index = [self.players indexOfObject:self.currentPlayer];
+  NSUInteger index = self.currentPlayer.playerOrder;
   if ([self checkNumberOfPlayersStillInGame] > 1) {
 
     while (index < self.players.count * 2) {
-      Player *nextPlayer = self.players[(index + 1) % self.players.count];
+      Player *nextPlayer = [self playerForIndex:(index + 1) % self.players.count];
       if (nextPlayer.resigned) {
         index++;
       } else {
@@ -287,14 +310,14 @@
     
       // get last hexCoord and orientation
       // (must be iterated separately, because they might be in different dictionaries)
-    int hexCoordCounter = dataDyad.turnChanges.count - 1;
+    NSInteger hexCoordCounter = dataDyad.turnChanges.count - 1;
     while (!(lastHexX || lastHexY) && hexCoordCounter >= 0) {
       NSDictionary *lastDictionary = (NSDictionary *)dataDyad.turnChanges[hexCoordCounter];
       lastHexX = (NSNumber *)[lastDictionary objectForKey:@"hexX"];
       lastHexY = (NSNumber *)[lastDictionary objectForKey:@"hexY"];
       hexCoordCounter--;
     }
-    int orientationCounter = dataDyad.turnChanges.count - 1;
+    NSInteger orientationCounter = dataDyad.turnChanges.count - 1;
     while (!lastOrientation && orientationCounter >= 0) {
       NSDictionary *lastDictionary = (NSDictionary *)dataDyad.turnChanges[orientationCounter];
       lastOrientation = (NSNumber *)[lastDictionary objectForKey:@"orientation"];
@@ -310,11 +333,11 @@
       NSMutableDictionary *newDictionary = [NSMutableDictionary new];
       NSNumber *thisTurn = [NSNumber numberWithUnsignedInteger:(self.turns.count > 0 ? self.turns.count : 1)]; // for first dyadmino
       [newDictionary setObject:thisTurn forKey:@"turn"];
-      NSLog(@"new dictionary created for turn %i", self.turns.count);
+      NSLog(@"new dictionary created for turn %lu", (unsigned long)self.turns.count);
       
         // set object for changed hexCoord position
       if (!(lastHexX || lastHexY) || !(dataDyad.myHexCoord.x == [lastHexX integerValue] && dataDyad.myHexCoord.y == [lastHexY integerValue])) {
-        NSLog(@"hexCoord for dataDyad %i changed, persist!", dataDyad.myID);
+        NSLog(@"hexCoord for dataDyad %lu changed, persist!", (unsigned long)dataDyad.myID);
         NSNumber *newHexX = [NSNumber numberWithInteger:dataDyad.myHexCoord.x];
         NSNumber *newHexY = [NSNumber numberWithInteger:dataDyad.myHexCoord.y];
         [newDictionary setObject:newHexX forKey:@"hexX"];
@@ -323,7 +346,7 @@
       
         // set object for changed orientation
       if (!lastOrientation || dataDyad.myOrientation != [lastOrientation unsignedIntegerValue]) {
-        NSLog(@"orientation for dataDyad %i changed, persist!", dataDyad.myID);
+        NSLog(@"orientation for dataDyad %lu changed, persist!", (unsigned long)dataDyad.myID);
         NSNumber *newOrientation = [NSNumber numberWithUnsignedInteger:dataDyad.myOrientation];
         [newDictionary setObject:newOrientation forKey:@"orientation"];
       }
@@ -337,8 +360,8 @@
         NSUInteger turn = [(NSNumber *)[dictionary objectForKey:@"turn"] unsignedIntegerValue];
         NSInteger hexX = [(NSNumber *)[dictionary objectForKey:@"hexX"] integerValue];
         NSInteger hexY = [(NSNumber *)[dictionary objectForKey:@"hexY"] integerValue];
-        DyadminoOrientation orientation = [(NSNumber *)[dictionary objectForKey:@"orientation"] unsignedIntegerValue];
-        NSLog(@"dataDyad %i for turn %i has position %i, %i and orientation %i", dataDyad.myID, turn, hexX, hexY, orientation);
+        DyadminoOrientation orientation = [(NSNumber *)[dictionary objectForKey:@"orientation"] unsignedIntValue];
+        NSLog(@"dataDyad %lu for turn %lu has position %li, %li and orientation %i", (unsigned long)dataDyad.myID, (unsigned long)turn, (long)hexX, (long)hexY, orientation);
       }
     }
   }
@@ -373,28 +396,37 @@
   
     // if solo game, sole player is winner if any score at all
   if (self.type == kSelfGame) {
-    Player *soloPlayer = self.players[0];
-    self.wonPlayers = (soloPlayer.playerScore > 0) ?
-      [NSArray arrayWithArray:self.players] :
-      @[];
+    Player *soloPlayer = [self playerForIndex:0];
+    soloPlayer.won = soloPlayer.playerScore > 0 ? YES : NO; // player only won if score greater than 0
+//    self.wonPlayers = (soloPlayer.playerScore > 0) ?
+//      [NSArray arrayWithArray:self.players] :
+//      @[];
     
   } else {
       // rules out that players with no points can win
     NSUInteger maxScore = 1;
-    NSMutableArray *tempArray = [[NSMutableArray alloc] initWithCapacity:self.players.count];
+//    NSMutableArray *tempArray = [[NSMutableArray alloc] initWithCapacity:self.players.count];
     
     for (Player *player in self.players) {
       if (!player.resigned) {
+        
         if (player.playerScore > maxScore) {
-          [tempArray removeAllObjects];
-          [tempArray addObject:player];
+//          [tempArray removeAllObjects];
+//          [tempArray addObject:player];
           maxScore = player.playerScore;
-        } else if (player.playerScore == maxScore) {
-          [tempArray addObject:player];
+          
+//        } else if (player.playerScore == maxScore) {
+//          [tempArray addObject:player];
         }
       }
     }
-    self.wonPlayers = [NSArray arrayWithArray:tempArray];
+    
+    for (Player *player in self.players) {
+      if (player.playerScore == maxScore) {
+        player.won = YES;
+      }
+    }
+//    self.wonPlayers = [NSArray arrayWithArray:tempArray];
   }
 
   self.gameHasEnded = YES;
@@ -436,11 +468,12 @@
   
   NSString *resultsText;
     // there are winners if there is any score at all
-  if (self.wonPlayers.count > 0) {
+  
+  if ([self wonPlayersCount] > 0) {
     
-    NSMutableArray *wonPlayerNames = [[NSMutableArray alloc] initWithCapacity:self.wonPlayers.count];
-    for (Player *player in self.wonPlayers) {
-      [wonPlayerNames addObject:player.playerName];
+    NSMutableArray *wonPlayerNames = [[NSMutableArray alloc] initWithCapacity:[self wonPlayersCount]];
+    for (Player *player in self.players) {
+      player.won ? [wonPlayerNames addObject:player.playerName] : nil;
     }
     
     NSString *wonPlayers = [wonPlayerNames componentsJoinedByString:@" and "];
@@ -491,13 +524,12 @@
   // FIXME: obviously
 -(NSString *)keySigString {
     // yields number between 0 and 11
-  NSUInteger keySig = (self.randomNumber1To24 - 1) / 2;
+//  NSUInteger keySig = (self.randomNumber1To24 - 1) / 2;
   
-  NSString *majorOrMinor = (self.randomNumber1To24 % 2 == 0) ? @"Major" : @"minor";
+//  NSString *majorOrMinor = (self.randomNumber1To24 % 2 == 0) ? @"Major" : @"minor";
   
     // sharps are 0-5, flats are 6-11
-  MusicSymbol symbol = (keySig < 6) ? kSymbolSharp : kSymbolFlat;
-  
+//  MusicSymbol symbol = (keySig < 6) ? kSymbolSharp : kSymbolFlat;
   
   return nil;
 }
@@ -505,7 +537,7 @@
 -(UIColor *)colourForPlayer:(Player *)player {
   if ([self.players containsObject:player]) {
     
-    NSUInteger playerIndex = [self.players indexOfObject:player];
+    NSUInteger playerIndex = player.playerOrder;
     
       // originally
     NSUInteger randomIndex = (playerIndex + self.randomNumber1To24) % 4;
@@ -581,13 +613,13 @@
   }
 }
 
--(void)setHoldingContainer:(NSArray *)newHoldingContainer {
-  if (!_holdingContainer || !newHoldingContainer) {
-    _holdingContainer = newHoldingContainer;
-  } else if (_holdingContainer != newHoldingContainer) {
-    _holdingContainer = newHoldingContainer;
-  }
-}
+//-(void)setHoldingContainer:(NSArray *)newHoldingContainer {
+//  if (!_holdingContainer || !newHoldingContainer) {
+//    _holdingContainer = newHoldingContainer;
+//  } else if (_holdingContainer != newHoldingContainer) {
+//    _holdingContainer = newHoldingContainer;
+//  }
+//}
 
 -(DataDyadmino *)undoDyadminoToHoldingContainer {
   if (self.holdingContainer.count > 0) {
@@ -615,7 +647,7 @@
 
 -(void)leaveReplay {
   self.replayTurn = self.turns.count;
-  [self.replayBoard removeAllObjects];
+  self.replayBoard = nil;
 }
 
 -(void)first {
@@ -678,6 +710,27 @@
       }
     }
   }
+}
+
+#pragma mark - helper methods
+
+-(NSUInteger)wonPlayersCount {
+  NSUInteger counter = 0;
+  for (Player *player in self.players) {
+    if (player.won) {
+      counter++;
+    }
+  }
+  return counter;
+}
+
+-(Player *)playerForIndex:(NSUInteger)index {
+  for (Player *player in self.players) {
+    if (player.playerOrder == index) {
+      return player;
+    }
+  }
+  return nil;
 }
 
 @end

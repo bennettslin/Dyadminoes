@@ -98,7 +98,7 @@
 -(void)soundWithVolume:(float)volume andMusic:(BOOL)music {
   
     // can be any two sounds that signify music versus effect
-  NotificationName whichNotification = music ? kNotificationOneNoteStruck : kNotificationBoardZoom;
+  NotificationName whichNotification = music ? kNotificationOptionsMusic : kNotificationBoardZoom;
   NSNumber *whichNotificationObject = [NSNumber numberWithUnsignedInteger:whichNotification];
   [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound" object:self userInfo:@{@"sound": whichNotificationObject}];
 }

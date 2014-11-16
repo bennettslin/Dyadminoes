@@ -183,7 +183,7 @@
 -(void)orientBySnapNode:(SnapPoint *)snapNode {
   
   NSInteger currentOrientation = self.orientation;
-  NSInteger shouldBeOrientation;
+  uint shouldBeOrientation;
   
   switch (snapNode.snapPointType) {
     case kSnapPointRack:
@@ -394,7 +394,7 @@
     if (changeInAngle >= i + kAngleForSnapToPivot &&
         changeInAngle < (i + 1) - kAngleForSnapToPivot) {
       
-      NSUInteger newOrientation = (self.prePivotDyadminoOrientation + i) % 6;
+      uint newOrientation = (self.prePivotDyadminoOrientation + i) % 6;
       
         // if orientation hasn't changed, just return
       if (self.orientation != newOrientation) {

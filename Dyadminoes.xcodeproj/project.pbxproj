@@ -24,6 +24,7 @@
 		3F3C8FF11990D9EE0061B208 /* ReplayBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3C8FF01990D9EE0061B208 /* ReplayBar.m */; };
 		3F3C8FF41990DA1A0061B208 /* PnPBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3C8FF31990DA1A0061B208 /* PnPBar.m */; };
 		3F3C8FF71990DA4E0061B208 /* TopBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3C8FF61990DA4E0061B208 /* TopBar.m */; };
+		3F463CBE1A182498004544AB /* Dyadminoes.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 3F463CBC1A182498004544AB /* Dyadminoes.xcdatamodeld */; };
 		3F55E1FD18D7A8520048E67E /* Button.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F55E1FC18D7A8520048E67E /* Button.m */; };
 		3F580BDC194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */; };
 		3F580BDE194F710F0040B5D0 /* Click2-Sebastian-759472264.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */; };
@@ -122,6 +123,7 @@
 		3F3C8FF31990DA1A0061B208 /* PnPBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PnPBar.m; sourceTree = "<group>"; };
 		3F3C8FF51990DA4E0061B208 /* TopBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TopBar.h; sourceTree = "<group>"; };
 		3F3C8FF61990DA4E0061B208 /* TopBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TopBar.m; sourceTree = "<group>"; };
+		3F463CBD1A182498004544AB /* Dyadminoes.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Dyadminoes.xcdatamodel; sourceTree = "<group>"; };
 		3F55E1FB18D7A8520048E67E /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
 		3F55E1FC18D7A8520048E67E /* Button.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Button.m; sourceTree = "<group>"; };
 		3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Electronic_Chime-KevanGC-495939803.wav"; sourceTree = "<group>"; };
@@ -458,6 +460,7 @@
 		3FFBE2251931B959002A1EDC /* Data Objects */ = {
 			isa = PBXGroup;
 			children = (
+				3F463CBC1A182498004544AB /* Dyadminoes.xcdatamodeld */,
 				3F7BD7DC192B0AA8009274DE /* Model.h */,
 				3F7BD7DD192B0AA8009274DE /* Model.m */,
 				3F7BD7C7192AF45D009274DE /* Match.h */,
@@ -636,6 +639,7 @@
 				3F87AAC9188DEE4B008C4A0D /* MyScene.m in Sources */,
 				3F87AAC6188DEE4B008C4A0D /* SceneViewController.m in Sources */,
 				3FDD7FD918D4C89B0029DB7D /* Board.m in Sources */,
+				3F463CBE1A182498004544AB /* Dyadminoes.xcdatamodeld in Sources */,
 				3FE8CD5719FCA24E00D097B6 /* BAudioController.m in Sources */,
 				3F7BD7C9192AF45D009274DE /* Match.m in Sources */,
 				3F18924718CDB43300BEE276 /* Player.m in Sources */,
@@ -896,6 +900,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		3F463CBC1A182498004544AB /* Dyadminoes.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				3F463CBD1A182498004544AB /* Dyadminoes.xcdatamodel */,
+			);
+			currentVersion = 3F463CBD1A182498004544AB /* Dyadminoes.xcdatamodel */;
+			path = Dyadminoes.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 3F87AA9F188DEE4B008C4A0D /* Project object */;
 }

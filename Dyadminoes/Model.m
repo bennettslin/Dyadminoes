@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
+/*
 #import "Model.h"
 #import "Match.h"
 #import "Player.h"
@@ -47,40 +48,40 @@
   return pathString;
 }
 
--(Match *)instantiateNewLocalMatchWithNames:(NSMutableArray *)playerNames andRules:(GameRules)rules andSkill:(GameSkill)skill {
+//-(Match *)instantiateNewLocalMatchWithNames:(NSMutableArray *)playerNames andRules:(GameRules)rules andSkill:(GameSkill)skill {
+//
+//  NSMutableArray *players = [NSMutableArray new];
+//  for (int i = 0; i < playerNames.count; i++) {
+//    Player *player = [[Player alloc] initWithUniqueID:@"" andPlayerName:playerNames[i] andPlayerPicture:nil];
+//    [players addObject:player];
+//  }
+//  
+//  GameType gameType = (playerNames.count == 1) ? kSelfGame : kPnPGame;
+//  Match *newMatch = [[Match alloc] initialPlayers:players andRules:rules andSkill:skill andType:gameType];
+//  [self.myMatches insertObject:newMatch atIndex:0];
+//  [Model saveMyModel:self];
+//  return newMatch;
+//}
 
-  NSMutableArray *players = [NSMutableArray new];
-  for (int i = 0; i < playerNames.count; i++) {
-    Player *player = [[Player alloc] initWithUniqueID:@"" andPlayerName:playerNames[i] andPlayerPicture:nil];
-    [players addObject:player];
-  }
-  
-  GameType gameType = (playerNames.count == 1) ? kSelfGame : kPnPGame;
-  Match *newMatch = [[Match alloc] initWithPlayers:players andRules:rules andSkill:skill andType:gameType];
-  [self.myMatches insertObject:newMatch atIndex:0];
-  [Model saveMyModel:self];
-  return newMatch;
-}
-
--(void)sortMyMatches {
-  NSMutableArray *endedGames = [[NSMutableArray alloc] init];
-  NSMutableArray *openGames = [[NSMutableArray alloc] init];
-  
-  for (Match *match in self.myMatches) {
-    if (match.gameHasEnded) {
-      [endedGames addObject:match];
-    } else {
-      [openGames addObject:match];
-    }
-  }
-  
-  NSSortDescriptor *dateSortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"lastPlayed" ascending:YES];
-  [openGames sortUsingDescriptors:@[dateSortDescriptor]];
-  [endedGames sortUsingDescriptors:@[dateSortDescriptor]];
-  
-  [openGames addObjectsFromArray:endedGames];
-  self.myMatches = openGames;
-}
+//-(void)sortMyMatches {
+//  NSMutableArray *endedGames = [[NSMutableArray alloc] init];
+//  NSMutableArray *openGames = [[NSMutableArray alloc] init];
+//  
+//  for (Match *match in self.myMatches) {
+//    if (match.gameHasEnded) {
+//      [endedGames addObject:match];
+//    } else {
+//      [openGames addObject:match];
+//    }
+//  }
+//  
+//  NSSortDescriptor *dateSortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"lastPlayed" ascending:YES];
+//  [openGames sortUsingDescriptors:@[dateSortDescriptor]];
+//  [endedGames sortUsingDescriptors:@[dateSortDescriptor]];
+//  
+//  [openGames addObjectsFromArray:endedGames];
+//  self.myMatches = openGames;
+//}
 
 #pragma mark - singleton method
 
@@ -94,3 +95,4 @@
 }
 
 @end
+ */

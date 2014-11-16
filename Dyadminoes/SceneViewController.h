@@ -8,7 +8,8 @@
 
 #import <UIKit/UIKit.h>
 #import <SpriteKit/SpriteKit.h>
-@class Model;
+#import <CoreData/CoreData.h>
+//@class Model;
 @class Match;
 @class Player;
 @class MyScene;
@@ -19,7 +20,8 @@
 @interface SceneViewController : UIViewController
 
 @property (strong, nonatomic) MyScene *myScene;
-@property (strong, nonatomic) Model *myModel;
+//@property (strong, nonatomic) Model *myModel;
+@property (strong, nonatomic) NSManagedObjectContext *managedObjectContext;
 @property (strong, nonatomic) Match *myMatch;
 
 @property (weak, nonatomic) id <SceneViewDelegate> delegate;

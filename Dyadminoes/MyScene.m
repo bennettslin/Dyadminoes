@@ -117,8 +117,8 @@
   if (self = [super initWithSize:size]) {
     self.backgroundColor = kBackgroundBoardColour;
     self.name = @"scene";
-    self.mySoundEngine = [SoundEngine soundEngine];
-    self.mySceneEngine = [SceneEngine sceneEngine];
+    self.mySoundEngine = [SoundEngine sharedSoundEngine];
+    self.mySceneEngine = [SceneEngine sharedSceneEngine];
     [self addChild:self.mySoundEngine];
     
     _swapMode = NO;
@@ -217,7 +217,9 @@
   [self populateBoardWithDyadminoes];
   
     // not for first version
+  /*
   [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
+   */
   
     // kludge way to remove activity indicator
   SKAction *wait = [SKAction waitForDuration:1.f];
@@ -314,8 +316,7 @@
     
       // no face means sound whole dyadmino
   } else {
-    [self.mySoundEngine handleMusicNote:dyadmino.pc1];
-    [self.mySoundEngine handleMusicNote:dyadmino.pc2];
+    [self.mySoundEngine handleMusicNote1:dyadmino.pc1 andNote2:dyadmino.pc2 withOrientation:dyadmino.orientation];
   }
 }
 
@@ -533,6 +534,7 @@
   }
 }
 
+/*
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation {
   if ([self.mySceneEngine rotateDyadminoesBasedOnDeviceOrientation:deviceOrientation]) {
     [self postSoundNotification:kNotificationDeviceOrientation];
@@ -542,6 +544,7 @@
   [_replayTop rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
   [_replayBottom rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
 }
+ */
 
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location {
   
@@ -2987,8 +2990,8 @@
     }
   }
   
-  for (int i = 0; i < 4; i++) {
-    Player *player = (i <= self.myMatch.players.count - 1) ? self.myMatch.players[i] : nil;
+  for (int i = 0; i < kMaxNumPlayers; i++) {
+    Player *player = (i <= self.myMatch.players.count - 1) ? [self.myMatch playerForIndex:i] : nil;
     Label *rackLabel = _topBar.playerRackLabels[i];
     [_topBar updateLabel:_topBar.playerRackLabels[i] withText:[[player.dataDyadminoesThisTurn valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "] andColour:nil];
     player ? nil : [_topBar node:rackLabel shouldBeEnabled:NO];
@@ -3040,8 +3043,8 @@
 
 #pragma mark - singleton method
 
-  // not used
-+(MyScene *)myScene {
+/*
++(MyScene *)sharedScene {
   static dispatch_once_t pred;
   static MyScene *shared = nil;
   dispatch_once(&pred, ^{
@@ -3049,5 +3052,6 @@
   });
   return shared;
 }
+ */
 
 @end

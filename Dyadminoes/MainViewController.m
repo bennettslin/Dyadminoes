@@ -8,7 +8,7 @@
 
 #import "MyScene.h"
 #import "MainViewController.h"
-#import "Model.h"
+//#import "Model.h"
 #import "NSObject+Helper.h"
 #import "MatchTableViewCell.h"
 #import "SceneViewController.h"
@@ -35,7 +35,7 @@
 @property (strong, nonatomic) MyScene *myScene;
 @property (strong, nonatomic) UIViewController *childVC;
 
-@property (strong, nonatomic) Model *myModel;
+//@property (strong, nonatomic) Model *myModel;
 @property (strong, nonatomic) Match *mostRecentMatch;
 @property (strong, nonatomic) NSIndexPath *indexPathForMostRecentMatch;
 
@@ -143,10 +143,10 @@
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(startAnimatingBackground) name:UIApplicationDidBecomeActiveNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stopAnimatingBackground) name:UIApplicationWillResignActiveNotification object:nil];
   
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(getModel) name:UIApplicationWillEnterForegroundNotification object:nil];
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
+//  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(getModel) name:UIApplicationWillEnterForegroundNotification object:nil];
+//  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removeChildVCUponEnteringBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationWillTerminateNotification object:nil];
+//  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationWillTerminateNotification object:nil];
 }
 
 -(void)viewWillAppear:(BOOL)animated {
@@ -159,13 +159,13 @@
   
   _overlayEnabled = YES;
   
-  self.myModel = [Model getMyModel];
-  if (!self.myModel) {
-    self.myModel = [Model new];
-  }
-  
-  [self.myModel sortMyMatches];
-  [self.tableView reloadData];
+//  self.myModel = [Model getMyModel];
+//  if (!self.myModel) {
+//    self.myModel = [Model new];
+//  }
+//  
+//  [self.myModel sortMyMatches];
+//  [self.tableView reloadData];
 }
 
 -(void)viewDidAppear:(BOOL)animated {
@@ -192,11 +192,12 @@
 #pragma mark - Table view delegate and data source
 
 -(NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-  return 1;
+  return self.fetchedResultsController.sections.count;
 }
 
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-  return self.myModel.myMatches.count;
+  id <NSFetchedResultsSectionInfo> sectionInfo = self.fetchedResultsController.sections[section];
+  return [sectionInfo numberOfObjects];
 }
 
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -208,15 +209,21 @@
   static NSString *CellIdentifier = @"matchCell";
   MatchTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
   [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+  [self configureCell:cell atIndexPath:indexPath];
   
+  return cell;
+}
+
+-(void)configureCell:(MatchTableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath {
+
   cell.delegate = self;
-  cell.myMatch = self.myModel.myMatches[indexPath.row];
+  
+  Match *myMatch = [self.fetchedResultsController objectAtIndexPath:indexPath];
+  cell.myMatch = myMatch;
   if (cell.myMatch == self.mostRecentMatch) {
     self.indexPathForMostRecentMatch = indexPath;
   }
   [cell setViewProperties];
-  
-  return cell;
 }
 
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -225,17 +232,25 @@
 }
 
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-  Match *match = self.myModel.myMatches[indexPath.row];
+  Match *match = [self.fetchedResultsController objectAtIndexPath:indexPath];
   return (match.gameHasEnded || (match.type != kGCFriendGame && match.type != kGCRandomGame));
 }
 
 -(void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
   if (editingStyle == UITableViewCellEditingStyleDelete) {
-    Match *match = self.myModel.myMatches[indexPath.row];
-    [self.tableView beginUpdates];
-    [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    [self removeMatch:match];
-    [self.tableView endUpdates];
+    [self.managedObjectContext deleteObject:[self.fetchedResultsController objectAtIndexPath:indexPath]];
+    
+    NSError *error = nil;
+    if (![self.managedObjectContext save:&error]) {
+      NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+      abort();
+    }
+    
+//    Match *match = [self.fetchedResultsController objectAtIndexPath:indexPath];
+//    [self.tableView beginUpdates];
+//    [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+//    [self removeMatch:match];
+//    [self.tableView endUpdates];
   }
 }
 
@@ -255,17 +270,18 @@
 
       // sender is either match or tableViewCell
     [sender isKindOfClass:[Match class]] ?
-        [self segue:segue ToMatch:sender withRowNumber:NSUIntegerMax] :
-        [self segue:segue ToMatch:nil withRowNumber:[self.tableView indexPathForCell:sender].row];
+        [self segue:segue ToMatch:sender withIndexPath:nil] :
+        [self segue:segue ToMatch:nil withIndexPath:[self.tableView indexPathForCell:sender]];
   }
 }
 
--(void)segue:(UIStoryboardSegue *)segue ToMatch:(Match *)match withRowNumber:(NSUInteger)rowNumber {
+-(void)segue:(UIStoryboardSegue *)segue ToMatch:(Match *)match withIndexPath:(NSIndexPath *)indexPath {
   
     // match will be nil when sent from tableViewCell
-  match = match ? match : self.myModel.myMatches[rowNumber];
+  match = match ? match : [self.fetchedResultsController objectAtIndexPath:indexPath];;
   SceneViewController *sceneVC = [segue destinationViewController];
-  sceneVC.myModel = self.myModel;
+  sceneVC.managedObjectContext = self.managedObjectContext;
+//  sceneVC.myModel = self.myModel;
   sceneVC.myMatch = match;
   sceneVC.delegate = self;
 }
@@ -452,22 +468,32 @@
 
 #pragma mark - match creation methods
 
--(void)getModel {
-  NSLog(@"getModel");
-  self.myModel = [Model getMyModel];
-}
+//-(void)getModel {
+//  NSLog(@"getModel");
+//  self.myModel = [Model getMyModel];
+//}
+//
+//-(void)saveModel {
+//  NSLog(@"saveModel");
+//  [Model saveMyModel:self.myModel];
+//}
 
--(void)saveModel {
-  NSLog(@"saveModel");
-  [Model saveMyModel:self.myModel];
-}
-
--(void)startLocalGameWithPlayerNames:(NSMutableArray *)playerNames {
+-(void)startLocalGameWithPlayerNames:(NSArray *)playerNames {
   [self backToMatchesWithAnimateRemoveVC:YES];
   
-  Match *newMatch = [self.myModel instantiateNewLocalMatchWithNames:playerNames andRules:kGameRulesTonal andSkill:kBeginner];
+//  Match *newMatch = [self.myModel instantiateNewLocalMatchWithNames:playerNames andRules:kGameRulesTonal andSkill:kBeginner];
   
-  [self.tableView reloadData];
+  Match *newMatch = [NSEntityDescription insertNewObjectForEntityForName:@"Match" inManagedObjectContext:self.managedObjectContext];
+  
+  [newMatch initialPlayers:playerNames andRules:kGameRulesTonal andSkill:kBeginner];
+  
+  NSError *error = nil;
+  if (![self.managedObjectContext save:&error]) {
+    NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+    abort();
+  }
+  
+//  [self.tableView reloadData];
   [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
 }
 
@@ -538,25 +564,105 @@
   _overlayEnabled = YES;
 }
 
--(void)removeMatch:(Match *)match {
-  [self.myModel.myMatches removeObject:match];
-  [self saveModel];
-}
+//-(void)removeMatch:(Match *)match {
+//  [self.myModel.myMatches removeObject:match];
+//  [self saveModel];
+//}
 
 -(void)rememberMostRecentMatch:(Match *)match {
   self.mostRecentMatch = match;
 }
 
+#pragma mark - Fetched results controller
+
+-(NSFetchedResultsController *)fetchedResultsController {
+  if (_fetchedResultsController != nil) {
+    return _fetchedResultsController;
+  }
+  
+  NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
+  NSEntityDescription *entity = [NSEntityDescription entityForName:@"Match" inManagedObjectContext:self.managedObjectContext];
+  [fetchRequest setEntity:entity];
+  
+    // Set the batch size to a suitable number.
+  [fetchRequest setFetchBatchSize:20];
+
+    // sort first by whether game has ended, and then by lastPlayed date
+  NSSortDescriptor *gameEndedSortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"gameHasEnded" ascending:YES];
+  NSSortDescriptor *lastPlayedSortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"lastPlayed" ascending:YES];
+  NSArray *sortDescriptors = @[gameEndedSortDescriptor, lastPlayedSortDescriptor];
+  
+  [fetchRequest setSortDescriptors:sortDescriptors];
+  
+  NSFetchedResultsController *fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:self.managedObjectContext sectionNameKeyPath:nil cacheName:@"Match"];
+  fetchedResultsController.delegate = self;
+  self.fetchedResultsController = fetchedResultsController;
+  
+  NSError *error = nil;
+  if (![self.fetchedResultsController performFetch:&error]) {
+    NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+    abort();
+  }
+  
+  return _fetchedResultsController;
+}
+
+-(void)controllerWillChangeContent:(NSFetchedResultsController *)controller {
+  [self.tableView beginUpdates];
+}
+
+-(void)controller:(NSFetchedResultsController *)controller didChangeSection:(id <NSFetchedResultsSectionInfo>)sectionInfo atIndex:(NSUInteger)sectionIndex forChangeType:(NSFetchedResultsChangeType)type {
+  switch(type) {
+    case NSFetchedResultsChangeInsert:
+      [self.tableView insertSections:[NSIndexSet indexSetWithIndex:sectionIndex] withRowAnimation:UITableViewRowAnimationFade];
+      break;
+    case NSFetchedResultsChangeDelete:
+      [self.tableView deleteSections:[NSIndexSet indexSetWithIndex:sectionIndex] withRowAnimation:UITableViewRowAnimationFade];
+      break;
+    default:
+      return;
+  }
+}
+
+-(void)controller:(NSFetchedResultsController *)controller didChangeObject:(id)anObject
+      atIndexPath:(NSIndexPath *)indexPath forChangeType:(NSFetchedResultsChangeType)type
+     newIndexPath:(NSIndexPath *)newIndexPath {
+  
+  switch(type) {
+    case NSFetchedResultsChangeInsert:
+      [self.tableView insertRowsAtIndexPaths:@[newIndexPath] withRowAnimation:UITableViewRowAnimationFade];
+      break;
+    case NSFetchedResultsChangeDelete:
+      [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+      break;
+    case NSFetchedResultsChangeUpdate:
+      [self configureCell:(MatchTableViewCell *)[self.tableView cellForRowAtIndexPath:indexPath] atIndexPath:indexPath];
+      break;
+    case NSFetchedResultsChangeMove:
+      [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+      [self.tableView insertRowsAtIndexPaths:@[newIndexPath] withRowAnimation:UITableViewRowAnimationFade];
+      break;
+  }
+}
+
+-(void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
+  [self.tableView endUpdates];
+}
+
 #pragma mark - system methods
 
 -(BOOL)prefersStatusBarHidden {
-    return YES;
+  return YES;
 }
 
 -(void)didReceiveMemoryWarning {
   [super didReceiveMemoryWarning];
   NSLog(@"matches VC did receive memory warning");
-  [Model saveMyModel:self.myModel];
+//  [Model saveMyModel:self.myModel];
+}
+
+-(void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 @end

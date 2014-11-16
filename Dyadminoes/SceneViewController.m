@@ -11,7 +11,7 @@
 #import "MyScene.h"
 #import "SceneEngine.h"
 #import "Match.h"
-#import "Model.h"
+//#import "Model.h"
 #import "CellBackgroundView.h"
 #import "Player.h"
 
@@ -41,7 +41,7 @@
   
     // first version of app will not have device orientation
 //  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveManagedObjectContext) name:UIApplicationDidEnterBackgroundNotification object:nil];
 
   [self instantiateFields];
   [self instantiatePlayerLabels];
@@ -194,7 +194,7 @@
   
   for (int i = 0; i < kMaxNumPlayers; i++) {
     
-    Player *player = (i < self.myMatch.players.count) ? self.myMatch.players[i] : nil;
+    Player *player = (i < self.myMatch.players.count) ? [self.myMatch playerForIndex:i] : nil;
     UILabel *playerLabel = self.playerLabelsArray[i];
     UILabel *scoreLabel = self.scoreLabelsArray[i];
     
@@ -239,7 +239,7 @@
     
     Player *player;
     for (int i = 0; i < kMaxNumPlayers; i++) {
-      player = (i < self.myMatch.players.count) ? self.myMatch.players[i] : nil;
+      player = (i < self.myMatch.players.count) ? [self.myMatch playerForIndex:i]: nil;
       
       UILabel *playerLabel = self.playerLabelsArray[i];
       UILabel *scoreLabel = self.scoreLabelsArray[i];
@@ -259,7 +259,7 @@
       }
       
       if (self.myMatch.gameHasEnded) {
-        scoreLabel.textColor = [self.myMatch.wonPlayers containsObject:player] ? kScoreWonGold : kScoreLostGray;
+        scoreLabel.textColor = player.won ? kScoreWonGold : kScoreLostGray;
       } else {
         scoreLabel.textColor = kScoreNormalBrown;
       }
@@ -422,7 +422,7 @@
   self.ReplayTurnLabel.text = @"";
   
   [self.delegate startAnimatingBackground];
-  [self saveModel];
+  [self saveManagedObjectContext];
   [self.delegate rememberMostRecentMatch:self.myMatch];
   
   [self.mySceneView presentScene:nil];
@@ -482,11 +482,19 @@
 
 #pragma mark - model methods
 
--(void)saveModel {
-  [self.myScene tempStoreForPlayerSceneDataDyadminoes];
-  NSLog(@"saveModel");
-  [Model saveMyModel:self.myModel];
+-(void)saveManagedObjectContext {
+  NSError *error = nil;
+  if (![self.managedObjectContext save:&error]) {
+    NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+    abort();
+  }
 }
+
+//-(void)saveModel {
+//  [self.myScene tempStoreForPlayerSceneDataDyadminoes];
+//  NSLog(@"saveModel");
+//  [Model saveMyModel:self.myModel];
+//}
 
 #pragma mark - system methods
 
@@ -498,6 +506,10 @@
 
 -(BOOL)prefersStatusBarHidden {
   return YES;
+}
+
+-(void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 @end

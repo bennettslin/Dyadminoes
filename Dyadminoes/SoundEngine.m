@@ -8,9 +8,13 @@
 
 #import "SoundEngine.h"
 #import "Dyadmino.h"
-
 #import "BPianoDelegate.h"
 #import "BAudioController.h"
+
+#define kOptionsMusic @"optionsMusic"
+#define kLowestNote 72
+#define kOptionsNote 72
+#define kNoteDelay 0.05f
 
 @interface SoundEngine () <BPianoDelegate>
 
@@ -60,7 +64,72 @@
 #pragma mark - notification and sound methods
 
 -(void)handleMusicNote:(NSUInteger)note {
-  [self noteOn:note + 72];
+  if (note != -1) {
+      // hard coded value for now (72 is C)
+      // will eventually call method to get dynamic note value
+    [self noteOn:note + kLowestNote];
+  }
+}
+
+-(void)handleMusicNote1:(NSUInteger)note1 andNote2:(NSUInteger)note2 withOrientation:(DyadminoOrientation)dyadminoOrientation {
+  
+  note1 = note1 + kLowestNote;
+  
+    // first determine pitches
+  switch (dyadminoOrientation) {
+        // note 1 is higher than note 2
+    case kPC1atTenOClock:
+    case kPC1atTwelveOClock:
+    case kPC1atTwoOClock:
+      note2 = note2 + kLowestNote - 12;
+      break;
+      
+        // note 2 is higher than note 1
+    case kPC1atEightOClock:
+    case kPC1atSixOClock:
+    case kPC1atFourOClock:
+      note2 = note2 + kLowestNote;
+      break;
+  }
+  
+    // then determine delay
+  NSUInteger noteSoundedFirst;
+  NSUInteger noteSoundedSecond;
+  
+  switch (dyadminoOrientation) {
+        // they're sounded simultaneously
+    case kPC1atTwelveOClock:
+    case kPC1atSixOClock:
+      noteSoundedFirst = -1;
+      break;
+        // note 2 sounds first
+    case kPC1atTwoOClock:
+    case kPC1atFourOClock:
+      noteSoundedFirst = note2;
+      noteSoundedSecond = note1;
+      break;
+        // note 1 sounds first
+    case kPC1atTenOClock:
+    case kPC1atEightOClock:
+      noteSoundedFirst = note1;
+      noteSoundedSecond = note2;
+      break;
+  }
+  
+    // sound simultaneously
+  if (noteSoundedFirst == -1) {
+    [self noteOn:note1];
+    [self noteOn:note2];
+    
+      // sound with delay
+  } else {
+    [self noteOn:noteSoundedFirst];
+    double delayInSeconds = kNoteDelay;
+    dispatch_time_t when = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+    dispatch_after(when, dispatch_get_main_queue(), ^(void){
+      [self noteOn:noteSoundedSecond];
+    });
+  }
 }
 
 -(void)handleNotificationOfSound:(NSNotification *)notification {
@@ -69,8 +138,8 @@
     NSString *soundFile = [self fileNameForNotificationName:notificationName];
     
       // called from options page
-    if ([soundFile isEqualToString:kSoundFileRing]) {
-      [self noteOn:72];
+    if ([soundFile isEqualToString:kOptionsMusic]) {
+      [self noteOn:kOptionsNote];
     } else {
       [self playSoundFile:soundFile];
     }
@@ -100,158 +169,28 @@
     case kNotificationButtonLifted:
       return kSoundFilePop;
       break;
-    case kNotificationTwoNotesStruck:
-    case kNotificationOneNoteStruck:
-    case kNotificationOneNoteResonated:
-      return kSoundFileRing;
-      break;
     case kNotificationToggleBarOrField:
       return kSoundFileSwoosh;
-    default:
-      return kSoundFileClick;
+      break;
+    case kNotificationOptionsMusic:
+      return kOptionsMusic;
       break;
   }
 }
-
-#pragma mark - AVAudioPlayer methods (not used)
-  
-/*
-
--(void)soundTouchedDyadmino:(Dyadmino *)dyadmino plucked:(BOOL)plucked {
-  
-  NSString *noteActionKey1 = [self returnNoteActionKey];
-//  NSLog(@"%@", noteActionKey1);
-  [self removeActionForKey:noteActionKey1];
-//  [self runAction:sound withKey:noteActionKey1];
-  [self incrementNoteCount];
-  
-//  NSString *noteActionKey2 = [self returnNoteActionKey];
-//  NSLog(@"%@", noteActionKey2);
-//  [self removeActionForKey:noteActionKey2];
-//  [self runAction:sound withKey:noteActionKey2];
-  [self incrementNoteCount];
-}
-
--(void)soundTouchedDyadminoFace:(SKSpriteNode *)dyadminoFace plucked:(BOOL)plucked {
-  
-  NSLog(@"face touched is %@", dyadminoFace.name);
-  
-    // find out hexcoord
-  Dyadmino *dyadmino = (Dyadmino *)dyadminoFace.parent;
-  HexCoord faceHexCoord = [dyadmino getHexCoordOfFace:dyadminoFace];
-//  NSLog(@"sounding note %@ on hexcoord %i, %i", dyadminoFace.name, faceHexCoord.x, faceHexCoord.y);
-  
-  [self recordFaceHexCoord:faceHexCoord];
-  
-//  SKAction *sound = plucked ?
-//    [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO] : // plucked
-//    [SKAction playSoundFileNamed:kSoundRing waitForCompletion:NO]; // resonated
-  
-//  NSURL *soundURL = [[NSBundle mainBundle] URLForResource:kSoundRing withExtension:@"wav"];
-//  AVAudioPlayer *player = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:nil];
-//  [player setVolume:self.musicVolume];
-  
-//  SKAction *sound = [SKAction runBlock:^{
-//    [player play];
-//  }];
-
-  NSString *noteActionKey = [self returnNoteActionKey];
-//  NSLog(@"%@", noteActionKey);
-  [self removeActionForKey:noteActionKey];
-//  [self runAction:sound withKey:noteActionKey];
-  [self incrementNoteCount];
-}
-
--(void)recordFaceHexCoord:(HexCoord)faceHexCoord {
-  
-    // nothing yet touched
-  if (_faceVector == kFaceVectorNone && _xBits == 0 && _yBits == 0) {
-    NSLog(@"first touched");
-    [self establishFirstFaceBitsWithHexCoord:faceHexCoord];
-
-  } else {
-      // make sure it's not the exact same face
-    if (_xOrigin == faceHexCoord.x && _yOrigin == faceHexCoord.y) {
-      return;
-    }
-      // get distances between origin and new face
-    int xDistance = faceHexCoord.x - _xOrigin;
-    int yDistance = faceHexCoord.y - _yOrigin;
-    
-    if (abs(xDistance) <= 3 && abs(yDistance) <= 3) {
-      if (xDistance == 0 &&
-          (_faceVector == kFaceVectorNone || _faceVector == kFaceVectorVertical)) {
-        _faceVector = kFaceVectorVertical;
-        _yBits |= 1 << (3 + yDistance);
-        [self checkTriadOrSeventh];
-      } else if (yDistance == 0 &&
-          (_faceVector == kFaceVectorNone || _faceVector == kFaceVectorUpRight)) {
-        _faceVector = kFaceVectorUpRight;
-        _xBits |= 1 << (3 + xDistance);
-        [self checkTriadOrSeventh];
-      } else if (xDistance == yDistance * -1 &&
-          (_faceVector == kFaceVectorNone || _faceVector == kFaceVectorUpLeft)) {
-        _faceVector = kFaceVectorUpLeft;
-        _yBits |= 1 << (3 + yDistance);
-        _xBits |= 1 << (3 + xDistance);
-        [self checkTriadOrSeventh];
-      } else { // not on same axis
-        [self establishFirstFaceBitsWithHexCoord:faceHexCoord];
-      }
-    } else { // too far
-      [self establishFirstFaceBitsWithHexCoord:faceHexCoord];
-    }
-  }
-}
-
--(void)establishFirstFaceBitsWithHexCoord:(HexCoord)faceHexCoord {
-    // first bits is 00001000
-  _faceVector = kFaceVectorNone;
-  _xOrigin = faceHexCoord.x;
-  _yOrigin = faceHexCoord.y;
-  _xBits = 1 << 3;
-  _yBits = 1 << 3;
-}
-
-  // probably won't be this complicated
--(void)checkTriadOrSeventh {
-  NSLog(@"checking that it's a triad or seventh");
-  if (_faceVector == kFaceVectorVertical && _xBits == 1 << 3 &&
-      (_yBits == 15 || _yBits == 30 || _yBits == 60 || _yBits == 120 || _yBits == 14 || _yBits == 28 || _yBits == 56)) {
-    NSLog(@"vertical");
-  } else if (_faceVector == kFaceVectorUpRight && _yBits == 1 << 3 &&
-             (_xBits == 15 || _xBits == 30 || _xBits == 60 || _xBits == 120 || _xBits == 14 || _xBits == 28 || _xBits == 56)) {
-    NSLog(@"upright");
-  } else if (_faceVector == kFaceVectorUpLeft &&
-             ((_xBits == 15 && _yBits == 120) || (_xBits == 30 && _yBits == 60) ||
-             (_xBits == 60 && _yBits == 60) || (_xBits == 120 && _yBits == 15) ||
-             (_xBits == 14 && _yBits == 56) || (_xBits == 28 && _yBits == 28) || (_xBits == 56 && _yBits == 14))) {
-    NSLog(@"upleft");
-  }
-}
-
--(NSString *)returnNoteActionKey {
-  NSString *noteActionKey = [NSString stringWithFormat:@"note %i", _noteCount];
-  return noteActionKey;
-}
-
--(void)incrementNoteCount {
-  _noteCount++;
-  if (_noteCount > 3) {
-    _noteCount = 0;
-  }
-}
- */
 
 #pragma mark - singleton method
 
-+(SoundEngine *)soundEngine {
++(SoundEngine *)sharedSoundEngine {
   static dispatch_once_t pred;
   static SoundEngine *shared = nil;
   dispatch_once(&pred, ^{
     shared = [[SoundEngine alloc] init];
   });
   return shared;
+}
+
+-(void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 @end

@@ -59,7 +59,7 @@
   NSUInteger largestKnownGap = 0; // start out with the minimum
   int firstICIndex = 0;
   for (NSNumber *indexObject in arrayOfSmallestICIndexes) {
-    int index = [indexObject integerValue];
+    int index = [indexObject intValue];
       // ensures no division by zero
     NSUInteger thisGap = (NSUInteger)icNormalForm[((index - 1) + _cardinality) % _cardinality];
     if (thisGap > largestKnownGap) {
@@ -69,7 +69,7 @@
   }
   NSMutableArray *tempICPrimeForm = [[NSMutableArray alloc] initWithCapacity:_cardinality];
   for (int i = 0; i < _cardinality; i++) {
-    NSUInteger thisIC = [icNormalForm[(i + firstICIndex) % _cardinality] unsignedIntegerValue];
+    uint thisIC = [icNormalForm[(i + firstICIndex) % _cardinality] unsignedIntValue];
     [tempICPrimeForm addObject:[NSNumber numberWithUnsignedInt:thisIC]];
   }
 //  NSLog(@"ic prime form is %@", tempICPrimeForm);
@@ -98,7 +98,7 @@
   for (NSArray *legalICPrimeForm in legalICPrimeForms) {
     if ([self.icPrimeForm isEqualToArray:legalICPrimeForm]) {
       self.legalChord = YES;
-      int index = [legalICPrimeForms indexOfObject:legalICPrimeForm];
+      NSUInteger index = [legalICPrimeForms indexOfObject:legalICPrimeForm];
       NSUInteger realRootPC = [_fakeRootPC unsignedIntegerValue] +
                       [fakeRootOffsets[index] unsignedIntegerValue];
       if (realRootPC >= 12) {

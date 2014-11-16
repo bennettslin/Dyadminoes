@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
+/*
 #import <Foundation/Foundation.h>
 #import "NSObject+Helper.h"
 @class Match;
@@ -17,7 +18,8 @@
 +(void)saveMyModel:(Model *)myModel;
 +(Model *)getMyModel;
 
--(Match *)instantiateNewLocalMatchWithNames:(NSMutableArray *)playerNames andRules:(GameRules)rules andSkill:(GameSkill)skill;
--(void)sortMyMatches;
+//-(Match *)instantiateNewLocalMatchWithNames:(NSMutableArray *)playerNames andRules:(GameRules)rules andSkill:(GameSkill)skill;
+//-(void)sortMyMatches;
 
 @end
+*/

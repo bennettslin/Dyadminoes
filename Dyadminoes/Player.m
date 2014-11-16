@@ -15,25 +15,33 @@
 
 @implementation Player
 
--(id)initWithCoder:(NSCoder *)aDecoder {
-  self = [super init];
-  if (self) {
-    self.uniqueID = [aDecoder decodeObjectForKey:@"uniqueID"];
-    self.playerName = [aDecoder decodeObjectForKey:@"playerName"];
-    self.playerScore = [[aDecoder decodeObjectForKey:@"playerScore"] unsignedIntegerValue];
-    self.dataDyadminoesThisTurn = [aDecoder decodeObjectForKey:@"dataDyadsThisTurn"];
-    self.resigned = [aDecoder decodeBoolForKey:@"resigned"];
-  }
-  return self;
-}
+@dynamic uniqueID;
+@dynamic playerName;
+@dynamic playerOrder;
+@dynamic playerScore;
+@dynamic dataDyadminoesThisTurn;
+@dynamic resigned;
+@dynamic won;
 
--(void)encodeWithCoder:(NSCoder *)aCoder {
-  [aCoder encodeObject:self.uniqueID forKey:@"uniqueID"];
-  [aCoder encodeObject:self.playerName forKey:@"playerName"];
-  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.playerScore] forKey:@"playerScore"];
-  [aCoder encodeObject:self.dataDyadminoesThisTurn forKey:@"dataDyadsThisTurn"];
-  [aCoder encodeBool:self.resigned forKey:@"resigned"];
-}
+//-(id)initWithCoder:(NSCoder *)aDecoder {
+//  self = [super init];
+//  if (self) {
+//    self.uniqueID = [aDecoder decodeObjectForKey:@"uniqueID"];
+//    self.playerName = [aDecoder decodeObjectForKey:@"playerName"];
+//    self.playerScore = [[aDecoder decodeObjectForKey:@"playerScore"] unsignedIntegerValue];
+//    self.dataDyadminoesThisTurn = [aDecoder decodeObjectForKey:@"dataDyadsThisTurn"];
+//    self.resigned = [aDecoder decodeBoolForKey:@"resigned"];
+//  }
+//  return self;
+//}
+
+//-(void)encodeWithCoder:(NSCoder *)aCoder {
+//  [aCoder encodeObject:self.uniqueID forKey:@"uniqueID"];
+//  [aCoder encodeObject:self.playerName forKey:@"playerName"];
+//  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.playerScore] forKey:@"playerScore"];
+//  [aCoder encodeObject:self.dataDyadminoesThisTurn forKey:@"dataDyadsThisTurn"];
+//  [aCoder encodeBool:self.resigned forKey:@"resigned"];
+//}
 
 -(id)initWithUniqueID:(NSString *)uniqueID
         andPlayerName:(NSString *)playerName
@@ -48,6 +56,7 @@
       // game state
     self.dataDyadminoesThisTurn = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
     self.resigned = NO;
+    self.won = NO;
   }
   
   return self;

@@ -52,7 +52,6 @@
 @property (nonatomic) HexCoord preReplayHexCoord;
 @property (nonatomic) DyadminoOrientation preReplayOrientation;
 @property (nonatomic) DyadminoOrientation preReplayTempOrientation;
-//@property (nonatomic) NSInteger preReplayRackOrder;
 
   // sprites
 @property (strong, nonatomic) NSArray *rotationFrameArray;
@@ -131,7 +130,6 @@
 -(void)animateEaseIntoNodeAfterHover;
 -(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour;
 -(void)animateFace:(SKSpriteNode *)face;
-//-(void)animateInitialTouch;
 
 #pragma mark - bool methods
 

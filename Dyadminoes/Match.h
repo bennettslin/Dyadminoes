@@ -7,46 +7,51 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <CoreData/CoreData.h>
 #import "NSObject+Helper.h"
 @class Player;
 @class DataDyadmino;
 
 @protocol MatchDelegate;
 
-@interface Match : NSObject <NSCoding>
+@interface Match : NSManagedObject
 
   // match properties
-@property (nonatomic) GameRules rules;
-@property (nonatomic) GameSkill skill;
-@property (nonatomic) GameType type;
+@property (assign, nonatomic) GameRules rules;
+@property (assign, nonatomic) GameSkill skill;
+@property (assign, nonatomic) GameType type;
 
   // date
 @property (strong, nonatomic) NSDate *lastPlayed;
 
   // player properties
-@property (strong, nonatomic) NSArray *players;
+@property (strong, nonatomic) NSSet *players; // was array
 @property (strong, nonatomic) Player *currentPlayer;
-@property (strong, nonatomic) NSArray *wonPlayers;
-@property (nonatomic) BOOL gameHasEnded;
+//@property (strong, nonatomic) NSSet *wonPlayers; // was array
+@property (assign, nonatomic) BOOL gameHasEnded;
 
   // data dyadmino arrays
-@property (strong, nonatomic) NSMutableArray *pile;
-@property (strong, nonatomic) NSMutableSet *board;
-@property (strong, nonatomic) NSMutableSet *replayBoard;
+@property (strong, nonatomic) NSMutableArray *pile; // was mutable array
+@property (strong, nonatomic) NSMutableSet *board; // was mutable set
 
   // turns and undo
-@property (nonatomic) NSUInteger tempScore;
-@property (strong, nonatomic) NSArray *holdingContainer;
-@property (strong, nonatomic) NSMutableArray *swapContainer;
-@property (nonatomic) NSUInteger replayTurn;
-@property (strong, nonatomic) NSMutableArray *turns; // turns start from 1
+@property (assign, nonatomic) NSUInteger tempScore;
+@property (strong, nonatomic) NSArray *holdingContainer; // was array
+@property (strong, nonatomic) NSMutableArray *swapContainer; // was mutable array
+@property (assign, nonatomic) NSUInteger replayTurn;
+@property (strong, nonatomic) NSMutableArray *turns; // turns start from 1 // was mutable array
 
-@property (nonatomic) NSInteger randomNumber1To24;
+@property (nonatomic) NSUInteger numberOfConsecutivePasses;
+@property (strong, nonatomic) DataDyadmino *firstDyadmino;
 
+@property (assign, nonatomic) NSInteger randomNumber1To24;
+
+  // these are not persisted
+@property (strong, nonatomic) NSMutableSet *replayBoard;
 @property (weak, nonatomic) id <MatchDelegate> delegate;
 
-  // init methods
--(id)initWithPlayers:(NSArray *)players andRules:(GameRules)rules andSkill:(GameSkill)skill andType:(GameType)type;
+  // establish initial properties method
+-(void)initialPlayers:(NSArray *)players andRules:(GameRules)rules andSkill:(GameSkill)skill;
 
   // game state change methods
 -(Player *)switchToNextPlayer;
@@ -72,6 +77,10 @@
 -(NSString *)endGameResultsText;
 -(NSString *)turnTextLastPlayed:(BOOL)lastPlayed;
 -(NSString *)keySigString;
+
+  // helper methods
+-(NSUInteger)wonPlayersCount;
+-(Player *)playerForIndex:(NSUInteger)index;
 
 #pragma mark - helper methods
 

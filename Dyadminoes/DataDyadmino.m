@@ -8,37 +8,59 @@
 
 #import "DataDyadmino.h"
 
+@interface DataDyadmino ()
+
+@end
+
 @implementation DataDyadmino
 
--(id)initWithCoder:(NSCoder *)aDecoder {
-  self = [super init];
-  if (self) {
-    self.myID = [[aDecoder decodeObjectForKey:@"myID"] unsignedIntegerValue];
-    self.myOrientation = [[aDecoder decodeObjectForKey:@"myOrientation"] unsignedIntValue];
-    self.turnChanges = [aDecoder decodeObjectForKey:@"turnChanges"];
-    NSInteger xCoord = [aDecoder decodeIntegerForKey:@"hexX"];
-    NSInteger yCoord = [aDecoder decodeIntegerForKey:@"hexY"];
-    self.myHexCoord = [self hexCoordFromX:xCoord andY:yCoord];
-    self.myRackOrder = [aDecoder decodeIntegerForKey:@"myRackOrder"];
-  }
-  return self;
+@dynamic myID;
+@dynamic myOrientation;
+@dynamic hexX;
+@dynamic hexY;
+@dynamic myRackOrder;
+@dynamic turnChanges;
+
+@synthesize myHexCoord = _myHexCoord;
+@synthesize name;
+
+-(HexCoord)myHexCoord {
+  return [self hexCoordFromX:self.hexX andY:self.hexY];
 }
 
--(void)encodeWithCoder:(NSCoder *)aCoder {
-  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.myID] forKey:@"myID"];
-  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.myOrientation] forKey:@"myOrientation"];
-  [aCoder encodeObject:self.turnChanges forKey:@"turnChanges"];
-  [aCoder encodeInteger:self.myHexCoord.x forKey:@"hexX"];
-  [aCoder encodeInteger:self.myHexCoord.y forKey:@"hexY"];
-  [aCoder encodeInteger:self.myRackOrder forKey:@"myRackOrder"];
+-(void)setMyHexCoord:(HexCoord)myHexCoord {
+  _myHexCoord = myHexCoord;
 }
 
--(id)initWithID:(NSUInteger)id {
+//-(id)initWithCoder:(NSCoder *)aDecoder {
+//  self = [super init];
+//  if (self) {
+//    self.myID = [[aDecoder decodeObjectForKey:@"myID"] unsignedIntegerValue];
+//    self.myOrientation = [[aDecoder decodeObjectForKey:@"myOrientation"] unsignedIntValue];
+//    self.turnChanges = [aDecoder decodeObjectForKey:@"turnChanges"];
+//    NSInteger xCoord = [aDecoder decodeIntegerForKey:@"hexX"];
+//    NSInteger yCoord = [aDecoder decodeIntegerForKey:@"hexY"];
+//    self.myHexCoord = [self hexCoordFromX:xCoord andY:yCoord];
+//    self.myRackOrder = [aDecoder decodeIntegerForKey:@"myRackOrder"];
+//  }
+//  return self;
+//}
+
+//-(void)encodeWithCoder:(NSCoder *)aCoder {
+//  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.myID] forKey:@"myID"];
+//  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.myOrientation] forKey:@"myOrientation"];
+//  [aCoder encodeObject:self.turnChanges forKey:@"turnChanges"];
+//  [aCoder encodeInteger:self.myHexCoord.x forKey:@"hexX"];
+//  [aCoder encodeInteger:self.myHexCoord.y forKey:@"hexY"];
+//  [aCoder encodeInteger:self.myRackOrder forKey:@"myRackOrder"];
+//}
+
+-(id)initWithID:(NSUInteger)myID {
   self = [super init];
   if (self) {
-    self.myID = id;
+    self.myID = myID;
     
-      // set rack orientation
+      // set rack orientation randomly
     int randNum = arc4random() % 2;
     self.myOrientation = (randNum == 0) ? kPC1atTwelveOClock : kPC1atSixOClock;
   }
@@ -62,7 +84,7 @@
   NSNumber *lastHexY;
   
     // start with most recent turn changes by iterating backwards
-  int hexCoordCounter = self.turnChanges.count - 1;
+  NSInteger hexCoordCounter = self.turnChanges.count - 1;
   while ((!lastHexX || !lastHexY) && hexCoordCounter >= 0) {
     NSDictionary *lastDictionary = (NSDictionary *)self.turnChanges[hexCoordCounter];
     
@@ -88,13 +110,14 @@
   NSNumber *lastOrientation;
   
     // return nothing if dyadmino was added after queried turn
+    // this value doesn't actually matter, since dyadmino won't be seen
   if (turn < [self getTurnAdded]) {
 //    NSLog(@"data dyadmino %i was added turn %i, after queried turn %i", self.myID, [self getTurnAdded], turn);
-    return NSIntegerMax;
+    return INT32_MAX;
   }
   
     // start with most recent turn changes by iterating backwards
-  int orientationCounter = self.turnChanges.count - 1;
+  NSInteger orientationCounter = self.turnChanges.count - 1;
   while (!lastOrientation && orientationCounter >= 0) {
     NSDictionary *lastDictionary = (NSDictionary *)self.turnChanges[orientationCounter];
     
@@ -109,7 +132,7 @@
   
   if (!lastOrientation) {
 //    NSLog(@"error: no last orientation for data dyadmino %i for turn %i for queried turn %i", self.myID, [self getTurnAdded], turn);
-    return 2147483647; // this should *never* get called
+    return INT32_MAX; // this should *never* get called
   } else {
     return (DyadminoOrientation)[lastOrientation unsignedIntegerValue];
   }

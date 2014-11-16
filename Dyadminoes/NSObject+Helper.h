@@ -277,11 +277,7 @@ typedef enum notificationName {
   kNotificationButtonSunkIn,
   kNotificationButtonLifted,
   kNotificationTogglePCs,
-
-    // FIXME: this should know individual pcs
-  kNotificationTwoNotesStruck,
-  kNotificationOneNoteStruck,
-  kNotificationOneNoteResonated
+  kNotificationOptionsMusic
 } NotificationName;
 
 typedef enum faceVector {

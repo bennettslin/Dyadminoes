@@ -26,14 +26,15 @@
 @property (weak, nonatomic) id <SceneDelegate> myDelegate;
 
 -(void)loadAfterNewMatchRetrieved;
+/*
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;
+ */
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location;
 -(BOOL)validatePinchLocation:(CGPoint)location;
 -(void)tempStoreForPlayerSceneDataDyadminoes;
 -(void)togglePCsUserShaken:(BOOL)userShaken;
 -(void)handleUserWantsPivotGuides;
-//-(void)handleUserWantsVolume;
-+(MyScene *)myScene;
+//+(MyScene *)sharedScene;
 
 @end
 

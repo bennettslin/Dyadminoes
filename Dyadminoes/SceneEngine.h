@@ -10,23 +10,23 @@
 #import "NSObject+Helper.h"
 @class Dyadmino;
 @class Player;
-//@class SKTextureAtlas;
 @class SKTexture;
 
 @interface SceneEngine : NSObject
-
-//@property (strong, nonatomic) SKTextureAtlas *myAtlas;
 
   // dyadminoes
 @property (strong, nonatomic) NSArray *allDyadminoes;
 @property (nonatomic) PCMode myPCMode;
 
-+(SceneEngine *)sceneEngine;
++(SceneEngine *)sharedSceneEngine;
 -(SKTexture *)getCellTexture;
 
 #pragma mark - player preference methods
 
+/*
 -(BOOL)rotateDyadminoesBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation;
+ */
+
 -(void)toggleBetweenLetterAndNumberMode;
 
 @end
