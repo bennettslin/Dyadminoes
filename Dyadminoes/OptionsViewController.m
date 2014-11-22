@@ -31,29 +31,11 @@
 -(void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
   
-    // if first time setting values...
-  if (![self.defaults objectForKey:@"pivotGuide"]) {
-    [self.defaults setBool:YES forKey:@"pivotGuide"];
-    [self.defaults synchronize];
-  }
+    // defaults are established in app delegate
+    // here, just show views
   [self.showPivotGuideSwitch setOn:[self.defaults boolForKey:@"pivotGuide"] animated:NO];
-  
-  if (![self.defaults objectForKey:@"notation"]) {
-    [self.defaults setInteger:0 forKey:@"notation"];
-    [self.defaults synchronize];
-  }
   self.notationControl.selectedSegmentIndex = [self.defaults integerForKey:@"notation"];
-  
-  if (![self.defaults objectForKey:@"music"]) {
-    [self.defaults setFloat:0.5f forKey:@"music"];
-    [self.defaults synchronize];
-  }
   [self.musicSlider setValue:[self.defaults floatForKey:@"music"]];
-  
-  if (![self.defaults objectForKey:@"soundEffects"]) {
-    [self.defaults setFloat:0.5f forKey:@"soundEffects"];
-    [self.defaults synchronize];
-  }
   [self.soundEffectsSlider setValue:[self.defaults floatForKey:@"soundEffects"]];
 }
 

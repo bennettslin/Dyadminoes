@@ -856,6 +856,7 @@
 -(void)handleUserWantsPivotGuides {
     // called before scene appears
   self.userWantsPivotGuides = [[NSUserDefaults standardUserDefaults] boolForKey:@"pivotGuide"];
+  NSLog(@"user wants pivot guides %i", self.userWantsPivotGuides);
 }
 
 -(void)showPivotGuide:(SKNode *)pivotGuide forDyadmino:(Dyadmino *)dyadmino {

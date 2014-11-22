@@ -23,6 +23,9 @@
 -(BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   NSLog(@"application did finish launching with options");
   
+    // establish user defaults if not yet initiated
+  [self establishDefaults];
+  
   self.myAtlas = [SKTextureAtlas atlasNamed:@"DyadminoImages"];
   [self.myAtlas preloadWithCompletionHandler:^{
   }];
@@ -36,6 +39,27 @@
   mainVC.managedObjectContext = self.managedObjectContext;
 
   return YES;
+}
+
+-(void)establishDefaults {
+  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+  
+  if (![defaults objectForKey:@"pivotGuide"]) {
+    [defaults setBool:YES forKey:@"pivotGuide"];
+    [defaults synchronize];
+  }
+  if (![defaults objectForKey:@"notation"]) {
+    [defaults setInteger:0 forKey:@"notation"];
+    [defaults synchronize];
+  }
+  if (![defaults objectForKey:@"music"]) {
+    [defaults setFloat:0.5f forKey:@"music"];
+    [defaults synchronize];
+  }
+  if (![defaults objectForKey:@"soundEffects"]) {
+    [defaults setFloat:0.5f forKey:@"soundEffects"];
+    [defaults synchronize];
+  }
 }
 							
 -(void)applicationWillResignActive:(UIApplication *)application {

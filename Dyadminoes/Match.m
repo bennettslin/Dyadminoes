@@ -200,8 +200,11 @@
 -(void)fillRackFromPileForPlayer:(Player *)player {
     // reset rack order of data dyadminoes already in rack
   NSArray *dataDyadminoIndexesThisTurn = player.dataDyadminoIndexesThisTurn;
+  
   while (dataDyadminoIndexesThisTurn.count < kNumDyadminoesInRack && self.pile.count > 0) {
+    NSLog(@"dataDyadminoIndicesThisTurn is %luu",(unsigned long)dataDyadminoIndexesThisTurn.count);
     NSUInteger randIndex = [self randomIntegerUpTo:self.pile.count];
+    NSLog(@"randomIndex is %i", randIndex);
     DataDyadmino *dataDyad = self.pile[randIndex];
       // rack order is total count at the time
     dataDyad.myRackOrder = [NSNumber numberWithInteger:dataDyadminoIndexesThisTurn.count];
@@ -210,6 +213,7 @@
     dataDyad.placeStatus = [NSNumber numberWithUnsignedInteger:kInRack];
     [self.pile removeObjectAtIndex:randIndex];
     [player addToThisTurnsDataDyadmino:dataDyad];
+    dataDyadminoIndexesThisTurn = player.dataDyadminoIndexesThisTurn;
   }
 }
 
@@ -263,11 +267,11 @@
 }
 
 -(void)recordDyadminoesFromPlayer:(Player *)player withSwap:(BOOL)swap {
-
+  
     // a pass has an empty holding container, while a resign has *no* holding container
   NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:
                               [NSNumber numberWithUnsignedInteger:[self returnCurrentPlayerIndex]], @"player",
-                              self.holdingIndexContainer, @"container", nil];
+                              self.holdingIndexContainer, @"indexContainer", nil];
   
   [self addTurn:dictionary];
   NSArray *turns = self.turns;
@@ -308,7 +312,7 @@
     player.playerScore = [NSNumber numberWithUnsignedInteger:newScore];
     
     for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:self.holdingIndexContainer]) {
-      if ([player.dataDyadminoIndexesThisTurn containsObject:dataDyad]) {
+      if ([player.dataDyadminoIndexesThisTurn containsObject:dataDyad.myID]) {
         dataDyad.placeStatus = [NSNumber numberWithUnsignedInteger:kOnBoard];
         [player removeFromThisTurnsDataDyadmino:dataDyad];
         [self.board addObject:dataDyad];
@@ -320,7 +324,8 @@
       // reset rack order
     NSArray *dataDyadminoIndexesThisTurn = player.dataDyadminoIndexesThisTurn;
     for (NSInteger i = 0; i < dataDyadminoIndexesThisTurn.count; i++) {
-      DataDyadmino *dataDyad = player.dataDyadminoIndexesThisTurn[i];
+      NSNumber *number = dataDyadminoIndexesThisTurn[i];
+      DataDyadmino *dataDyad = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
       dataDyad.myRackOrder = [NSNumber numberWithInteger:i];
     }
     
@@ -540,15 +545,15 @@
 -(NSString *)turnTextLastPlayed:(BOOL)lastPlayed {
   Player *turnPlayer = [self playerForIndex:[[self.turns[[self returnReplayTurn] - 1] objectForKey:@"player"] unsignedIntegerValue]];
   NSArray *dyadminoesPlayed;
-  if (![self.turns[[self returnReplayTurn] - 1] objectForKey:@"container"]) {
+  if (![self.turns[[self returnReplayTurn] - 1] objectForKey:@"indexContainer"]) {
     
   } else {
-    dyadminoesPlayed = [self.turns[[self returnReplayTurn] - 1] objectForKey:@"container"];
+    dyadminoesPlayed = [self.turns[[self returnReplayTurn] - 1] objectForKey:@"indexContainer"];
   }
   
   NSString *dyadminoesPlayedString;
   if (dyadminoesPlayed.count > 0) {
-    NSString *componentsString = [[dyadminoesPlayed valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "];
+    NSString *componentsString = [[dyadminoesPlayed valueForKey:@"stringValue"] componentsJoinedByString:@", "];
     dyadminoesPlayedString = [NSString stringWithFormat:@"played %@", componentsString];
   } else if (!dyadminoesPlayed) {
     dyadminoesPlayedString = @"resigned";
@@ -721,7 +726,7 @@
   self.replayTurn = [NSNumber numberWithUnsignedInteger:1];
   [self.replayBoard removeAllObjects];
   [self.replayBoard addObject:[self dataDyadminoForIndex:[self returnFirstDataDyadIndex]]];
-  NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:@"container"];
+  NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:@"indexContainer"];
   for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:holdingContainer]) {
     if (![self.replayBoard containsObject:dataDyad]) {
       [self.replayBoard addObject:dataDyad];
@@ -735,7 +740,7 @@
     return NO;
     
   } else {
-      NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:@"container"];
+      NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:@"indexContainer"];
       for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:holdingContainer]) {
         if ([self.replayBoard containsObject:dataDyad]) {
           [self.replayBoard removeObject:dataDyad];
@@ -753,7 +758,7 @@
     
   } else {
       self.replayTurn = [NSNumber numberWithUnsignedInteger:[self returnReplayTurn] + 1];
-      NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:@"container"];
+      NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:@"indexContainer"];
       for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:holdingContainer]) {
         if (![self.replayBoard containsObject:dataDyad]) {
           [self.replayBoard addObject:dataDyad];
@@ -767,7 +772,7 @@
   NSArray *turns = self.turns;
   self.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
   for (int i = 0; i < turns.count; i++) {
-    NSArray *holdingContainer = [self.turns[i] objectForKey:@"container"];
+    NSArray *holdingContainer = [self.turns[i] objectForKey:@"indexContainer"];
     for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:holdingContainer]) {
       if (![self.replayBoard containsObject:dataDyad]) {
         [self.replayBoard addObject:dataDyad];
@@ -870,8 +875,8 @@
 }
 
 -(NSArray *)dataDyadsInIndexContainer:(NSArray *)holdingContainer {
+  
   NSMutableArray *tempArray = [NSMutableArray new];
-  NSLog(@"data dyads in container %@", holdingContainer);
   for (NSNumber *number in holdingContainer) {
     DataDyadmino *dataDyad = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
     [tempArray addObject:dataDyad];

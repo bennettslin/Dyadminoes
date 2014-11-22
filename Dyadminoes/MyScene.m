@@ -326,9 +326,10 @@
 -(void)populateRackArray {
     // keep player's order and orientation of dyadminoes until turn is submitted
   
+  NSLog(@"populate rack array");
   NSMutableArray *tempDyadminoArray = [NSMutableArray new];
-  
-  for (DataDyadmino *dataDyad in [self.myMatch dataDyadsInIndexContainer:_myPlayer.dataDyadminoIndexesThisTurn]) {
+  NSArray *dataDyadsThisTurn = [self.myMatch dataDyadsInIndexContainer:_myPlayer.dataDyadminoIndexesThisTurn];
+  for (DataDyadmino *dataDyad in dataDyadsThisTurn) {
     
       // only add if it's not in the holding container
       // if it is, then don't add because holding container is added to board set instead
@@ -355,6 +356,7 @@
   
     // board must enumerate over both board and holding container dyadminoes
   NSMutableSet *tempDataEnumerationSet = [NSMutableSet setWithSet:self.myMatch.board];
+  NSLog(@"populate board set");
   [tempDataEnumerationSet addObjectsFromArray:[self.myMatch dataDyadsInIndexContainer:self.myMatch.holdingIndexContainer]];
   
   NSMutableSet *tempSet = [[NSMutableSet alloc] initWithCapacity:tempDataEnumerationSet.count];
@@ -3009,15 +3011,15 @@
   for (int i = 0; i < kMaxNumPlayers; i++) {
     Player *player = (i <= self.myMatch.players.count - 1) ? [self.myMatch playerForIndex:i] : nil;
     Label *rackLabel = _topBar.playerRackLabels[i];
-    [_topBar updateLabel:_topBar.playerRackLabels[i] withText:[[player.dataDyadminoIndexesThisTurn valueForKey:@"description"] componentsJoinedByString:@", "] andColour:nil];
+    [_topBar updateLabel:_topBar.playerRackLabels[i] withText:[[player.dataDyadminoIndexesThisTurn valueForKey:@"stringValue"] componentsJoinedByString:@", "] andColour:nil];
     player ? nil : [_topBar node:rackLabel shouldBeEnabled:NO];
   }
   
   NSString *pileText = [NSString stringWithFormat:@"in pile: %@", [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
   NSMutableArray *tempBoard = [NSMutableArray arrayWithArray:[self.myMatch.board allObjects]];
   NSString *boardText = [NSString stringWithFormat:@"on board: %@", [[tempBoard valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-  NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingIndexContainer valueForKey:@"description"] componentsJoinedByString:@", "]];
-  NSString *swapContainerText = [NSString stringWithFormat:@"in swap container: %@", [[self.myMatch.swapIndexContainer valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+  NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingIndexContainer valueForKey:@"stringValue"] componentsJoinedByString:@", "]];
+  NSString *swapContainerText = [NSString stringWithFormat:@"in swap container: %@", [[[self.myMatch.swapIndexContainer allObjects] valueForKey:@"stringValue"] componentsJoinedByString:@", "]];
   
   [_topBar updateLabel:_topBar.pileDyadminoesLabel withText:pileText andColour:nil];
   [_topBar updateLabel:_topBar.boardDyadminoesLabel withText:boardText andColour:nil];
@@ -3047,10 +3049,10 @@
 }
 
 -(void)logRackDyadminoes {
-  NSLog(@"dataDyads are:  %@", [[_myPlayer.dataDyadminoIndexesThisTurn valueForKey:@"description"] componentsJoinedByString:@", "]);
+  NSLog(@"dataDyads are:  %@", [[_myPlayer.dataDyadminoIndexesThisTurn valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
   NSLog(@"Dyadminoes are: %@", [[self.playerRackDyadminoes valueForKey:@"name"] componentsJoinedByString:@", "]);
-  NSLog(@"holdingCon is:  %@", [[self.myMatch.holdingIndexContainer valueForKey:@"description"] componentsJoinedByString:@", "]);
-  NSLog(@"swapContainer:  %@", [[self.myMatch.swapIndexContainer valueForKey:@"description"] componentsJoinedByString:@", "]);
+  NSLog(@"holdingCon is:  %@", [[self.myMatch.holdingIndexContainer valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
+  NSLog(@"swapContainer:  %@", [[[self.myMatch.swapIndexContainer allObjects] valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
   NSLog(@"rackDyad order: %@", [[self.playerRackDyadminoes valueForKey:@"myRackOrder"] componentsJoinedByString:@", "]);
   NSLog(@"board is:       %@", self.boardDyadminoes);
   NSLog(@"rack is:        %@", self.playerRackDyadminoes);

@@ -35,42 +35,18 @@
 
 -(void)setMyHexCoord:(HexCoord)myHexCoord {
   _myHexCoord = myHexCoord;
+  self.hexX = [NSNumber numberWithInteger:myHexCoord.x];
+  self.hexY = [NSNumber numberWithInteger:myHexCoord.y];
 }
 
-//-(id)initWithCoder:(NSCoder *)aDecoder {
-//  self = [super init];
-//  if (self) {
-//    self.myID = [[aDecoder decodeObjectForKey:@"myID"] unsignedIntegerValue];
-//    self.myOrientation = [[aDecoder decodeObjectForKey:@"myOrientation"] unsignedIntValue];
-//    self.turnChanges = [aDecoder decodeObjectForKey:@"turnChanges"];
-//    NSInteger xCoord = [aDecoder decodeIntegerForKey:@"hexX"];
-//    NSInteger yCoord = [aDecoder decodeIntegerForKey:@"hexY"];
-//    self.myHexCoord = [self hexCoordFromX:xCoord andY:yCoord];
-//    self.myRackOrder = [aDecoder decodeIntegerForKey:@"myRackOrder"];
-//  }
-//  return self;
-//}
-
-//-(void)encodeWithCoder:(NSCoder *)aCoder {
-//  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.myID] forKey:@"myID"];
-//  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.myOrientation] forKey:@"myOrientation"];
-//  [aCoder encodeObject:self.turnChanges forKey:@"turnChanges"];
-//  [aCoder encodeInteger:self.myHexCoord.x forKey:@"hexX"];
-//  [aCoder encodeInteger:self.myHexCoord.y forKey:@"hexY"];
-//  [aCoder encodeInteger:self.myRackOrder forKey:@"myRackOrder"];
-//}
-
 -(void)initialID:(NSUInteger)myID {
-//  self = [super init];
-//  if (self) {
-    self.myID = [NSNumber numberWithUnsignedInteger:myID];
-    self.placeStatus = [NSNumber numberWithUnsignedInteger:kInPile];
-    
-      // set rack orientation randomly
-    int randNum = arc4random() % 2;
-    self.myOrientation = (randNum == 0) ? [NSNumber numberWithUnsignedInteger:kPC1atTwelveOClock] : [NSNumber numberWithUnsignedInteger:kPC1atSixOClock];
-//  }
-//  return self;
+
+  self.myID = [NSNumber numberWithUnsignedInteger:myID];
+  self.placeStatus = [NSNumber numberWithUnsignedInteger:kInPile];
+  
+    // set rack orientation randomly
+  int randNum = arc4random() % 2;
+  self.myOrientation = (randNum == 0) ? [NSNumber numberWithUnsignedInteger:kPC1atTwelveOClock] : [NSNumber numberWithUnsignedInteger:kPC1atSixOClock];
 }
 
 -(NSUInteger)getTurnAdded {
@@ -82,7 +58,6 @@
   
     // return nothing if dyadmino was added after queried turn
   if (turn < [self getTurnAdded]) {
-//    NSLog(@"data dyadmino %i was added turn %i, after queried turn %i", self.myID, [self getTurnAdded], turn);
     return [self hexCoordFromX:NSIntegerMax andY:NSIntegerMax];
   }
   
@@ -106,7 +81,6 @@
   }
   
   if (!lastHexX || !lastHexY) {
-//    NSLog(@"error: no last hexX or hexY for data dyadmino %i for turn %i for queried turn %i", self.myID, [self getTurnAdded], turn);
     return [self hexCoordFromX:NSIntegerMax andY:NSIntegerMax]; // this should *never* get called
   } else {
     return [self hexCoordFromX:[lastHexX integerValue] andY:[lastHexY integerValue]];
@@ -119,7 +93,6 @@
     // return nothing if dyadmino was added after queried turn
     // this value doesn't actually matter, since dyadmino won't be seen
   if (turn < [self getTurnAdded]) {
-//    NSLog(@"data dyadmino %i was added turn %i, after queried turn %i", self.myID, [self getTurnAdded], turn);
     return INT32_MAX;
   }
   
@@ -139,7 +112,6 @@
   }
   
   if (!lastOrientation) {
-//    NSLog(@"error: no last orientation for data dyadmino %i for turn %i for queried turn %i", self.myID, [self getTurnAdded], turn);
     return INT32_MAX; // this should *never* get called
   } else {
     return (DyadminoOrientation)[lastOrientation unsignedIntegerValue];
