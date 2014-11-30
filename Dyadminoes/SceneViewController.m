@@ -340,19 +340,7 @@
     } completion:^(BOOL finished) {
       label.alpha = 0.f;
     }];
-    
-//    [UIView animateWithDuration:.25f animations:^{
-//      label.alpha = 1.f;
-//    } completion:^(BOOL finished) {
-//      [UIView animateWithDuration:1.75f animations:^{
-//        label.alpha = 1.f;
-//      } completion:^(BOOL finished) {
-//        [UIView animateWithDuration:0.5f animations:^{
-//          label.alpha = 0.f;
-//        } completion:^(BOOL finished) {
-//        }];
-//      }];
-//    }];
+
   } else {
     label.hidden = !show;
   }
@@ -463,11 +451,6 @@
   }
 }
 
-//-(void)orientationChanged:(NSNotification *)note {
-//  UIDevice *device = note.object;
-//  [self.myScene handleDeviceOrientationChange:device.orientation];
-//}
-
 -(BOOL)shouldAutorotate {
   return YES;
 }
@@ -490,18 +473,10 @@
   }
 }
 
-//-(void)saveModel {
-//  [self.myScene tempStoreForPlayerSceneDataDyadminoes];
-//  NSLog(@"saveModel");
-//  [Model saveMyModel:self.myModel];
-//}
-
 #pragma mark - system methods
 
 -(void)didReceiveMemoryWarning {
   [super didReceiveMemoryWarning];
-//  NSLog(@"scene VC did receive memory warning");
-//  [self saveModel];
 }
 
 -(BOOL)prefersStatusBarHidden {

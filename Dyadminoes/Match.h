@@ -29,8 +29,6 @@
   // player properties
 @property (strong, nonatomic) NSSet *players; // was array
 @property (retain, nonatomic) NSNumber *currentPlayerIndex;
-//@property (strong, nonatomic) Player *currentPlayer;
-//@property (strong, nonatomic) NSSet *wonPlayers; // was array
 @property (retain, nonatomic) NSNumber *gameHasEnded;
 
   // data dyadmino arrays

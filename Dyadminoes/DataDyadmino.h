@@ -25,11 +25,7 @@
 
   // for replay mode, remembers turns that involved change of state
 @property (retain, nonatomic) id turnChanges;
-
 @property (strong, nonatomic) Match *match;
-
-  // only needed for debugging
-//@property (strong, nonatomic) NSString *name;
 
   // query number properties
 -(NSUInteger)returnMyID;

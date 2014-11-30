@@ -64,14 +64,18 @@
 }
 
 -(void)showSunkIn {
-  self.alpha = 0.3f;
+  if (_isEnabled) {
+    self.alpha = 0.3f;
+  }
 }
 
 -(void)showLifted {
-  __weak typeof(self) weakSelf = self;
-  dispatch_async(dispatch_get_main_queue(), ^{
-    weakSelf.alpha = 1.f;
-  });
+  if (_isEnabled) {
+    __weak typeof(self) weakSelf = self;
+    dispatch_async(dispatch_get_main_queue(), ^{
+      weakSelf.alpha = 1.f;
+    });
+  }
 }
 
 -(BOOL)isEnabled {

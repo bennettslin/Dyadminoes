@@ -34,7 +34,6 @@
 -(void)tempStoreForPlayerSceneDataDyadminoes;
 -(void)togglePCsUserShaken:(BOOL)userShaken;
 -(void)handleUserWantsPivotGuides;
-//+(MyScene *)sharedScene;
 
 @end
 

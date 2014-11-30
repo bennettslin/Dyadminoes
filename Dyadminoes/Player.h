@@ -11,8 +11,6 @@
 @class DataDyadmino;
 @class Match;
 
-//@protocol PlayerDelegate;
-
 @interface Player : NSManagedObject
 
   // permanent properties
@@ -28,8 +26,6 @@
 
 @property (strong, nonatomic) Match *match;
 
-//@property (weak, nonatomic) id <PlayerDelegate> delegate;
-
 -(void)initialUniqueID:(NSString *)uniqueID
          andPlayerName:(NSString *)playerName
         andPlayerOrder:(NSUInteger)playerOrder;
@@ -39,7 +35,6 @@
 -(void)insertInThisTurnsDataDyadmino:(DataDyadmino *)dataDyad atIndex:(NSUInteger)index;
 -(void)removeFromThisTurnsDataDyadmino:(DataDyadmino *)dataDyad;
 -(void)removeAllDataDyadminoesThisTurn;
-//-(NSArray *)dataDyadsForThisTurn;
 
   // query number properties
 -(NSUInteger)returnPlayerOrder;
@@ -52,7 +47,3 @@
 @interface DataDyadminoIndexesThisTurn : NSValueTransformer
 
 @end
-
-//@protocol PlayerDelegate <NSObject>
-//
-//@end

@@ -26,36 +26,10 @@
 @dynamic won;
 @dynamic match;
 
-  // not persisted
-//@synthesize delegate;
-
-//-(id)initWithCoder:(NSCoder *)aDecoder {
-//  self = [super init];
-//  if (self) {
-//    self.uniqueID = [aDecoder decodeObjectForKey:@"uniqueID"];
-//    self.playerName = [aDecoder decodeObjectForKey:@"playerName"];
-//    self.playerScore = [[aDecoder decodeObjectForKey:@"playerScore"] unsignedIntegerValue];
-//    self.dataDyadminoesThisTurn = [aDecoder decodeObjectForKey:@"dataDyadsThisTurn"];
-//    self.resigned = [aDecoder decodeBoolForKey:@"resigned"];
-//  }
-//  return self;
-//}
-
-//-(void)encodeWithCoder:(NSCoder *)aCoder {
-//  [aCoder encodeObject:self.uniqueID forKey:@"uniqueID"];
-//  [aCoder encodeObject:self.playerName forKey:@"playerName"];
-//  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.playerScore] forKey:@"playerScore"];
-//  [aCoder encodeObject:self.dataDyadminoesThisTurn forKey:@"dataDyadsThisTurn"];
-//  [aCoder encodeBool:self.resigned forKey:@"resigned"];
-//}
-
 -(void)initialUniqueID:(NSString *)uniqueID
          andPlayerName:(NSString *)playerName
         andPlayerOrder:(NSUInteger)playerOrder {
-  
-//  self = [super init];
-//  
-//  if (self) {
+
   self.uniqueID = uniqueID;
   self.playerName = playerName;
   self.playerOrder = [NSNumber numberWithUnsignedInteger:playerOrder];
@@ -64,9 +38,6 @@
   self.dataDyadminoIndexesThisTurn = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
   self.resigned = [NSNumber numberWithBool:NO];
   self.won = [NSNumber numberWithBool:NO];
-//  }
-//  
-//  return self;
 }
 
 -(BOOL)thisTurnContainsDataDyadmino:(DataDyadmino *)dataDyad {
@@ -104,26 +75,6 @@
   self.dataDyadminoIndexesThisTurn = nil;
   self.dataDyadminoIndexesThisTurn = [NSMutableArray new];
 }
-
-//-(NSArray *)dataDyadsForThisTurn {
-//  NSMutableArray *tempArray = [NSMutableArray new];
-//  NSLog(@"data dyadmino indices this turn %@", self.dataDyadminoIndexesThisTurn);
-//  for (NSNumber *number in self.dataDyadminoIndexesThisTurn) {
-//    DataDyadmino *dataDyad = [self.match dataDyadminoForIndex:[number unsignedIntegerValue]];
-//    [tempArray addObject:dataDyad];
-//  }
-//  return [NSArray arrayWithArray:tempArray];
-//}
-
-  // repeated in Match class
-//-(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index {
-//  for (NSNumber *number in self.dataDyadminoIndexesThisTurn) {
-//    if ([number unsignedIntegerValue] == index) {
-//      return [self.match dataDyadminoForIndex:index];
-//    }
-//  }
-//  return nil;
-//}
 
 #pragma mark - return query properties
 

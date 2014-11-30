@@ -900,7 +900,9 @@
   if (!_touchedDyadmino) { // ensures dyadmino was not placed over button
     if ([node isKindOfClass:[Button class]] || [node.parent isKindOfClass:[Button class]]) {
       Button *button = [node isKindOfClass:[Button class]] ? (Button *)node : (Button *)node.parent;
-      [self postSoundNotification:kNotificationButtonLifted];
+      if ([button isEnabled]) {
+        [self postSoundNotification:kNotificationButtonLifted];
+      }
 
       (button == _buttonPressed) ? [self handleButtonPressed:_buttonPressed] : nil;
       return;
@@ -2989,10 +2991,6 @@
   
   _hoveringDyadmino ? [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES] : nil;
   
-//  [_topBar node:_topBar.pileDyadminoesLabel shouldBeEnabled:_debugMode];
-//  [_topBar node:_topBar.boardDyadminoesLabel shouldBeEnabled:_debugMode];
-//  [_topBar node:_topBar.holdingContainerLabel shouldBeEnabled:_debugMode];
-//  [_topBar node:_topBar.swapContainerLabel shouldBeEnabled:_debugMode];
   for (Label *rackLabel in _topBar.playerRackLabels) {
     [_topBar node:rackLabel shouldBeEnabled:_debugMode];
   }
@@ -3026,21 +3024,6 @@
   [_topBar updateLabel:_topBar.holdingContainerLabel withText:holdingContainerText andColour:nil];
   [_topBar updateLabel:_topBar.swapContainerLabel withText:swapContainerText andColour:nil];
   
-//  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
-//    NSLog(@"%@ is at %li", dyadmino.name, (long)dyadmino.myRackOrder);
-//    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-//    NSLog(@"data %lu is at %li", (unsigned long)dataDyad.myID, (long)dataDyad.myRackOrder);
-//  }
-//  
-//  NSMutableArray *tempDyadminoArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
-//  NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
-//  NSArray *tempImutableArray = [tempDyadminoArray sortedArrayUsingDescriptors:@[sortByRackOrder]];
-//  for (Dyadmino *dyadmino in tempImutableArray) {
-//    NSLog(@"%@ is now at %lu", dyadmino.name, (unsigned long)[tempImutableArray indexOfObject:dyadmino]);
-//    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-//    NSLog(@"data %lu is at %li", (unsigned long)dataDyad.myID, (long)dataDyad.myRackOrder);
-//  }
-  
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
   
@@ -3058,18 +3041,5 @@
   NSLog(@"rack is:        %@", self.playerRackDyadminoes);
   NSLog(@"recent rack is: %@", _recentRackDyadmino.name);
 }
-
-#pragma mark - singleton method
-
-/*
-+(MyScene *)sharedScene {
-  static dispatch_once_t pred;
-  static MyScene *shared = nil;
-  dispatch_once(&pred, ^{
-    shared = [[MyScene alloc] init];
-  });
-  return shared;
-}
- */
 
 @end

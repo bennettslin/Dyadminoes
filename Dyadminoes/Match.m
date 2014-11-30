@@ -43,76 +43,10 @@
 @synthesize pile = _pile;
 @synthesize board = _board;
 
-#pragma mark - archiver methods
-
-//-(id)initWithCoder:(NSCoder *)aDecoder {
-//  self = [super init];
-//  if (self) {
-//    self.rules = [[aDecoder decodeObjectForKey:@"rules"] unsignedIntValue];
-//    self.skill = [[aDecoder decodeObjectForKey:@"skill"] unsignedIntValue];
-//    self.type = [[aDecoder decodeObjectForKey:@"type"] unsignedIntValue];
-//
-//    self.lastPlayed = [aDecoder decodeObjectForKey:@"lastPlayed"];
-//    
-//    self.players = [aDecoder decodeObjectForKey:@"players"];
-//    
-//    for (Player *player in self.players) {
-//      player.delegate = self;
-//    }
-//    
-//    self.currentPlayer = [aDecoder decodeObjectForKey:@"currentPlayer"];
-//    self.wonPlayers = [aDecoder decodeObjectForKey:@"wonPlayers"];
-//    self.gameHasEnded = [aDecoder decodeBoolForKey:@"gameHasEnded"];
-//    
-//    self.pile = [aDecoder decodeObjectForKey:@"pile"];
-//    self.board = [aDecoder decodeObjectForKey:@"board"];
-//    
-//    self.tempScore = [[aDecoder decodeObjectForKey:@"tempScore"] unsignedIntegerValue];
-//    self.holdingContainer = [aDecoder decodeObjectForKey:@"holdingContainer"];
-//    self.swapContainer = [aDecoder decodeObjectForKey:@"swapContainer"];
-//    self.replayTurn = [[aDecoder decodeObjectForKey:@"replayCounter"] unsignedIntegerValue];
-//    self.turns = [aDecoder decodeObjectForKey:@"turns"];
-//    
-//    self.numberOfConsecutivePasses = [[aDecoder decodeObjectForKey:@"consecutivePasses"] unsignedIntegerValue];
-//    self.firstDyadmino = [aDecoder decodeObjectForKey:@"firstDyadmino"];
-//    
-//    self.randomNumber1To24 = [aDecoder decodeIntegerForKey:@"randomNumber1To24"];
-//  }
-//  return self;
-//}
-
-//-(void)encodeWithCoder:(NSCoder *)aCoder {
-//  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.rules] forKey:@"rules"];
-//  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.skill] forKey:@"skill"];
-//  [aCoder encodeObject:[NSNumber numberWithUnsignedInt:self.type] forKey:@"type"];
-//
-//  [aCoder encodeObject:self.lastPlayed forKey:@"lastPlayed"];
-//  
-//  [aCoder encodeObject:self.players forKey:@"players"];
-//  [aCoder encodeObject:self.currentPlayer forKey:@"currentPlayer"];
-//  [aCoder encodeObject:self.wonPlayers forKey:@"wonPlayers"];
-//  [aCoder encodeBool:self.gameHasEnded forKey:@"gameHasEnded"];
-//  
-//  [aCoder encodeObject:self.pile forKey:@"pile"];
-//  [aCoder encodeObject:self.board forKey:@"board"];
-//  
-//  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.tempScore] forKey:@"tempScore"];
-//  [aCoder encodeObject:self.holdingContainer forKey:@"holdingContainer"];
-//  [aCoder encodeObject:self.swapContainer forKey:@"swapContainer"];
-//  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.replayTurn] forKey:@"replayCounter"];
-//  [aCoder encodeObject:self.turns forKey:@"turns"];
-//  
-//  [aCoder encodeObject:[NSNumber numberWithUnsignedInteger:self.numberOfConsecutivePasses] forKey:@"consecutivePasses"];
-//  [aCoder encodeObject:self.firstDyadmino forKey:@"firstDyadmino"];
-//  
-//  [aCoder encodeInteger:self.randomNumber1To24 forKey:@"randomNumber1To24"];
-//}
-
 #pragma mark - init methods
 
 -(void)initialPlayers:(NSSet *)players andRules:(GameRules)rules andSkill:(GameSkill)skill withContext:(NSManagedObjectContext *)managedObjectContext {
-//  self = [super init];
-//  if (self) {
+
   [self setPlayers:players];
   self.rules = [NSNumber numberWithUnsignedInteger:rules];
   self.skill = [NSNumber numberWithUnsignedInteger:skill];
@@ -121,30 +55,18 @@
   self.lastPlayed = [NSDate date];
   self.gameHasEnded = [NSNumber numberWithBool:NO];
   self.numberOfConsecutivePasses = [NSNumber numberWithUnsignedInteger:0];
-  
   self.currentPlayerIndex = [NSNumber numberWithUnsignedInteger:0];
-  
   self.randomNumber1To24 = [NSNumber numberWithUnsignedInteger:[self randomIntegerUpTo:24] + 1];
-  
-//  for (NSUInteger i = 0; i < players.count; i++) {
-//    Player *player = players[i];
-//    player.playerOrder = [NSNumber numberWithUnsignedInteger:i];
-//    player.delegate = self;
-//  }
   
   self.holdingIndexContainer = [NSMutableArray new];
   self.swapIndexContainer = [NSMutableSet new];
-  
-//  self.pile = [[NSMutableArray alloc] initWithCapacity:kPileCount];
-//  self.board = [[NSMutableSet alloc] initWithCapacity:kPileCount];
+
   self.turns = [NSMutableArray new];
   self.replayTurn = [NSNumber numberWithUnsignedInteger:0];
   
   [self generateDataDyadminoesWithContext:managedObjectContext];
   [self placeFirstDyadminoOnBoard];
   [self distributePileAmongstPlayers];
-//  }
-//  return self;
 }
 
 -(void)generateDataDyadminoesWithContext:(NSManagedObjectContext *)context {
@@ -153,12 +75,9 @@
     // start index at 0 (previously started at 1)
   for (NSUInteger i = 0; i < kPileCount; i++) {
     
-//    DataDyadmino *dataDyad = [DataDyadmino new];
     DataDyadmino *dataDyad = [NSEntityDescription insertNewObjectForEntityForName:@"DataDyadmino" inManagedObjectContext:context];
 
     [dataDyad initialID:i];
-//    DataDyadmino *dataDyad = [[DataDyadmino alloc] initialID:i];
-//    [self.pile addObject:dataDyad];
     [tempSet addObject:dataDyad];
   }
   [self setDataDyadminoes:[NSSet setWithSet:tempSet]];
@@ -167,9 +86,6 @@
 -(void)distributePileAmongstPlayers {
   for (Player *player in self.players) {
     [self fillRackFromPileForPlayer:player];
-    
-      // this won't be here in real game, should keep player's desired order
-//    [self sortDyadminoes:player.dataDyadminoesThisTurn];
   }
 }
 
@@ -219,7 +135,6 @@
 
 -(Player *)switchToNextPlayer {
   
-//  NSUInteger index = [self.players indexOfObject:self.currentPlayer];
   Player *currentPlayer = [self returnCurrentPlayer];
   NSUInteger index = [currentPlayer returnPlayerOrder];
   if ([self checkNumberOfPlayersStillInGame] > 1) {
@@ -252,18 +167,15 @@
     
     [self.pile addObject:dataDyad];
   }
-//  [self.pile addObjectsFromArray:self.swapContainer];
-//  [self.pile addObjectsFromArray:[self.swapContainer allObjects]];
-  
+
   [self fillRackFromPileForPlayer:player];
   
-//  [self.swapContainer removeAllObjects];
   [self removeAllSwaps];
   
   [self resetHoldingContainer];
   [self recordDyadminoesFromPlayer:player withSwap:YES]; // this records turn as a pass
     // sort the board and pile
-  [self sortBoardAndPileArrays];
+  [self sortPileArray];
 }
 
 -(void)recordDyadminoesFromPlayer:(Player *)player withSwap:(BOOL)swap {
@@ -319,8 +231,6 @@
       }
     }
     
-//    [self.board addObjectsFromArray:dataDyadsInHoldingContainer];
-    
       // reset rack order
     NSArray *dataDyadminoIndexesThisTurn = player.dataDyadminoIndexesThisTurn;
     for (NSInteger i = 0; i < dataDyadminoIndexesThisTurn.count; i++) {
@@ -338,7 +248,7 @@
       [self fillRackFromPileForPlayer:player];
     }
       // sort the board and pile
-    [self sortBoardAndPileArrays];
+    [self sortPileArray];
   }
   
       // whether pass or not, game continues
@@ -432,7 +342,7 @@
   }
   
   [self.pile addObjectsFromArray:player.dataDyadminoIndexesThisTurn];
-  [self sortBoardAndPileArrays];
+  [self sortPileArray];
   
   [self resetHoldingContainer];
   [player removeAllDataDyadminoesThisTurn];
@@ -450,27 +360,19 @@
     // if solo game, sole player is winner if any score at all
   if ([self returnType] == kSelfGame) {
     Player *soloPlayer = [self playerForIndex:0];
-    soloPlayer.won = ([soloPlayer returnPlayerScore] > 0) ? [NSNumber numberWithBool:YES] : [NSNumber numberWithBool:NO]; // player only won if score greater than 0
-//    self.wonPlayers = (soloPlayer.playerScore > 0) ?
-//      [NSArray arrayWithArray:self.players] :
-//      @[];
+      // player only won if score greater than 0
+    soloPlayer.won = ([soloPlayer returnPlayerScore] > 0) ? [NSNumber numberWithBool:YES] : [NSNumber numberWithBool:NO];
     
   } else {
       // rules out that players with no points can win
     NSUInteger maxScore = 1;
-//    NSMutableArray *tempArray = [[NSMutableArray alloc] initWithCapacity:self.players.count];
     
     for (Player *player in self.players) {
       if (![player returnResigned]) {
         
         NSUInteger playerScore = [player returnPlayerScore];
         if (playerScore > maxScore) {
-//          [tempArray removeAllObjects];
-//          [tempArray addObject:player];
           maxScore = playerScore;
-          
-//        } else if (player.playerScore == maxScore) {
-//          [tempArray addObject:player];
         }
       }
     }
@@ -480,7 +382,6 @@
         player.won = [NSNumber numberWithBool:YES];
       }
     }
-//    self.wonPlayers = [NSArray arrayWithArray:tempArray];
   }
 
   self.gameHasEnded = [NSNumber numberWithBool:YES];
@@ -505,10 +406,8 @@
   return numberOfPlayersInGame;
 }
 
--(void)sortBoardAndPileArrays {
-    // this will have to change when dyadminoes
+-(void)sortPileArray {
   [self sortDyadminoes:self.pile];
-//  [self sortDyadminoes:self.board];
 }
 
 -(void)sortDyadminoes:(NSMutableArray *)array {
@@ -591,42 +490,8 @@
   if ([self.players containsObject:player]) {
     
     NSUInteger playerIndex = [player returnPlayerOrder];
-    
-      // originally
     NSUInteger randomIndex = (playerIndex + [self returnRandomNumber1To24]) % 4;
     return [self colourForIndex:randomIndex];
-    
-    /*
-      // this method truly randomises the colours, but it's slower
-      // and also too random to be aesthetically pleasing, I think
-     
-      // first pool starts out between 0 and 23
-    NSUInteger firstPool = self.randomNumber1To24 - 1;
-    NSUInteger firstRange = firstPool / 6; // will yield integer between 0 and 3
-    
-    NSUInteger secondPool = firstPool % 6; // second pool is between 0 and 5
-    NSUInteger secondRange = secondPool / 2; // will yield integer between 0 and 2
-    
-    NSUInteger thirdPool = secondPool % 2; // third pool is between 0 and 1
-    NSUInteger thirdRange = thirdPool; // will yield integer between 0 and 1, etc
-    
-    NSUInteger fourthRange = 0;
-    
-    NSUInteger ranges[4] = {firstRange, secondRange, thirdRange, fourthRange};
-
-    UIColor *myColour;
-    NSMutableArray *colours = [NSMutableArray arrayWithArray:@[kPlayerBlue, kPlayerRed, kPlayerGreen, kPlayerOrange]];
-    
-    for (int i = 0; i < playerIndex + 1; i++) {
-      UIColor *colour = [colours objectAtIndex:ranges[i]];
-      [colours removeObjectAtIndex:ranges[i]];
-      if (i == playerIndex) {
-        myColour = colour;
-      }
-    }
-    return myColour;
-    */
-    
   }
   return nil;
 }

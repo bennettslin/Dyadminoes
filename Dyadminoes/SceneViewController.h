@@ -20,7 +20,6 @@
 @interface SceneViewController : UIViewController
 
 @property (strong, nonatomic) MyScene *myScene;
-//@property (strong, nonatomic) Model *myModel;
 @property (strong, nonatomic) NSManagedObjectContext *managedObjectContext;
 @property (strong, nonatomic) Match *myMatch;
 

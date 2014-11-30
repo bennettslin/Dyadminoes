@@ -143,11 +143,7 @@
   
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(startAnimatingBackground) name:UIApplicationDidBecomeActiveNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stopAnimatingBackground) name:UIApplicationWillResignActiveNotification object:nil];
-  
-//  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(getModel) name:UIApplicationWillEnterForegroundNotification object:nil];
-//  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationDidEnterBackgroundNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removeChildVCUponEnteringBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
-//  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveModel) name:UIApplicationWillTerminateNotification object:nil];
 }
 
 -(void)viewWillAppear:(BOOL)animated {
@@ -159,14 +155,6 @@
   self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
   
   _overlayEnabled = YES;
-  
-//  self.myModel = [Model getMyModel];
-//  if (!self.myModel) {
-//    self.myModel = [Model new];
-//  }
-//  
-//  [self.myModel sortMyMatches];
-//  [self.tableView reloadData];
 }
 
 -(void)viewDidAppear:(BOOL)animated {
@@ -247,12 +235,6 @@
       NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
       abort();
     }
-    
-//    Match *match = [self.fetchedResultsController objectAtIndexPath:indexPath];
-//    [self.tableView beginUpdates];
-//    [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-//    [self removeMatch:match];
-//    [self.tableView endUpdates];
   }
 }
 
@@ -470,20 +452,8 @@
 
 #pragma mark - match creation methods
 
-//-(void)getModel {
-//  NSLog(@"getModel");
-//  self.myModel = [Model getMyModel];
-//}
-//
-//-(void)saveModel {
-//  NSLog(@"saveModel");
-//  [Model saveMyModel:self.myModel];
-//}
-
 -(void)startLocalGameWithPlayerNames:(NSArray *)playerNames {
   [self backToMatchesWithAnimateRemoveVC:YES];
-  
-//  Match *newMatch = [self.myModel instantiateNewLocalMatchWithNames:playerNames andRules:kGameRulesTonal andSkill:kBeginner];
   
   Match *newMatch = [NSEntityDescription insertNewObjectForEntityForName:@"Match" inManagedObjectContext:self.managedObjectContext];
   
@@ -503,7 +473,6 @@
     abort();
   }
   
-//  [self.tableView reloadData];
   [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
 }
 
@@ -573,11 +542,6 @@
 -(void)enableOverlay {
   _overlayEnabled = YES;
 }
-
-//-(void)removeMatch:(Match *)match {
-//  [self.myModel.myMatches removeObject:match];
-//  [self saveModel];
-//}
 
 -(void)rememberMostRecentMatch:(Match *)match {
   self.mostRecentMatch = match;
@@ -668,7 +632,6 @@
 -(void)didReceiveMemoryWarning {
   [super didReceiveMemoryWarning];
   NSLog(@"matches VC did receive memory warning");
-//  [Model saveMyModel:self.myModel];
 }
 
 -(void)dealloc {
