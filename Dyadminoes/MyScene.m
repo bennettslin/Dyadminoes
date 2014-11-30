@@ -2774,7 +2774,15 @@
       [NSMutableSet setWithSet:[self allBoardDyadminoesPlusRecentRackDyadmino]];
   
     // match already knows the turn number
-  Player *turnPlayer = inReplay ? [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"] : _myPlayer;
+  
+  Player *turnPlayer;
+  if (inReplay) {
+    NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"] unsignedIntegerValue];
+    turnPlayer = [self.myMatch playerForIndex:playerOrder];
+  } else {
+    turnPlayer = _myPlayer;
+  }
+  
   NSArray *turnDataDyadminoes = inReplay ? [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"indexContainer"] : @[];
   
   for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
@@ -2794,7 +2802,7 @@
       dyadmino.hidden ? [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO] : nil;
       
         // highlight dyadminoes played on this turn
-      [turnDataDyadminoes containsObject:dataDyad] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer]] : [dyadmino unhighlightOutOfPlay];
+      [turnDataDyadminoes containsObject:dataDyad.myID] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer]] : [dyadmino unhighlightOutOfPlay];
       
         // if leaving replay, properties have already been reset
       if (inReplay) {
