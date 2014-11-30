@@ -664,7 +664,6 @@
               (!_replayMode || (_replayMode && [resonatedDyadmino isOnBoard]))) {
             
               // face may be sounded when zoomed
-//            [self postSoundNotification:kNotificationOneNoteStruck];
             [self soundDyadmino:resonatedDyadmino withFace:face];
             [resonatedDyadmino animateFace:face];
             _soundedDyadminoFace = face;
@@ -757,10 +756,8 @@
         if ((!_replayMode || (_replayMode && [resonatedDyadmino isOnBoard])) &&
             (!_pnpBarUp || (_pnpBarUp && [resonatedDyadmino isOnBoard]))) {
           if (face !=_soundedDyadminoFace) {
-//            [self postSoundNotification:kNotificationOneNoteResonated];
 
             [self soundDyadmino:resonatedDyadmino withFace:face];
-            
             [resonatedDyadmino animateFace:face];
             _soundedDyadminoFace = face;
           }
@@ -789,7 +786,6 @@
     /// 3b part i: dyadmino is being moved, take care of the prepwork
   
     // update currently touched dyadmino's section
-//  NSLog(@"determine current section from touches moved");
   [self determineCurrentSectionOfDyadmino:_touchedDyadmino];
   
     // if it moved beyond certain distance, it can no longer flip
@@ -928,7 +924,6 @@
   }
     //--------------------------------------------------------------------------
     /// 2c. handle touched dyadmino
-//  NSLog(@"determine currect section from end touch from touches");
   [self determineCurrentSectionOfDyadmino:_touchedDyadmino];
   Dyadmino *dyadmino = [self assignTouchEndedPointerToDyadmino:_touchedDyadmino];
   
@@ -953,7 +948,6 @@
     CGPoint adjustedNewPosition = [_boardField adjustToNewPositionFromBeganLocation:_beganTouchLocation toCurrentLocation:_currentTouchLocation withSwap:_swapMode];
     
     if (_hoveringDyadminoStaysFixedToBoard) {
-//      NSLog(@"hovering dyadmino in moveBoard");
       _hoveringDyadmino.position = [self addToThisPoint:_hoveringDyadmino.position
                                               thisPoint:[self subtractFromThisPoint:oldBoardPosition
                                                                           thisPoint:adjustedNewPosition]];
@@ -998,11 +992,6 @@
   [_boardField handleUserWantsPivotGuides];
   [_boardField hideAllPivotGuides];
 }
-
-//-(void)handleUserWantsVolume {
-//  self.mySoundEngine.soundVolume = [[NSUserDefaults standardUserDefaults] floatForKey:@"soundEffects"];
-//  self.mySoundEngine.musicVolume = [[NSUserDefaults standardUserDefaults] floatForKey:@"music"];
-//}
 
 #pragma mark - dyadmino methods
 
@@ -1163,12 +1152,10 @@
   if ([dyadmino belongsInRack] && !undo) {
     _uponTouchDyadminoNode = nil;
     [dyadmino goHomeToRackByPoppingIn:poppingIn andSounding:sounding fromUndo:NO withResize:_boardZoomedOut];
-//    [self logRackDyadminoes];
     
   } else if (undo) {
     _uponTouchDyadminoNode = nil;
     [dyadmino goHomeToRackByPoppingIn:poppingIn andSounding:sounding fromUndo:YES withResize:_boardZoomedOut];
-//    [self logRackDyadminoes];
     
   } else {
     dyadmino.tempBoardNode = dyadmino.homeNode;
@@ -1415,14 +1402,12 @@
 
 -(void)cancelSwappedDyadminoes {
   _swapMode = NO;
-//  [self.myMatch.swapContainer removeAllObjects];
   [self.myMatch removeAllSwaps];
   [self.myMatch resetHoldingContainer]; // don't think this is needed
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
       dyadmino.belongsInSwap = NO;
       [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO withResize:NO];
-//      [self logRackDyadminoes];
     }
   }
 }
@@ -1911,14 +1896,20 @@
   if ([dyadmino isOnBoard] && _touchedDyadmino != dyadmino) {
     
       // finish hovering only if placement is legal
-    if (dyadmino.tempBoardNode) { // ensures that validation takes place only if placement is uncertain
-                                  // will not get called if returning to homeNode from top bar
+    
+      // ensures that validation takes place only if placement is uncertain
+      // will not get called if returning to homeNode from top bar
+    if (dyadmino.tempBoardNode) {
       PhysicalPlacementResult placementResult = [_boardField validatePlacingDyadmino:dyadmino
                                                                          onBoardNode:dyadmino.tempBoardNode];
       
         // handle placement results:
         // ease in right away because no error, and dyadmino was not moved from original spot
       if (placementResult == kNoError && !(dyadmino.tempBoardNode == _uponTouchDyadminoNode && dyadmino.orientation == _uponTouchDyadminoOrientation)) {
+        
+          // FIXME: just testing for now
+        [_boardField validateChordsForPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
+        
         [dyadmino finishHovering];
         if ([dyadmino belongsOnBoard]) {
           
@@ -2774,16 +2765,17 @@
       [NSMutableSet setWithSet:[self allBoardDyadminoesPlusRecentRackDyadmino]];
   
     // match already knows the turn number
-  
+    // get player and dyadminoes for this turn
   Player *turnPlayer;
+  NSArray *turnDataDyadminoIndexes;
   if (inReplay) {
     NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"] unsignedIntegerValue];
     turnPlayer = [self.myMatch playerForIndex:playerOrder];
+    turnDataDyadminoIndexes = [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"indexContainer"];
   } else {
     turnPlayer = _myPlayer;
+    turnDataDyadminoIndexes = @[];
   }
-  
-  NSArray *turnDataDyadminoes = inReplay ? [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"indexContainer"] : @[];
   
   for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
@@ -2802,7 +2794,7 @@
       dyadmino.hidden ? [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO] : nil;
       
         // highlight dyadminoes played on this turn
-      [turnDataDyadminoes containsObject:dataDyad.myID] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer]] : [dyadmino unhighlightOutOfPlay];
+      [turnDataDyadminoIndexes containsObject:dataDyad.myID] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer]] : [dyadmino unhighlightOutOfPlay];
       
         // if leaving replay, properties have already been reset
       if (inReplay) {

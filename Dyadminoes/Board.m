@@ -1130,6 +1130,140 @@
   return NO;
 }
 
+-(void)validateChordsForPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint {
+  
+    // this will check five axes
+    // 1. bottom cell vertical (this axis includes top cell)
+    // 2. bottom cell upslant
+    // 3. bottom cell downslant
+    // 4. top cell upslant
+    // 5. top cell downslant
+  
+  Cell *bottomCell = snapPoint.myCell;
+  HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
+  Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
+  
+  Cell *nextCell;
+  NSUInteger realOrientation;
+  
+    // 1. bottom cell vertical
+  
+    // up
+  nextCell = (dyadmino.orientation >= 5 || dyadmino.orientation <= 1) ? topCell : bottomCell;
+  realOrientation = dyadmino.orientation;
+  while (nextCell.myPC != -1) {
+    NSLog(@"vertical up pc is %i", nextCell.myPC);
+    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
+  }
+  
+    // down
+  nextCell = (dyadmino.orientation >= 5 || dyadmino.orientation <= 1) ? bottomCell : topCell;
+  realOrientation = (dyadmino.orientation + 3) % 6;
+  while (nextCell.myPC != -1) {
+    NSLog(@"vertical down cell pc is %i", nextCell.myPC);
+    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
+  }
+  
+    // 2. bottom cell upslant
+  
+    // up
+  nextCell = bottomCell;
+  realOrientation = (dyadmino.orientation + 1) % 6;
+  while (nextCell.myPC != -1) {
+    NSLog(@"bottom upslant up pc is %i", nextCell.myPC);
+    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
+  }
+  
+    // down
+  nextCell = bottomCell;
+  realOrientation = (dyadmino.orientation + 4) % 6;
+  while (nextCell.myPC != -1) {
+    NSLog(@"bottom upslant down is %i", nextCell.myPC);
+    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
+  }
+  
+    // 3. bottom cell downslant
+  
+    // up
+  nextCell = bottomCell;
+  realOrientation = (dyadmino.orientation + 2) % 6;
+  while (nextCell.myPC != -1) {
+    NSLog(@"bottom downslant up is %i", nextCell.myPC);
+    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
+  }
+  
+    // down
+  nextCell = bottomCell;
+  realOrientation = (dyadmino.orientation + 5) % 6;
+  while (nextCell.myPC != -1) {
+    NSLog(@"bottom downslant down is %i", nextCell.myPC);
+    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
+  }
+  
+    // 4. top cell upslant
+  
+    // up
+  nextCell = topCell;
+  realOrientation = (dyadmino.orientation + 1) % 6;
+  while (nextCell.myPC != -1) {
+    NSLog(@"top upslant up is %i", nextCell.myPC);
+    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
+  }
+  
+    // down
+  nextCell = topCell;
+  realOrientation = (dyadmino.orientation + 4) % 6;
+  while (nextCell.myPC != -1) {
+    NSLog(@"top upslant down is %i", nextCell.myPC);
+    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
+  }
+  
+    // 5. top cell downslant
+  
+    // up
+  nextCell = topCell;
+  realOrientation = (dyadmino.orientation + 2) % 6;
+  while (nextCell.myPC != -1) {
+    NSLog(@"top downslant up is %i", nextCell.myPC);
+    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
+  }
+  
+    // down
+  nextCell = topCell;
+  realOrientation = (dyadmino.orientation + 5) % 6;
+  while (nextCell.myPC != -1) {
+    NSLog(@"top downslant down is %i", nextCell.myPC);
+    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
+  }
+}
+
+-(Cell *)nextCellForCell:(Cell *)cell andOrientation:(NSUInteger)orientation {
+  HexCoord nextHexCoord;
+  switch (orientation) {
+    case 0:
+      nextHexCoord = [self hexCoordFromX:cell.hexCoord.x andY:cell.hexCoord.y + 1];
+      break;
+    case 1:
+      nextHexCoord = [self hexCoordFromX:cell.hexCoord.x + 1 andY:cell.hexCoord.y];
+      break;
+    case 2:
+      nextHexCoord = [self hexCoordFromX:cell.hexCoord.x + 1 andY:cell.hexCoord.y - 1];
+      break;
+    case 3:
+      nextHexCoord = [self hexCoordFromX:cell.hexCoord.x andY:cell.hexCoord.y - 1];
+      break;
+    case 4:
+      nextHexCoord = [self hexCoordFromX:cell.hexCoord.x - 1 andY:cell.hexCoord.y];
+      break;
+    case 5:
+      nextHexCoord = [self hexCoordFromX:cell.hexCoord.x - 1 andY:cell.hexCoord.y + 1];
+      break;
+    default:
+      break;
+  }
+  return [self getCellWithHexCoord:nextHexCoord];
+}
+
 #pragma mark - distance helper methods
 
 -(CGPoint)getOffsetFromPoint:(CGPoint)point {

@@ -115,6 +115,7 @@
 #pragma mark - legality methods
 
 -(PhysicalPlacementResult)validatePlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint;
+-(void)validateChordsForPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint;
 
 #pragma mark - distance helper methods
 
