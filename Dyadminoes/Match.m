@@ -337,11 +337,12 @@
   }
 
   player.resigned = [NSNumber numberWithBool:YES];
-  for (DataDyadmino *dataDyad in player.dataDyadminoIndexesThisTurn) {
+  NSArray *dataDyads = [self dataDyadsInIndexContainer:player.dataDyadminoIndexesThisTurn];
+  for (DataDyadmino *dataDyad in dataDyads) {
     dataDyad.placeStatus = [NSNumber numberWithUnsignedInteger:kInPile];
   }
   
-  [self.pile addObjectsFromArray:player.dataDyadminoIndexesThisTurn];
+  [self.pile addObjectsFromArray:dataDyads];
   [self sortPileArray];
   
   [self resetHoldingContainer];

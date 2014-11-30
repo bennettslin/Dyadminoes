@@ -1926,8 +1926,8 @@
             // this method will record a dyadmino that's already in the match's board
             // this method also gets called if a recently played dyadmino
             // has been moved, but data will not be submitted until the turn is officially done.
-          [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
           dyadmino.homeNode = dyadmino.tempBoardNode;
+          [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
         }
         
           // this is one of two places where board bounds are updated
