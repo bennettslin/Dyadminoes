@@ -2672,8 +2672,9 @@
   
     // this is also in populateBoardSet method, but repeated code can't be helped
   NSDictionary *lastTurn = (NSDictionary *)[self.myMatch.turns lastObject];
-  Player *lastPlayer = (Player *)[lastTurn valueForKey:@"player"];
-  NSArray *lastContainer = (NSArray *)[lastTurn valueForKey:@"container"];
+  Player *lastPlayer = (Player *)[self.myMatch playerForIndex:[[lastTurn valueForKey:@"player"] unsignedIntegerValue]];
+  NSArray *lastContainer = (NSArray *)[lastTurn valueForKey:@"indexContainer"];
+  NSArray *lastContainerDataDyads = [self.myMatch dataDyadsInIndexContainer:lastContainer];
   
     // board must enumerate over both board and holding container dyadminoes
   NSMutableSet *tempDataEnumerationSet = [NSMutableSet setWithSet:self.myMatch.board];
@@ -2683,7 +2684,9 @@
     Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
     
       // animate last played dyadminoes, and highlight dyadminoes currently in holding container
-    [lastContainer containsObject:dataDyad] ? [dyadmino animateDyadminoesRecentlyPlayedWithColour:[self.myMatch colourForPlayer:lastPlayer]] : nil;
+    
+    [lastContainerDataDyads containsObject:dataDyad] ? [dyadmino animateDyadminoesRecentlyPlayedWithColour:[self.myMatch colourForPlayer:lastPlayer]] : nil;
+    
     [self.myMatch holdingsContainsDataDyadmino:dataDyad] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer]] : nil;
   }
 }
@@ -2772,7 +2775,7 @@
   
     // match already knows the turn number
   Player *turnPlayer = inReplay ? [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"] : _myPlayer;
-  NSArray *turnDataDyadminoes = inReplay ? [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"container"] : @[];
+  NSArray *turnDataDyadminoes = inReplay ? [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"indexContainer"] : @[];
   
   for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];

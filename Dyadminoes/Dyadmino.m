@@ -720,7 +720,7 @@
 }
 
 -(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour {
-//  NSLog(@"animate dyadminoes recently played");
+  NSLog(@"animate dyadminoes recently played");
   [self removeActionsAndEstablishNotRotatingIncludingMove:NO];
   self.color = (SKColor *)colour;
   
