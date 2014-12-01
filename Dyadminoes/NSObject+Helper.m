@@ -63,6 +63,13 @@
   return newHexCoord;
 }
 
+-(Chord)chordFromRoot:(NSInteger)root andChordType:(ChordType)chordType {
+  Chord newChord;
+  newChord.root = root;
+  newChord.chordType = chordType;
+  return newChord;
+}
+
 #pragma mark - date stuff
 
 -(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date andTurn:(NSUInteger)turn {
@@ -246,7 +253,7 @@
 
 #pragma mark - chord label methods
 
--(NSString *)stringForChord:(ChordType)chordType {
+-(NSString *)stringForChordType:(ChordType)chordType {
   switch (chordType) {
     case kChordMinorTriad:
       return @"minor triad";
@@ -288,31 +295,41 @@
       return @"French sixth";
       break;
     case kChordNoChord:
+    case kChordLegalMonad:
+    case kChordLegalDyad:
+    case kChordLegaIncompleteSeventh:
+    case kChordIllegalChord:
       return nil;
       break;
   }
 }
 
--(NSString *)stringForRoot:(NSUInteger)root andChordType:(ChordType)chordType {
+-(NSString *)stringForChord:(Chord)chord {
+  
+  NSInteger root = chord.root;
+  ChordType chordType = chord.chordType;
+  
+  NSString *rootString;
+  
   if (chordType == kChordFullyDiminishedSeventh) {
     switch (root) {
       case 0:
       case 3:
       case 6:
       case 9:
-        return @"C-D\u266f/E\u266d-F\u266f/G\u266d-A";
+        rootString = @"C-D\u266f/E\u266d-F\u266f/G\u266d-A";
         break;
       case 1:
       case 4:
       case 7:
       case 10:
-        return @"C\u266f/D\u266d-E-G-A\u266f/B\u266d";
+        rootString = @"C\u266f/D\u266d-E-G-A\u266f/B\u266d";
         break;
       case 2:
       case 5:
       case 8:
       case 11:
-        return @"D-F-G\u266f/A\u266d-B";
+        rootString = @"D-F-G\u266f/A\u266d-B";
         break;
     }
     
@@ -321,22 +338,22 @@
       case 0:
       case 4:
       case 8:
-        return @"C-E-G\u266f/A\u266d";
+        rootString = @"C-E-G\u266f/A\u266d";
         break;
       case 1:
       case 5:
       case 9:
-        return @"C\u266f/D\u266d-F-A";
+        rootString = @"C\u266f/D\u266d-F-A";
         break;
       case 2:
       case 6:
       case 10:
-        return @"D-F\u266f/G\u266d-A\u266f/B\u266d";
+        rootString = @"D-F\u266f/G\u266d-A\u266f/B\u266d";
         break;
       case 3:
       case 7:
       case 11:
-        return @"D\u266f/E\u266d-G-B";
+        rootString = @"D\u266f/E\u266d-G-B";
         break;
     }
     
@@ -344,70 +361,70 @@
     switch (root) {
       case 0:
       case 6:
-        return @"C-F\u266f/G\u266d";
+        rootString = @"C-F\u266f/G\u266d";
         break;
       case 1:
       case 7:
-        return @"C\u266f/D\u266d-G";
+        rootString = @"C\u266f/D\u266d-G";
         break;
       case 2:
       case 8:
-        return @"D-G\u266f/A\u266d";
+        rootString = @"D-G\u266f/A\u266d";
         break;
       case 3:
       case 9:
-        return @"D\u266f/E\u266d-A";
+        rootString = @"D\u266f/E\u266d-A";
         break;
       case 4:
       case 10:
-        return @"E-A\u266f/B\u266d";
+        rootString = @"E-A\u266f/B\u266d";
         break;
       case 5:
       case 11:
-        return @"F-B";
+        rootString = @"F-B";
         break;
     }
-  } else if (chordType != kChordNoChord) {
+  } else if (chordType < kChordNoChord) {
     switch (root) {
       case 0:
-        return @"C";
+        rootString = @"C";
         break;
       case 1:
-        return @"C\u266f/D\u266d";
+        rootString = @"C\u266f/D\u266d";
         break;
       case 2:
-        return @"D";
+        rootString = @"D";
         break;
       case 3:
-        return @"D\u266f/E\u266d";
+        rootString = @"D\u266f/E\u266d";
         break;
       case 4:
-        return @"E";
+        rootString = @"E";
         break;
       case 5:
-        return @"F";
+        rootString = @"F";
         break;
       case 6:
-        return @"F\u266f/G\u266d";
+        rootString = @"F\u266f/G\u266d";
         break;
       case 7:
-        return @"G";
+        rootString = @"G";
         break;
       case 8:
-        return @"G\u266f/A\u266d";
+        rootString = @"G\u266f/A\u266d";
         break;
       case 9:
-        return @"A";
+        rootString = @"A";
         break;
       case 10:
-        return @"A\u266f/B\u266d";
+        rootString = @"A\u266f/B\u266d";
         break;
       case 11:
-        return @"B";
+        rootString = @"B";
         break;
     }
   }
-  return nil;
+  return [NSString stringWithFormat:@"%@ %@", rootString, [self stringForChordType:chordType]];
 }
 
 -(NSAttributedString *)stringWithAccidentals:(NSString *)myString fontSize:(CGFloat)size {

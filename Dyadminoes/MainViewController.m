@@ -220,6 +220,10 @@
   [matchCell setViewProperties];
 }
 
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+  [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
   Match *match = [self.fetchedResultsController objectAtIndexPath:indexPath];
   GameType type = [match returnType];

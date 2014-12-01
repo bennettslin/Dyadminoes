@@ -7,15 +7,11 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "NSObject+Helper.h"
 
 @interface SonorityLogic : NSObject
 
-@property (strong, nonatomic) NSArray *icPrimeForm;
-
-@property BOOL legalChord;
-@property (strong, nonatomic) NSString *rootPCLetter;
-@property (strong, nonatomic) NSString *chordType;
-
--(id)initWithPCs:(NSArray *)pcs;
+-(Chord)chordFromSonority:(NSArray *)sonority;
++(id)sharedLogic;
 
 @end

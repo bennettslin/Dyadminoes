@@ -71,7 +71,6 @@
 #pragma mark - board position methods
 
 -(void)centerBoardOnDyadminoesAverageCenterWithSwap:(BOOL)swap;
-//-(void)centerBoardOnLocation:(CGPoint)location withSwap:(BOOL)swap andGameEnded:(BOOL)gameEnded;
 
 #pragma mark - background image methods
 

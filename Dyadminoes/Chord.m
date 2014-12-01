@@ -6,9 +6,11 @@
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
+/*
 #import "Chord.h"
 
 @implementation Chord
 
 
 @end
+ */

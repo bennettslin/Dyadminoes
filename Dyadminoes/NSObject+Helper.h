@@ -366,8 +366,17 @@ typedef enum chordType {
   kChordAugmentedMajorSeventh,
   kChordItalianSixth,
   kChordFrenchSixth,
-  kChordNoChord
+  kChordNoChord,
+  kChordLegalMonad,
+  kChordLegalDyad,
+  kChordLegaIncompleteSeventh,
+  kChordIllegalChord
 } ChordType;
+
+typedef struct Chord {
+  ChordType chordType;
+  NSInteger root;
+} Chord;
 
 typedef enum swapCancelOrUndoButton {
   kSwapButton,
@@ -395,6 +404,7 @@ typedef enum passPlayOrDoneButton {
 
   // struct stuff
 -(HexCoord)hexCoordFromX:(NSInteger)x andY:(NSInteger)y;
+-(Chord)chordFromRoot:(NSInteger)root andChordType:(ChordType)chordType;
 
   // date stuff
 -(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date andTurn:(NSUInteger)turn;
@@ -408,9 +418,8 @@ typedef enum passPlayOrDoneButton {
 -(MusicSymbol)musicSymbolForMatchType:(GameType)type;
 
   // chord label stuff
--(NSString *)stringForChord:(ChordType)chordType;
--(NSString *)stringForRoot:(NSUInteger)root andChordType:(ChordType)chordType;
-
+//-(NSString *)stringForChordType:(ChordType)chordType;
+-(NSString *)stringForChord:(Chord)chord;
 -(NSAttributedString *)stringWithAccidentals:(NSString *)myString fontSize:(CGFloat)size;
 
 @end

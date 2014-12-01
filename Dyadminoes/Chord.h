@@ -6,6 +6,8 @@
 //  Copyright (c) 2014 Bennett Lin. All rights reserved.
 //
 
+/*
+
 #import <Foundation/Foundation.h>
 #import "NSObject+Helper.h"
 @class DataDyadmino;
@@ -22,3 +24,4 @@
 @property (nonatomic) NSUInteger cardinality;
 
 @end
+ */

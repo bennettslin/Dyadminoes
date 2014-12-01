@@ -147,11 +147,6 @@
   self.homePosition = newPoint;
 }
 
-//-(void)centerBoardOnLocation:(CGPoint)location withSwap:(BOOL)swap {
-//  [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:location withSwap:swap];
-//  self.homePosition = location;
-//}
-
 #pragma mark - board span methods
 
 -(CGPoint)adjustToNewPositionFromBeganLocation:(CGPoint)beganLocation toCurrentLocation:(CGPoint)currentLocation withSwap:(BOOL)swap {
@@ -951,22 +946,18 @@
       _orientationOffset = 0;
     if (touchAngleRelativeToDyadOrient > (0 + 330) % 360 ||
         touchAngleRelativeToDyadOrient <= (0 + 30) % 360) {
-        //      NSLog(@"dyadmino's right");
       _orientationOffset = 0 + dyadOrient;
       
     } else if (touchAngleRelativeToDyadOrient > (0 + 30) % 360 &&
                touchAngleRelativeToDyadOrient <= (0 + 150) % 360) {
-        //      NSLog(@"dyadmino's top");
       _orientationOffset = 90 + dyadOrient;
       
     } else if (touchAngleRelativeToDyadOrient > (0 + 150) % 360 &&
                touchAngleRelativeToDyadOrient <= (0 + 210) % 360) {
-        //      NSLog(@"dyadmino's left");
       _orientationOffset = 180 + dyadOrient;
       
     } else if (touchAngleRelativeToDyadOrient > (0 + 210) % 360 &&
                touchAngleRelativeToDyadOrient <= (0 + 330) % 360) {
-        //      NSLog(@"dyadmino's bottom");
       _orientationOffset = 270 + dyadOrient;
     }
     
