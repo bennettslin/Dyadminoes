@@ -17,8 +17,6 @@
 -(Chord)chordFromSonority:(NSArray *)sonority {
   
     // root is -1 if not a chord
-  
-  
   NSUInteger cardinality = [sonority count];
   
     // return if legal sonority
@@ -80,6 +78,18 @@
   NSNumber *_fakeRootPC = pcNormalForm[firstICIndex];
   NSArray *icPrimeForm = [NSArray arrayWithArray:tempICPrimeForm];
   return [self chordFromFakeRootPC:_fakeRootPC andICPrimeForm:icPrimeForm];
+}
+
+-(Chord)chordFromSonorityPlusCheckIncompleteSeventh:(NSArray *)sonority {
+  
+  Chord chord = [self chordFromSonority:sonority];
+  
+  if (chord.chordType == kChordIllegalChord) {
+    if ([self sonorityIsIncompleteSeventh:sonority]) {
+      return [self chordFromRoot:-1 andChordType:kChordLegaIncompleteSeventh];
+    }
+  }
+  return chord;
 }
 
 -(Chord)chordFromFakeRootPC:(NSNumber *)fakeRootPC andICPrimeForm:(NSArray *)icPrimeForm {
@@ -320,6 +330,37 @@
   }
   
   return attString;
+}
+
+-(BOOL)sonorityIsIncompleteSeventh:(NSArray *)sonority {
+  
+    // cardinality must be 3
+  if (sonority.count != 3) {
+    return NO;
+  }
+  
+    // sonority must be illegal as a triad
+  Chord chordForSonority = [self chordFromSonority:sonority];
+  if (chordForSonority.chordType != kChordIllegalChord) {
+    return NO;
+  }
+  
+  BOOL sonorityIsIncompleteSeventh = NO;
+  
+  for (NSUInteger i = 0; i < 12; i++) {
+    NSNumber *missingNote = [NSNumber numberWithUnsignedInteger:i];
+    if (![sonority containsObject:missingNote]) {
+      NSMutableArray *tempSonority = [NSMutableArray arrayWithArray:sonority];
+      [tempSonority addObject:missingNote];
+      NSArray *newSonority = [NSArray arrayWithArray:tempSonority];
+      Chord chordForNewSonority = [self chordFromSonority:newSonority];
+      if (!chordForNewSonority.chordType != kChordIllegalChord) {
+        sonorityIsIncompleteSeventh = YES;
+      }
+    }
+  }
+  
+  return sonorityIsIncompleteSeventh;
 }
 
 #pragma mark - singleton method

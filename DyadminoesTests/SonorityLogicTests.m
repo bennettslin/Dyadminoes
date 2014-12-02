@@ -112,10 +112,110 @@
   XCTAssert(allChordTypesMatch, @"Not all chord types match.");
 }
 
+-(void)testRecognitionOfNonChords {
+  
+  Chord noChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:@[]];
+  Chord monad = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:@[@0]];
+  Chord dyad = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:@[@0, @1]];
+  Chord illegal = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:@[@0, @1, @2, @3]];
+  
+  XCTAssert(noChord.chordType == kChordNoChord);
+  XCTAssert(monad.chordType == kChordLegalMonad);
+  XCTAssert(dyad.chordType == kChordLegalDyad);
+  XCTAssert(illegal.chordType == kChordIllegalChord);
+}
 
+-(void)testCorrectChordTypesForAllTranspositionsOfAllLegalChords {
+  
+  NSArray *rootCChords = @[@[@0, @3, @7], @[@0, @4, @7], @[@0, @3, @6, @10],
+  @[@0, @3, @7, @10], @[@0, @4, @7, @10], @[@0, @3, @6], @[@0, @4, @8], @[@0, @3, @6, @9],
+  @[@0, @3, @7, @11], @[@0, @4, @7, @11], @[@0, @4, @8, @11], @[@0, @6, @8], @[@0, @2, @6, @8]];
+  
+  BOOL chordTypesAllCorrect = YES;
+  
+    // iterate through all chord types
+  for (int i = 0; i < rootCChords.count; i++) {
+    NSArray *rootCChord = rootCChords[i];
+    
+      // transpose up semitone from C to B
+    for (int j = 0; j < 12; j++) {
+      NSMutableArray *mutableTransposedChord = [NSMutableArray new];
+      
+        // transpose each note in chord
+      for (NSNumber *pcObject in rootCChord) {
+        NSUInteger pc = [pcObject unsignedIntegerValue];
+        pc = (pc + j) % 12;
+        [mutableTransposedChord addObject:[NSNumber numberWithUnsignedInteger:pc]];
+      }
+      NSArray *transposedChord = [NSArray arrayWithArray:mutableTransposedChord];
+      
+      Chord chordForTransposedChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:transposedChord];
+      if (chordForTransposedChord.chordType != (ChordType)i) {
+        chordTypesAllCorrect = NO;
+      }
+    }
+  }
+  
+  XCTAssert(chordTypesAllCorrect, @"Not all chord types are recognised correctly.");
+}
 
-//-(void)testChord {
-//  Chord chord = [self.sonorityLogic chordFromSonority:@[@0, @4, @7]];
-//}
+-(void)testFailureCasesOfCheckingIncompleteSeventh {
+
+  NSArray *legalTriad = @[@0, @4, @7];
+  XCTAssertFalse([self.sonorityLogic sonorityIsIncompleteSeventh:legalTriad], @"legal triad should not be valid incomplete seventh.");
+
+  NSArray *dyad = @[@0, @4];
+  XCTAssertFalse([self.sonorityLogic sonorityIsIncompleteSeventh:dyad], @"dyad should not be valid incomplete seventh.");
+  
+  NSArray *seventh = @[@0, @1, @2, @3];
+  XCTAssertFalse([self.sonorityLogic sonorityIsIncompleteSeventh:seventh], @"dyad should not be valid incomplete seventh.");
+}
+
+-(void)testCorrectChordTypesForAllTranspositionsOfIncompleteSevenths {
+  
+  NSArray *rootCSevenths = @[@[@0, @3, @6, @10], @[@0, @3, @7, @10], @[@0, @4, @7, @10], @[@0, @3, @6, @9],
+                           @[@0, @3, @7, @11], @[@0, @4, @7, @11], @[@0, @4, @8, @11], @[@0, @2, @6, @8]];
+  
+  BOOL incompleteSeventhTypesAllCorrect = YES;
+  
+    // iterate through all chord types
+  for (int i = 0; i < rootCSevenths.count; i++) {
+    NSArray *rootCSeventh = rootCSevenths[i];
+    
+      // remove each note once
+    for (int j = 0; j < rootCSeventh.count; j++) {
+    
+      NSMutableArray *tempIncompleteRootCSeventh = [NSMutableArray arrayWithArray:rootCSeventh];
+      [tempIncompleteRootCSeventh removeObjectAtIndex:j];
+      NSArray *incompleteRootCSeventh = [NSArray arrayWithArray:tempIncompleteRootCSeventh];
+      Chord chordFromIncompleteRootCSeventh = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:incompleteRootCSeventh];
+      
+        // only checks triads that are not legal triads
+      if (chordFromIncompleteRootCSeventh.chordType == kChordIllegalChord) {
+      
+          // transpose up semitone from C to B
+        for (int k = 0; k < 12; k++) {
+          NSMutableArray *mutableTransposedChord = [NSMutableArray new];
+          
+            // transpose each note in chord
+          for (NSNumber *pcObject in incompleteRootCSeventh) {
+            NSUInteger pc = [pcObject unsignedIntegerValue];
+            pc = (pc + k) % 12;
+            [mutableTransposedChord addObject:[NSNumber numberWithUnsignedInteger:pc]];
+          }
+          NSArray *transposedChord = [NSArray arrayWithArray:mutableTransposedChord];
+          
+          Chord chordForTransposedChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:transposedChord];
+          if (chordForTransposedChord.chordType != kChordLegaIncompleteSeventh) {
+            
+            incompleteSeventhTypesAllCorrect = NO;
+          }
+        }
+      }
+    }
+  }
+  
+  XCTAssert(incompleteSeventhTypesAllCorrect, @"Not all illegal sevenths are recognised correctly.");
+}
 
 @end
