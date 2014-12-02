@@ -14,6 +14,8 @@
 
 @implementation SonorityLogic
 
+#pragma mark - chord logic methods
+
 -(Chord)chordFromSonority:(NSArray *)sonority {
   
     // root is -1 if not a chord
@@ -123,6 +125,37 @@
   return [self chordFromRoot:root andChordType:chordType];
 }
 
+-(BOOL)sonorityIsIncompleteSeventh:(NSArray *)sonority {
+  
+    // cardinality must be 3
+  if (sonority.count != 3) {
+    return NO;
+  }
+  
+    // sonority must be illegal as a triad
+  Chord chordForSonority = [self chordFromSonority:sonority];
+  if (chordForSonority.chordType != kChordIllegalChord) {
+    return NO;
+  }
+  
+  BOOL sonorityIsIncompleteSeventh = NO;
+  
+  for (NSUInteger i = 0; i < 12; i++) {
+    NSNumber *missingNote = [NSNumber numberWithUnsignedInteger:i];
+    if (![sonority containsObject:missingNote]) {
+      NSMutableArray *tempSonority = [NSMutableArray arrayWithArray:sonority];
+      [tempSonority addObject:missingNote];
+      NSArray *newSonority = [NSArray arrayWithArray:tempSonority];
+      Chord chordForNewSonority = [self chordFromSonority:newSonority];
+      if (!chordForNewSonority.chordType != kChordIllegalChord) {
+        sonorityIsIncompleteSeventh = YES;
+      }
+    }
+  }
+  
+  return sonorityIsIncompleteSeventh;
+}
+
 #pragma mark - chord label methods
 
 -(NSString *)stringForChordType:(ChordType)chordType {
@@ -189,19 +222,19 @@
       case 3:
       case 6:
       case 9:
-        rootString = @"C-D(#)/E(b)-F(#)/G(b)-A";
+        rootString = @"C$D(#)/E(b)$F(#)/G(b)$A";
         break;
       case 1:
       case 4:
       case 7:
       case 10:
-        rootString = @"C(#)/D(b)-E-G-A(#)/B(b)";
+        rootString = @"C(#)/D(b)$E$G$A(#)/B(b)";
         break;
       case 2:
       case 5:
       case 8:
       case 11:
-        rootString = @"D-F-G(#)/A(b)-B";
+        rootString = @"D$F$G(#)/A(b)$B";
         break;
     }
     
@@ -210,22 +243,22 @@
       case 0:
       case 4:
       case 8:
-        rootString = @"C-E-G(#)/A(b)";
+        rootString = @"C$E$G(#)/A(b)";
         break;
       case 1:
       case 5:
       case 9:
-        rootString = @"C(#)/D(b)-F-A";
+        rootString = @"C(#)/D(b)$F$A";
         break;
       case 2:
       case 6:
       case 10:
-        rootString = @"D-F(#)/G(b)-A(#)/B(b)";
+        rootString = @"D$F(#)/G(b)$A(#)/B(b)";
         break;
       case 3:
       case 7:
       case 11:
-        rootString = @"D(#)/E(b)-G-B";
+        rootString = @"D(#)/E(b)$G$B";
         break;
     }
     
@@ -233,29 +266,30 @@
     switch (root) {
       case 0:
       case 6:
-        rootString = @"C-F(#)/G(b)";
+        rootString = @"C$F(#)/G(b)";
         break;
       case 1:
       case 7:
-        rootString = @"C(#)/D(b)-G";
+        rootString = @"C(#)/D(b)$G";
         break;
       case 2:
       case 8:
-        rootString = @"D-G(#)/A(b)";
+        rootString = @"D$G(#)/A(b)";
         break;
       case 3:
       case 9:
-        rootString = @"D(#)/E(b)-A";
+        rootString = @"D(#)/E(b)$A";
         break;
       case 4:
       case 10:
-        rootString = @"E-A(#)/B(b)";
+        rootString = @"E$A(#)/B(b)";
         break;
       case 5:
       case 11:
-        rootString = @"F-B";
+        rootString = @"F$B";
         break;
     }
+    
   } else if (chordType < kChordNoChord) {
     switch (root) {
       case 0:
@@ -323,44 +357,13 @@
       [attString addAttribute:NSBaselineOffsetAttributeName value:@(size / 4.8) range:NSMakeRange(i, 1)];
       [attString addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontSonata size:size * 0.95] range:NSMakeRange(i, 1)];
       
-    } else if (myChar == (unichar)45) { // hyphen turns into bullet
+    } else if (myChar == (unichar)36) { // dollar sign turns into bullet
       [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolBullet]];
       [attString addAttribute:NSKernAttributeName value:@(-size * .05) range:NSMakeRange(i, 1)];
     }
   }
   
   return attString;
-}
-
--(BOOL)sonorityIsIncompleteSeventh:(NSArray *)sonority {
-  
-    // cardinality must be 3
-  if (sonority.count != 3) {
-    return NO;
-  }
-  
-    // sonority must be illegal as a triad
-  Chord chordForSonority = [self chordFromSonority:sonority];
-  if (chordForSonority.chordType != kChordIllegalChord) {
-    return NO;
-  }
-  
-  BOOL sonorityIsIncompleteSeventh = NO;
-  
-  for (NSUInteger i = 0; i < 12; i++) {
-    NSNumber *missingNote = [NSNumber numberWithUnsignedInteger:i];
-    if (![sonority containsObject:missingNote]) {
-      NSMutableArray *tempSonority = [NSMutableArray arrayWithArray:sonority];
-      [tempSonority addObject:missingNote];
-      NSArray *newSonority = [NSArray arrayWithArray:tempSonority];
-      Chord chordForNewSonority = [self chordFromSonority:newSonority];
-      if (!chordForNewSonority.chordType != kChordIllegalChord) {
-        sonorityIsIncompleteSeventh = YES;
-      }
-    }
-  }
-  
-  return sonorityIsIncompleteSeventh;
 }
 
 #pragma mark - singleton method

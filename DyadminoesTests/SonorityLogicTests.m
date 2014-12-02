@@ -28,6 +28,8 @@
   [super tearDown];
 }
 
+#pragma mark - chord label tests
+
 -(void)testRootInStringForAsymmetricChord {
   
   NSArray *rootsArray = @[@"C", @"C(#)/D(b)", @"D", @"D(#)/E(b)",
@@ -50,10 +52,10 @@
 
 -(void)testRootInStringForSymmetricChords {
   
-  NSArray *dimRootsArray = @[@"C-D(#)/E(b)-F(#)/G(b)-A", @"C(#)/D(b)-E-G-A(#)/B(b)", @"D-F-G(#)/A(b)-B"];
-  NSArray *augRootsArray = @[@"C-E-G(#)/A(b)", @"C(#)/D(b)-F-A", @"D-F(#)/G(b)-A(#)/B(b)", @"D(#)/E(b)-G-B"];
-  NSArray *frenchRootsArray = @[@"C-F(#)/G(b)", @"C(#)/D(b)-G", @"D-G(#)/A(b)",
-                                @"D(#)/E(b)-A", @"E-A(#)/B(b)", @"F-B"];
+  NSArray *dimRootsArray = @[@"C$D(#)/E(b)$F(#)/G(b)$A", @"C(#)/D(b)$E$G$A(#)/B(b)", @"D$F$G(#)/A(b)$B"];
+  NSArray *augRootsArray = @[@"C$E$G(#)/A(b)", @"C(#)/D(b)$F$A", @"D$F(#)/G(b)$A(#)/B(b)", @"D(#)/E(b)$G$B"];
+  NSArray *frenchRootsArray = @[@"C$F(#)/G(b)", @"C(#)/D(b)$G", @"D$G(#)/A(b)",
+                                @"D(#)/E(b)$A", @"E$A(#)/B(b)", @"F$B"];
   
   BOOL allSymmetricRootsMatch = YES;
   
@@ -112,6 +114,8 @@
   XCTAssert(allChordTypesMatch, @"Not all chord types match.");
 }
 
+#pragma mark - chord logic tests
+
 -(void)testRecognitionOfNonChords {
   
   Chord noChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:@[]];
@@ -169,6 +173,9 @@
   
   NSArray *seventh = @[@0, @1, @2, @3];
   XCTAssertFalse([self.sonorityLogic sonorityIsIncompleteSeventh:seventh], @"dyad should not be valid incomplete seventh.");
+  
+  NSArray *manualIncompleteSeventh = @[@0, @7, @10];
+  XCTAssertTrue([self.sonorityLogic sonorityIsIncompleteSeventh:manualIncompleteSeventh], @"this *should* be a valid incomplete seventh.");
 }
 
 -(void)testCorrectChordTypesForAllTranspositionsOfIncompleteSevenths {
