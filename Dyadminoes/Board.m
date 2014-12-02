@@ -1143,7 +1143,7 @@
   nextCell = (dyadmino.orientation >= 5 || dyadmino.orientation <= 1) ? topCell : bottomCell;
   realOrientation = dyadmino.orientation;
   while (nextCell.myPC != -1) {
-    NSLog(@"vertical up pc is %i", nextCell.myPC);
+    NSLog(@"vertical up pc is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1151,7 +1151,7 @@
   nextCell = (dyadmino.orientation >= 5 || dyadmino.orientation <= 1) ? bottomCell : topCell;
   realOrientation = (dyadmino.orientation + 3) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"vertical down cell pc is %i", nextCell.myPC);
+    NSLog(@"vertical down cell pc is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1161,7 +1161,7 @@
   nextCell = bottomCell;
   realOrientation = (dyadmino.orientation + 1) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"bottom upslant up pc is %i", nextCell.myPC);
+    NSLog(@"bottom upslant up pc is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1169,7 +1169,7 @@
   nextCell = bottomCell;
   realOrientation = (dyadmino.orientation + 4) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"bottom upslant down is %i", nextCell.myPC);
+    NSLog(@"bottom upslant down is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1179,7 +1179,7 @@
   nextCell = bottomCell;
   realOrientation = (dyadmino.orientation + 2) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"bottom downslant up is %i", nextCell.myPC);
+    NSLog(@"bottom downslant up is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1187,7 +1187,7 @@
   nextCell = bottomCell;
   realOrientation = (dyadmino.orientation + 5) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"bottom downslant down is %i", nextCell.myPC);
+    NSLog(@"bottom downslant down is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1197,7 +1197,7 @@
   nextCell = topCell;
   realOrientation = (dyadmino.orientation + 1) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"top upslant up is %i", nextCell.myPC);
+    NSLog(@"top upslant up is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1205,7 +1205,7 @@
   nextCell = topCell;
   realOrientation = (dyadmino.orientation + 4) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"top upslant down is %i", nextCell.myPC);
+    NSLog(@"top upslant down is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1215,7 +1215,7 @@
   nextCell = topCell;
   realOrientation = (dyadmino.orientation + 2) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"top downslant up is %i", nextCell.myPC);
+    NSLog(@"top downslant up is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1223,7 +1223,7 @@
   nextCell = topCell;
   realOrientation = (dyadmino.orientation + 5) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"top downslant down is %i", nextCell.myPC);
+    NSLog(@"top downslant down is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
 }

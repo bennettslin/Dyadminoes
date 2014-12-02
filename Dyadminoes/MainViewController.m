@@ -8,8 +8,9 @@
 
 #import "MyScene.h"
 #import "MainViewController.h"
-//#import "Model.h"
 #import "NSObject+Helper.h"
+#import "SonorityLogic.h" // needed for accidentals in title label
+
 #import "MatchTableViewCell.h"
 #import "SceneViewController.h"
 
@@ -85,7 +86,7 @@
   [self insertGradientBackground];
 
   self.titleLogo.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? 30.f : 60.f)];
-  self.titleLogo.attributedText = [self stringWithAccidentals:@"Dyadminoes C(#)/D(b)-F(#)/G(b)" fontSize:(kIsIPhone ? 30.f : 60.f)];
+  self.titleLogo.attributedText = [[SonorityLogic sharedLogic] stringWithAccidentals:@"Dyadminoes C(#)/D(b)-F(#)/G(b)" fontSize:(kIsIPhone ? 30.f : 60.f)];
   self.titleLogo.frame = CGRectMake(20, 20, 768, 60);
   
   self.tableView.backgroundColor = [UIColor clearColor];

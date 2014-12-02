@@ -14,4 +14,8 @@
 -(Chord)chordFromSonority:(NSArray *)sonority;
 +(id)sharedLogic;
 
+  // chord label stuff
+-(NSString *)stringForChord:(Chord)chord;
+-(NSAttributedString *)stringWithAccidentals:(NSString *)myString fontSize:(CGFloat)size;
+
 @end

@@ -106,11 +106,220 @@
       if (realRootPC >= 12) {
         realRootPC -= 12;
       }
-      chordType = index;
+      chordType = (ChordType)index;
       root = realRootPC;
     }
   }
   return [self chordFromRoot:root andChordType:chordType];
+}
+
+#pragma mark - chord label methods
+
+-(NSString *)stringForChordType:(ChordType)chordType {
+  switch (chordType) {
+    case kChordMinorTriad:
+      return @"minor triad";
+      break;
+    case kChordMajorTriad:
+      return @"major triad";
+      break;
+    case kChordHalfDiminishedSeventh:
+      return @"half-diminished seventh";
+      break;
+    case kChordMinorSeventh:
+      return @"minor seventh";
+      break;
+    case kChordDominantSeventh:
+      return @"dominant seventh";
+      break;
+    case kChordDiminishedTriad:
+      return @"diminished triad";
+      break;
+    case kChordAugmentedTriad:
+      return @"augmented triad";
+      break;
+    case kChordFullyDiminishedSeventh:
+      return @"fully diminished seventh";
+      break;
+    case kChordMinorMajorSeventh:
+      return @"minor-major seventh";
+      break;
+    case kChordMajorSeventh:
+      return @"major seventh";
+      break;
+    case kChordAugmentedMajorSeventh:
+      return @"augmented major seventh";
+      break;
+    case kChordItalianSixth:
+      return @"Italian sixth";
+      break;
+    case kChordFrenchSixth:
+      return @"French sixth";
+      break;
+    case kChordNoChord:
+    case kChordLegalMonad:
+    case kChordLegalDyad:
+    case kChordLegaIncompleteSeventh:
+    case kChordIllegalChord:
+      return nil;
+      break;
+  }
+}
+
+-(NSString *)stringForChord:(Chord)chord {
+  
+  NSInteger root = chord.root;
+  ChordType chordType = chord.chordType;
+  
+  NSString *rootString;
+  
+  if (chordType == kChordFullyDiminishedSeventh) {
+    switch (root) {
+      case 0:
+      case 3:
+      case 6:
+      case 9:
+        rootString = @"C-D(#)/E(b)-F(#)/G(b)-A";
+        break;
+      case 1:
+      case 4:
+      case 7:
+      case 10:
+        rootString = @"C(#)/D(b)-E-G-A(#)/B(b)";
+        break;
+      case 2:
+      case 5:
+      case 8:
+      case 11:
+        rootString = @"D-F-G(#)/A(b)-B";
+        break;
+    }
+    
+  } else if (chordType == kChordAugmentedTriad) {
+    switch (root) {
+      case 0:
+      case 4:
+      case 8:
+        rootString = @"C-E-G(#)/A(b)";
+        break;
+      case 1:
+      case 5:
+      case 9:
+        rootString = @"C(#)/D(b)-F-A";
+        break;
+      case 2:
+      case 6:
+      case 10:
+        rootString = @"D-F(#)/G(b)-A(#)/B(b)";
+        break;
+      case 3:
+      case 7:
+      case 11:
+        rootString = @"D(#)/E(b)-G-B";
+        break;
+    }
+    
+  } else if (chordType == kChordFrenchSixth) {
+    switch (root) {
+      case 0:
+      case 6:
+        rootString = @"C-F(#)/G(b)";
+        break;
+      case 1:
+      case 7:
+        rootString = @"C(#)/D(b)-G";
+        break;
+      case 2:
+      case 8:
+        rootString = @"D-G(#)/A(b)";
+        break;
+      case 3:
+      case 9:
+        rootString = @"D(#)/E(b)-A";
+        break;
+      case 4:
+      case 10:
+        rootString = @"E-A(#)/B(b)";
+        break;
+      case 5:
+      case 11:
+        rootString = @"F-B";
+        break;
+    }
+  } else if (chordType < kChordNoChord) {
+    switch (root) {
+      case 0:
+        rootString = @"C";
+        break;
+      case 1:
+        rootString = @"C(#)/D(b)";
+        break;
+      case 2:
+        rootString = @"D";
+        break;
+      case 3:
+        rootString = @"D(#)/E(b)";
+        break;
+      case 4:
+        rootString = @"E";
+        break;
+      case 5:
+        rootString = @"F";
+        break;
+      case 6:
+        rootString = @"F(#)/G(b)";
+        break;
+      case 7:
+        rootString = @"G";
+        break;
+      case 8:
+        rootString = @"G(#)/A(b)";
+        break;
+      case 9:
+        rootString = @"A";
+        break;
+      case 10:
+        rootString = @"A(#)/B(b)";
+        break;
+      case 11:
+        rootString = @"B";
+        break;
+    }
+  }
+  return [NSString stringWithFormat:@"%@ %@", rootString, [self stringForChordType:chordType]];
+}
+
+-(NSAttributedString *)stringWithAccidentals:(NSString *)myString fontSize:(CGFloat)size {
+  
+    // first replace all instances of (#) and (b) with pound and yen characters
+  unichar pound[1] = {(unichar)163};
+  unichar yen[1] = {(unichar)165};
+  
+  myString = [myString stringByReplacingOccurrencesOfString:@"(#)" withString:[NSString stringWithCharacters:pound length:1]];
+  myString = [myString stringByReplacingOccurrencesOfString:@"(b)" withString:[NSString stringWithCharacters:yen length:1]];
+  
+  NSMutableAttributedString *attString = [[NSMutableAttributedString alloc] initWithString:myString];
+  
+  for (int i = 0; i < myString.length; i++) {
+    unichar myChar = [myString characterAtIndex:i];
+    
+    if (myChar == (unichar)163) {
+      [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolSharp]];
+      [attString addAttribute:NSBaselineOffsetAttributeName value:@(size / 2.75) range:NSMakeRange(i, 1)];
+      [attString addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontSonata size:size * 0.85] range:NSMakeRange(i, 1)];
+      
+    } else if (myChar == (unichar)165) {
+      [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolFlat]];
+      [attString addAttribute:NSBaselineOffsetAttributeName value:@(size / 4.8) range:NSMakeRange(i, 1)];
+      [attString addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontSonata size:size * 0.95] range:NSMakeRange(i, 1)];
+      
+    } else if (myChar == (unichar)45) { // hyphen turns into bullet
+      [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolBullet]];
+      [attString addAttribute:NSKernAttributeName value:@(-size * .05) range:NSMakeRange(i, 1)];
+    }
+  }
+  
+  return attString;
 }
 
 #pragma mark - singleton method

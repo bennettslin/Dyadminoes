@@ -417,9 +417,4 @@ typedef enum passPlayOrDoneButton {
 -(NSString *)stringForMusicSymbol:(MusicSymbol)symbol;
 -(MusicSymbol)musicSymbolForMatchType:(GameType)type;
 
-  // chord label stuff
-//-(NSString *)stringForChordType:(ChordType)chordType;
--(NSString *)stringForChord:(Chord)chord;
--(NSAttributedString *)stringWithAccidentals:(NSString *)myString fontSize:(CGFloat)size;
-
 @end
