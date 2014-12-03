@@ -31,7 +31,7 @@
 
 @property (strong, nonatomic) UILabel *pileCountLabel;
 @property (strong, nonatomic) UILabel *turnLabel;
-@property (strong, nonatomic) UILabel *keySigLabel;
+//@property (strong, nonatomic) UILabel *keySigLabel;
 
 @property (strong, nonatomic) UILabel *topBarMessageLabel;
 @property (strong, nonatomic) UILabel *PnPWaitLabel;

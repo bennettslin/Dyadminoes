@@ -79,7 +79,6 @@
   // label methods
 -(NSString *)endGameResultsText;
 -(NSString *)turnTextLastPlayed:(BOOL)lastPlayed;
--(NSString *)keySigString;
 
   // helper methods
 -(NSUInteger)wonPlayersCount;

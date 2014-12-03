@@ -11,12 +11,18 @@
 
 @interface SonorityLogic : NSObject
 
--(Chord)chordFromSonorityPlusCheckIncompleteSeventh:(NSArray *)sonority;
-+(id)sharedLogic;
+#pragma mark - chord logic methods
 
-  // chord label stuff
+-(Chord)chordFromSonorityPlusCheckIncompleteSeventh:(NSArray *)sonority;
+-(BOOL)sonorityIsIncompleteSeventh:(NSArray *)sonority;
+
+#pragma mark - chord label methods
+
 -(NSString *)stringForChord:(Chord)chord;
 -(NSAttributedString *)stringWithAccidentals:(NSString *)myString fontSize:(CGFloat)size;
--(BOOL)sonorityIsIncompleteSeventh:(NSArray *)sonority;
+
+#pragma mark - singleton method
+
++(id)sharedLogic;
 
 @end

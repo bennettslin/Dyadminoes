@@ -14,6 +14,7 @@
 		3F0526CA1936CE9F003D3C04 /* page1.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F0526C61936CE9F003D3C04 /* page1.png */; };
 		3F0526CD1936D12A003D3C04 /* HelpContentViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F0526CC1936D12A003D3C04 /* HelpContentViewController.m */; };
 		3F0B477D1953C7B700BDE0BA /* Chord.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F0B477C1953C7B700BDE0BA /* Chord.m */; };
+		3F1071C61A2EBA8900C28923 /* MatchTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F1071C51A2EBA8900C28923 /* MatchTests.m */; };
 		3F18924718CDB43300BEE276 /* Player.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F18924618CDB43300BEE276 /* Player.m */; };
 		3F193119198064C10034A5B9 /* StavesView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F193118198064C10034A5B9 /* StavesView.m */; };
 		3F1931201980C8240034A5B9 /* BachMassBackgroundCropped.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F19311F1980C8240034A5B9 /* BachMassBackgroundCropped.png */; };
@@ -104,6 +105,7 @@
 		3F0526CC1936D12A003D3C04 /* HelpContentViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HelpContentViewController.m; sourceTree = "<group>"; };
 		3F0B477B1953C7B700BDE0BA /* Chord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Chord.h; sourceTree = "<group>"; };
 		3F0B477C1953C7B700BDE0BA /* Chord.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Chord.m; sourceTree = "<group>"; };
+		3F1071C51A2EBA8900C28923 /* MatchTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MatchTests.m; sourceTree = "<group>"; };
 		3F18924518CDB43300BEE276 /* Player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Player.h; sourceTree = "<group>"; };
 		3F18924618CDB43300BEE276 /* Player.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Player.m; sourceTree = "<group>"; };
 		3F193117198064C10034A5B9 /* StavesView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StavesView.h; sourceTree = "<group>"; };
@@ -368,6 +370,7 @@
 			children = (
 				3F87AADF188DEE4C008C4A0D /* DyadminoesTests.m */,
 				3F3715B5199B1C69000C569E /* SonorityLogicTests.m */,
+				3F1071C51A2EBA8900C28923 /* MatchTests.m */,
 				3F87AADA188DEE4C008C4A0D /* Supporting Files */,
 			);
 			path = DyadminoesTests;
@@ -663,6 +666,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3F87AAE0188DEE4C008C4A0D /* DyadminoesTests.m in Sources */,
+				3F1071C61A2EBA8900C28923 /* MatchTests.m in Sources */,
 				3F3715B6199B1C69000C569E /* SonorityLogicTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

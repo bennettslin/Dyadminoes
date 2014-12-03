@@ -28,6 +28,12 @@
   [super tearDown];
 }
 
+-(void)testIsSingleton {
+  SonorityLogic *logic1 = [SonorityLogic sharedLogic];
+  SonorityLogic *logic2 = [SonorityLogic sharedLogic];
+  XCTAssertEqualObjects(logic1, logic2, @"Sonority logic is not a singleton.");
+}
+
 #pragma mark - chord label tests
 
 -(void)testRootInStringForAsymmetricChord {

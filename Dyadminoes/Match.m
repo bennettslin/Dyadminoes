@@ -474,19 +474,6 @@
   }
 }
 
-  // FIXME: obviously
--(NSString *)keySigString {
-    // yields number between 0 and 11
-//  NSUInteger keySig = (self.randomNumber1To24 - 1) / 2;
-  
-//  NSString *majorOrMinor = (self.randomNumber1To24 % 2 == 0) ? @"Major" : @"minor";
-  
-    // sharps are 0-5, flats are 6-11
-//  MusicSymbol symbol = (keySig < 6) ? kSymbolSharp : kSymbolFlat;
-  
-  return nil;
-}
-
 -(UIColor *)colourForPlayer:(Player *)player {
   if ([self.players containsObject:player]) {
     
@@ -525,12 +512,6 @@
     // especially since this will be used to call swap as well
   self.tempScore = [NSNumber numberWithUnsignedInteger:[self returnTempScore] + 1];
   
-//  if (![self.holdingContainer containsObject:dataDyad]) {
-//    NSMutableArray *tempContainer = [NSMutableArray arrayWithArray:self.holdingContainer];
-//    [tempContainer addObject:dataDyad];
-//    self.holdingContainer = [NSArray arrayWithArray:tempContainer];
-//  }
-  
   NSNumber *number = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]];
   if (![self holdingsContainsDataDyadmino:dataDyad]) {
     NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.holdingIndexContainer];
@@ -538,14 +519,6 @@
     self.holdingIndexContainer = [NSArray arrayWithArray:tempArray];
   }
 }
-
-//-(void)setHoldingContainer:(NSArray *)newHoldingContainer {
-//  if (!_holdingContainer || !newHoldingContainer) {
-//    _holdingContainer = newHoldingContainer;
-//  } else if (_holdingContainer != newHoldingContainer) {
-//    _holdingContainer = newHoldingContainer;
-//  }
-//}
 
 -(DataDyadmino *)undoDyadminoToHoldingContainer {
   NSArray *holdingIndexContainer = self.holdingIndexContainer;
