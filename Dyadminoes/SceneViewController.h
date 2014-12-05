@@ -34,8 +34,8 @@
 //@property (strong, nonatomic) UILabel *keySigLabel;
 
 @property (strong, nonatomic) UILabel *topBarMessageLabel;
-@property (strong, nonatomic) UILabel *PnPWaitLabel;
-@property (strong, nonatomic) UILabel *ReplayTurnLabel;
+@property (strong, nonatomic) UILabel *pnpWaitLabel;
+@property (strong, nonatomic) UILabel *replayTurnLabel;
 
 @property (strong, nonatomic) UIPinchGestureRecognizer *pinchGestureRecogniser;
 

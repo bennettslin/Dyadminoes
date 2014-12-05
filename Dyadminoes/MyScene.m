@@ -2694,10 +2694,14 @@
       // if game has ended, give results
     NSString *turnOrResultsText;
     SKColor *colour;
+    Player *turnPlayer;
     
     if (replay) {
       turnOrResultsText = [self.myMatch turnTextLastPlayed:NO];
-      Player *turnPlayer = [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"];
+      
+      NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"] unsignedIntegerValue];
+      turnPlayer = [self.myMatch playerForIndex:playerOrder];
+//      Player *turnPlayer = [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"];
       colour = [self.myMatch colourForPlayer:turnPlayer];
 
     } else {
@@ -2707,7 +2711,10 @@
           // just say it was the last play, no turn number
       } else {
         turnOrResultsText = [self.myMatch turnTextLastPlayed:YES];
-        Player *turnPlayer = [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"];
+        
+        NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"] unsignedIntegerValue];
+        turnPlayer = [self.myMatch playerForIndex:playerOrder];
+//        Player *turnPlayer = [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"];
         colour = [self.myMatch colourForPlayer:turnPlayer];
       }
     }

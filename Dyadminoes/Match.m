@@ -103,7 +103,7 @@
       
         // establish first dyadmino is out of pile and now on board
       firstDyadmino.placeStatus = [NSNumber numberWithUnsignedInteger:kOnBoard];
-      [self.pile removeObjectAtIndex:randIndex];
+      [self.pile removeObject:firstDyadmino];
       [self.board addObject:firstDyadmino];
 
       [self persistChangedPositionForBoardDataDyadmino:firstDyadmino];
@@ -118,9 +118,9 @@
   NSArray *dataDyadminoIndexesThisTurn = player.dataDyadminoIndexesThisTurn;
   
   while (dataDyadminoIndexesThisTurn.count < kNumDyadminoesInRack && self.pile.count > 0) {
-    NSLog(@"dataDyadminoIndicesThisTurn is %luu",(unsigned long)dataDyadminoIndexesThisTurn.count);
+//    NSLog(@"dataDyadminoIndicesThisTurn is %luu",(unsigned long)dataDyadminoIndexesThisTurn.count);
     NSUInteger randIndex = [self randomIntegerUpTo:self.pile.count];
-    NSLog(@"randomIndex is %lu", (unsigned long)randIndex);
+//    NSLog(@"randomIndex is %lu", (unsigned long)randIndex);
     DataDyadmino *dataDyad = self.pile[randIndex];
       // rack order is total count at the time
     dataDyad.myRackOrder = [NSNumber numberWithInteger:dataDyadminoIndexesThisTurn.count];

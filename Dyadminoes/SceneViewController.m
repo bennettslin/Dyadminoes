@@ -141,20 +141,21 @@
   self.topBarMessageLabel.adjustsFontSizeToFitWidth = YES;
   [self.view insertSubview:self.topBarMessageLabel aboveSubview:self.playerLabelsField];
   
-  self.ReplayTurnLabel = [UILabel new];
-  self.ReplayTurnLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 24 : 48)];
-  self.ReplayTurnLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
-  self.ReplayTurnLabel.textAlignment = NSTextAlignmentCenter;
-  self.ReplayTurnLabel.adjustsFontSizeToFitWidth = YES;
-  [self.view addSubview:self.ReplayTurnLabel];
+  self.replayTurnLabel = [UILabel new];
+  self.replayTurnLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 24 : 48)];
+  self.replayTurnLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+  self.replayTurnLabel.textAlignment = NSTextAlignmentCenter;
+  self.replayTurnLabel.adjustsFontSizeToFitWidth = YES;
+  [self.view addSubview:self.replayTurnLabel];
   
-  self.PnPWaitLabel = [UILabel new];
-  self.PnPWaitLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 96 : 192)];
-  self.PnPWaitLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
-  self.PnPWaitLabel.textAlignment = NSTextAlignmentCenter;
-  self.PnPWaitLabel.adjustsFontSizeToFitWidth = YES;
-  self.PnPWaitLabel.numberOfLines = kIsIPhone ? 2 : 1;
-  [self.view addSubview:self.PnPWaitLabel];
+  self.pnpWaitLabel = [UILabel new];
+  self.pnpWaitLabel.textColor = [UIColor whiteColor];
+  self.pnpWaitLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 96 : 192)];
+  self.pnpWaitLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+  self.pnpWaitLabel.textAlignment = NSTextAlignmentCenter;
+  self.pnpWaitLabel.adjustsFontSizeToFitWidth = YES;
+  self.pnpWaitLabel.numberOfLines = kIsIPhone ? 2 : 1;
+  [self.view addSubview:self.pnpWaitLabel];
   
     // frames
   self.turnLabel.frame = CGRectMake(self.view.bounds.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize * 1.25);
@@ -169,9 +170,9 @@
   CGFloat desiredPnPY = ([self.myMatch returnType] == kPnPGame && ![self.myMatch returnGameHasEnded]) ?
   self.view.bounds.size.height - (kRackHeight * 0.95) :
   self.view.bounds.size.height + (kRackHeight * 0.05);
-  self.PnPWaitLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredPnPY, self.view.bounds.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
+  self.pnpWaitLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredPnPY, self.view.bounds.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
   
-  self.ReplayTurnLabel.frame = CGRectMake(kReplayXEdgeBuffer, -kTopBarHeight * 0.95, self.view.frame.size.width - (kReplayXEdgeBuffer * 2), kTopBarHeight);
+  self.replayTurnLabel.frame = CGRectMake(kReplayXEdgeBuffer, -kTopBarHeight * 0.95, self.view.frame.size.width - (kReplayXEdgeBuffer * 2), kTopBarHeight);
 }
 
 #pragma mark - label data methods
@@ -312,10 +313,10 @@
       label = self.topBarMessageLabel;
       break;
     case kPnPWaitLabel:
-      label = self.PnPWaitLabel;
+      label = self.pnpWaitLabel;
       break;
     case kReplayTurnLabel:
-      label = self.ReplayTurnLabel;
+      label = self.replayTurnLabel;
       break;
     case kTopBarTurnLabel:
       label = self.turnLabel;
@@ -378,7 +379,7 @@
   
   UIViewAnimationOptions option = goOut ? UIViewAnimationOptionCurveEaseIn : UIViewAnimationOptionCurveEaseOut;
   [UIView animateWithDuration:kConstantTime delay:0 options:option animations:^{
-      self.ReplayTurnLabel.frame = CGRectMake(kReplayXEdgeBuffer, desiredY, self.view.frame.size.width - (kReplayXEdgeBuffer * 2), kTopBarHeight);
+      self.replayTurnLabel.frame = CGRectMake(kReplayXEdgeBuffer, desiredY, self.view.frame.size.width - (kReplayXEdgeBuffer * 2), kTopBarHeight);
     } completion:nil];
 }
 
@@ -389,7 +390,7 @@
   
   UIViewAnimationOptions option = goOut ? UIViewAnimationOptionCurveEaseIn : UIViewAnimationOptionCurveEaseOut;
   [UIView animateWithDuration:kConstantTime delay:0 options:option animations:^{
-      self.PnPWaitLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredY, self.view.frame.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
+      self.pnpWaitLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredY, self.view.frame.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
     } completion:nil];
 }
 
@@ -406,8 +407,8 @@
 -(void)backToMainMenu {
   
   self.topBarMessageLabel.text = @"";
-  self.PnPWaitLabel.text = @"";
-  self.ReplayTurnLabel.text = @"";
+  self.pnpWaitLabel.text = @"";
+  self.replayTurnLabel.text = @"";
   
   [self.delegate startAnimatingBackground];
   [self saveManagedObjectContext];
