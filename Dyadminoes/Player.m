@@ -63,9 +63,9 @@
 }
 
 -(void)removeFromThisTurnsDataDyadmino:(DataDyadmino *)dataDyad {
-  NSNumber *number = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]];
   if ([self thisTurnContainsDataDyadmino:dataDyad]) {
     NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.dataDyadminoIndexesThisTurn];
+    NSNumber *number = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]];
     [tempArray removeObject:number];
     self.dataDyadminoIndexesThisTurn = [NSArray arrayWithArray:tempArray];
   }

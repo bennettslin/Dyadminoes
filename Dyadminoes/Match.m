@@ -158,28 +158,37 @@
 #pragma mark - game state change methods
 
 -(void)swapDyadminoesFromCurrentPlayer {
-  Player *player = [self playerForIndex:[self returnCurrentPlayerIndex]];
+  Player *player = [self returnCurrentPlayer];
   
+    // temporarily store swapped data dyadminoes that player doesn't get same ones back
+  NSMutableArray *tempDataDyadminoes = [NSMutableArray new];
+  
+    // remove data dyadminoes from player rack, store in temp array
   for (NSNumber *number in self.swapIndexContainer) {
     DataDyadmino *dataDyad = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
     dataDyad.placeStatus = [NSNumber numberWithUnsignedInteger:kInPile];
     [player removeFromThisTurnsDataDyadmino:dataDyad];
-    
+    [tempDataDyadminoes addObject:dataDyad];
+  }
+  
+    // fill player rack from pile
+  [self fillRackFromPileForPlayer:player];
+  
+    // add data dyadminoes in temp array back to pile
+  for (DataDyadmino *dataDyad in tempDataDyadminoes) {
     [self.pile addObject:dataDyad];
   }
-
-  [self fillRackFromPileForPlayer:player];
   
   [self removeAllSwaps];
   
   [self resetHoldingContainer];
-  [self recordDyadminoesFromPlayer:player withSwap:YES]; // this records turn as a pass
+  [self recordDyadminoesFromCurrentPlayerWithSwap:YES]; // this records turn as a pass
     // sort the board and pile
   [self sortPileArray];
 }
 
--(void)recordDyadminoesFromPlayer:(Player *)player withSwap:(BOOL)swap {
-  
+-(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap {
+
     // a pass has an empty holding container, while a resign has *no* holding container
   NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:
                               [NSNumber numberWithUnsignedInteger:[self returnCurrentPlayerIndex]], @"player",
@@ -220,6 +229,7 @@
     self.numberOfConsecutivePasses = [NSNumber numberWithUnsignedInteger:0];
       /// obviously scorekeeping will be more sophisticated
       /// and will consider chords formed
+    Player *player = [self returnCurrentPlayer];
     NSUInteger newScore = [player returnPlayerScore] + [self returnTempScore];
     player.playerScore = [NSNumber numberWithUnsignedInteger:newScore];
     

@@ -57,8 +57,7 @@
 -(void)initialPlayers:(NSSet *)players andRules:(GameRules)rules andSkill:(GameSkill)skill withContext:(NSManagedObjectContext *)managedObjectContext;
 
   // game state change methods
--(Player *)switchToNextPlayer;
--(void)recordDyadminoesFromPlayer:(Player *)player withSwap:(BOOL)swap;
+-(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap;
 -(void)persistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad;
 -(void)swapDyadminoesFromCurrentPlayer;
 -(void)resignPlayer:(Player *)player;

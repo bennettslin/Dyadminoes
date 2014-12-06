@@ -16,6 +16,7 @@
 		3F0B477D1953C7B700BDE0BA /* Chord.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F0B477C1953C7B700BDE0BA /* Chord.m */; };
 		3F1071C61A2EBA8900C28923 /* MatchTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F1071C51A2EBA8900C28923 /* MatchTests.m */; };
 		3F1071C91A31594A00C28923 /* TestHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F1071C81A31594A00C28923 /* TestHelper.m */; };
+		3F1071CC1A32D1AB00C28923 /* TestMatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F1071CB1A32D1AB00C28923 /* TestMatch.m */; };
 		3F18924718CDB43300BEE276 /* Player.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F18924618CDB43300BEE276 /* Player.m */; };
 		3F193119198064C10034A5B9 /* StavesView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F193118198064C10034A5B9 /* StavesView.m */; };
 		3F1931201980C8240034A5B9 /* BachMassBackgroundCropped.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F19311F1980C8240034A5B9 /* BachMassBackgroundCropped.png */; };
@@ -54,7 +55,7 @@
 		3F87AAD5188DEE4C008C4A0D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAA188DEE4B008C4A0D /* Foundation.framework */; };
 		3F87AAD6188DEE4C008C4A0D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAE188DEE4B008C4A0D /* UIKit.framework */; };
 		3F87AADE188DEE4C008C4A0D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3F87AADC188DEE4C008C4A0D /* InfoPlist.strings */; };
-		3F87AAE0188DEE4C008C4A0D /* DyadminoesTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F87AADF188DEE4C008C4A0D /* DyadminoesTests.m */; };
+		3F87AAE0188DEE4C008C4A0D /* SceneEngineTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F87AADF188DEE4C008C4A0D /* SceneEngineTests.m */; };
 		3F88EDB719638FBF005CC9A4 /* LocalGameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F88EDB619638FBF005CC9A4 /* LocalGameViewController.m */; };
 		3F8F045818BFB1B300853C4C /* NSObject+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F8F045718BFB1B300853C4C /* NSObject+Helper.m */; };
 		3F8F045B18BFEF3300853C4C /* SnapPoint.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F8F045A18BFEF3300853C4C /* SnapPoint.m */; };
@@ -109,6 +110,8 @@
 		3F1071C51A2EBA8900C28923 /* MatchTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MatchTests.m; sourceTree = "<group>"; };
 		3F1071C71A31594A00C28923 /* TestHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestHelper.h; sourceTree = "<group>"; };
 		3F1071C81A31594A00C28923 /* TestHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestHelper.m; sourceTree = "<group>"; };
+		3F1071CA1A32D1AB00C28923 /* TestMatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestMatch.h; sourceTree = "<group>"; };
+		3F1071CB1A32D1AB00C28923 /* TestMatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestMatch.m; sourceTree = "<group>"; };
 		3F18924518CDB43300BEE276 /* Player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Player.h; sourceTree = "<group>"; };
 		3F18924618CDB43300BEE276 /* Player.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Player.m; sourceTree = "<group>"; };
 		3F193117198064C10034A5B9 /* StavesView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StavesView.h; sourceTree = "<group>"; };
@@ -169,7 +172,7 @@
 		3F87AAD3188DEE4C008C4A0D /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		3F87AADB188DEE4C008C4A0D /* DyadminoesTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "DyadminoesTests-Info.plist"; sourceTree = "<group>"; };
 		3F87AADD188DEE4C008C4A0D /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		3F87AADF188DEE4C008C4A0D /* DyadminoesTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DyadminoesTests.m; sourceTree = "<group>"; };
+		3F87AADF188DEE4C008C4A0D /* SceneEngineTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneEngineTests.m; sourceTree = "<group>"; };
 		3F88EDB519638FBF005CC9A4 /* LocalGameViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocalGameViewController.h; sourceTree = "<group>"; };
 		3F88EDB619638FBF005CC9A4 /* LocalGameViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocalGameViewController.m; sourceTree = "<group>"; };
 		3F8F045618BFB1B300853C4C /* NSObject+Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+Helper.h"; sourceTree = "<group>"; };
@@ -373,9 +376,11 @@
 			children = (
 				3F1071C71A31594A00C28923 /* TestHelper.h */,
 				3F1071C81A31594A00C28923 /* TestHelper.m */,
-				3F87AADF188DEE4C008C4A0D /* DyadminoesTests.m */,
-				3F3715B5199B1C69000C569E /* SonorityLogicTests.m */,
+				3F1071CA1A32D1AB00C28923 /* TestMatch.h */,
+				3F1071CB1A32D1AB00C28923 /* TestMatch.m */,
+				3F87AADF188DEE4C008C4A0D /* SceneEngineTests.m */,
 				3F1071C51A2EBA8900C28923 /* MatchTests.m */,
+				3F3715B5199B1C69000C569E /* SonorityLogicTests.m */,
 				3F87AADA188DEE4C008C4A0D /* Supporting Files */,
 			);
 			path = DyadminoesTests;
@@ -670,7 +675,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3F87AAE0188DEE4C008C4A0D /* DyadminoesTests.m in Sources */,
+				3F1071CC1A32D1AB00C28923 /* TestMatch.m in Sources */,
+				3F87AAE0188DEE4C008C4A0D /* SceneEngineTests.m in Sources */,
 				3F1071C61A2EBA8900C28923 /* MatchTests.m in Sources */,
 				3F3715B6199B1C69000C569E /* SonorityLogicTests.m in Sources */,
 				3F1071C91A31594A00C28923 /* TestHelper.m in Sources */,

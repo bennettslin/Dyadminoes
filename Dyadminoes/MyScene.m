@@ -1531,7 +1531,7 @@
     // no recent rack dyadmino on board
   if (!_recentRackDyadmino) {
     [self tempStoreForPlayerSceneDataDyadminoes]; // for player view
-    [self.myMatch recordDyadminoesFromPlayer:_myPlayer withSwap:NO];
+    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
     [self persistChangedBoardDyadminoPositionsAndOrientations]; // for match
 
     if ([self.myMatch returnType] != kPnPGame) {

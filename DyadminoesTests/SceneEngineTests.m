@@ -9,11 +9,11 @@
 #import <XCTest/XCTest.h>
 #import "SceneEngine.h"
 
-@interface DyadminoesTests : XCTestCase
+@interface SceneEngineTests : XCTestCase
 
 @end
 
-@implementation DyadminoesTests
+@implementation SceneEngineTests
 
 -(void)setUp {
   [super setUp];
@@ -26,8 +26,8 @@
 }
 
 -(void)testPileCountAfterInstantiation {
-  SceneEngine *pile = [[SceneEngine alloc] init];
-  XCTAssertTrue([pile.allDyadminoes count] == 66, @"Pile count should be 66");
+  SceneEngine *sceneEngine = [SceneEngine sharedSceneEngine];
+  XCTAssertTrue([sceneEngine.allDyadminoes count] == 66, @"Pile count should be 66");
 }
 
 @end
