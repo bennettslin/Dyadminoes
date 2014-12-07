@@ -157,34 +157,41 @@
 
 #pragma mark - game state change methods
 
--(void)swapDyadminoesFromCurrentPlayer {
-  Player *player = [self returnCurrentPlayer];
-  
-    // temporarily store swapped data dyadminoes that player doesn't get same ones back
-  NSMutableArray *tempDataDyadminoes = [NSMutableArray new];
-  
-    // remove data dyadminoes from player rack, store in temp array
-  for (NSNumber *number in self.swapIndexContainer) {
-    DataDyadmino *dataDyad = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
-    dataDyad.placeStatus = [NSNumber numberWithUnsignedInteger:kInPile];
-    [player removeFromThisTurnsDataDyadmino:dataDyad];
-    [tempDataDyadminoes addObject:dataDyad];
+-(BOOL)swapDyadminoesFromCurrentPlayer {
+
+  NSUInteger swapContainerCount = [(NSArray *)self.swapIndexContainer count];
+  if (swapContainerCount <= self.pile.count && swapContainerCount > 0) {
+    
+    Player *player = [self returnCurrentPlayer];
+    
+      // temporarily store swapped data dyadminoes that player doesn't get same ones back
+    NSMutableArray *tempDataDyadminoes = [NSMutableArray new];
+    
+      // remove data dyadminoes from player rack, store in temp array
+    for (NSNumber *number in self.swapIndexContainer) {
+      DataDyadmino *dataDyad = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
+      dataDyad.placeStatus = [NSNumber numberWithUnsignedInteger:kInPile];
+      [player removeFromThisTurnsDataDyadmino:dataDyad];
+      [tempDataDyadminoes addObject:dataDyad];
+    }
+    
+      // fill player rack from pile
+    [self fillRackFromPileForPlayer:player];
+    
+      // add data dyadminoes in temp array back to pile
+    for (DataDyadmino *dataDyad in tempDataDyadminoes) {
+      [self.pile addObject:dataDyad];
+    }
+    
+    [self removeAllSwaps];
+    
+    [self resetHoldingContainer];
+    [self recordDyadminoesFromCurrentPlayerWithSwap:YES]; // this records turn as a pass
+      // sort the board and pile
+    [self sortPileArray];
+    return YES;
   }
-  
-    // fill player rack from pile
-  [self fillRackFromPileForPlayer:player];
-  
-    // add data dyadminoes in temp array back to pile
-  for (DataDyadmino *dataDyad in tempDataDyadminoes) {
-    [self.pile addObject:dataDyad];
-  }
-  
-  [self removeAllSwaps];
-  
-  [self resetHoldingContainer];
-  [self recordDyadminoesFromCurrentPlayerWithSwap:YES]; // this records turn as a pass
-    // sort the board and pile
-  [self sortPileArray];
+  return NO;
 }
 
 -(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap {
@@ -300,11 +307,11 @@
       NSArray *turns = self.turns;
       NSNumber *thisTurn = [NSNumber numberWithUnsignedInteger:(turns.count > 0 ? turns.count : 1)]; // for first dyadmino
       [newDictionary setObject:thisTurn forKey:@"turn"];
-      NSLog(@"new dictionary created for turn %lu", (unsigned long)turns.count);
+//      NSLog(@"new dictionary created for turn %lu", (unsigned long)turns.count);
       
         // set object for changed hexCoord position
       if (!(lastHexX || lastHexY) || !(dataDyad.myHexCoord.x == [lastHexX integerValue] && dataDyad.myHexCoord.y == [lastHexY integerValue])) {
-        NSLog(@"hexCoord for dataDyad %lu changed, persist!", (unsigned long)[dataDyad returnMyID]);
+//        NSLog(@"hexCoord for dataDyad %lu changed, persist!", (unsigned long)[dataDyad returnMyID]);
         NSNumber *newHexX = [NSNumber numberWithInteger:dataDyad.myHexCoord.x];
         NSNumber *newHexY = [NSNumber numberWithInteger:dataDyad.myHexCoord.y];
         [newDictionary setObject:newHexX forKey:@"hexX"];
@@ -313,7 +320,7 @@
       
         // set object for changed orientation
       if (!lastOrientation || [dataDyad returnMyOrientation] != [lastOrientation unsignedIntegerValue]) {
-        NSLog(@"orientation for dataDyad %lu changed, persist!", (unsigned long)[dataDyad returnMyID]);
+//        NSLog(@"orientation for dataDyad %lu changed, persist!", (unsigned long)[dataDyad returnMyID]);
         NSNumber *newOrientation = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyOrientation]];
         [newDictionary setObject:newOrientation forKey:@"orientation"];
       }

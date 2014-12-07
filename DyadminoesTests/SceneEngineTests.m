@@ -27,7 +27,7 @@
 
 -(void)testPileCountAfterInstantiation {
   SceneEngine *sceneEngine = [SceneEngine sharedSceneEngine];
-  XCTAssertTrue([sceneEngine.allDyadminoes count] == 66, @"Pile count should be 66");
+  XCTAssertTrue([sceneEngine.allDyadminoes count] == kPileCount, @"Pile count should be 66");
 }
 
 @end

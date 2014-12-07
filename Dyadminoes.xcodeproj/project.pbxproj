@@ -16,7 +16,7 @@
 		3F0B477D1953C7B700BDE0BA /* Chord.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F0B477C1953C7B700BDE0BA /* Chord.m */; };
 		3F1071C61A2EBA8900C28923 /* MatchTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F1071C51A2EBA8900C28923 /* MatchTests.m */; };
 		3F1071C91A31594A00C28923 /* TestHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F1071C81A31594A00C28923 /* TestHelper.m */; };
-		3F1071CC1A32D1AB00C28923 /* TestMatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F1071CB1A32D1AB00C28923 /* TestMatch.m */; };
+		3F1071CF1A32DA5300C28923 /* Match+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F1071CE1A32DA5300C28923 /* Match+Helper.m */; };
 		3F18924718CDB43300BEE276 /* Player.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F18924618CDB43300BEE276 /* Player.m */; };
 		3F193119198064C10034A5B9 /* StavesView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F193118198064C10034A5B9 /* StavesView.m */; };
 		3F1931201980C8240034A5B9 /* BachMassBackgroundCropped.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F19311F1980C8240034A5B9 /* BachMassBackgroundCropped.png */; };
@@ -110,8 +110,8 @@
 		3F1071C51A2EBA8900C28923 /* MatchTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MatchTests.m; sourceTree = "<group>"; };
 		3F1071C71A31594A00C28923 /* TestHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestHelper.h; sourceTree = "<group>"; };
 		3F1071C81A31594A00C28923 /* TestHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestHelper.m; sourceTree = "<group>"; };
-		3F1071CA1A32D1AB00C28923 /* TestMatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestMatch.h; sourceTree = "<group>"; };
-		3F1071CB1A32D1AB00C28923 /* TestMatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestMatch.m; sourceTree = "<group>"; };
+		3F1071CD1A32DA5300C28923 /* Match+Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Match+Helper.h"; sourceTree = "<group>"; };
+		3F1071CE1A32DA5300C28923 /* Match+Helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Match+Helper.m"; sourceTree = "<group>"; };
 		3F18924518CDB43300BEE276 /* Player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Player.h; sourceTree = "<group>"; };
 		3F18924618CDB43300BEE276 /* Player.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Player.m; sourceTree = "<group>"; };
 		3F193117198064C10034A5B9 /* StavesView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StavesView.h; sourceTree = "<group>"; };
@@ -374,13 +374,13 @@
 		3F87AAD9188DEE4C008C4A0D /* DyadminoesTests */ = {
 			isa = PBXGroup;
 			children = (
-				3F1071C71A31594A00C28923 /* TestHelper.h */,
-				3F1071C81A31594A00C28923 /* TestHelper.m */,
-				3F1071CA1A32D1AB00C28923 /* TestMatch.h */,
-				3F1071CB1A32D1AB00C28923 /* TestMatch.m */,
-				3F87AADF188DEE4C008C4A0D /* SceneEngineTests.m */,
 				3F1071C51A2EBA8900C28923 /* MatchTests.m */,
 				3F3715B5199B1C69000C569E /* SonorityLogicTests.m */,
+				3F87AADF188DEE4C008C4A0D /* SceneEngineTests.m */,
+				3F1071C71A31594A00C28923 /* TestHelper.h */,
+				3F1071C81A31594A00C28923 /* TestHelper.m */,
+				3F1071CD1A32DA5300C28923 /* Match+Helper.h */,
+				3F1071CE1A32DA5300C28923 /* Match+Helper.m */,
 				3F87AADA188DEE4C008C4A0D /* Supporting Files */,
 			);
 			path = DyadminoesTests;
@@ -675,11 +675,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3F1071CC1A32D1AB00C28923 /* TestMatch.m in Sources */,
 				3F87AAE0188DEE4C008C4A0D /* SceneEngineTests.m in Sources */,
 				3F1071C61A2EBA8900C28923 /* MatchTests.m in Sources */,
 				3F3715B6199B1C69000C569E /* SonorityLogicTests.m in Sources */,
 				3F1071C91A31594A00C28923 /* TestHelper.m in Sources */,
+				3F1071CF1A32DA5300C28923 /* Match+Helper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

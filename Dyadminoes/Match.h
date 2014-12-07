@@ -59,7 +59,7 @@
   // game state change methods
 -(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap;
 -(void)persistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad;
--(void)swapDyadminoesFromCurrentPlayer;
+-(BOOL)swapDyadminoesFromCurrentPlayer;
 -(void)resignPlayer:(Player *)player;
 
   // undo methods

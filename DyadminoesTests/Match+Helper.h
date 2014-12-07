@@ -1,5 +1,5 @@
 //
-//  TestMatch.h
+//  Match+Helper.h
 //  Dyadminoes
 //
 //  Created by Bennett Lin on 12/5/14.
@@ -8,6 +8,8 @@
 
 #import "Match.h"
 
-@interface TestMatch : Match
+@interface Match (Helper)
+
+-(void)removeFromPileNumberOfDataDyadminoes:(NSUInteger)numberToRemove;
 
 @end
