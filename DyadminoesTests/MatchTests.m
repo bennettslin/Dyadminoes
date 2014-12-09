@@ -231,7 +231,7 @@
   }
 }
 
--(void)testSwapCorrectlyExchangesDataDyadminoesBetweenPileAndRack {
+-(void)testSwapCorrectlyExchangesBetweenPileAndRack {
   
     // test 1 to 4 players
   for (int i = 1; i <= kMaxNumPlayers; i++) {
@@ -278,7 +278,7 @@
         // check swapped dyadminoes are now in pile
       for (DataDyadmino *dataDyad in swappedDataDyads) {
         PlaceStatus placeStatus = (PlaceStatus)[dataDyad.placeStatus unsignedIntegerValue];
-        XCTAssertTrue(placeStatus == kInPile, @"Data dyadmino is not back in pile.");
+        XCTAssertTrue(placeStatus == kInPile, @"Data dyadmino is not back in pile after swap.");
       }
     }
   }
@@ -329,9 +329,13 @@
         NSUInteger numberToRemove = kPileCount - (i * kNumDyadminoesInRack) - 1 - k;
         [self.myMatch removeFromPileNumberOfDataDyadminoes:numberToRemove];
         
+        Player *player = [self.myMatch returnCurrentPlayer];
+        NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+        
           // exchange data dyadminoes
         for (int l = 0; l < j; l++) {
-          DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:l];
+          NSNumber *numberIndex = dataDyadminoIndexes[l];
+          DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[numberIndex unsignedIntegerValue]];
           [self.myMatch addToSwapDataDyadmino:dataDyad];
         }
         
@@ -352,10 +356,20 @@
   XCTAssertTrue(self.myMatch.gameHasEnded, @"Game does not end after resign in self game.");
 }
 
--(void)testResignEndsTwoPlayerGame {
-  [self setupGameForNumberOfPlayers:2];
-  [self.myMatch resignPlayer:[self.myMatch returnCurrentPlayer]];
-  XCTAssertTrue(self.myMatch.gameHasEnded, @"Game does not end after two-player game.");
+-(void)testResignEndsPnPGame {
+  
+    // test 2 to 4 players
+  for (int i = 2; i <= kMaxNumPlayers; i++) {
+    [self setupGameForNumberOfPlayers:i];
+    
+    XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended before enough players resigned.");
+    
+    for (int j = 0; j < i - 1; j++) {
+      [self.myMatch resignPlayer:[self.myMatch returnCurrentPlayer]];
+    }
+      
+    XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game did not end after enough players resigned.");
+  }
 }
 
 -(void)testResignSwitchesToNextPlayer {
@@ -419,9 +433,38 @@
   }
 }
 
-  // TODO: test resigned player is passed over in next round
+-(void)testResignedPlayerIsSkipped {
+  
+    // test 3 to 4 players
+  for (int i = 3; i <= kMaxNumPlayers; i++) {
+    
+    for (int j = 1; j <= i; j++) {
+      
+      [self setupGameForNumberOfPlayers:i];
+      
+        // pass this many times, depending on order of player
+      for (int k = 1; k < j; k++) {
+        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+      }
+      
+      Player *currentPlayer = [self.myMatch returnCurrentPlayer];
+      NSInteger currentPlayerIndex = [currentPlayer returnPlayerOrder];
+      
+      [self.myMatch resignPlayer:currentPlayer];
+      
+        // pass to player before in next round
+      for (int k = 0; k < i - 1; k++) {
+        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+      }
+      
+      Player *afterPlayer = [self.myMatch returnCurrentPlayer];
+      NSInteger afterPlayerIndex = [afterPlayer returnPlayerOrder];
 
-  // TODO: test that game ends when players resign in games of all numbers of players
+      BOOL afterPlayerComesAfter = ((afterPlayerIndex - currentPlayerIndex + i) % i) == 1;
+      XCTAssertTrue(afterPlayerComesAfter, @"Resigned player is not skipped over in next round.");
+    }
+  }
+}
 
 #pragma mark - undo tests
 
@@ -454,15 +497,234 @@
   }
 }
 
-#pragma mark - record dyadminoes tests
+#pragma mark - recorded turn tests
+
+-(void)testTurnsAreRecordedSequentially {
+  
+    // test 2 to 4 players
+  for (int i = 1; i <= kMaxNumPlayers; i++) {
+    [self setupGameForNumberOfPlayers:i];
+    
+    NSUInteger preTurnCount, postTurnCount;
+    
+      // pass this many times
+    for (int j = 0; j < 2 * i; j++) {
+      
+      preTurnCount = [(NSArray *)self.myMatch.turns count];
+      [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+      postTurnCount = [(NSArray *)self.myMatch.turns count];
+      
+      XCTAssertTrue(postTurnCount == preTurnCount + 1, @"Turn was not recorded sequentially.");
+    }
+  }
+}
+
+-(void)testTurnRecordsProperPlayer {
+  
+    // test 1 to 4 players
+  for (int i = 1; i <= kMaxNumPlayers; i++) {
+    [self setupGameForNumberOfPlayers:i];
+
+      // pass this many times
+    for (int j = 0; j < 2 * i; j++) {
+      
+      NSUInteger expectedPlayerOrder = [[self.myMatch currentPlayerIndex] unsignedIntegerValue];
+      [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+      
+      NSDictionary *turn = [(NSArray *)self.myMatch.turns lastObject];
+      NSUInteger returnedPlayerOrder = [(NSNumber *)[turn objectForKey:@"player"] unsignedIntegerValue];
+      XCTAssertEqual(expectedPlayerOrder, returnedPlayerOrder, @"Proper player not recorded for turn.");
+    }
+  }
+}
+
+-(void)testTurnForPassIsRecordedWithEmptyContainer {
+  
+    // test 2 to 4 players
+  for (int i = 1; i <= kMaxNumPlayers; i++) {
+    [self setupGameForNumberOfPlayers:i];
+    
+    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    
+    NSDictionary *turn = [(NSArray *)self.myMatch.turns lastObject];
+    id indexContainer = [turn objectForKey:@"indexContainer"];
+    XCTAssertTrue([indexContainer isKindOfClass:[NSArray class]], @"Index container is not an array.");
+    
+    NSArray *indexContainerArray = (NSArray *)indexContainer;
+    XCTAssertTrue(indexContainerArray.count == 0, @"Index container is not empty for pass.");
+  }
+}
+
+-(void)testTurnForSwapIsRecordedLikePass {
+
+    // test 1 to 4 players
+  for (int i = 1; i <= kMaxNumPlayers; i++) {
+    [self setupGameForNumberOfPlayers:i];
+    NSInteger numberOfPlayers = self.myMatch.players.count;
+    
+      // swap needs to have a data dyadmino in
+    for (int j = 1; j <= numberOfPlayers; j++) {
+      Player *currentPlayer = [self.myMatch returnCurrentPlayer];
+      
+        // random data dyadmino
+      NSUInteger randomDataDyadminoRackIndex = arc4random() % [(NSArray *)currentPlayer.dataDyadminoIndexesThisTurn count];
+      NSNumber *randomDataDyadminoIndex = [(NSArray *)currentPlayer.dataDyadminoIndexesThisTurn objectAtIndex:randomDataDyadminoRackIndex];
+      DataDyadmino *dataDyadmino = [self.myMatch dataDyadminoForIndex:[randomDataDyadminoIndex unsignedIntegerValue]];
+      
+      [self.myMatch addToSwapDataDyadmino:dataDyadmino];
+      [self.myMatch swapDyadminoesFromCurrentPlayer];
+      
+      NSDictionary *turn = [(NSArray *)self.myMatch.turns lastObject];
+      NSArray *indexContainer = (NSArray *)[turn objectForKey:@"indexContainer"];
+      
+      XCTAssertTrue(indexContainer.count == 0, @"Index container is not empty for swap.");
+    }
+  }
+}
+
+-(void)testTurnForResignIsRecordedWithNoContainer {
+  
+    // test 3 to 4 players
+  for (int i = 3; i <= kMaxNumPlayers; i++) {
+    
+      // test for each player
+    for (int j = 1; j <= i; j++) {
+      
+      [self setupGameForNumberOfPlayers:i];
+
+        // pass this many times, depending on order of player
+      for (int k = 1; k < j; k++) {
+        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+      }
+      
+      Player *currentPlayer = [self.myMatch returnCurrentPlayer];
+      
+      [self.myMatch resignPlayer:currentPlayer];
+      
+      NSDictionary *turn = [(NSArray *)self.myMatch.turns lastObject];
+      NSArray *indexContainer = (NSArray *)[turn objectForKey:@"indexContainer"];
+      
+      XCTAssertNil(indexContainer, @"Index container should be nil for resign.");
+    }
+  }
+}
+
+-(void)testRackIsProperlyRefilledAfterPlayedTurn {
+  
+    // test 1 to 4 players
+  for (int i = 1; i <= kMaxNumPlayers; i++) {
+    
+      // returns all subsets of dyadminoes
+    NSArray *numberArray = [self arrayOfNumbersWithCount:kNumDyadminoesInRack];
+    NSArray *powerSetArray = [self powerSet:numberArray];
+    
+      // for this particular combination of data dyadminoes to be played
+    for (NSArray *rackOrderArray in powerSetArray) {
+      if (rackOrderArray.count > 0) {
+        
+        [self setupGameForNumberOfPlayers:i];
+        
+        Player *player = [self.myMatch returnCurrentPlayer];
+        NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+        
+        NSUInteger beforePileCount = self.myMatch.pile.count;
+        NSUInteger beforeDataDyadminoIndexesCount = dataDyadminoIndexes.count;
+        
+        NSMutableArray *tempPlayedDataDyads = [NSMutableArray new];
+        
+        for (NSNumber *index in rackOrderArray) {
+          NSUInteger rackOrderIndex = [index unsignedIntegerValue];
+          NSUInteger dataDyadminoIndex = [dataDyadminoIndexes[rackOrderIndex] unsignedIntegerValue];
+          DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:dataDyadminoIndex];
+          [self.myMatch addToHoldingContainer:dataDyad];
+          [tempPlayedDataDyads addObject:dataDyad];
+        }
+        
+        NSArray *playedDataDyads = [NSArray arrayWithArray:tempPlayedDataDyads];
+        
+          // played!
+        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+        
+        NSUInteger afterPileCount = self.myMatch.pile.count;
+        NSUInteger afterDataDyadminoIndexesCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
+
+          // check after pile count is before pile count minus data dyadminoes played
+        XCTAssertTrue(beforePileCount == afterPileCount + rackOrderArray.count, @"Pile count did not subtract dyadmino count properly after play.");
+        
+          // check player rack count is same
+        XCTAssertEqual(beforeDataDyadminoIndexesCount, afterDataDyadminoIndexesCount, @"Player rack count is different after play.");
+        
+          // check played dyadminoes are now on board
+        for (DataDyadmino *dataDyad in playedDataDyads) {
+          PlaceStatus placeStatus = (PlaceStatus)[dataDyad.placeStatus unsignedIntegerValue];
+          XCTAssertTrue(placeStatus == kOnBoard, @"Data dyadmino is not on board after play.");
+        }
+      }
+    }
+  }
+}
+
+-(void)testRackRefillsOnlyUntilPileIsEmptyAndGameEndsWhenPileAndRackAreBothEmpty {
+  
+    // test 1 to 4 players
+  for (int i = 1; i <= kMaxNumPlayers; i++) {
+    
+      // test all possible number of dyadminoes to play
+    for (int j = 0; j <= kNumDyadminoesInRack; j++) {
+      
+        // test all possible number of dyadminoes left in pile from 0 to 6
+      for (int k = 0; k <= kNumDyadminoesInRack; k++) {
+        [self setupGameForNumberOfPlayers:i];
+        
+        Player *player = [self.myMatch returnCurrentPlayer];
+        NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+        
+        NSUInteger numberToRemove = kPileCount - (i * kNumDyadminoesInRack) - 1 - k;
+        [self.myMatch removeFromPileNumberOfDataDyadminoes:numberToRemove];
+        
+          // play data dyadminoes
+        for (int l = 0; l < j; l++) {
+          NSNumber *numberIndex = dataDyadminoIndexes[l];
+          DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[numberIndex unsignedIntegerValue]];
+          [self.myMatch addToHoldingContainer:dataDyad];
+        }
+        
+        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+        
+        NSUInteger rackCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
+        
+        BOOL pileIsEmptyAndPlayerRackLessThanFullIfMoreDyadminoesPlayedThanLeftInPile = YES;
+        
+          // number left in pile is less than number played
+        if (k < j) {
+          if (rackCount == kNumDyadminoesInRack || self.myMatch.pile.count > 0) {
+            pileIsEmptyAndPlayerRackLessThanFullIfMoreDyadminoesPlayedThanLeftInPile = NO;
+          }
+        }
+        
+        XCTAssertTrue(pileIsEmptyAndPlayerRackLessThanFullIfMoreDyadminoesPlayedThanLeftInPile, @"Pile should be empty and player rack less than full if more dyadminoes were played than there were dyadminoes left in pile.");
+        
+          // none left in pile or rack, game should end
+        BOOL gameEndsIfPileAndRackAreEmpty = YES;
+        if (self.myMatch.pile.count == 0 && rackCount == 0 && ![self.myMatch returnGameHasEnded]) {
+          gameEndsIfPileAndRackAreEmpty = NO;
+        }
+        
+        XCTAssertTrue(gameEndsIfPileAndRackAreEmpty, @"Game did not end after play leaves empty pile and empty rack.");
+      }
+    }
+  }
+}
 
 #pragma mark - persistence tests
 
 #pragma mark - replay tests
 
-#pragma mark - match end tests
+#pragma mark - match game end tests
 
 #pragma mark - win tests
+
+#pragma mark - score tests
 
 #pragma mark - additional setup methods
 
@@ -525,7 +787,7 @@
   return [NSArray arrayWithArray:powerSet];
 }
 
-#pragma mark - test test methods
+#pragma mark - helper test methods
 
 -(void)testPileRemovalMethod {
   

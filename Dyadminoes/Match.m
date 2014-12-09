@@ -164,7 +164,7 @@
     
     Player *player = [self returnCurrentPlayer];
     
-      // temporarily store swapped data dyadminoes that player doesn't get same ones back
+      // temporarily store swapped data dyadminoes so that player doesn't get same ones back
     NSMutableArray *tempDataDyadminoes = [NSMutableArray new];
     
       // remove data dyadminoes from player rack, store in temp array
@@ -335,7 +335,7 @@
         NSInteger hexX = [(NSNumber *)[dictionary objectForKey:@"hexX"] integerValue];
         NSInteger hexY = [(NSNumber *)[dictionary objectForKey:@"hexY"] integerValue];
         DyadminoOrientation orientation = [(NSNumber *)[dictionary objectForKey:@"orientation"] unsignedIntValue];
-        NSLog(@"dataDyad %lu for turn %lu has position %li, %li and orientation %i", (unsigned long)[dataDyad returnMyID], (unsigned long)turn, (long)hexX, (long)hexY, orientation);
+//        NSLog(@"dataDyad %lu for turn %lu has position %li, %li and orientation %i", (unsigned long)[dataDyad returnMyID], (unsigned long)turn, (long)hexX, (long)hexY, orientation);
       }
     }
   }
