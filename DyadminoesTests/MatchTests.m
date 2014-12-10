@@ -124,12 +124,6 @@
 
 #pragma mark - pass tests
 
--(void)testPassEndsSelfGame {
-  [self setupGameForNumberOfPlayers:1];
-  [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
-  XCTAssertTrue(self.myMatch.gameHasEnded, @"Game does not end after pass in self game.");
-}
-
 -(void)testPassesToNextPlayer {
   
     // test 2 to 4 players
@@ -155,40 +149,6 @@
       XCTAssertTrue(switchesCorrectlyToNextPlayer, @"Does not switch to next player correctly after pass.");
       XCTAssertTrue(nextTurnCount == currentTurnCount + 1, @"Pass did not add turn.");
     }
-  }
-}
-
--(void)testCorrectNumberOfPassesEndMatchForAllNumbersOfPlayers {
-  
-  // test 2 to 4 players, two rotations for dyadminoes left in pile
-  for (int i = 2; i <= kMaxNumPlayers; i++) {
-    [self setupGameForNumberOfPlayers:i];
-
-     // pass this many times, up until the last turn before game ends
-    for (int j = 0; j < 2 * i - 1; j++) {
-     [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
-    }
-    XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with dyadminoes left in pile.");
-
-     // now pass once, and game should end
-    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
-    XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game should have ended with dyadminoes left in pile.");
-  }
-  
-    // test 2 to 4 players, one rotation for no dyadminoes left in pile
-  for (int i = 2; i <= kMaxNumPlayers; i++) {
-    [self setupGameForNumberOfPlayers:i];
-    [self.myMatch removeFromPileNumberOfDataDyadminoes:self.myMatch.pile.count];
-    
-      // pass this many times, up until the last turn before game ends
-    for (int j = 0; j < i - 1; j++) {
-      [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
-    }
-    XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with no dyadminoes left in pile.");
-    
-      // now pass once, and game should end
-    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
-    XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game should have ended with no dyadminoes left in pile.");
   }
 }
 
@@ -349,28 +309,6 @@
 }
 
 #pragma mark - resign tests
-
--(void)testResignEndsSelfGame {
-  [self setupGameForNumberOfPlayers:1];
-  [self.myMatch resignPlayer:[self.myMatch returnCurrentPlayer]];
-  XCTAssertTrue(self.myMatch.gameHasEnded, @"Game does not end after resign in self game.");
-}
-
--(void)testResignEndsPnPGame {
-  
-    // test 2 to 4 players
-  for (int i = 2; i <= kMaxNumPlayers; i++) {
-    [self setupGameForNumberOfPlayers:i];
-    
-    XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended before enough players resigned.");
-    
-    for (int j = 0; j < i - 1; j++) {
-      [self.myMatch resignPlayer:[self.myMatch returnCurrentPlayer]];
-    }
-      
-    XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game did not end after enough players resigned.");
-  }
-}
 
 -(void)testResignSwitchesToNextPlayer {
     // duplicates testPassesToNextPlayer, except with resign
@@ -595,6 +533,7 @@
         XCTAssertTrue(pileIsEmptyAndPlayerRackLessThanFullIfMoreDyadminoesPlayedThanLeftInPile, @"Pile should be empty and player rack less than full if more dyadminoes were played than there were dyadminoes left in pile.");
         
           // none left in pile or rack, game should end
+          // this is also a separate test by itself, but it never hurts to test again
         BOOL gameEndsIfPileAndRackAreEmpty = YES;
         if (self.myMatch.pile.count == 0 && rackCount == 0 && ![self.myMatch returnGameHasEnded]) {
           gameEndsIfPileAndRackAreEmpty = NO;
@@ -863,25 +802,159 @@
       
       XCTAssertEqual(movedCoord.x, returnedX, @"X value not as expected.");
       XCTAssertEqual(movedCoord.y, returnedY, @"Y value not as expected.");
-    } else {
-      XCTAssertNil([turnChange valueForKey:@"hexX"], @"Should not have object for hexX key.");
-      XCTAssertNil([turnChange valueForKey:@"hexY"], @"Should not have object for hexY key.");
     }
     
       // orientation in rack will be different, so object for key will always exist
     DyadminoOrientation returnedOrientation = (DyadminoOrientation)[[turnChange valueForKey:@"orientation"] unsignedIntegerValue];
     XCTAssertEqual(movedOrientation, returnedOrientation, @"Orientation value not as expected.");
     XCTAssertNotNil([turnChange valueForKey:@"orientation"], @"Object for orientation key should not be nil.");
-
   }
 }
 
 #pragma mark - replay tests
 
+-(void)testReplayStartsAndEndsOnLastTurn {
+  
+  [self playFullGameOfOneDyadminoPerPlayForNumberOfPlayers:4];
+  [self.myMatch startReplay];
+  
+  NSUInteger replayTurn = [self.myMatch returnReplayTurn];
+  XCTAssertEqual(replayTurn, [(NSArray *)self.myMatch.turns count], @"Replay does not start on last turn.");
+  
+  [self.myMatch leaveReplay];
+  replayTurn = [self.myMatch returnReplayTurn];
+  XCTAssertEqual(replayTurn, [(NSArray *)self.myMatch.turns count], @"Replay does not leave on last turn.");
+}
 
+-(void)testReplayFirstAndLast {
+  [self playFullGameOfOneDyadminoPerPlayForNumberOfPlayers:4];
+  [self.myMatch startReplay];
+  [self.myMatch first];
+  
+  NSUInteger replayTurn = [self.myMatch returnReplayTurn];
+  XCTAssertEqual(replayTurn, 1, @"Replay first does not go to turn 1.");
+  
+  [self.myMatch last];
+  replayTurn = [self.myMatch returnReplayTurn];
+  XCTAssertEqual(replayTurn, [(NSArray *)self.myMatch.turns count], @"Replay last does not go to last turn.");
+}
 
+-(void)testReplayPreviousAndNext {
+  [self playFullGameOfOneDyadminoPerPlayForNumberOfPlayers:4];
+  [self.myMatch startReplay];
+  
+  NSUInteger expectedReplayTurn = [self.myMatch returnReplayTurn];
+    // press previous one by one
+  do {
+    [self.myMatch previous];
+    expectedReplayTurn--;
+    XCTAssertEqual([self.myMatch returnReplayTurn], expectedReplayTurn, @"Replay previous does not go to previous turn.");
+  } while ([self.myMatch returnReplayTurn] > 1);
+  
+    // now it's at turn 1
+    // press next one by one
+  expectedReplayTurn = 1;
+  do {
+    [self.myMatch next];
+    expectedReplayTurn++;
+    XCTAssertEqual([self.myMatch returnReplayTurn], expectedReplayTurn, @"Replay next does not go to next turnturn.");
+  } while ([self.myMatch returnReplayTurn] < [(NSArray *)self.myMatch.turns count]);
+  
+  [self.myMatch leaveReplay];
+}
 
 #pragma mark - match game end tests
+
+-(void)testPassEndsSelfGame {
+  [self setupGameForNumberOfPlayers:1];
+  [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+  XCTAssertTrue(self.myMatch.gameHasEnded, @"Game does not end after pass in self game.");
+}
+
+  // FIXME: this mechanism is flawed because it doesn't account for resigned players
+-(void)testCorrectNumberOfPassesEndMatchForAllNumbersOfPlayers {
+  
+    // test 2 to 4 players, two rotations for dyadminoes left in pile
+  for (int i = 2; i <= kMaxNumPlayers; i++) {
+    [self setupGameForNumberOfPlayers:i];
+    
+      // pass this many times, up until the last turn before game ends
+    for (int j = 0; j < 2 * i - 1; j++) {
+      [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    }
+    XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with dyadminoes left in pile.");
+    
+      // now pass once, and game should end
+    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game should have ended with dyadminoes left in pile.");
+  }
+  
+    // test 2 to 4 players, one rotation for no dyadminoes left in pile
+  for (int i = 2; i <= kMaxNumPlayers; i++) {
+    [self setupGameForNumberOfPlayers:i];
+    [self.myMatch removeFromPileNumberOfDataDyadminoes:self.myMatch.pile.count];
+    
+      // pass this many times, up until the last turn before game ends
+    for (int j = 0; j < i - 1; j++) {
+      [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    }
+    XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with no dyadminoes left in pile.");
+    
+      // now pass once, and game should end
+    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game should have ended with no dyadminoes left in pile.");
+  }
+}
+
+-(void)testResignEndsSelfGame {
+  [self setupGameForNumberOfPlayers:1];
+  [self.myMatch resignPlayer:[self.myMatch returnCurrentPlayer]];
+  XCTAssertTrue(self.myMatch.gameHasEnded, @"Game does not end after resign in self game.");
+}
+
+-(void)testResignEndsPnPGame {
+  
+    // test 2 to 4 players
+  for (int i = 2; i <= kMaxNumPlayers; i++) {
+    [self setupGameForNumberOfPlayers:i];
+    
+    XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended before enough players resigned.");
+    
+    for (int j = 0; j < i - 1; j++) {
+      [self.myMatch resignPlayer:[self.myMatch returnCurrentPlayer]];
+    }
+    
+    XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game did not end after enough players resigned.");
+  }
+}
+
+-(void)testGameEndsIfPileIsEmptyAndPlayerPlaysLastDyadmino {
+  
+    // test 1 to 4 players
+  for (int i = 1; i <= kMaxNumPlayers; i++) {
+    
+    [self setupGameForNumberOfPlayers:i];
+    
+    Player *player = [self.myMatch returnCurrentPlayer];
+    NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+    
+      // remove all dyadminoes in pile
+    NSUInteger numberToRemove = kPileCount - (i * kNumDyadminoesInRack) - 1;
+    [self.myMatch removeFromPileNumberOfDataDyadminoes:numberToRemove];
+    
+      // play all data dyadminoes
+    for (int k = 0; k < kNumDyadminoesInRack; k++) {
+      NSNumber *numberIndex = dataDyadminoIndexes[k];
+      DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[numberIndex unsignedIntegerValue]];
+      [self.myMatch addToHoldingContainer:dataDyad];
+    }
+    
+    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    NSUInteger rackCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
+    XCTAssertTrue(rackCount == 0, @"Rack should be empty because player played all dyadminoes.");
+    XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game did not end after play leaves empty pile and empty rack.");
+  }
+}
 
 #pragma mark - win tests
 
