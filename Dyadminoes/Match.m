@@ -305,13 +305,11 @@
         // create new dictionary
       NSMutableDictionary *newDictionary = [NSMutableDictionary new];
       NSArray *turns = self.turns;
-      NSNumber *thisTurn = [NSNumber numberWithUnsignedInteger:(turns.count > 0 ? turns.count : 1)]; // for first dyadmino
+      NSNumber *thisTurn = [NSNumber numberWithUnsignedInteger:turns.count]; // first dyadmino turn count will be 0
       [newDictionary setObject:thisTurn forKey:@"turn"];
-//      NSLog(@"new dictionary created for turn %lu", (unsigned long)turns.count);
       
         // set object for changed hexCoord position
       if (!(lastHexX || lastHexY) || !(dataDyad.myHexCoord.x == [lastHexX integerValue] && dataDyad.myHexCoord.y == [lastHexY integerValue])) {
-//        NSLog(@"hexCoord for dataDyad %lu changed, persist!", (unsigned long)[dataDyad returnMyID]);
         NSNumber *newHexX = [NSNumber numberWithInteger:dataDyad.myHexCoord.x];
         NSNumber *newHexY = [NSNumber numberWithInteger:dataDyad.myHexCoord.y];
         [newDictionary setObject:newHexX forKey:@"hexX"];
@@ -320,7 +318,6 @@
       
         // set object for changed orientation
       if (!lastOrientation || [dataDyad returnMyOrientation] != [lastOrientation unsignedIntegerValue]) {
-//        NSLog(@"orientation for dataDyad %lu changed, persist!", (unsigned long)[dataDyad returnMyID]);
         NSNumber *newOrientation = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyOrientation]];
         [newDictionary setObject:newOrientation forKey:@"orientation"];
       }
@@ -328,15 +325,6 @@
       NSMutableArray *mutableTurnChanges = [NSMutableArray arrayWithArray:dataDyad.turnChanges];
       [mutableTurnChanges addObject:[NSDictionary dictionaryWithDictionary:newDictionary]];
       dataDyad.turnChanges = [NSArray arrayWithArray:mutableTurnChanges];
-      
-        // for testing purposes
-      for (NSDictionary *dictionary in dataDyad.turnChanges) {
-        NSUInteger turn = [(NSNumber *)[dictionary objectForKey:@"turn"] unsignedIntegerValue];
-        NSInteger hexX = [(NSNumber *)[dictionary objectForKey:@"hexX"] integerValue];
-        NSInteger hexY = [(NSNumber *)[dictionary objectForKey:@"hexY"] integerValue];
-        DyadminoOrientation orientation = [(NSNumber *)[dictionary objectForKey:@"orientation"] unsignedIntValue];
-//        NSLog(@"dataDyad %lu for turn %lu has position %li, %li and orientation %i", (unsigned long)[dataDyad returnMyID], (unsigned long)turn, (long)hexX, (long)hexY, orientation);
-      }
     }
   }
 }

@@ -287,7 +287,7 @@
 -(void)testPlayerNeverGetsSameDyadminoesBackAfterSwap {
   
     // repeat 100 times to be sure
-  for (int i = 0; i < 99; i++) {
+  for (int i = 0; i < 100; i++) {
 
     [self setupGameForNumberOfPlayers:1];
     NSMutableArray *tempSwappedDataDyadminoIndexes = [NSMutableArray new];
@@ -497,7 +497,116 @@
   }
 }
 
-#pragma mark - recorded turn tests
+#pragma mark - turn tests
+
+-(void)testRackIsProperlyRefilledAfterPlayedTurn {
+  
+    // test 1 to 4 players
+  for (int i = 1; i <= kMaxNumPlayers; i++) {
+    
+      // returns all subsets of dyadminoes
+    NSArray *numberArray = [self arrayOfNumbersWithCount:kNumDyadminoesInRack];
+    NSArray *powerSetArray = [self powerSet:numberArray];
+    
+      // for this particular combination of data dyadminoes to be played
+    for (NSArray *rackOrderArray in powerSetArray) {
+      if (rackOrderArray.count > 0) {
+        
+        [self setupGameForNumberOfPlayers:i];
+        
+        Player *player = [self.myMatch returnCurrentPlayer];
+        NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+        
+        NSUInteger beforePileCount = self.myMatch.pile.count;
+        NSUInteger beforeDataDyadminoIndexesCount = dataDyadminoIndexes.count;
+        
+        NSMutableArray *tempPlayedDataDyads = [NSMutableArray new];
+        
+        for (NSNumber *index in rackOrderArray) {
+          NSUInteger rackOrderIndex = [index unsignedIntegerValue];
+          NSUInteger dataDyadminoIndex = [dataDyadminoIndexes[rackOrderIndex] unsignedIntegerValue];
+          DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:dataDyadminoIndex];
+          [self.myMatch addToHoldingContainer:dataDyad];
+          [tempPlayedDataDyads addObject:dataDyad];
+        }
+        
+        NSArray *playedDataDyads = [NSArray arrayWithArray:tempPlayedDataDyads];
+        
+          // played!
+        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+        
+        NSUInteger afterPileCount = self.myMatch.pile.count;
+        NSUInteger afterDataDyadminoIndexesCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
+        
+          // check after pile count is before pile count minus data dyadminoes played
+        XCTAssertTrue(beforePileCount == afterPileCount + rackOrderArray.count, @"Pile count did not subtract dyadmino count properly after play.");
+        
+          // check player rack count is same
+        XCTAssertEqual(beforeDataDyadminoIndexesCount, afterDataDyadminoIndexesCount, @"Player rack count is different after play.");
+        
+          // check played dyadminoes are now on board
+        for (DataDyadmino *dataDyad in playedDataDyads) {
+          PlaceStatus placeStatus = (PlaceStatus)[dataDyad.placeStatus unsignedIntegerValue];
+          XCTAssertTrue(placeStatus == kOnBoard, @"Data dyadmino is not on board after play.");
+        }
+      }
+    }
+  }
+}
+
+-(void)testRackRefillsOnlyUntilPileIsEmptyAndGameEndsWhenPileAndRackAreBothEmpty {
+  
+    // test 1 to 4 players
+  for (int i = 1; i <= kMaxNumPlayers; i++) {
+    
+      // test all possible number of dyadminoes to play
+    for (int j = 0; j <= kNumDyadminoesInRack; j++) {
+      
+        // test all possible number of dyadminoes left in pile from 0 to 6
+      for (int k = 0; k <= kNumDyadminoesInRack; k++) {
+        [self setupGameForNumberOfPlayers:i];
+        
+        Player *player = [self.myMatch returnCurrentPlayer];
+        NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+        
+        NSUInteger numberToRemove = kPileCount - (i * kNumDyadminoesInRack) - 1 - k;
+        [self.myMatch removeFromPileNumberOfDataDyadminoes:numberToRemove];
+        
+          // play data dyadminoes
+        for (int l = 0; l < j; l++) {
+          NSNumber *numberIndex = dataDyadminoIndexes[l];
+          DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[numberIndex unsignedIntegerValue]];
+          [self.myMatch addToHoldingContainer:dataDyad];
+        }
+        
+        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+        
+        NSUInteger rackCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
+        
+        BOOL pileIsEmptyAndPlayerRackLessThanFullIfMoreDyadminoesPlayedThanLeftInPile = YES;
+        
+          // number left in pile is less than number played
+        if (k < j) {
+          if (rackCount == kNumDyadminoesInRack || self.myMatch.pile.count > 0) {
+            pileIsEmptyAndPlayerRackLessThanFullIfMoreDyadminoesPlayedThanLeftInPile = NO;
+          }
+        }
+        
+        XCTAssertTrue(pileIsEmptyAndPlayerRackLessThanFullIfMoreDyadminoesPlayedThanLeftInPile, @"Pile should be empty and player rack less than full if more dyadminoes were played than there were dyadminoes left in pile.");
+        
+          // none left in pile or rack, game should end
+        BOOL gameEndsIfPileAndRackAreEmpty = YES;
+        if (self.myMatch.pile.count == 0 && rackCount == 0 && ![self.myMatch returnGameHasEnded]) {
+          gameEndsIfPileAndRackAreEmpty = NO;
+        }
+        
+        XCTAssertTrue(gameEndsIfPileAndRackAreEmpty, @"Game did not end after play leaves empty pile and empty rack.");
+      }
+    }
+  }
+}
+
+#pragma mark - recording of turn tests
 
 -(void)testTurnsAreRecordedSequentially {
   
@@ -514,6 +623,7 @@
       [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
       postTurnCount = [(NSArray *)self.myMatch.turns count];
       
+      XCTAssertTrue(preTurnCount == j, @"Turns start at 0.");
       XCTAssertTrue(postTurnCount == preTurnCount + 1, @"Turn was not recorded sequentially.");
     }
   }
@@ -609,122 +719,175 @@
   }
 }
 
--(void)testRackIsProperlyRefilledAfterPlayedTurn {
-  
-    // test 1 to 4 players
-  for (int i = 1; i <= kMaxNumPlayers; i++) {
-    
-      // returns all subsets of dyadminoes
-    NSArray *numberArray = [self arrayOfNumbersWithCount:kNumDyadminoesInRack];
-    NSArray *powerSetArray = [self powerSet:numberArray];
-    
-      // for this particular combination of data dyadminoes to be played
-    for (NSArray *rackOrderArray in powerSetArray) {
-      if (rackOrderArray.count > 0) {
-        
-        [self setupGameForNumberOfPlayers:i];
-        
-        Player *player = [self.myMatch returnCurrentPlayer];
-        NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
-        
-        NSUInteger beforePileCount = self.myMatch.pile.count;
-        NSUInteger beforeDataDyadminoIndexesCount = dataDyadminoIndexes.count;
-        
-        NSMutableArray *tempPlayedDataDyads = [NSMutableArray new];
-        
-        for (NSNumber *index in rackOrderArray) {
-          NSUInteger rackOrderIndex = [index unsignedIntegerValue];
-          NSUInteger dataDyadminoIndex = [dataDyadminoIndexes[rackOrderIndex] unsignedIntegerValue];
-          DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:dataDyadminoIndex];
-          [self.myMatch addToHoldingContainer:dataDyad];
-          [tempPlayedDataDyads addObject:dataDyad];
-        }
-        
-        NSArray *playedDataDyads = [NSArray arrayWithArray:tempPlayedDataDyads];
-        
-          // played!
-        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
-        
-        NSUInteger afterPileCount = self.myMatch.pile.count;
-        NSUInteger afterDataDyadminoIndexesCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
+#pragma mark - recorded data dyadmino tests
 
-          // check after pile count is before pile count minus data dyadminoes played
-        XCTAssertTrue(beforePileCount == afterPileCount + rackOrderArray.count, @"Pile count did not subtract dyadmino count properly after play.");
-        
-          // check player rack count is same
-        XCTAssertEqual(beforeDataDyadminoIndexesCount, afterDataDyadminoIndexesCount, @"Player rack count is different after play.");
-        
-          // check played dyadminoes are now on board
-        for (DataDyadmino *dataDyad in playedDataDyads) {
-          PlaceStatus placeStatus = (PlaceStatus)[dataDyad.placeStatus unsignedIntegerValue];
-          XCTAssertTrue(placeStatus == kOnBoard, @"Data dyadmino is not on board after play.");
-        }
-      }
+-(void)testDataDyadDoesNotAddTurnChangeIfNotMoved {
+  
+  [self setupGameForNumberOfPlayers:2];
+  DataDyadmino *firstDataDyad = [self.myMatch dataDyadminoForIndex:[self.myMatch returnFirstDataDyadIndex]];
+
+    // three passes in a row
+  [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
+  [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+  
+  [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
+  [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+
+  [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
+  [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+  
+    // should only have one turn change, which records its initial placement
+  XCTAssertTrue([(NSArray *)firstDataDyad.turnChanges count] == 1, @"Extra turn change should not have been added.");
+}
+
+-(void)testDataDyadRecordsBoardDyadminoChange {
+  
+    // test 100 times
+  for (int i = 0; i < 100; i++) {
+    
+      // test for just 2 players
+    [self setupGameForNumberOfPlayers:2];
+    DataDyadmino *firstDataDyad = [self.myMatch dataDyadminoForIndex:[self.myMatch returnFirstDataDyadIndex]];
+    
+    HexCoord originalCoord = firstDataDyad.myHexCoord;
+    DyadminoOrientation originalOrientation = (DyadminoOrientation)[firstDataDyad.myOrientation unsignedIntegerValue];
+ 
+    NSInteger randX = [self randomIntegerUpTo:20] - 10;
+    NSInteger randY = [self randomIntegerUpTo:20] - 10;
+    HexCoord movedCoord = [self hexCoordFromX:randX andY:randY];
+    DyadminoOrientation movedOrientation = (DyadminoOrientation)[self randomIntegerUpTo:5];
+    
+    firstDataDyad.myHexCoord = movedCoord;
+    firstDataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
+    [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
+    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    
+    NSDictionary *turnChange = (NSDictionary *)[(NSArray *)firstDataDyad.turnChanges lastObject];
+
+      // if coordinate changed
+    if (originalCoord.x != movedCoord.x || originalCoord.y != movedCoord.y) {
+      NSInteger returnedX = [[turnChange valueForKey:@"hexX"] integerValue];
+      NSInteger returnedY = [[turnChange valueForKey:@"hexY"] integerValue];
+
+      XCTAssertEqual(movedCoord.x, returnedX, @"X value not as expected.");
+      XCTAssertEqual(movedCoord.y, returnedY, @"Y value not as expected.");
+    } else {
+      XCTAssertNil([turnChange valueForKey:@"hexX"], @"Should not have object for hexX key.");
+      XCTAssertNil([turnChange valueForKey:@"hexY"], @"Should not have object for hexY key.");
+    }
+    
+      // if orientation changed
+    if (originalOrientation != movedOrientation) {
+      DyadminoOrientation returnedOrientation = (DyadminoOrientation)[[turnChange valueForKey:@"orientation"] unsignedIntegerValue];
+      XCTAssertEqual(movedOrientation, returnedOrientation, @"Orientation value not as expected.");
+    } else {
+      XCTAssertNil([turnChange valueForKey:@"orientation"], @"Should not have object for orientation key.");
     }
   }
 }
 
--(void)testRackRefillsOnlyUntilPileIsEmptyAndGameEndsWhenPileAndRackAreBothEmpty {
+-(void)testDataDyadRecordsCorrectTurn {
   
-    // test 1 to 4 players
-  for (int i = 1; i <= kMaxNumPlayers; i++) {
+    // test 100 times
+  for (int i = 0; i < 100; i++) {
     
-      // test all possible number of dyadminoes to play
-    for (int j = 0; j <= kNumDyadminoesInRack; j++) {
+      // test for 4 players (to maximise passes)
+    [self setupGameForNumberOfPlayers:4];
+    DataDyadmino *firstDataDyad = [self.myMatch dataDyadminoForIndex:[self.myMatch returnFirstDataDyadIndex]];
+    
+    for (int j = 0; j < 4 * 2; j++) {
+    
+      HexCoord originalCoord = firstDataDyad.myHexCoord;
+      DyadminoOrientation originalOrientation = (DyadminoOrientation)[firstDataDyad.myOrientation unsignedIntegerValue];
       
-        // test all possible number of dyadminoes left in pile from 0 to 6
-      for (int k = 0; k <= kNumDyadminoesInRack; k++) {
-        [self setupGameForNumberOfPlayers:i];
+        // change coordinate and orientation (there's a chance it's the same as original)
+      NSInteger randX = [self randomIntegerUpTo:20] - 10;
+      NSInteger randY = [self randomIntegerUpTo:20] - 10;
+      HexCoord movedCoord = [self hexCoordFromX:randX andY:randY];
+      DyadminoOrientation movedOrientation = (DyadminoOrientation)[self randomIntegerUpTo:5];
+      
+      firstDataDyad.myHexCoord = movedCoord;
+      firstDataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
+    
+      [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
+      [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    
+        // if moved
+      if (originalCoord.x != movedCoord.x || originalCoord.y != movedCoord.y || originalOrientation != movedOrientation) {
+        NSDictionary *turnChange = (NSDictionary *)[(NSArray *)firstDataDyad.turnChanges lastObject];
+
+        NSUInteger turnNumber = [[turnChange valueForKey:@"turn"] unsignedIntegerValue];
         
-        Player *player = [self.myMatch returnCurrentPlayer];
-        NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
-        
-        NSUInteger numberToRemove = kPileCount - (i * kNumDyadminoesInRack) - 1 - k;
-        [self.myMatch removeFromPileNumberOfDataDyadminoes:numberToRemove];
-        
-          // play data dyadminoes
-        for (int l = 0; l < j; l++) {
-          NSNumber *numberIndex = dataDyadminoIndexes[l];
-          DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[numberIndex unsignedIntegerValue]];
-          [self.myMatch addToHoldingContainer:dataDyad];
-        }
-        
-        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
-        
-        NSUInteger rackCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
-        
-        BOOL pileIsEmptyAndPlayerRackLessThanFullIfMoreDyadminoesPlayedThanLeftInPile = YES;
-        
-          // number left in pile is less than number played
-        if (k < j) {
-          if (rackCount == kNumDyadminoesInRack || self.myMatch.pile.count > 0) {
-            pileIsEmptyAndPlayerRackLessThanFullIfMoreDyadminoesPlayedThanLeftInPile = NO;
-          }
-        }
-        
-        XCTAssertTrue(pileIsEmptyAndPlayerRackLessThanFullIfMoreDyadminoesPlayedThanLeftInPile, @"Pile should be empty and player rack less than full if more dyadminoes were played than there were dyadminoes left in pile.");
-        
-          // none left in pile or rack, game should end
-        BOOL gameEndsIfPileAndRackAreEmpty = YES;
-        if (self.myMatch.pile.count == 0 && rackCount == 0 && ![self.myMatch returnGameHasEnded]) {
-          gameEndsIfPileAndRackAreEmpty = NO;
-        }
-        
-        XCTAssertTrue(gameEndsIfPileAndRackAreEmpty, @"Game did not end after play leaves empty pile and empty rack.");
+          // first data dyadmino turn count begins at 0
+        XCTAssertEqual(turnNumber, [(NSArray *)self.myMatch.turns count] - 1, @"Turn value not as expected.");
       }
     }
   }
 }
 
-#pragma mark - persistence tests
+-(void)testDataDyadRecordsRackDyadminoPlacement {
+
+    // test 100 times
+  for (int i = 0; i <= 100; i++) {
+    
+      // test for 2 players (number of players not important)
+    [self setupGameForNumberOfPlayers:2];
+    
+    Player *player = [self.myMatch returnCurrentPlayer];
+    NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+    
+      // play first dyadmino
+    NSUInteger dataDyadminoIndex = [dataDyadminoIndexes[0] unsignedIntegerValue];
+    DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:dataDyadminoIndex];
+    HexCoord originalCoord = dataDyad.myHexCoord;
+    
+      // change coordinate and orientation (there's a chance it's the same as original)
+    NSInteger randX = [self randomIntegerUpTo:20] - 10;
+    NSInteger randY = [self randomIntegerUpTo:20] - 10;
+    HexCoord movedCoord = [self hexCoordFromX:randX andY:randY];
+    DyadminoOrientation movedOrientation = (DyadminoOrientation)[self randomIntegerUpTo:5];
+    
+    dataDyad.myHexCoord = movedCoord;
+    dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
+    
+    [self.myMatch addToHoldingContainer:dataDyad];
+    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    [self.myMatch persistChangedPositionForBoardDataDyadmino:dataDyad];
+
+    NSDictionary *turnChange = (NSDictionary *)[(NSArray *)dataDyad.turnChanges lastObject];
+    
+      // if coordinate is different
+    if (originalCoord.x != movedCoord.x || originalCoord.y != movedCoord.y) {
+      NSInteger returnedX = [[turnChange valueForKey:@"hexX"] integerValue];
+      NSInteger returnedY = [[turnChange valueForKey:@"hexY"] integerValue];
+      
+      XCTAssertEqual(movedCoord.x, returnedX, @"X value not as expected.");
+      XCTAssertEqual(movedCoord.y, returnedY, @"Y value not as expected.");
+    } else {
+      XCTAssertNil([turnChange valueForKey:@"hexX"], @"Should not have object for hexX key.");
+      XCTAssertNil([turnChange valueForKey:@"hexY"], @"Should not have object for hexY key.");
+    }
+    
+      // orientation in rack will be different, so object for key will always exist
+    DyadminoOrientation returnedOrientation = (DyadminoOrientation)[[turnChange valueForKey:@"orientation"] unsignedIntegerValue];
+    XCTAssertEqual(movedOrientation, returnedOrientation, @"Orientation value not as expected.");
+    XCTAssertNotNil([turnChange valueForKey:@"orientation"], @"Object for orientation key should not be nil.");
+
+  }
+}
 
 #pragma mark - replay tests
+
+
+
 
 #pragma mark - match game end tests
 
 #pragma mark - win tests
 
 #pragma mark - score tests
+
+#pragma mark - persistence tests
 
 #pragma mark - additional setup methods
 
@@ -745,6 +908,33 @@
   if (![self.myContext save:&error]) {
     NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
     abort();
+  }
+}
+
+-(void)playFullGameOfOneDyadminoPerPlayForNumberOfPlayers:(NSUInteger)numberOfPlayers {
+  
+  [self setupGameForNumberOfPlayers:numberOfPlayers];
+  
+  while (![self.myMatch returnGameHasEnded]) {
+    Player *player = [self.myMatch returnCurrentPlayer];
+    NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+    
+      // play first dyadmino
+    NSUInteger dataDyadminoIndex = [dataDyadminoIndexes[0] unsignedIntegerValue];
+    DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:dataDyadminoIndex];
+    
+      // change coordinate and orientation (there's a chance it's the same as original)
+    NSInteger randX = [self randomIntegerUpTo:20] - 10;
+    NSInteger randY = [self randomIntegerUpTo:20] - 10;
+    HexCoord movedCoord = [self hexCoordFromX:randX andY:randY];
+    DyadminoOrientation movedOrientation = (DyadminoOrientation)[self randomIntegerUpTo:5];
+    
+    dataDyad.myHexCoord = movedCoord;
+    dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
+    
+    [self.myMatch addToHoldingContainer:dataDyad];
+    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    [self.myMatch persistChangedPositionForBoardDataDyadmino:dataDyad];
   }
 }
 
@@ -815,6 +1005,10 @@
 -(void)testNumberArrayMethod {
   NSArray *numberArray = [self arrayOfNumbersWithCount:6];
   NSLog(@"number array is: %@", numberArray);
+}
+
+-(void)testPlayFullGameTest {
+  [self playFullGameOfOneDyadminoPerPlayForNumberOfPlayers:4];
 }
 
 @end
