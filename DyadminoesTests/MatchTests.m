@@ -26,7 +26,7 @@
 -(void)setUp {
   [super setUp];
   self.myContext = [TestHelper managedObjectContextForTests];
-  self.playerNames = @[@"Bennett", @"Lauren", @"Julia", @"Mary"];
+  self.playerNames = @[@"Bennett", @"Lauren", @"Julia", @"Pamela"];
 }
 
 -(void)tearDown {
@@ -56,6 +56,20 @@
     [self setupGameForNumberOfPlayers:i];
     
     XCTAssertTrue(self.myMatch.players.count == i, @"Game type has incorrect number of players for %i players", i);
+  }
+}
+
+-(void)testMatchReturnsProperNamesAndOrdersOfPlayers {
+  
+    // test 1 to 4 players
+  for (int i = 1; i <= kMaxNumPlayers; i++) {
+    [self setupGameForNumberOfPlayers:i];
+    
+    for (int j = 1; j <= i; j++) {
+      Player *player = [self.myMatch playerForIndex:j - 1];
+      XCTAssertEqualObjects(player.playerName, self.playerNames[j - 1], @"Player name is wrong.");
+      XCTAssertEqual([player.playerOrder unsignedIntegerValue], j - 1, @"Player order number is wrong.");
+    }
   }
 }
 
@@ -815,7 +829,7 @@
 
 -(void)testReplayStartsAndEndsOnLastTurn {
   
-  [self playFullGameOfOneDyadminoPerPlayForNumberOfPlayers:4];
+  [self playFullGameForNumberOfPlayers:4];
   [self.myMatch startReplay];
   
   NSUInteger replayTurn = [self.myMatch returnReplayTurn];
@@ -827,7 +841,7 @@
 }
 
 -(void)testReplayFirstAndLast {
-  [self playFullGameOfOneDyadminoPerPlayForNumberOfPlayers:4];
+  [self playFullGameForNumberOfPlayers:4];
   [self.myMatch startReplay];
   [self.myMatch first];
   
@@ -840,7 +854,7 @@
 }
 
 -(void)testReplayPreviousAndNext {
-  [self playFullGameOfOneDyadminoPerPlayForNumberOfPlayers:4];
+  [self playFullGameForNumberOfPlayers:4];
   [self.myMatch startReplay];
   
   NSUInteger expectedReplayTurn = [self.myMatch returnReplayTurn];
@@ -960,8 +974,6 @@
 
 #pragma mark - score tests
 
-#pragma mark - persistence tests
-
 #pragma mark - additional setup methods
 
 -(void)setupGameForNumberOfPlayers:(NSUInteger)numberOfPlayers {
@@ -984,7 +996,7 @@
   }
 }
 
--(void)playFullGameOfOneDyadminoPerPlayForNumberOfPlayers:(NSUInteger)numberOfPlayers {
+-(void)playFullGameForNumberOfPlayers:(NSUInteger)numberOfPlayers {
   
   [self setupGameForNumberOfPlayers:numberOfPlayers];
   
@@ -992,22 +1004,25 @@
     Player *player = [self.myMatch returnCurrentPlayer];
     NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
     
-      // play first dyadmino
-    NSUInteger dataDyadminoIndex = [dataDyadminoIndexes[0] unsignedIntegerValue];
-    DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:dataDyadminoIndex];
-    
-      // change coordinate and orientation (there's a chance it's the same as original)
-    NSInteger randX = [self randomIntegerUpTo:20] - 10;
-    NSInteger randY = [self randomIntegerUpTo:20] - 10;
-    HexCoord movedCoord = [self hexCoordFromX:randX andY:randY];
-    DyadminoOrientation movedOrientation = (DyadminoOrientation)[self randomIntegerUpTo:5];
-    
-    dataDyad.myHexCoord = movedCoord;
-    dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
-    
-    [self.myMatch addToHoldingContainer:dataDyad];
+      // play random number of dyadminoes
+    NSUInteger randomNumberToPlay = dataDyadminoIndexes.count;
+    for (int i = 0; i < randomNumberToPlay; i++) {
+      
+      NSUInteger dataDyadminoIndex = [dataDyadminoIndexes[i] unsignedIntegerValue];
+      DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:dataDyadminoIndex];
+      
+        // change coordinate and orientation (there's a chance it's the same as original)
+      NSInteger randX = [self randomIntegerUpTo:20] - 10;
+      NSInteger randY = [self randomIntegerUpTo:20] - 10;
+      HexCoord movedCoord = [self hexCoordFromX:randX andY:randY];
+      DyadminoOrientation movedOrientation = (DyadminoOrientation)[self randomIntegerUpTo:5];
+      
+      dataDyad.myHexCoord = movedCoord;
+      dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
+      [self.myMatch addToHoldingContainer:dataDyad];
+    }
+
     [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
-    [self.myMatch persistChangedPositionForBoardDataDyadmino:dataDyad];
   }
 }
 
@@ -1081,7 +1096,7 @@
 }
 
 -(void)testPlayFullGameTest {
-  [self playFullGameOfOneDyadminoPerPlayForNumberOfPlayers:4];
+  [self playFullGameForNumberOfPlayers:4];
 }
 
 @end
