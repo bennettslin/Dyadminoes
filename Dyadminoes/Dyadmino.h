@@ -40,18 +40,19 @@
   // nodes and touches
 @property (strong, nonatomic) SnapPoint *homeNode;
 @property (strong, nonatomic) SnapPoint *tempBoardNode;
-@property (nonatomic) HexCoord myHexCoord;
-@property (nonatomic) NSInteger myRackOrder;
+@property (assign, nonatomic) HexCoord myHexCoord;
+@property (assign, nonatomic) NSInteger myRackOrder;
 
   // orientations
-@property (nonatomic) DyadminoOrientation orientation;
-@property (nonatomic) DyadminoOrientation tempReturnOrientation;
+@property (assign, nonatomic) DyadminoOrientation orientation;
+@property (assign, nonatomic) DyadminoOrientation tempReturnOrientation;
 
   // replay
   // these properties will be set before each replay; they can be ignored otherwise
-@property (nonatomic) HexCoord preReplayHexCoord;
-@property (nonatomic) DyadminoOrientation preReplayOrientation;
-@property (nonatomic) DyadminoOrientation preReplayTempOrientation;
+@property (assign, nonatomic) HexCoord preReplayHexCoord;
+@property (assign, nonatomic) DyadminoOrientation preReplayOrientation;
+@property (assign, nonatomic) DyadminoOrientation preReplayTempOrientation;
+//@property (assign, nonatomic) BOOL replayShrunk;
 
   // sprites
 @property (strong, nonatomic) NSArray *rotationFrameArray;

@@ -975,7 +975,8 @@
   }
 
     // prep board for bounds and position
-  [_boardField determineOutermostCellsBasedOnDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
+    // if in replay, only determine cells based on these dyadminoes
+  [_boardField determineOutermostCellsBasedOnDyadminoes:(_replayMode ? [self dyadminoesOnBoardThisReplayTurn] : [self allBoardDyadminoesPlusRecentRackDyadmino])];
   [_boardField determineBoardPositionBounds];
   [_boardField repositionCellsForZoomWithSwap:_swapMode];
   
@@ -2767,6 +2768,8 @@
   [self updateBoardForReplayInReplay:inReplay start:start];
   [self showTurnInfoOrGameResultsForReplay:inReplay];
   inReplay ? [self updateReplayButtons] : nil;
+  
+  [self logWhetherAllBoardDyadminoesAreHidden];
 }
 
 -(void)updateBoardForReplayInReplay:(BOOL)inReplay start:(BOOL)start {
@@ -2793,15 +2796,30 @@
       // if in replay only show dyadminoes played up to this turn,
       // and add to set that will be passed to board
       // if not in replay, conditional is automatically yes
+    
+    NSLog(@"replay board contains dataDyad %@: %i", dataDyad.myID, [self.myMatch.replayBoard containsObject:dataDyad]);
+    NSLog(@"dyadmino is hidden %i", dyadmino.hidden);
+    
     BOOL conditionalToHideDyadmino = inReplay ? ![self.myMatch.replayBoard containsObject:dataDyad] : NO;
     
+      // in hindsight, animating scale if dyadmino was hidden does not work
+      // because dyadmino can be unhidden for other reasons.
+      // thus animateScale is called regardless, and if it's already at the scale
+      // it needs to be, then nothing happens.
+    
+      // do not add to board
     if (conditionalToHideDyadmino) {
           // animate shrinkage
-      dyadmino.hidden ? nil : [self animateScaleForReplayOfDyadmino:dyadmino toShrink:YES];
+      
+      if (TRUE) { // was !dyadmino.hidden
+        [self animateScaleForReplayOfDyadmino:dyadmino toShrink:YES];
+      }
       
     } else {
           // animate growage
-      dyadmino.hidden ? [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO] : nil;
+      if (TRUE) { // was dyadmino.hidden
+        [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO];
+      }
       
         // highlight dyadminoes played on this turn
       [turnDataDyadminoIndexes containsObject:dataDyad.myID] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer]] : [dyadmino unhighlightOutOfPlay];
@@ -2828,7 +2846,25 @@
   [_boardField determineBoardPositionBounds];
 }
 
+-(NSMutableSet *)dyadminoesOnBoardThisReplayTurn {
+    // this is only called in toggleBoardZoom
+  
+  NSMutableSet *dyadminoesOnBoardUpToThisPoint = [NSMutableSet new];
+  
+  for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
+    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+    
+      // add to board
+    if ([self.myMatch.replayBoard containsObject:dataDyad]) {
+      [dyadminoesOnBoardUpToThisPoint addObject:dyadmino];
+    }
+  }
+  return dyadminoesOnBoardUpToThisPoint;
+}
+
 -(void)animateRepositionCellAgnosticDyadmino:(Dyadmino *)dyadmino {
+  
+  NSLog(@"animate reposition cell agnostic dyadmino: %@", dyadmino.name);
   
     // between .4 and .6
   CGFloat random = ((arc4random() % 100) / 100.f * 0.2) + 0.4f;
@@ -2847,6 +2883,8 @@
 }
 
 -(void)animateScaleForReplayOfDyadmino:(Dyadmino *)dyadmino toShrink:(BOOL)shrink {
+  
+  NSLog(@"animate scale for replay of dyadmino: %@, to shring: %i", dyadmino.name, shrink);
 
     // between .4 and .6
   CGFloat random = ((arc4random() % 100) / 100.f * 0.2) + 0.4f;
@@ -2854,14 +2892,15 @@
   if (shrink) {
     SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime * random];
     SKAction *hideAction = [SKAction runBlock:^{
+      NSLog(@"dyadmino %@ is hidden", dyadmino.name);
       dyadmino.hidden = YES;
       dyadmino.zPosition = kZPositionBoardRestingDyadmino;
     }];
     SKAction *sequence = [SKAction sequence:@[shrinkAction, hideAction]];
     
     dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
-    [dyadmino removeActionForKey:@"shrink"];
-    [dyadmino runAction:sequence withKey:@"shrink"];
+    [dyadmino removeActionForKey:@"replayShrink"];
+    [dyadmino runAction:sequence withKey:@"replayShrink"];
     
   } else {
     SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.5f];
@@ -2869,11 +2908,11 @@
       dyadmino.zPosition = kZPositionBoardRestingDyadmino;
     }];
     SKAction *sequence = [SKAction sequence:@[growAction, completeAction]];
-    
+    NSLog(@"dyadmino %@ is not hidden", dyadmino.name);
     dyadmino.hidden = NO;
     dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
-    [dyadmino removeActionForKey:@"shrink"];
-    [dyadmino runAction:sequence withKey:@"shrink"];
+    [dyadmino removeActionForKey:@"replayGrow"];
+    [dyadmino runAction:sequence withKey:@"replayGrow"];
   }
 }
 
@@ -3040,7 +3079,7 @@
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
   
-    NSLog(@"hoveringDyadmino to stay fixed ? %i", _hoveringDyadminoStaysFixedToBoard);
+  NSLog(@"hoveringDyadmino to stay fixed ? %i", _hoveringDyadminoStaysFixedToBoard);
   [self logRackDyadminoes];
 }
 
@@ -3053,6 +3092,14 @@
   NSLog(@"board is:       %@", self.boardDyadminoes);
   NSLog(@"rack is:        %@", self.playerRackDyadminoes);
   NSLog(@"recent rack is: %@", _recentRackDyadmino.name);
+}
+
+-(void)logWhetherAllBoardDyadminoesAreHidden {
+  
+  for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
+    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+    NSLog(@"dataDyad %@ is hidden %i, scale is %.2f, %.2f", dataDyad.myID, dyadmino.hidden, dyadmino.xScale, dyadmino.yScale);
+  }
 }
 
 @end
