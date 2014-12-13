@@ -407,7 +407,7 @@ typedef enum passPlayOrDoneButton {
 -(Chord)chordFromRoot:(NSInteger)root andChordType:(ChordType)chordType;
 
   // date stuff
--(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date andTurn:(NSUInteger)turn;
+-(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date;
 -(NSString *)returnLastPlayedStringFromDate:(NSDate *)date andTurn:(NSUInteger)turn;
 
   // view stuff

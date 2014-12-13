@@ -70,6 +70,7 @@
 		3FD06E2318D6544F00E2FF04 /* Cell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FD06E2218D6544F00E2FF04 /* Cell.m */; };
 		3FDA7B80197CF96A001677D8 /* CellBackgroundView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FDA7B7F197CF96A001677D8 /* CellBackgroundView.m */; };
 		3FDD7FD918D4C89B0029DB7D /* Board.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FDD7FD818D4C89B0029DB7D /* Board.m */; };
+		3FDE2AFE1A3BE7EC00C50CD4 /* NSObjectTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FDE2AFD1A3BE7EC00C50CD4 /* NSObjectTests.m */; };
 		3FE8CD4F19FCA02700D097B6 /* BPianoKey.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8CD4C19FCA02700D097B6 /* BPianoKey.m */; };
 		3FE8CD5019FCA02700D097B6 /* BPianoView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8CD4E19FCA02700D097B6 /* BPianoView.m */; };
 		3FE8CD5719FCA24E00D097B6 /* BAudioController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8CD5619FCA24E00D097B6 /* BAudioController.m */; };
@@ -197,6 +198,7 @@
 		3FDA7B7F197CF96A001677D8 /* CellBackgroundView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CellBackgroundView.m; sourceTree = "<group>"; };
 		3FDD7FD718D4C89B0029DB7D /* Board.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Board.h; sourceTree = "<group>"; };
 		3FDD7FD818D4C89B0029DB7D /* Board.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Board.m; sourceTree = "<group>"; };
+		3FDE2AFD1A3BE7EC00C50CD4 /* NSObjectTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSObjectTests.m; sourceTree = "<group>"; };
 		3FE8CD4919FCA02700D097B6 /* bKeyType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bKeyType.h; sourceTree = "<group>"; };
 		3FE8CD4A19FCA02700D097B6 /* BPianoDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BPianoDelegate.h; sourceTree = "<group>"; };
 		3FE8CD4B19FCA02700D097B6 /* BPianoKey.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BPianoKey.h; sourceTree = "<group>"; };
@@ -376,6 +378,7 @@
 			children = (
 				3F1071C51A2EBA8900C28923 /* MatchTests.m */,
 				3F3715B5199B1C69000C569E /* SonorityLogicTests.m */,
+				3FDE2AFD1A3BE7EC00C50CD4 /* NSObjectTests.m */,
 				3F87AADF188DEE4C008C4A0D /* SceneEngineTests.m */,
 				3F1071C71A31594A00C28923 /* TestHelper.h */,
 				3F1071C81A31594A00C28923 /* TestHelper.m */,
@@ -676,6 +679,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3F87AAE0188DEE4C008C4A0D /* SceneEngineTests.m in Sources */,
+				3FDE2AFE1A3BE7EC00C50CD4 /* NSObjectTests.m in Sources */,
 				3F1071C61A2EBA8900C28923 /* MatchTests.m in Sources */,
 				3F3715B6199B1C69000C569E /* SonorityLogicTests.m in Sources */,
 				3F1071C91A31594A00C28923 /* TestHelper.m in Sources */,

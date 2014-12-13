@@ -72,7 +72,7 @@
 
 #pragma mark - date stuff
 
--(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date andTurn:(NSUInteger)turn {
+-(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date {
   NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
   [dateFormatter setDateStyle:NSDateFormatterShortStyle];
   return [NSString stringWithFormat:@"Game ended %@.", [dateFormatter stringFromDate:date]];
@@ -93,7 +93,7 @@
                                                 toDate:endDate options:0];
   NSInteger years = [components year];
   NSInteger months = [components month];
-//  NSInteger weeks = [components weekOfYear];
+  NSInteger weeks = [components weekOfYear];
   NSInteger days = [components day];
   NSInteger hours = [components hour];
   NSInteger minutes = [components minute];
@@ -109,12 +109,12 @@
   } else if (months > 0) {
     componentQuantity = months;
     dateComponent = months > 1 ? @"months" : @"month";
-  } else if (days / 7 > 0) { // workaround for weeks
-    componentQuantity = days / 7;
-    dateComponent = (days / 7) > 1 ? @"weeks" : @"week";
-//  } else if (weeks > 0) {
-//    componentQuantity = weeks;
-//    dateComponent = weeks > 1 ? @"weeks" : @"week";
+//  } else if (days / 7 > 0) { // workaround for weeks
+//    componentQuantity = days / 7;
+//    dateComponent = (days / 7) > 1 ? @"weeks" : @"week";
+  } else if (weeks > 0) {
+    componentQuantity = weeks;
+    dateComponent = weeks > 1 ? @"weeks" : @"week";
   } else if (days > 0) {
     componentQuantity = days;
     dateComponent = days > 1 ? @"days" : @"day";

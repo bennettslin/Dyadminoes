@@ -229,7 +229,7 @@
     
       // game ended, so lastPlayed label shows date
     self.lastPlayedLabel.textColor = kStaveEndedGameColour;
-    self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed andTurn:turn];
+    self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed];
     
   } else {
     self.selectedBackgroundView.backgroundColor = kMainSelectedYellow;
