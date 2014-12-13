@@ -643,7 +643,7 @@
   if (!dyadmino.hidden && !_canDoubleTapForDyadminoFlip && ([dyadmino isOnBoard] || ![dyadmino isRotating])) {
     
         // register sound if dyadmino tapped
-    if (!_pnpBarUp && !_replayMode && dyadmino && !_swapMode && !_pivotInProgress) {
+    if (!_pnpBarUp && !_replayMode && dyadmino && (!_swapMode || (_swapMode && [dyadmino isInRack])) && !_pivotInProgress) {
       
         // whole dyadmino does not sound when board is zoomed
       if (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) {
@@ -2797,29 +2797,16 @@
       // and add to set that will be passed to board
       // if not in replay, conditional is automatically yes
     
-    NSLog(@"replay board contains dataDyad %@: %i", dataDyad.myID, [self.myMatch.replayBoard containsObject:dataDyad]);
-    NSLog(@"dyadmino is hidden %i", dyadmino.hidden);
-    
     BOOL conditionalToHideDyadmino = inReplay ? ![self.myMatch.replayBoard containsObject:dataDyad] : NO;
-    
-      // in hindsight, animating scale if dyadmino was hidden does not work
-      // because dyadmino can be unhidden for other reasons.
-      // thus animateScale is called regardless, and if it's already at the scale
-      // it needs to be, then nothing happens.
     
       // do not add to board
     if (conditionalToHideDyadmino) {
           // animate shrinkage
-      
-      if (TRUE) { // was !dyadmino.hidden
-        [self animateScaleForReplayOfDyadmino:dyadmino toShrink:YES];
-      }
+      [self animateScaleForReplayOfDyadmino:dyadmino toShrink:YES];
       
     } else {
           // animate growage
-      if (TRUE) { // was dyadmino.hidden
-        [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO];
-      }
+      [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO];
       
         // highlight dyadminoes played on this turn
       [turnDataDyadminoIndexes containsObject:dataDyad.myID] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer]] : [dyadmino unhighlightOutOfPlay];
@@ -2863,9 +2850,7 @@
 }
 
 -(void)animateRepositionCellAgnosticDyadmino:(Dyadmino *)dyadmino {
-  
-  NSLog(@"animate reposition cell agnostic dyadmino: %@", dyadmino.name);
-  
+
     // between .4 and .6
   CGFloat random = ((arc4random() % 100) / 100.f * 0.2) + 0.4f;
   
@@ -2883,8 +2868,7 @@
 }
 
 -(void)animateScaleForReplayOfDyadmino:(Dyadmino *)dyadmino toShrink:(BOOL)shrink {
-  
-  NSLog(@"animate scale for replay of dyadmino: %@, to shring: %i", dyadmino.name, shrink);
+    // no animation if dyadmino is already at the desired scale
 
     // between .4 and .6
   CGFloat random = ((arc4random() % 100) / 100.f * 0.2) + 0.4f;
