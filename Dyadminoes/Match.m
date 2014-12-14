@@ -223,11 +223,17 @@
       // enough players passed to end game
       // 1. two rotations if there are dyadminoes left in pile
       // 2. one rotation if no dyadminoes are left in pile
-    if ([self returnType] != kSelfGame && ((self.pile.count > 0 && [self returnNumberOfConsecutivePasses] >= self.players.count * 2) ||
-        (self.pile.count == 0 && [self returnNumberOfConsecutivePasses] >= self.players.count))) {
+    if ([self returnType] != kSelfGame && [self allPlayersBeforePassedOrResignedToEndGame]) {
       [self endGame];
       return;
     }
+    
+      // old code
+//    if ([self returnType] != kSelfGame && ((self.pile.count > 0 && [self returnNumberOfConsecutivePasses] >= self.players.count * 2) ||
+//        (self.pile.count == 0 && [self returnNumberOfConsecutivePasses] >= self.players.count))) {
+//      [self endGame];
+//      return;
+//    }
     
       // player submitted dyadminoes
   } else {
@@ -272,6 +278,52 @@
   [self resetHoldingContainer];
   self.lastPlayed = [NSDate date];
   [self switchToNextPlayer];
+}
+
+-(BOOL)allPlayersBeforePassedOrResignedToEndGame {
+
+  NSUInteger indexOfNextPlayer = ([self returnCurrentPlayerIndex] + 1) % self.players.count;
+    // find player other than current player who is still in game
+  Player *activeOtherPlayer;
+  while (!activeOtherPlayer && indexOfNextPlayer != [self returnCurrentPlayerIndex]) {
+    Player *nextPlayer = [self playerForIndex:indexOfNextPlayer];
+    if (![nextPlayer returnResigned]) {
+      activeOtherPlayer = nextPlayer;
+    }
+    indexOfNextPlayer = (indexOfNextPlayer + 1) % self.players.count;
+  }
+  
+  if (!activeOtherPlayer) {
+    return YES;
+  }
+  
+  NSInteger turnIndex = [(NSArray *)self.turns count] - 1;
+  NSUInteger numberOfSightingsOfActiveOtherPlayer = 0;
+  NSUInteger numberOfSightingsOfActiveOtherPlayerNeededToEndMatch = (self.pile.count > 0) ? 2 : 1;
+  BOOL everyonePassedOrResignedSoFar = YES;
+  
+  while (turnIndex >= 0 && everyonePassedOrResignedSoFar &&
+         numberOfSightingsOfActiveOtherPlayer < numberOfSightingsOfActiveOtherPlayerNeededToEndMatch) {
+    NSDictionary *turn = [self.turns objectAtIndex:turnIndex];
+    NSArray *indexContainer = [turn objectForKey:@"indexContainer"];
+
+      // return no if this player scored
+    if (indexContainer && indexContainer.count > 0) {
+      everyonePassedOrResignedSoFar = NO;
+    }
+    
+    Player *playerInRotation = [self playerForIndex:[[turn objectForKey:@"player"] unsignedIntegerValue]];
+    if (playerInRotation == activeOtherPlayer) {
+      numberOfSightingsOfActiveOtherPlayer++;
+    }
+    
+    turnIndex--;
+  }
+  
+    // did not run out of turns, and everyone passed or resigned
+    // in every turn after the active other player was first sighted
+    // the required number of times
+  return ((numberOfSightingsOfActiveOtherPlayer == numberOfSightingsOfActiveOtherPlayerNeededToEndMatch) && everyonePassedOrResignedSoFar);
 }
 
 -(void)persistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad {

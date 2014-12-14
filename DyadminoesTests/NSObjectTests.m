@@ -91,9 +91,6 @@
 }
 
 -(void)testCorrectLastPlayedDateComponents {
-  
-    // [NSString stringWithFormat:@"Started %@ ago.", dateComponent] :
-    // [NSString stringWithFormat:@"Turn %lu played %@ ago.", (unsigned long)turn, dateComponent];
 
     // test once for half, whole, double
   NSArray *minuteNumbers = @[@0, @1, @2, // minutes
@@ -112,7 +109,6 @@
   
   NSCalendar *calendar = [NSCalendar autoupdatingCurrentCalendar];
   
-    // test for two years
   for (int i = 0; i < minuteNumbers.count; i++) { // was 1051200
       // Get the components of the current date
     

@@ -885,8 +885,7 @@
   XCTAssertTrue(self.myMatch.gameHasEnded, @"Game does not end after pass in self game.");
 }
 
-  // FIXME: this mechanism is flawed because it doesn't account for resigned players
--(void)testCorrectNumberOfPassesEndMatchForAllNumbersOfPlayers {
+-(void)testCorrectNumberOfPassesEndMatchForAllNumbersOfPlayersWithoutResigns {
   
     // test 2 to 4 players, two rotations for dyadminoes left in pile
   for (int i = 2; i <= kMaxNumPlayers; i++) {
@@ -911,6 +910,52 @@
       // pass this many times, up until the last turn before game ends
     for (int j = 0; j < i - 1; j++) {
       [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    }
+    XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with no dyadminoes left in pile.");
+    
+      // now pass once, and game should end
+    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game should have ended with no dyadminoes left in pile.");
+  }
+}
+
+-(void)testCorrectNumberOfPassesEndMatchForAllNumbersOfPlayersWithResigns {
+  
+    // test 2 to 4 players, two rotations for dyadminoes left in pile
+  for (int i = 3; i <= kMaxNumPlayers; i++) {
+    [self setupGameForNumberOfPlayers:i];
+    
+      // pass this many times, up until the last turn before game ends
+      // in four player game, player 2 resigns first cycle, player 3 resigns second cycle
+      // in three player game, player 2 resigns first cycle
+    for (int j = 0; j < 2 * i - 1 - 1; j++) {
+      if ((i == 3 && j == 1) || (i == 4 && (j == 1 || j == 5))) {
+        [self.myMatch resignPlayer:[self.myMatch returnCurrentPlayer]];
+      } else {
+        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+      }
+    }
+    XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with dyadminoes left in pile.");
+    
+      // now pass once, and game should end
+    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game should have ended with dyadminoes left in pile.");
+  }
+  
+    // test 2 to 4 players, one rotation for no dyadminoes left in pile
+  for (int i = 2; i <= kMaxNumPlayers; i++) {
+    [self setupGameForNumberOfPlayers:i];
+    [self.myMatch removeFromPileNumberOfDataDyadminoes:self.myMatch.pile.count];
+    
+      // pass this many times, up until the last turn before game ends
+      // in either three or four player game, player 2 resigns
+    for (int j = 0; j < i - 1; j++) {
+      if (j == 1) {
+        [self.myMatch resignPlayer:[self.myMatch returnCurrentPlayer]];
+        [self.myMatch removeFromPileNumberOfDataDyadminoes:kNumDyadminoesInRack]; // ensures that pile remains empty upon resign
+      } else {
+        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+      }
     }
     XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with no dyadminoes left in pile.");
     
