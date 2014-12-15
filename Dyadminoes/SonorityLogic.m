@@ -14,9 +14,53 @@
 
 @implementation SonorityLogic
 
+#pragma mark - validation methods
+
+-(LegalPlacementResult)validateFormationOfSonorities:(NSSet *)sonorities {
+  for (NSSet *sonority in sonorities) {
+    if (![self validateSonorityDoesNotExceedMaximum:sonority]) {
+      return kIllegalExcessSonority;
+    }
+    
+    if (![self validateSonorityHasNoDoublePCs:sonority]) {
+      return kIllegalDoublePCs;
+    }
+    
+    if (TRUE) {
+      return kIllegalChords;
+    }
+
+    if (TRUE) {
+      return kIllegalChords;
+    }
+    
+    if (TRUE) {
+      return kIllegalChords;
+    }
+  }
+  
+  return NO;
+}
+
+-(BOOL)validateSonorityDoesNotExceedMaximum:(NSSet *)sonority {
+  return (sonority.count <= 4);
+}
+
+-(BOOL)validateSonorityHasNoDoublePCs:(NSSet *)sonority {
+  NSMutableSet *pcs = [NSMutableSet new];
+  for (NSDictionary *note in sonority) {
+    NSNumber *pc = note[@"pc"];
+    if ([pcs containsObject:pc]) {
+      return NO;
+    }
+    [pcs addObject:pc];
+  }
+  return YES;
+}
+
 #pragma mark - chord logic methods
 
--(Chord)chordFromSonority:(NSArray *)sonority {
+-(Chord)chordFromSonority:(NSSet *)sonority {
   
     // root is -1 if not a chord
   NSUInteger cardinality = [sonority count];
@@ -31,7 +75,7 @@
   }
   
     // puts in pc normal form
-  NSMutableArray *pcNormalForm = [NSMutableArray arrayWithArray:sonority];
+  NSMutableArray *pcNormalForm = [NSMutableArray arrayWithArray:[sonority allObjects]];
   [pcNormalForm sortUsingSelector:@selector(compare:)];
   
     // puts in ic normal form
@@ -82,7 +126,7 @@
   return [self chordFromFakeRootPC:_fakeRootPC andICPrimeForm:icPrimeForm];
 }
 
--(Chord)chordFromSonorityPlusCheckIncompleteSeventh:(NSArray *)sonority {
+-(Chord)chordFromSonorityPlusCheckIncompleteSeventh:(NSSet *)sonority {
   
   Chord chord = [self chordFromSonority:sonority];
   
@@ -125,7 +169,7 @@
   return [self chordFromRoot:root andChordType:chordType];
 }
 
--(BOOL)sonorityIsIncompleteSeventh:(NSArray *)sonority {
+-(BOOL)sonorityIsIncompleteSeventh:(NSSet *)sonority {
   
     // cardinality must be 3
   if (sonority.count != 3) {
@@ -143,9 +187,9 @@
   for (NSUInteger i = 0; i < 12; i++) {
     NSNumber *missingNote = [NSNumber numberWithUnsignedInteger:i];
     if (![sonority containsObject:missingNote]) {
-      NSMutableArray *tempSonority = [NSMutableArray arrayWithArray:sonority];
+      NSMutableSet *tempSonority = [NSMutableSet setWithSet:sonority];
       [tempSonority addObject:missingNote];
-      NSArray *newSonority = [NSArray arrayWithArray:tempSonority];
+      NSSet *newSonority = [NSSet setWithSet:tempSonority];
       Chord chordForNewSonority = [self chordFromSonority:newSonority];
       if (!chordForNewSonority.chordType != kChordIllegalChord) {
         sonorityIsIncompleteSeventh = YES;

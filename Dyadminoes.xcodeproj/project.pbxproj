@@ -33,6 +33,7 @@
 		3F580BDE194F710F0040B5D0 /* Click2-Sebastian-759472264.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */; };
 		3F580BE0194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDF194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav */; };
 		3F582EF519A4A4E90022C92E /* GameEndedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F582EF419A4A4E90022C92E /* GameEndedViewController.m */; };
+		3F5D7B771A3E5565007FA92B /* SonorityLogic+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F5D7B761A3E5565007FA92B /* SonorityLogic+Helper.m */; };
 		3F6AE50E18D4D1E7000528C1 /* Bar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F6AE50D18D4D1E7000528C1 /* Bar.m */; };
 		3F7BD7C9192AF45D009274DE /* Match.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7C8192AF45D009274DE /* Match.m */; };
 		3F7BD7D5192B09D6009274DE /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7D4192B09D6009274DE /* MainViewController.m */; };
@@ -140,6 +141,8 @@
 		3F582EF319A4A4E90022C92E /* GameEndedViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameEndedViewController.h; sourceTree = "<group>"; };
 		3F582EF419A4A4E90022C92E /* GameEndedViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameEndedViewController.m; sourceTree = "<group>"; };
 		3F59D92019784B6A00A1265D /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		3F5D7B751A3E5565007FA92B /* SonorityLogic+Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SonorityLogic+Helper.h"; sourceTree = "<group>"; };
+		3F5D7B761A3E5565007FA92B /* SonorityLogic+Helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "SonorityLogic+Helper.m"; sourceTree = "<group>"; };
 		3F6AE50C18D4D1E7000528C1 /* Bar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bar.h; sourceTree = "<group>"; };
 		3F6AE50D18D4D1E7000528C1 /* Bar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Bar.m; sourceTree = "<group>"; };
 		3F7BD7C7192AF45D009274DE /* Match.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Match.h; sourceTree = "<group>"; };
@@ -384,6 +387,8 @@
 				3F1071C81A31594A00C28923 /* TestHelper.m */,
 				3F1071CD1A32DA5300C28923 /* Match+Helper.h */,
 				3F1071CE1A32DA5300C28923 /* Match+Helper.m */,
+				3F5D7B751A3E5565007FA92B /* SonorityLogic+Helper.h */,
+				3F5D7B761A3E5565007FA92B /* SonorityLogic+Helper.m */,
 				3F87AADA188DEE4C008C4A0D /* Supporting Files */,
 			);
 			path = DyadminoesTests;
@@ -683,6 +688,7 @@
 				3F1071C61A2EBA8900C28923 /* MatchTests.m in Sources */,
 				3F3715B6199B1C69000C569E /* SonorityLogicTests.m in Sources */,
 				3F1071C91A31594A00C28923 /* TestHelper.m in Sources */,
+				3F5D7B771A3E5565007FA92B /* SonorityLogic+Helper.m in Sources */,
 				3F1071CF1A32DA5300C28923 /* Match+Helper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -109,9 +109,6 @@
   } else if (months > 0) {
     componentQuantity = months;
     dateComponent = months > 1 ? @"months" : @"month";
-//  } else if (days / 7 > 0) { // workaround for weeks
-//    componentQuantity = days / 7;
-//    dateComponent = (days / 7) > 1 ? @"weeks" : @"week";
   } else if (weeks > 0) {
     componentQuantity = weeks;
     dateComponent = weeks > 1 ? @"weeks" : @"week";

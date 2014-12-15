@@ -11,10 +11,14 @@
 
 @interface SonorityLogic : NSObject
 
+#pragma mark - validation methods
+
+-(LegalPlacementResult)validateFormationOfSonorities:(NSSet *)sonorities;
+
 #pragma mark - chord logic methods
 
--(Chord)chordFromSonorityPlusCheckIncompleteSeventh:(NSArray *)sonority;
--(BOOL)sonorityIsIncompleteSeventh:(NSArray *)sonority;
+-(Chord)chordFromSonorityPlusCheckIncompleteSeventh:(NSSet *)sonority;
+-(BOOL)sonorityIsIncompleteSeventh:(NSSet *)sonority;
 
 #pragma mark - chord label methods
 

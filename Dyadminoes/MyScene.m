@@ -709,7 +709,7 @@
         // check to see if hovering dyadmino should be moved along with board or not
       if (_hoveringDyadmino) {
         [_boardField hideAllPivotGuides];
-        if ([_boardField validatePlacingDyadmino:_hoveringDyadmino onBoardNode:_hoveringDyadmino.tempBoardNode] != kNoError) {
+        if ([_boardField validatePhysicallyPlacingDyadmino:_hoveringDyadmino onBoardNode:_hoveringDyadmino.tempBoardNode] != kNoError) {
           _hoveringDyadminoStaysFixedToBoard = YES;
           [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
         } else {
@@ -1904,15 +1904,15 @@
       // ensures that validation takes place only if placement is uncertain
       // will not get called if returning to homeNode from top bar
     if (dyadmino.tempBoardNode) {
-      PhysicalPlacementResult placementResult = [_boardField validatePlacingDyadmino:dyadmino
+      PhysicalPlacementResult placementResult = [_boardField validatePhysicallyPlacingDyadmino:dyadmino
                                                                          onBoardNode:dyadmino.tempBoardNode];
       
         // handle placement results:
         // ease in right away because no error, and dyadmino was not moved from original spot
       if (placementResult == kNoError && !(dyadmino.tempBoardNode == _uponTouchDyadminoNode && dyadmino.orientation == _uponTouchDyadminoOrientation)) {
         
-          // FIXME: just testing for now
-        [_boardField validateChordsForPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
+        NSSet *sonorities = [_boardField collectSonorotiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
+        NSLog(@"sonorities is %@", sonorities);
         
         [dyadmino finishHovering];
         if ([dyadmino belongsOnBoard]) {

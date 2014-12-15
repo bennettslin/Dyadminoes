@@ -352,6 +352,14 @@ typedef enum physicalPlacementResult {
   kErrorLoneDyadmino
 } PhysicalPlacementResult;
 
+typedef enum legalPlacementResult {
+  kIllegalExcessSonority,
+  kIllegalDoublePCs,
+  kIllegalChords,
+  kLegalChordsNoPoints,
+  kLegalChordsWithPoints
+} LegalPlacementResult;
+
 typedef enum chordType {
   kChordMinorTriad,
   kChordMajorTriad,

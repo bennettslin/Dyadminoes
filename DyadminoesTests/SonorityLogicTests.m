@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
-#import "SonorityLogic.h"
+#import "SonorityLogic+Helper.h"
 
 @interface SonorityLogicTests : XCTestCase
 
@@ -124,10 +124,10 @@
 
 -(void)testRecognitionOfNonChords {
   
-  Chord noChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:@[]];
-  Chord monad = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:@[@0]];
-  Chord dyad = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:@[@0, @1]];
-  Chord illegal = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:@[@0, @1, @2, @3]];
+  Chord noChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:@[]]];
+  Chord monad = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:@[@0]]];
+  Chord dyad = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:@[@0, @1]]];
+  Chord illegal = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:@[@0, @1, @2, @3]]];
   
   XCTAssert(noChord.chordType == kChordNoChord);
   XCTAssert(monad.chordType == kChordLegalMonad);
@@ -159,7 +159,7 @@
       }
       NSArray *transposedChord = [NSArray arrayWithArray:mutableTransposedChord];
       
-      Chord chordForTransposedChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:transposedChord];
+      Chord chordForTransposedChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:transposedChord]];
       if (chordForTransposedChord.chordType != (ChordType)i) {
         chordTypesAllCorrect = NO;
       }
@@ -172,16 +172,16 @@
 -(void)testFailureCasesOfCheckingIncompleteSeventh {
 
   NSArray *legalTriad = @[@0, @4, @7];
-  XCTAssertFalse([self.sonorityLogic sonorityIsIncompleteSeventh:legalTriad], @"legal triad should not be valid incomplete seventh.");
+  XCTAssertFalse([self.sonorityLogic sonorityIsIncompleteSeventh:[NSSet setWithArray:legalTriad]], @"legal triad should not be valid incomplete seventh.");
 
   NSArray *dyad = @[@0, @4];
-  XCTAssertFalse([self.sonorityLogic sonorityIsIncompleteSeventh:dyad], @"dyad should not be valid incomplete seventh.");
+  XCTAssertFalse([self.sonorityLogic sonorityIsIncompleteSeventh:[NSSet setWithArray:dyad]], @"dyad should not be valid incomplete seventh.");
   
   NSArray *seventh = @[@0, @1, @2, @3];
-  XCTAssertFalse([self.sonorityLogic sonorityIsIncompleteSeventh:seventh], @"dyad should not be valid incomplete seventh.");
+  XCTAssertFalse([self.sonorityLogic sonorityIsIncompleteSeventh:[NSSet setWithArray:seventh]], @"dyad should not be valid incomplete seventh.");
   
   NSArray *manualIncompleteSeventh = @[@0, @7, @10];
-  XCTAssertTrue([self.sonorityLogic sonorityIsIncompleteSeventh:manualIncompleteSeventh], @"this *should* be a valid incomplete seventh.");
+  XCTAssertTrue([self.sonorityLogic sonorityIsIncompleteSeventh:[NSSet setWithArray:manualIncompleteSeventh]], @"this *should* be a valid incomplete seventh.");
 }
 
 -(void)testCorrectChordTypesForAllTranspositionsOfIncompleteSevenths {
@@ -201,7 +201,7 @@
       NSMutableArray *tempIncompleteRootCSeventh = [NSMutableArray arrayWithArray:rootCSeventh];
       [tempIncompleteRootCSeventh removeObjectAtIndex:j];
       NSArray *incompleteRootCSeventh = [NSArray arrayWithArray:tempIncompleteRootCSeventh];
-      Chord chordFromIncompleteRootCSeventh = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:incompleteRootCSeventh];
+      Chord chordFromIncompleteRootCSeventh = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:incompleteRootCSeventh]];
       
         // only checks triads that are not legal triads
       if (chordFromIncompleteRootCSeventh.chordType == kChordIllegalChord) {
@@ -218,7 +218,7 @@
           }
           NSArray *transposedChord = [NSArray arrayWithArray:mutableTransposedChord];
           
-          Chord chordForTransposedChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:transposedChord];
+          Chord chordForTransposedChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:transposedChord]];
           if (chordForTransposedChord.chordType != kChordLegaIncompleteSeventh) {
             
             incompleteSeventhTypesAllCorrect = NO;
@@ -229,6 +229,74 @@
   }
   
   XCTAssert(incompleteSeventhTypesAllCorrect, @"Not all illegal sevenths are recognised correctly.");
+}
+
+#pragma mark - chord validation tests
+
+-(void)testDetectionOfExcessPCs {
+  
+    // test 100 times
+  for (int i = 0; i < 100; i++) {
+    
+    NSSet *sonority = [self randomSonority];
+    
+    BOOL expectedSonorityToNotExceedMaximum = (sonority.count <= 4);
+    BOOL returnedSonorityDoesNotExceedMaximum = [self.sonorityLogic validateSonorityDoesNotExceedMaximum:sonority];
+    
+    XCTAssertEqual(expectedSonorityToNotExceedMaximum, returnedSonorityDoesNotExceedMaximum, @"Logic failed at detecting whether sonority exceeds maximum.");
+  }
+}
+
+-(void)testDetectionOfDoublePCs {
+  
+    // test 100 times
+  for (int i = 0; i < 100; i++) {
+    
+    BOOL expectedNoDoublePCs = YES;
+    
+    NSSet *sonority = [self randomSonority];
+    NSMutableSet *pcs = [NSMutableSet new];
+
+    for (NSDictionary *note in sonority) {
+      NSNumber *pc = note[@"pc"];
+      if ([pcs containsObject:pc]) {
+        expectedNoDoublePCs = NO;
+      } else {
+        [pcs addObject:pc];
+      }
+    }
+    
+    BOOL returnedNoDoublePCs = [self.sonorityLogic validateSonorityHasNoDoublePCs:sonority];
+    XCTAssertEqual(expectedNoDoublePCs, returnedNoDoublePCs, @"There were double PCs in at least one sonority.");
+  }
+}
+
+-(NSSet *)randomFormationOfSonorities {
+  
+  NSMutableSet *tempSonorities = [NSMutableSet new];
+  NSUInteger numberOfSonorities = arc4random() % 5;
+  for (int i = 0; i < numberOfSonorities; i++) {
+    [tempSonorities addObject:[self randomSonority]];
+  }
+  
+  return [NSSet setWithSet:tempSonorities];
+}
+
+-(NSSet *)randomSonority {
+  NSMutableSet *tempSonority = [NSMutableSet new];
+  NSUInteger numberOfNotesInSonority = arc4random() % 5;
+  for (int j = 0; j < numberOfNotesInSonority; j++) {
+    
+    NSUInteger pc = arc4random() % 12;
+    NSUInteger dyadmino = arc4random() % 10; // ten dyadminoes, to make it easier
+    
+    NSNumber *pcNumber = [NSNumber numberWithUnsignedInteger:pc];
+    NSNumber *dyadminoNumber = [NSNumber numberWithUnsignedInteger:dyadmino];
+    
+    NSDictionary *note = @{@"pc":pcNumber, @"dyadmino": dyadminoNumber};
+    [tempSonority addObject:note];
+  }
+  return [NSSet setWithSet:tempSonority];
 }
 
 @end

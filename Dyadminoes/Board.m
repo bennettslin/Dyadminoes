@@ -1072,7 +1072,7 @@
 
 #pragma mark - legality methods
 
--(PhysicalPlacementResult)validatePlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint {
+-(PhysicalPlacementResult)validatePhysicallyPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint {
     // if it's the first dyadmino, placement anywhere is fine
   
     // this gets the cells based on dyadmino orientation and board node
@@ -1121,7 +1121,9 @@
   return NO;
 }
 
--(void)validateChordsForPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint {
+-(NSSet *)collectSonorotiesFromPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint {
+  
+  NSMutableSet *tempSetOfSonorities = [NSMutableSet new];
   
     // this will check five axes
     // 1. bottom cell vertical (this axis includes top cell)
@@ -1138,12 +1140,17 @@
   NSUInteger realOrientation;
   
     // 1. bottom cell vertical
+  NSMutableSet *tempBottomVerticalSet = [NSMutableSet new];
   
     // up
   nextCell = (dyadmino.orientation >= 5 || dyadmino.orientation <= 1) ? topCell : bottomCell;
   realOrientation = dyadmino.orientation;
   while (nextCell.myPC != -1) {
-    NSLog(@"vertical up pc is %li", (long)nextCell.myPC);
+    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
+    if (![self set:tempBottomVerticalSet containsNote:note]) {
+      [tempBottomVerticalSet addObject:note];
+    }
+//    NSLog(@"vertical up pc is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1151,17 +1158,30 @@
   nextCell = (dyadmino.orientation >= 5 || dyadmino.orientation <= 1) ? bottomCell : topCell;
   realOrientation = (dyadmino.orientation + 3) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"vertical down cell pc is %li", (long)nextCell.myPC);
+    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
+    if (![self set:tempBottomVerticalSet containsNote:note]) {
+      [tempBottomVerticalSet addObject:note];
+    }
+//    NSLog(@"vertical down cell pc is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
+  
+  NSSet *bottomVerticalSet = [NSSet setWithSet:tempBottomVerticalSet];
+//  NSLog(@"bottom vertical set is %@", bottomVerticalSet);
+  [tempSetOfSonorities addObject:bottomVerticalSet];
   
     // 2. bottom cell upslant
+  NSMutableSet *tempBottomUpslantSet = [NSMutableSet new];
   
     // up
   nextCell = bottomCell;
   realOrientation = (dyadmino.orientation + 1) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"bottom upslant up pc is %li", (long)nextCell.myPC);
+    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
+    if (![self set:tempBottomUpslantSet containsNote:note]) {
+      [tempBottomUpslantSet addObject:note];
+    }
+//    NSLog(@"bottom upslant up pc is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1169,17 +1189,30 @@
   nextCell = bottomCell;
   realOrientation = (dyadmino.orientation + 4) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"bottom upslant down is %li", (long)nextCell.myPC);
+    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
+    if (![self set:tempBottomUpslantSet containsNote:note]) {
+      [tempBottomUpslantSet addObject:note];
+    }
+//    NSLog(@"bottom upslant down is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
+  
+  NSSet *bottomUpslantSet = [NSSet setWithSet:tempBottomUpslantSet];
+//  NSLog(@"bottom upslant set is %@", bottomUpslantSet);
+  [tempSetOfSonorities addObject:bottomUpslantSet];
   
     // 3. bottom cell downslant
+  NSMutableSet *tempBottomDownslantSet = [NSMutableSet new];
   
     // up
   nextCell = bottomCell;
   realOrientation = (dyadmino.orientation + 2) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"bottom downslant up is %li", (long)nextCell.myPC);
+    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
+    if (![self set:tempBottomDownslantSet containsNote:note]) {
+      [tempBottomDownslantSet addObject:note];
+    }
+//    NSLog(@"bottom downslant up is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1187,17 +1220,30 @@
   nextCell = bottomCell;
   realOrientation = (dyadmino.orientation + 5) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"bottom downslant down is %li", (long)nextCell.myPC);
+    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
+    if (![self set:tempBottomDownslantSet containsNote:note]) {
+      [tempBottomDownslantSet addObject:note];
+    }
+//    NSLog(@"bottom downslant down is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
+  NSSet *bottomDownslantSet = [NSSet setWithSet:tempBottomDownslantSet];
+//  NSLog(@"bottom downslant set is %@", bottomDownslantSet);
+  [tempSetOfSonorities addObject:bottomDownslantSet];
+  
     // 4. top cell upslant
+  NSMutableSet *tempTopUpslantSet = [NSMutableSet new];
   
     // up
   nextCell = topCell;
   realOrientation = (dyadmino.orientation + 1) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"top upslant up is %li", (long)nextCell.myPC);
+    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
+    if (![self set:tempTopUpslantSet containsNote:note]) {
+      [tempTopUpslantSet addObject:note];
+    }
+//    NSLog(@"top upslant up is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1205,17 +1251,30 @@
   nextCell = topCell;
   realOrientation = (dyadmino.orientation + 4) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"top upslant down is %li", (long)nextCell.myPC);
+    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
+    if (![self set:tempTopUpslantSet containsNote:note]) {
+      [tempTopUpslantSet addObject:note];
+    }
+//    NSLog(@"top upslant down is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
+  NSSet *topUpslantSet = [NSSet setWithSet:tempTopUpslantSet];
+//  NSLog(@"top upslant set is %@", topUpslantSet);
+  [tempSetOfSonorities addObject:topUpslantSet];
+  
     // 5. top cell downslant
+  NSMutableSet *tempTopDownslantSet = [NSMutableSet new];
   
     // up
   nextCell = topCell;
   realOrientation = (dyadmino.orientation + 2) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"top downslant up is %li", (long)nextCell.myPC);
+    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
+    if (![self set:tempTopDownslantSet containsNote:note]) {
+      [tempTopDownslantSet addObject:note];
+    }
+//    NSLog(@"top downslant up is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1223,9 +1282,28 @@
   nextCell = topCell;
   realOrientation = (dyadmino.orientation + 5) % 6;
   while (nextCell.myPC != -1) {
-    NSLog(@"top downslant down is %li", (long)nextCell.myPC);
+    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
+    if (![self set:tempTopDownslantSet containsNote:note]) {
+      [tempTopDownslantSet addObject:note];
+    }
+//    NSLog(@"top downslant down is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
+  
+  NSSet *topDownslantSet = [NSSet setWithSet:tempTopDownslantSet];
+//  NSLog(@"top downslant set is %@", topDownslantSet);
+  [tempSetOfSonorities addObject:topDownslantSet];
+  return [NSSet setWithSet:tempSetOfSonorities];
+}
+
+-(BOOL)set:(NSSet *)set containsNote:(NSDictionary *)dictionary {
+  for (NSDictionary *setDictionary in set) {
+    
+    if ([setDictionary[@"pc"] isEqual:dictionary[@"pc"]] && [setDictionary[@"dyadmino"] isEqual:dictionary[@"dyadmino"]]) {
+      return YES;
+    }
+  }
+  return NO;
 }
 
 -(Cell *)nextCellForCell:(Cell *)cell andOrientation:(NSUInteger)orientation {
