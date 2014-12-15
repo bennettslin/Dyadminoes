@@ -122,7 +122,7 @@
 
 #pragma mark - chord logic tests
 
--(void)testRecognitionOfNonChords {
+-(void)testRecognitionOfSpecificNonChords {
   
   Chord noChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:@[]]];
   Chord monad = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:@[@0]]];
@@ -149,17 +149,10 @@
     
       // transpose up semitone from C to B
     for (int j = 0; j < 12; j++) {
-      NSMutableArray *mutableTransposedChord = [NSMutableArray new];
+
+      NSSet *transposedChord = [self transposeChord:rootCChord by:j];
       
-        // transpose each note in chord
-      for (NSNumber *pcObject in rootCChord) {
-        NSUInteger pc = [pcObject unsignedIntegerValue];
-        pc = (pc + j) % 12;
-        [mutableTransposedChord addObject:[NSNumber numberWithUnsignedInteger:pc]];
-      }
-      NSArray *transposedChord = [NSArray arrayWithArray:mutableTransposedChord];
-      
-      Chord chordForTransposedChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:transposedChord]];
+      Chord chordForTransposedChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithSet:transposedChord]];
       if (chordForTransposedChord.chordType != (ChordType)i) {
         chordTypesAllCorrect = NO;
       }
@@ -184,7 +177,7 @@
   XCTAssertTrue([self.sonorityLogic sonorityIsIncompleteSeventh:[NSSet setWithArray:manualIncompleteSeventh]], @"this *should* be a valid incomplete seventh.");
 }
 
--(void)testCorrectChordTypesForAllTranspositionsOfIncompleteSevenths {
+-(void)testCorrectChordTypesForAllTranspositionsOfAllIncompleteSevenths {
   
   NSArray *rootCSevenths = @[@[@0, @3, @6, @10], @[@0, @3, @7, @10], @[@0, @4, @7, @10], @[@0, @3, @6, @9],
                            @[@0, @3, @7, @11], @[@0, @4, @7, @11], @[@0, @4, @8, @11], @[@0, @2, @6, @8]];
@@ -219,7 +212,7 @@
           NSArray *transposedChord = [NSArray arrayWithArray:mutableTransposedChord];
           
           Chord chordForTransposedChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:transposedChord]];
-          if (chordForTransposedChord.chordType != kChordLegaIncompleteSeventh) {
+          if (chordForTransposedChord.chordType != kChordLegalIncompleteSeventh) {
             
             incompleteSeventhTypesAllCorrect = NO;
           }
@@ -231,13 +224,10 @@
   XCTAssert(incompleteSeventhTypesAllCorrect, @"Not all illegal sevenths are recognised correctly.");
 }
 
-#pragma mark - chord validation tests
-
 -(void)testDetectionOfExcessPCs {
   
-    // test 100 times
+    // test random sonority 100 times
   for (int i = 0; i < 100; i++) {
-    
     NSSet *sonority = [self randomSonority];
     
     BOOL expectedSonorityToNotExceedMaximum = (sonority.count <= 4);
@@ -245,11 +235,17 @@
     
     XCTAssertEqual(expectedSonorityToNotExceedMaximum, returnedSonorityDoesNotExceedMaximum, @"Logic failed at detecting whether sonority exceeds maximum.");
   }
+  
+    // test known excess sonority 50 times
+  for (int i = 0; i < 50; i++) {
+    NSSet *excessSonority = [self randomExcessSonority];
+    XCTAssertFalse([self.sonorityLogic validateSonorityDoesNotExceedMaximum:excessSonority], @"Logic failed at detecting sonority with known excess.");
+  }
 }
 
 -(void)testDetectionOfDoublePCs {
   
-    // test 100 times
+    // test random sonority 100 times
   for (int i = 0; i < 100; i++) {
     
     BOOL expectedNoDoublePCs = YES;
@@ -267,14 +263,61 @@
     }
     
     BOOL returnedNoDoublePCs = [self.sonorityLogic validateSonorityHasNoDoublePCs:sonority];
-    XCTAssertEqual(expectedNoDoublePCs, returnedNoDoublePCs, @"There were double PCs in at least one sonority.");
+    XCTAssertEqual(expectedNoDoublePCs, returnedNoDoublePCs, @"Logic failed at detecting whether sonority has double pcs.");
+  }
+  
+    // test known sonority with doubles 50 times
+  for (int i = 0; i < 50; i++) {
+    
+    NSSet *doublePCSonority = [self randomSonorityWithDoublePCs];
+
+    XCTAssertFalse([self.sonorityLogic validateSonorityHasNoDoublePCs:doublePCSonority], @"Logic failed at detecting sonority with known double pcs.");
   }
 }
+
+-(void)testDetectionOfLegalChords {
+  
+    // test known legal chords 100 times
+  for (int i = 0; i < 100; i++) {
+    
+    NSSet *legalChord = [self randomLegalChord];
+    ChordType returnedChordType = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:legalChord].chordType;
+    
+    BOOL chordIsLegal = YES;
+    
+    if (returnedChordType == kChordIllegalChord || returnedChordType == kChordLegalMonad || returnedChordType == kChordLegalDyad || returnedChordType == kChordLegalIncompleteSeventh) {
+      
+      chordIsLegal = NO;
+    }
+    
+    XCTAssertTrue(chordIsLegal, @"Logic failed to detect that sonority is legal chord.");
+  }
+}
+
+-(void)testDetectionOfLegalIncompleteSevenths {
+  
+    // test known legal incomplete sevenths 100 times
+  for (int i = 0; i < 100; i++) {
+    
+    NSSet *legalIncompleteSeventh = [self randomLegalIncompleteSeventh];
+    ChordType returnedChordType = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:legalIncompleteSeventh].chordType;
+    
+    XCTAssertTrue(returnedChordType == kChordLegalIncompleteSeventh, @"Logic failed to detect that sonority is legal incomplete seventh for %@, saw it as %i instead.", legalIncompleteSeventh, returnedChordType);
+  }
+}
+
+-(void)testRandomFormationOfSonoritiesMethod {
+  
+  
+  
+}
+
+#pragma mark - test helper methods
 
 -(NSSet *)randomFormationOfSonorities {
   
   NSMutableSet *tempSonorities = [NSMutableSet new];
-  NSUInteger numberOfSonorities = arc4random() % 5;
+  NSUInteger numberOfSonorities = arc4random() % 5 + 1;
   for (int i = 0; i < numberOfSonorities; i++) {
     [tempSonorities addObject:[self randomSonority]];
   }
@@ -284,7 +327,7 @@
 
 -(NSSet *)randomSonority {
   NSMutableSet *tempSonority = [NSMutableSet new];
-  NSUInteger numberOfNotesInSonority = arc4random() % 5;
+  NSUInteger numberOfNotesInSonority = arc4random() % 5 + 1;
   for (int j = 0; j < numberOfNotesInSonority; j++) {
     
     NSUInteger pc = arc4random() % 12;
@@ -297,6 +340,111 @@
     [tempSonority addObject:note];
   }
   return [NSSet setWithSet:tempSonority];
+}
+
+-(NSSet *)randomExcessSonority {
+  NSMutableSet *tempSonority = [NSMutableSet new];
+  NSUInteger numberOfNotesInSonority = 5 + arc4random() % 5 + 1;
+  for (int j = 0; j < numberOfNotesInSonority; j++) {
+    
+    NSUInteger pc = arc4random() % 12;
+    NSUInteger dyadmino = arc4random() % 10; // ten dyadminoes, to make it easier
+    
+    NSNumber *pcNumber = [NSNumber numberWithUnsignedInteger:pc];
+    NSNumber *dyadminoNumber = [NSNumber numberWithUnsignedInteger:dyadmino];
+    
+    NSDictionary *note = @{@"pc":pcNumber, @"dyadmino": dyadminoNumber};
+    [tempSonority addObject:note];
+  }
+  return [NSSet setWithSet:tempSonority];
+}
+
+-(NSSet *)randomSonorityWithDoublePCs {
+  NSMutableSet *tempSonority = [NSMutableSet new];
+  NSUInteger numberOfNotesInSonority = arc4random() % 4 + 1;
+  for (int j = 0; j < numberOfNotesInSonority; j++) {
+    
+    NSUInteger pc = arc4random() % 12;
+    NSUInteger dyadmino = arc4random() % 10; // ten dyadminoes, to make it easier
+    
+    NSNumber *pcNumber = [NSNumber numberWithUnsignedInteger:pc];
+    NSNumber *dyadminoNumber = [NSNumber numberWithUnsignedInteger:dyadmino];
+    
+    NSDictionary *note = @{@"pc":pcNumber, @"dyadmino": dyadminoNumber};
+    [tempSonority addObject:note];
+    
+      // double of existing pc
+    if (j == 0) {
+      dyadminoNumber = [NSNumber numberWithUnsignedInteger:dyadmino + 1];
+      
+      NSDictionary *doubleNote = @{@"pc":pcNumber, @"dyadmino": dyadminoNumber};
+      [tempSonority addObject:doubleNote];
+    }
+  }
+  return [NSSet setWithSet:tempSonority];
+}
+
+-(NSSet *)randomIllegalChord {
+  NSArray *rootCChords = @[@[@0, @3, @7], @[@0, @4, @7], @[@0, @3, @6, @10],
+                           @[@0, @3, @7, @10], @[@0, @4, @7, @10], @[@0, @3, @6], @[@0, @4, @8], @[@0, @3, @6, @9],
+                           @[@0, @3, @7, @11], @[@0, @4, @7, @11], @[@0, @4, @8, @11], @[@0, @6, @8], @[@0, @2, @6, @8]];
+  
+    // while loop
+    // create sonority of 3 or 4
+    // ensure no double pc
+    // ensure not legal chord or legal incomplete seventh
+  
+  return nil;
+}
+
+-(NSSet *)randomLegalChord {
+  
+  NSArray *rootCChords = @[@[@0, @3, @7], @[@0, @4, @7], @[@0, @3, @6, @10],
+                           @[@0, @3, @7, @10], @[@0, @4, @7, @10], @[@0, @3, @6], @[@0, @4, @8], @[@0, @3, @6, @9],
+                           @[@0, @3, @7, @11], @[@0, @4, @7, @11], @[@0, @4, @8, @11], @[@0, @6, @8], @[@0, @2, @6, @8]];
+  
+  NSUInteger randomIndex = arc4random() % rootCChords.count;
+  NSArray *randomChord = rootCChords[randomIndex];
+  NSUInteger randomTransposition = arc4random() % 12;
+  
+  return [self transposeChord:randomChord by:randomTransposition];
+}
+
+-(NSSet *)randomLegalIncompleteSeventh {
+  NSArray *rootCSevenths = @[@[@0, @3, @6, @10], @[@0, @3, @7, @10], @[@0, @4, @7, @10], @[@0, @3, @6, @9],
+                             @[@0, @3, @7, @11], @[@0, @4, @7, @11], @[@0, @4, @8, @11], @[@0, @2, @6, @8]];
+  
+  NSSet *incompleteSeventh;
+  while (!incompleteSeventh) {
+    NSUInteger randomIndex = arc4random() % rootCSevenths.count;
+    NSArray *randomSeventhArray = rootCSevenths[randomIndex];
+    NSUInteger randomTransposition = arc4random() % 12;
+    
+    NSSet *randomSeventh = [self transposeChord:randomSeventhArray by:randomTransposition];
+    NSMutableSet *tempIncompleteSeventh = [NSMutableSet setWithSet:randomSeventh];
+    [tempIncompleteSeventh removeObject:[tempIncompleteSeventh anyObject]];
+    
+      // this ensures that a legal triad is not returned
+    NSSet *trialChord = [NSSet setWithSet:tempIncompleteSeventh];
+    ChordType chordType = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:trialChord].chordType;
+    if (chordType > kChordFrenchSixth) {
+      incompleteSeventh = trialChord;
+    }
+  }
+  
+  return incompleteSeventh;
+}
+
+-(NSSet *)transposeChord:(NSArray *)chordAsArray by:(NSUInteger)transposition {
+  NSMutableSet *mutableTransposedChord = [NSMutableSet new];
+  
+    // transpose each note in chord
+  for (NSNumber *pcObject in chordAsArray) {
+    NSUInteger pc = [pcObject unsignedIntegerValue];
+    pc = (pc + transposition) % 12;
+    [mutableTransposedChord addObject:[NSNumber numberWithUnsignedInteger:pc]];
+  }
+  return [NSSet setWithSet:mutableTransposedChord];
 }
 
 @end

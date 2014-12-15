@@ -356,8 +356,8 @@ typedef enum legalPlacementResult {
   kIllegalExcessSonority,
   kIllegalDoublePCs,
   kIllegalChords,
-  kLegalChordsNoPoints,
-  kLegalChordsWithPoints
+  kLegalChordsWithPoints,
+  kLegalChordsNoPoints
 } LegalPlacementResult;
 
 typedef enum chordType {
@@ -377,7 +377,7 @@ typedef enum chordType {
   kChordNoChord,
   kChordLegalMonad,
   kChordLegalDyad,
-  kChordLegaIncompleteSeventh,
+  kChordLegalIncompleteSeventh,
   kChordIllegalChord
 } ChordType;
 

@@ -17,29 +17,43 @@
 #pragma mark - validation methods
 
 -(LegalPlacementResult)validateFormationOfSonorities:(NSSet *)sonorities {
+  
+  LegalPlacementResult completeLegalPlacementResult = kLegalChordsNoPoints;
+  
   for (NSSet *sonority in sonorities) {
+    
+    LegalPlacementResult sonorityLegalPlacementResult = kLegalChordsNoPoints;
+    
     if (![self validateSonorityDoesNotExceedMaximum:sonority]) {
-      return kIllegalExcessSonority;
+      sonorityLegalPlacementResult = kIllegalExcessSonority;
     }
     
     if (![self validateSonorityHasNoDoublePCs:sonority]) {
-      return kIllegalDoublePCs;
+      sonorityLegalPlacementResult = kIllegalDoublePCs;
     }
     
-    if (TRUE) {
-      return kIllegalChords;
+    Chord chord = [self chordFromSonorityPlusCheckIncompleteSeventh:sonority];
+    
+    if (chord.chordType == kChordIllegalChord) {
+      sonorityLegalPlacementResult = kIllegalChords;
+    }
+    
+    if (chord.chordType <= kChordFrenchSixth) {
+      sonorityLegalPlacementResult = kLegalChordsWithPoints;
     }
 
-    if (TRUE) {
-      return kIllegalChords;
+    if (chord.chordType >= kChordNoChord && chord.chordType <= kChordLegalIncompleteSeventh) {
+      sonorityLegalPlacementResult = kLegalChordsNoPoints;
     }
     
-    if (TRUE) {
-      return kIllegalChords;
+      // this will always show the most egregious violation if illegal
+      // or else it will privilege chords with points over chord with no points
+    if (sonorityLegalPlacementResult < completeLegalPlacementResult) {
+      completeLegalPlacementResult = sonorityLegalPlacementResult;
     }
   }
   
-  return NO;
+  return completeLegalPlacementResult;
 }
 
 -(BOOL)validateSonorityDoesNotExceedMaximum:(NSSet *)sonority {
@@ -132,7 +146,7 @@
   
   if (chord.chordType == kChordIllegalChord) {
     if ([self sonorityIsIncompleteSeventh:sonority]) {
-      return [self chordFromRoot:-1 andChordType:kChordLegaIncompleteSeventh];
+      return [self chordFromRoot:-1 andChordType:kChordLegalIncompleteSeventh];
     }
   }
   return chord;
@@ -246,7 +260,7 @@
     case kChordNoChord:
     case kChordLegalMonad:
     case kChordLegalDyad:
-    case kChordLegaIncompleteSeventh:
+    case kChordLegalIncompleteSeventh:
     case kChordIllegalChord:
       return nil;
       break;
