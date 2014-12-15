@@ -643,23 +643,23 @@
   if (!dyadmino.hidden && !_canDoubleTapForDyadminoFlip && ([dyadmino isOnBoard] || ![dyadmino isRotating])) {
     
         // register sound if dyadmino tapped
-    if (!_pnpBarUp && !_replayMode && dyadmino && (!_swapMode || (_swapMode && [dyadmino isInRack])) && !_pivotInProgress) {
+    if ((!_pnpBarUp && !_replayMode && dyadmino && (!_swapMode || (_swapMode && [dyadmino isInRack])) && !_pivotInProgress) && (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack]))) {
       
         // whole dyadmino does not sound when board is zoomed
-      if (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) {
-        
+//      if (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) {
+      
           // when face is nil, sound both faces
         [self soundDyadmino:dyadmino withFace:nil];
-      }
+//      }
       
         // register sound if face tapped
     } else {
-      
+//      NSLog(@"face registered");
       Face *face = [self selectFaceWithTouchStruck:YES];
       if (face && face.parent != _hoveringDyadmino && !_pivotInProgress) {
         if ([face isKindOfClass:[Face class]]) {
           Dyadmino *resonatedDyadmino = (Dyadmino *)face.parent;
-          if (!resonatedDyadmino.hidden && !resonatedDyadmino.isRotating && !_boardZoomedOut &&
+          if (!resonatedDyadmino.hidden && !resonatedDyadmino.isRotating &&
               (!_pnpBarUp || (_pnpBarUp && [resonatedDyadmino isOnBoard])) &&
               (!_replayMode || (_replayMode && [resonatedDyadmino isOnBoard]))) {
             
@@ -694,8 +694,8 @@
     _previousTouchWasDyadmino = _currentTouchIsDyadmino;
     _currentTouchIsDyadmino = NO;
     
-    if (_touchNode == _boardField || (_touchNode.parent == _boardField && (![_touchNode isKindOfClass:[Dyadmino class]] || _boardZoomedOut)) ||
-        (_touchNode.parent.parent == _boardField && (![_touchNode.parent isKindOfClass:[Dyadmino class]] || _boardZoomedOut))) { // cell label, this one is necessary only for testing purposes
+    if (_touchNode == _boardField || (_touchNode.parent == _boardField && (![_touchNode isKindOfClass:[Dyadmino class]])) ||
+        (_touchNode.parent.parent == _boardField && (![_touchNode.parent isKindOfClass:[Dyadmino class]]))) { // cell label, this one is necessary only for testing purposes
       
         // check if double tapped
       if (_canDoubleTapForBoardZoom && !_hoveringDyadmino) {
@@ -2520,11 +2520,10 @@
 
 -(Face *)selectFaceWithTouchStruck:(BOOL)touchStruck {
 
-//  CGFloat distance = beganTouch ? kDistanceForTouchingFace : kDyadminoFaceRadius;
   NSArray *touchNodes = [self nodesAtPoint:_currentTouchLocation];
 
     // in hindsight, touches happening too quickly might not be the problem
-    // it might because it isn't getting the right nodes in the first place
+    // it might be because it isn't getting the right nodes in the first place
   if (!touchStruck) {
     NSMutableArray *newTempTouchNodes = [NSMutableArray arrayWithArray:touchNodes];
     CGPoint midPoint = CGPointMake(((_currentTouchLocation.x - _previousTouchLocation.x) / 2) + _previousTouchLocation.x,

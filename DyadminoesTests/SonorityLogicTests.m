@@ -275,6 +275,19 @@
   }
 }
 
+-(void)testDetectionOfIllegalChords {
+  
+    // test known legal chords 100 times
+  for (int i = 0; i < 100; i++) {
+    
+    NSSet *illegalChord = [self randomIllegalChord];
+    ChordType returnedChordType = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:illegalChord].chordType;
+    
+    XCTAssertTrue(returnedChordType == kChordIllegalChord, @"Logic failed to detect that sonority is illegal chord.");
+  }
+  
+}
+
 -(void)testDetectionOfLegalChords {
   
     // test known legal chords 100 times
@@ -306,10 +319,31 @@
   }
 }
 
--(void)testRandomFormationOfSonoritiesMethod {
+-(void)testTotalLegalPlacement {
   
+  NSUInteger cardinality = 5;
   
-  
+    // test each 100 times
+  for (int i = 0; i < 100; i++) {
+    
+      // at least one excess
+    for (int j = 0; j < cardinality; j++) {
+      
+      if (j == 0) {
+        
+        
+        
+      }
+      
+    }
+    
+    
+      // at least one double
+    
+      // at least
+    
+    
+  }
 }
 
 #pragma mark - test helper methods
@@ -385,16 +419,29 @@
 }
 
 -(NSSet *)randomIllegalChord {
-  NSArray *rootCChords = @[@[@0, @3, @7], @[@0, @4, @7], @[@0, @3, @6, @10],
-                           @[@0, @3, @7, @10], @[@0, @4, @7, @10], @[@0, @3, @6], @[@0, @4, @8], @[@0, @3, @6, @9],
-                           @[@0, @3, @7, @11], @[@0, @4, @7, @11], @[@0, @4, @8, @11], @[@0, @6, @8], @[@0, @2, @6, @8]];
+    // not ideal, since it uses the same method to find an illegal chord as the one being tested
   
-    // while loop
-    // create sonority of 3 or 4
-    // ensure no double pc
-    // ensure not legal chord or legal incomplete seventh
+  NSSet *illegalChord;
+  while (!illegalChord) {
+    
+    NSMutableSet *tempSonority = [NSMutableSet new];
+    
+    NSUInteger cardinality = arc4random() % 2 + 3; // will return 3 or 4
+    
+      // while loop ensures no double pc
+    while (tempSonority.count < cardinality) {
+      
+      NSUInteger pc = arc4random() % 12;
+      [tempSonority addObject:@(pc)];
+    }
+      
+    Chord trialChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:tempSonority];
+    if (trialChord.chordType == kChordIllegalChord) {
+      illegalChord = [NSSet setWithSet:tempSonority];
+    }
+  }
   
-  return nil;
+  return illegalChord;
 }
 
 -(NSSet *)randomLegalChord {
