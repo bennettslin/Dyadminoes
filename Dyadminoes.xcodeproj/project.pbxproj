@@ -13,7 +13,6 @@
 		3F0526C91936CE9F003D3C04 /* page2.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F0526C51936CE9F003D3C04 /* page2.png */; };
 		3F0526CA1936CE9F003D3C04 /* page1.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F0526C61936CE9F003D3C04 /* page1.png */; };
 		3F0526CD1936D12A003D3C04 /* HelpContentViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F0526CC1936D12A003D3C04 /* HelpContentViewController.m */; };
-		3F0B477D1953C7B700BDE0BA /* Chord.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F0B477C1953C7B700BDE0BA /* Chord.m */; };
 		3F1071C61A2EBA8900C28923 /* MatchTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F1071C51A2EBA8900C28923 /* MatchTests.m */; };
 		3F1071C91A31594A00C28923 /* TestHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F1071C81A31594A00C28923 /* TestHelper.m */; };
 		3F1071CF1A32DA5300C28923 /* Match+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F1071CE1A32DA5300C28923 /* Match+Helper.m */; };
@@ -107,8 +106,6 @@
 		3F0526C61936CE9F003D3C04 /* page1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = page1.png; sourceTree = "<group>"; };
 		3F0526CB1936D12A003D3C04 /* HelpContentViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HelpContentViewController.h; sourceTree = "<group>"; };
 		3F0526CC1936D12A003D3C04 /* HelpContentViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HelpContentViewController.m; sourceTree = "<group>"; };
-		3F0B477B1953C7B700BDE0BA /* Chord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Chord.h; sourceTree = "<group>"; };
-		3F0B477C1953C7B700BDE0BA /* Chord.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Chord.m; sourceTree = "<group>"; };
 		3F1071C51A2EBA8900C28923 /* MatchTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MatchTests.m; sourceTree = "<group>"; };
 		3F1071C71A31594A00C28923 /* TestHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestHelper.h; sourceTree = "<group>"; };
 		3F1071C81A31594A00C28923 /* TestHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestHelper.m; sourceTree = "<group>"; };
@@ -301,8 +298,6 @@
 				3F8F045718BFB1B300853C4C /* NSObject+Helper.m */,
 				3F9923071895ECCA00FC9392 /* SonorityLogic.h */,
 				3F9923081895ECCA00FC9392 /* SonorityLogic.m */,
-				3F0B477B1953C7B700BDE0BA /* Chord.h */,
-				3F0B477C1953C7B700BDE0BA /* Chord.m */,
 				3F3ABBA6198F4CF600015033 /* UIImage+colouredImage.h */,
 				3F3ABBA7198F4CF600015033 /* UIImage+colouredImage.m */,
 			);
@@ -648,7 +643,6 @@
 				3FBC6AD4194E1BBD00420CB8 /* SoundEngine.m in Sources */,
 				3F582EF519A4A4E90022C92E /* GameEndedViewController.m in Sources */,
 				3F8F045818BFB1B300853C4C /* NSObject+Helper.m in Sources */,
-				3F0B477D1953C7B700BDE0BA /* Chord.m in Sources */,
 				3FDA7B80197CF96A001677D8 /* CellBackgroundView.m in Sources */,
 				3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */,
 				3FECDE0A19355B1600D774AB /* StoreViewController.m in Sources */,

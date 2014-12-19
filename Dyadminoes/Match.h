@@ -52,6 +52,7 @@
   // these will be lazily loaded by dataDyadminoes, depending on place status
 @property (readonly, nonatomic) NSMutableArray *pile; // was mutable array
 @property (readonly, nonatomic) NSMutableSet *board; // was mutable set
+@property (readonly, nonatomic) NSMutableSet *chords;
 
   // establish initial properties method
 -(void)initialPlayers:(NSSet *)players andRules:(GameRules)rules andSkill:(GameSkill)skill withContext:(NSManagedObjectContext *)managedObjectContext;

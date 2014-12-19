@@ -42,6 +42,7 @@
 @synthesize delegate = _delegate;
 @synthesize pile = _pile;
 @synthesize board = _board;
+@synthesize chords = _chords;
 
 #pragma mark - init methods
 
@@ -728,6 +729,26 @@
 
 -(void)setBoard:(NSMutableSet *)board {
   _board = board;
+}
+
+-(NSSet *)chords {
+  if (!_chords) {
+    _chords = [NSMutableSet new];
+    for (DataDyadmino *dataDyad in self.board) {
+      if ([dataDyad returnPlaceStatus] == kOnBoard) {
+        [_board addObject:dataDyad];
+      }
+    }
+    
+    for (NSDictionary *turn in self.turns) {
+
+    }
+  }
+  return _chords;
+}
+
+-(void)setChords:(NSMutableSet *)chords {
+  _chords = chords;
 }
 
 #pragma mark - helper methods

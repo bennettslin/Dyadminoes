@@ -26,6 +26,7 @@
 #import "Match.h"
 #import "DataDyadmino.h"
 #import "SoundEngine.h"
+#import "SonorityLogic.h"
 
 #define kTopBarIn @"topBarIn"
 #define kTopBarOut @"topBarOut"
@@ -39,6 +40,8 @@
   // the dyadminoes that the player sees
 @property (strong, nonatomic) NSArray *playerRackDyadminoes;
 @property (strong, nonatomic) NSSet *boardDyadminoes; // contains holding container dyadminoes
+
+@property (strong, nonatomic) NSSet *boardDyadminoBelongsInTheseLegalChords; // instantiated and nillified along with hovering dyadmino
 
 @end
 
@@ -196,6 +199,7 @@
   _touchedDyadmino = nil;
   _recentRackDyadmino = nil;
   _hoveringDyadmino = nil;
+  self.boardDyadminoBelongsInTheseLegalChords = nil;
   _pivotInProgress = NO;
   _endTouchLocationToMeasureDoubleTap = CGPointMake(2147483647, 2147483647);
   
@@ -998,6 +1002,15 @@
 
 -(void)beginTouchOrPivotOfDyadmino:(Dyadmino *)dyadmino {
   
+    // if it belongs on the board, get the chords that it's a part of
+  if ([dyadmino belongsOnBoard] && dyadmino != _hoveringDyadmino) {
+//    NSLog(@"hovering dyadmino belongs on board, its home node is %@", dyadmino.homeNode.name);
+    NSSet *formationOfSonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
+//    NSLog(@"formation of sonorities is %@", formationOfSonorities);
+    self.boardDyadminoBelongsInTheseLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
+//    NSLog(@"hovering dyadmino belongs in these legal chords %@", self.boardDyadminoBelongsInTheseLegalChords);
+  }
+  
   [dyadmino isOnBoard] ? [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino != _hoveringDyadmino && ![dyadmino isRotating])] : nil;
   
     // record tempReturnOrientation only if it's settled and not hovering
@@ -1123,7 +1136,6 @@
     if (dyadmino.isHovering || dyadmino.continuesToHover) {
       
        // add !_canDoubleTapForDyadminoFlip to have delay after touch ends
-      NSLog(@"prepareForHover");
       [dyadmino isRotating] ? nil : [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
     }
   }
@@ -1170,6 +1182,7 @@
       // this ensures that pivot guide doesn't disappear if rack exchange
     [_boardField hideAllPivotGuides];
     _hoveringDyadmino = nil;
+    self.boardDyadminoBelongsInTheseLegalChords = nil;
   }
   
     // this ensures that dyadmino is properly oriented and positioned before
@@ -1494,6 +1507,7 @@
       // empty pointers
     _recentRackDyadmino = nil;
     _hoveringDyadmino = nil;
+    self.boardDyadminoBelongsInTheseLegalChords = nil;
     
       // establish data dyadmino properties
     dataDyad.myHexCoord = dyadmino.myHexCoord;
@@ -1911,8 +1925,42 @@
         // ease in right away because no error, and dyadmino was not moved from original spot
       if (placementResult == kNoError && !(dyadmino.tempBoardNode == _uponTouchDyadminoNode && dyadmino.orientation == _uponTouchDyadminoOrientation)) {
         
-        NSSet *sonorities = [_boardField collectSonorotiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
-        NSLog(@"sonorities is %@", sonorities);
+        NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
+        
+        NSSet *chordSonorities = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
+          
+            // FIXME: board dyadmino retain same chordSonorities, or a subset of it
+        if ([dyadmino belongsOnBoard]) {
+          
+          NSLog(@"determining whether to ease dyadmino that belongs on board...");
+          
+            // illegal chords, keep hovering
+          if (!chordSonorities) {
+            
+            NSLog(@"...no, illegal chords have been formed.");
+            [dyadmino keepHovering];
+            return;
+            
+              // not legal formation, as it breaks chords already established
+          } else if (![[SonorityLogic sharedLogic] setOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords isSubsetOfSetOfLegalChords:chordSonorities]) {
+            
+            NSLog(@"...no, breaks chords already established.");
+            [dyadmino keepHovering];
+            return;
+            
+              // legal formation
+          } else {
+            if (![[SonorityLogic sharedLogic] setOfLegalChords:chordSonorities isSubsetOfSetOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords]) {
+              
+              NSLog(@"...new chords were formed from movement of board dyadmino!");
+            }
+          }
+          
+        } else if ([dyadmino belongsInRack]) {
+
+            // Will be fine if th
+          
+        }
         
         [dyadmino finishHovering];
         if ([dyadmino belongsOnBoard]) {
@@ -1932,7 +1980,9 @@
         [_boardField hideAllPivotGuides];
         [dyadmino animateEaseIntoNodeAfterHover];
         _hoveringDyadmino = nil;
+        self.boardDyadminoBelongsInTheseLegalChords = nil;
         [self updateTopBarButtons];
+        
       } else {
         [dyadmino keepHovering];
         
@@ -3018,6 +3068,11 @@
 
 -(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign {
   [_boardField changeColoursAroundDyadmino:dyadmino withSign:sign];
+}
+
+-(BOOL)sonority:(NSSet *)sonority containsNote:(NSDictionary *)note {
+  SonorityLogic *logic = [SonorityLogic sharedLogic];
+  return [logic sonority:sonority containsNote:note];
 }
 
 #pragma mark - debugging methods

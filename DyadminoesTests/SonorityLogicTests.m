@@ -280,7 +280,15 @@
     // test known legal chords 100 times
   for (int i = 0; i < 100; i++) {
     
-    NSSet *illegalChord = [self randomIllegalChord];
+    NSSet *illegalSonority = [self randomIllegalChord];
+  
+    NSMutableSet *tempIllegalChord = [NSMutableSet new];
+    for (NSDictionary *note in illegalSonority) {
+      
+      [tempIllegalChord addObject:note[@"pc"]];
+    }
+    
+    NSSet *illegalChord = [NSSet setWithSet:tempIllegalChord];
     ChordType returnedChordType = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:illegalChord].chordType;
     
     XCTAssertTrue(returnedChordType == kChordIllegalChord, @"Logic failed to detect that sonority is illegal chord.");
@@ -293,7 +301,15 @@
     // test known legal chords 100 times
   for (int i = 0; i < 100; i++) {
     
-    NSSet *legalChord = [self randomLegalChord];
+    NSSet *legalSonority = [self randomLegalChord];
+    
+    NSMutableSet *tempLegalChord = [NSMutableSet new];
+    for (NSDictionary *note in legalSonority) {
+      
+      [tempLegalChord addObject:note[@"pc"]];
+    }
+    
+    NSSet *legalChord = [NSSet setWithSet:tempLegalChord];
     ChordType returnedChordType = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:legalChord].chordType;
     
     BOOL chordIsLegal = YES;
@@ -312,39 +328,120 @@
     // test known legal incomplete sevenths 100 times
   for (int i = 0; i < 100; i++) {
     
-    NSSet *legalIncompleteSeventh = [self randomLegalIncompleteSeventh];
-    ChordType returnedChordType = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:legalIncompleteSeventh].chordType;
+    NSSet *legalIncompleteSeventhSonority = [self randomLegalIncompleteSeventh];
     
-    XCTAssertTrue(returnedChordType == kChordLegalIncompleteSeventh, @"Logic failed to detect that sonority is legal incomplete seventh for %@, saw it as %i instead.", legalIncompleteSeventh, returnedChordType);
+    NSMutableSet *tempLegalIncompleteSeventhChord = [NSMutableSet new];
+    for (NSDictionary *note in legalIncompleteSeventhSonority) {
+      
+      [tempLegalIncompleteSeventhChord addObject:note[@"pc"]];
+    }
+    
+    NSSet *legalIncompleteSeventhChord = [NSSet setWithSet:tempLegalIncompleteSeventhChord];
+    ChordType returnedChordType = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:legalIncompleteSeventhChord].chordType;
+    
+    XCTAssertTrue(returnedChordType == kChordLegalIncompleteSeventh, @"Logic failed to detect that sonority is legal incomplete seventh for %@, saw it as %i instead.", legalIncompleteSeventhChord, returnedChordType);
   }
 }
 
--(void)testTotalLegalPlacement {
+-(void)testSonorityIsSubsetOfSonorityMethod {
+    // see if method can be simplified with isEqual
   
-  NSUInteger cardinality = 5;
+    // test 50 times
+    // test when sonorities have no notes in common
+  for (int i = 0; i < 50; i++){
   
-    // test each 100 times
-  for (int i = 0; i < 100; i++) {
-    
-      // at least one excess
-    for (int j = 0; j < cardinality; j++) {
+    NSSet *set1 = [self randomSonority];
+    NSSet *set2;
+
+    while (!set2) {
+      NSSet *trialSet2 = [self randomSonority];
       
-      if (j == 0) {
-        
-        
-        
+      BOOL noCommonNote = YES;
+      for (NSDictionary *note in trialSet2) {
+        if ([set1 containsObject:note]) {
+          noCommonNote = NO;
+        }
       }
       
+      set2 = noCommonNote ? trialSet2 : nil;
+    }
+  
+    XCTAssertFalse([self.sonorityLogic sonority:set1 IsSubsetOfSonority:set2], @"Failed to see that sonorities have no notes in common.");
+  }
+  
+    // test 50 times
+  for (int i = 0; i < 50; i++) {
+    
+    NSSet *set1 = [self randomLegalChord];
+    NSSet *set2;
+    
+      // set1 is triad, add note
+    if (set1.count == 3) {
+      NSMutableSet *tempSet = [NSMutableSet setWithSet:set1];
+      
+      while (!set2 || set2.count < 4) {
+        NSUInteger pc = arc4random() % 12;
+        NSUInteger dyadmino = arc4random() % 10; // ten dyadminoes, to make it easier
+        NSDictionary *note = @{@"pc":@(pc), @"dyadmino": @(dyadmino)};
+        [tempSet addObject:note];
+        set2 = [NSSet setWithSet:tempSet];
+      }
+      
+        // set1 is seventh, subtract note
+    } else {
+      NSMutableSet *tempSet = [NSMutableSet setWithSet:set1];
+      [tempSet removeObject:[tempSet anyObject]];
+      set2 = [NSSet setWithSet:tempSet];
     }
     
+      // make set1 the smaller one no matter what
+    if (set1.count > set2.count) {
+      NSSet *tempSet = set2;
+      set2 = set1;
+      set1 = tempSet;
+    }
+
+    XCTAssertTrue([self.sonorityLogic sonority:set1 IsSubsetOfSonority:set2], @"Smaller sonority not recognised as subset of larger one.");
+
+    NSMutableSet *tempSet1 = [NSMutableSet setWithSet:set1];
+    while (set1.count < set2.count) {
     
-      // at least one double
+      NSUInteger pc = arc4random() % 12;
+      NSUInteger dyadmino = arc4random() % 10; // ten dyadminoes, to make it easier
+      NSDictionary *note = @{@"pc":@(pc), @"dyadmino": @(dyadmino)};
+      if (![self.sonorityLogic sonority:set2 containsNote:note]) {
+        
+        [tempSet1 addObject:note];
+        set1 = [NSSet setWithSet:tempSet1];
+      }
+    }
     
-      // at least
-    
-    
+    NSLog(@"set1 is %@, set2 is %@", set1, set2);
+    XCTAssertFalse([self.sonorityLogic sonority:set1 IsSubsetOfSonority:set2], @"Failed to see that sonority is not subset despite some notes in common, because it also has extra notes not found in other sonority.");
   }
 }
+
+-(void)testEqualSonoritiesAreSubsetsOfEachOther {
+  
+    // test 50 times
+  
+  for (int i = 0; i < 50; i++) {
+    NSSet *sonority1 = [self randomSonority];
+    NSSet *sonority2 = [NSSet setWithSet:sonority1];
+    
+    XCTAssertTrue([self.sonorityLogic sonority:sonority1 IsSubsetOfSonority:sonority2], @"Sonority1 should be subset of sonority2.");
+    XCTAssertTrue([self.sonorityLogic sonority:sonority2 IsSubsetOfSonority:sonority1], @"Sonority1 should be subset of sonority2.");
+  }
+}
+
+-(void)testChordForPersonalPurposes {
+  NSSet *chordSonority = [NSSet setWithArray:@[@0, @1, @3, @11]];
+  Chord chord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:chordSonority];
+  NSLog(@"chord type is %i", chord.chordType);
+  XCTAssertTrue(chord.chordType == kChordIllegalChord, @"This chord should be illegal!");
+}
+
+  // test legalChordSonoritiesFromFormationOfSonorities
 
 #pragma mark - test helper methods
 
@@ -379,7 +476,7 @@
 -(NSSet *)randomExcessSonority {
   NSMutableSet *tempSonority = [NSMutableSet new];
   NSUInteger numberOfNotesInSonority = 5 + arc4random() % 5 + 1;
-  for (int j = 0; j < numberOfNotesInSonority; j++) {
+  while (tempSonority.count < numberOfNotesInSonority) {
     
     NSUInteger pc = arc4random() % 12;
     NSUInteger dyadmino = arc4random() % 10; // ten dyadminoes, to make it easier
@@ -396,7 +493,7 @@
 -(NSSet *)randomSonorityWithDoublePCs {
   NSMutableSet *tempSonority = [NSMutableSet new];
   NSUInteger numberOfNotesInSonority = arc4random() % 4 + 1;
-  for (int j = 0; j < numberOfNotesInSonority; j++) {
+  while (tempSonority.count < numberOfNotesInSonority) {
     
     NSUInteger pc = arc4random() % 12;
     NSUInteger dyadmino = arc4random() % 10; // ten dyadminoes, to make it easier
@@ -408,7 +505,7 @@
     [tempSonority addObject:note];
     
       // double of existing pc
-    if (j == 0) {
+    if (tempSonority.count == 1) {
       dyadminoNumber = [NSNumber numberWithUnsignedInteger:dyadmino + 1];
       
       NSDictionary *doubleNote = @{@"pc":pcNumber, @"dyadmino": dyadminoNumber};
@@ -434,14 +531,22 @@
       NSUInteger pc = arc4random() % 12;
       [tempSonority addObject:@(pc)];
     }
-      
+
     Chord trialChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:tempSonority];
     if (trialChord.chordType == kChordIllegalChord) {
       illegalChord = [NSSet setWithSet:tempSonority];
     }
   }
   
-  return illegalChord;
+  NSMutableSet *tempReturnedChord = [NSMutableSet new];
+  
+  for (NSNumber *pc in illegalChord) {
+    NSUInteger dyadmino = arc4random() % 10; // ten dyadminoes, to make it easier
+    NSDictionary *illegalChordNote = @{@"pc":pc, @"dyadmino": @(dyadmino)};
+    [tempReturnedChord addObject:illegalChordNote];
+  }
+
+  return [NSSet setWithSet:tempReturnedChord];
 }
 
 -(NSSet *)randomLegalChord {
@@ -454,7 +559,17 @@
   NSArray *randomChord = rootCChords[randomIndex];
   NSUInteger randomTransposition = arc4random() % 12;
   
-  return [self transposeChord:randomChord by:randomTransposition];
+  NSSet *randomChordSet = [self transposeChord:randomChord by:randomTransposition];
+  
+  NSMutableSet *tempReturnedChord = [NSMutableSet new];
+  
+  for (NSNumber *pc in randomChordSet) {
+    NSUInteger dyadmino = arc4random() % 10; // ten dyadminoes, to make it easier
+    NSDictionary *legalChordNote = @{@"pc":pc, @"dyadmino": @(dyadmino)};
+    [tempReturnedChord addObject:legalChordNote];
+  }
+  
+  return [NSSet setWithSet:tempReturnedChord];
 }
 
 -(NSSet *)randomLegalIncompleteSeventh {
@@ -479,7 +594,15 @@
     }
   }
   
-  return incompleteSeventh;
+  NSMutableSet *tempReturnedChord = [NSMutableSet new];
+  
+  for (NSNumber *pc in incompleteSeventh) {
+    NSUInteger dyadmino = arc4random() % 10; // ten dyadminoes, to make it easier
+    NSDictionary *legalIncompleteSeventhNote = @{@"pc":pc, @"dyadmino": @(dyadmino)};
+    [tempReturnedChord addObject:legalIncompleteSeventhNote];
+  }
+  
+  return [NSSet setWithSet:tempReturnedChord];
 }
 
 -(NSSet *)transposeChord:(NSArray *)chordAsArray by:(NSUInteger)transposition {
@@ -495,3 +618,69 @@
 }
 
 @end
+
+// may not need this method
+//-(void)testSetOfSonoritiesIsSubsetOfSetOfSonoritiesMethod {
+//    // see if method can be simplified with isEqual
+//
+//    // test 50 times
+//  for (int i = 0; i < 50; i++) {
+//
+//      // this will break if coincidentally two sets are exactly the same
+//      // highly unlikely, though
+//    NSSet *set1 = [self randomFormationOfSonorities];
+//    NSSet *set2 = [self randomFormationOfSonorities];
+//
+//    if (![set1 isEqualToSet:set2]) {
+//    XCTAssertFalse([self.sonorityLogic setOfSonorities:set1 isSubsetOfSetOfSonorities:set2], @"Failed to see that sets have no sonorities in common.");
+//    }
+//  }
+//
+//    // test 50 times
+//  for (int i = 0; i < 50; i++) {
+//    NSSet *set1 = [self randomFormationOfSonorities];
+//    NSSet *set2;
+//    NSMutableSet *tempSet = [NSMutableSet setWithSet:set1];
+//
+//    while (tempSet.count == set1.count) {
+//      NSSet *trialSonority = [self randomSonority];
+//      if (![tempSet containsObject:trialSonority]) {
+//        [tempSet addObject:trialSonority];
+//        set2 = [NSSet setWithSet:tempSet];
+//      }
+//    }
+//
+//    NSLog(@"set2 count is %lu, set1 count is %lu", (unsigned long)set2.count, (unsigned long)set1.count);
+//    XCTAssertTrue([self.sonorityLogic setOfSonorities:set1 isSubsetOfSetOfSonorities:set2], @"Failed to see that one set of sonorities is a subset of another set of sonorities.");
+//    XCTAssertFalse([self.sonorityLogic setOfSonorities:set2 isSubsetOfSetOfSonorities:set1], @"Failed to see that although one set of sonorities has notes in common with the other, it also has extra sonorities not found in the other sonority.");
+//  }
+//}
+
+//-(void)testTotalLegalPlacement {
+//
+//  NSUInteger cardinality = 5;
+//
+//    // test each 100 times
+//  for (int i = 0; i < 100; i++) {
+//
+//      // at least one excess
+//    for (int j = 0; j < cardinality; j++) {
+//
+//      if (j == 0) {
+//
+//
+//
+//      }
+//
+//    }
+//
+//
+//      // at least one double
+//
+//      // at least
+//
+//
+//  }
+//
+//  XCTAssertTrue(NO, @"placeholder test.");
+//}

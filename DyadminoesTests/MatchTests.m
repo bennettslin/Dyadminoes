@@ -693,6 +693,7 @@
   XCTAssertTrue([(NSArray *)firstDataDyad.turnChanges count] == 1, @"Extra turn change should not have been added.");
 }
 
+  // this test fails occasionally, not sure why
 -(void)testDataDyadRecordsBoardDyadminoChange {
   
     // test 100 times

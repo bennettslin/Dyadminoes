@@ -20,6 +20,7 @@
 @dynamic hexX;
 @dynamic hexY;
 @dynamic myRackOrder;
+@dynamic chordsThisPlay;
 @dynamic turnChanges;
 @dynamic placeStatus;
 @dynamic match;
@@ -142,6 +143,26 @@
 
 +(Class)transformedValueClass {
   return [NSArray class];
+}
+
++(BOOL)allowsReverseTransformation {
+  return YES;
+}
+
+-(id)transformedValue:(id)value {
+  return [NSKeyedArchiver archivedDataWithRootObject:value];
+}
+
+-(id)reverseTransformedValue:(id)value {
+  return [NSKeyedUnarchiver unarchiveObjectWithData:value];
+}
+
+@end
+
+@implementation ChordsThisPlay
+
++(Class)transformedValueClass {
+  return [NSSet class];
 }
 
 +(BOOL)allowsReverseTransformation {

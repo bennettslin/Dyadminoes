@@ -16,44 +16,67 @@
 
 #pragma mark - validation methods
 
--(LegalPlacementResult)validateFormationOfSonorities:(NSSet *)sonorities {
+-(NSSet *)legalChordSonoritiesFromFormationOfSonorities:(NSSet *)sonorities {
+    // returns all sonorities that are legal chords, with pc and dyadmino information
+    // returns empty set if no legal chords
+    // returns nil if illegal chords
   
-  LegalPlacementResult completeLegalPlacementResult = kLegalChordsNoPoints;
+  NSMutableSet *tempChordSonorities = [NSMutableSet new];
   
   for (NSSet *sonority in sonorities) {
     
-    LegalPlacementResult sonorityLegalPlacementResult = kLegalChordsNoPoints;
-    
+      // ensures no chord exceeds maximum
     if (![self validateSonorityDoesNotExceedMaximum:sonority]) {
-      sonorityLegalPlacementResult = kIllegalExcessSonority;
+      return nil;
     }
     
+      // ensures chord does not have double pcs
     if (![self validateSonorityHasNoDoublePCs:sonority]) {
-      sonorityLegalPlacementResult = kIllegalDoublePCs;
+      return nil;
     }
     
-    Chord chord = [self chordFromSonorityPlusCheckIncompleteSeventh:sonority];
+      // remove
+    NSMutableSet *tempChordSonority = [NSMutableSet new];
+    for (NSDictionary *note in sonority) {
+      NSNumber *pc = note[@"pc"];
+      [tempChordSonority addObject:pc];
+    }
+    NSSet *chordSonority = [NSSet setWithSet:tempChordSonority];
+    Chord chord = [self chordFromSonorityPlusCheckIncompleteSeventh:chordSonority];
     
+      // ensures chord is not illegal
     if (chord.chordType == kChordIllegalChord) {
-      sonorityLegalPlacementResult = kIllegalChords;
-    }
-    
-    if (chord.chordType <= kChordFrenchSixth) {
-      sonorityLegalPlacementResult = kLegalChordsWithPoints;
-    }
-
-    if (chord.chordType >= kChordNoChord && chord.chordType <= kChordLegalIncompleteSeventh) {
-      sonorityLegalPlacementResult = kLegalChordsNoPoints;
-    }
-    
-      // this will always show the most egregious violation if illegal
-      // or else it will privilege chords with points over chord with no points
-    if (sonorityLegalPlacementResult < completeLegalPlacementResult) {
-      completeLegalPlacementResult = sonorityLegalPlacementResult;
+      NSLog(@"chord type is illegal.");
+      return nil;
+      
+        // bothers to distinguish only if chord is legal
+    } else if (chord.chordType <= kChordFrenchSixth) {
+      [tempChordSonorities addObject:sonority];
     }
   }
   
-  return completeLegalPlacementResult;
+  return tempChordSonorities;
+}
+
+-(BOOL)setOfLegalChords:(NSSet *)setofLegalChords1 isSubsetOfSetOfLegalChords:(NSSet *)setOfLegalChords2 {
+    // this method will break if the chords are not all legal
+
+  BOOL returnValue = YES;
+  for (NSSet *chord1 in setofLegalChords1) {
+
+    BOOL sonority1IsAlsoInSet2 = NO;
+    for (NSSet *chord2 in setOfLegalChords2) {
+      if ([self sonority:chord1 IsSubsetOfSonority:chord2]) {
+        sonority1IsAlsoInSet2 = YES;
+      }
+    }
+
+    if (!sonority1IsAlsoInSet2) {
+      returnValue = NO;
+    }
+  }
+  
+  return returnValue;
 }
 
 -(BOOL)validateSonorityDoesNotExceedMaximum:(NSSet *)sonority {
@@ -72,6 +95,31 @@
   return YES;
 }
 
+-(BOOL)sonority:(NSSet *)set containsNote:(NSDictionary *)dictionary {
+  
+  for (NSDictionary *setNote in set) {
+    
+    if ([setNote[@"pc"] isEqual:dictionary[@"pc"]] && [setNote[@"dyadmino"] isEqual:dictionary[@"dyadmino"]]) {
+      return YES;
+    }
+  }
+  return NO;
+}
+
+-(BOOL)sonority:(NSSet *)smaller IsSubsetOfSonority:(NSSet *)larger {
+    // every note in smaller sonority is also in larger sonority
+    // possible that sonorities are equal
+  
+  BOOL returnValue = YES;
+  for (NSDictionary *note in smaller) {
+    if (![self sonority:larger containsNote:note]) {
+      returnValue = NO;
+    }
+  }
+  
+  return returnValue;
+}
+
 #pragma mark - chord logic methods
 
 -(Chord)chordFromSonority:(NSSet *)sonority {
@@ -86,6 +134,8 @@
     return [self chordFromRoot:-1 andChordType:kChordLegalMonad];
   } else if (cardinality == 2) {
     return [self chordFromRoot:-1 andChordType:kChordLegalDyad];
+  } else if (cardinality > 4) {
+    return [self chordFromRoot:-1 andChordType:kChordIllegalChord];
   }
   
     // puts in pc normal form
@@ -205,7 +255,7 @@
       [tempSonority addObject:missingNote];
       NSSet *newSonority = [NSSet setWithSet:tempSonority];
       Chord chordForNewSonority = [self chordFromSonority:newSonority];
-      if (!chordForNewSonority.chordType != kChordIllegalChord) {
+      if (chordForNewSonority.chordType != kChordIllegalChord) {
         sonorityIsIncompleteSeventh = YES;
       }
     }
@@ -436,3 +486,43 @@
 }
 
 @end
+
+//-(LegalPlacementResult)validateFormationOfSonorities:(NSSet *)sonorities {
+//
+//  LegalPlacementResult completeLegalPlacementResult = kLegalChordsNoPoints;
+//
+//  for (NSSet *sonority in sonorities) {
+//
+//    LegalPlacementResult sonorityLegalPlacementResult = kLegalChordsNoPoints;
+//
+//    if (![self validateSonorityDoesNotExceedMaximum:sonority]) {
+//      sonorityLegalPlacementResult = kIllegalExcessSonority;
+//    }
+//
+//    if (![self validateSonorityHasNoDoublePCs:sonority]) {
+//      sonorityLegalPlacementResult = kIllegalDoublePCs;
+//    }
+//
+//    Chord chord = [self chordFromSonorityPlusCheckIncompleteSeventh:sonority];
+//
+//    if (chord.chordType == kChordIllegalChord) {
+//      sonorityLegalPlacementResult = kIllegalChords;
+//    }
+//
+//    if (chord.chordType <= kChordFrenchSixth) {
+//      sonorityLegalPlacementResult = kLegalChordsWithPoints;
+//    }
+//
+//    if (chord.chordType >= kChordNoChord && chord.chordType <= kChordLegalIncompleteSeventh) {
+//      sonorityLegalPlacementResult = kLegalChordsNoPoints;
+//    }
+//
+//      // this will always show the most egregious violation if illegal
+//      // or else it will privilege chords with points over chord with no points
+//    if (sonorityLegalPlacementResult < completeLegalPlacementResult) {
+//      completeLegalPlacementResult = sonorityLegalPlacementResult;
+//    }
+//  }
+//  
+//  return completeLegalPlacementResult;
+//}

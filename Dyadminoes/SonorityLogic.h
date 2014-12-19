@@ -13,7 +13,14 @@
 
 #pragma mark - validation methods
 
--(LegalPlacementResult)validateFormationOfSonorities:(NSSet *)sonorities;
+//-(LegalPlacementResult)validateFormationOfSonorities:(NSSet *)sonorities;
+
+-(NSSet *)legalChordSonoritiesFromFormationOfSonorities:(NSSet *)sonorities;
+-(BOOL)setOfLegalChords:(NSSet *)setofLegalChords1 isSubsetOfSetOfLegalChords:(NSSet *)setOfLegalChords2;
+
+  // sonority stuff
+-(BOOL)sonority:(NSSet *)set containsNote:(NSDictionary *)dictionary;
+-(BOOL)sonority:(NSSet *)smaller IsSubsetOfSonority:(NSSet *)larger;
 
 #pragma mark - chord logic methods
 

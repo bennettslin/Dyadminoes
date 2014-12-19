@@ -23,6 +23,9 @@
 @property (retain, nonatomic) NSNumber *myRackOrder;
 @property (retain, nonatomic) NSNumber *placeStatus;
 
+  // chords formed when this dyadmino was played
+@property (retain, nonatomic) id chordsThisPlay;
+
   // for replay mode, remembers turns that involved change of state
 @property (retain, nonatomic) id turnChanges;
 @property (strong, nonatomic) Match *match;
@@ -40,5 +43,9 @@
 @end
 
 @interface TurnChanges : NSValueTransformer
+
+@end
+
+@interface ChordsThisPlay : NSValueTransformer
 
 @end

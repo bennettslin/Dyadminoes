@@ -16,6 +16,7 @@
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino;
 -(void)correctBoardForPositionAfterZoom;
 -(NSSet *)allBoardDyadminoesPlusRecentRackDyadmino;
+-(BOOL)sonority:(NSSet *)sonority containsNote:(NSDictionary *)note;
 
 @end
 
@@ -114,7 +115,7 @@
 #pragma mark - legality methods
 
 -(PhysicalPlacementResult)validatePhysicallyPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint;
--(NSSet *)collectSonorotiesFromPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint;
+-(NSSet *)collectSonoritiesFromPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint;
 
 #pragma mark - distance helper methods
 
