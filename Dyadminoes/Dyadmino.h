@@ -131,6 +131,7 @@
 -(void)animateEaseIntoNodeAfterHover;
 -(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour;
 -(void)animateFace:(SKSpriteNode *)face;
+-(void)animateHover:(BOOL)animate;
 
 #pragma mark - bool methods
 

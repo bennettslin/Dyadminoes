@@ -66,6 +66,7 @@
 -(void)repositionDyadminoes:(NSArray *)dyadminoesInArray fromUndo:(BOOL)undo withAnimation:(BOOL)animation {
     // dyadminoes are already in array, this method manages the sprite views
   
+  __weak typeof(self) weakSelf = self;
   NSUInteger rackCount = dyadminoesInArray.count;
   for (NSUInteger index = 0; index < rackCount; index++) {
     
@@ -93,13 +94,17 @@
       if (undo && index == dyadminoesInArray.count - 1) {
         dyadmino.position = shouldBePosition;
         SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
-        [dyadmino runAction:growAction];
+        SKAction *completeAction = [SKAction runBlock:^{
+          [weakSelf.delegate allowUndoButton];
+        }];
+        SKAction *sequenceAction = [SKAction sequence:@[growAction, completeAction]];
+        [dyadmino runAction:sequenceAction];
         return;
       }
         // dyadmino is *not* already on rack, so add offscreen first and then animate
     } else {
       
-      __weak typeof(self) weakSelf = self;
+
       completeAction = [SKAction runBlock:^{
         [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
       }];

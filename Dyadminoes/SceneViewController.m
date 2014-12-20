@@ -135,11 +135,11 @@
 //  self.keySigLabel.textAlignment = NSTextAlignmentRight;
 //  [self.turnPileCountField addSubview:self.keySigLabel];
   
-  self.topBarMessageLabel = [UILabel new];
-  self.topBarMessageLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneMessageLabelFontSize];
-  self.topBarMessageLabel.textAlignment = NSTextAlignmentRight;
-  self.topBarMessageLabel.adjustsFontSizeToFitWidth = YES;
-  [self.view insertSubview:self.topBarMessageLabel aboveSubview:self.playerLabelsField];
+  self.lastTurnLabel = [UILabel new];
+  self.lastTurnLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneMessageLabelFontSize];
+  self.lastTurnLabel.textAlignment = NSTextAlignmentRight;
+  self.lastTurnLabel.adjustsFontSizeToFitWidth = YES;
+  [self.view insertSubview:self.lastTurnLabel aboveSubview:self.playerLabelsField];
   
   self.replayTurnLabel = [UILabel new];
   self.replayTurnLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 24 : 48)];
@@ -148,14 +148,14 @@
   self.replayTurnLabel.adjustsFontSizeToFitWidth = YES;
   [self.view addSubview:self.replayTurnLabel];
   
-  self.pnpWaitLabel = [UILabel new];
-  self.pnpWaitLabel.textColor = [UIColor whiteColor];
-  self.pnpWaitLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 96 : 192)];
-  self.pnpWaitLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
-  self.pnpWaitLabel.textAlignment = NSTextAlignmentCenter;
-  self.pnpWaitLabel.adjustsFontSizeToFitWidth = YES;
-  self.pnpWaitLabel.numberOfLines = kIsIPhone ? 2 : 1;
-  [self.view addSubview:self.pnpWaitLabel];
+  self.pnpWaitingLabel = [UILabel new];
+  self.pnpWaitingLabel.textColor = [UIColor whiteColor];
+  self.pnpWaitingLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 96 : 192)];
+  self.pnpWaitingLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+  self.pnpWaitingLabel.textAlignment = NSTextAlignmentCenter;
+  self.pnpWaitingLabel.adjustsFontSizeToFitWidth = YES;
+  self.pnpWaitingLabel.numberOfLines = kIsIPhone ? 2 : 1;
+  [self.view addSubview:self.pnpWaitingLabel];
   
     // frames
   self.turnLabel.frame = CGRectMake(self.view.bounds.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize * 1.25);
@@ -165,12 +165,12 @@
 //  self.keySigLabel.frame = CGRectMake(self.view.bounds.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer + kSceneLabelFontSize * 2, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize * 1.25);
   
   CGFloat messageLabelWidth = (kButtonWidth * 5) + kTopBarPaddingBetweenStuff + kTopBarTurnPileLabelsWidth;
-  self.topBarMessageLabel.frame = CGRectMake(self.view.bounds.size.width - messageLabelWidth - kTopBarXEdgeBuffer, kTopBarHeight, messageLabelWidth, kSceneMessageLabelFontSize);
+  self.lastTurnLabel.frame = CGRectMake(self.view.bounds.size.width - messageLabelWidth - kTopBarXEdgeBuffer, kTopBarHeight, messageLabelWidth, kSceneMessageLabelFontSize);
   
   CGFloat desiredPnPY = ([self.myMatch returnType] == kPnPGame && ![self.myMatch returnGameHasEnded]) ?
   self.view.bounds.size.height - (kRackHeight * 0.95) :
   self.view.bounds.size.height + (kRackHeight * 0.05);
-  self.pnpWaitLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredPnPY, self.view.bounds.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
+  self.pnpWaitingLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredPnPY, self.view.bounds.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
   
   self.replayTurnLabel.frame = CGRectMake(kReplayXEdgeBuffer, -kTopBarHeight * 0.95, self.view.frame.size.width - (kReplayXEdgeBuffer * 2), kTopBarHeight);
 }
@@ -309,11 +309,11 @@
   
   UILabel *label;
   switch (sceneLabel) {
-    case kTopBarMessageLabel:
-      label = self.topBarMessageLabel;
+    case kLastTurnLabel:
+      label = self.lastTurnLabel;
       break;
-    case kPnPWaitLabel:
-      label = self.pnpWaitLabel;
+    case kPnPWaitingLabel:
+      label = self.pnpWaitingLabel;
       break;
     case kReplayTurnLabel:
       label = self.replayTurnLabel;
@@ -364,7 +364,7 @@
   CGFloat desiredMessageLabelX = goOut ? self.view.frame.size.width : self.view.frame.size.width - messageLabelWidth - kTopBarXEdgeBuffer;
   
   [UIView animateWithDuration:kConstantTime delay:0 options:option animations:^{
-  self.topBarMessageLabel.frame = CGRectMake(desiredMessageLabelX, kTopBarHeight, messageLabelWidth, kSceneMessageLabelFontSize);
+  self.lastTurnLabel.frame = CGRectMake(desiredMessageLabelX, kTopBarHeight, messageLabelWidth, kSceneMessageLabelFontSize);
   } completion:nil];
   
   CGFloat desiredTurnPileLabelsX = goOut ? kTopBarXEdgeBuffer + kTopBarTurnPileLabelsWidth : 0;
@@ -390,7 +390,7 @@
   
   UIViewAnimationOptions option = goOut ? UIViewAnimationOptionCurveEaseIn : UIViewAnimationOptionCurveEaseOut;
   [UIView animateWithDuration:kConstantTime delay:0 options:option animations:^{
-      self.pnpWaitLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredY, self.view.frame.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
+      self.pnpWaitingLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredY, self.view.frame.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
     } completion:nil];
 }
 
@@ -406,8 +406,8 @@
 
 -(void)backToMainMenu {
   
-  self.topBarMessageLabel.text = @"";
-  self.pnpWaitLabel.text = @"";
+  self.lastTurnLabel.text = @"";
+  self.pnpWaitingLabel.text = @"";
   self.replayTurnLabel.text = @"";
   
   [self.delegate startAnimatingBackground];

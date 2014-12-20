@@ -16,6 +16,7 @@
 
 -(void)recordChangedDataForRackDyadminoes:(NSArray *)rackArray;
 -(void)postSoundNotification:(NotificationName)whichNotification;
+-(void)allowUndoButton;
 
 @end
 

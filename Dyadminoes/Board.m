@@ -855,7 +855,7 @@
 }
 
 -(void)showPivotGuide:(SKNode *)pivotGuide forDyadmino:(Dyadmino *)dyadmino {
-  if (self.userWantsPivotGuides && !pivotGuide.parent) {
+  if (self.userWantsPivotGuides && !pivotGuide.parent && ![self.delegate actionSheetShown]) {
     pivotGuide.position = (pivotGuide == self.prePivotGuide || pivotGuide == self.pivotRotateGuide) ?
         dyadmino.position : dyadmino.pivotAroundPoint;
     

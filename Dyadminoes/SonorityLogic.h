@@ -13,8 +13,6 @@
 
 #pragma mark - validation methods
 
-//-(LegalPlacementResult)validateFormationOfSonorities:(NSSet *)sonorities;
-
 -(NSSet *)legalChordSonoritiesFromFormationOfSonorities:(NSSet *)sonorities;
 -(BOOL)setOfLegalChords:(NSSet *)setofLegalChords1 isSubsetOfSetOfLegalChords:(NSSet *)setOfLegalChords2;
 

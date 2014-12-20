@@ -416,7 +416,7 @@
       }
     }
     
-    NSLog(@"set1 is %@, set2 is %@", set1, set2);
+//    NSLog(@"set1 is %@, set2 is %@", set1, set2);
     XCTAssertFalse([self.sonorityLogic sonority:set1 IsSubsetOfSonority:set2], @"Failed to see that sonority is not subset despite some notes in common, because it also has extra notes not found in other sonority.");
   }
 }

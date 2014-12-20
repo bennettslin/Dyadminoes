@@ -261,8 +261,8 @@ typedef enum musicSymbol {
 typedef enum sceneVCLabel {
   kTopBarTurnLabel,
   kTopBarPileCountLabel,
-  kTopBarMessageLabel,
-  kPnPWaitLabel,
+  kLastTurnLabel,
+  kPnPWaitingLabel,
   kReplayTurnLabel,
 } SceneVCLabel;
 
@@ -351,14 +351,6 @@ typedef enum physicalPlacementResult {
   kErrorStackedDyadminoes,
   kErrorLoneDyadmino
 } PhysicalPlacementResult;
-
-typedef enum legalPlacementResult {
-  kIllegalExcessSonority,
-  kIllegalDoublePCs,
-  kIllegalChords,
-  kLegalChordsWithPoints,
-  kLegalChordsNoPoints
-} LegalPlacementResult;
 
 typedef enum chordType {
   kChordMinorTriad,

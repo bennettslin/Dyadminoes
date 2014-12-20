@@ -88,6 +88,8 @@
   BOOL _boardZoomedOut;
   BOOL _buttonsUpdatedThisTouch;
   
+  BOOL _boardDyadminoActionSheetShown;
+  
   BOOL _zoomChangedCellsAlpha; // only used for pinch zoom
   
   SnapPoint *_uponTouchDyadminoNode;
@@ -97,6 +99,8 @@
   Dyadmino *_touchedDyadmino;
   Dyadmino *_recentRackDyadmino;
   Dyadmino *_hoveringDyadmino;
+  BOOL _recentRackDyadminoFormsLegalChord;
+  BOOL _undoButtonAllowed; // ensures that player can't quickly undo too many at once, which screws up the animation
   
   Button *_buttonPressed;
   SKNode *_touchNode;
@@ -152,7 +156,7 @@
     _pnpBar.hidden = NO;
     
 //    [_boardField colourBackgroundForPnP];
-    [self.myDelegate barOrRackLabel:kPnPWaitLabel show:_pnpBarUp toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:[self.myMatch returnCurrentPlayer]]];
+    [self.myDelegate barOrRackLabel:kPnPWaitingLabel show:_pnpBarUp toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:[self.myMatch returnCurrentPlayer]]];
     
   } else {
     _pnpBarUp = NO;
@@ -198,10 +202,14 @@
   _soundedDyadminoFace = nil;
   _touchedDyadmino = nil;
   _recentRackDyadmino = nil;
+  _recentRackDyadminoFormsLegalChord = NO;
+  [_hoveringDyadmino animateHover:NO];
   _hoveringDyadmino = nil;
   self.boardDyadminoBelongsInTheseLegalChords = nil;
   _pivotInProgress = NO;
+  _boardDyadminoActionSheetShown = NO;
   _endTouchLocationToMeasureDoubleTap = CGPointMake(2147483647, 2147483647);
+  _undoButtonAllowed = YES;
   
   _myPlayer = [self.myMatch returnCurrentPlayer];
   NSArray *turns = self.myMatch.turns;
@@ -1002,13 +1010,15 @@
 
 -(void)beginTouchOrPivotOfDyadmino:(Dyadmino *)dyadmino {
   
+  if (dyadmino == _hoveringDyadmino) {
+    [_hoveringDyadmino animateHover:NO];
+  }
+  
     // if it belongs on the board, get the chords that it's a part of
+    // this is the only place where self.boardDyadminoBelongsInTheseLegalChords is established
   if ([dyadmino belongsOnBoard] && dyadmino != _hoveringDyadmino) {
-//    NSLog(@"hovering dyadmino belongs on board, its home node is %@", dyadmino.homeNode.name);
     NSSet *formationOfSonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
-//    NSLog(@"formation of sonorities is %@", formationOfSonorities);
     self.boardDyadminoBelongsInTheseLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
-//    NSLog(@"hovering dyadmino belongs in these legal chords %@", self.boardDyadminoBelongsInTheseLegalChords);
   }
   
   [dyadmino isOnBoard] ? [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino != _hoveringDyadmino && ![dyadmino isRotating])] : nil;
@@ -1121,6 +1131,7 @@
   
   if (dyadmino != _touchedDyadmino) {
     _hoveringDyadmino = dyadmino;
+    [_hoveringDyadmino animateHover:YES];
     
       // establish the closest board node, without snapping just yet
     dyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:dyadmino];
@@ -1136,6 +1147,7 @@
     if (dyadmino.isHovering || dyadmino.continuesToHover) {
       
        // add !_canDoubleTapForDyadminoFlip to have delay after touch ends
+      NSLog(@"prepareforhover");
       [dyadmino isRotating] ? nil : [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
     }
   }
@@ -1176,11 +1188,15 @@
   }
 
     // make nil all pointers
-  (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) ? (_recentRackDyadmino = nil) : nil;
+  if (dyadmino == _recentRackDyadmino && [_recentRackDyadmino isInRack]) {
+    _recentRackDyadmino = nil;
+    _recentRackDyadminoFormsLegalChord = NO;
+  };
   
   if (dyadmino == _hoveringDyadmino) {
       // this ensures that pivot guide doesn't disappear if rack exchange
     [_boardField hideAllPivotGuides];
+    [_hoveringDyadmino animateHover:NO];
     _hoveringDyadmino = nil;
     self.boardDyadminoBelongsInTheseLegalChords = nil;
   }
@@ -1321,6 +1337,7 @@
   } else if (button == _topBar.swapCancelOrUndoButton &&
              [button confirmSwapCancelOrUndo] == kUndoButton) {
     
+    _undoButtonAllowed = NO;
     [self undoLastPlayedDyadmino];
   
       /// play button
@@ -1506,6 +1523,8 @@
     
       // empty pointers
     _recentRackDyadmino = nil;
+    _recentRackDyadminoFormsLegalChord = NO;
+    [_hoveringDyadmino animateHover:NO];
     _hoveringDyadmino = nil;
     self.boardDyadminoBelongsInTheseLegalChords = nil;
     
@@ -1874,9 +1893,10 @@
 -(void)updatePivotForDyadminoMoveWithoutBoardCorrected {
     // if board not shifted or corrected, show prepivot guide
   if (_hoveringDyadmino && _hoveringDyadminoBeingCorrected == 0 && _hoveringDyadmino.zRotationCorrectedAfterPivot && !_touchedDyadmino && !_currentTouch && !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected && ![_boardField.children containsObject:_boardField.prePivotGuide]) {
-    NSLog(@"hovering dyadmino in update pivot without board corrected");
-    NSLog(@"anchor point is %.2f, %.2f", _hoveringDyadmino.anchorPoint.x, _hoveringDyadmino.anchorPoint.y);
+//    NSLog(@"hovering dyadmino in update pivot without board corrected");
+//    NSLog(@"anchor point is %.2f, %.2f", _hoveringDyadmino.anchorPoint.x, _hoveringDyadmino.anchorPoint.y);
     if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
+      NSLog(@"updatepivotfordyadmino");
       [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
     }
   }
@@ -1927,22 +1947,23 @@
         
         NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
         
-        NSSet *chordSonorities = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
-          
-            // FIXME: board dyadmino retain same chordSonorities, or a subset of it
+        NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
+        
+        NSLog(@"legal chords needed %@, legal chords formed %@", self.boardDyadminoBelongsInTheseLegalChords, legalChordSonoritiesFormed);
+        
         if ([dyadmino belongsOnBoard]) {
           
           NSLog(@"determining whether to ease dyadmino that belongs on board...");
           
             // illegal chords, keep hovering
-          if (!chordSonorities) {
+          if (!legalChordSonoritiesFormed) {
             
             NSLog(@"...no, illegal chords have been formed.");
             [dyadmino keepHovering];
             return;
             
               // not legal formation, as it breaks chords already established
-          } else if (![[SonorityLogic sharedLogic] setOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords isSubsetOfSetOfLegalChords:chordSonorities]) {
+          } else if (![[SonorityLogic sharedLogic] setOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords isSubsetOfSetOfLegalChords:legalChordSonoritiesFormed]) {
             
             NSLog(@"...no, breaks chords already established.");
             [dyadmino keepHovering];
@@ -1950,53 +1971,77 @@
             
               // legal formation
           } else {
-            if (![[SonorityLogic sharedLogic] setOfLegalChords:chordSonorities isSubsetOfSetOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords]) {
+            if (![[SonorityLogic sharedLogic] setOfLegalChords:legalChordSonoritiesFormed isSubsetOfSetOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords]) {
               
               NSLog(@"...new chords were formed from movement of board dyadmino!");
+              
+                // only show action sheet if board dyadmino already scored
+                // if it was recently played by player, just keep the new chord
+              if ([self.myMatch.board containsObject:[self getDataDyadminoFromDyadmino:dyadmino]]) {
+                [self presentBoardDyadminoMoveFormsNewLegalChordActionSheet];
+                [dyadmino keepHovering];
+                return;
+              }
             }
           }
           
+            // rack dyadmino
         } else if ([dyadmino belongsInRack]) {
-
-            // Will be fine if th
           
+          NSLog(@"determining whether to highlight play button...");
+          
+          if (!legalChordSonoritiesFormed || legalChordSonoritiesFormed.count == 0) {
+            
+            _recentRackDyadminoFormsLegalChord = NO;
+            NSLog(@"...no, illegal chord formed, or no legal chord is formed.");
+            
+          } else {
+            
+            _recentRackDyadminoFormsLegalChord = YES;
+            NSLog(@"...yes, a legal chord was formed.");
+          }
         }
         
-        [dyadmino finishHovering];
-        if ([dyadmino belongsOnBoard]) {
-          
-            // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
-            // this method will record a dyadmino that's already in the match's board
-            // this method also gets called if a recently played dyadmino
-            // has been moved, but data will not be submitted until the turn is officially done.
-          dyadmino.homeNode = dyadmino.tempBoardNode;
-          [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
-        }
-        
-          // this is one of two places where board bounds are updated
-          // the other is when rack dyadmino is sent home
-        [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
-        
-        [_boardField hideAllPivotGuides];
-        [dyadmino animateEaseIntoNodeAfterHover];
-        _hoveringDyadmino = nil;
-        self.boardDyadminoBelongsInTheseLegalChords = nil;
-        [self updateTopBarButtons];
+        [self finishHoveringAfterCheckDyadmino:dyadmino];
         
       } else {
         [dyadmino keepHovering];
         
             // lone dyadmino
         if (placementResult == kErrorLoneDyadmino) {
-//          NSLog(@"no lone dyadminoes!");
           
             // stacked dyadminoes
         } else if (placementResult == kErrorStackedDyadminoes) {
-//          NSLog(@"can't stack dyadminoes!");
+          
         }
+        
       }
     }
   }
+}
+
+-(void)finishHoveringAfterCheckDyadmino:(Dyadmino *)dyadmino {
+  [dyadmino finishHovering];
+  if ([dyadmino belongsOnBoard]) {
+    
+      // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
+      // this method will record a dyadmino that's already in the match's board
+      // this method also gets called if a recently played dyadmino
+      // has been moved, but data will not be submitted until the turn is officially done.
+    dyadmino.homeNode = dyadmino.tempBoardNode;
+    [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
+  }
+  
+    // this is one of two places where board bounds are updated
+    // the other is when rack dyadmino is sent home
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
+  
+  [_boardField hideAllPivotGuides];
+  [dyadmino animateEaseIntoNodeAfterHover];
+  [_hoveringDyadmino animateHover:NO];
+  _hoveringDyadmino = nil;
+  self.boardDyadminoBelongsInTheseLegalChords = nil;
+  [self updateTopBarButtons];
 }
 
 #pragma mark - update label and button methods
@@ -2030,8 +2075,8 @@
   
   [_topBar node:_topBar.returnOrStartButton shouldBeEnabled:!_swapMode && !thereIsATouchedOrHoveringDyadmino];
   [_topBar node:_topBar.replayButton shouldBeEnabled:(gameHasEndedForPlayer || !currentPlayerHasTurn || (currentPlayerHasTurn && !_swapMode)) && (turns.count > 0) && !_pnpBarUp];
-  [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:(!gameHasEndedForPlayer && currentPlayerHasTurn) && !_pnpBarUp];
-  [_topBar node:_topBar.passPlayOrDoneButton shouldBeEnabled:(!gameHasEndedForPlayer && currentPlayerHasTurn) && (!thereIsATouchedOrHoveringDyadmino) && !_pnpBarUp && ((_swapMode && swapContainerNotEmpty) || !_swapMode) && (_swapMode || (!noDyadminoesPlayedAndNoRecentRackDyadmino || (noDyadminoesPlayedAndNoRecentRackDyadmino && [self.myMatch returnType] != kSelfGame)))];
+  [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:(!gameHasEndedForPlayer && currentPlayerHasTurn) && !_pnpBarUp && _undoButtonAllowed];
+  [_topBar node:_topBar.passPlayOrDoneButton shouldBeEnabled:((!gameHasEndedForPlayer && currentPlayerHasTurn) && (!thereIsATouchedOrHoveringDyadmino) && !_pnpBarUp && ((_swapMode && swapContainerNotEmpty) || !_swapMode) && (_swapMode || (!noDyadminoesPlayedAndNoRecentRackDyadmino || (noDyadminoesPlayedAndNoRecentRackDyadmino && [self.myMatch returnType] != kSelfGame))) && (!_recentRackDyadmino || (_recentRackDyadmino && _recentRackDyadminoFormsLegalChord)))];
   [_topBar node:_topBar.resignButton shouldBeEnabled:(!gameHasEndedForPlayer && (!currentPlayerHasTurn || (currentPlayerHasTurn && !_swapMode))) && !_pnpBarUp];
   
     // FIXME: can be refactored further
@@ -2128,7 +2173,7 @@
   _fieldActionInProgress = YES;
   if (_pnpBarUp) {
     
-    [self.myDelegate barOrRackLabel:kPnPWaitLabel show:YES toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:[self.myMatch returnCurrentPlayer]]];
+    [self.myDelegate barOrRackLabel:kPnPWaitingLabel show:YES toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:[self.myMatch returnCurrentPlayer]]];
     
     _pnpBar.hidden = NO;
     SKAction *pnpMoveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
@@ -2771,7 +2816,7 @@
     
     replay ?
         [self.myDelegate barOrRackLabel:kReplayTurnLabel show:YES toFade:NO withText:turnOrResultsText andColour:colour] :
-        [self.myDelegate barOrRackLabel:kTopBarMessageLabel show:YES toFade:YES withText:turnOrResultsText andColour:colour];
+        [self.myDelegate barOrRackLabel:kLastTurnLabel show:YES toFade:YES withText:turnOrResultsText andColour:colour];
   }
 }
 
@@ -2960,6 +3005,20 @@
    */
 }
 
+-(void)presentBoardDyadminoMoveFormsNewLegalChordActionSheet {
+  
+    // returns if action sheet is already showing
+  if (!_boardDyadminoActionSheetShown) {
+    NSString *playString = @"Are you sure? Building (new chord/s) will earn you (points) points. This cannot be undone.";
+    
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:playString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Build (chord/s)" otherButtonTitles:nil, nil];
+    actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
+    actionSheet.tag = 4;
+    [actionSheet showInView:self.view];
+    _boardDyadminoActionSheetShown = YES;
+  }
+}
+
 -(void)presentPassActionSheet {
   NSString *passString = ([self.myMatch returnType] == kSelfGame) ?
     @"Are you sure? Passing once in solo mode ends the game." :
@@ -2976,9 +3035,6 @@
 -(void)presentNotEnoughInPileActionSheet {
   NSString *notEnoughString = @"There aren't enough dyadminoes left in the pile.";
 
-//  UIAlertView *notEnoughAlert = [[UIAlertView alloc] initWithTitle:@"Oops!" message:notEnoughString delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-//  [notEnoughAlert show];
-
   UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:notEnoughString delegate:self cancelButtonTitle:@"OK" destructiveButtonTitle:nil otherButtonTitles:nil, nil];
   actionSheet.actionSheetStyle = UIActionSheetStyleBlackOpaque;
   [actionSheet showInView:self.view];
@@ -2989,6 +3045,7 @@
   NSString *swapString = ([self.myMatch returnType] == kSelfGame) ? @"Are you sure you want to swap?" : @"Are you sure? This will count as your turn.";
   UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:swapString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Swap" otherButtonTitles:nil, nil];
   actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
+  actionSheet.tag = 2;
   [actionSheet showInView:self.view];
 }
 
@@ -3016,32 +3073,49 @@
   NSLog(@"will dismiss action sheet");
   NSString *buttonText = [actionSheet buttonTitleAtIndex:buttonIndex];
   
-    // resign button
-  if (actionSheet.tag == 3 && ([buttonText isEqualToString:@"Resign"] || [buttonText isEqualToString:@"End game"])) {
-    [self.myMatch resignPlayer:_myPlayer];
-    
       // pass button
-  } else if (actionSheet.tag == 1 && ([buttonText isEqualToString:@"Pass"] || [buttonText isEqualToString:@"End game"])) {
+  if (actionSheet.tag == 1 && ([buttonText isEqualToString:@"Pass"] || [buttonText isEqualToString:@"End game"])) {
     [self finalisePlayerTurn];
     
       // swap button
-  } else if ([buttonText isEqualToString:@"Swap"]) {
+  } else if (actionSheet.tag == 2) {
     
-    [self finaliseSwap];
-    
-      // because of swap animation, updating topBar labels and buttons must be delayed
-      // and thus will be called in finaliseSwap; so just return at this point
-    return;
-    
-      // cancel swap
-  } else if ([buttonText isEqualToString:@"Cancel"]) {
-    if (_swapMode) {
-      _swapMode = NO;
-      [self toggleSwapFieldWithAnimation:YES];
-      [self cancelSwappedDyadminoes];
+      // swap
+    if ([buttonText isEqualToString:@"Swap"]) {
+      [self finaliseSwap];
+      
+        // because of swap animation, updating topBar labels and buttons must be delayed
+        // and thus will be called in finaliseSwap; so just return at this point
+      return;
+      
+        // cancel swap
+    } else if ([buttonText isEqualToString:@"Cancel"]) {
+      if (_swapMode) {
+        _swapMode = NO;
+        [self toggleSwapFieldWithAnimation:YES];
+        [self cancelSwappedDyadminoes];
+      }
+      [self updateTopBarButtons];
+      return;
     }
-    [self updateTopBarButtons];
-    return;
+    
+      // resign button
+  } else if (actionSheet.tag == 3 && ([buttonText isEqualToString:@"Resign"] || [buttonText isEqualToString:@"End game"])) {
+    [self.myMatch resignPlayer:_myPlayer];
+
+      // board dyadmino forms new chord
+  } else if (actionSheet.tag == 4) {
+    _boardDyadminoActionSheetShown = NO;
+    if ([buttonText isEqualToString:@"Cancel"]) {
+      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
+      [self updateTopBarButtons];
+      return;
+      
+    } else {
+      [self finishHoveringAfterCheckDyadmino:_hoveringDyadmino];
+      [self updateTopBarButtons];
+      return;
+    }
   }
   
   [self updateTopBarLabelsFinalTurn:YES animated:NO];
@@ -3073,6 +3147,15 @@
 -(BOOL)sonority:(NSSet *)sonority containsNote:(NSDictionary *)note {
   SonorityLogic *logic = [SonorityLogic sharedLogic];
   return [logic sonority:sonority containsNote:note];
+}
+
+-(void)allowUndoButton {
+  _undoButtonAllowed = YES;
+  [self updateTopBarButtons];
+}
+
+-(BOOL)actionSheetShown {
+  return _boardDyadminoActionSheetShown;
 }
 
 #pragma mark - debugging methods

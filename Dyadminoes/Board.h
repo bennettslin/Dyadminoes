@@ -17,6 +17,7 @@
 -(void)correctBoardForPositionAfterZoom;
 -(NSSet *)allBoardDyadminoesPlusRecentRackDyadmino;
 -(BOOL)sonority:(NSSet *)sonority containsNote:(NSDictionary *)note;
+-(BOOL)actionSheetShown;
 
 @end
 
