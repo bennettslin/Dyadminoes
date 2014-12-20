@@ -821,11 +821,11 @@
     if (_recentRackDyadmino && _touchedDyadmino != _recentRackDyadmino) {
       
       [self changeColoursAroundDyadmino:_recentRackDyadmino withSign:-1];
-      [self sendDyadminoHome:_recentRackDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_recentRackDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
       
         // or same thing with hovering dyadmino (it will only ever be one or the other)
     } else if (_hoveringDyadmino && _touchedDyadmino != _hoveringDyadmino) {
-      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
     }
       // buttons updated once
     if (!_buttonsUpdatedThisTouch) {
@@ -1014,23 +1014,26 @@
     [_hoveringDyadmino animateHover:NO];
   }
   
-    // if it belongs on the board, get the chords that it's a part of
-    // this is the only place where self.boardDyadminoBelongsInTheseLegalChords is established
-  if ([dyadmino belongsOnBoard] && dyadmino != _hoveringDyadmino) {
-    NSSet *formationOfSonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
-    self.boardDyadminoBelongsInTheseLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
-  }
-  
-  [dyadmino isOnBoard] ? [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino != _hoveringDyadmino && ![dyadmino isRotating])] : nil;
-  
     // record tempReturnOrientation only if it's settled and not hovering
   if (dyadmino != _hoveringDyadmino) {
     dyadmino.tempReturnOrientation = dyadmino.orientation;
     
       // board dyadmino sends recent rack dyadmino home upon touch
       // rack dyadmino will do so upon move out of rack
-    (_hoveringDyadmino && [dyadmino isOnBoard]) ? [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES] : nil;
+      // (this needs to come before legal chords are checked, so that its placement on board is included)
+    (_hoveringDyadmino && [dyadmino isOnBoard]) ? [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES] : nil;
   }
+  
+    // if it belongs on the board, get the chords that it's a part of
+    // this is the only place where self.boardDyadminoBelongsInTheseLegalChords is established
+  if ([dyadmino belongsOnBoard] && dyadmino != _hoveringDyadmino) {
+    NSLog(@"collecting sonorities from dyadmino %@ with home node %@", dyadmino.name, dyadmino.homeNode);
+    NSSet *formationOfSonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
+    self.boardDyadminoBelongsInTheseLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
+    NSLog(@"legal sonorities to match is %@", self.boardDyadminoBelongsInTheseLegalChords);
+  }
+  
+  [dyadmino isOnBoard] ? [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino != _hoveringDyadmino && ![dyadmino isRotating])] : nil;
   
   [dyadmino startTouchThenHoverResize];
   
@@ -1110,14 +1113,14 @@
           // moved colorBlendFactor reset here to dyadmino's goHomeToRack method
       }
       
-      [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES  andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
       
         // or if dyadmino is in rack but belongs on board (this seems to work)
     } else if ([dyadmino belongsOnBoard] && [dyadmino isInRack]) {
       dyadmino.tempBoardNode = nil;
       [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
       dyadmino.position = [_boardField getOffsetFromPoint:dyadmino.position];
-      [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES  andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
       
         // otherwise, prepare it for hover
     } else {
@@ -1198,7 +1201,12 @@
     [_boardField hideAllPivotGuides];
     [_hoveringDyadmino animateHover:NO];
     _hoveringDyadmino = nil;
-    self.boardDyadminoBelongsInTheseLegalChords = nil;
+    
+      // don't reset self.boardDyadminoBelongsInTheseLegalChords just yet
+      // if there's a currently touched dyadmino that still needs to be compared
+    if (!_touchedDyadmino) {
+      self.boardDyadminoBelongsInTheseLegalChords = nil;
+    }
   }
   
     // this ensures that dyadmino is properly oriented and positioned before
@@ -1326,11 +1334,11 @@
       
         // else send dyadmino home
     } else if (_hoveringDyadmino) {
-      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
 
         // recent rack dyadmino is sent home
     } else if (_recentRackDyadmino) {
-      [self sendDyadminoHome:_recentRackDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO  andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_recentRackDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
     }
     
       /// undo button
@@ -1896,7 +1904,7 @@
 //    NSLog(@"hovering dyadmino in update pivot without board corrected");
 //    NSLog(@"anchor point is %.2f, %.2f", _hoveringDyadmino.anchorPoint.x, _hoveringDyadmino.anchorPoint.y);
     if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
-      NSLog(@"updatepivotfordyadmino");
+//      NSLog(@"updatepivotfordyadmino");
       [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
     }
   }
@@ -1946,6 +1954,8 @@
       if (placementResult == kNoError && !(dyadmino.tempBoardNode == _uponTouchDyadminoNode && dyadmino.orientation == _uponTouchDyadminoOrientation)) {
         
         NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
+        
+        NSLog(@"checking sonorities %@", sonorities);
         
         NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
         
@@ -2238,8 +2248,9 @@
 
 -(void)toggleReplayFields {
   
+    // this will never actually get called, because replay button is not highlighted when dyadmino is hovering
   if (_hoveringDyadmino) {
-    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
+    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
   }
   
     // cells will toggle faster than replayBars moves
@@ -3107,7 +3118,7 @@
   } else if (actionSheet.tag == 4) {
     _boardDyadminoActionSheetShown = NO;
     if ([buttonText isEqualToString:@"Cancel"]) {
-      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
       [self updateTopBarButtons];
       return;
       

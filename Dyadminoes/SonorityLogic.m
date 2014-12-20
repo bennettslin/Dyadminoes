@@ -27,26 +27,29 @@
     
       // ensures no chord exceeds maximum
     if (![self validateSonorityDoesNotExceedMaximum:sonority]) {
+      NSLog(@"Sonority exceeds maximum.");
       return nil;
     }
     
       // ensures chord does not have double pcs
     if (![self validateSonorityHasNoDoublePCs:sonority]) {
+      NSLog(@"Sonority has double pcs.");
       return nil;
     }
     
-      // remove
     NSMutableSet *tempChordSonority = [NSMutableSet new];
     for (NSDictionary *note in sonority) {
       NSNumber *pc = note[@"pc"];
       [tempChordSonority addObject:pc];
     }
     NSSet *chordSonority = [NSSet setWithSet:tempChordSonority];
+    NSLog(@"chord sonority is %@", chordSonority);
     Chord chord = [self chordFromSonorityPlusCheckIncompleteSeventh:chordSonority];
+    
+    NSLog(@"chord type is %i.", chord.chordType);
     
       // ensures chord is not illegal
     if (chord.chordType == kChordIllegalChord) {
-      NSLog(@"chord type is illegal.");
       return nil;
       
         // bothers to distinguish only if chord is legal
@@ -195,6 +198,7 @@
   Chord chord = [self chordFromSonority:sonority];
   
   if (chord.chordType == kChordIllegalChord) {
+    NSLog(@"chord is illegal chord without checking for incomplete seventh.");
     if ([self sonorityIsIncompleteSeventh:sonority]) {
       return [self chordFromRoot:-1 andChordType:kChordLegalIncompleteSeventh];
     }

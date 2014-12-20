@@ -435,10 +435,10 @@
 }
 
 -(void)testChordForPersonalPurposes {
-  NSSet *chordSonority = [NSSet setWithArray:@[@0, @1, @3, @11]];
+  NSSet *chordSonority = [NSSet setWithArray:@[@5, @8, @2]];
   Chord chord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:chordSonority];
   NSLog(@"chord type is %i", chord.chordType);
-  XCTAssertTrue(chord.chordType == kChordIllegalChord, @"This chord should be illegal!");
+  XCTAssertTrue(chord.chordType == kChordDiminishedTriad, @"This chord should be diminished triad!");
 }
 
   // test legalChordSonoritiesFromFormationOfSonorities

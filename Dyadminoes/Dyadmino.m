@@ -757,7 +757,7 @@
 -(void)animateHover:(BOOL)animate {
   if (animate) {
     if (![self actionForKey:@"hover"]) {
-      NSLog(@"animate hover yes");
+//      NSLog(@"animate hover yes");
       const CGFloat divisor = 4.f; // try out different numbers to see best
       SKAction *sampleAction1 = [SKAction rotateToAngle:[self getRadiansFromDegree:2.5] duration:kAnimateHoverTime / divisor];
       SKAction *sampleAction2 = [SKAction rotateToAngle:[self getRadiansFromDegree:-2.5] duration:kAnimateHoverTime / divisor];
@@ -767,7 +767,7 @@
       [self runAction:repeatAction withKey:@"hover"];
     }
   } else {
-    NSLog(@"animate hover no");
+//    NSLog(@"animate hover no");
     [self removeActionForKey:@"hover"];
     [self resize];
     [self selectAndPositionSprites];
