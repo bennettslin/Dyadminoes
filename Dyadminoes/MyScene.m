@@ -1030,7 +1030,12 @@
     NSLog(@"collecting sonorities from dyadmino %@ with home node %@", dyadmino.name, dyadmino.homeNode);
     NSSet *formationOfSonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
     self.boardDyadminoBelongsInTheseLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
-    NSLog(@"legal sonorities to match is %@", self.boardDyadminoBelongsInTheseLegalChords);
+
+      // update chord message label
+    NSSet *legalChordSonorities = [[SonorityLogic sharedLogic] chordSonoritiesForSonorities:self.boardDyadminoBelongsInTheseLegalChords];
+    NSAttributedString *string = [[SonorityLogic sharedLogic] stringForLegalChords:legalChordSonorities];
+    [self.myDelegate showChordMessage:string sign:kChordMessageNeutral];
+//    NSLog(@"legal sonorities to match is %@", self.boardDyadminoBelongsInTheseLegalChords);
   }
   
   [dyadmino isOnBoard] ? [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino != _hoveringDyadmino && ![dyadmino isRotating])] : nil;

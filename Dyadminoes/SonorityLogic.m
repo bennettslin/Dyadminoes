@@ -27,25 +27,15 @@
     
       // ensures no chord exceeds maximum
     if (![self validateSonorityDoesNotExceedMaximum:sonority]) {
-//      NSLog(@"Sonority exceeds maximum.");
       return [NSSet setWithObject:kExcessNotes];
     
       // ensures chord does not have double pcs
     } else if (![self validateSonorityHasNoDoublePCs:sonority]) {
-//      NSLog(@"Sonority has double pcs.");
       return [NSSet setWithObject:kDoublePCs];
     }
     
-    NSMutableSet *tempChordSonority = [NSMutableSet new];
-    for (NSDictionary *note in sonority) {
-      NSNumber *pc = note[@"pc"];
-      [tempChordSonority addObject:pc];
-    }
-    NSSet *chordSonority = [NSSet setWithSet:tempChordSonority];
-    NSLog(@"chord sonority is %@", chordSonority);
+    NSSet *chordSonority = [self chordSonorityForSonority:sonority];
     Chord chord = [self chordFromSonorityPlusCheckIncompleteSeventh:chordSonority];
-    
-    NSLog(@"chord type is %i.", chord.chordType);
     
       // ensures chord is not illegal
     if (chord.chordType == kChordIllegalChord) {
@@ -58,6 +48,24 @@
   }
   
   return tempChordSonorities;
+}
+
+-(NSSet *)chordSonorityForSonority:(NSSet *)sonority {
+  NSMutableSet *tempChordSonority = [NSMutableSet new];
+  for (NSDictionary *note in sonority) {
+    NSNumber *pc = note[@"pc"];
+    [tempChordSonority addObject:pc];
+  }
+  return [NSSet setWithSet:tempChordSonority];
+}
+
+-(NSSet *)chordSonoritiesForSonorities:(NSSet *)sonorities {
+  NSMutableSet *tempChordSonorities = [NSMutableSet new];
+  for (NSSet *sonority in sonorities) {
+    NSSet *chordSonority = [self chordSonorityForSonority:sonority];
+    [tempChordSonorities addObject:chordSonority];
+  }
+  return [NSSet setWithSet:tempChordSonorities];
 }
 
 -(BOOL)setOfLegalChords:(NSSet *)setofLegalChords1 isSubsetOfSetOfLegalChords:(NSSet *)setOfLegalChords2 {
@@ -190,6 +198,7 @@
 
   NSNumber *_fakeRootPC = pcNormalForm[firstICIndex];
   NSArray *icPrimeForm = [NSArray arrayWithArray:tempICPrimeForm];
+  NSLog(@"fake root is %@, ic prime form is %@", _fakeRootPC, icPrimeForm);
   return [self chordFromFakeRootPC:_fakeRootPC andICPrimeForm:icPrimeForm];
 }
 
@@ -207,6 +216,14 @@
 }
 
 -(Chord)chordFromFakeRootPC:(NSNumber *)fakeRootPC andICPrimeForm:(NSArray *)icPrimeForm {
+  
+    // ensures that diminished triad is in right order
+  if ([icPrimeForm isEqualToArray:@[@3, @6, @3]]) {
+    fakeRootPC = @(([fakeRootPC unsignedIntegerValue] + 9) % 12);
+    icPrimeForm = @[@3, @3, @6];
+  }
+  
+  NSLog(@"Now fake root is %@, ic prime form is %@", fakeRootPC, icPrimeForm);
   
   NSArray *legalICPrimeForms = @[@[@3, @4, @5], @[@3, @5, @4], @[@2, @3, @3, @4],
                                  @[@2, @3, @4, @3], @[@2, @4, @3, @3], @[@3, @3, @6],
@@ -476,6 +493,57 @@
   }
   
   return attString;
+}
+
+-(NSAttributedString *)stringForLegalChords:(NSSet *)chords {
+  
+    // sort chords based on chord type
+  NSMutableArray *tempDictionaryArray = [NSMutableArray new];
+  for (NSSet *chordSonority in chords) {
+    Chord chord = [self chordFromSonorityPlusCheckIncompleteSeventh:chordSonority];
+    NSNumber *chordTypeNumber = @(chord.chordType);
+    NSDictionary *chordDictionary = @{@"chordSonority":chordSonority, @"chordType":chordTypeNumber};
+    [tempDictionaryArray addObject:chordDictionary];
+  }
+  NSArray *dictionaryArray = [NSArray arrayWithArray:tempDictionaryArray];
+  NSSortDescriptor *chordTypeDescriptor = [[NSSortDescriptor alloc] initWithKey:@"chordType" ascending:YES];
+  NSArray *sortedArray = [dictionaryArray sortedArrayUsingDescriptors:@[chordTypeDescriptor]];
+  
+  NSMutableArray *tempStringArray = [NSMutableArray new];
+  for (int i = 0; i < sortedArray.count; i++) {
+    NSDictionary *chordDictionary = sortedArray[i];
+    if ([chordDictionary[@"chordType"] unsignedIntegerValue] <= kChordFrenchSixth) {
+      NSSet *chordSonority = chordDictionary[@"chordSonority"];
+      Chord chord = [self chordFromSonorityPlusCheckIncompleteSeventh:chordSonority];
+      NSString *string = [self stringForChord:chord];
+      NSString *finalString;
+      
+        // _____
+        // _____ and _____
+        // _____, _____, and _____
+      
+        // last string in list
+      if (i == 0 && sortedArray.count == 1) {
+        finalString = string;
+      } else if (i == 0 && sortedArray.count == 2) {
+        finalString = [NSString stringWithFormat:@"%@ ", string];
+      } else if ((i == sortedArray.count - 1) && sortedArray.count > 1) {
+        finalString = [NSString stringWithFormat:@"and %@", string];
+      } else {
+        finalString = [NSString stringWithFormat:@"%@, ", string];
+      }
+      
+      NSAttributedString *attributedString = [self stringWithAccidentals:finalString fontSize:120];
+      [tempStringArray addObject:attributedString];
+    }
+  }
+  
+  NSMutableAttributedString *mutableAttributedString = [[NSMutableAttributedString alloc] initWithString:@""];
+  for (int i = 0; i < tempStringArray.count; i++) {
+    [mutableAttributedString appendAttributedString:tempStringArray[i]];
+  }
+
+  return mutableAttributedString;
 }
 
 #pragma mark - singleton method

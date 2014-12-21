@@ -441,7 +441,16 @@
   XCTAssertTrue(chord.chordType == kChordDiminishedTriad, @"This chord should be diminished triad!");
 }
 
-  // test legalChordSonoritiesFromFormationOfSonorities
+-(void)testAttributedStringMethod {
+  NSSet *sonority1 = [NSSet setWithArray:@[@0, @2, @6, @8]];
+  NSSet *sonority2 = [NSSet setWithArray:@[@0, @4, @7, @11]];
+  NSSet *sonority3 = [NSSet setWithArray:@[@0, @3, @6]];
+  NSSet *sonority4 = [NSSet setWithArray:@[@0, @4, @7]];
+  NSSet *sonorities = [NSSet setWithObjects:sonority1, sonority2, sonority3, sonority4, nil];
+  
+  NSAttributedString *attributedString = [self.sonorityLogic stringForLegalChords:sonorities];
+  NSLog(@"attributed string is: %@", attributedString);
+}
 
 #pragma mark - test helper methods
 
@@ -618,69 +627,3 @@
 }
 
 @end
-
-// may not need this method
-//-(void)testSetOfSonoritiesIsSubsetOfSetOfSonoritiesMethod {
-//    // see if method can be simplified with isEqual
-//
-//    // test 50 times
-//  for (int i = 0; i < 50; i++) {
-//
-//      // this will break if coincidentally two sets are exactly the same
-//      // highly unlikely, though
-//    NSSet *set1 = [self randomFormationOfSonorities];
-//    NSSet *set2 = [self randomFormationOfSonorities];
-//
-//    if (![set1 isEqualToSet:set2]) {
-//    XCTAssertFalse([self.sonorityLogic setOfSonorities:set1 isSubsetOfSetOfSonorities:set2], @"Failed to see that sets have no sonorities in common.");
-//    }
-//  }
-//
-//    // test 50 times
-//  for (int i = 0; i < 50; i++) {
-//    NSSet *set1 = [self randomFormationOfSonorities];
-//    NSSet *set2;
-//    NSMutableSet *tempSet = [NSMutableSet setWithSet:set1];
-//
-//    while (tempSet.count == set1.count) {
-//      NSSet *trialSonority = [self randomSonority];
-//      if (![tempSet containsObject:trialSonority]) {
-//        [tempSet addObject:trialSonority];
-//        set2 = [NSSet setWithSet:tempSet];
-//      }
-//    }
-//
-//    NSLog(@"set2 count is %lu, set1 count is %lu", (unsigned long)set2.count, (unsigned long)set1.count);
-//    XCTAssertTrue([self.sonorityLogic setOfSonorities:set1 isSubsetOfSetOfSonorities:set2], @"Failed to see that one set of sonorities is a subset of another set of sonorities.");
-//    XCTAssertFalse([self.sonorityLogic setOfSonorities:set2 isSubsetOfSetOfSonorities:set1], @"Failed to see that although one set of sonorities has notes in common with the other, it also has extra sonorities not found in the other sonority.");
-//  }
-//}
-
-//-(void)testTotalLegalPlacement {
-//
-//  NSUInteger cardinality = 5;
-//
-//    // test each 100 times
-//  for (int i = 0; i < 100; i++) {
-//
-//      // at least one excess
-//    for (int j = 0; j < cardinality; j++) {
-//
-//      if (j == 0) {
-//
-//
-//
-//      }
-//
-//    }
-//
-//
-//      // at least one double
-//
-//      // at least
-//
-//
-//  }
-//
-//  XCTAssertTrue(NO, @"placeholder test.");
-//}

@@ -12,5 +12,6 @@
 
 -(BOOL)validateSonorityDoesNotExceedMaximum:(NSSet *)sonority;
 -(BOOL)validateSonorityHasNoDoublePCs:(NSSet *)sonority;
+-(NSString *)stringForChord:(Chord)chord;
 
 @end
