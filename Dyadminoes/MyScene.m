@@ -1226,7 +1226,11 @@
     // re-updating the cells of its original home node
   if ([dyadmino belongsOnBoard]) {
     dyadmino.orientation = dyadmino.tempReturnOrientation;
-    [self updateCellsForPlacedDyadmino:dyadmino andColour:NO];
+    
+      // TODO: not sure why colour was set to no before
+      // but I set it to yes and now it seems to be fine.
+      // keeping this comment here for now just to make absolute sure
+    [self updateCellsForPlacedDyadmino:dyadmino andColour:YES];
   }
   
   [self updateTopBarButtons];
@@ -2527,7 +2531,7 @@
     
       // update hexCoord of board dyadmino
     dyadmino.myHexCoord = snapPoint.myCell.hexCoord;
-    
+    NSLog(@"update cells for placed dyadmino.");
     [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:snapPoint andColour:colour];
   }
 }
