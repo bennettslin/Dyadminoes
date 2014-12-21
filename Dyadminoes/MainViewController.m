@@ -86,7 +86,6 @@
   [self insertGradientBackground];
 
   self.titleLogo.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? 30.f : 60.f)];
-//  self.titleLogo.attributedText = [[SonorityLogic sharedLogic] stringWithAccidentals:@"Dyadminoes C(#)/D(b)$F(#)/G(b)" fontSize:(kIsIPhone ? 30.f : 60.f)];
   self.titleLogo.text = @"Dyadminoes";
   self.titleLogo.frame = CGRectMake(20, 20, 768, 60);
   
@@ -157,6 +156,7 @@
   self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
   
   _overlayEnabled = YES;
+  [self determineNewGameButtonAnimation];
 }
 
 -(void)viewDidAppear:(BOOL)animated {
@@ -361,6 +361,7 @@
 #pragma mark - view animation methods
 
 -(void)slideOutTopBarAndBottomBar {
+  [self removeLocalGameButtonAnimations];
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
     self.topBar.frame = CGRectMake(0, -kMainTopBarHeight, _screenWidth, kMainTopBarHeight);
   } completion:nil];
@@ -370,6 +371,7 @@
 }
 
 -(void)slideInTopBarAndBottomBar {
+  [self determineNewGameButtonAnimation];
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
     self.topBar.frame = CGRectMake(0, 0, _screenWidth, kMainTopBarHeight);
   } completion:nil];
@@ -434,6 +436,57 @@
 }
 
 #pragma mark - button methods
+
+-(void)determineNewGameButtonAnimation {
+    // this method is called before view appears
+    // and also after removing a match, if that was the only match
+    // it is also called when top bar comes in
+  
+  NSLog(@"determine new game button animation");
+  
+  id <NSFetchedResultsSectionInfo> sectionInfo = self.fetchedResultsController.sections[0];
+  if ([sectionInfo numberOfObjects] == 0) {
+    
+    const CGFloat unit = 0.08f;
+    const CGFloat degrees = 4;
+    
+    __weak typeof(self) weakSelf = self;
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [UIView animateKeyframesWithDuration:18 * unit delay:0.f options: UIViewKeyframeAnimationOptionRepeat | UIViewAnimationOptionAllowUserInteraction animations:^{
+        
+        [UIView addKeyframeWithRelativeStartTime:0 relativeDuration:unit animations:^{
+          weakSelf.localGameButton.transform = CGAffineTransformRotate(weakSelf.localGameButton.transform, [weakSelf getRadiansFromDegree:degrees]);
+          weakSelf.localGameButton.transform = CGAffineTransformScale(weakSelf.localGameButton.transform, kDyadminoHoverResizeFactor, kDyadminoHoverResizeFactor);
+        }];
+        
+        for (int i = 1; i <= 3; i++) {
+          [UIView addKeyframeWithRelativeStartTime:unit * (((i * 2) - 1) - 0.5f) relativeDuration:unit animations:^{
+            weakSelf.localGameButton.transform = CGAffineTransformRotate(weakSelf.localGameButton.transform, [weakSelf getRadiansFromDegree:degrees * -2]);
+          }];
+          [UIView addKeyframeWithRelativeStartTime:unit * ((i * 2) - 0.5f) relativeDuration:unit animations:^{
+            weakSelf.localGameButton.transform = CGAffineTransformRotate(weakSelf.localGameButton.transform, [weakSelf getRadiansFromDegree:degrees * 2]);
+          }];
+        }
+        
+        [UIView addKeyframeWithRelativeStartTime:unit * 6.5f relativeDuration:unit animations:^{
+          weakSelf.localGameButton.transform = CGAffineTransformRotate(weakSelf.localGameButton.transform, [weakSelf getRadiansFromDegree:-degrees]);
+          weakSelf.localGameButton.transform = CGAffineTransformScale(weakSelf.localGameButton.transform, 1 / kDyadminoHoverResizeFactor, 1 / kDyadminoHoverResizeFactor);
+        }];
+        
+        [UIView addKeyframeWithRelativeStartTime:unit * 7.5f relativeDuration:unit * 10.5 animations:^{
+        }];
+        
+      } completion:nil];
+    });
+  }
+}
+
+-(void)removeLocalGameButtonAnimations {
+  
+  NSLog(@"remove local game button animation");
+  [self.localGameButton.layer removeAllAnimations];
+}
 
 -(IBAction)menuButtonPressedIn:(id)sender {
 //  NSLog(@"button pressed in");
@@ -623,6 +676,8 @@
       [self.tableView insertRowsAtIndexPaths:@[newIndexPath] withRowAnimation:UITableViewRowAnimationFade];
       break;
   }
+  
+  [self determineNewGameButtonAnimation];
 }
 
 -(void)controllerDidChangeContent:(NSFetchedResultsController *)controller {

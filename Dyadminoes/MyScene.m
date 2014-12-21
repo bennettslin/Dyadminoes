@@ -3069,7 +3069,7 @@
   
     // returns if action sheet is already showing
   if (!_boardDyadminoActionSheetShown) {
-    NSString *playString = [NSString stringWithFormat:@"Are you sure? Building this chord cannot be undone. You will gain %i points.", points];
+    NSString *playString = [NSString stringWithFormat:@"Are you sure? Building this chord cannot be undone. You will gain %lu points.", (unsigned long)points];
     
     UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:playString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Build" otherButtonTitles:nil, nil];
     actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
