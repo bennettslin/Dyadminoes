@@ -184,6 +184,10 @@
 #define kMatchesKey @"myMatches"
 #define kDyadminoIDKey @"myID"
 
+  // legal placement error keys
+#define kExcessNotes @"excessNotes"
+#define kDoublePCs @"doublePCs"
+
   //----------------------------------------------------------------------------
 
   // colours
@@ -389,6 +393,12 @@ typedef enum passPlayOrDoneButton {
   kPlayButton,
   kDoneButton
 } PassPlayOrDoneButton;
+
+typedef enum chordMessageSign {
+  kChordMessageGood,
+  kChordMessageNeutral,
+  kChordMessageBad
+} ChordMessageSign;
 
 @interface NSObject (Helper)
 

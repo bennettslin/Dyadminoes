@@ -49,5 +49,6 @@
 -(void)animateReplayLabelGoOut:(BOOL)goOut;
 -(void)animatePnPLabelGoOut:(BOOL)goOut;
 -(void)animateScoreLabelFlash:(UILabel *)scoreLabel;
+-(void)showChordMessage:(NSAttributedString *)message sign:(ChordMessageSign)sign;
 
 @end

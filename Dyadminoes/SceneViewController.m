@@ -157,12 +157,21 @@
   self.pnpWaitingLabel.numberOfLines = kIsIPhone ? 2 : 1;
   [self.view addSubview:self.pnpWaitingLabel];
   
+  self.chordMessageLabel = [UILabel new];
+  self.chordMessageLabel.textColor = [UIColor whiteColor];
+  self.chordMessageLabel.font = [UIFont fontWithName:kFontModern size:kRackHeight / 2];
+  self.chordMessageLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+  self.chordMessageLabel.textAlignment = NSTextAlignmentCenter;
+  self.chordMessageLabel.adjustsFontSizeToFitWidth = YES;
+  self.chordMessageLabel.numberOfLines = kIsIPhone ? 2 : 1;
+  self.chordMessageLabel.layer.borderWidth = 1.f;
+  self.chordMessageLabel.layer.borderColor = [UIColor redColor].CGColor;
+  [self.view addSubview:self.chordMessageLabel];
+  
     // frames
   self.turnLabel.frame = CGRectMake(self.view.bounds.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize * 1.25);
   
   self.pileCountLabel.frame = CGRectMake(self.view.bounds.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer + kSceneLabelFontSize, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize * 1.25);
-  
-//  self.keySigLabel.frame = CGRectMake(self.view.bounds.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer + kSceneLabelFontSize * 2, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize * 1.25);
   
   CGFloat messageLabelWidth = (kButtonWidth * 5) + kTopBarPaddingBetweenStuff + kTopBarTurnPileLabelsWidth;
   self.lastTurnLabel.frame = CGRectMake(self.view.bounds.size.width - messageLabelWidth - kTopBarXEdgeBuffer, kTopBarHeight, messageLabelWidth, kSceneMessageLabelFontSize);
@@ -173,6 +182,8 @@
   self.pnpWaitingLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredPnPY, self.view.bounds.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
   
   self.replayTurnLabel.frame = CGRectMake(kReplayXEdgeBuffer, -kTopBarHeight * 0.95, self.view.frame.size.width - (kReplayXEdgeBuffer * 2), kTopBarHeight);
+  
+  self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, self.view.bounds.size.height - kRackHeight - kRackHeight / 2, self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kRackHeight / 2);
 }
 
 #pragma mark - label data methods
@@ -345,6 +356,26 @@
   } else {
     label.hidden = !show;
   }
+}
+
+-(void)showChordMessage:(NSAttributedString *)message sign:(ChordMessageSign)sign {
+  self.chordMessageLabel.attributedText = message;
+  UIColor *labelColour;
+  switch (sign) {
+    case kChordMessageGood:
+      labelColour = [UIColor greenColor];
+      break;
+    case kChordMessageNeutral:
+      labelColour = [UIColor whiteColor];
+      break;
+    case kChordMessageBad:
+      labelColour = [UIColor redColor];
+      break;
+    default:
+      break;
+  }
+  
+  self.chordMessageLabel.textColor = labelColour;
 }
 
 #pragma mark - label animation methods

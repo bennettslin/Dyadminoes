@@ -117,6 +117,32 @@
 
 #pragma mark - button methods
 
+-(void)changeStartGameText {
+  NSUInteger numberOfPlayers = self.selectedPlayerCount;
+  if (numberOfPlayers == 0) {
+    [self.startGameButton setTitle:@"Choose a player" forState:UIControlStateNormal];
+  } else if (numberOfPlayers == 1) {
+    [self.startGameButton setTitle:@"Start solo game" forState:UIControlStateNormal];
+  } else if (numberOfPlayers >= 2) {
+    NSString *numberText;
+    switch (numberOfPlayers) {
+      case 2:
+        numberText = @"two";
+        break;
+      case 3:
+        numberText = @"three";
+        break;
+      case 4:
+        numberText = @"four";
+        break;
+      default:
+        break;
+    }
+    NSString *gameText = [NSString stringWithFormat:@"Start %@-player game", numberText];
+    [self.startGameButton setTitle:gameText forState:UIControlStateNormal];
+  }
+}
+
 -(IBAction)startGameTapped:(id)sender {
   
   NSMutableArray *tempSelectedPlayers = [NSMutableArray new];
@@ -153,12 +179,15 @@
   if (!firstResponder) {
     self.startGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
   }
+  
+  [self changeStartGameText];
 }
 
 -(void)initialiseButtonAndTextFieldState {
   
   self.selectedPlayerCount = 1;
   self.startGameButton.enabled = YES;
+  [self changeStartGameText];
   
   self.player1Button.selected = YES;
   self.player1NameField.backgroundColor = kMainLighterYellow;

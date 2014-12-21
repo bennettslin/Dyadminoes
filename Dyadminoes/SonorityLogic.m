@@ -27,14 +27,13 @@
     
       // ensures no chord exceeds maximum
     if (![self validateSonorityDoesNotExceedMaximum:sonority]) {
-      NSLog(@"Sonority exceeds maximum.");
-      return nil;
-    }
+//      NSLog(@"Sonority exceeds maximum.");
+      return [NSSet setWithObject:kExcessNotes];
     
       // ensures chord does not have double pcs
-    if (![self validateSonorityHasNoDoublePCs:sonority]) {
-      NSLog(@"Sonority has double pcs.");
-      return nil;
+    } else if (![self validateSonorityHasNoDoublePCs:sonority]) {
+//      NSLog(@"Sonority has double pcs.");
+      return [NSSet setWithObject:kDoublePCs];
     }
     
     NSMutableSet *tempChordSonority = [NSMutableSet new];
@@ -182,6 +181,7 @@
       firstICIndex = index;
     }
   }
+  
   NSMutableArray *tempICPrimeForm = [[NSMutableArray alloc] initWithCapacity:cardinality];
   for (int i = 0; i < cardinality; i++) {
     uint thisIC = [icNormalForm[(i + firstICIndex) % cardinality] unsignedIntValue];

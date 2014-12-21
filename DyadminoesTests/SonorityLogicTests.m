@@ -435,7 +435,7 @@
 }
 
 -(void)testChordForPersonalPurposes {
-  NSSet *chordSonority = [NSSet setWithArray:@[@5, @8, @2]];
+  NSSet *chordSonority = [NSSet setWithArray:@[@1, @4, @7]];
   Chord chord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:chordSonority];
   NSLog(@"chord type is %i", chord.chordType);
   XCTAssertTrue(chord.chordType == kChordDiminishedTriad, @"This chord should be diminished triad!");

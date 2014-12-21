@@ -35,6 +35,7 @@
 @property (strong, nonatomic) UILabel *lastTurnLabel;
 @property (strong, nonatomic) UILabel *pnpWaitingLabel;
 @property (strong, nonatomic) UILabel *replayTurnLabel;
+@property (strong, nonatomic) UILabel *chordMessageLabel;
 
 @property (strong, nonatomic) UIPinchGestureRecognizer *pinchGestureRecogniser;
 

@@ -1963,33 +1963,38 @@
         
         if ([dyadmino belongsOnBoard]) {
           
-          NSLog(@"determining whether to ease dyadmino that belongs on board...");
-          
-            // illegal chords, keep hovering
-          if (!legalChordSonoritiesFormed) {
-            
-            NSLog(@"...no, illegal chords have been formed.");
+          id object = [legalChordSonoritiesFormed anyObject];
+          if ([object isKindOfClass:[NSString class]] && [object isEqualToString:kExcessNotes]) {
             [dyadmino keepHovering];
+            [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Sonority can't have excess notes."] sign:kChordMessageBad];
             return;
             
+          } else if ([object isKindOfClass:[NSString class]] && [object isEqualToString:kDoublePCs]) {
+            [dyadmino keepHovering];
+            [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Sonority can't repeat notes."] sign:kChordMessageBad];
+            return;
+            
+              // illegal chords, keep hovering
+          } else if (!legalChordSonoritiesFormed) {
+            [dyadmino keepHovering];
+            [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Sonority isn't legal."] sign:kChordMessageBad];
+            return;
+          
               // not legal formation, as it breaks chords already established
           } else if (![[SonorityLogic sharedLogic] setOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords isSubsetOfSetOfLegalChords:legalChordSonoritiesFormed]) {
-            
-            NSLog(@"...no, breaks chords already established.");
             [dyadmino keepHovering];
+            [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Can't break existing chords (existing chords)."] sign:kChordMessageBad];
             return;
             
               // legal formation
           } else {
             if (![[SonorityLogic sharedLogic] setOfLegalChords:legalChordSonoritiesFormed isSubsetOfSetOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords]) {
-              
-              NSLog(@"...new chords were formed from movement of board dyadmino!");
-              
                 // only show action sheet if board dyadmino already scored
                 // if it was recently played by player, just keep the new chord
               if ([self.myMatch.board containsObject:[self getDataDyadminoFromDyadmino:dyadmino]]) {
                 [self presentBoardDyadminoMoveFormsNewLegalChordActionSheet];
                 [dyadmino keepHovering];
+                [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"(Board dyadmino) forms new legal chord."] sign:kChordMessageGood];
                 return;
               }
             }
@@ -1998,17 +2003,27 @@
             // rack dyadmino
         } else if ([dyadmino belongsInRack]) {
           
-          NSLog(@"determining whether to highlight play button...");
-          
-          if (!legalChordSonoritiesFormed || legalChordSonoritiesFormed.count == 0) {
-            
+            // FIXME: totally not DRY
+          id object = [legalChordSonoritiesFormed anyObject];
+          if ([object isKindOfClass:[NSString class]] && [object isEqualToString:kExcessNotes]) {
             _recentRackDyadminoFormsLegalChord = NO;
-            NSLog(@"...no, illegal chord formed, or no legal chord is formed.");
+            [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Sonority can't have excess notes."] sign:kChordMessageBad];
+
+          } else if ([object isKindOfClass:[NSString class]] && [object isEqualToString:kDoublePCs]) {
+            _recentRackDyadminoFormsLegalChord = NO;
+            [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Sonority can't repeat notes."] sign:kChordMessageBad];
+            
+          } else if (!legalChordSonoritiesFormed) {
+            _recentRackDyadminoFormsLegalChord = NO;
+            [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Sonority isn't legal."] sign:kChordMessageBad];
+            
+          } else if (legalChordSonoritiesFormed.count == 0) {
+              _recentRackDyadminoFormsLegalChord = NO;
+            [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"New dyadmino must build a legal chord."] sign:kChordMessageBad];
             
           } else {
-            
             _recentRackDyadminoFormsLegalChord = YES;
-            NSLog(@"...yes, a legal chord was formed.");
+            [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"(Rack dyadmino) forms new legal chord."] sign:kChordMessageGood];
           }
         }
         
