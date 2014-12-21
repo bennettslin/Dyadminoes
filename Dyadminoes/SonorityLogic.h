@@ -19,7 +19,8 @@
   // sonority stuff
 -(BOOL)sonority:(NSSet *)set containsNote:(NSDictionary *)dictionary;
 -(BOOL)sonority:(NSSet *)smaller IsSubsetOfSonority:(NSSet *)larger;
--(NSSet *)chordSonorityForSonority:(NSSet *)sonority;
+-(NSSet *)subtractSonority:(NSSet *)smaller fromSonority:(NSSet *)larger;
+-(NSSet *)sonoritiesInSonorities:(NSSet *)larger thatAreSupersetsOfSonoritiesInSonorities:(NSSet *)smaller;
 -(NSSet *)chordSonoritiesForSonorities:(NSSet *)sonorities;
 
 #pragma mark - chord logic methods
@@ -30,6 +31,11 @@
 #pragma mark - chord label methods
 
 //-(NSAttributedString *)stringWithAccidentals:(NSString *)myString fontSize:(CGFloat)size;
+-(NSAttributedString *)stringAfterSubtractingSonorities:(NSSet *)smaller
+                                         fromSonorities:(NSSet *)larger
+                                      withInitialString:(NSString *)initialString
+                                        andEndingString:(NSString *)endingString;
+
 -(NSAttributedString *)stringForLegalChords:(NSSet *)chords;
 
 #pragma mark - singleton method

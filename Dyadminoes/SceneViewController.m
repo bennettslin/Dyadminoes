@@ -129,12 +129,6 @@
   self.pileCountLabel.textAlignment = NSTextAlignmentRight;
   [self.turnPileCountField addSubview:self.pileCountLabel];
   
-//  self.keySigLabel = [UILabel new];
-//  self.keySigLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneLabelFontSize];
-//  self.keySigLabel.adjustsFontSizeToFitWidth = YES;
-//  self.keySigLabel.textAlignment = NSTextAlignmentRight;
-//  [self.turnPileCountField addSubview:self.keySigLabel];
-  
   self.lastTurnLabel = [UILabel new];
   self.lastTurnLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneMessageLabelFontSize];
   self.lastTurnLabel.textAlignment = NSTextAlignmentRight;
@@ -159,7 +153,7 @@
   
   self.chordMessageLabel = [UILabel new];
   self.chordMessageLabel.textColor = [UIColor whiteColor];
-  self.chordMessageLabel.font = [UIFont fontWithName:kFontModern size:kRackHeight / 2];
+  self.chordMessageLabel.font = [UIFont fontWithName:kFontModern size:kChordMessageLabelHeight];
   self.chordMessageLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
   self.chordMessageLabel.textAlignment = NSTextAlignmentCenter;
   self.chordMessageLabel.adjustsFontSizeToFitWidth = YES;
@@ -183,7 +177,7 @@
   
   self.replayTurnLabel.frame = CGRectMake(kReplayXEdgeBuffer, -kTopBarHeight * 0.95, self.view.frame.size.width - (kReplayXEdgeBuffer * 2), kTopBarHeight);
   
-  self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, self.view.bounds.size.height - kRackHeight - kRackHeight / 2, self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kRackHeight / 2);
+  self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, self.view.bounds.size.height - kRackHeight - kChordMessageLabelHeight, self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight);
 }
 
 #pragma mark - label data methods
@@ -376,6 +370,10 @@
   }
   
   self.chordMessageLabel.textColor = labelColour;
+}
+
+-(void)fadeChordMessage {
+  self.chordMessageLabel.text = @"";
 }
 
 #pragma mark - label animation methods

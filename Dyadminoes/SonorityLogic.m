@@ -34,12 +34,13 @@
       return [NSSet setWithObject:kDoublePCs];
     }
     
+    NSLog(@"calling chord sonority for sonority from legal chord sonorities");
     NSSet *chordSonority = [self chordSonorityForSonority:sonority];
     Chord chord = [self chordFromSonorityPlusCheckIncompleteSeventh:chordSonority];
     
       // ensures chord is not illegal
     if (chord.chordType == kChordIllegalChord) {
-      return nil;
+      return [NSSet setWithObject:kIllegalSonority];
       
         // bothers to distinguish only if chord is legal
     } else if (chord.chordType <= kChordFrenchSixth) {
@@ -52,18 +53,22 @@
 
 -(NSSet *)chordSonorityForSonority:(NSSet *)sonority {
   NSMutableSet *tempChordSonority = [NSMutableSet new];
-  for (NSDictionary *note in sonority) {
-    NSNumber *pc = note[@"pc"];
-    [tempChordSonority addObject:pc];
+  for (id note in sonority) {
+    if ([note isKindOfClass:[NSDictionary class]]) {
+      NSNumber *pc = note[@"pc"];
+      [tempChordSonority addObject:pc];
+    }
   }
   return [NSSet setWithSet:tempChordSonority];
 }
 
 -(NSSet *)chordSonoritiesForSonorities:(NSSet *)sonorities {
   NSMutableSet *tempChordSonorities = [NSMutableSet new];
-  for (NSSet *sonority in sonorities) {
-    NSSet *chordSonority = [self chordSonorityForSonority:sonority];
-    [tempChordSonorities addObject:chordSonority];
+  for (id sonority in sonorities) {
+    if ([sonority isKindOfClass:[NSSet class]]) {
+      NSSet *chordSonority = [self chordSonorityForSonority:(NSSet *)sonority];
+      [tempChordSonorities addObject:chordSonority];
+    }
   }
   return [NSSet setWithSet:tempChordSonorities];
 }
@@ -128,6 +133,37 @@
   }
   
   return returnValue;
+}
+
+-(NSSet *)subtractSonority:(NSSet *)smaller fromSonority:(NSSet *)larger {
+  
+  NSMutableSet *tempDifferenceSonorities = [NSMutableSet setWithSet:larger];
+  
+  for (NSSet *smallerSetSonority in smaller) {
+    for (NSSet *largerSetSonority in larger) {
+      if ([smallerSetSonority isSubsetOfSet:largerSetSonority]) {
+        [tempDifferenceSonorities removeObject:largerSetSonority];
+      }
+    }
+  }
+  
+  return [NSSet setWithSet:tempDifferenceSonorities];
+}
+
+-(NSSet *)sonoritiesInSonorities:(NSSet *)larger thatAreSupersetsOfSonoritiesInSonorities:(NSSet *)smaller {
+  
+  NSMutableSet *tempSupersetsSonorities = [NSMutableSet new];
+  
+  for (NSSet *smallerSetSonority in smaller) {
+    for (NSSet *largerSetSonority in larger) {
+      if ([smallerSetSonority isSubsetOfSet:largerSetSonority]) {
+        [tempSupersetsSonorities addObject:largerSetSonority];
+      }
+    }
+  }
+  
+  return [NSSet setWithSet:tempSupersetsSonorities];
+  
 }
 
 #pragma mark - chord logic methods
@@ -495,6 +531,26 @@
   return attString;
 }
 
+-(NSAttributedString *)stringAfterSubtractingSonorities:(NSSet *)smaller
+                                         fromSonorities:(NSSet *)larger
+                                      withInitialString:(NSString *)initialString
+                                        andEndingString:(NSString *)endingString {
+  
+  NSLog(@"calling with initial text %@ and %@", initialString, endingString);
+  NSMutableAttributedString *initialText = [[NSMutableAttributedString alloc] initWithString:initialString];
+  
+  NSSet *differenceSonorities = [self subtractSonority:smaller fromSonority:larger];
+  NSSet *differenceChords = [self chordSonoritiesForSonorities:differenceSonorities];
+  NSAttributedString *chordsText = [self stringForLegalChords:differenceChords];
+  
+  NSAttributedString *endingText = [[NSMutableAttributedString alloc] initWithString:endingString];
+  
+  [initialText appendAttributedString:chordsText];
+  [initialText appendAttributedString:endingText];
+  
+  return initialText;
+}
+
 -(NSAttributedString *)stringForLegalChords:(NSSet *)chords {
   
     // sort chords based on chord type
@@ -533,7 +589,7 @@
         finalString = [NSString stringWithFormat:@"%@, ", string];
       }
       
-      NSAttributedString *attributedString = [self stringWithAccidentals:finalString fontSize:120];
+      NSAttributedString *attributedString = [self stringWithAccidentals:finalString fontSize:kChordMessageLabelHeight];
       [tempStringArray addObject:attributedString];
     }
   }

@@ -65,6 +65,8 @@
 #define kScoreLabelHeight (kCellRowHeight / 2.66666667)
 #define kMaxNumPlayers 4
 
+#define kChordMessageLabelHeight (kRackHeight / 3)
+
   // top bar constants
 #define kTopBarYEdgeBuffer (kIsIPhone ? (kTopBarHeight / 5) : (kTopBarHeight / 10))
 
@@ -187,6 +189,7 @@
   // legal placement error keys
 #define kExcessNotes @"excessNotes"
 #define kDoublePCs @"doublePCs"
+#define kIllegalSonority @"illegalSonority"
 
   //----------------------------------------------------------------------------
 
