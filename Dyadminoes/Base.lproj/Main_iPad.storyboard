@@ -232,10 +232,10 @@
             </objects>
             <point key="canvasLocation" x="1496" y="-561"/>
         </scene>
-        <!--Options View Controller-->
+        <!--Settings View Controller-->
         <scene sceneID="HcX-tt-hlU">
             <objects>
-                <viewController storyboardIdentifier="OptionsViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="CRf-ou-lUt" customClass="OptionsViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="SettingsViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="CRf-ou-lUt" customClass="SettingsViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="twk-aW-f6t">
                         <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>

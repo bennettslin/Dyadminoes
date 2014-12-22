@@ -18,7 +18,7 @@
 #import "HelpViewController.h"
 #import "StoreViewController.h"
 #import "RankViewController.h"
-#import "OptionsViewController.h"
+#import "SettingsViewController.h"
 #import "AboutViewController.h"
 #import "Match.h"
 #import "Player.h"
@@ -71,6 +71,7 @@
   self.titleLogo.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? 30.f : 60.f)];
   self.titleLogo.text = @"Dyadminoes";
   self.titleLogo.frame = CGRectMake(20, 20, 768, 60);
+  self.titleLogo.textColor = [UIColor whiteColor];
   
   self.tableView.backgroundColor = [UIColor clearColor];
   self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
@@ -101,7 +102,7 @@
   self.helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
   self.helpVC.view.backgroundColor = [UIColor redColor];
   
-  self.optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"OptionsViewController"];
+  self.optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"SettingsViewController"];
   self.optionsVC.view.backgroundColor = kPlayerGreen;
   
   self.aboutVC = [[AboutViewController alloc] init];

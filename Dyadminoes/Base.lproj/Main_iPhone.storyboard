@@ -276,10 +276,10 @@
             </objects>
             <point key="canvasLocation" x="971" y="141"/>
         </scene>
-        <!--Options View Controller-->
+        <!--Settings View Controller-->
         <scene sceneID="hzq-GY-ODM">
             <objects>
-                <viewController storyboardIdentifier="OptionsViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="iBm-M5-xqB" customClass="OptionsViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="SettingsViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="iBm-M5-xqB" customClass="SettingsViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="q59-w4-KGq">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>

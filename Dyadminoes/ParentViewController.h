@@ -8,13 +8,13 @@
 
 #import <UIKit/UIKit.h>
 @class HelpViewController;
-@class OptionsViewController;
+@class SettingsViewController;
 @class AboutViewController;
 
 @interface ParentViewController : UIViewController
 
 @property (strong, nonatomic) HelpViewController *helpVC;
-@property (strong, nonatomic) OptionsViewController *optionsVC;
+@property (strong, nonatomic) SettingsViewController *optionsVC;
 @property (strong, nonatomic) AboutViewController *aboutVC;
 @property (strong, nonatomic) UIViewController *childVC;
 
