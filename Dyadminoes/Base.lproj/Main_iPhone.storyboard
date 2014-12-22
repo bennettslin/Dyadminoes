@@ -156,8 +156,15 @@
                                         <fontDescription key="fontDescription" type="system" pointSize="22"/>
                                         <nil key="highlightedColor"/>
                                     </label>
+                                </subviews>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                            </view>
+                            <view contentMode="scaleToFill" id="k3C-2Y-dsV">
+                                <rect key="frame" x="0.0" y="504" width="320" height="64"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="jP0-ad-iJf">
-                                        <rect key="frame" x="201" y="16" width="99" height="36"/>
+                                        <rect key="frame" x="14" y="8" width="99" height="36"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="20"/>
                                         <state key="normal" title="New Game">
@@ -168,27 +175,8 @@
                                             <action selector="menuButtonPressedIn:" destination="eOQ-mG-fbK" eventType="touchDown" id="q54-dZ-ur3"/>
                                         </connections>
                                     </button>
-                                </subviews>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                            </view>
-                            <view contentMode="scaleToFill" id="k3C-2Y-dsV">
-                                <rect key="frame" x="0.0" y="504" width="320" height="64"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="L1P-ey-aqB">
-                                        <rect key="frame" x="44" y="12" width="72" height="32"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                        <state key="normal" title="Help">
-                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                        </state>
-                                        <connections>
-                                            <action selector="menuButtonLifted:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="mj8-cr-eps"/>
-                                            <action selector="menuButtonPressedIn:" destination="eOQ-mG-fbK" eventType="touchDown" id="34g-pQ-Tiy"/>
-                                        </connections>
-                                    </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="c2b-sM-byf">
-                                        <rect key="frame" x="124" y="12" width="72" height="32"/>
+                                        <rect key="frame" x="145" y="12" width="72" height="32"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <state key="normal" title="Options">
@@ -209,6 +197,18 @@
                                         <connections>
                                             <action selector="menuButtonLifted:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="mhY-2I-121"/>
                                             <action selector="menuButtonPressedIn:" destination="eOQ-mG-fbK" eventType="touchDown" id="d5q-C5-3PR"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="L1P-ey-aqB">
+                                        <rect key="frame" x="98" y="12" width="72" height="32"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                        <state key="normal" title="Help">
+                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="menuButtonLifted:" destination="eOQ-mG-fbK" eventType="touchUpInside" id="mj8-cr-eps"/>
+                                            <action selector="menuButtonPressedIn:" destination="eOQ-mG-fbK" eventType="touchDown" id="34g-pQ-Tiy"/>
                                         </connections>
                                     </button>
                                 </subviews>

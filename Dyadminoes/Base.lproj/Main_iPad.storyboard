@@ -40,8 +40,15 @@
                                         <fontDescription key="fontDescription" type="system" pointSize="44"/>
                                         <nil key="highlightedColor"/>
                                     </label>
+                                </subviews>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                            </view>
+                            <view contentMode="scaleToFill" id="Us1-C6-BdJ">
+                                <rect key="frame" x="0.0" y="934" width="768" height="90"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="enz-5f-B3T">
-                                        <rect key="frame" x="591" y="26" width="157" height="51"/>
+                                        <rect key="frame" x="183" y="22" width="157" height="51"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="32"/>
                                         <state key="normal" title="New Game">
@@ -52,15 +59,8 @@
                                             <action selector="menuButtonPressedIn:" destination="wBa-AM-Ddr" eventType="touchDown" id="ND3-Mn-LfZ"/>
                                         </connections>
                                     </button>
-                                </subviews>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                            </view>
-                            <view contentMode="scaleToFill" id="Us1-C6-BdJ">
-                                <rect key="frame" x="0.0" y="934" width="768" height="90"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="Oze-Uv-Has">
-                                        <rect key="frame" x="118" y="20" width="100" height="51"/>
+                                        <rect key="frame" x="334" y="22" width="100" height="51"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="24"/>
                                         <state key="normal" title="Help">
@@ -71,20 +71,8 @@
                                             <action selector="menuButtonPressedIn:" destination="wBa-AM-Ddr" eventType="touchDown" id="pFL-7Q-6G2"/>
                                         </connections>
                                     </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="SnC-7K-26T">
-                                        <rect key="frame" x="550" y="20" width="100" height="51"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="24"/>
-                                        <state key="normal" title="About">
-                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                        </state>
-                                        <connections>
-                                            <action selector="menuButtonLifted:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="ADh-rt-8ff"/>
-                                            <action selector="menuButtonPressedIn:" destination="wBa-AM-Ddr" eventType="touchDown" id="dRG-8D-I0A"/>
-                                        </connections>
-                                    </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="Cia-J8-Cgo">
-                                        <rect key="frame" x="334" y="20" width="100" height="51"/>
+                                        <rect key="frame" x="418" y="22" width="100" height="51"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="24"/>
                                         <state key="normal" title="Options">
@@ -93,6 +81,18 @@
                                         <connections>
                                             <action selector="menuButtonLifted:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="gtg-EP-ZU3"/>
                                             <action selector="menuButtonPressedIn:" destination="wBa-AM-Ddr" eventType="touchDown" id="2gs-Tf-V2e"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="SnC-7K-26T">
+                                        <rect key="frame" x="503" y="24" width="100" height="51"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="24"/>
+                                        <state key="normal" title="About">
+                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="menuButtonLifted:" destination="wBa-AM-Ddr" eventType="touchUpInside" id="ADh-rt-8ff"/>
+                                            <action selector="menuButtonPressedIn:" destination="wBa-AM-Ddr" eventType="touchDown" id="dRG-8D-I0A"/>
                                         </connections>
                                     </button>
                                 </subviews>

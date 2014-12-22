@@ -175,10 +175,6 @@
     self.selectedPlayerCount++;
   }
   
-//  UITextField *firstResponder = [self checkTextFieldFirstResponder];
-//  if (!firstResponder) {
-//  }
-  
   self.startGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
   [self changeStartGameText];
 }

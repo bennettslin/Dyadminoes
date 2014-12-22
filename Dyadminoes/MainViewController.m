@@ -126,6 +126,9 @@
   
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removeLocalGameButtonAnimations) name:UIApplicationDidEnterBackgroundNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stopAnimatingBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
+
+  [self.localGameButton addTarget:self action:@selector(removeLocalGameButtonAnimations) forControlEvents:UIControlEventTouchDown];
+  [self.localGameButton addTarget:self action:@selector(determineNewGameButtonAnimation) forControlEvents:UIControlEventTouchUpInside | UIControlEventTouchUpOutside];
 }
 
 -(void)viewWillAppear:(BOOL)animated {
