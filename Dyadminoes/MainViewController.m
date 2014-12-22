@@ -30,14 +30,10 @@
 #define kMainBottomBarHeight (kIsIPhone ? 60.f : 90.f)
 #define kActivityIndicatorFrame (kIsIPhone ? 120.f : 150.f)
 
-#define kViewControllerSpeed 0.225f
-
 @interface MainViewController () <SceneViewDelegate, MatchCellDelegate, LocalGameDelegate>
 
 @property (strong, nonatomic) MyScene *myScene;
-@property (strong, nonatomic) UIViewController *childVC;
 
-//@property (strong, nonatomic) Model *myModel;
 @property (strong, nonatomic) Match *mostRecentMatch;
 @property (strong, nonatomic) NSIndexPath *indexPathForMostRecentMatch;
 
@@ -47,20 +43,15 @@
 @property (weak, nonatomic) IBOutlet UIView *bottomBar;
 
 @property (weak, nonatomic) IBOutlet UIButton *localGameButton;
+
 @property (weak, nonatomic) IBOutlet UIButton *helpButton;
 @property (weak, nonatomic) IBOutlet UIButton *optionsButton;
 @property (weak, nonatomic) IBOutlet UIButton *aboutButton;
 
 @property (strong, nonatomic) NSArray *allButtons;
-
 @property (strong, nonatomic) UIButton *highlightedBottomButton;
-@property (strong, nonatomic) UIButton *darkOverlay;
-@property (nonatomic) BOOL vcIsAnimating;
 
 @property (strong, nonatomic) LocalGameViewController *localVC;
-@property (strong, nonatomic) HelpViewController *helpVC;
-@property (strong, nonatomic) OptionsViewController *optionsVC;
-@property (strong, nonatomic) AboutViewController *aboutVC;
 
 @property (strong, nonatomic) UIActivityIndicatorView *activityIndicator;
 @property (strong, nonatomic) UIView *backgroundView;
@@ -69,18 +60,10 @@
 
 @end
 
-@implementation MainViewController {
-  CGFloat _screenWidth;
-  CGFloat _screenHeight;
-  BOOL _overlayEnabled;
-}
+@implementation MainViewController
 
 -(void)viewDidLoad {
-  
   [super viewDidLoad];
-  
-  _screenWidth = [UIScreen mainScreen].bounds.size.width;
-  _screenHeight = [UIScreen mainScreen].bounds.size.height;
   
   [self insertImageBackground];
   [self insertGradientBackground];
@@ -94,7 +77,7 @@
   self.tableView.showsVerticalScrollIndicator = NO;
   
     // FIXME: set this in viewWillAppear, using natural screen width and height
-  self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
+  self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, self.screenWidth - kTableViewXMargin * 2, self.screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
   
   self.activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
   self.activityIndicator.backgroundColor = [[UIColor darkGrayColor] colorWithAlphaComponent:0.8f];
@@ -124,10 +107,6 @@
   self.aboutVC = [[AboutViewController alloc] init];
   self.aboutVC.view.backgroundColor = [UIColor blueColor];
   
-  self.darkOverlay = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, _screenWidth, _screenHeight)];
-  [self.darkOverlay addTarget:self action:@selector(backToMatches) forControlEvents:UIControlEventTouchDown];
-  self.vcIsAnimating = NO;
-  
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
 
@@ -143,19 +122,20 @@
   }
   
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(startAnimatingBackground) name:UIApplicationDidBecomeActiveNotification object:nil];
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stopAnimatingBackground) name:UIApplicationWillResignActiveNotification object:nil];
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removeChildVCUponEnteringBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(determineNewGameButtonAnimation) name:UIApplicationDidBecomeActiveNotification object:nil];
+  
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removeLocalGameButtonAnimations) name:UIApplicationDidEnterBackgroundNotification object:nil];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stopAnimatingBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
 }
 
 -(void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
 
-  [self resetActivityIndicatorAndDarkOverlay];
-  self.topBar.frame = CGRectMake(0, 0, _screenWidth, kMainTopBarHeight);
-  self.bottomBar.frame = CGRectMake(0, _screenHeight - kMainBottomBarHeight, _screenWidth, kMainTopBarHeight);
-  self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
+  [self resetActivityIndicator];
+  self.topBar.frame = CGRectMake(0, 0, self.screenWidth, kMainTopBarHeight);
+  self.bottomBar.frame = CGRectMake(0, self.screenHeight - kMainBottomBarHeight, self.screenWidth, kMainTopBarHeight);
+  self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, self.screenWidth - kTableViewXMargin * 2, self.screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
   
-  _overlayEnabled = YES;
   [self determineNewGameButtonAnimation];
 }
 
@@ -276,130 +256,56 @@
   sceneVC.delegate = self;
 }
 
--(void)backToMatches {
-  [self backToMatchesWithAnimateRemoveVC:NO];
-}
-
--(void)backToMatchesWithAnimateRemoveVC:(BOOL)animateRemoveVC {
+-(void)backToParentViewWithAnimateRemoveVC:(BOOL)animateRemoveVC {
   
-  if (!self.vcIsAnimating && self.childVC && _overlayEnabled) {
+  if (!self.vcIsAnimating && self.childVC && self.overlayEnabled) {
     
     if (!animateRemoveVC) {
-      [self fadeOverlayIn:NO];
       [self slideInTopBarAndBottomBar];
       [self slideInTableview];
-      [self removeChildViewController:self.childVC];
       
     } else { // dismiss soloVC after starting new game
       [self performSelectorInBackground:@selector(removeChildViewController:) withObject:self.childVC];
-//      [self removeChildViewController:self.childVC];
     }
-
-    self.childVC = nil;
-    
+        
       // so that overlay doesn't register when user dismisses keyboard
-  } else if (!_overlayEnabled) {
+  } else if (self.overlayEnabled) {
     (self.childVC == self.localVC) ? [self.localVC resignTextField:nil] : nil;
   }
+  
+  [super backToParentViewWithAnimateRemoveVC:animateRemoveVC];
 }
 
 -(void)presentChildViewController:(UIViewController *)childVC {
-  
-  self.vcIsAnimating = YES;
-  (self.childVC && self.childVC != childVC) ? [self removeChildViewController:self.childVC] : nil;
-  
-  self.childVC = childVC;
   if (![self.darkOverlay superview]) {
-    [self fadeOverlayIn:YES];
     [self slideOutTopBarAndBottomBar];
     [self slideOutTableview];
   }
   
-  CGFloat viewWidth = _screenWidth * 4 / 5;
-  CGFloat viewHeight = kIsIPhone ? _screenHeight * 5 / 7 : _screenHeight * 4 / 5;
-  
-  childVC.view.frame = CGRectMake(0, 0, viewWidth, viewHeight);
-  childVC.view.center = CGPointMake(self.view.center.x - _screenWidth, self.view.center.y);
-  childVC.view.layer.cornerRadius = kCornerRadius;
-  childVC.view.layer.masksToBounds = YES;
-
-  [self.view addSubview:childVC.view];
-  [self animatePresentVC:childVC];
-}
-
--(void)animatePresentVC:(UIViewController *)childVC {
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-    childVC.view.center = self.view.center;
-  } completion:^(BOOL finished) {
-    self.vcIsAnimating = NO;
-  }];
-}
-
--(void)removeChildViewController:(UIViewController *)childVC {
-  
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    childVC.view.center = CGPointMake(self.view.center.x + _screenWidth, self.view.center.y);
-  } completion:^(BOOL finished) {
-    [childVC.view removeFromSuperview];
-  }];
+  [super presentChildViewController:childVC];
 }
 
 -(void)removeChildVCUponEnteringBackground {
+  [super removeChildVCUponEnteringBackground];
+  
   if (self.childVC) {
-    self.darkOverlay.backgroundColor = [UIColor clearColor];
-    [self.darkOverlay removeFromSuperview];
-    _overlayEnabled = YES;
-    
-    self.topBar.frame = CGRectMake(0, 0, _screenWidth, kMainTopBarHeight);
-    self.bottomBar.frame = CGRectMake(0, _screenHeight - kMainBottomBarHeight, _screenWidth, kMainTopBarHeight);
-    self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
-    [self.childVC.view removeFromSuperview];
-    self.childVC = nil;
+    self.topBar.frame = CGRectMake(0, 0, self.screenWidth, kMainTopBarHeight);
+    self.bottomBar.frame = CGRectMake(0, self.screenHeight - kMainBottomBarHeight, self.screenWidth, kMainTopBarHeight);
+    self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, self.screenWidth - kTableViewXMargin * 2, self.screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
   }
 }
 
 #pragma mark - view animation methods
 
--(void)slideOutTopBarAndBottomBar {
-  [self removeLocalGameButtonAnimations];
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    self.topBar.frame = CGRectMake(0, -kMainTopBarHeight, _screenWidth, kMainTopBarHeight);
-  } completion:nil];
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    self.bottomBar.frame = CGRectMake(0, _screenHeight, _screenWidth, kMainBottomBarHeight);
-  } completion:nil];
-}
-
--(void)slideInTopBarAndBottomBar {
-  [self determineNewGameButtonAnimation];
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-    self.topBar.frame = CGRectMake(0, 0, _screenWidth, kMainTopBarHeight);
-  } completion:nil];
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-    self.bottomBar.frame = CGRectMake(0, _screenHeight - kMainBottomBarHeight, _screenWidth, kMainTopBarHeight);
-  } completion:nil];
-}
-
--(void)slideOutTableview {
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-        self.tableView.frame = CGRectMake(kTableViewXMargin, 0 - _screenHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
-  } completion:nil];
-}
-
--(void)slideInTableview {
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, _screenWidth - kTableViewXMargin * 2, _screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
-  } completion:nil];
-}
-
 -(void)fadeOverlayIn:(BOOL)fadeIn {
+    // FIXME: this method overrides parent method for now, but can be more DRY
   
   __weak typeof(self) weakSelf = self;
   
   if (fadeIn) {
     CGFloat overlayAlpha = kIsIPhone ? 0.2f : 0.5f;
     self.darkOverlay.backgroundColor = [UIColor clearColor];
-    [self.view insertSubview:self.darkOverlay belowSubview:self.activityIndicator];
+    [self.view insertSubview:self.darkOverlay belowSubview:self.activityIndicator]; // this part is different in superclass VC
     [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
       self.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:overlayAlpha];
     } completion:nil];
@@ -412,11 +318,52 @@
   }
 }
 
+-(void)slideOutTopBarAndBottomBar {
+  [self removeLocalGameButtonAnimations];
+  
+  __weak typeof(self) weakSelf = self;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+      weakSelf.topBar.frame = CGRectMake(0, -kMainTopBarHeight, weakSelf.screenWidth, kMainTopBarHeight);
+    } completion:nil];
+    [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+      weakSelf.bottomBar.frame = CGRectMake(0, weakSelf.screenHeight, weakSelf.screenWidth, kMainBottomBarHeight);
+    } completion:nil];
+  });
+}
+
+-(void)slideInTopBarAndBottomBar {
+  [self determineNewGameButtonAnimation];
+  
+  __weak typeof(self) weakSelf = self;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+      weakSelf.topBar.frame = CGRectMake(0, 0, weakSelf.screenWidth, kMainTopBarHeight);
+    } completion:nil];
+    [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+      weakSelf.bottomBar.frame = CGRectMake(0, weakSelf.screenHeight - kMainBottomBarHeight, weakSelf.screenWidth, kMainTopBarHeight);
+    } completion:nil];
+  });
+}
+
+-(void)slideOutTableview {
+  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+        self.tableView.frame = CGRectMake(kTableViewXMargin, 0 - self.screenHeight, self.screenWidth - kTableViewXMargin * 2, self.screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
+  } completion:nil];
+}
+
+-(void)slideInTableview {
+  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, self.screenWidth - kTableViewXMargin * 2, self.screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
+  } completion:nil];
+}
+
 -(void)activityIndicatorStart:(BOOL)start {
   if (start) {
     [NSThread detachNewThreadSelector:@selector(transitionToSceneAnimationNewThread:) toTarget:self withObject:nil];
   } else {
-    [self resetActivityIndicatorAndDarkOverlay];
+    [self resetActivityIndicator];
+    [self resetDarkOverlay];
     [self stopAnimatingBackground];
   }
 }
@@ -428,11 +375,9 @@
   [self slideOutTableview];
 }
 
--(void)resetActivityIndicatorAndDarkOverlay {
+-(void)resetActivityIndicator {
   [self.activityIndicator stopAnimating];
   self.activityIndicator.hidden = YES;
-  self.darkOverlay.backgroundColor = [UIColor clearColor];
-  [self.darkOverlay removeFromSuperview];
 }
 
 #pragma mark - button methods
@@ -512,7 +457,7 @@
 #pragma mark - match creation methods
 
 -(void)startLocalGameWithPlayerNames:(NSArray *)playerNames {
-  [self backToMatchesWithAnimateRemoveVC:YES];
+  [self backToParentViewWithAnimateRemoveVC:YES];
   
   Match *newMatch = [NSEntityDescription insertNewObjectForEntityForName:@"Match" inManagedObjectContext:self.managedObjectContext];
   
@@ -565,14 +510,14 @@
     // make sure that view size is even multiple of backgroundImage
   self.backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, backgroundImage.size.width * 4, backgroundImage.size.height * 4)];
   self.backgroundView.backgroundColor = [[UIColor colorWithPatternImage:backgroundImage] colorWithAlphaComponent:0.25f];
-  self.backgroundView.center = CGPointMake(_screenWidth, _screenHeight);
+  self.backgroundView.center = CGPointMake(self.screenWidth, self.screenHeight);
   [self.view insertSubview:self.backgroundView belowSubview:self.tableView];
 }
 
 -(void)insertGradientBackground {
   
     // background gradient
-  UIView *gradientView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, _screenWidth, _screenHeight)];
+  UIView *gradientView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.screenWidth, self.screenHeight)];
   
   UIColor *darkGradient;
   UIColor *lightGradient;
@@ -595,11 +540,11 @@
 #pragma mark - delegate methods
 
 -(void)disableOverlay {
-  _overlayEnabled = NO;
+  self.overlayEnabled = NO;
 }
 
 -(void)enableOverlay {
-  _overlayEnabled = YES;
+  self.overlayEnabled = YES;
 }
 
 -(void)rememberMostRecentMatch:(Match *)match {
@@ -682,21 +627,6 @@
 
 -(void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
   [self.tableView endUpdates];
-}
-
-#pragma mark - system methods
-
--(BOOL)prefersStatusBarHidden {
-  return YES;
-}
-
--(void)didReceiveMemoryWarning {
-  [super didReceiveMemoryWarning];
-  NSLog(@"matches VC did receive memory warning");
-}
-
--(void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 @end

@@ -1079,14 +1079,17 @@
   }
   
     // if it belongs on the board, show chords it's part of
-  if ([dyadmino belongsOnBoard]) {
-      // update chord message label
-    NSAttributedString *string = [[SonorityLogic sharedLogic] stringAfterSubtractingSonorities:nil fromSonorities:self.boardDyadminoBelongsInTheseLegalChords withInitialString:@"Forms " andEndingString:@"."];
-    
-    [self.myDelegate showChordMessage:string sign:kChordMessageNeutral];
-  } else if (dyadmino == _recentRackDyadmino) {
+//  if ([dyadmino belongsOnBoard]) {
+//      // update chord message label
+//    NSAttributedString *string = [[SonorityLogic sharedLogic] stringForSonorities:self.boardDyadminoBelongsInTheseLegalChords withInitialString:@"Forms " andEndingString:@"."];
+//    
+//    [self.myDelegate showChordMessage:string sign:kChordMessageNeutral];
+//  } else if (dyadmino == _recentRackDyadmino) {
+//    [self.myDelegate fadeChordMessage];
+//  }
+  
+    // no, changed my mind; just fade chord message no matter what
     [self.myDelegate fadeChordMessage];
-  }
   
     // various prep
   dyadmino.zPosition = kZPositionHoveredDyadmino;
@@ -1557,13 +1560,20 @@
     dataDyad.myHexCoord = dyadmino.myHexCoord;
     dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:dyadmino.orientation];
   }
-  [self doSomethingSpecial:@"acknowledge that a chord has been played"];
+  
   [self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
   [self recordChangedDataForRackDyadminoes:self.playerRackDyadminoes];
   
   [self updateTopBarLabelsFinalTurn:NO animated:YES];
   [self updateTopBarButtons];
-  [self.myDelegate fadeChordMessage];
+  
+    // show chord message
+  NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
+  NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
+  
+  NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:legalChordSonoritiesFormed withInitialString:@"Built " andEndingString:@"."];
+  
+  [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
 }
 
 -(void)undoLastPlayedDyadmino {
@@ -1983,10 +1993,14 @@
             // if object is not a string, then there's technically no illegal sonorities
           if (![object isKindOfClass:[NSString class]]) {
 
-                // however, fewer chords formed means we've broken existing chords
+                // but fewer chords does means we've broken existing chords
             if (![[SonorityLogic sharedLogic] setOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords isSubsetOfSetOfLegalChords:legalChordSonoritiesFormed]) {
               
-              NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringAfterSubtractingSonorities:legalChordSonoritiesFormed fromSonorities:self.boardDyadminoBelongsInTheseLegalChords withInitialString:@"Can't break " andEndingString:@"."];
+              NSSet *supersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:self.boardDyadminoBelongsInTheseLegalChords thatAreSupersetsOfSonoritiesInSonorities:legalChordSonoritiesFormed];
+              
+              NSLog(@"supersets for can't break message is %@", supersets);
+              
+              NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:supersets withInitialString:@"Can't break " andEndingString:@"."];
               
               [self.myDelegate showChordMessage:chordsText sign:kChordMessageBad];
               [dyadmino keepHovering];
@@ -1994,20 +2008,23 @@
                 // extra chords formed means we've just built a new chord
             } else if (![[SonorityLogic sharedLogic] setOfLegalChords:legalChordSonoritiesFormed isSubsetOfSetOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords]) {
               
+              NSSet *supersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.boardDyadminoBelongsInTheseLegalChords];
+              
                 // only show action sheet if dyadmino was on board before turn
               if ([self.myMatch.board containsObject:[self getDataDyadminoFromDyadmino:dyadmino]]) {
                 [self presentNewLegalChordActionSheetWithPoints:3];
                 
-                NSSet *supersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.boardDyadminoBelongsInTheseLegalChords];
-                
-                NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringAfterSubtractingSonorities:nil fromSonorities:supersets withInitialString:@"Building " andEndingString:@"?"];
+                NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:supersets withInitialString:@"Building " andEndingString:@"?"];
                 
                 [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
                 [dyadmino keepHovering];
                 
                   // otherwise it was recently played this turn, so just keep the new chord
               } else {
-                [self.myDelegate fadeChordMessage];
+                
+                NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:supersets withInitialString:@"Built " andEndingString:@"."];
+                
+                [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
                 [self finishHoveringAfterCheckDyadmino:dyadmino];
               }
               
@@ -2063,7 +2080,7 @@
               
             } else {
               _recentRackDyadminoFormsLegalChord = YES;
-              NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringAfterSubtractingSonorities:nil fromSonorities:legalChordSonoritiesFormed withInitialString:@"Building " andEndingString:@"!"];
+              NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:legalChordSonoritiesFormed withInitialString:@"Building " andEndingString:@"."];
               [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
             }
           }
@@ -3205,8 +3222,7 @@
 }
 
 -(BOOL)sonority:(NSSet *)sonority containsNote:(NSDictionary *)note {
-  SonorityLogic *logic = [SonorityLogic sharedLogic];
-  return [logic sonority:sonority containsNote:note];
+  return [[SonorityLogic sharedLogic] sonority:sonority containsNote:note];
 }
 
 -(void)allowUndoButton {

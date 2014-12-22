@@ -9,7 +9,8 @@
 #import <UIKit/UIKit.h>
 #import <SpriteKit/SpriteKit.h>
 #import <CoreData/CoreData.h>
-//@class Model;
+#import "ParentViewController.h"
+
 @class Match;
 @class Player;
 @class MyScene;
@@ -17,7 +18,7 @@
 
 @protocol SceneViewDelegate;
 
-@interface SceneViewController : UIViewController
+@interface SceneViewController : ParentViewController
 
 @property (strong, nonatomic) MyScene *myScene;
 @property (strong, nonatomic) NSManagedObjectContext *managedObjectContext;

@@ -135,30 +135,30 @@
   return returnValue;
 }
 
--(NSSet *)subtractSonority:(NSSet *)smaller fromSonority:(NSSet *)larger {
-  
-  NSMutableSet *tempDifferenceSonorities = [NSMutableSet setWithSet:larger];
-  
-  for (NSSet *smallerSetSonority in smaller) {
-    for (NSSet *largerSetSonority in larger) {
-      if ([smallerSetSonority isSubsetOfSet:largerSetSonority]) {
-        [tempDifferenceSonorities removeObject:largerSetSonority];
-      }
-    }
-  }
-  
-  return [NSSet setWithSet:tempDifferenceSonorities];
-}
-
 -(NSSet *)sonoritiesInSonorities:(NSSet *)larger thatAreSupersetsOfSonoritiesInSonorities:(NSSet *)smaller {
   
   NSMutableSet *tempSupersetsSonorities = [NSMutableSet new];
   
-  for (NSSet *smallerSetSonority in smaller) {
-    for (NSSet *largerSetSonority in larger) {
+  for (NSSet *largerSetSonority in larger) {
+    
+    BOOL smallerFoundInLarger = NO;
+    for (NSSet *smallerSetSonority in smaller) {
       if ([smallerSetSonority isSubsetOfSet:largerSetSonority]) {
-        [tempSupersetsSonorities addObject:largerSetSonority];
+        
+          // this confirms that the sonorities are not equal, so add it to temp set
+        if (![largerSetSonority isSubsetOfSet:smallerSetSonority]) {
+          [tempSupersetsSonorities addObject:largerSetSonority];
+          
+            // sonorities are equal, do not add it to temp set
+        } else {
+          smallerFoundInLarger = YES;
+        }
       }
+    }
+    
+      // sonority is missing in smaller set, add it to temp set
+    if (!smallerFoundInLarger) {
+      [tempSupersetsSonorities addObject:largerSetSonority];
     }
   }
   
@@ -515,12 +515,12 @@
     if (myChar == (unichar)163) {
       [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolSharp]];
       [attString addAttribute:NSBaselineOffsetAttributeName value:@(size / 2.75) range:NSMakeRange(i, 1)];
-      [attString addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontSonata size:size * 0.85] range:NSMakeRange(i, 1)];
+      [attString addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontSonata size:size * 0.95f] range:NSMakeRange(i, 1)];
       
     } else if (myChar == (unichar)165) {
       [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolFlat]];
-      [attString addAttribute:NSBaselineOffsetAttributeName value:@(size / 4.8) range:NSMakeRange(i, 1)];
-      [attString addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontSonata size:size * 0.95] range:NSMakeRange(i, 1)];
+      [attString addAttribute:NSBaselineOffsetAttributeName value:@(size / 5.4) range:NSMakeRange(i, 1)];
+      [attString addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontSonata size:size * 1.15f] range:NSMakeRange(i, 1)];
       
     } else if (myChar == (unichar)36) { // dollar sign turns into bullet
       [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolBullet]];
@@ -531,17 +531,15 @@
   return attString;
 }
 
--(NSAttributedString *)stringAfterSubtractingSonorities:(NSSet *)smaller
-                                         fromSonorities:(NSSet *)larger
-                                      withInitialString:(NSString *)initialString
-                                        andEndingString:(NSString *)endingString {
+-(NSAttributedString *)stringForSonorities:(NSSet *)sonorities
+                         withInitialString:(NSString *)initialString
+                           andEndingString:(NSString *)endingString {
   
   NSLog(@"calling with initial text %@ and %@", initialString, endingString);
   NSMutableAttributedString *initialText = [[NSMutableAttributedString alloc] initWithString:initialString];
   
-  NSSet *differenceSonorities = [self subtractSonority:smaller fromSonority:larger];
-  NSSet *differenceChords = [self chordSonoritiesForSonorities:differenceSonorities];
-  NSAttributedString *chordsText = [self stringForLegalChords:differenceChords];
+  NSSet *chords = [self chordSonoritiesForSonorities:sonorities];
+  NSAttributedString *chordsText = [self stringForLegalChords:chords];
   
   NSAttributedString *endingText = [[NSMutableAttributedString alloc] initWithString:endingString];
   
@@ -589,7 +587,7 @@
         finalString = [NSString stringWithFormat:@"%@, ", string];
       }
       
-      NSAttributedString *attributedString = [self stringWithAccidentals:finalString fontSize:kChordMessageLabelHeight];
+      NSAttributedString *attributedString = [self stringWithAccidentals:finalString fontSize:kChordMessageLabelFontSize];
       [tempStringArray addObject:attributedString];
     }
   }

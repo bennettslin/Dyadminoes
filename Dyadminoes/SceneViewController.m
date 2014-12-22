@@ -153,13 +153,13 @@
   
   self.chordMessageLabel = [UILabel new];
   self.chordMessageLabel.textColor = [UIColor whiteColor];
-  self.chordMessageLabel.font = [UIFont fontWithName:kFontModern size:kChordMessageLabelHeight];
+  self.chordMessageLabel.font = [UIFont fontWithName:kFontModern size:kChordMessageLabelFontSize];
   self.chordMessageLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
   self.chordMessageLabel.textAlignment = NSTextAlignmentCenter;
   self.chordMessageLabel.adjustsFontSizeToFitWidth = YES;
   self.chordMessageLabel.numberOfLines = kIsIPhone ? 2 : 1;
-  self.chordMessageLabel.layer.borderWidth = 1.f;
-  self.chordMessageLabel.layer.borderColor = [UIColor redColor].CGColor;
+//  self.chordMessageLabel.layer.borderWidth = 1.f;
+//  self.chordMessageLabel.layer.borderColor = [UIColor redColor].CGColor;
   [self.view addSubview:self.chordMessageLabel];
   
     // frames
@@ -353,23 +353,31 @@
 }
 
 -(void)showChordMessage:(NSAttributedString *)message sign:(ChordMessageSign)sign {
-  self.chordMessageLabel.attributedText = message;
+  
   UIColor *labelColour;
   switch (sign) {
     case kChordMessageGood:
-      labelColour = [UIColor greenColor];
+      labelColour = kChordGoodGreen;
       break;
     case kChordMessageNeutral:
-      labelColour = [UIColor whiteColor];
+      labelColour = kChordNeutralGray;
       break;
     case kChordMessageBad:
-      labelColour = [UIColor redColor];
+      labelColour = kChordBadRed;
       break;
     default:
       break;
   }
   
-  self.chordMessageLabel.textColor = labelColour;
+  NSMutableAttributedString *mutableString = [[NSMutableAttributedString alloc] initWithString:@""];
+  [mutableString appendAttributedString:message];
+  [mutableString addAttributes:@{NSStrokeWidthAttributeName: [NSNumber numberWithFloat:-(kChordMessageLabelFontSize / 30)],
+                                 NSStrokeColorAttributeName:kPianoBlack,
+                                 NSForegroundColorAttributeName:labelColour} range:NSMakeRange(0, mutableString.length)];
+  
+  self.chordMessageLabel.attributedText = mutableString;
+  
+//  self.chordMessageLabel.textColor = labelColour;
 }
 
 -(void)fadeChordMessage {
@@ -501,20 +509,6 @@
     NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
     abort();
   }
-}
-
-#pragma mark - system methods
-
--(void)didReceiveMemoryWarning {
-  [super didReceiveMemoryWarning];
-}
-
--(BOOL)prefersStatusBarHidden {
-  return YES;
-}
-
--(void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 @end

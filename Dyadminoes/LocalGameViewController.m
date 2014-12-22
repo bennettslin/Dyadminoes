@@ -175,18 +175,17 @@
     self.selectedPlayerCount++;
   }
   
-  UITextField *firstResponder = [self checkTextFieldFirstResponder];
-  if (!firstResponder) {
-    self.startGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
-  }
+//  UITextField *firstResponder = [self checkTextFieldFirstResponder];
+//  if (!firstResponder) {
+//  }
   
+  self.startGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
   [self changeStartGameText];
 }
 
 -(void)initialiseButtonAndTextFieldState {
   
   self.selectedPlayerCount = 1;
-  self.startGameButton.enabled = YES;
   [self changeStartGameText];
   
   self.player1Button.selected = YES;
@@ -199,6 +198,8 @@
     textField.backgroundColor = kEndedMatchCellLightColour;
     textField.textColor = [UIColor darkGrayColor];
   }
+  
+  self.startGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
 }
 
 #pragma mark - text field methods
@@ -209,11 +210,13 @@
 }
 
 -(void)textFieldDidBeginEditing:(UITextField *)textField {
-  self.startGameButton.enabled = NO;
   
     // automatically push join button
   UIButton *playerButton = self.playerButtons[[self.playerNameFields indexOfObject:textField]];
   playerButton.selected ? nil : [self buttonTapped:playerButton];
+  
+  self.startGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
+  
   [self.delegate disableOverlay];
 }
 
@@ -237,7 +240,7 @@
     [textField resignFirstResponder];
     NSUInteger index = [self.playerNameFields indexOfObject:textField];
     [self saveNameForPlayerIndex:index];
-    self.startGameButton.enabled = YES;
+    self.startGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
     [self.delegate enableOverlay];
   }
 }

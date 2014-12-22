@@ -43,6 +43,7 @@
 
   // view controller constants
 #define kCornerRadius 25.f
+#define kViewControllerSpeed 0.225f
 
   // table view cell constants
 #define kCellRowHeight (kIsIPhone ? 90.f : 90.f)
@@ -66,6 +67,7 @@
 #define kMaxNumPlayers 4
 
 #define kChordMessageLabelHeight (kRackHeight / 3)
+#define kChordMessageLabelFontSize (kChordMessageLabelHeight * 0.8f)
 
   // top bar constants
 #define kTopBarYEdgeBuffer (kIsIPhone ? (kTopBarHeight / 5) : (kTopBarHeight / 10))
@@ -243,6 +245,10 @@
 #define kWhite [SKColor colorWithRed:1.f green:1.f blue:1.f alpha:1.f]
 #define kYellow [SKColor colorWithRed:0.9f green:0.86f blue:.52f alpha:1.f]
 #define kCyanBlue [SKColor colorWithRed:.62f green:.96f blue:1.f alpha:1.f]
+
+#define kChordGoodGreen [UIColor colorWithRed:0.4f green:0.8f blue:0.3f alpha:1.f]
+#define kChordNeutralGray [UIColor colorWithRed:0.8f green:0.8f blue:0.8f alpha:1.f]
+#define kChordBadRed [UIColor colorWithRed:0.8f green:0.4f blue:0.3f alpha:1.f]
 
   //----------------------------------------------------------------------------
 

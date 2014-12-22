@@ -120,6 +120,17 @@
   XCTAssert(allChordTypesMatch, @"Not all chord types match.");
 }
 
+-(void)testAttributedStringMethod {
+  NSSet *sonority1 = [NSSet setWithArray:@[@0, @2, @6, @8]];
+  NSSet *sonority2 = [NSSet setWithArray:@[@0, @4, @7, @11]];
+  NSSet *sonority3 = [NSSet setWithArray:@[@0, @3, @6]];
+  NSSet *sonority4 = [NSSet setWithArray:@[@0, @4, @7]];
+  NSSet *sonorities = [NSSet setWithObjects:sonority1, sonority2, sonority3, sonority4, nil];
+  
+  NSAttributedString *attributedString = [self.sonorityLogic stringForLegalChords:sonorities];
+  NSLog(@"attributed string is: %@", attributedString);
+}
+
 #pragma mark - chord logic tests
 
 -(void)testRecognitionOfSpecificNonChords {
@@ -441,16 +452,8 @@
   XCTAssertTrue(chord.chordType == kChordDiminishedTriad, @"This chord should be diminished triad!");
 }
 
--(void)testAttributedStringMethod {
-  NSSet *sonority1 = [NSSet setWithArray:@[@0, @2, @6, @8]];
-  NSSet *sonority2 = [NSSet setWithArray:@[@0, @4, @7, @11]];
-  NSSet *sonority3 = [NSSet setWithArray:@[@0, @3, @6]];
-  NSSet *sonority4 = [NSSet setWithArray:@[@0, @4, @7]];
-  NSSet *sonorities = [NSSet setWithObjects:sonority1, sonority2, sonority3, sonority4, nil];
-  
-  NSAttributedString *attributedString = [self.sonorityLogic stringForLegalChords:sonorities];
-  NSLog(@"attributed string is: %@", attributedString);
-}
+  // FIXME: test supersets method
+  // FIXME: test legal chord sonorities from sonorities method
 
 #pragma mark - test helper methods
 
