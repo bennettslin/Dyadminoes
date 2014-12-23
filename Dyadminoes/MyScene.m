@@ -441,7 +441,7 @@
   
   CGSize size = CGSizeMake(self.frame.size.width, self.frame.size.height - kTopBarHeight - kRackHeight);
 
-  SKTexture *cellTexture = [self.mySceneEngine getCellTexture];
+  SKTexture *cellTexture = [self.mySceneEngine textureForTextureCell:kTextureCell];
   _boardField = [[Board alloc] initWithColor:[SKColor clearColor] andSize:size andCellTexture:cellTexture];
   _boardField.delegate = self;
   [self addChild:_boardField];

@@ -14,7 +14,7 @@
 
 @interface SceneEngine ()
 
-@property (strong, nonatomic) NSMutableSet *dyadminoesInCommonPile;
+@property (readwrite, nonatomic) PCMode myPCMode;
 
 @end
 
@@ -26,33 +26,27 @@
   self = [super init];
   if (self) {
     _rotationFromDevice = 0;
-      // initial setup
-    self.dyadminoesInCommonPile = [[NSMutableSet alloc] initWithCapacity:kPileCount];
     
     self.myPCMode = kPCModeLetter;
     
-    [self createPile];
+    self.allDyadminoes = [self createPile];
+    if (self.allDyadminoes.count != kPileCount) {
+      NSLog(@"Scene dyadminoes were not created properly.");
+      abort();
+    }
   }
   return self;
 }
 
--(SKTexture *)getCellTexture {
-  AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
-  SKTextureAtlas *textureAtlas = appDelegate.myAtlas;
-  return [textureAtlas textureNamed:@"blankSpace"];
-}
-
--(void)createPile {
+-(NSArray *)createPile {
   
   NSMutableArray *tempAllDyadminoes = [[NSMutableArray alloc] initWithCapacity:kPileCount];
   
     // get dyadmino textures
-  AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
-  SKTextureAtlas *textureAtlas = appDelegate.myAtlas;
   NSMutableArray *tempRotationArray = [[NSMutableArray alloc] initWithCapacity:3];
-  [tempRotationArray addObject:[textureAtlas textureNamed:@"blankTileNoSo"]];
-  [tempRotationArray addObject:[textureAtlas textureNamed:@"blankTileSwNe"]];
-  [tempRotationArray addObject:[textureAtlas textureNamed:@"blankTileNwSe"]];
+  [tempRotationArray addObject:[self textureForTextureDyadmino:kTextureDyadminoNoSo]];
+  [tempRotationArray addObject:[self textureForTextureDyadmino:kTextureDyadminoSwNe]];
+  [tempRotationArray addObject:[self textureForTextureDyadmino:kTextureDyadminoNwSe]];
   NSArray *rotationFrameArray = [NSArray arrayWithArray:tempRotationArray];
   
     // dyadmino IDs start from 0
@@ -63,14 +57,10 @@
       if (pc1 != pc2 && pc1 < pc2) {
         
           //get pc textures
-        NSString *pc1LetterString = [NSString stringWithFormat:@"pcLetter%d", pc1];
-        NSString *pc1NumberString = [NSString stringWithFormat:@"pcNumber%d", pc1];
-        NSString *pc2LetterString = [NSString stringWithFormat:@"pcLetter%d", pc2];
-        NSString *pc2NumberString = [NSString stringWithFormat:@"pcNumber%d", pc2];
-        Face *pc1LetterSprite = [Face spriteNodeWithTexture:[textureAtlas textureNamed:pc1LetterString]];
-        Face *pc1NumberSprite = [Face spriteNodeWithTexture:[textureAtlas textureNamed:pc1NumberString]];
-        Face *pc2LetterSprite = [Face spriteNodeWithTexture:[textureAtlas textureNamed:pc2LetterString]];
-        Face *pc2NumberSprite = [Face spriteNodeWithTexture:[textureAtlas textureNamed:pc2NumberString]];
+        Face *pc1LetterSprite = [Face spriteNodeWithTexture:[self textureForPC:pc1 inMode:kPCModeLetter]];
+        Face *pc1NumberSprite = [Face spriteNodeWithTexture:[self textureForPC:pc1 inMode:kPCModeNumber]];
+        Face *pc2LetterSprite = [Face spriteNodeWithTexture:[self textureForPC:pc2 inMode:kPCModeLetter]];
+        Face *pc2NumberSprite = [Face spriteNodeWithTexture:[self textureForPC:pc2 inMode:kPCModeNumber]];
         pc1LetterSprite.name = [NSString stringWithFormat:@"%i", pc1];
         pc1NumberSprite.name = [NSString stringWithFormat:@"%i", pc1];
         pc2LetterSprite.name = [NSString stringWithFormat:@"%i", pc2];
@@ -83,17 +73,133 @@
         
         myID++;
         
-          // initially put them all in the common pile
         [tempAllDyadminoes addObject:dyadmino];
-        [self.dyadminoesInCommonPile addObject:dyadmino];
       }
     }
   }
   
-  self.allDyadminoes = [NSArray arrayWithArray:tempAllDyadminoes];
+  return [NSArray arrayWithArray:tempAllDyadminoes];
 }
 
-#pragma mark = player preference methods
+#pragma mark - texture methods
+
+-(SKTexture *)getCellTexture {
+  AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+  SKTextureAtlas *textureAtlas = appDelegate.myAtlas;
+  return [textureAtlas textureNamed:@"blankSpace"];
+}
+
+-(SKTexture *)textureForTextureCell:(TextureCell)textureCell {
+    // FIXME: will eventually be different for each one
+  
+  AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+  SKTextureAtlas *textureAtlas = appDelegate.myAtlas;
+  
+  switch (textureCell) {
+    case kTextureCell:
+      return [textureAtlas textureNamed:@"blankSpace"];
+      break;
+    case kTextureCellLocked:
+      return [textureAtlas textureNamed:@"blankSpace"];
+      break;
+    case kTextureCellPnP:
+      return [textureAtlas textureNamed:@"blankSpace"];
+      break;
+    case kTextureCellReplay:
+      return [textureAtlas textureNamed:@"blankSpace"];
+      break;
+    case kTextureCellZoomed:
+      return [textureAtlas textureNamed:@"blankSpace"];
+      break;
+  }
+  return nil;
+}
+
+-(SKTexture *)textureForTextureDyadmino:(TextureDyadmino)textureDyadmino {
+    // FIXME: will eventually be different for each one
+  
+  AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+  SKTextureAtlas *textureAtlas = appDelegate.myAtlas;
+  
+  switch (textureDyadmino) {
+    case kTextureDyadminoNoSo:
+      return [textureAtlas textureNamed:@"blankTileNoSo"];
+      break;
+    case kTextureDyadminoSwNe:
+      return [textureAtlas textureNamed:@"blankTileSwNe"];
+      break;
+    case kTextureDyadminoNwSe:
+      return [textureAtlas textureNamed:@"blankTileNwSe"];
+      break;
+
+    case kTextureDyadminoLockedNoSo:
+      return [textureAtlas textureNamed:@"blankTileNoSo"];
+      break;
+    case kTextureDyadminoLockedSwNe:
+      return [textureAtlas textureNamed:@"blankTileSwNe"];
+      break;
+    case kTextureDyadminoLockedNwSe:
+      return [textureAtlas textureNamed:@"blankTileNwSe"];
+      break;
+      
+    case kTextureDyadminoPnPNoSo:
+      return [textureAtlas textureNamed:@"blankTileNoSo"];
+      break;
+    case kTextureDyadminoPnPSwNe:
+      return [textureAtlas textureNamed:@"blankTileSwNe"];
+      break;
+    case kTextureDyadminoPnPNwSe:
+      return [textureAtlas textureNamed:@"blankTileNwSe"];
+      break;
+      
+    case kTextureDyadminoReplayNoSo:
+      return [textureAtlas textureNamed:@"blankTileNoSo"];
+      break;
+    case kTextureDyadminoReplaySwNe:
+      return [textureAtlas textureNamed:@"blankTileSwNe"];
+      break;
+    case kTextureDyadminoReplayNwSe:
+      return [textureAtlas textureNamed:@"blankTileNwSe"];
+      break;
+      
+    case kTextureDyadminoZoomedNoSo:
+      return [textureAtlas textureNamed:@"blankTileNoSo"];
+      break;
+    case kTextureDyadminoZoomedSwNe:
+      return [textureAtlas textureNamed:@"blankTileSwNe"];
+      break;
+    case kTextureDyadminoZoomedNwSe:
+      return [textureAtlas textureNamed:@"blankTileNwSe"];
+      break;
+  }
+  return nil;
+}
+
+-(SKTexture *)textureForPC:(NSInteger)pc inMode:(PCMode)mode {
+  AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+  SKTextureAtlas *textureAtlas = appDelegate.myAtlas;
+  
+    // pc must be between 0 and 11
+  if (pc >= 0 && pc < 12) {
+    
+    NSString *filename;
+    switch (mode) {
+      case kPCModeLetter:
+        filename = [NSString stringWithFormat:@"pcLetter%d", pc];
+        break;
+      case kPCModeNumber:
+        filename = [NSString stringWithFormat:@"pcNumber%d", pc];
+      default:
+        break;
+    }
+    return [textureAtlas textureNamed:filename];
+    
+  } else {
+    return nil;
+  }
+}
+
+#pragma mark - player preference methods
 
 -(void)toggleBetweenLetterAndNumberMode {
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];

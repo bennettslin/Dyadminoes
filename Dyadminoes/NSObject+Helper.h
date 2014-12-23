@@ -416,6 +416,34 @@ typedef enum optionsVCOptions {
   kResignOption
 } OptionsVCOptions;
 
+typedef enum textureCell {
+  kTextureCell,
+  kTextureCellZoomed,
+  kTextureCellLocked,
+  kTextureCellPnP,
+  kTextureCellReplay
+} TextureCell;
+
+typedef enum textureDyadmino {
+  kTextureDyadminoNoSo,
+  kTextureDyadminoZoomedNoSo,
+  kTextureDyadminoLockedNoSo,
+  kTextureDyadminoPnPNoSo,
+  kTextureDyadminoReplayNoSo,
+  
+  kTextureDyadminoSwNe,
+  kTextureDyadminoZoomedSwNe,
+  kTextureDyadminoLockedSwNe,
+  kTextureDyadminoPnPSwNe,
+  kTextureDyadminoReplaySwNe,
+  
+  kTextureDyadminoNwSe,
+  kTextureDyadminoZoomedNwSe,
+  kTextureDyadminoLockedNwSe,
+  kTextureDyadminoPnPNwSe,
+  kTextureDyadminoReplayNwSe
+} TextureDyadmino;
+
 @interface NSObject (Helper)
 
   // math stuff

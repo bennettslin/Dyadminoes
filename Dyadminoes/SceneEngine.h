@@ -16,10 +16,12 @@
 
   // dyadminoes
 @property (strong, nonatomic) NSArray *allDyadminoes;
-@property (nonatomic) PCMode myPCMode;
+@property (readonly, nonatomic) PCMode myPCMode;
 
 +(SceneEngine *)sharedSceneEngine;
--(SKTexture *)getCellTexture;
+-(SKTexture *)textureForTextureCell:(TextureCell)textureCell;
+-(SKTexture *)textureForTextureDyadmino:(TextureDyadmino)textureDyadmino;
+-(SKTexture *)textureForPC:(NSInteger)pc inMode:(PCMode)mode;
 
 #pragma mark - player preference methods
 
