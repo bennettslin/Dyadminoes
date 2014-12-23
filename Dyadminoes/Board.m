@@ -143,6 +143,7 @@
   
   [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:newPoint withSwap:swap];
   self.homePosition = newPoint;
+  NSLog(@"board home positions is %.2f, %.2f", self.homePosition.x, self.homePosition.y);
 }
 
 #pragma mark - board span methods
@@ -246,7 +247,10 @@
   self.cellsBottom = cellsBottommost - extraYCells - 1.f;
   self.cellsLeft = cellsLeftmost - extraXCells;
 
-  return CGVectorMake(((CGFloat)(self.cellsRight - self.cellsLeft) / 2) + self.cellsLeft, ((CGFloat)(self.cellsTop - self.cellsBottom) / 2) + self.cellsBottom);
+  CGVector returnVector = CGVectorMake(((CGFloat)(self.cellsRight - self.cellsLeft) / 2) + self.cellsLeft, ((CGFloat)(self.cellsTop - self.cellsBottom) / 2) + self.cellsBottom);
+  
+  NSLog(@"returnVector is %.2f, %.2f", returnVector.dx, returnVector.dy);
+  return returnVector;
 }
 
 -(void)determineBoardPositionBounds {
@@ -257,6 +261,9 @@
   self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange - self.hexOrigin.dx) * kDyadminoFaceAverageWideDiameter * factor;
   self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange - self.hexOrigin.dy) * kDyadminoFaceDiameter * factor;
   self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange - self.hexOrigin.dx) * kDyadminoFaceAverageWideDiameter * factor;
+
+  NSLog(@"origin is %.2f, %.2f, hex origin is %.2f, %.2f", self.origin.x, self.origin.y, self.hexOrigin.dx, self.hexOrigin.dy);
+  NSLog(@"bounds is lowest y %.2f, lowest x %.2f, highest y %.2f, highest x %.2f", self.lowestYPos, self.lowestXPos, self.highestYPos, self.highestXPos);
 }
 
 #pragma mark - zoom methods

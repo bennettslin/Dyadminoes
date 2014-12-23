@@ -77,21 +77,7 @@
     abort();
   }
   
-    // user defaults
-    //--------------------------------------------------------------------------
-  
-    // ensure pcs are correct before presenting view
-  NSInteger userNotation = [[NSUserDefaults standardUserDefaults] integerForKey:@"notation"];
-  if ((userNotation == 1 && self.myScene.mySceneEngine.myPCMode == kPCModeLetter) ||
-      (userNotation == 0 && self.myScene.mySceneEngine.myPCMode == kPCModeNumber)) {
-    [self.myScene togglePCsUserShaken:NO];
-  }
-  
-    // pivot guide
-  [self.myScene handleUserWantsPivotGuides];
-  
-    // volume
-//  [self.myScene handleUserWantsVolume];
+  [self handleUserDefaults];
   
     //--------------------------------------------------------------------------
   
@@ -101,6 +87,24 @@
     NSLog(@"Scene was not properly presented.");
     abort();
   }
+}
+
+-(void)handleUserDefaults {
+    // user defaults
+    //--------------------------------------------------------------------------
+  
+    // ensure pcs are correct before presenting view
+  PCMode userNotation = (PCMode)[[NSUserDefaults standardUserDefaults] integerForKey:@"notation"];
+  
+  if (userNotation != self.myScene.mySceneEngine.myPCMode) {
+    [self.myScene togglePCsUserShaken:NO];
+  }
+  
+    // pivot guide
+  [self.myScene handleUserWantsPivotGuides];
+  
+    // volume
+    //  [self.myScene handleUserWantsVolume];
 }
 
 #pragma mark - navigation methods
@@ -138,8 +142,12 @@
     }
   }
   
-  [super backToParentViewWithAnimateRemoveVC:animateRemoveVC];
+  if (self.childVC == self.settingsVC) {
+    [self handleUserDefaults];
+  }
+  
   [self.myScene toggleFieldActionInProgress:NO];
+  [super backToParentViewWithAnimateRemoveVC:animateRemoveVC];
 }
 
 #pragma mark - label instantiation methods
