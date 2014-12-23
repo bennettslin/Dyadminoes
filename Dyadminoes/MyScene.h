@@ -25,7 +25,7 @@
 
 @property (weak, nonatomic) id <SceneDelegate> myDelegate;
 
--(void)loadAfterNewMatchRetrieved;
+-(BOOL)loadAfterNewMatchRetrieved;
 /*
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;
  */
@@ -34,9 +34,13 @@
 -(void)tempStoreForPlayerSceneDataDyadminoes;
 -(void)togglePCsUserShaken:(BOOL)userShaken;
 -(void)handleUserWantsPivotGuides;
+-(void)presentResignActionSheet;
 
 -(void)toggleRackGoOut:(BOOL)goOut completion:(void (^)(void))completion;
 -(void)toggleTopBarGoOut:(BOOL)goOut completion:(void(^)(void))completion;
+-(void)toggleFieldActionInProgress:(BOOL)actionInProgress;
+
++(id)sharedMySceneWithSize:(CGSize)size;
 
 @end
 

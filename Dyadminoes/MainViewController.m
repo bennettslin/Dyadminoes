@@ -112,7 +112,7 @@
   self.tableView.dataSource = self;
 
       // Create and configure the scene
-  self.myScene = [MyScene sceneWithSize:self.view.bounds.size];
+  self.myScene = [MyScene sharedMySceneWithSize:self.view.bounds.size];
   self.myScene.scaleMode = SKSceneScaleModeAspectFill;
   
   self.allButtons = @[self.localGameButton, self.helpButton, self.settingsButton, self.aboutButton];
@@ -191,6 +191,7 @@
 }
 
 -(void)configureCell:(MatchTableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath {
+  NSLog(@"Configure cell.");
 
   cell.delegate = self;
   
@@ -265,7 +266,7 @@
   
   if (!self.vcIsAnimating && self.childVC && self.overlayEnabled) {
     
-    if (!animateRemoveVC) {
+    if (animateRemoveVC) {
       [self slideInTopBarAndBottomBar];
       [self slideInTableview];
       
@@ -324,6 +325,7 @@
 }
 
 -(void)slideOutTopBarAndBottomBar {
+  NSLog(@"slide out top bar and bottom bar.");
   [self removeLocalGameButtonAnimations];
   __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_main_queue(), ^{
@@ -364,19 +366,21 @@
 
 -(void)activityIndicatorStart:(BOOL)start {
   if (start) {
+    [self fadeOverlayIn:NO];
     [NSThread detachNewThreadSelector:@selector(transitionToSceneAnimationNewThread:) toTarget:self withObject:nil];
+    [self slideOutTopBarAndBottomBar];
+    [self slideOutTableview];
   } else {
     [self resetActivityIndicator];
     [self resetDarkOverlay];
     [self stopAnimatingBackground];
+    NSLog(@"Activity indicator stopped.");
   }
 }
 
 -(void)transitionToSceneAnimationNewThread:(id)data {
   self.activityIndicator.hidden = NO;
   [self.activityIndicator startAnimating];
-  [self slideOutTopBarAndBottomBar];
-  [self slideOutTableview];
 }
 
 -(void)resetActivityIndicator {
@@ -391,7 +395,7 @@
     // and also after removing a match, if that was the only match
     // it is also called when top bar comes in
   
-  NSLog(@"determine new game button animation");
+//  NSLog(@"determine new game button animation");
   
   id <NSFetchedResultsSectionInfo> sectionInfo = self.fetchedResultsController.sections[0];
   if ([sectionInfo numberOfObjects] == 0) {
@@ -433,7 +437,7 @@
 
 -(void)removeLocalGameButtonAnimations {
   
-  NSLog(@"remove local game button animation");
+//  NSLog(@"remove local game button animation");
   [self.localGameButton.layer removeAllAnimations];
 }
 
@@ -462,7 +466,7 @@
 #pragma mark - match creation methods
 
 -(void)startLocalGameWithPlayerNames:(NSArray *)playerNames {
-  [self backToParentViewWithAnimateRemoveVC:YES];
+  [self backToParentViewWithAnimateRemoveVC:NO];
   
   Match *newMatch = [NSEntityDescription insertNewObjectForEntityForName:@"Match" inManagedObjectContext:self.managedObjectContext];
   
@@ -611,24 +615,25 @@
       atIndexPath:(NSIndexPath *)indexPath forChangeType:(NSFetchedResultsChangeType)type
      newIndexPath:(NSIndexPath *)newIndexPath {
   
-  switch(type) {
-    case NSFetchedResultsChangeInsert:
-      [self.tableView insertRowsAtIndexPaths:@[newIndexPath] withRowAnimation:UITableViewRowAnimationFade];
-      break;
-    case NSFetchedResultsChangeDelete:
-      [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-      break;
-    case NSFetchedResultsChangeUpdate:
-      [self configureCell:(MatchTableViewCell *)[self.tableView cellForRowAtIndexPath:indexPath] atIndexPath:indexPath];
-      break;
-    case NSFetchedResultsChangeMove:
-      [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-      [self.tableView insertRowsAtIndexPaths:@[newIndexPath] withRowAnimation:UITableViewRowAnimationFade];
-      break;
+  if (self.navigationController.visibleViewController == self) {
+    switch(type) {
+      case NSFetchedResultsChangeInsert:
+        [self.tableView insertRowsAtIndexPaths:@[newIndexPath] withRowAnimation:UITableViewRowAnimationFade];
+        break;
+      case NSFetchedResultsChangeDelete:
+        [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+        break;
+      case NSFetchedResultsChangeUpdate:
+        [self configureCell:(MatchTableViewCell *)[self.tableView cellForRowAtIndexPath:indexPath] atIndexPath:indexPath];
+        break;
+      case NSFetchedResultsChangeMove:
+        [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+        [self.tableView insertRowsAtIndexPaths:@[newIndexPath] withRowAnimation:UITableViewRowAnimationFade];
+        break;
+    }
+    
+    [self determineNewGameButtonAnimation];
   }
-  
-  NSLog(@"controller did change object.");
-  [self determineNewGameButtonAnimation];
 }
 
 -(void)controllerDidChangeContent:(NSFetchedResultsController *)controller {

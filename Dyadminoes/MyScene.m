@@ -40,7 +40,6 @@
   // the dyadminoes that the player sees
 @property (strong, nonatomic) NSArray *playerRackDyadminoes;
 @property (strong, nonatomic) NSSet *boardDyadminoes; // contains holding container dyadminoes
-
 @property (strong, nonatomic) NSSet *boardDyadminoBelongsInTheseLegalChords; // instantiated and nillified along with hovering dyadmino
 
 @end
@@ -132,17 +131,40 @@
     _dyadminoesStationary = NO;
     _dyadminoesHollowed = NO;
 
-    [self layoutRackField];
-    [self layoutBoard];
-    [self layoutSwapField];
-    [self layoutReplayBars];
-    [self layoutPnPBar];
-    [self layoutTopBar];
+    if (![self layoutRackField]) {
+      NSLog(@"Rack field was not laid out properly.");
+      abort();
+    }
+    
+    if (![self layoutBoard]) {
+      NSLog(@"Board was not laid out properly.");
+      abort();
+    }
+    
+    if (![self layoutSwapField]) {
+      NSLog(@"Swap field was not laid out properly.");
+      abort();
+    }
+    
+    if (![self layoutReplayBars]) {
+      NSLog(@"Replay bars were not laid out properly.");
+      abort();
+    }
+    
+    if (![self layoutPnPBar]) {
+      NSLog(@"PnP bar was not laid out properly.");
+      abort();
+    }
+    
+    if (![self layoutTopBar]) {
+      NSLog(@"Top bar was not laid out properly.");
+      abort();
+    }
   }
   return self;
 }
 
--(void)loadAfterNewMatchRetrieved {
+-(BOOL)loadAfterNewMatchRetrieved {
   
   _topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
   
@@ -155,7 +177,6 @@
     _pnpBar.position = CGPointZero;
     _pnpBar.hidden = NO;
     
-//    [_boardField colourBackgroundForPnP];
     [self.myDelegate barOrRackLabel:kPnPWaitingLabel show:_pnpBarUp toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:[self.myMatch returnCurrentPlayer]]];
     
     _rackField.position = CGPointMake(0, -kRackHeight);
@@ -168,7 +189,6 @@
     
     _rackField.position = CGPointZero;
     _rackField.hidden = NO;
-//    [_boardField colourBackgroundForNormalPlay];
   }
   
   _swapField.position = CGPointMake(self.frame.size.width, kRackHeight);
@@ -176,6 +196,7 @@
   _boardZoomedOut = NO;
   self.myMatch.delegate = self;
   [self prepareForNewTurn];
+  return YES;
 }
 
 -(void)prepareForNewTurn {
@@ -226,13 +247,29 @@
     // ensures that match's board dyadminoes are reset
   [self.myMatch last];
   
-  [self populateBoardSet];
+  if (![self populateBoardSet]) {
+    NSLog(@"Board set was not populated properly.");
+    abort();
+  } else {
+    NSLog(@"Board set was populated properly.");
+  }
   
     // this only needs the board dyadminoes to determine the board's cells ranges
     // this populates the board cells
   [self repositionBoardField];
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes];
-  [self populateBoardWithDyadminoes];
+  if (![_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes]) {
+    NSLog(@"Board cells and snap points not laid out properly.");
+    abort();
+  } else {
+    NSLog(@"Board cells and snap points laid out properly.");
+  }
+  
+  if (![self populateBoardWithDyadminoes]) {
+    NSLog(@"Dyadminoes were not placed on board properly.");
+    abort();
+  } else {
+    NSLog(@"Dyadminoes were placed on board properly.");
+  }
   
     // not for first version
   /*
@@ -246,13 +283,12 @@
   SKAction *removeActivityIndicator = [SKAction runBlock:^{
     [weakSelf.myDelegate stopActivityIndicator];
   }];
+  
   SKAction *sequence = [SKAction sequence:@[wait, removeActivityIndicator]];
   [self runAction:sequence];
   
   [self.myDelegate setUnchangingPlayerLabelProperties];
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
-  _topBar.resignButton.name = ([self.myMatch returnType] == kSelfGame) ? @"end game" : @"resign";
-  [_topBar.resignButton changeName];
   [self updateTopBarButtons];
   
     // cell alphas are visible by default, hide if PnP mode
@@ -260,18 +296,36 @@
   [self toggleCellsAndDyadminoesAlphaAnimated:NO];
   
     // don't call just yet if it's a PnP game
-  [self.myMatch returnType] != kPnPGame ? [self afterNewPlayerReady] : nil;
+  if ([self.myMatch returnType] != kPnPGame) {
+    [self afterNewPlayerReady];
+  }
 }
 
 -(void)afterNewPlayerReady {
     // called both when scene is loaded, and when new player is ready in PnP mode
+
+  if (![self populateRackArray]) {
+    NSLog(@"Rack array was not populated properly.");
+    abort();
+  } else {
+    NSLog(@"Rack array was populated properly.");
+  }
   
-//  NSLog(@"about to call populate rack array");
-  [self populateRackArray];
-//  NSLog(@"about to call refresh rack field and dyadminoes");
-  [self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO];
+  if (![self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO]) {
+    NSLog(@"Rack field dyadminoes not refreshed properly.");
+    abort();
+  } else {
+    NSLog(@"Rack field dyadminoes refreshed properly.");
+  }
+
   [self animateRecentlyPlayedDyadminoes];
-  [self showTurnInfoOrGameResultsForReplay:NO];
+  
+  if (![self showTurnInfoOrGameResultsForReplay:NO]) {
+    NSLog(@"Turn info or game results for replay not shown properly.");
+    abort();
+  } else {
+    NSLog(@"Turn info or game results for replay shown properly.");
+  }
 }
 
 -(void)willMoveFromView:(SKView *)view {
@@ -344,7 +398,7 @@
 
 #pragma mark - layout methods
 
--(void)populateRackArray {
+-(BOOL)populateRackArray {
     // keep player's order and orientation of dyadminoes until turn is submitted
   
   NSMutableArray *tempDyadminoArray = [NSMutableArray new];
@@ -367,19 +421,19 @@
       [tempDyadminoArray addObject:dyadmino];
     }
   }
-  NSLog(@"about to sort data dyads");
   
     // make sure dyadminoes are sorted
   NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
   [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
   self.playerRackDyadminoes = [tempDyadminoArray sortedArrayUsingDescriptors:@[sortByRackOrder]];
+  return (self.playerRackDyadminoes.count == [(NSArray *)_myPlayer.dataDyadminoIndexesThisTurn count]);
 }
 
--(void)populateBoardSet {
+-(BOOL)populateBoardSet {
   
     // board must enumerate over both board and holding container dyadminoes
   NSMutableSet *tempDataEnumerationSet = [NSMutableSet setWithSet:self.myMatch.board];
-  NSLog(@"populate board set");
+//  NSLog(@"populate board set");
   [tempDataEnumerationSet addObjectsFromArray:[self.myMatch dataDyadsInIndexContainer:self.myMatch.holdingIndexContainer]];
   
   NSMutableSet *tempSet = [[NSMutableSet alloc] initWithCapacity:tempDataEnumerationSet.count];
@@ -399,9 +453,10 @@
     }
   }
   self.boardDyadminoes = [NSSet setWithSet:tempSet];
+  return (self.boardDyadminoes.count == self.myMatch.board.count);
 }
 
--(void)layoutBoard {
+-(BOOL)layoutBoard {
   
   NSLog(@"frame width %.2f, height %.2f", self.frame.size.width, self.frame.size.height);
   CGSize size = CGSizeMake(self.frame.size.width, self.frame.size.height - kTopBarHeight - kRackHeight);
@@ -410,7 +465,7 @@
   _boardField = [[Board alloc] initWithColor:[SKColor clearColor] andSize:size andCellTexture:cellTexture];
   _boardField.delegate = self;
   [self addChild:_boardField];
-//  [_boardField initLoadBackgroundNodes];
+  return (_boardField.parent == self);
 }
 
 -(void)repositionBoardField {
@@ -421,7 +476,7 @@
   [_boardField repositionBoardWithHomePosition:homePosition andOrigin:(CGPoint)homePosition];
 }
 
--(void)populateBoardWithDyadminoes {
+-(BOOL)populateBoardWithDyadminoes {
   for (Dyadmino *dyadmino in self.boardDyadminoes) {
     dyadmino.delegate = self;
     
@@ -462,10 +517,15 @@
     if (!dyadmino.parent) {
       [_boardField addChild:dyadmino];
     }
+    
+    if (dyadmino.parent != _boardField) {
+      return NO;
+    }
   }
+  return YES;
 }
 
--(void)layoutSwapField {
+-(BOOL)layoutSwapField {
     // initial instantiation of swap field sprite
   _swapField = [[Rack alloc] initWithColour:kScoreWonGold
                                     andSize:CGSizeMake(self.frame.size.width, kRackHeight)
@@ -478,9 +538,11 @@
     // initially sets swap mode
   _swapMode = NO;
   _swapField.hidden = YES;
+  
+  return (_swapField.parent == self);
 }
 
--(void)layoutTopBar {
+-(BOOL)layoutTopBar {
   
   _topBar = [[TopBar alloc] initWithColor:[UIColor clearColor] // kBarBrown
                                andSize:CGSizeMake(self.frame.size.width, kTopBarHeight)
@@ -502,18 +564,22 @@
   for (Label *rackLabel in _topBar.playerRackLabels) {
     [_topBar node:rackLabel shouldBeEnabled:_debugMode];
   }
+  
+  return (_topBar.parent == self);
 }
 
--(void)layoutPnPBar {
+-(BOOL)layoutPnPBar {
   
   _pnpBar = [[PnPBar alloc] initWithColor:kFieldPurple andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointZero andZPosition:kZPositionReplayBottom];
   _pnpBar.name = @"pnpBar";
   [self addChild:_pnpBar];
   
   [_pnpBar populateWithPnPButtonsAndLabel];
+  
+  return (_pnpBar.parent == self);
 }
 
--(void)layoutReplayBars {
+-(BOOL)layoutReplayBars {
     // initial position is beyond screen
   _replayTop = [[ReplayBar alloc] initWithColor:kReplayTopColour andSize:CGSizeMake(self.frame.size.width, kTopBarHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, self.frame.size.height) andZPosition:kZPositionReplayTop];
   _replayTop.name = @"replayTop";
@@ -528,9 +594,11 @@
   _replayMode = NO;
   _replayTop.hidden = YES;
   _replayBottom.hidden = YES;
+  
+  return (_replayTop.parent == self && _replayTop.parent == self);
 }
 
--(void)layoutRackField {
+-(BOOL)layoutRackField {
   _rackField = [[Rack alloc] initWithColour:kSolidBlue
                                     andSize:CGSizeMake(self.frame.size.width, kRackHeight)
                              andAnchorPoint:CGPointZero
@@ -539,9 +607,10 @@
   _rackField.delegate = self;
   _rackField.name = @"rack";
   [self addChild:_rackField];
+  return (_rackField.parent == self);
 }
 
--(void)refreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation {
+-(BOOL)refreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation {
   
     // match is still in play
   if (![self.myMatch returnGameHasEnded]) {
@@ -558,6 +627,8 @@
 
 //    NSLog(@"do this thing");
   }
+  
+  return YES;
 }
 
 /*
@@ -1199,7 +1270,10 @@
   
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
-  updateBoardBounds ? [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]] : nil;
+  
+  if (updateBoardBounds) {
+    [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
+  }
   
   [dyadmino endTouchThenHoverResize];
     // this makes nil tempBoardNode
@@ -1412,12 +1486,10 @@
     _debugMode = _debugMode ? NO : YES;
     [self toggleDebugMode];
     
-      /// resign button
-  } else if (button == _topBar.resignButton) {
+      /// options button
+  } else if (button == _topBar.optionsButton) {
     
     [self.myDelegate presentOptionsVC];
-    
-//    [self presentResignActionSheet];
     
       /// replay button
   } else if (button == _topBar.replayButton || button == _replayBottom.returnOrStartButton) {
@@ -2166,7 +2238,7 @@
   [_topBar node:_topBar.replayButton shouldBeEnabled:(gameHasEndedForPlayer || !currentPlayerHasTurn || (currentPlayerHasTurn && !_swapMode)) && (turns.count > 0) && !_pnpBarUp];
   [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:(!gameHasEndedForPlayer && currentPlayerHasTurn) && !_pnpBarUp && _undoButtonAllowed];
   [_topBar node:_topBar.passPlayOrDoneButton shouldBeEnabled:((!gameHasEndedForPlayer && currentPlayerHasTurn) && (!thereIsATouchedOrHoveringDyadmino) && !_pnpBarUp && ((_swapMode && swapContainerNotEmpty) || !_swapMode) && (_swapMode || (!noDyadminoesPlayedAndNoRecentRackDyadmino || (noDyadminoesPlayedAndNoRecentRackDyadmino && [self.myMatch returnType] != kSelfGame))) && (!_recentRackDyadmino || (_recentRackDyadmino && _recentRackDyadminoFormsLegalChord)))];
-  [_topBar node:_topBar.resignButton shouldBeEnabled:(!gameHasEndedForPlayer && (!currentPlayerHasTurn || (currentPlayerHasTurn && !_swapMode))) && !_pnpBarUp];
+  [_topBar node:_topBar.optionsButton shouldBeEnabled:(!gameHasEndedForPlayer && (!currentPlayerHasTurn || (currentPlayerHasTurn && !_swapMode))) && !_pnpBarUp];
   
     // FIXME: can be refactored further
   if (_swapMode) {
@@ -2556,7 +2628,7 @@
     
       // update hexCoord of board dyadmino
     dyadmino.myHexCoord = snapPoint.myCell.hexCoord;
-    NSLog(@"update cells for placed dyadmino.");
+//    NSLog(@"update cells for placed dyadmino.");
     [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:snapPoint andColour:colour];
   }
 }
@@ -2867,7 +2939,7 @@
 
 #pragma mark - replay and turn methods
 
--(void)showTurnInfoOrGameResultsForReplay:(BOOL)replay {
+-(BOOL)showTurnInfoOrGameResultsForReplay:(BOOL)replay {
   NSArray *turns = self.myMatch.turns;
   if (turns.count > 0) {
     
@@ -2903,6 +2975,7 @@
         [self.myDelegate barOrRackLabel:kReplayTurnLabel show:YES toFade:NO withText:turnOrResultsText andColour:colour] :
         [self.myDelegate barOrRackLabel:kLastTurnLabel show:YES toFade:YES withText:turnOrResultsText andColour:colour];
   }
+  return YES;
 }
 
 -(void)storeDyadminoAttributesBeforeReplay {
@@ -3242,6 +3315,10 @@
   return _boardDyadminoActionSheetShown;
 }
 
+-(void)toggleFieldActionInProgress:(BOOL)actionInProgress {
+  _fieldActionInProgress = actionInProgress;
+}
+
 #pragma mark - debugging methods
 
 -(void)toggleDebugMode {
@@ -3305,6 +3382,17 @@
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     NSLog(@"dataDyad %@ is hidden %i, scale is %.2f, %.2f", dataDyad.myID, dyadmino.hidden, dyadmino.xScale, dyadmino.yScale);
   }
+}
+
+#pragma mark - singleton method
+
++(id)sharedMySceneWithSize:(CGSize)size {
+  static MyScene *shared = nil;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    shared = [[self alloc] initWithSize:size];
+  });
+  return shared;
 }
 
 @end

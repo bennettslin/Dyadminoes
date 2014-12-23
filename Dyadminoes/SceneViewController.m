@@ -11,12 +11,13 @@
 #import "MyScene.h"
 #import "SceneEngine.h"
 #import "Match.h"
-//#import "Model.h"
 #import "CellBackgroundView.h"
 #import "Player.h"
 #import "OptionsViewController.h"
+#import "HelpViewController.h"
+#import "SettingsViewController.h"
 
-@interface SceneViewController () <SceneDelegate, UIGestureRecognizerDelegate>
+@interface SceneViewController () <SceneDelegate, UIGestureRecognizerDelegate, OptionsDelegate>
 
 @property (strong, nonatomic) SKView *mySceneView;
 @property (strong, nonatomic) UIView *playerLabelsField;
@@ -44,6 +45,14 @@
   
   self.optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"OptionsViewController"];
   self.optionsVC.view.backgroundColor = kPlayerGreen;
+  self.optionsVC.delegate = self;
+  
+    // FIXME: not DRY
+  self.helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
+  self.helpVC.view.backgroundColor = [UIColor redColor];
+  
+  self.settingsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"SettingsViewController"];
+  self.settingsVC.view.backgroundColor = kPlayerGreen;
   
     // first version of app will not have device orientation
 //  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
@@ -70,8 +79,12 @@
   
   self.myScene.myMatch = self.myMatch;
   self.myScene.myDelegate = self;
-  
-  [self.myScene loadAfterNewMatchRetrieved];
+  if (![self.myScene loadAfterNewMatchRetrieved]) {
+    NSLog(@"New match not properly retrieved.");
+    abort();
+  } else {
+    NSLog(@"New match properly retrieved.");
+  }
   
     // user defaults
     //--------------------------------------------------------------------------
@@ -92,6 +105,13 @@
     //--------------------------------------------------------------------------
   
   [self.mySceneView presentScene:self.myScene];
+  if (!self.mySceneView.scene) {
+    NSLog(@"Scene was not properly presented.");
+    abort();
+  } else {
+    NSLog(@"Scene was properly presented.");
+    
+  }
 }
 
 #pragma mark - navigation methods
@@ -99,19 +119,38 @@
 -(void)presentOptionsVC {
   [self.myScene toggleRackGoOut:YES completion:nil];
   [self.myScene toggleTopBarGoOut:YES completion:nil];
+  [self.myScene toggleFieldActionInProgress:YES];
   [self presentChildViewController:self.optionsVC];
+}
+
+-(void)presentFromOptionsChildViewController:(OptionsVCOptions)optionsNumber {
+  switch (optionsNumber) {
+    case kResignOption:
+      [self backToParentViewWithAnimateRemoveVC:YES];
+      [self.myScene presentResignActionSheet];
+      break;
+    case kHelpOption:
+      [self presentChildViewController:self.helpVC];
+      break;
+    case kSettingsOption:
+      [self presentChildViewController:self.settingsVC];
+      break;
+    default:
+      break;
+  }
 }
 
 -(void)backToParentViewWithAnimateRemoveVC:(BOOL)animateRemoveVC {
   
   if (!self.vcIsAnimating && self.childVC && self.overlayEnabled) {
-    if (!animateRemoveVC) {
+    if (animateRemoveVC) {
       [self.myScene toggleRackGoOut:NO completion:nil];
       [self.myScene toggleTopBarGoOut:NO completion:nil];
     }
   }
   
   [super backToParentViewWithAnimateRemoveVC:animateRemoveVC];
+  [self.myScene toggleFieldActionInProgress:NO];
 }
 
 #pragma mark - label instantiation methods

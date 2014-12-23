@@ -49,28 +49,44 @@
 -(void)initialPlayers:(NSSet *)players andRules:(GameRules)rules andSkill:(GameSkill)skill withContext:(NSManagedObjectContext *)managedObjectContext {
 
   [self setPlayers:players];
-  self.rules = [NSNumber numberWithUnsignedInteger:rules];
-  self.skill = [NSNumber numberWithUnsignedInteger:skill];
-  self.type = (players.count == 1) ? [NSNumber numberWithUnsignedInteger:kSelfGame] : [NSNumber numberWithUnsignedInteger:kPnPGame];
   
-  self.lastPlayed = [NSDate date];
-  self.gameHasEnded = [NSNumber numberWithBool:NO];
-  self.numberOfConsecutivePasses = [NSNumber numberWithUnsignedInteger:0];
-  self.currentPlayerIndex = [NSNumber numberWithUnsignedInteger:0];
-  self.randomNumber1To24 = [NSNumber numberWithUnsignedInteger:[self randomIntegerUpTo:24] + 1];
-  
-  self.holdingIndexContainer = [NSMutableArray new];
-  self.swapIndexContainer = [NSMutableSet new];
+    //
+  if (self.players.count != players.count) {
+    NSLog(@"Players not set properly.");
+    abort();
+    
+  } else {
+    self.rules = [NSNumber numberWithUnsignedInteger:rules];
+    self.skill = [NSNumber numberWithUnsignedInteger:skill];
+    self.type = (players.count == 1) ? [NSNumber numberWithUnsignedInteger:kSelfGame] : [NSNumber numberWithUnsignedInteger:kPnPGame];
+    
+    self.lastPlayed = [NSDate date];
+    self.gameHasEnded = [NSNumber numberWithBool:NO];
+    self.numberOfConsecutivePasses = [NSNumber numberWithUnsignedInteger:0];
+    self.currentPlayerIndex = [NSNumber numberWithUnsignedInteger:0];
+    self.randomNumber1To24 = [NSNumber numberWithUnsignedInteger:[self randomIntegerUpTo:24] + 1];
+    
+    self.holdingIndexContainer = [NSMutableArray new];
+    self.swapIndexContainer = [NSMutableSet new];
 
-  self.turns = [NSMutableArray new];
-  self.replayTurn = [NSNumber numberWithUnsignedInteger:0];
-  
-  [self generateDataDyadminoesWithContext:managedObjectContext];
-  [self placeFirstDyadminoOnBoard];
-  [self distributePileAmongstPlayers];
+    self.turns = [NSMutableArray new];
+    self.replayTurn = [NSNumber numberWithUnsignedInteger:0];
+    
+    if (![self generateDataDyadminoesWithContext:managedObjectContext]) {
+      NSLog(@"Data dyadminoes not generated properly.");
+      abort();
+
+    } else {
+      [self placeFirstDyadminoOnBoard];
+      if (![self distributePileAmongstPlayers]) {
+        NSLog(@"Pile not distributed amongst players properly.");
+        abort();
+      }
+    }
+  }
 }
 
--(void)generateDataDyadminoesWithContext:(NSManagedObjectContext *)context {
+-(BOOL)generateDataDyadminoesWithContext:(NSManagedObjectContext *)context {
   NSMutableSet *tempSet = [NSMutableSet new];
   
     // start index at 0 (previously started at 1)
@@ -81,13 +97,19 @@
     [dataDyad initialID:i];
     [tempSet addObject:dataDyad];
   }
+  
   [self setDataDyadminoes:[NSSet setWithSet:tempSet]];
+  return (self.dataDyadminoes.count == kPileCount);
 }
 
--(void)distributePileAmongstPlayers {
+-(BOOL)distributePileAmongstPlayers {
   for (Player *player in self.players) {
     [self fillRackFromPileForPlayer:player];
+    if ([(NSArray *)player.dataDyadminoIndexesThisTurn count] != kNumDyadminoesInRack) {
+      return NO;
+    }
   }
+  return YES;
 }
 
 -(void)placeFirstDyadminoOnBoard {
@@ -228,13 +250,6 @@
       [self endGame];
       return;
     }
-    
-      // old code
-//    if ([self returnType] != kSelfGame && ((self.pile.count > 0 && [self returnNumberOfConsecutivePasses] >= self.players.count * 2) ||
-//        (self.pile.count == 0 && [self returnNumberOfConsecutivePasses] >= self.players.count))) {
-//      [self endGame];
-//      return;
-//    }
     
       // player submitted dyadminoes
   } else {

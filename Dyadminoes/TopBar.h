@@ -13,7 +13,7 @@
 @property (strong, nonatomic) Button *swapCancelOrUndoButton;
 @property (strong, nonatomic) Button *passPlayOrDoneButton;
 @property (strong, nonatomic) Button *replayButton;
-@property (strong, nonatomic) Button *resignButton;
+@property (strong, nonatomic) Button *optionsButton;
 
 @property (strong, nonatomic) NSArray *playerNameLabels;
 @property (strong, nonatomic) NSArray *playerScoreLabels;

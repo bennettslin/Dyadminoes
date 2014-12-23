@@ -17,7 +17,7 @@
   NSMutableArray *tempArray = [NSMutableArray arrayWithCapacity:6];
   CGFloat yPosition = kTopBarHeight / 2;
   
-  NSArray *nameArray = @[@"games", @"replay", @"swap", @"pass", @"resign", @"debug"];
+  NSArray *nameArray = @[@"games", @"replay", @"swap", @"pass", @"options", @"debug"];
   NSArray *colourArray = @[[SKColor grayColor], [SKColor orangeColor], [SKColor redColor], [SKColor blueColor], [SKColor blackColor], [SKColor brownColor]];
   
   for (int i = 0; i < 6; i++) {
@@ -40,7 +40,7 @@
   self.replayButton = tempArray[1];
   self.swapCancelOrUndoButton = tempArray[2];
   self.passPlayOrDoneButton = tempArray[3];
-  self.resignButton = tempArray[4];
+  self.optionsButton = tempArray[4];
   self.debugButton = tempArray[5];
 
   [self node:self.debugButton shouldBeEnabled:YES];

@@ -10,9 +10,9 @@
 
 @interface OptionsViewController ()
 
-@property (strong, nonatomic) UIButton *helpButton;
-@property (strong, nonatomic) UIButton *settingsButton;
-@property (strong, nonatomic) UIButton *resignButton;
+@property (strong, nonatomic) IBOutlet UIButton *helpButton;
+@property (strong, nonatomic) IBOutlet UIButton *settingsButton;
+@property (strong, nonatomic) IBOutlet UIButton *resignButton;
 
 @end
 
@@ -21,45 +21,26 @@
 -(void)viewDidLoad {
   [super viewDidLoad];
   
-  self.helpButton = [UIButton new];
-  [self.helpButton setTitle:@"Help" forState:UIControlStateNormal];
-  [self.view addSubview:self.helpButton];
-  
-  self.settingsButton = [UIButton new];
-  [self.settingsButton setTitle:@"Settings" forState:UIControlStateNormal];
-  [self.view addSubview:self.settingsButton];
-  
-  self.resignButton = [UIButton new];
-  [self.resignButton setTitle:@"Resign" forState:UIControlStateNormal];
-  [self.view addSubview:self.resignButton];
-  
-  [self.helpButton addTarget:self action:@selector(buttonTapped:) forControlEvents:UIControlEventTouchUpInside];
-  [self.settingsButton addTarget:self action:@selector(buttonTapped:) forControlEvents:UIControlEventTouchUpInside];
-  [self.resignButton addTarget:self action:@selector(buttonTapped:) forControlEvents:UIControlEventTouchUpInside];
 }
 
--(void)buttonTapped:(UIButton *)sender {
-  UIViewController *buttonVC;
+-(IBAction)buttonTapped:(UIButton *)sender {
+  
+  OptionsVCOptions optionsNumber;
   if (sender == self.helpButton) {
-    buttonVC = (UIViewController *)self.delegate.helpVC;
+    optionsNumber = kHelpOption;
   } else if (sender == self.settingsButton) {
-    buttonVC = (UIViewController *)self.delegate.settingsVC;
+    optionsNumber = kSettingsOption;
   } else if (sender == self.resignButton) {
-    buttonVC = nil;
+    optionsNumber = kResignOption;
+  } else {
+    optionsNumber = kNoOption;
   }
-  
-  if (!self.delegate.vcIsAnimating && self.delegate.childVC != buttonVC) {
-    [self.delegate presentChildViewController:buttonVC];
-  }
-}
 
--(void)buttonTapped {
-  
+  [self.delegate presentFromOptionsChildViewController:optionsNumber];
 }
 
 -(void)didReceiveMemoryWarning {
   [super didReceiveMemoryWarning];
-
 }
 
 @end

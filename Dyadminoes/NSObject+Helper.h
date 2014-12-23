@@ -409,6 +409,13 @@ typedef enum chordMessageSign {
   kChordMessageBad
 } ChordMessageSign;
 
+typedef enum optionsVCOptions {
+  kNoOption,
+  kHelpOption,
+  kSettingsOption,
+  kResignOption
+} OptionsVCOptions;
+
 @interface NSObject (Helper)
 
   // math stuff

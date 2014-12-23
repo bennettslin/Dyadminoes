@@ -8,6 +8,8 @@
 
 #import "ParentViewController.h"
 #import "NSObject+Helper.h"
+#import "HelpViewController.h"
+#import "SettingsViewController.h"
 
 @interface ParentViewController ()
 
@@ -38,13 +40,13 @@
 #pragma mark - navigation methods
 
 -(void)backToParentView {
-  [self backToParentViewWithAnimateRemoveVC:NO];
+  [self backToParentViewWithAnimateRemoveVC:YES];
 }
 
 -(void)backToParentViewWithAnimateRemoveVC:(BOOL)animateRemoveVC {
   
   if (!self.vcIsAnimating && self.childVC && self.overlayEnabled) {
-    if (!animateRemoveVC) {
+    if (animateRemoveVC) {
       [self fadeOverlayIn:NO];
       [self removeChildViewController:self.childVC];
     }
@@ -55,10 +57,14 @@
 
 -(void)presentChildViewController:(UIViewController *)childVC {
   
+  NSLog(@"presenting child vc");
+  
   self.vcIsAnimating = YES;
   (self.childVC && self.childVC != childVC) ? [self removeChildViewController:self.childVC] : nil;
   
   self.childVC = childVC;
+  
+  NSLog(@"child VC is %@", self.childVC);
   
   if (![self.darkOverlay superview]) {
     [self fadeOverlayIn:YES];
@@ -108,15 +114,20 @@
     CGFloat overlayAlpha = kIsIPhone ? 0.2f : 0.5f;
     self.darkOverlay.backgroundColor = [UIColor clearColor];
     [self.view addSubview:self.darkOverlay]; // this part is different in subclass VC
-    [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-      self.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:overlayAlpha];
-    } completion:nil];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:overlayAlpha];
+      } completion:nil];
+    });
+
   } else {
-    [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-      self.darkOverlay.backgroundColor = [UIColor clearColor];
-    } completion:^(BOOL finished) {
-      [weakSelf.darkOverlay removeFromSuperview];
-    }];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.darkOverlay.backgroundColor = [UIColor clearColor];
+      } completion:^(BOOL finished) {
+        [weakSelf resetDarkOverlay];
+      }];
+    });
   }
 }
 

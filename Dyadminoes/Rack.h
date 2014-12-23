@@ -40,8 +40,8 @@
 -(void)repositionDyadminoes:(NSArray *)dyadminoesInArray fromUndo:(BOOL)undo withAnimation:(BOOL)animation;
 
 -(NSArray *)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
-                            withDyadminoes:(NSArray *)dyadminoesInArray
-                        andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode;
+                                 withDyadminoes:(NSArray *)dyadminoesInArray
+                             andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode;
 
 @end
 
