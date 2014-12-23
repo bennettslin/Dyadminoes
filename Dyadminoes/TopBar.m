@@ -46,43 +46,6 @@
   [self node:self.debugButton shouldBeEnabled:YES];
 }
 
--(void)populateWithTopBarDebuggerLabels {
-  
-  NSMutableDictionary *tempDictionary = [NSMutableDictionary new];
-  
-    // debugger player rack
-  CGFloat xMinusForPlayerRack = 275.f;
-  NSMutableArray *tempPlayerRackArray = [NSMutableArray new];
-  NSArray *debuggerPlayerRackNameArray = @[@"player1Rack", @"player2Rack", @"player3Rack", @"player4Rack"];
-  float debuggerPlayerRackYCoord[4] = {kLabelYPosition * 10, kLabelYPosition * 7, kLabelYPosition * 4, kLabelYPosition * 1};
-  
-  for (int i = 0; i < 4; i++) {
-    Label *label = [[Label alloc] initWithName:debuggerPlayerRackNameArray[i] andFontColor:[SKColor whiteColor] andFontSize:kSceneLabelFontSize andPosition:CGPointMake(self.size.width - xMinusForPlayerRack, debuggerPlayerRackYCoord[i]) andZPosition:kZPositionTopBarLabel andHorizontalAlignment:SKLabelHorizontalAlignmentModeLeft];
-    [tempPlayerRackArray addObject:label];
-    [tempDictionary setValue:label forKey:label.name];
-  }
-
-  self.playerRackLabels = [NSArray arrayWithArray: tempPlayerRackArray];
-  
-    // debugger labels
-  NSMutableArray *tempDebuggerArray = [NSMutableArray new];
-  
-  NSArray *debuggerNameArray = @[@"holdingContainer", @"swapContainer", @"boardDyadminoes", @"pileDyadminoes"];
-  float debuggerYCoord[4] = {-kLabelYPosition, -kLabelYPosition * 4, -kLabelYPosition * 7, -kLabelYPosition * 10};
-  for (int i = 0; i < 4; i++) {
-    Label *label = [[Label alloc] initWithName:debuggerNameArray[i] andFontColor:[SKColor whiteColor] andFontSize:kSceneLabelFontSize * 0.8f andPosition:CGPointMake(self.size.width / 2, debuggerYCoord[i]) andZPosition:-CGFLOAT_MAX andHorizontalAlignment:SKLabelHorizontalAlignmentModeCenter];
-    [tempDebuggerArray addObject:label];
-    [tempDictionary setValue:label forKey:label.name];
-  }
-  
-  self.holdingContainerLabel = tempDebuggerArray[0];
-  self.swapContainerLabel = tempDebuggerArray[1];
-  self.boardDyadminoesLabel = tempDebuggerArray[2];
-  self.pileDyadminoesLabel = tempDebuggerArray[3];
-  
-  self.allLabels = [NSDictionary dictionaryWithDictionary:tempDictionary];
-}
-
 -(void)changePassPlayOrDone:(PassPlayOrDoneButton)passPlayOrDone {
   switch (passPlayOrDone) {
     case kPassButton:

@@ -40,24 +40,7 @@
       [button enable:enabled];
     }
     
-    if (enabled) {
-      
-      node.alpha = 1.f;
-      
-//      node.hidden = NO;
-//      node.zPosition = [node isKindOfClass:[Label class]] ? kZPositionTopBarLabel : node.zPosition;
-//      if (!node.parent) {
-//        [self addChild:node];
-//      }
-    } else {
-      
-      node.alpha = 0.2f;
-//      node.hidden = YES;
-//      node.zPosition = [node isKindOfClass:[Label class]] ? -CGFLOAT_MAX : node.zPosition;
-//      if (node.parent) {
-//        [node removeFromParent];
-//      }
-    }
+    node.alpha = enabled ? 1.f : 0.2f;
   }
 }
 
@@ -91,49 +74,6 @@
     return YES;
   } else {
     return NO;
-  }
-}
-
-#pragma mark - label view methods
-
--(void)updateLabel:(Label *)label withText:(NSString *)text andColour:(UIColor *)colour {
-  
-  if (label) {
-      label.fontColor = colour ? colour : label.originalFontColour;
-    
-    if (!label.parent) {
-      [self addChild:label];
-    }
-    label.text = text;
-  }
-}
-
--(void)flashLabel:(Label *)label withText:(NSString *)text andColour:(UIColor *)colour {
-
-  if (label) {
-    [label removeAllActions];
-    if (!label.parent) {
-      [self addChild:label];
-    }
-
-    label.fontColor = colour ? colour : label.originalFontColour;
-    
-    label.text = text;
-    label.alpha = 0.f;
-
-    SKAction *fadeIn = [SKAction fadeInWithDuration:.25f];
-    SKAction *wait = [SKAction waitForDuration:1.75f];
-    SKAction *fadeOut = [SKAction fadeOutWithDuration:0.5f];
-    
-    SKAction *finishAnimation = [SKAction runBlock:^{
-      label.text = @"";
-      [label removeFromParent];
-      label.alpha = 1.f;
-      label.fontColor = label.originalFontColour;
-    }];
-    
-    SKAction *sequence = [SKAction sequence:@[fadeIn, wait, fadeOut, finishAnimation]];
-    [label runAction:sequence withKey:@"flash"];
   }
 }
 

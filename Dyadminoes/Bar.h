@@ -32,7 +32,7 @@
 
 #pragma mark - label methods
 
--(void)updateLabel:(Label *)label withText:(NSString *)text andColour:(UIColor *)colour;
--(void)flashLabel:(Label *)label withText:(NSString *)text andColour:(UIColor *)colour;
+//-(void)updateLabel:(Label *)label withText:(NSString *)text andColour:(UIColor *)colour;
+//-(void)flashLabel:(Label *)label withText:(NSString *)text andColour:(UIColor *)colour;
 
 @end

@@ -531,19 +531,9 @@
                           andZPosition:kZPositionTopBar];
   _topBar.name = @"topBar";
   [_topBar populateWithTopBarButtons];
-//  [_topBar populateWithTopBarDebuggerLabels];
   [self addChild:_topBar];
   
   _topBar.returnOrStartButton.delegate = self;
-  
-    // not DRY, but this is just test code anyway
-//  [_topBar node:_topBar.pileDyadminoesLabel shouldBeEnabled:_debugMode];
-//  [_topBar node:_topBar.boardDyadminoesLabel shouldBeEnabled:_debugMode];
-//  [_topBar node:_topBar.holdingContainerLabel shouldBeEnabled:_debugMode];
-//  [_topBar node:_topBar.swapContainerLabel shouldBeEnabled:_debugMode];
-//  for (Label *rackLabel in _topBar.playerRackLabels) {
-//    [_topBar node:rackLabel shouldBeEnabled:_debugMode];
-//  }
   
   return (_topBar.parent == self);
 }
@@ -3261,12 +3251,12 @@
     }
   }
   
-  for (int i = 0; i < kMaxNumPlayers; i++) {
-    Player *player = (i <= self.myMatch.players.count - 1) ? [self.myMatch playerForIndex:i] : nil;
-    Label *rackLabel = _topBar.playerRackLabels[i];
-    [_topBar updateLabel:_topBar.playerRackLabels[i] withText:[[player.dataDyadminoIndexesThisTurn valueForKey:@"stringValue"] componentsJoinedByString:@", "] andColour:nil];
-    player ? nil : [_topBar node:rackLabel shouldBeEnabled:NO];
-  }
+//  for (int i = 0; i < kMaxNumPlayers; i++) {
+//    Player *player = (i <= self.myMatch.players.count - 1) ? [self.myMatch playerForIndex:i] : nil;
+//    Label *rackLabel = _topBar.playerRackLabels[i];
+//    [_topBar updateLabel:_topBar.playerRackLabels[i] withText:[[player.dataDyadminoIndexesThisTurn valueForKey:@"stringValue"] componentsJoinedByString:@", "] andColour:nil];
+//    player ? nil : [_topBar node:rackLabel shouldBeEnabled:NO];
+//  }
   
 //  NSString *pileText = [NSString stringWithFormat:@"in pile: %@", [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
 //  NSMutableArray *tempBoard = [NSMutableArray arrayWithArray:[self.myMatch.board allObjects]];
