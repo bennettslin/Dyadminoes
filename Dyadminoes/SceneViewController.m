@@ -95,6 +95,7 @@
   
     //--------------------------------------------------------------------------
   
+  [self.delegate setCellsShouldBeEditable:NO];
   [self.mySceneView presentScene:self.myScene];
   if (!self.mySceneView.scene) {
     NSLog(@"Scene was not properly presented.");
@@ -502,6 +503,7 @@
   
   [self.delegate startAnimatingBackground];
   [self saveManagedObjectContext];
+  [self.delegate setCellsShouldBeEditable:YES];
   [self.delegate rememberMostRecentMatch:self.myMatch];
   
   [self.mySceneView presentScene:nil];

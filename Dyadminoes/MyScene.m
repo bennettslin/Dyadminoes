@@ -3298,10 +3298,10 @@
 
 -(void)logWhetherAllBoardDyadminoesAreHidden {
   
-  for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
-    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+//  for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
+//    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
 //    NSLog(@"dataDyad %@ is hidden %i, scale is %.2f, %.2f", dataDyad.myID, dyadmino.hidden, dyadmino.xScale, dyadmino.yScale);
-  }
+//  }
 }
 
 #pragma mark - singleton method

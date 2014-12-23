@@ -44,6 +44,8 @@
 
 @protocol SceneViewDelegate <NSObject>
 
+@property (assign, nonatomic) BOOL cellsShouldBeEditable;
+
 -(void)activityIndicatorStart:(BOOL)start;
 -(void)removeChildViewController:(UIViewController *)childVC;
 -(void)startAnimatingBackground;

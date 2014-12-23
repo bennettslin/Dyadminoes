@@ -128,6 +128,7 @@
 
 -(void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
+  self.cellsShouldBeEditable = YES;
 
   [self resetActivityIndicator];
   self.topBar.frame = CGRectMake(0, 0, self.screenWidth, kMainTopBarHeight);
@@ -612,8 +613,7 @@
      newIndexPath:(NSIndexPath *)newIndexPath {
   
     // will not get called from scene
-//  if (!self.presentedViewController) {
-  if (TRUE) {
+  if (self.cellsShouldBeEditable) {
 
     switch(type) {
       case NSFetchedResultsChangeInsert:

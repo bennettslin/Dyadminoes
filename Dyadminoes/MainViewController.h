@@ -16,5 +16,6 @@
 
 @property (strong, nonatomic) NSManagedObjectContext *managedObjectContext;
 @property (strong, nonatomic) NSFetchedResultsController *fetchedResultsController;
+@property (readwrite, nonatomic) BOOL cellsShouldBeEditable;
 
 @end
