@@ -238,8 +238,6 @@
   _myPlayer = [self.myMatch returnCurrentPlayer];
   NSArray *turns = self.myMatch.turns;
   self.myMatch.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
-  
-  NSLog(@"prepare for new turn ended.");
 }
 
 -(void)didMoveToView:(SKView *)view {
@@ -250,8 +248,6 @@
   if (![self populateBoardSet]) {
     NSLog(@"Board set was not populated properly.");
     abort();
-  } else {
-    NSLog(@"Board set was populated properly.");
   }
   
     // this only needs the board dyadminoes to determine the board's cells ranges
@@ -260,15 +256,11 @@
   if (![_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes]) {
     NSLog(@"Board cells and snap points not laid out properly.");
     abort();
-  } else {
-    NSLog(@"Board cells and snap points laid out properly.");
   }
   
   if (![self populateBoardWithDyadminoes]) {
     NSLog(@"Dyadminoes were not placed on board properly.");
     abort();
-  } else {
-    NSLog(@"Dyadminoes were placed on board properly.");
   }
   
     // not for first version
@@ -307,15 +299,11 @@
   if (![self populateRackArray]) {
     NSLog(@"Rack array was not populated properly.");
     abort();
-  } else {
-    NSLog(@"Rack array was populated properly.");
   }
   
   if (![self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO]) {
     NSLog(@"Rack field dyadminoes not refreshed properly.");
     abort();
-  } else {
-    NSLog(@"Rack field dyadminoes refreshed properly.");
   }
 
   [self animateRecentlyPlayedDyadminoes];
@@ -323,8 +311,6 @@
   if (![self showTurnInfoOrGameResultsForReplay:NO]) {
     NSLog(@"Turn info or game results for replay not shown properly.");
     abort();
-  } else {
-    NSLog(@"Turn info or game results for replay shown properly.");
   }
 }
 
@@ -358,7 +344,6 @@
 }
 
 -(void)prepareRackForNextPlayer {
-  NSLog(@"prepare rack for next player called");
     // called both when leaving scene, and when player finalises turn in PnP mode
   self.playerRackDyadminoes = @[];
   for (Dyadmino *dyadmino in _rackField.children) {
@@ -366,7 +351,6 @@
       [dyadmino resetForNewMatch];
     }
   }
-  NSLog(@"prepare for rack ended.");
 }
 
 #pragma mark - sound methods
@@ -403,10 +387,8 @@
   
   NSMutableArray *tempDyadminoArray = [NSMutableArray new];
   NSArray *dataDyadsThisTurn = [self.myMatch dataDyadsInIndexContainer:_myPlayer.dataDyadminoIndexesThisTurn];
-//  NSLog(@"populate rack array datadyads this turn %@", dataDyadsThisTurn);
   
   for (DataDyadmino *dataDyad in dataDyadsThisTurn) {
-//    NSLog(@"dataDyad is %@", dataDyad.myID);
       // only add if it's not in the holding container
       // if it is, then don't add because holding container is added to board set instead
     if (![self.myMatch holdingsContainsDataDyadmino:dataDyad]) {
@@ -433,7 +415,6 @@
   
     // board must enumerate over both board and holding container dyadminoes
   NSMutableSet *tempDataEnumerationSet = [NSMutableSet setWithSet:self.myMatch.board];
-//  NSLog(@"populate board set");
   [tempDataEnumerationSet addObjectsFromArray:[self.myMatch dataDyadsInIndexContainer:self.myMatch.holdingIndexContainer]];
   
   NSMutableSet *tempSet = [[NSMutableSet alloc] initWithCapacity:tempDataEnumerationSet.count];
@@ -458,7 +439,6 @@
 
 -(BOOL)layoutBoard {
   
-  NSLog(@"frame width %.2f, height %.2f", self.frame.size.width, self.frame.size.height);
   CGSize size = CGSizeMake(self.frame.size.width, self.frame.size.height - kTopBarHeight - kRackHeight);
 
   SKTexture *cellTexture = [self.mySceneEngine getCellTexture];
@@ -551,19 +531,19 @@
                           andZPosition:kZPositionTopBar];
   _topBar.name = @"topBar";
   [_topBar populateWithTopBarButtons];
-  [_topBar populateWithTopBarDebuggerLabels];
+//  [_topBar populateWithTopBarDebuggerLabels];
   [self addChild:_topBar];
   
   _topBar.returnOrStartButton.delegate = self;
   
     // not DRY, but this is just test code anyway
-  [_topBar node:_topBar.pileDyadminoesLabel shouldBeEnabled:_debugMode];
-  [_topBar node:_topBar.boardDyadminoesLabel shouldBeEnabled:_debugMode];
-  [_topBar node:_topBar.holdingContainerLabel shouldBeEnabled:_debugMode];
-  [_topBar node:_topBar.swapContainerLabel shouldBeEnabled:_debugMode];
-  for (Label *rackLabel in _topBar.playerRackLabels) {
-    [_topBar node:rackLabel shouldBeEnabled:_debugMode];
-  }
+//  [_topBar node:_topBar.pileDyadminoesLabel shouldBeEnabled:_debugMode];
+//  [_topBar node:_topBar.boardDyadminoesLabel shouldBeEnabled:_debugMode];
+//  [_topBar node:_topBar.holdingContainerLabel shouldBeEnabled:_debugMode];
+//  [_topBar node:_topBar.swapContainerLabel shouldBeEnabled:_debugMode];
+//  for (Label *rackLabel in _topBar.playerRackLabels) {
+//    [_topBar node:rackLabel shouldBeEnabled:_debugMode];
+//  }
   
   return (_topBar.parent == self);
 }
@@ -625,23 +605,11 @@
       // match has ended
   } else {
 
-//    NSLog(@"do this thing");
+      // FIXME: do something when match has ended
   }
   
   return YES;
 }
-
-/*
--(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation {
-  if ([self.mySceneEngine rotateDyadminoesBasedOnDeviceOrientation:deviceOrientation]) {
-    [self postSoundNotification:kNotificationDeviceOrientation];
-  }
-
-  [_topBar rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
-  [_replayTop rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
-  [_replayBottom rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
-}
- */
 
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location {
   
@@ -675,12 +643,9 @@
 
 -(void)handleDoubleTap {
   
-  NSLog(@"raw double tap location is %.2f, %.2f", _beganTouchLocation.x, _beganTouchLocation.y);
-
     // board will center back to user's touch location once zoomed back in
   CGPoint location = CGPointMake((_boardField.homePosition.x - _beganTouchLocation.x) / kZoomResizeFactor + _boardField.origin.x,
                                  (_boardField.homePosition.y - _beganTouchLocation.y) / kZoomResizeFactor + _boardField.origin.y);
-  NSLog(@"processed double tap location is %.2f, %.2f", location.x, location.y);
   
   [self toggleBoardZoomWithTapCentering:YES andCenterLocation:location];
 }
@@ -704,8 +669,6 @@
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
-
-  NSLog(@"%@, zPosition %.2f", _touchNode.name, _touchNode.zPosition);
 
     //--------------------------------------------------------------------------
     /// 3a. button pressed
@@ -739,16 +702,11 @@
         // register sound if dyadmino tapped
     if ((!_pnpBarUp && !_replayMode && dyadmino && (!_swapMode || (_swapMode && [dyadmino isInRack])) && !_pivotInProgress) && (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack]))) {
       
-        // whole dyadmino does not sound when board is zoomed
-//      if (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack])) {
-      
           // when face is nil, sound both faces
         [self soundDyadmino:dyadmino withFace:nil];
-//      }
       
         // register sound if face tapped
     } else {
-//      NSLog(@"face registered");
       Face *face = [self selectFaceWithTouchStruck:YES];
       if (face && face.parent != _hoveringDyadmino && !_pivotInProgress) {
         if ([face isKindOfClass:[Face class]]) {
@@ -770,7 +728,6 @@
   if (!_pnpBarUp && !_replayMode && dyadmino && !dyadmino.isRotating && !_touchedDyadmino && (!_boardZoomedOut || [dyadmino isInRack])) {
     
     _touchedDyadmino = dyadmino;
-    NSLog(@"dyadmino myHex is %li, %li", (long)dyadmino.myHexCoord.x, (long)dyadmino.myHexCoord.y);
     
     _previousTouchWasDyadmino = _currentTouchIsDyadmino;
     _currentTouchIsDyadmino = YES;
@@ -1109,7 +1066,6 @@
     // if it belongs on the board, get the chords that it's a part of
     // this is the only place where self.boardDyadminoBelongsInTheseLegalChords is established
   if ([dyadmino belongsOnBoard] && dyadmino != _hoveringDyadmino) {
-//    NSLog(@"collecting sonorities from dyadmino %@ with home node %@", dyadmino.name, dyadmino.homeNode);
     NSSet *formationOfSonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
     self.boardDyadminoBelongsInTheseLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
   }
@@ -1244,7 +1200,6 @@
     if (dyadmino.isHovering || dyadmino.continuesToHover) {
       
        // add !_canDoubleTapForDyadminoFlip to have delay after touch ends
-      NSLog(@"prepareforhover");
       [dyadmino isRotating] ? nil : [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
     }
   }
@@ -1408,13 +1363,10 @@
       /// pnp button
   } else if (button == _pnpBar.returnOrStartButton) {
     _dyadminoesStationary = NO;
-//    NSLog(@"about to toggle cells and dyadminoes");
     [self toggleCellsAndDyadminoesAlphaAnimated:YES];
     
     _pnpBarUp = NO;
-//    NSLog(@"about to toggle pnp bar");
     [self togglePnPBarSyncWithRack:YES animated:YES];
-//    NSLog(@"about to call after new player ready.");
     [self afterNewPlayerReady];
   
       /// swap button
@@ -1836,7 +1788,6 @@
         [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
         
         if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
-          NSLog(@"updateForHoveringDyadmino");
           [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
         }
         
@@ -1904,7 +1855,6 @@
     
     if (_hoveringDyadmino && _boardBeingCorrectedWithinBounds) {
       [_boardField hideAllPivotGuides];
-      NSLog(@"update cells for removed dyadmino called from update for board being corrected within bounds, hovering dyadmino removed");
       [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
     }
     
@@ -2000,7 +1950,6 @@
         
         if (_hoveringDyadminoBeingCorrected == 0) {
           if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
-            NSLog(@"updateForBoard");
             [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
           }
         }
@@ -2014,10 +1963,7 @@
 -(void)updatePivotForDyadminoMoveWithoutBoardCorrected {
     // if board not shifted or corrected, show prepivot guide
   if (_hoveringDyadmino && _hoveringDyadminoBeingCorrected == 0 && _hoveringDyadmino.zRotationCorrectedAfterPivot && !_touchedDyadmino && !_currentTouch && !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected && ![_boardField.children containsObject:_boardField.prePivotGuide]) {
-//    NSLog(@"hovering dyadmino in update pivot without board corrected");
-//    NSLog(@"anchor point is %.2f, %.2f", _hoveringDyadmino.anchorPoint.x, _hoveringDyadmino.anchorPoint.y);
     if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
-//      NSLog(@"updatepivotfordyadmino");
       [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
     }
   }
@@ -2069,8 +2015,6 @@
         NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
         NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
         
-        NSLog(@"legal chords formed %@, legal chords needed %@", legalChordSonoritiesFormed, self.boardDyadminoBelongsInTheseLegalChords);
-        
         if ([dyadmino belongsOnBoard]) {
 
           id object = [legalChordSonoritiesFormed anyObject];
@@ -2082,8 +2026,6 @@
             if (![[SonorityLogic sharedLogic] setOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords isSubsetOfSetOfLegalChords:legalChordSonoritiesFormed]) {
               
               NSSet *supersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:self.boardDyadminoBelongsInTheseLegalChords thatAreSupersetsOfSonoritiesInSonorities:legalChordSonoritiesFormed];
-              
-              NSLog(@"supersets for can't break message is %@", supersets);
               
               NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:supersets withInitialString:@"Can't break " andEndingString:@"."];
               
@@ -2359,7 +2301,6 @@
     SKAction *pnpCompleteAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
       _rackField.hidden = YES;
-      NSLog(@"completion being called");
       [weakSelf prepareRackForNextPlayer];
       [weakSelf prepareForNewTurn];
     }];
@@ -2628,7 +2569,6 @@
     
       // update hexCoord of board dyadmino
     dyadmino.myHexCoord = snapPoint.myCell.hexCoord;
-//    NSLog(@"update cells for placed dyadmino.");
     [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:snapPoint andColour:colour];
   }
 }
@@ -2702,6 +2642,7 @@
 
 -(Dyadmino *)getDyadminoFromDataDyadmino:(DataDyadmino *)dataDyad {
   
+    // off by one error before
   Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[[dataDyad returnMyID]];
   
     // testing only
@@ -2715,16 +2656,15 @@
   
   [tempDataDyadSet addObjectsFromArray:[self.myMatch dataDyadsInIndexContainer:_myPlayer.dataDyadminoIndexesThisTurn]];
   
+//  NSLog(@"tempdatadyadset count is %i, dyadmino id is %i", tempDataDyadSet.count, dyadmino.myID);
+  
   for (DataDyadmino *dataDyad in tempDataDyadSet) {
     if ([dataDyad returnMyID] == dyadmino.myID) {
-      
-        // testing only
-//      dataDyad.name = dyadmino.name;
-      
+//      NSLog(@"found data dyadmino");
       return dataDyad;
     }
   }
-  
+//  NSLog(@"didn't find data dyadmino.");
   return nil;
 }
 
@@ -2739,7 +2679,6 @@
   
   if (_pivotInProgress || (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
       _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight)) {
-//    NSLog(@"it's on the board");
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
     dyadmino.isInTopBar = NO;
     
@@ -3128,7 +3067,6 @@
   if (shrink) {
     SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime * random];
     SKAction *hideAction = [SKAction runBlock:^{
-      NSLog(@"dyadmino %@ is hidden", dyadmino.name);
       dyadmino.hidden = YES;
       dyadmino.zPosition = kZPositionBoardRestingDyadmino;
     }];
@@ -3144,7 +3082,6 @@
       dyadmino.zPosition = kZPositionBoardRestingDyadmino;
     }];
     SKAction *sequence = [SKAction sequence:@[growAction, completeAction]];
-    NSLog(@"dyadmino %@ is not hidden", dyadmino.name);
     dyadmino.hidden = NO;
     dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
     [dyadmino removeActionForKey:@"replayGrow"];
@@ -3228,7 +3165,6 @@
 }
 
 -(void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-  NSLog(@"will dismiss action sheet");
   NSString *buttonText = [actionSheet buttonTitleAtIndex:buttonIndex];
   
       // pass button
@@ -3325,9 +3261,9 @@
   
   _hoveringDyadmino ? [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES] : nil;
   
-  for (Label *rackLabel in _topBar.playerRackLabels) {
-    [_topBar node:rackLabel shouldBeEnabled:_debugMode];
-  }
+//  for (Label *rackLabel in _topBar.playerRackLabels) {
+//    [_topBar node:rackLabel shouldBeEnabled:_debugMode];
+//  }
 
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
     dyadmino.hidden = _debugMode;
@@ -3347,21 +3283,19 @@
     player ? nil : [_topBar node:rackLabel shouldBeEnabled:NO];
   }
   
-  NSString *pileText = [NSString stringWithFormat:@"in pile: %@", [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-  NSMutableArray *tempBoard = [NSMutableArray arrayWithArray:[self.myMatch.board allObjects]];
-  NSString *boardText = [NSString stringWithFormat:@"on board: %@", [[tempBoard valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-  NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingIndexContainer valueForKey:@"stringValue"] componentsJoinedByString:@", "]];
-  NSString *swapContainerText = [NSString stringWithFormat:@"in swap container: %@", [[[self.myMatch.swapIndexContainer allObjects] valueForKey:@"stringValue"] componentsJoinedByString:@", "]];
+//  NSString *pileText = [NSString stringWithFormat:@"in pile: %@", [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+//  NSMutableArray *tempBoard = [NSMutableArray arrayWithArray:[self.myMatch.board allObjects]];
+//  NSString *boardText = [NSString stringWithFormat:@"on board: %@", [[tempBoard valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
+//  NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingIndexContainer valueForKey:@"stringValue"] componentsJoinedByString:@", "]];
+//  NSString *swapContainerText = [NSString stringWithFormat:@"in swap container: %@", [[[self.myMatch.swapIndexContainer allObjects] valueForKey:@"stringValue"] componentsJoinedByString:@", "]];
   
-  [_topBar updateLabel:_topBar.pileDyadminoesLabel withText:pileText andColour:nil];
-  [_topBar updateLabel:_topBar.boardDyadminoesLabel withText:boardText andColour:nil];
-  [_topBar updateLabel:_topBar.holdingContainerLabel withText:holdingContainerText andColour:nil];
-  [_topBar updateLabel:_topBar.swapContainerLabel withText:swapContainerText andColour:nil];
+//  [_topBar updateLabel:_topBar.pileDyadminoesLabel withText:pileText andColour:nil];
+//  [_topBar updateLabel:_topBar.boardDyadminoesLabel withText:boardText andColour:nil];
+//  [_topBar updateLabel:_topBar.holdingContainerLabel withText:holdingContainerText andColour:nil];
+//  [_topBar updateLabel:_topBar.swapContainerLabel withText:swapContainerText andColour:nil];
   
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
-  
-  NSLog(@"hoveringDyadmino to stay fixed ? %i", _hoveringDyadminoStaysFixedToBoard);
   [self logRackDyadminoes];
 }
 
@@ -3372,6 +3306,7 @@
   NSLog(@"swapContainer:  %@", [[[self.myMatch.swapIndexContainer allObjects] valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
   NSLog(@"rackDyad order: %@", [[self.playerRackDyadminoes valueForKey:@"myRackOrder"] componentsJoinedByString:@", "]);
   NSLog(@"board is:       %@", self.boardDyadminoes);
+  NSLog(@"match board is  %@", self.myMatch.board);
   NSLog(@"rack is:        %@", self.playerRackDyadminoes);
   NSLog(@"recent rack is: %@", _recentRackDyadmino.name);
 }
@@ -3380,7 +3315,7 @@
   
   for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-    NSLog(@"dataDyad %@ is hidden %i, scale is %.2f, %.2f", dataDyad.myID, dyadmino.hidden, dyadmino.xScale, dyadmino.yScale);
+//    NSLog(@"dataDyad %@ is hidden %i, scale is %.2f, %.2f", dataDyad.myID, dyadmino.hidden, dyadmino.xScale, dyadmino.yScale);
   }
 }
 
@@ -3396,3 +3331,15 @@
 }
 
 @end
+
+/*
+ -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation {
+ if ([self.mySceneEngine rotateDyadminoesBasedOnDeviceOrientation:deviceOrientation]) {
+ [self postSoundNotification:kNotificationDeviceOrientation];
+ }
+ 
+ [_topBar rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
+ [_replayTop rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
+ [_replayBottom rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
+ }
+ */

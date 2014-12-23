@@ -205,7 +205,6 @@
 }
 
 -(void)correctZRotationAfterHover {
-  NSLog(@"correctZRotationAfterHover");
   if (self.zRotation != 0.f) {
     SKAction *zRotationAction = [SKAction rotateToAngle:0.f duration:kConstantTime / 4.f shortestUnitArc:YES];
     

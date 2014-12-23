@@ -49,8 +49,7 @@
 -(void)initialPlayers:(NSSet *)players andRules:(GameRules)rules andSkill:(GameSkill)skill withContext:(NSManagedObjectContext *)managedObjectContext {
 
   [self setPlayers:players];
-  
-    //
+
   if (self.players.count != players.count) {
     NSLog(@"Players not set properly.");
     abort();
@@ -141,9 +140,7 @@
   NSArray *dataDyadminoIndexesThisTurn = player.dataDyadminoIndexesThisTurn;
   
   while (dataDyadminoIndexesThisTurn.count < kNumDyadminoesInRack && self.pile.count > 0) {
-//    NSLog(@"dataDyadminoIndicesThisTurn is %luu",(unsigned long)dataDyadminoIndexesThisTurn.count);
     NSUInteger randIndex = [self randomIntegerUpTo:self.pile.count];
-//    NSLog(@"randomIndex is %lu", (unsigned long)randIndex);
     DataDyadmino *dataDyad = self.pile[randIndex];
       // rack order is total count at the time
     dataDyad.myRackOrder = [NSNumber numberWithInteger:dataDyadminoIndexesThisTurn.count];

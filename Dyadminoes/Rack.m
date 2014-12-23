@@ -111,8 +111,6 @@
       
       dyadmino.position = CGPointMake(self.size.width + self.xIncrementInRack, shouldBePosition.y);
       dyadmino.zPosition = kZPositionRackRestingDyadmino;
-//      NSLog(@"dyadmino parent is %@", dyadmino.parent);
-//      [dyadmino removeFromParent]; // if parent is board, remove from parent
       [self addChild:dyadmino];
       [dyadmino orientBySnapNode:dyadmino.homeNode];
     }

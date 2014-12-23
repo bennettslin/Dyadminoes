@@ -120,8 +120,6 @@
     [self ignoreCell:cell];
     [cell resetForNewMatch];
   }
-//  NSLog(@"self.all cells count is %lu, dequeued cells is %lu", (unsigned long)self.allCells.count, (unsigned long)self.dequeuedCells.count);
-//  NSLog(@"self snappoints count is %lu, %lu, %lu", (unsigned long)self.snapPointsTenOClock.count, (unsigned long)self.snapPointsTwelveOClock.count, (unsigned long)self.snapPointsTwoOClock.count);
   
   self.zoomedOut = NO;
 //  [self zoomInBackgroundImage];
@@ -252,7 +250,6 @@
 }
 
 -(void)determineBoardPositionBounds {
-  NSLog(@"determineBoardPositionBounds");
     // this should get called after every method that adds cells or removes them
   
   CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
@@ -260,10 +257,6 @@
   self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange - self.hexOrigin.dx) * kDyadminoFaceAverageWideDiameter * factor;
   self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange - self.hexOrigin.dy) * kDyadminoFaceDiameter * factor;
   self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange - self.hexOrigin.dx) * kDyadminoFaceAverageWideDiameter * factor;
-  
-//  NSLog(@"lowest y is %.2f, highest y is %.2f", self.lowestYPos, self.highestYPos);
-//  NSLog(@"determine board position bounds, for zoom? %i", self.zoomedOut);
-//  NSLog(@"board bounds range %.2f, %.2f", self.highestXPos - self.lowestXPos, self.highestYPos - self.lowestYPos);
 }
 
 #pragma mark - zoom methods
@@ -328,7 +321,6 @@
   CGFloat minCellsBottom = _oldCellsBottom < self.cellsBottom ? _oldCellsBottom : self.cellsBottom;
   CGFloat maxCellsRight = _oldCellsRight > self.cellsRight ? _oldCellsRight : self.cellsRight;
   CGFloat minCellsLeft = _oldCellsLeft < self.cellsLeft ? _oldCellsLeft : self.cellsLeft;
-    //  NSLog(@"top %i, bottom %i, right %i, left %i", maxCellsTop, minCellsBottom, maxCellsRight, minCellsLeft);
   
     // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
     // use this to get the range to iterate over y, and to keep the board square
@@ -357,22 +349,6 @@
     }
   }
   
-    // this block tries to add only cells surrounding dyadminoes
-    // unfortunately, getting cell from dyadmino's myHexCoord is not a good way to do it
-  /*
-  for (Dyadmino *dyadmino in boardDyadminoes) {
-    if (!self.zoomedOut) {
-      Cell *addedCell = [self acknowledgeOrAddCellWithXHex:dyadmino.myHexCoord.x andYHex:dyadmino.myHexCoord.y];
-      HexCoord otherCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:(dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode)];
-      Cell *otherCell = [self acknowledgeOrAddCellWithXHex:otherCellHexCoord.x andYHex:otherCellHexCoord.y];
-      [tempAddedCellSet addObject:addedCell];
-      [tempAddedCellSet addObject:otherCell];
-    }
-  }
-  
-  self.allCells = [NSMutableSet setWithSet:tempAddedCellSet];
-  */
-  
     // ensures there's no straggler cells
   if (!self.zoomedOut) {
     NSMutableSet *tempAllCellsSet = [NSMutableSet setWithSet:self.allCells];
@@ -384,10 +360,6 @@
   }
   
   [self determineBoardPositionBounds];
-  
-//  NSLog(@"self.allCells %i, self.occupiedCells %i, self.dequeuedCells %i", self.allCells.count, self.occupiedCells.count, self.dequeuedCells.count);
-//  NSLog(@"board nodes %i, %i, %i", self.snapPointsTenOClock.count, self.snapPointsTwelveOClock.count, self.snapPointsTwoOClock.count);
-
   return YES;
 }
 
@@ -853,7 +825,6 @@
 -(void)handleUserWantsPivotGuides {
     // called before scene appears
   self.userWantsPivotGuides = [[NSUserDefaults standardUserDefaults] boolForKey:@"pivotGuide"];
-  NSLog(@"user wants pivot guides %i", self.userWantsPivotGuides);
 }
 
 -(void)showPivotGuide:(SKNode *)pivotGuide forDyadmino:(Dyadmino *)dyadmino {
@@ -968,11 +939,9 @@
     }
 
     _touchPivotOffsetAngle = touchAngle - _orientationOffset;
-//    NSLog(@"touch angle is %.2f, orientationOffset is %.2f, offset angle is %.2f", touchAngle, orientationOffset, _touchPivotOffsetAngle);
   }
   
   CGFloat trueAngle = (touchAngle - _touchPivotOffsetAngle);
-//  NSLog(@"now touch angle is %.2f, touch angle is %.2f, offset angle is %.2f", totalTouchAngle, touchAngle, _touchPivotOffsetAngle);
 
     //// pivot guide positions and rotations should be established in determinePivotOnPC methods
     //// Here, they are adjusted. This should change, obviously
@@ -1152,7 +1121,6 @@
     if (![self.delegate sonority:tempBottomVerticalSet containsNote:note]) {
       [tempBottomVerticalSet addObject:note];
     }
-//    NSLog(@"vertical up pc is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1164,12 +1132,10 @@
     if (![self.delegate sonority:tempBottomVerticalSet containsNote:note]) {
       [tempBottomVerticalSet addObject:note];
     }
-//    NSLog(@"vertical down cell pc is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
   NSSet *bottomVerticalSet = [NSSet setWithSet:tempBottomVerticalSet];
-//  NSLog(@"bottom vertical set is %@", bottomVerticalSet);
   [tempSetOfSonorities addObject:bottomVerticalSet];
   
     // 2. bottom cell upslant
@@ -1183,7 +1149,6 @@
     if (![self.delegate sonority:tempBottomUpslantSet containsNote:note]) {
       [tempBottomUpslantSet addObject:note];
     }
-//    NSLog(@"bottom upslant up pc is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1195,12 +1160,10 @@
     if (![self.delegate sonority:tempBottomUpslantSet containsNote:note]) {
       [tempBottomUpslantSet addObject:note];
     }
-//    NSLog(@"bottom upslant down is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
   NSSet *bottomUpslantSet = [NSSet setWithSet:tempBottomUpslantSet];
-//  NSLog(@"bottom upslant set is %@", bottomUpslantSet);
   [tempSetOfSonorities addObject:bottomUpslantSet];
   
     // 3. bottom cell downslant
@@ -1214,7 +1177,6 @@
     if (![self.delegate sonority:tempBottomDownslantSet containsNote:note]) {
       [tempBottomDownslantSet addObject:note];
     }
-//    NSLog(@"bottom downslant up is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1226,12 +1188,10 @@
     if (![self.delegate sonority:tempBottomDownslantSet containsNote:note]) {
       [tempBottomDownslantSet addObject:note];
     }
-//    NSLog(@"bottom downslant down is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
   NSSet *bottomDownslantSet = [NSSet setWithSet:tempBottomDownslantSet];
-//  NSLog(@"bottom downslant set is %@", bottomDownslantSet);
   [tempSetOfSonorities addObject:bottomDownslantSet];
   
     // 4. top cell upslant
@@ -1245,7 +1205,6 @@
     if (![self.delegate sonority:tempTopUpslantSet containsNote:note]) {
       [tempTopUpslantSet addObject:note];
     }
-//    NSLog(@"top upslant up is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1257,12 +1216,10 @@
     if (![self.delegate sonority:tempTopUpslantSet containsNote:note]) {
       [tempTopUpslantSet addObject:note];
     }
-//    NSLog(@"top upslant down is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
   NSSet *topUpslantSet = [NSSet setWithSet:tempTopUpslantSet];
-//  NSLog(@"top upslant set is %@", topUpslantSet);
   [tempSetOfSonorities addObject:topUpslantSet];
   
     // 5. top cell downslant
@@ -1276,7 +1233,6 @@
     if (![self.delegate sonority:tempTopDownslantSet containsNote:note]) {
       [tempTopDownslantSet addObject:note];
     }
-//    NSLog(@"top downslant up is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
@@ -1288,12 +1244,10 @@
     if (![self.delegate sonority:tempTopDownslantSet containsNote:note]) {
       [tempTopDownslantSet addObject:note];
     }
-//    NSLog(@"top downslant down is %li", (long)nextCell.myPC);
     nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
   }
   
   NSSet *topDownslantSet = [NSSet setWithSet:tempTopDownslantSet];
-//  NSLog(@"top downslant set is %@", topDownslantSet);
   [tempSetOfSonorities addObject:topDownslantSet];
   return [NSSet setWithSet:tempSetOfSonorities];
 }

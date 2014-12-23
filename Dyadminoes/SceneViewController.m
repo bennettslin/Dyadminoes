@@ -47,13 +47,6 @@
   self.optionsVC.view.backgroundColor = kPlayerGreen;
   self.optionsVC.delegate = self;
   
-    // FIXME: not DRY
-  self.helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
-  self.helpVC.view.backgroundColor = [UIColor redColor];
-  
-  self.settingsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"SettingsViewController"];
-  self.settingsVC.view.backgroundColor = kPlayerGreen;
-  
     // first version of app will not have device orientation
 //  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveManagedObjectContext) name:UIApplicationDidEnterBackgroundNotification object:nil];
@@ -82,8 +75,6 @@
   if (![self.myScene loadAfterNewMatchRetrieved]) {
     NSLog(@"New match not properly retrieved.");
     abort();
-  } else {
-    NSLog(@"New match properly retrieved.");
   }
   
     // user defaults
@@ -108,9 +99,6 @@
   if (!self.mySceneView.scene) {
     NSLog(@"Scene was not properly presented.");
     abort();
-  } else {
-    NSLog(@"Scene was properly presented.");
-    
   }
 }
 

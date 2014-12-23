@@ -111,7 +111,6 @@
       [self.defaults setObject:trimmedString forKey:playerKey];
     }
     [self.defaults synchronize];
-    NSLog(@"newPlayerName is '%@'", [self.defaults objectForKey:playerKey]);
   }
 }
 

@@ -99,12 +99,6 @@
   self.localVC = [self.storyboard instantiateViewControllerWithIdentifier:@"LocalViewController"];
   self.localVC.delegate = self;
   
-  self.helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
-  self.helpVC.view.backgroundColor = [UIColor redColor];
-  
-  self.settingsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"SettingsViewController"];
-  self.settingsVC.view.backgroundColor = kPlayerGreen;
-  
   self.aboutVC = [[AboutViewController alloc] init];
   self.aboutVC.view.backgroundColor = [UIColor blueColor];
   
@@ -140,19 +134,18 @@
   self.bottomBar.frame = CGRectMake(0, self.screenHeight - kMainBottomBarHeight, self.screenWidth, kMainTopBarHeight);
   self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, self.screenWidth - kTableViewXMargin * 2, self.screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
   
-  NSLog(@"view will appear.");
   [self determineNewGameButtonAnimation];
 }
 
 -(void)viewDidAppear:(BOOL)animated {
   
-  __weak typeof(self) weakSelf = self;
-  
-  if (self.mostRecentMatch) {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-      [weakSelf.tableView scrollToRowAtIndexPath:weakSelf.indexPathForMostRecentMatch atScrollPosition:UITableViewScrollPositionTop animated:YES];
-    });
-  }
+//  __weak typeof(self) weakSelf = self;
+//  
+//  if (self.mostRecentMatch) {
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//      [weakSelf.tableView scrollToRowAtIndexPath:weakSelf.indexPathForMostRecentMatch atScrollPosition:UITableViewScrollPositionTop animated:YES];
+//    });
+//  }
 }
 
 -(void)startAnimatingBackground {
@@ -191,7 +184,6 @@
 }
 
 -(void)configureCell:(MatchTableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath {
-  NSLog(@"Configure cell.");
 
   cell.delegate = self;
   
@@ -257,7 +249,6 @@
   match = match ? match : [self.fetchedResultsController objectAtIndexPath:indexPath];;
   SceneViewController *sceneVC = [segue destinationViewController];
   sceneVC.managedObjectContext = self.managedObjectContext;
-//  sceneVC.myModel = self.myModel;
   sceneVC.myMatch = match;
   sceneVC.delegate = self;
 }
@@ -305,51 +296,61 @@
 
 -(void)fadeOverlayIn:(BOOL)fadeIn {
     // FIXME: this method overrides parent method for now, but can be more DRY
-  
   __weak typeof(self) weakSelf = self;
   
-  if (fadeIn) {
-    CGFloat overlayAlpha = kIsIPhone ? 0.2f : 0.5f;
-    self.darkOverlay.backgroundColor = [UIColor clearColor];
-    [self.view insertSubview:self.darkOverlay belowSubview:self.activityIndicator]; // this part is different in superclass VC
+    if (fadeIn) {
+      
+      CGFloat overlayAlpha = kIsIPhone ? 0.2f : 0.5f;
+      weakSelf.darkOverlay.backgroundColor = [UIColor clearColor];
+      [weakSelf.view insertSubview:self.darkOverlay belowSubview:weakSelf.activityIndicator]; // this part is different in superclass VC
+      [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        weakSelf.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:overlayAlpha];
+      } completion:nil];
+      
+    } else {
+      
+      [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        weakSelf.darkOverlay.backgroundColor = [UIColor clearColor];
+      } completion:^(BOOL finished) {
+        [weakSelf.darkOverlay removeFromSuperview];
+      }];
+    }
+}
+
+-(void)fadeOverlayOutWithNewMatch:(Match *)newMatch {
+    // FIXME: trying to get overlay to fade out right when activity indicator starts
+    // unfortunately, it's not working at the moment
+    // if it doesn't work, then this doesn't need to be its own method
+  
+  __weak typeof(self) weakSelf = self;
+  if (weakSelf.darkOverlay.superview == self.view) {
     [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-      self.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:overlayAlpha];
-    } completion:nil];
-  } else {
-    [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-      self.darkOverlay.backgroundColor = [UIColor clearColor];
+      weakSelf.darkOverlay.backgroundColor = [UIColor clearColor];
     } completion:^(BOOL finished) {
+      [weakSelf performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
       [weakSelf.darkOverlay removeFromSuperview];
     }];
   }
 }
 
 -(void)slideOutTopBarAndBottomBar {
-  NSLog(@"slide out top bar and bottom bar.");
   [self removeLocalGameButtonAnimations];
-  __weak typeof(self) weakSelf = self;
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-      weakSelf.topBar.frame = CGRectMake(0, -kMainTopBarHeight, weakSelf.screenWidth, kMainTopBarHeight);
-    } completion:nil];
-    [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-      weakSelf.bottomBar.frame = CGRectMake(0, weakSelf.screenHeight, weakSelf.screenWidth, kMainBottomBarHeight);
-    } completion:nil];
-  });
+  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    self.topBar.frame = CGRectMake(0, -kMainTopBarHeight, self.screenWidth, kMainTopBarHeight);
+  } completion:nil];
+  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    self.bottomBar.frame = CGRectMake(0, self.screenHeight, self.screenWidth, kMainBottomBarHeight);
+  } completion:nil];
 }
 
 -(void)slideInTopBarAndBottomBar {
-  NSLog(@"slide in top bar and bottom bar.");
   [self determineNewGameButtonAnimation];
-  __weak typeof(self) weakSelf = self;
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-      weakSelf.topBar.frame = CGRectMake(0, 0, weakSelf.screenWidth, kMainTopBarHeight);
-    } completion:nil];
-    [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-      weakSelf.bottomBar.frame = CGRectMake(0, weakSelf.screenHeight - kMainBottomBarHeight, weakSelf.screenWidth, kMainTopBarHeight);
-    } completion:nil];
-  });
+  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+    self.topBar.frame = CGRectMake(0, 0, self.screenWidth, kMainTopBarHeight);
+  } completion:nil];
+  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+    self.bottomBar.frame = CGRectMake(0, self.screenHeight - kMainBottomBarHeight, self.screenWidth, kMainTopBarHeight);
+  } completion:nil];
 }
 
 -(void)slideOutTableview {
@@ -366,7 +367,6 @@
 
 -(void)activityIndicatorStart:(BOOL)start {
   if (start) {
-    [self fadeOverlayIn:NO];
     [NSThread detachNewThreadSelector:@selector(transitionToSceneAnimationNewThread:) toTarget:self withObject:nil];
     [self slideOutTopBarAndBottomBar];
     [self slideOutTableview];
@@ -374,7 +374,6 @@
     [self resetActivityIndicator];
     [self resetDarkOverlay];
     [self stopAnimatingBackground];
-    NSLog(@"Activity indicator stopped.");
   }
 }
 
@@ -394,8 +393,6 @@
     // this method is called before view appears
     // and also after removing a match, if that was the only match
     // it is also called when top bar comes in
-  
-//  NSLog(@"determine new game button animation");
   
   id <NSFetchedResultsSectionInfo> sectionInfo = self.fetchedResultsController.sections[0];
   if ([sectionInfo numberOfObjects] == 0) {
@@ -436,14 +433,12 @@
 }
 
 -(void)removeLocalGameButtonAnimations {
-  
-//  NSLog(@"remove local game button animation");
   [self.localGameButton.layer removeAllAnimations];
 }
 
 -(IBAction)menuButtonPressedIn:(id)sender {
 
-    // this will be a sound
+    // FIXME: this will be a sound
 }
 
 -(IBAction)menuButtonLifted:(UIButton *)sender {
@@ -466,6 +461,7 @@
 #pragma mark - match creation methods
 
 -(void)startLocalGameWithPlayerNames:(NSArray *)playerNames {
+  
   [self backToParentViewWithAnimateRemoveVC:NO];
   
   Match *newMatch = [NSEntityDescription insertNewObjectForEntityForName:@"Match" inManagedObjectContext:self.managedObjectContext];
@@ -486,7 +482,7 @@
     abort();
   }
   
-  [self performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
+  [self fadeOverlayOutWithNewMatch:newMatch];
 }
 
 #pragma mark - background view methods
@@ -616,7 +612,8 @@
      newIndexPath:(NSIndexPath *)newIndexPath {
   
     // will not get called from scene
-  if (!self.presentedViewController) {
+//  if (!self.presentedViewController) {
+  if (TRUE) {
 
     switch(type) {
       case NSFetchedResultsChangeInsert:

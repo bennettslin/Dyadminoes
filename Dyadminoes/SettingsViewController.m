@@ -44,14 +44,12 @@
 }
 
 -(IBAction)notationChanged:(UISegmentedControl *)sender {
-  NSLog(@"selected segment is %li", (long)sender.selectedSegmentIndex);
   [self.defaults setInteger:sender.selectedSegmentIndex forKey:@"notation"];
   [self.defaults synchronize];
 }
 
 -(IBAction)musicSliderTouchEnded:(UISlider *)sender {
   sender.value = [self moduloSliderValue:sender.value];
-//  NSLog(@"slider value is %.2f", sender.value);
   [self.defaults setFloat:sender.value forKey:(sender == self.musicSlider) ? @"music" : @"soundEffects"];
   [self.defaults synchronize];
   [self soundWithVolume:sender.value andMusic:(sender == self.musicSlider)];

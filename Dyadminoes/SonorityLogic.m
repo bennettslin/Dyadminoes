@@ -34,7 +34,6 @@
       return [NSSet setWithObject:kDoublePCs];
     }
     
-    NSLog(@"calling chord sonority for sonority from legal chord sonorities");
     NSSet *chordSonority = [self chordSonorityForSonority:sonority];
     Chord chord = [self chordFromSonorityPlusCheckIncompleteSeventh:chordSonority];
     
@@ -234,7 +233,6 @@
 
   NSNumber *_fakeRootPC = pcNormalForm[firstICIndex];
   NSArray *icPrimeForm = [NSArray arrayWithArray:tempICPrimeForm];
-  NSLog(@"fake root is %@, ic prime form is %@", _fakeRootPC, icPrimeForm);
   return [self chordFromFakeRootPC:_fakeRootPC andICPrimeForm:icPrimeForm];
 }
 
@@ -243,7 +241,6 @@
   Chord chord = [self chordFromSonority:sonority];
   
   if (chord.chordType == kChordIllegalChord) {
-    NSLog(@"chord is illegal chord without checking for incomplete seventh.");
     if ([self sonorityIsIncompleteSeventh:sonority]) {
       return [self chordFromRoot:-1 andChordType:kChordLegalIncompleteSeventh];
     }
@@ -258,8 +255,6 @@
     fakeRootPC = @(([fakeRootPC unsignedIntegerValue] + 9) % 12);
     icPrimeForm = @[@3, @3, @6];
   }
-  
-  NSLog(@"Now fake root is %@, ic prime form is %@", fakeRootPC, icPrimeForm);
   
   NSArray *legalICPrimeForms = @[@[@3, @4, @5], @[@3, @5, @4], @[@2, @3, @3, @4],
                                  @[@2, @3, @4, @3], @[@2, @4, @3, @3], @[@3, @3, @6],
@@ -535,7 +530,6 @@
                          withInitialString:(NSString *)initialString
                            andEndingString:(NSString *)endingString {
   
-  NSLog(@"calling with initial text %@ and %@", initialString, endingString);
   NSMutableAttributedString *initialText = [[NSMutableAttributedString alloc] initWithString:initialString];
   
   NSSet *chords = [self chordSonoritiesForSonorities:sonorities];

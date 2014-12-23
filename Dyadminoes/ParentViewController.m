@@ -26,6 +26,12 @@
   self.darkOverlay = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.screenWidth, self.screenHeight)];
   self.vcIsAnimating = NO;
   
+  self.helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
+  self.helpVC.view.backgroundColor = [UIColor redColor];
+  
+  self.settingsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"SettingsViewController"];
+  self.settingsVC.view.backgroundColor = kPlayerGreen;
+  
   [self.darkOverlay addTarget:self action:@selector(backToParentView) forControlEvents:UIControlEventTouchDown];
   
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removeChildVCUponEnteringBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
@@ -85,28 +91,25 @@
 -(void)animatePresentVC:(UIViewController *)childVC {
   
   __weak typeof(self) weakSelf = self;
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-      childVC.view.center = weakSelf.view.center;
-    } completion:^(BOOL finished) {
-      weakSelf.vcIsAnimating = NO;
-    }];
-  });
+  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+    childVC.view.center = weakSelf.view.center;
+  } completion:^(BOOL finished) {
+    weakSelf.vcIsAnimating = NO;
+  }];
 }
 
 -(void)removeChildViewController:(UIViewController *)childVC {
   
   __weak typeof(self) weakSelf = self;
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-      childVC.view.center = CGPointMake(weakSelf.view.center.x + weakSelf.screenWidth, weakSelf.view.center.y);
-    } completion:^(BOOL finished) {
-      [childVC.view removeFromSuperview];
-    }];
-  });
+  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    childVC.view.center = CGPointMake(weakSelf.view.center.x + weakSelf.screenWidth, weakSelf.view.center.y);
+  } completion:^(BOOL finished) {
+    [childVC.view removeFromSuperview];
+  }];
 }
 
 -(void)fadeOverlayIn:(BOOL)fadeIn {
+    // when local game is created, this is called from new thread
   
   __weak typeof(self) weakSelf = self;
   
@@ -114,20 +117,16 @@
     CGFloat overlayAlpha = kIsIPhone ? 0.2f : 0.5f;
     self.darkOverlay.backgroundColor = [UIColor clearColor];
     [self.view addSubview:self.darkOverlay]; // this part is different in subclass VC
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        self.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:overlayAlpha];
-      } completion:nil];
-    });
+    [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+      weakSelf.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:overlayAlpha];
+    } completion:nil];
 
   } else {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        self.darkOverlay.backgroundColor = [UIColor clearColor];
-      } completion:^(BOOL finished) {
-        [weakSelf resetDarkOverlay];
-      }];
-    });
+    [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+      weakSelf.darkOverlay.backgroundColor = [UIColor clearColor];
+    } completion:^(BOOL finished) {
+      [weakSelf resetDarkOverlay];
+    }];
   }
 }
 

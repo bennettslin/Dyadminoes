@@ -55,7 +55,8 @@
   [tempRotationArray addObject:[textureAtlas textureNamed:@"blankTileNwSe"]];
   NSArray *rotationFrameArray = [NSArray arrayWithArray:tempRotationArray];
   
-  NSUInteger myID = 1;
+    // dyadmino IDs start from 0
+  NSUInteger myID = 0;
   
   for (int pc1 = 0; pc1 < 12; pc1++) {
     for (int pc2 = 0; pc2 < 12; pc2++) {
@@ -79,9 +80,7 @@
         Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1 andPC2:pc2 andPCMode:kPCModeLetter andRotationFrameArray:rotationFrameArray andPC1LetterSprite:pc1LetterSprite andPC2LetterSprite:pc2LetterSprite andPC1NumberSprite:pc1NumberSprite andPC2NumberSprite:pc2NumberSprite];
         
         dyadmino.myID = myID;
-        
-//        NSLog(@"%i: %i-%i", dyadmino.myID, pc1, pc2);
-        
+                
         myID++;
         
           // initially put them all in the common pile

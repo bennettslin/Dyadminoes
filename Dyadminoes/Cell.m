@@ -82,7 +82,6 @@
 
 -(void)instantiateCellNodeWithSize:(CGSize)cellSize {
   
-//  NSLog(@"cell node instantiated for %@", self.name);
     // cellNode properties
     // comment out this block to not instantiate cellNode (about one second faster)
     ///*
@@ -179,9 +178,7 @@
   _green += green;
   _blue += blue;
   _alpha += alpha;
-    //  NSLog(@"%.2f, %.2f, %.2f, %.2f", _red, _green, _blue, _alpha);
   self.cellNode.color = [SKColor colorWithRed:_red green:_green blue:_blue alpha:_alpha];
-//  self.cellNode.alpha = _alpha;
 }
 
 -(void)resizeCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize {
