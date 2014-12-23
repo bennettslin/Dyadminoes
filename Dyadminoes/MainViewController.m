@@ -615,7 +615,9 @@
       atIndexPath:(NSIndexPath *)indexPath forChangeType:(NSFetchedResultsChangeType)type
      newIndexPath:(NSIndexPath *)newIndexPath {
   
-  if (self.navigationController.visibleViewController == self) {
+    // will not get called from scene
+  if (!self.presentedViewController) {
+
     switch(type) {
       case NSFetchedResultsChangeInsert:
         [self.tableView insertRowsAtIndexPaths:@[newIndexPath] withRowAnimation:UITableViewRowAnimationFade];
