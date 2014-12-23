@@ -217,6 +217,8 @@
   _myPlayer = [self.myMatch returnCurrentPlayer];
   NSArray *turns = self.myMatch.turns;
   self.myMatch.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
+  
+  NSLog(@"prepare for new turn ended.");
 }
 
 -(void)didMoveToView:(SKView *)view {
@@ -264,7 +266,9 @@
 -(void)afterNewPlayerReady {
     // called both when scene is loaded, and when new player is ready in PnP mode
   
+//  NSLog(@"about to call populate rack array");
   [self populateRackArray];
+//  NSLog(@"about to call refresh rack field and dyadminoes");
   [self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO];
   [self animateRecentlyPlayedDyadminoes];
   [self showTurnInfoOrGameResultsForReplay:NO];
@@ -308,6 +312,7 @@
       [dyadmino resetForNewMatch];
     }
   }
+  NSLog(@"prepare for rack ended.");
 }
 
 #pragma mark - sound methods
@@ -347,7 +352,7 @@
 //  NSLog(@"populate rack array datadyads this turn %@", dataDyadsThisTurn);
   
   for (DataDyadmino *dataDyad in dataDyadsThisTurn) {
-    
+//    NSLog(@"dataDyad is %@", dataDyad.myID);
       // only add if it's not in the holding container
       // if it is, then don't add because holding container is added to board set instead
     if (![self.myMatch holdingsContainsDataDyadmino:dataDyad]) {
@@ -362,6 +367,7 @@
       [tempDyadminoArray addObject:dyadmino];
     }
   }
+  NSLog(@"about to sort data dyads");
   
     // make sure dyadminoes are sorted
   NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
@@ -1328,10 +1334,13 @@
       /// pnp button
   } else if (button == _pnpBar.returnOrStartButton) {
     _dyadminoesStationary = NO;
+//    NSLog(@"about to toggle cells and dyadminoes");
     [self toggleCellsAndDyadminoesAlphaAnimated:YES];
     
     _pnpBarUp = NO;
+//    NSLog(@"about to toggle pnp bar");
     [self togglePnPBarSyncWithRack:YES animated:YES];
+//    NSLog(@"about to call after new player ready.");
     [self afterNewPlayerReady];
   
       /// swap button
@@ -2621,7 +2630,7 @@
 
 -(Dyadmino *)getDyadminoFromDataDyadmino:(DataDyadmino *)dataDyad {
   
-  Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[[dataDyad returnMyID] - 1];
+  Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[[dataDyad returnMyID]];
   
     // testing only
 //  dataDyad.name = dyadmino.name;

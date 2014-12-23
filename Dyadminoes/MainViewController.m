@@ -140,6 +140,7 @@
   self.bottomBar.frame = CGRectMake(0, self.screenHeight - kMainBottomBarHeight, self.screenWidth, kMainTopBarHeight);
   self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, self.screenWidth - kTableViewXMargin * 2, self.screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
   
+  NSLog(@"view will appear.");
   [self determineNewGameButtonAnimation];
 }
 
@@ -324,7 +325,6 @@
 
 -(void)slideOutTopBarAndBottomBar {
   [self removeLocalGameButtonAnimations];
-  
   __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_main_queue(), ^{
     [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -337,8 +337,8 @@
 }
 
 -(void)slideInTopBarAndBottomBar {
+  NSLog(@"slide in top bar and bottom bar.");
   [self determineNewGameButtonAnimation];
-  
   __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_main_queue(), ^{
     [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
@@ -627,6 +627,7 @@
       break;
   }
   
+  NSLog(@"controller did change object.");
   [self determineNewGameButtonAnimation];
 }
 
