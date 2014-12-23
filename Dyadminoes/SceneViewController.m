@@ -97,7 +97,7 @@
 #pragma mark - navigation methods
 
 -(void)presentOptionsVC {
-  [self.myScene toggleRackGoOut:YES];
+  [self.myScene toggleRackGoOut:YES completion:nil];
   [self.myScene toggleTopBarGoOut:YES completion:nil];
   [self presentChildViewController:self.optionsVC];
 }
@@ -106,7 +106,7 @@
   
   if (!self.vcIsAnimating && self.childVC && self.overlayEnabled) {
     if (!animateRemoveVC) {
-      [self.myScene toggleRackGoOut:NO];
+      [self.myScene toggleRackGoOut:NO completion:nil];
       [self.myScene toggleTopBarGoOut:NO completion:nil];
     }
   }

@@ -35,7 +35,7 @@
 -(void)togglePCsUserShaken:(BOOL)userShaken;
 -(void)handleUserWantsPivotGuides;
 
--(void)toggleRackGoOut:(BOOL)goOut;
+-(void)toggleRackGoOut:(BOOL)goOut completion:(void (^)(void))completion;
 -(void)toggleTopBarGoOut:(BOOL)goOut completion:(void(^)(void))completion;
 
 @end

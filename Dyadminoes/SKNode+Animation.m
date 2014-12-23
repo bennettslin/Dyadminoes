@@ -10,10 +10,9 @@
 
 @implementation SKNode (Animation)
 
--(void)moveToYPosition:(CGFloat)yPosition withBounce:(BOOL)bounce duration:(CGFloat)duration key:(NSString *)key {
-  
-  SKAction *moveAction = [SKAction moveToY:yPosition duration:duration];
-  [self runAction:moveAction withKey:key];
-}
+//-(void)moveToYPosition:(CGFloat)yPosition withBounce:(BOOL)bounce duration:(CGFloat)duration key:(NSString *)key {
+//  
+//
+//}
 
 @end

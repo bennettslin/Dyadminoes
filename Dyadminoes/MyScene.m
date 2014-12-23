@@ -158,15 +158,18 @@
 //    [_boardField colourBackgroundForPnP];
     [self.myDelegate barOrRackLabel:kPnPWaitingLabel show:_pnpBarUp toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:[self.myMatch returnCurrentPlayer]]];
     
+    _rackField.position = CGPointMake(0, -kRackHeight);
+    _rackField.hidden = YES;
+    
   } else {
     _pnpBarUp = NO;
     _pnpBar.position = CGPointMake(0, -kRackHeight);
     _pnpBar.hidden = YES;
+    
+    _rackField.position = CGPointZero;
+    _rackField.hidden = NO;
 //    [_boardField colourBackgroundForNormalPlay];
   }
-  
-  _rackField.position = CGPointZero;
-  _rackField.hidden = NO;
   
   _swapField.position = CGPointMake(self.frame.size.width, kRackHeight);
   
@@ -297,6 +300,7 @@
 }
 
 -(void)prepareRackForNextPlayer {
+  NSLog(@"prepare rack for next player called");
     // called both when leaving scene, and when player finalises turn in PnP mode
   self.playerRackDyadminoes = @[];
   for (Dyadmino *dyadmino in _rackField.children) {
@@ -338,9 +342,10 @@
 -(void)populateRackArray {
     // keep player's order and orientation of dyadminoes until turn is submitted
   
-  NSLog(@"populate rack array");
   NSMutableArray *tempDyadminoArray = [NSMutableArray new];
   NSArray *dataDyadsThisTurn = [self.myMatch dataDyadsInIndexContainer:_myPlayer.dataDyadminoIndexesThisTurn];
+//  NSLog(@"populate rack array datadyads this turn %@", dataDyadsThisTurn);
+  
   for (DataDyadmino *dataDyad in dataDyadsThisTurn) {
     
       // only add if it's not in the holding container
@@ -545,7 +550,7 @@
       // match has ended
   } else {
 
-    NSLog(@"do this thing");
+//    NSLog(@"do this thing");
   }
 }
 
@@ -1289,7 +1294,7 @@
     _pnpBarUp = NO;
     [self togglePnPBarSyncWithRack:YES animated:YES];
   } else {
-    [self toggleRackGoOut:YES];
+    [self toggleRackGoOut:YES completion:nil];
   }
 
   
@@ -1299,28 +1304,6 @@
   };
   
   [self toggleTopBarGoOut:YES completion:completion];
-}
-
--(void)toggleTopBarGoOut:(BOOL)goOut completion:(void(^)(void))completion {
-
-  if (goOut) {
-    _topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
-    SKAction *moveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
-    moveAction.timingMode = SKActionTimingEaseIn;
-    SKAction *completionAction = [SKAction runBlock:completion];
-    SKAction *sequence = [SKAction sequence:@[moveAction, completionAction]];
-    [_topBar runAction:sequence withKey:@"toggleTopBar"];
-    [self.myDelegate animateTopBarLabelsGoOut:YES];
-    
-  } else {
-    _topBar.position = CGPointMake(0, self.frame.size.height);
-    SKAction *moveAction = [SKAction moveToY:self.frame.size.height - kTopBarHeight duration:kConstantTime];
-    moveAction.timingMode = SKActionTimingEaseOut;
-    SKAction *completionAction = [SKAction runBlock:completion];
-    SKAction *sequence = [SKAction sequence:@[moveAction, completionAction]];
-    [_topBar runAction:sequence withKey:@"toggleTopBar"];
-    [self.myDelegate animateTopBarLabelsGoOut:NO];
-  }
 }
 
 #pragma mark - button methods
@@ -1659,7 +1642,7 @@
 
 -(void)handleEndGame {
   [self updateTopBarLabelsFinalTurn:NO animated:YES];
-  [self toggleRackGoOut:YES];
+  [self toggleRackGoOut:YES completion:nil];
   [self doSomethingSpecial:@"acknowledge that game has ended"];
 }
 
@@ -2253,11 +2236,27 @@
   _dyadminoesHollowed = _dyadminoesStationary;
 }
 
--(void)toggleRackGoOut:(BOOL)goOut {
+-(void)toggleTopBarGoOut:(BOOL)goOut completion:(void(^)(void))completion {
+
+  _topBar.position = goOut ? CGPointMake(0, self.frame.size.height - kTopBarHeight) : CGPointMake(0, self.frame.size.height);
+  SKAction *moveAction = goOut ? [SKAction moveToY:self.frame.size.height duration:kConstantTime] : [SKAction moveToY:self.frame.size.height - kTopBarHeight duration:kConstantTime];
+  moveAction.timingMode = goOut ? SKActionTimingEaseIn : SKActionTimingEaseOut;
+  SKAction *completionAction = [SKAction runBlock:completion];
+  SKAction *sequence = [SKAction sequence:@[moveAction, completionAction]];
+  [_topBar runAction:sequence withKey:@"toggleTopBar"];
+  [self.myDelegate animateTopBarLabelsGoOut:goOut];
+}
+
+-(void)toggleRackGoOut:(BOOL)goOut completion:(void (^)(void))completion {
     // this will only happen during PnP or replay animation
+  
   CGFloat desiredY = goOut ? -kRackHeight : 0;
   _rackField.position = goOut ? CGPointZero : CGPointMake(0, -kRackHeight);
-  [_rackField moveToYPosition:desiredY withBounce:!goOut duration:kConstantTime key:@"toggleRackField"];
+  SKAction *moveAction = [SKAction moveToY:desiredY duration:kConstantTime];
+  moveAction.timingMode = goOut ? SKActionTimingEaseIn : SKActionTimingEaseOut;
+  SKAction *completionAction = [SKAction runBlock:completion];
+  SKAction *sequence = [SKAction sequence:@[moveAction, completionAction]];
+  [_rackField runAction:sequence withKey:@"toggleRackField"];
 }
 
 -(void)togglePnPBarSyncWithRack:(BOOL)sync animated:(BOOL)animated {
@@ -2279,21 +2278,19 @@
     SKAction *pnpCompleteAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
       _rackField.hidden = YES;
+      NSLog(@"completion being called");
       [weakSelf prepareRackForNextPlayer];
       [weakSelf prepareForNewTurn];
     }];
     SKAction *pnpSequenceAction = [SKAction sequence:@[pnpMoveAction, pnpCompleteAction]];
     
     if (sync) {
-      _rackField.position = CGPointZero;
-      SKAction *rackMove = [SKAction moveToY:-kRackHeight duration:kConstantTime];
-      rackMove.timingMode = SKActionTimingEaseIn;
-      SKAction *rackComplete = [SKAction runBlock:^{
+      void (^completion)(void) = ^void(void) {
         [_pnpBar runAction:pnpSequenceAction withKey:@"togglePnpBar"];
         [weakSelf.myDelegate animatePnPLabelGoOut:NO];
-      }];
-      SKAction *rackSequence = [SKAction sequence:@[rackMove, rackComplete]];
-      [_rackField runAction:rackSequence];
+      };
+      
+      [self toggleRackGoOut:YES completion:completion];
       
     } else {
       [_pnpBar runAction:pnpSequenceAction withKey:@"togglePnpBar"];
@@ -2307,17 +2304,14 @@
     
     if (sync) {
       _rackField.hidden = NO;
-      _rackField.position = CGPointMake(0, -kRackHeight);
-      SKAction *rackMove = [SKAction moveToY:0 duration:kConstantTime];
-      rackMove.timingMode = SKActionTimingEaseOut;
-      SKAction *rackComplete = [SKAction runBlock:^{
-        _fieldActionInProgress = NO;
-      }];
-      SKAction *rackSequence = [SKAction sequence:@[rackMove, rackComplete]];
       
+      void (^completion)(void) = ^void(void) {
+        _fieldActionInProgress = NO;
+      };
+
       pnpCompleteAction = [SKAction runBlock:^{
         _pnpBar.hidden = YES;
-        [_rackField runAction:rackSequence];
+        [weakSelf toggleRackGoOut:NO completion:completion];
       }];
 
     } else {
@@ -2363,24 +2357,20 @@
     }];
     SKAction *topReplaySequenceAction = [SKAction sequence:@[topReplayMoveAction, topReplayCompleteAction]];
     
-    void (^completion)(void) = ^void(void) {
+    void (^topCompletion)(void) = ^void(void) {
       [_replayTop runAction:topReplaySequenceAction withKey:@"toggleReplayTop"];
       [weakSelf.myDelegate animateReplayLabelGoOut:NO];
     };
     
-    [self toggleTopBarGoOut:YES completion:completion];
+    [self toggleTopBarGoOut:YES completion:topCompletion];
     
     SKAction *bottomMoveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
     bottomMoveAction.timingMode = SKActionTimingEaseOut;
     
-    _rackField.position = CGPointZero;
-    SKAction *rackMove = [SKAction moveToY:-kRackHeight duration:kConstantTime];
-    rackMove.timingMode = SKActionTimingEaseIn;
-    SKAction *rackComplete = [SKAction runBlock:^{
+    void (^bottomCompletion)(void) = ^void(void) {
       [_replayBottom runAction:bottomMoveAction withKey:@"toggleReplayBottom"];
-    }];
-    SKAction *rackSequence = [SKAction sequence:@[rackMove, rackComplete]];
-    [_rackField runAction:rackSequence withKey:@"toggleRackField"];
+    };
+    [self toggleRackGoOut:YES completion:bottomCompletion];
     
       // it's not in replay mode
   } else {
@@ -2406,17 +2396,14 @@
     SKAction *bottomReplayCompleteAction;
 
     _rackField.hidden = NO;
-    _rackField.position = CGPointMake(0, -kRackHeight);
-    SKAction *rackMove = [SKAction moveToY:0 duration:kConstantTime];
-    rackMove.timingMode = SKActionTimingEaseOut;
-    SKAction *rackComplete = [SKAction runBlock:^{
-      _fieldActionInProgress = NO;
-    }];
-    SKAction *rackSequence = [SKAction sequence:@[rackMove, rackComplete]];
     
     bottomReplayCompleteAction = [SKAction runBlock:^{
       _replayBottom.hidden = YES;
-      [_rackField runAction:rackSequence withKey:@"toggleRackField"];
+      
+      void (^completion)(void) = ^void(void) {
+        _fieldActionInProgress = NO;
+      };
+      [self toggleRackGoOut:NO completion:completion];
     }];
     
     SKAction *bottomSequenceAction = [SKAction sequence:@[bottomReplayMoveAction, bottomReplayCompleteAction]];
