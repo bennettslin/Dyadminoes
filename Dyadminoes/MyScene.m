@@ -1327,7 +1327,7 @@
   
   if (_pnpBarUp) {
     _pnpBarUp = NO;
-    [self togglePnPBarSyncWithRack:YES animated:YES];
+    [self togglePnPBarSyncWithRack:NO animated:YES];
   } else {
     [self toggleRackGoOut:YES completion:nil];
   }
@@ -2489,18 +2489,12 @@
 
 -(void)addDataDyadminoToSwapContainerForDyadmino:(Dyadmino *)dyadmino {
   DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-//  if (![self.myMatch.swapContainer containsObject:dataDyad]) {
-//    [self.myMatch.swapContainer addObject:dataDyad];
-    [self.myMatch addToSwapDataDyadmino:dataDyad];
-//  }
+  [self.myMatch addToSwapDataDyadmino:dataDyad];
 }
 
 -(void)removeDataDyadminoFromSwapContainerForDyadmino:(Dyadmino *)dyadmino {
   DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-//  if ([self.myMatch.swapContainer containsObject:dataDyad]) {
-//    [self.myMatch.swapContainer removeObject:dataDyad];
-    [self.myMatch removeFromSwapDataDyadmino:dataDyad];
-//  }
+  [self.myMatch removeFromSwapDataDyadmino:dataDyad];
 }
 
 -(void)updateOrderOfDataDyadsThisTurnToReflectRackOrder {
@@ -2515,7 +2509,6 @@
     if ([_myPlayer thisTurnContainsDataDyadmino:dataDyad] &&
         ![self.myMatch swapContainerContainsDataDyadmino:dataDyad]) {
       
-//      [_myPlayer.dataDyadminoesThisTurn removeObject:dataDyad];
       [_myPlayer removeFromThisTurnsDataDyadmino:dataDyad];
       [_myPlayer insertInThisTurnsDataDyadmino:dataDyad atIndex:i];
     }
@@ -2530,7 +2523,6 @@
     [tempRackArray addObject:dyadmino];
     self.playerRackDyadminoes = [NSArray arrayWithArray:tempRackArray];
   }
-//  [self logRackDyadminoes];
 }
 
 -(void)removeFromPlayerRackDyadminoes:(Dyadmino *)dyadmino {
@@ -2644,9 +2636,6 @@
   
     // off by one error before
   Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[[dataDyad returnMyID]];
-  
-    // testing only
-//  dataDyad.name = dyadmino.name;
   return dyadmino;
 }
 
@@ -2656,15 +2645,11 @@
   
   [tempDataDyadSet addObjectsFromArray:[self.myMatch dataDyadsInIndexContainer:_myPlayer.dataDyadminoIndexesThisTurn]];
   
-//  NSLog(@"tempdatadyadset count is %i, dyadmino id is %i", tempDataDyadSet.count, dyadmino.myID);
-  
   for (DataDyadmino *dataDyad in tempDataDyadSet) {
     if ([dataDyad returnMyID] == dyadmino.myID) {
-//      NSLog(@"found data dyadmino");
       return dataDyad;
     }
   }
-//  NSLog(@"didn't find data dyadmino.");
   return nil;
 }
 

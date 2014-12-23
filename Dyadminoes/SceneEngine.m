@@ -80,75 +80,20 @@
         Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1 andPC2:pc2 andPCMode:kPCModeLetter andRotationFrameArray:rotationFrameArray andPC1LetterSprite:pc1LetterSprite andPC2LetterSprite:pc2LetterSprite andPC1NumberSprite:pc1NumberSprite andPC2NumberSprite:pc2NumberSprite];
         
         dyadmino.myID = myID;
-                
+        
         myID++;
         
           // initially put them all in the common pile
         [tempAllDyadminoes addObject:dyadmino];
         [self.dyadminoesInCommonPile addObject:dyadmino];
-        
-          // testing purposes
-        /*
-        if (pc1 == 0 && pc2 == 1) {
-          NSLog(@"dyadmino size oriented twelve is %f, %f", [textureAtlas textureNamed:@"blankTileNoSo"].size.width, [textureAtlas textureNamed:@"blankTileNoSo"].size.height);
-          NSLog(@"dyadmino size oriented two is %f, %f", [textureAtlas textureNamed:@"blankTileSwNe"].size.width, [textureAtlas textureNamed:@"blankTileSwNe"].size.height);
-          NSLog(@"dyadmino size oriented ten is %f, %f", [textureAtlas textureNamed:@"blankTileNwSe"].size.width, [textureAtlas textureNamed:@"blankTileNwSe"].size.height);
-          NSLog(@"pc size is %f, %f", [textureAtlas textureNamed:pc1LetterString].size.width, [textureAtlas textureNamed:pc1LetterString].size.height);
-        }
-        */
       }
     }
   }
   
   self.allDyadminoes = [NSArray arrayWithArray:tempAllDyadminoes];
-  
-    // FIXME: temporary, for testing purposes, eventually remove
-    // 58 is good
-//  NSUInteger getRidOfNumber = 50;
-//  for (int i = 0; i < getRidOfNumber; i++) {
-//    Dyadmino *dyadmino = [self.allDyadminoes anyObject];
-//    [self.allDyadminoes removeObject:dyadmino];
-//    [self.dyadminoesInCommonPile removeObject:dyadmino];
-//  }
 }
 
 #pragma mark = player preference methods
-
-/*
--(BOOL)rotateDyadminoesBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation {
-  
-  NSUInteger rotation = _rotationFromDevice;
-  switch (deviceOrientation) {
-    case UIDeviceOrientationPortrait:
-      rotation = 0;
-      break;
-    case UIDeviceOrientationLandscapeRight:
-      rotation = 90;
-      break;
-    case UIDeviceOrientationPortraitUpsideDown:
-      rotation = 180;
-      break;
-    case UIDeviceOrientationLandscapeLeft:
-      rotation = 270;
-      break;
-    default:
-      break;
-  }
-  
-  if (rotation != _rotationFromDevice) {
-    for (Dyadmino *dyadmino in self.allDyadminoes) {
-      dyadmino.pc1LetterSprite.zRotation = [self getRadiansFromDegree:rotation];
-      dyadmino.pc2LetterSprite.zRotation = [self getRadiansFromDegree:rotation];
-      dyadmino.pc1NumberSprite.zRotation = [self getRadiansFromDegree:rotation];
-      dyadmino.pc2NumberSprite.zRotation = [self getRadiansFromDegree:rotation];
-    }
-    _rotationFromDevice = rotation;
-    return YES;
-  } else {
-    return NO;
-  }
-}
- */
 
 -(void)toggleBetweenLetterAndNumberMode {
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -185,3 +130,39 @@
 }
 
 @end
+
+/*
+ -(BOOL)rotateDyadminoesBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation {
+ 
+ NSUInteger rotation = _rotationFromDevice;
+ switch (deviceOrientation) {
+ case UIDeviceOrientationPortrait:
+ rotation = 0;
+ break;
+ case UIDeviceOrientationLandscapeRight:
+ rotation = 90;
+ break;
+ case UIDeviceOrientationPortraitUpsideDown:
+ rotation = 180;
+ break;
+ case UIDeviceOrientationLandscapeLeft:
+ rotation = 270;
+ break;
+ default:
+ break;
+ }
+ 
+ if (rotation != _rotationFromDevice) {
+ for (Dyadmino *dyadmino in self.allDyadminoes) {
+ dyadmino.pc1LetterSprite.zRotation = [self getRadiansFromDegree:rotation];
+ dyadmino.pc2LetterSprite.zRotation = [self getRadiansFromDegree:rotation];
+ dyadmino.pc1NumberSprite.zRotation = [self getRadiansFromDegree:rotation];
+ dyadmino.pc2NumberSprite.zRotation = [self getRadiansFromDegree:rotation];
+ }
+ _rotationFromDevice = rotation;
+ return YES;
+ } else {
+ return NO;
+ }
+ }
+ */
