@@ -179,7 +179,7 @@
                                         <rect key="frame" x="145" y="12" width="72" height="32"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                        <state key="normal" title="Options">
+                                        <state key="normal" title="Settings">
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
@@ -222,7 +222,7 @@
                         <outlet property="bottomBar" destination="k3C-2Y-dsV" id="NK0-I7-Rdb"/>
                         <outlet property="helpButton" destination="L1P-ey-aqB" id="l9q-uN-3hT"/>
                         <outlet property="localGameButton" destination="jP0-ad-iJf" id="VwZ-7K-pbN"/>
-                        <outlet property="optionsButton" destination="c2b-sM-byf" id="lL3-UK-yp2"/>
+                        <outlet property="settingsButton" destination="c2b-sM-byf" id="k1x-BS-btc"/>
                         <outlet property="tableView" destination="Re9-Wz-As7" id="gru-6T-w72"/>
                         <outlet property="titleLogo" destination="l02-OV-GQk" id="qV2-7c-5PC"/>
                         <outlet property="topBar" destination="lRP-XX-cgM" id="7eb-a2-Bin"/>
@@ -275,6 +275,20 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="n7j-NA-Wli" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="971" y="141"/>
+        </scene>
+        <!--Options View Controller-->
+        <scene sceneID="QYH-zK-fAa">
+            <objects>
+                <viewController storyboardIdentifier="OptionsViewController" id="JqT-BJ-qMj" customClass="OptionsViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="flX-33-2fY">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="zMu-m8-jfe" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1378" y="139"/>
         </scene>
         <!--Settings View Controller-->
         <scene sceneID="hzq-GY-ODM">

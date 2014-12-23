@@ -1292,17 +1292,35 @@
     [self toggleRackGoOut:YES];
   }
 
-    // totally not DRY, but needs the code in the completion block
-  _topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
-  SKAction *moveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
   
   __weak typeof(self) weakSelf = self;
-  SKAction *completionAction = [SKAction runBlock:^{
+  void (^completion)(void) = ^void(void) {
     [weakSelf.myDelegate backToMainMenu];
-  }];
-  SKAction *sequence = [SKAction sequence:@[moveAction, completionAction]];
-  [_topBar runAction:sequence withKey:@"toggleTopBar"];
-  [self.myDelegate animateTopBarLabelsGoOut:YES];
+  };
+  
+  [self toggleTopBarGoOut:YES completion:completion];
+}
+
+-(void)toggleTopBarGoOut:(BOOL)goOut completion:(void(^)(void))completion {
+
+  if (goOut) {
+    _topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
+    SKAction *moveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
+    moveAction.timingMode = SKActionTimingEaseIn;
+    SKAction *completionAction = [SKAction runBlock:completion];
+    SKAction *sequence = [SKAction sequence:@[moveAction, completionAction]];
+    [_topBar runAction:sequence withKey:@"toggleTopBar"];
+    [self.myDelegate animateTopBarLabelsGoOut:YES];
+    
+  } else {
+    _topBar.position = CGPointMake(0, self.frame.size.height);
+    SKAction *moveAction = [SKAction moveToY:self.frame.size.height - kTopBarHeight duration:kConstantTime];
+    moveAction.timingMode = SKActionTimingEaseOut;
+    SKAction *completionAction = [SKAction runBlock:completion];
+    SKAction *sequence = [SKAction sequence:@[moveAction, completionAction]];
+    [_topBar runAction:sequence withKey:@"toggleTopBar"];
+    [self.myDelegate animateTopBarLabelsGoOut:NO];
+  }
 }
 
 #pragma mark - button methods
@@ -1404,7 +1422,10 @@
     
       /// resign button
   } else if (button == _topBar.resignButton) {
-    [self presentResignActionSheet];
+    
+    [self.myDelegate presentOptionsVC];
+    
+//    [self presentResignActionSheet];
     
       /// replay button
   } else if (button == _topBar.replayButton || button == _replayBottom.returnOrStartButton) {
@@ -2342,16 +2363,12 @@
     }];
     SKAction *topReplaySequenceAction = [SKAction sequence:@[topReplayMoveAction, topReplayCompleteAction]];
     
-    _topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
-    SKAction *topBarMove = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
-    topBarMove.timingMode = SKActionTimingEaseIn;
-    SKAction *topBarComplete = [SKAction runBlock:^{
+    void (^completion)(void) = ^void(void) {
       [_replayTop runAction:topReplaySequenceAction withKey:@"toggleReplayTop"];
       [weakSelf.myDelegate animateReplayLabelGoOut:NO];
-    }];
-    SKAction *topBarSequence = [SKAction sequence:@[topBarMove, topBarComplete]];
-    [_topBar runAction:topBarSequence withKey:@"toggleTopBar"];
-    [self.myDelegate animateTopBarLabelsGoOut:YES];
+    };
+    
+    [self toggleTopBarGoOut:YES completion:completion];
     
     SKAction *bottomMoveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
     bottomMoveAction.timingMode = SKActionTimingEaseOut;
@@ -2368,23 +2385,18 @@
       // it's not in replay mode
   } else {
     _topBar.hidden = NO;
-    _topBar.position = CGPointMake(0, self.frame.size.height);
-    SKAction *topBarMove = [SKAction moveToY:self.frame.size.height - kTopBarHeight duration:kConstantTime];
-    topBarMove.timingMode = SKActionTimingEaseOut;
-    SKAction *topBarComplete = [SKAction runBlock:^{
-      _fieldActionInProgress = NO;
-    }];
-    SKAction *topBarSequence = [SKAction sequence:@[topBarMove, topBarComplete]];
     
     SKAction *topReplayMoveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
     topReplayMoveAction.timingMode = SKActionTimingEaseIn;
     
-    __weak typeof(self) weakSelf = self;
     SKAction *topReplayCompleteAction = [SKAction runBlock:^{
       _replayTop.hidden = YES;
-      [_topBar runAction:topBarSequence withKey:@"toggleTopBar"];
-      [weakSelf.myDelegate animateTopBarLabelsGoOut:NO];
+      void (^completion)(void) = ^void(void) {
+        _fieldActionInProgress = NO;
+      };
+      [self toggleTopBarGoOut:NO completion:completion];
     }];
+    
     SKAction *topReplaySequenceAction = [SKAction sequence:@[topReplayMoveAction, topReplayCompleteAction]];
     [_replayTop runAction:topReplaySequenceAction withKey:@"toggleReplayTop"];
     [self.myDelegate animateReplayLabelGoOut:YES];

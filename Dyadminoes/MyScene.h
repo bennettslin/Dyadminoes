@@ -35,6 +35,9 @@
 -(void)togglePCsUserShaken:(BOOL)userShaken;
 -(void)handleUserWantsPivotGuides;
 
+-(void)toggleRackGoOut:(BOOL)goOut;
+-(void)toggleTopBarGoOut:(BOOL)goOut completion:(void(^)(void))completion;
+
 @end
 
 @protocol SceneDelegate <NSObject>
@@ -51,5 +54,7 @@
 -(void)animateScoreLabelFlash:(UILabel *)scoreLabel;
 -(void)showChordMessage:(NSAttributedString *)message sign:(ChordMessageSign)sign;
 -(void)fadeChordMessage;
+
+-(void)presentOptionsVC;
 
 @end

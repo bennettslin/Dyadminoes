@@ -45,7 +45,7 @@
 @property (weak, nonatomic) IBOutlet UIButton *localGameButton;
 
 @property (weak, nonatomic) IBOutlet UIButton *helpButton;
-@property (weak, nonatomic) IBOutlet UIButton *optionsButton;
+@property (weak, nonatomic) IBOutlet UIButton *settingsButton;
 @property (weak, nonatomic) IBOutlet UIButton *aboutButton;
 
 @property (strong, nonatomic) NSArray *allButtons;
@@ -102,8 +102,8 @@
   self.helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
   self.helpVC.view.backgroundColor = [UIColor redColor];
   
-  self.optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"SettingsViewController"];
-  self.optionsVC.view.backgroundColor = kPlayerGreen;
+  self.settingsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"SettingsViewController"];
+  self.settingsVC.view.backgroundColor = kPlayerGreen;
   
   self.aboutVC = [[AboutViewController alloc] init];
   self.aboutVC.view.backgroundColor = [UIColor blueColor];
@@ -115,7 +115,7 @@
   self.myScene = [MyScene sceneWithSize:self.view.bounds.size];
   self.myScene.scaleMode = SKSceneScaleModeAspectFill;
   
-  self.allButtons = @[self.localGameButton, self.helpButton, self.optionsButton, self.aboutButton];
+  self.allButtons = @[self.localGameButton, self.helpButton, self.settingsButton, self.aboutButton];
   
   for (UIButton *button in self.allButtons) {
     button.titleLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? 28 : 48)];
@@ -438,15 +438,16 @@
 }
 
 -(IBAction)menuButtonPressedIn:(id)sender {
-//  NSLog(@"button pressed in");
+
+    // this will be a sound
 }
 
 -(IBAction)menuButtonLifted:(UIButton *)sender {
   UIViewController *buttonVC;
   if (sender == self.helpButton) {
     buttonVC = self.helpVC;
-  } else if (sender == self.optionsButton) {
-    buttonVC = self.optionsVC;
+  } else if (sender == self.settingsButton) {
+    buttonVC = self.settingsVC;
   } else if (sender == self.aboutButton) {
     buttonVC = self.aboutVC;
   } else if (sender == self.localGameButton) {

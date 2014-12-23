@@ -14,7 +14,7 @@
 @interface ParentViewController : UIViewController
 
 @property (strong, nonatomic) HelpViewController *helpVC;
-@property (strong, nonatomic) SettingsViewController *optionsVC;
+@property (strong, nonatomic) SettingsViewController *settingsVC;
 @property (strong, nonatomic) AboutViewController *aboutVC;
 @property (strong, nonatomic) UIViewController *childVC;
 

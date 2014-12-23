@@ -14,12 +14,15 @@
 //#import "Model.h"
 #import "CellBackgroundView.h"
 #import "Player.h"
+#import "OptionsViewController.h"
 
 @interface SceneViewController () <SceneDelegate, UIGestureRecognizerDelegate>
 
 @property (strong, nonatomic) SKView *mySceneView;
 @property (strong, nonatomic) UIView *playerLabelsField;
 @property (strong, nonatomic) UIView *turnPileCountField;
+
+@property (strong, nonatomic) OptionsViewController *optionsVC;
 
 @property (nonatomic) CGFloat topBarPlayerLabelWidth;
 @property (nonatomic) CGFloat topBarScoreLabelWidth;
@@ -38,6 +41,9 @@
 
 -(void)viewDidLoad {
   [super viewDidLoad];
+  
+  self.optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"OptionsViewController"];
+  self.optionsVC.view.backgroundColor = kPlayerGreen;
   
     // first version of app will not have device orientation
 //  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
@@ -86,6 +92,26 @@
     //--------------------------------------------------------------------------
   
   [self.mySceneView presentScene:self.myScene];
+}
+
+#pragma mark - navigation methods
+
+-(void)presentOptionsVC {
+  [self.myScene toggleRackGoOut:YES];
+  [self.myScene toggleTopBarGoOut:YES completion:nil];
+  [self presentChildViewController:self.optionsVC];
+}
+
+-(void)backToParentViewWithAnimateRemoveVC:(BOOL)animateRemoveVC {
+  
+  if (!self.vcIsAnimating && self.childVC && self.overlayEnabled) {
+    if (!animateRemoveVC) {
+      [self.myScene toggleRackGoOut:NO];
+      [self.myScene toggleTopBarGoOut:NO completion:nil];
+    }
+  }
+  
+  [super backToParentViewWithAnimateRemoveVC:animateRemoveVC];
 }
 
 #pragma mark - label instantiation methods
