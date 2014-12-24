@@ -193,6 +193,12 @@
 #define kDoublePCs @"doublePCs"
 #define kIllegalSonority @"illegalSonority"
 
+  // turn dictionary keys
+#define kTurnPlayer @"player"
+#define kTurnDyadminoes @"indexContainer"
+#define kTurnChords @"chords"
+#define kTurnPoints @"points"
+
   //----------------------------------------------------------------------------
 
   // colours

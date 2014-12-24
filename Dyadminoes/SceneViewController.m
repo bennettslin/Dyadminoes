@@ -95,8 +95,9 @@
   
     // ensure pcs are correct before presenting view
   PCMode userNotation = (PCMode)[[NSUserDefaults standardUserDefaults] integerForKey:@"notation"];
+  SceneEngine *sceneEngine = [SceneEngine sharedSceneEngine];
   
-  if (userNotation != self.myScene.mySceneEngine.myPCMode) {
+  if (userNotation != sceneEngine.myPCMode) {
     [self.myScene togglePCsUserShaken:NO];
   }
   

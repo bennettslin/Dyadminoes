@@ -185,10 +185,10 @@
     NSString *filename;
     switch (mode) {
       case kPCModeLetter:
-        filename = [NSString stringWithFormat:@"pcLetter%d", pc];
+        filename = [NSString stringWithFormat:@"pcLetter%ld", (long)pc];
         break;
       case kPCModeNumber:
-        filename = [NSString stringWithFormat:@"pcNumber%d", pc];
+        filename = [NSString stringWithFormat:@"pcNumber%ld", (long)pc];
       default:
         break;
     }

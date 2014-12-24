@@ -42,6 +42,8 @@
 @property (strong, nonatomic) NSSet *boardDyadminoes; // contains holding container dyadminoes
 @property (strong, nonatomic) NSSet *boardDyadminoBelongsInTheseLegalChords; // instantiated and nillified along with hovering dyadmino
 
+@property (strong, nonatomic) NSSet *legalSonoritiesThisTurn;
+
 @end
 
 @implementation MyScene {
@@ -70,6 +72,7 @@
   BOOL _pnpBarUp;
   BOOL _replayMode;
   BOOL _swapMode;
+  BOOL _lockMode;
   BOOL _dyadminoesStationary;
   BOOL _dyadminoesHollowed;
   BOOL _rackExchangeInProgress;
@@ -88,6 +91,8 @@
   BOOL _buttonsUpdatedThisTouch;
   
   BOOL _boardDyadminoActionSheetShown;
+  
+  NSSet *_tempChordSonoritiesFromMovedBoardDyadmino;
   
   BOOL _zoomChangedCellsAlpha; // only used for pinch zoom
   
@@ -124,7 +129,6 @@
     self.backgroundColor = kBackgroundBoardColour;
     self.name = @"scene";
     self.mySoundEngine = [SoundEngine sharedSoundEngine];
-    self.mySceneEngine = [SceneEngine sharedSceneEngine];
     [self addChild:self.mySoundEngine];
     
     _swapMode = NO;
@@ -232,8 +236,13 @@
   self.boardDyadminoBelongsInTheseLegalChords = nil;
   _pivotInProgress = NO;
   _boardDyadminoActionSheetShown = NO;
-  _endTouchLocationToMeasureDoubleTap = CGPointMake(2147483647, 2147483647);
+  _endTouchLocationToMeasureDoubleTap = CGPointMake(CGFLOAT_MAX, CGFLOAT_MAX);
   _undoButtonAllowed = YES;
+  _tempChordSonoritiesFromMovedBoardDyadmino = nil;
+  
+  if (_lockMode) {
+    [self handleDoubleTapForLockModeWithSound:NO];
+  }
   
   _myPlayer = [self.myMatch returnCurrentPlayer];
   NSArray *turns = self.myMatch.turns;
@@ -441,7 +450,7 @@
   
   CGSize size = CGSizeMake(self.frame.size.width, self.frame.size.height - kTopBarHeight - kRackHeight);
 
-  SKTexture *cellTexture = [self.mySceneEngine textureForTextureCell:kTextureCell];
+  SKTexture *cellTexture = [[SceneEngine sharedSceneEngine] textureForTextureCell:kTextureCell];
   _boardField = [[Board alloc] initWithColor:[SKColor clearColor] andSize:size andCellTexture:cellTexture];
   _boardField.delegate = self;
   [self addChild:_boardField];
@@ -601,6 +610,8 @@
   return YES;
 }
 
+#pragma mark - touch gestures
+
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location {
   
   if (_hoveringDyadmino) {
@@ -631,13 +642,21 @@
   return (rightSideUpY > bottomFloat && rightSideUpY < self.size.height - kTopBarHeight) ? YES : NO;
 }
 
--(void)handleDoubleTap {
+-(void)handleDoubleTapForLockModeWithSound:(BOOL)withSound {
   
+    // UPDATE: double tap no longer zooms; instead, it toggles lock mode
     // board will center back to user's touch location once zoomed back in
-  CGPoint location = CGPointMake((_boardField.homePosition.x - _beganTouchLocation.x) / kZoomResizeFactor + _boardField.origin.x,
-                                 (_boardField.homePosition.y - _beganTouchLocation.y) / kZoomResizeFactor + _boardField.origin.y);
   
-  [self toggleBoardZoomWithTapCentering:YES andCenterLocation:location];
+  _lockMode = _lockMode ? NO : YES;
+  if (withSound) {
+    [self postSoundNotification:kNotificationTogglePCs];
+  }
+  
+    // FIXME: this should change dyadmino texture
+  SceneEngine *sceneEngine = [SceneEngine sharedSceneEngine];
+  for (Dyadmino *dyadmino in sceneEngine.allDyadminoes) {
+    dyadmino.hidden = _lockMode;
+  }
 }
 
 #pragma mark - touch methods
@@ -715,7 +734,7 @@
     }
   }
   
-  if (!_pnpBarUp && !_replayMode && dyadmino && !dyadmino.isRotating && !_touchedDyadmino && (!_boardZoomedOut || [dyadmino isInRack])) {
+  if (!_lockMode && !_pnpBarUp && !_replayMode && dyadmino && !dyadmino.isRotating && !_touchedDyadmino && (!_boardZoomedOut || [dyadmino isInRack])) {
     
     _touchedDyadmino = dyadmino;
     
@@ -741,7 +760,11 @@
         // check if double tapped
       if (_canDoubleTapForBoardZoom && !_hoveringDyadmino) {
         CGFloat distance = [self getDistanceFromThisPoint:_beganTouchLocation toThisPoint:_endTouchLocationToMeasureDoubleTap];
-        (distance < kDistanceToDoubleTap) ? [self handleDoubleTap] : nil;
+        if (distance < kDistanceToDoubleTap) {
+          if (!_pnpBarUp && !_swapMode && !_replayMode) {
+            [self handleDoubleTapForLockModeWithSound:YES];
+          }
+        }
       }
       
       _boardToBeMovedOrBeingMoved = YES;
@@ -1106,17 +1129,7 @@
     dyadmino.canFlip = YES;
   }
   
-    // if it belongs on the board, show chords it's part of
-//  if ([dyadmino belongsOnBoard]) {
-//      // update chord message label
-//    NSAttributedString *string = [[SonorityLogic sharedLogic] stringForSonorities:self.boardDyadminoBelongsInTheseLegalChords withInitialString:@"Forms " andEndingString:@"."];
-//    
-//    [self.myDelegate showChordMessage:string sign:kChordMessageNeutral];
-//  } else if (dyadmino == _recentRackDyadmino) {
-//    [self.myDelegate fadeChordMessage];
-//  }
-  
-    // no, changed my mind; just fade chord message no matter what
+    // no chord message while dyadmino is being moved
     [self.myDelegate fadeChordMessage];
   
     // various prep
@@ -1321,7 +1334,6 @@
   } else {
     [self toggleRackGoOut:YES completion:nil];
   }
-
   
   __weak typeof(self) weakSelf = self;
   void (^completion)(void) = ^void(void) {
@@ -1335,7 +1347,7 @@
 
 -(void)togglePCsUserShaken:(BOOL)userShaken {
   userShaken ? [self postSoundNotification:kNotificationTogglePCs] : nil;
-  [self.mySceneEngine toggleBetweenLetterAndNumberMode];
+  [[SceneEngine sharedSceneEngine] toggleBetweenLetterAndNumberMode];
 }
 
 -(void)handleButtonPressed:(Button *)button {
@@ -1365,7 +1377,6 @@
     if (!_swapMode) {
       _swapMode = YES;
       [self toggleSwapFieldWithAnimation:YES];
-      [self.myMatch resetHoldingContainer];
     }
     
       /// cancel button
@@ -1489,7 +1500,6 @@
 -(void)cancelSwappedDyadminoes {
   _swapMode = NO;
   [self.myMatch removeAllSwaps];
-  [self.myMatch resetHoldingContainer]; // don't think this is needed
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
       dyadmino.belongsInSwap = NO;
@@ -1562,12 +1572,28 @@
 }
 
 -(void)playDyadmino:(Dyadmino *)dyadmino {
+  
     // establish that dyadmino is indeed a rack dyadmino placed on the board
   if ([dyadmino belongsInRack] && [dyadmino isOnBoard]) {
     
       // confirm that the dyadmino was successfully played before proceeding with anything else
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-    [self.myMatch addToHoldingContainer:dataDyad];
+    if (![self.myMatch addToHoldingContainer:dataDyad]) {
+      NSLog(@"Match failed to add data dyadmino to holding container.");
+      abort();
+    };
+    
+      // add chords to array of chords
+    NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
+    NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
+    for (NSSet *chordSonority in legalChordSonoritiesFormed) {
+      if (![self.myMatch addToArrayOfChordsAndPointsThisChordSonority:chordSonority andFromRack:YES]) {
+        NSLog(@"Match failed to add chord to array of chords.");
+        abort();
+      };
+    }
+    
+      // change scene values
     [self removeFromPlayerRackDyadminoes:dyadmino];
     [self addToSceneBoardDyadminoes:dyadmino];
     
@@ -1586,6 +1612,10 @@
       // establish data dyadmino properties
     dataDyad.myHexCoord = dyadmino.myHexCoord;
     dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:dyadmino.orientation];
+    
+      // show chord message
+    NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:legalChordSonoritiesFormed withInitialString:@"Built " andEndingString:@"."];
+    [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
   }
   
   [self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
@@ -1593,19 +1623,16 @@
   
   [self updateTopBarLabelsFinalTurn:NO animated:YES];
   [self updateTopBarButtons];
-  
-    // show chord message
-  NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
-  NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
-  
-  NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:legalChordSonoritiesFormed withInitialString:@"Built " andEndingString:@"."];
-  
-  [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
 }
 
 -(void)undoLastPlayedDyadmino {
     // remove data dyadmino from holding container
   DataDyadmino *undoneDataDyadmino = [self.myMatch undoDyadminoToHoldingContainer];
+  
+    // remove chord from array of chords
+  [self.myMatch undoFromArrayOfChordsAndPoints];
+  
+    // recalibrate undone dyadmino
   Dyadmino *undoneDyadmino = [self getDyadminoFromDataDyadmino:undoneDataDyadmino];
   undoneDyadmino.tempReturnOrientation = [undoneDataDyadmino returnMyOrientation];
   undoneDyadmino.orientation = [undoneDataDyadmino returnMyOrientation];
@@ -2027,9 +2054,10 @@
               
               NSSet *supersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.boardDyadminoBelongsInTheseLegalChords];
               
-                // only show action sheet if dyadmino was on board before turn
+                // show action sheet if dyadmino was on board before turn
               if ([self.myMatch.board containsObject:[self getDataDyadminoFromDyadmino:dyadmino]]) {
-                [self presentNewLegalChordActionSheetWithPoints:3];
+                [self presentNewLegalChordActionSheetWithPoints:1];
+                _tempChordSonoritiesFromMovedBoardDyadmino = supersets;
                 
                 NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:supersets withInitialString:@"Building " andEndingString:@"?"];
                 
@@ -2623,9 +2651,10 @@
 #pragma mark - data dyadmino methods
 
 -(Dyadmino *)getDyadminoFromDataDyadmino:(DataDyadmino *)dataDyad {
+  SceneEngine *sceneEngine = [SceneEngine sharedSceneEngine];
   
     // off by one error before
-  Dyadmino *dyadmino = (Dyadmino *)self.mySceneEngine.allDyadminoes[[dataDyad returnMyID]];
+  Dyadmino *dyadmino = (Dyadmino *)sceneEngine.allDyadminoes[[dataDyad returnMyID]];
   return dyadmino;
 }
 
@@ -2832,8 +2861,8 @@
   
     // this is also in populateBoardSet method, but repeated code can't be helped
   NSDictionary *lastTurn = (NSDictionary *)[self.myMatch.turns lastObject];
-  Player *lastPlayer = (Player *)[self.myMatch playerForIndex:[[lastTurn valueForKey:@"player"] unsignedIntegerValue]];
-  NSArray *lastContainer = (NSArray *)[lastTurn valueForKey:@"indexContainer"];
+  Player *lastPlayer = (Player *)[self.myMatch playerForIndex:[[lastTurn valueForKey:kTurnPlayer] unsignedIntegerValue]];
+  NSArray *lastContainer = (NSArray *)[lastTurn valueForKey:kTurnDyadminoes];
   NSArray *lastContainerDataDyads = [self.myMatch dataDyadsInIndexContainer:lastContainer];
   
     // board must enumerate over both board and holding container dyadminoes
@@ -2865,9 +2894,8 @@
     if (replay) {
       turnOrResultsText = [self.myMatch turnTextLastPlayed:NO];
       
-      NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"] unsignedIntegerValue];
+      NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:kTurnPlayer] unsignedIntegerValue];
       turnPlayer = [self.myMatch playerForIndex:playerOrder];
-//      Player *turnPlayer = [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"];
       colour = [self.myMatch colourForPlayer:turnPlayer];
 
     } else {
@@ -2878,9 +2906,8 @@
       } else {
         turnOrResultsText = [self.myMatch turnTextLastPlayed:YES];
         
-        NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"] unsignedIntegerValue];
+        NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:kTurnPlayer] unsignedIntegerValue];
         turnPlayer = [self.myMatch playerForIndex:playerOrder];
-//        Player *turnPlayer = [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"];
         colour = [self.myMatch colourForPlayer:turnPlayer];
       }
     }
@@ -2928,14 +2955,10 @@
 }
 
 -(void)updateViewForReplayInReplay:(BOOL)inReplay start:(BOOL)start {
-  
-    // start BOOL not necessary>
-  
+
   [self updateBoardForReplayInReplay:inReplay start:start];
   [self showTurnInfoOrGameResultsForReplay:inReplay];
   inReplay ? [self updateReplayButtons] : nil;
-  
-  [self logWhetherAllBoardDyadminoesAreHidden];
 }
 
 -(void)updateBoardForReplayInReplay:(BOOL)inReplay start:(BOOL)start {
@@ -2948,9 +2971,9 @@
   Player *turnPlayer;
   NSArray *turnDataDyadminoIndexes;
   if (inReplay) {
-    NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"player"] unsignedIntegerValue];
+    NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:kTurnPlayer] unsignedIntegerValue];
     turnPlayer = [self.myMatch playerForIndex:playerOrder];
-    turnDataDyadminoIndexes = [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:@"indexContainer"];
+    turnDataDyadminoIndexes = [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:kTurnDyadminoes];
   } else {
     turnPlayer = _myPlayer;
     turnDataDyadminoIndexes = @[];
@@ -3177,14 +3200,21 @@
     _boardDyadminoActionSheetShown = NO;
     if ([buttonText isEqualToString:@"Cancel"]) {
       [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
-      [self updateTopBarButtons];
-      return;
       
     } else {
+      
+        // add to array of chords, this cannot be undone
+      
+      for (NSSet *chordSonority in _tempChordSonoritiesFromMovedBoardDyadmino) {
+        if (![self.myMatch addToArrayOfChordsAndPointsThisChordSonority:chordSonority andFromRack:NO]) {
+          NSLog(@"Match failed to add chord to array of chords.");
+          abort();
+        };
+      }
+      
       [self finishHoveringAfterCheckDyadmino:_hoveringDyadmino];
-      [self updateTopBarButtons];
-      return;
     }
+  _tempChordSonoritiesFromMovedBoardDyadmino = nil;
   }
   
   [self updateTopBarLabelsFinalTurn:YES animated:NO];
@@ -3284,14 +3314,6 @@
   NSLog(@"match board is  %@", self.myMatch.board);
   NSLog(@"rack is:        %@", self.playerRackDyadminoes);
   NSLog(@"recent rack is: %@", _recentRackDyadmino.name);
-}
-
--(void)logWhetherAllBoardDyadminoesAreHidden {
-  
-//  for (Dyadmino *dyadmino in [self allBoardDyadminoesNotTurnOrRecentRack]) {
-//    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-//    NSLog(@"dataDyad %@ is hidden %i, scale is %.2f, %.2f", dataDyad.myID, dyadmino.hidden, dyadmino.xScale, dyadmino.yScale);
-//  }
 }
 
 #pragma mark - singleton method

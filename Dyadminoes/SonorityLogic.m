@@ -165,9 +165,24 @@
   
 }
 
+#pragma mark - point methods
+
+-(NSUInteger)pointsForSonority:(NSSet *)sonority fromExtension:(BOOL)fromExtension {
+    // from extension will only be for seventh chord
+    // 2 points for triads, 3 points for sevenths
+  
+  NSSet *chordSonority = [self chordSonorityForSonority:sonority];
+  Chord chord = [self chordFromChordSonority:chordSonority];
+  if (chord.chordType <= kChordFrenchSixth) {
+    return fromExtension ? 1 : chordSonority.count - 1;
+  } else {
+    return 0;
+  }
+}
+
 #pragma mark - chord logic methods
 
--(Chord)chordFromSonority:(NSSet *)sonority {
+-(Chord)chordFromChordSonority:(NSSet *)sonority {
   
     // root is -1 if not a chord
   NSUInteger cardinality = [sonority count];
@@ -238,7 +253,7 @@
 
 -(Chord)chordFromSonorityPlusCheckIncompleteSeventh:(NSSet *)sonority {
   
-  Chord chord = [self chordFromSonority:sonority];
+  Chord chord = [self chordFromChordSonority:sonority];
   
   if (chord.chordType == kChordIllegalChord) {
     if ([self sonorityIsIncompleteSeventh:sonority]) {
@@ -293,7 +308,7 @@
   }
   
     // sonority must be illegal as a triad
-  Chord chordForSonority = [self chordFromSonority:sonority];
+  Chord chordForSonority = [self chordFromChordSonority:sonority];
   if (chordForSonority.chordType != kChordIllegalChord) {
     return NO;
   }
@@ -306,7 +321,7 @@
       NSMutableSet *tempSonority = [NSMutableSet setWithSet:sonority];
       [tempSonority addObject:missingNote];
       NSSet *newSonority = [NSSet setWithSet:tempSonority];
-      Chord chordForNewSonority = [self chordFromSonority:newSonority];
+      Chord chordForNewSonority = [self chordFromChordSonority:newSonority];
       if (chordForNewSonority.chordType != kChordIllegalChord) {
         sonorityIsIncompleteSeventh = YES;
       }

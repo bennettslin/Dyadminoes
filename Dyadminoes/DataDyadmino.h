@@ -18,7 +18,9 @@
 
 @property (retain, nonatomic) NSNumber *hexX;
 @property (retain, nonatomic) NSNumber *hexY;
-@property (assign, nonatomic) HexCoord myHexCoord; // not persisted
+
+  // not persisted, gets from hexX and hexY
+@property (assign, nonatomic) HexCoord myHexCoord;
 
 @property (retain, nonatomic) NSNumber *myRackOrder;
 @property (retain, nonatomic) NSNumber *placeStatus;

@@ -40,6 +40,8 @@
   self.hexY = [NSNumber numberWithInteger:myHexCoord.y];
 }
 
+#pragma mark - attribute methods
+
 -(void)initialID:(NSUInteger)myID {
 
   self.myID = [NSNumber numberWithUnsignedInteger:myID];

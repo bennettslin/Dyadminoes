@@ -25,6 +25,12 @@
   [super tearDown];
 }
 
+-(void)testIsSingleton {
+  SceneEngine *engine1 = [SceneEngine sharedSceneEngine];
+  SceneEngine *engine2 = [SceneEngine sharedSceneEngine];
+  XCTAssertEqualObjects(engine1, engine2, @"Scene engine is not a singleton.");
+}
+
 -(void)testPileCountAfterInstantiation {
   SceneEngine *sceneEngine = [SceneEngine sharedSceneEngine];
   XCTAssertTrue([sceneEngine.allDyadminoes count] == kPileCount, @"Pile count should be 66.");

@@ -33,16 +33,16 @@
 @dynamic swapIndexContainer;
 @dynamic replayTurn;
 @dynamic turns;
-@dynamic numberOfConsecutivePasses;
 @dynamic firstDataDyadIndex;
 @dynamic randomNumber1To24;
+@dynamic arrayOfChordsAndPoints;
+@dynamic pointsThisTurn;
 
   // not persisted
 @synthesize replayBoard = _replayBoard;
 @synthesize delegate = _delegate;
 @synthesize pile = _pile;
 @synthesize board = _board;
-@synthesize chords = _chords;
 
 #pragma mark - init methods
 
@@ -61,7 +61,6 @@
     
     self.lastPlayed = [NSDate date];
     self.gameHasEnded = [NSNumber numberWithBool:NO];
-    self.numberOfConsecutivePasses = [NSNumber numberWithUnsignedInteger:0];
     self.currentPlayerIndex = [NSNumber numberWithUnsignedInteger:0];
     self.randomNumber1To24 = [NSNumber numberWithUnsignedInteger:[self randomIntegerUpTo:24] + 1];
     
@@ -218,8 +217,8 @@
 
     // a pass has an empty holding container, while a resign has *no* holding container
   NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:
-                              [NSNumber numberWithUnsignedInteger:[self returnCurrentPlayerIndex]], @"player",
-                              self.holdingIndexContainer, @"indexContainer", nil];
+                              [NSNumber numberWithUnsignedInteger:[self returnCurrentPlayerIndex]], kTurnPlayer,
+                              self.holdingIndexContainer, kTurnDyadminoes, nil];
   
   [self addTurn:dictionary];
   NSArray *turns = self.turns;
@@ -238,8 +237,6 @@
       return;
     }
     
-    self.numberOfConsecutivePasses = [NSNumber numberWithUnsignedInteger:[self returnNumberOfConsecutivePasses] + 1];
-    
       // enough players passed to end game
       // 1. two rotations if there are dyadminoes left in pile
       // 2. one rotation if no dyadminoes are left in pile
@@ -251,8 +248,6 @@
       // player submitted dyadminoes
   } else {
     
-      // reset number of consecutive passes
-    self.numberOfConsecutivePasses = [NSNumber numberWithUnsignedInteger:0];
       /// obviously scorekeeping will be more sophisticated
       /// and will consider chords formed
     Player *player = [self returnCurrentPlayer];
@@ -318,14 +313,14 @@
   while (turnIndex >= 0 && everyonePassedOrResignedSoFar &&
          numberOfSightingsOfActiveOtherPlayer < numberOfSightingsOfActiveOtherPlayerNeededToEndMatch) {
     NSDictionary *turn = [self.turns objectAtIndex:turnIndex];
-    NSArray *indexContainer = [turn objectForKey:@"indexContainer"];
+    NSArray *indexContainer = [turn objectForKey:kTurnDyadminoes];
 
       // return no if this player scored
     if (indexContainer && indexContainer.count > 0) {
       everyonePassedOrResignedSoFar = NO;
     }
     
-    Player *playerInRotation = [self playerForIndex:[[turn objectForKey:@"player"] unsignedIntegerValue]];
+    Player *playerInRotation = [self playerForIndex:[[turn objectForKey:kTurnPlayer] unsignedIntegerValue]];
     if (playerInRotation == activeOtherPlayer) {
       numberOfSightingsOfActiveOtherPlayer++;
     }
@@ -346,6 +341,7 @@
     NSNumber *lastHexY;
     NSNumber *lastOrientation;
     NSArray *turnChanges = dataDyad.turnChanges;
+    
       // get last hexCoord and orientation
       // (must be iterated separately, because they might be in different dictionaries)
     NSInteger hexCoordCounter = turnChanges.count - 1;
@@ -399,7 +395,7 @@
     // a resign has *no* holding container
   if (self.type != kSelfGame) {
     
-    NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:[NSNumber numberWithUnsignedInteger:[self returnCurrentPlayerIndex]], @"player", nil];
+    NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:[NSNumber numberWithUnsignedInteger:[self returnCurrentPlayerIndex]], kTurnPlayer, nil];
     
     [self addTurn:dictionary];
     NSArray *turns = self.turns;
@@ -513,12 +509,10 @@
 }
 
 -(NSString *)turnTextLastPlayed:(BOOL)lastPlayed {
-  Player *turnPlayer = [self playerForIndex:[[self.turns[[self returnReplayTurn] - 1] objectForKey:@"player"] unsignedIntegerValue]];
+  Player *turnPlayer = [self playerForIndex:[[self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnPlayer] unsignedIntegerValue]];
   NSArray *dyadminoesPlayed;
-  if (![self.turns[[self returnReplayTurn] - 1] objectForKey:@"indexContainer"]) {
-    
-  } else {
-    dyadminoesPlayed = [self.turns[[self returnReplayTurn] - 1] objectForKey:@"indexContainer"];
+  if ([self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes]) {
+    dyadminoesPlayed = [self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes];
   }
   
   NSString *dyadminoesPlayedString;
@@ -576,11 +570,12 @@
 
 #pragma mark - undo manager
 
--(void)addToHoldingContainer:(DataDyadmino *)dataDyad {
+-(BOOL)addToHoldingContainer:(DataDyadmino *)dataDyad {
   
     // modify scorekeeping methods, of course
     // especially since this will be used to call swap as well
   self.tempScore = [NSNumber numberWithUnsignedInteger:[self returnTempScore] + 1];
+  NSUInteger originalCount = [(NSArray *)self.holdingIndexContainer count];
   
   NSNumber *number = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]];
   if (![self holdingsContainsDataDyadmino:dataDyad]) {
@@ -588,6 +583,8 @@
     [tempArray addObject:number];
     self.holdingIndexContainer = [NSArray arrayWithArray:tempArray];
   }
+  
+  return ([(NSArray *)self.holdingIndexContainer count] == originalCount + 1);
 }
 
 -(DataDyadmino *)undoDyadminoToHoldingContainer {
@@ -595,7 +592,7 @@
   if (holdingIndexContainer.count > 0) {
     
       // FIXME: this should be changed
-    self.tempScore = [NSNumber numberWithUnsignedInteger:[self returnTempScore] - 1];
+//    self.tempScore = [NSNumber numberWithUnsignedInteger:[self returnTempScore] - 1];
     
     NSNumber *number = [self.holdingIndexContainer lastObject];
     NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.holdingIndexContainer];
@@ -609,8 +606,63 @@
 
 -(void)resetHoldingContainer {
   self.holdingIndexContainer = nil;
-  self.holdingIndexContainer = [NSMutableArray new];
-  self.tempScore = [NSNumber numberWithUnsignedInteger:0];
+}
+
+
+-(BOOL)addToArrayOfChordsAndPointsThisChordSonority:(NSSet *)chordSonority andFromRack:(BOOL)fromRack {
+    // points determines whether this was from a board move
+  
+  NSUInteger originalCount = [(NSArray *)self.arrayOfChordsAndPoints count];
+  NSUInteger points;
+
+    // triad
+  if (chordSonority.count == 3) {
+    points = 2;
+
+      // seventh chord
+  } else {
+    
+      // either placed from rack or moved on board
+    points = fromRack ? 3 : 1;
+  }
+  
+  NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
+  
+    // match keeps track of dictionary internally
+  NSDictionary *thisDictionary = @{@"chordSonority":chordSonority, @"points":@(points)};
+  [tempArray addObject:thisDictionary];
+  self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
+  
+  return ([(NSArray *)self.arrayOfChordsAndPoints count] == originalCount + 1);
+}
+
+-(BOOL)undoFromArrayOfChordsAndPoints {
+  
+  NSInteger counter = [(NSArray *)self.arrayOfChordsAndPoints count] - 1;
+  BOOL lastPlayedChordFromRackDyadminoFound = NO;
+  NSDictionary *chordDictionary;
+  
+    // ensures that it does not retrieve chord built from moved board dyadmino
+  while (counter >= 0 && !lastPlayedChordFromRackDyadminoFound) {
+    
+    chordDictionary = self.arrayOfChordsAndPoints[counter];
+    NSUInteger points = [chordDictionary[@"points"] unsignedIntegerValue];
+    if (points != 1) {
+      
+      lastPlayedChordFromRackDyadminoFound = YES;
+    }
+    
+    counter--;
+  }
+  
+  NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
+  [tempArray removeObject:chordDictionary];
+  self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
+  return ([(NSArray *)self.arrayOfChordsAndPoints count] == counter);
+}
+
+-(void)resetArrayOfChordsAndPoints {
+  self.arrayOfChordsAndPoints = nil;
 }
 
 #pragma mark - replay methods
@@ -635,7 +687,7 @@
   self.replayTurn = [NSNumber numberWithUnsignedInteger:1];
   [self.replayBoard removeAllObjects];
   [self.replayBoard addObject:[self dataDyadminoForIndex:[self returnFirstDataDyadIndex]]];
-  NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:@"indexContainer"];
+  NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes];
   for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:holdingContainer]) {
     if (![self.replayBoard containsObject:dataDyad]) {
       [self.replayBoard addObject:dataDyad];
@@ -649,7 +701,7 @@
     return NO;
     
   } else {
-      NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:@"indexContainer"];
+      NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes];
       for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:holdingContainer]) {
         if ([self.replayBoard containsObject:dataDyad]) {
           [self.replayBoard removeObject:dataDyad];
@@ -667,7 +719,7 @@
     
   } else {
       self.replayTurn = [NSNumber numberWithUnsignedInteger:[self returnReplayTurn] + 1];
-      NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:@"indexContainer"];
+      NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes];
       for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:holdingContainer]) {
         if (![self.replayBoard containsObject:dataDyad]) {
           [self.replayBoard addObject:dataDyad];
@@ -681,7 +733,7 @@
   NSArray *turns = self.turns;
   self.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
   for (int i = 0; i < turns.count; i++) {
-    NSArray *holdingContainer = [self.turns[i] objectForKey:@"indexContainer"];
+    NSArray *holdingContainer = [self.turns[i] objectForKey:kTurnDyadminoes];
     for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:holdingContainer]) {
       if (![self.replayBoard containsObject:dataDyad]) {
         [self.replayBoard addObject:dataDyad];
@@ -743,26 +795,6 @@
   _board = board;
 }
 
--(NSSet *)chords {
-  if (!_chords) {
-    _chords = [NSMutableSet new];
-    for (DataDyadmino *dataDyad in self.board) {
-      if ([dataDyad returnPlaceStatus] == kOnBoard) {
-        [_board addObject:dataDyad];
-      }
-    }
-    
-    for (NSDictionary *turn in self.turns) {
-
-    }
-  }
-  return _chords;
-}
-
--(void)setChords:(NSMutableSet *)chords {
-  _chords = chords;
-}
-
 #pragma mark - helper methods
 
 -(NSUInteger)wonPlayersCount {
@@ -795,6 +827,34 @@
     }
   }
   return nil;
+}
+
+#pragma mark - array of chords and points helper methods
+
+-(NSSet *)setOfChordSonoritiesInArrayOfChordsAndPoints {
+
+  NSMutableSet *tempChordSonorities = [NSMutableSet new];
+  
+  for (int i = 0; i < [(NSArray *)self.arrayOfChordsAndPoints count]; i++) {
+    NSDictionary *chordDictionary = self.arrayOfChordsAndPoints[i];
+    NSSet *chordSonority = chordDictionary[@"chordSonority"];
+    [tempChordSonorities addObject:chordSonority];
+  }
+  
+  return [NSSet setWithSet:tempChordSonorities];
+}
+
+-(NSNumber *)sumOfPointsFromArrayOfChordsAndPoints {
+  
+  NSUInteger sumPoints = 0;
+  
+  for (int i = 0; i < [(NSArray *)self.arrayOfChordsAndPoints count]; i++) {
+    NSDictionary *chordDictionary = self.arrayOfChordsAndPoints[i];
+    NSNumber *chordPointsNumber = chordDictionary[@"points"];
+    sumPoints += [chordPointsNumber unsignedIntegerValue];
+  }
+  
+  return @(sumPoints);
 }
 
 #pragma mark = holding container helper methods
@@ -878,10 +938,6 @@
   return [self.replayTurn unsignedIntegerValue];
 }
 
--(NSUInteger)returnNumberOfConsecutivePasses {
-  return [self.numberOfConsecutivePasses unsignedIntegerValue];
-}
-
 -(NSInteger)returnRandomNumber1To24 {
   return [self.randomNumber1To24 integerValue];
 }
@@ -932,6 +988,26 @@
 
 +(Class)transformedValueClass {
   return [NSSet class];
+}
+
++(BOOL)allowsReverseTransformation {
+  return YES;
+}
+
+-(id)transformedValue:(id)value {
+  return [NSKeyedArchiver archivedDataWithRootObject:value];
+}
+
+-(id)reverseTransformedValue:(id)value {
+  return [NSKeyedUnarchiver unarchiveObjectWithData:value];
+}
+
+@end
+
+@implementation ArrayOfChordsAndPoints
+
++(Class)transformedValueClass {
+  return [NSArray class];
 }
 
 +(BOOL)allowsReverseTransformation {
