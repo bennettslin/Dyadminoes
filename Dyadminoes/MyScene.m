@@ -41,6 +41,7 @@
 @property (strong, nonatomic) NSArray *playerRackDyadminoes;
 @property (strong, nonatomic) NSSet *boardDyadminoes; // contains holding container dyadminoes
 @property (strong, nonatomic) NSSet *boardDyadminoBelongsInTheseLegalChords; // instantiated and nillified along with hovering dyadmino
+@property (strong, nonatomic) NSSet *boardChords;
 
 @property (strong, nonatomic) NSSet *legalSonoritiesThisTurn;
 
@@ -239,6 +240,7 @@
   _endTouchLocationToMeasureDoubleTap = CGPointMake(CGFLOAT_MAX, CGFLOAT_MAX);
   _undoButtonAllowed = YES;
   _tempChordSonoritiesFromMovedBoardDyadmino = nil;
+  self.boardChords = nil;
   
   if (_lockMode) {
     [self handleDoubleTapForLockModeWithSound:NO];
@@ -247,6 +249,8 @@
   _myPlayer = [self.myMatch returnCurrentPlayer];
   NSArray *turns = self.myMatch.turns;
   self.myMatch.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
+  
+  
 }
 
 -(void)didMoveToView:(SKView *)view {
@@ -300,26 +304,30 @@
   if ([self.myMatch returnType] != kPnPGame) {
     [self afterNewPlayerReady];
   }
-  
-  [self trialCheckThatSceneChordsAreTheSameAsPersistedChords];
 }
 
   //----------------------------------------------------------------------------
 
--(void)trialCheckThatSceneChordsAreTheSameAsPersistedChords {
+-(void)loadBoardChords {
+  
+    // board chords are loaded in afterNewPlayerReady
+    // they are made nil in prepareForNewTurn and willMoveFromView
   
     /// This proves that chords don't actually need to be persisted
     /// if we're not keeping track of which chords were played each turn
   
     /// as long as we're just establishing all the chords on the board,
-    /// we can get that from the data dyadminoes
+    /// we can get that from the data dyadminoes directly
+  
   NSSet *sceneChords = [self loadChordsFromSceneBoardDyadminoes];
   NSSet *persistedChords = [self loadChordsFromPersistedTurn];
   if ([[SonorityLogic sharedLogic] setOfLegalChords:sceneChords isSubsetOfSetOfLegalChords:persistedChords] &&
       [[SonorityLogic sharedLogic] setOfLegalChords:persistedChords isSubsetOfSetOfLegalChords:sceneChords]) {
     NSLog(@"scene chords and persisted chords are equal.");
+    self.boardChords = sceneChords;
   } else {
-    NSLog(@"scene chords and persisted chords are different. Scene is %@, persisted is %@i", sceneChords, persistedChords);
+    NSLog(@"Scene did not load all the board chords properly.");
+    abort();
   }
 }
 
@@ -352,6 +360,8 @@
 
 -(void)afterNewPlayerReady {
     // called both when scene is loaded, and when new player is ready in PnP mode
+  
+  [self loadBoardChords];
 
   if (![self populateRackArray]) {
     NSLog(@"Rack array was not populated properly.");
@@ -386,7 +396,8 @@
   _swapMode = NO;
   [self toggleSwapFieldWithAnimation:NO];
   
-  self.boardDyadminoes = [NSSet new];
+  self.boardDyadminoes = nil;
+  self.boardChords = nil;
   
   for (SKNode *node in _boardField.children) {
     if ([node isKindOfClass:[Dyadmino class]]) {
