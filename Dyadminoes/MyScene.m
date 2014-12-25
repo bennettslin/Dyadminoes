@@ -300,7 +300,55 @@
   if ([self.myMatch returnType] != kPnPGame) {
     [self afterNewPlayerReady];
   }
+  
+  [self trialCheckThatSceneChordsAreTheSameAsPersistedChords];
 }
+
+  //----------------------------------------------------------------------------
+
+-(void)trialCheckThatSceneChordsAreTheSameAsPersistedChords {
+  
+    /// This proves that chords don't actually need to be persisted
+    /// if we're not keeping track of which chords were played each turn
+  
+    /// as long as we're just establishing all the chords on the board,
+    /// we can get that from the data dyadminoes
+  NSSet *sceneChords = [self loadChordsFromSceneBoardDyadminoes];
+  NSSet *persistedChords = [self loadChordsFromPersistedTurn];
+  if ([[SonorityLogic sharedLogic] setOfLegalChords:sceneChords isSubsetOfSetOfLegalChords:persistedChords] &&
+      [[SonorityLogic sharedLogic] setOfLegalChords:persistedChords isSubsetOfSetOfLegalChords:sceneChords]) {
+    NSLog(@"scene chords and persisted chords are equal.");
+  } else {
+    NSLog(@"scene chords and persisted chords are different. Scene is %@, persisted is %@i", sceneChords, persistedChords);
+  }
+}
+
+-(NSSet *)loadChordsFromSceneBoardDyadminoes {
+  
+  NSMutableSet *tempLegalChordSonorities = [NSMutableSet new];
+  for (DataDyadmino *dataDyadmino in self.myMatch.board) {
+    Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyadmino];
+    NSSet *allSonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
+    NSSet *legalChordSonorities = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:allSonorities];
+    [tempLegalChordSonorities addObjectsFromArray:[legalChordSonorities allObjects]];
+  }
+  
+  return [NSSet setWithSet:tempLegalChordSonorities];
+}
+
+-(NSSet *)loadChordsFromPersistedTurn {
+  
+  NSMutableSet *tempLegalChordSonorities = [NSMutableSet new];
+  for (int i = 0; i < [(NSArray *)self.myMatch.turns count]; i++) {
+    NSDictionary *turn = self.myMatch.turns[i];
+    NSSet *legalChordSonorities = turn[kTurnChords];
+    [tempLegalChordSonorities addObjectsFromArray:[legalChordSonorities allObjects]];
+  }
+  
+  return [NSSet setWithSet:tempLegalChordSonorities];
+}
+
+  //----------------------------------------------------------------------------
 
 -(void)afterNewPlayerReady {
     // called both when scene is loaded, and when new player is ready in PnP mode
@@ -1583,14 +1631,13 @@
       abort();
     };
     
-      // add chords to array of chords
-    NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
+      // add chords from this dyadmino to array of chords
+    NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
     NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
-    for (NSSet *chordSonority in legalChordSonoritiesFormed) {
-      if (![self.myMatch addToArrayOfChordsAndPointsThisChordSonority:chordSonority andFromRack:YES]) {
-        NSLog(@"Match failed to add chord to array of chords.");
-        abort();
-      };
+        
+    if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:legalChordSonoritiesFormed andFromRack:YES]) {
+      NSLog(@"Match failed to add to array of chords.");
+      abort();
     }
     
       // change scene values
@@ -1629,23 +1676,32 @@
     // remove data dyadmino from holding container
   DataDyadmino *undoneDataDyadmino = [self.myMatch undoDyadminoToHoldingContainer];
   
-    // remove chord from array of chords
-  [self.myMatch undoFromArrayOfChordsAndPoints];
-  
-    // recalibrate undone dyadmino
-  Dyadmino *undoneDyadmino = [self getDyadminoFromDataDyadmino:undoneDataDyadmino];
-  undoneDyadmino.tempReturnOrientation = [undoneDataDyadmino returnMyOrientation];
-  undoneDyadmino.orientation = [undoneDataDyadmino returnMyOrientation];
-  undoneDyadmino.homeNode = nil;
-  
-    // re-add dyadmino to player rack, remove from scene board
-  [self reAddToPlayerRackDyadminoes:undoneDyadmino];
-  [self removeFromSceneBoardDyadminoes:undoneDyadmino];
-  [self recordChangedDataForRackDyadminoes:self.playerRackDyadminoes];
-  
-    // take care of views
-  [self sendDyadminoHome:undoneDyadmino fromUndo:YES byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
-  [self tempStoreForPlayerSceneDataDyadmino:undoneDyadmino];
+  if (!undoneDataDyadmino) {
+    NSLog(@"Match failed to undo data dyadmino.");
+    abort();
+    
+  } else {
+      // remove chords or this dyadmino from array of chords
+    if (![self.myMatch undoFromArrayOfChordsAndPoints]) {
+      NSLog(@"Match failed to undo chords for this data dyadmino.");
+      abort();
+    };
+    
+      // recalibrate undone dyadmino
+    Dyadmino *undoneDyadmino = [self getDyadminoFromDataDyadmino:undoneDataDyadmino];
+    undoneDyadmino.tempReturnOrientation = [undoneDataDyadmino returnMyOrientation];
+    undoneDyadmino.orientation = [undoneDataDyadmino returnMyOrientation];
+    undoneDyadmino.homeNode = nil;
+    
+      // re-add dyadmino to player rack, remove from scene board
+    [self reAddToPlayerRackDyadminoes:undoneDyadmino];
+    [self removeFromSceneBoardDyadminoes:undoneDyadmino];
+    [self recordChangedDataForRackDyadminoes:self.playerRackDyadminoes];
+    
+      // take care of views
+    [self sendDyadminoHome:undoneDyadmino fromUndo:YES byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
+    [self tempStoreForPlayerSceneDataDyadmino:undoneDyadmino];
+  }
 }
 
 -(void)finalisePlayerTurn {
@@ -2056,7 +2112,7 @@
               
                 // show action sheet if dyadmino was on board before turn
               if ([self.myMatch.board containsObject:[self getDataDyadminoFromDyadmino:dyadmino]]) {
-                [self presentNewLegalChordActionSheetWithPoints:1];
+                [self presentNewLegalChordActionSheetWithPoints:[self.myMatch pointsForChordSonorities:supersets fromRack:NO]];
                 _tempChordSonoritiesFromMovedBoardDyadmino = supersets;
                 
                 NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:supersets withInitialString:@"Building " andEndingString:@"?"];
@@ -3204,12 +3260,14 @@
     } else {
       
         // add to array of chords, this cannot be undone
-      
-      for (NSSet *chordSonority in _tempChordSonoritiesFromMovedBoardDyadmino) {
-        if (![self.myMatch addToArrayOfChordsAndPointsThisChordSonority:chordSonority andFromRack:NO]) {
-          NSLog(@"Match failed to add chord to array of chords.");
-          abort();
-        };
+      if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:_tempChordSonoritiesFromMovedBoardDyadmino andFromRack:NO]) {
+        NSLog(@"Match failed to add to array of chords.");
+        abort();
+      } else {
+        
+        NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:_tempChordSonoritiesFromMovedBoardDyadmino withInitialString:@"Built " andEndingString:@"."];
+        
+        [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
       }
       
       [self finishHoveringAfterCheckDyadmino:_hoveringDyadmino];
@@ -3258,6 +3316,10 @@
 
 -(void)toggleFieldActionInProgress:(BOOL)actionInProgress {
   _fieldActionInProgress = actionInProgress;
+}
+
+-(NSAttributedString *)stringForSonorities:(NSSet *)sonorities withInitialString:(NSString *)initialString andEndingString:(NSString *)endingString {
+  return [[SonorityLogic sharedLogic] stringForSonorities:sonorities withInitialString:initialString andEndingString:endingString];
 }
 
 #pragma mark - debugging methods

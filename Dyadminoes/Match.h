@@ -38,7 +38,6 @@
 @property (retain, nonatomic) NSNumber *firstDataDyadIndex;
 
   // turns and undo
-@property (retain, nonatomic) NSNumber *tempScore;
 @property (retain, nonatomic) NSNumber *replayTurn;
 
   // NSArray
@@ -51,9 +50,11 @@
   // NSSet, contains dataDyad indices as NSNumbers
 @property (retain, nonatomic) id swapIndexContainer;
 
-  // NSArray whose objects each represents a played dyadmino or moved board dyadmino
-  // each of these is an NSSet of objects that represents each chord scored for that dyadmino
-  // each of these is a NSSet of NSNumbers representing pcs
+  // NSArray of NSDictionaries each representing a played dyadmino or moved board dyadmino
+  // each of dyadmino is an NSDictionary of chordSonorities: NSSet, points: NSNumber, and fromRack: NSNumber
+  // each chordSonorities is an NSSet of objects representing sets of sonorities
+  // each sonority is an NSSet of notes
+  // each note is an NSDictionary of pc: NSNumbers and dyadmino: NSNumbers
   // dyadmino information is not retained
 @property (retain, nonatomic) id arrayOfChordsAndPoints;
 
@@ -82,7 +83,7 @@
 -(DataDyadmino *)undoDyadminoToHoldingContainer;
 
   // array of chords and points change methods
--(BOOL)addToArrayOfChordsAndPointsThisChordSonority:(NSSet *)chordSonority andFromRack:(BOOL)fromRack;
+-(BOOL)addToArrayOfChordsAndPointsTheseChordSonorities:(NSSet *)chordSonorities andFromRack:(BOOL)fromRack;
 -(BOOL)undoFromArrayOfChordsAndPoints;
 
   // replay methods
@@ -102,6 +103,10 @@
 -(Player *)playerForIndex:(NSUInteger)index;
 -(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index;
 
+  // array of chords and points helper methods
+-(NSUInteger)sumOfPointsThisTurn;
+-(NSUInteger)pointsForChordSonorities:(NSSet *)chordSonorities fromRack:(BOOL)fromRack; // this is made public for action sheet
+
   // holding container helper methods
 -(BOOL)holdingsContainsDataDyadmino:(DataDyadmino *)dataDyad;
 -(NSArray *)dataDyadsInIndexContainer:(NSArray *)holdingContainer;
@@ -120,7 +125,6 @@
 -(NSUInteger)returnCurrentPlayerIndex;
 -(BOOL)returnGameHasEnded;
 -(NSUInteger)returnFirstDataDyadIndex;
--(NSUInteger)returnTempScore;
 -(NSUInteger)returnReplayTurn;
 -(NSInteger)returnRandomNumber1To24;
 
@@ -148,6 +152,10 @@
 @end
 
 @protocol MatchDelegate <NSObject>
+
+-(NSAttributedString *)stringForSonorities:(NSSet *)sonorities
+                         withInitialString:(NSString *)initialString
+                           andEndingString:(NSString *)endingString;
 
 -(void)handleSwitchToNextPlayer;
 -(void)handleEndGame;

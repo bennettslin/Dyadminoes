@@ -24,7 +24,6 @@
         <attribute name="rules" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <attribute name="skill" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <attribute name="swapIndexContainer" optional="YES" attributeType="Transformable" syncable="YES"/>
-        <attribute name="tempScore" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <attribute name="turns" optional="YES" attributeType="Transformable" syncable="YES"/>
         <attribute name="type" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <relationship name="dataDyadminoes" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="DataDyadmino" inverseName="match" inverseEntity="DataDyadmino" syncable="YES"/>
@@ -42,8 +41,8 @@
         <relationship name="match" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Match" inverseName="players" inverseEntity="Match" syncable="YES"/>
     </entity>
     <elements>
-        <element name="DataDyadmino" positionX="0" positionY="0" width="0" height="0"/>
-        <element name="Match" positionX="0" positionY="0" width="0" height="0"/>
-        <element name="Player" positionX="0" positionY="0" width="0" height="0"/>
+        <element name="DataDyadmino" positionX="0" positionY="0" width="128" height="180"/>
+        <element name="Match" positionX="0" positionY="0" width="128" height="285"/>
+        <element name="Player" positionX="0" positionY="0" width="128" height="180"/>
     </elements>
 </model>

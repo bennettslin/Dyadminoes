@@ -321,8 +321,8 @@
       
       if (!player || ([player returnResigned] && [self.myMatch returnType] != kSelfGame)) {
         scoreText = @"";
-      } else if (player == [self.myMatch returnCurrentPlayer] && [self.myMatch returnTempScore] > 0) {
-        scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)[player returnPlayerScore], (unsigned long)[self.myMatch returnTempScore]];
+      } else if (player == [self.myMatch returnCurrentPlayer] && [self.myMatch sumOfPointsThisTurn] > 0) {
+        scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)[player returnPlayerScore], (unsigned long)[self.myMatch sumOfPointsThisTurn]];
       } else {
         scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)[player returnPlayerScore]];
       }
@@ -335,7 +335,7 @@
       
         // FIXME: so that this is animated
         // score label
-      if (player == [self.myMatch returnCurrentPlayer] && (finalTurn || [self.myMatch returnTempScore] > 0)) {
+      if (player == [self.myMatch returnCurrentPlayer] && (finalTurn || [self.myMatch sumOfPointsThisTurn] > 0)) {
         
           // upon final turn, score is animated
         if (animated) {
@@ -511,9 +511,10 @@
   self.replayTurnLabel.text = @"";
   
   [self.delegate startAnimatingBackground];
-  [self saveManagedObjectContext];
   [self.delegate setCellsShouldBeEditable:YES];
+  [self saveManagedObjectContext];
   [self.delegate rememberMostRecentMatch:self.myMatch];
+  [self.delegate reloadTable];
   
   [self.mySceneView presentScene:nil];
   [self dismissViewControllerAnimated:YES completion:nil];

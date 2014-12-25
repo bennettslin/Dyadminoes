@@ -227,6 +227,10 @@
   return @"Remove game";
 }
 
+-(void)reloadTable {
+  [self.tableView reloadData];
+}
+
 #pragma mark - Navigation
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
@@ -632,6 +636,8 @@
     }
     
     [self determineNewGameButtonAnimation];
+  } else {
+    NSLog(@"cells not editable.");
   }
 }
 

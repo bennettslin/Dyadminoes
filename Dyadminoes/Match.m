@@ -28,7 +28,6 @@
 @dynamic currentPlayerIndex;
 @dynamic gameHasEnded;
 @dynamic dataDyadminoes;
-@dynamic tempScore;
 @dynamic holdingIndexContainer;
 @dynamic swapIndexContainer;
 @dynamic replayTurn;
@@ -205,6 +204,7 @@
     [self removeAllSwaps];
     
     [self resetHoldingContainer];
+    [self resetArrayOfChordsAndPoints];
     [self recordDyadminoesFromCurrentPlayerWithSwap:YES]; // this records turn as a pass
       // sort the board and pile
     [self sortPileArray];
@@ -214,19 +214,26 @@
 }
 
 -(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap {
-
+  
+  NSSet *chordSonorities = [self totalChordSonoritiesThisTurn];
+  NSNumber *points = @([self sumOfPointsThisTurn]);
+  
     // a pass has an empty holding container, while a resign has *no* holding container
   NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:
                               [NSNumber numberWithUnsignedInteger:[self returnCurrentPlayerIndex]], kTurnPlayer,
-                              self.holdingIndexContainer, kTurnDyadminoes, nil];
+                              self.holdingIndexContainer, kTurnDyadminoes,
+                              chordSonorities, kTurnChords,
+                              points, kTurnPoints,
+                              nil];
   
   [self addTurn:dictionary];
+  NSLog(@"turn dictionary is %@", dictionary);
+  
   NSArray *turns = self.turns;
   self.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
   
-    // player passes
-  NSArray *holdingIndexContainer = self.holdingIndexContainer;
-  if (holdingIndexContainer.count == 0) {
+      // player passes
+  if ([(NSArray *)self.holdingIndexContainer count] == 0) {
     
       // if solo game, ends right away
       // FIXME: this will need to be changed to accommodate when board dyadmino
@@ -251,7 +258,7 @@
       /// obviously scorekeeping will be more sophisticated
       /// and will consider chords formed
     Player *player = [self returnCurrentPlayer];
-    NSUInteger newScore = [player returnPlayerScore] + [self returnTempScore];
+    NSUInteger newScore = [player returnPlayerScore] + [self sumOfPointsThisTurn];
     player.playerScore = [NSNumber numberWithUnsignedInteger:newScore];
     
     for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:self.holdingIndexContainer]) {
@@ -284,6 +291,7 @@
   
       // whether pass or not, game continues
   [self resetHoldingContainer];
+  [self resetArrayOfChordsAndPoints];
   self.lastPlayed = [NSDate date];
   [self switchToNextPlayer];
 }
@@ -412,6 +420,7 @@
   [self sortPileArray];
   
   [self resetHoldingContainer];
+  [self resetArrayOfChordsAndPoints];
   [player removeAllDataDyadminoesThisTurn];
   if (![self switchToNextPlayer]) {
     [self endGame];
@@ -423,6 +432,7 @@
 -(void)endGame {
   self.currentPlayerIndex = [NSNumber numberWithUnsignedInteger:0];
   [self resetHoldingContainer];
+  [self resetArrayOfChordsAndPoints];
   
     // if solo game, sole player is winner if any score at all
   if ([self returnType] == kSelfGame) {
@@ -511,14 +521,19 @@
 -(NSString *)turnTextLastPlayed:(BOOL)lastPlayed {
   Player *turnPlayer = [self playerForIndex:[[self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnPlayer] unsignedIntegerValue]];
   NSArray *dyadminoesPlayed;
+  
+  NSUInteger points;
   if ([self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes]) {
     dyadminoesPlayed = [self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes];
+    points = [[self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnPoints] unsignedIntegerValue];
   }
   
   NSString *dyadminoesPlayedString;
   if (dyadminoesPlayed.count > 0) {
-    NSString *componentsString = [[dyadminoesPlayed valueForKey:@"stringValue"] componentsJoinedByString:@", "];
-    dyadminoesPlayedString = [NSString stringWithFormat:@"played %@", componentsString];
+//    NSAttributedString *chordsText = [self.delegate stringForSonorities:chordSonoritiesPlayed withInitialString:@"" andEndingString:@""];
+//    NSLog(@"chordsText is %@", chordsText);
+    
+    dyadminoesPlayedString = [NSString stringWithFormat:@"scored %i points", points];
   } else if (!dyadminoesPlayed) {
     dyadminoesPlayedString = @"resigned";
   } else if (dyadminoesPlayed.count == 0) {
@@ -572,9 +587,6 @@
 
 -(BOOL)addToHoldingContainer:(DataDyadmino *)dataDyad {
   
-    // modify scorekeeping methods, of course
-    // especially since this will be used to call swap as well
-  self.tempScore = [NSNumber numberWithUnsignedInteger:[self returnTempScore] + 1];
   NSUInteger originalCount = [(NSArray *)self.holdingIndexContainer count];
   
   NSNumber *number = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]];
@@ -591,9 +603,6 @@
   NSArray *holdingIndexContainer = self.holdingIndexContainer;
   if (holdingIndexContainer.count > 0) {
     
-      // FIXME: this should be changed
-//    self.tempScore = [NSNumber numberWithUnsignedInteger:[self returnTempScore] - 1];
-    
     NSNumber *number = [self.holdingIndexContainer lastObject];
     NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.holdingIndexContainer];
     [tempArray removeObject:number];
@@ -608,28 +617,13 @@
   self.holdingIndexContainer = nil;
 }
 
-
--(BOOL)addToArrayOfChordsAndPointsThisChordSonority:(NSSet *)chordSonority andFromRack:(BOOL)fromRack {
-    // points determines whether this was from a board move
+-(BOOL)addToArrayOfChordsAndPointsTheseChordSonorities:(NSSet *)chordSonorities andFromRack:(BOOL)fromRack {
   
   NSUInteger originalCount = [(NSArray *)self.arrayOfChordsAndPoints count];
-  NSUInteger points;
-
-    // triad
-  if (chordSonority.count == 3) {
-    points = 2;
-
-      // seventh chord
-  } else {
-    
-      // either placed from rack or moved on board
-    points = fromRack ? 3 : 1;
-  }
+  NSUInteger points = [self pointsForChordSonorities:chordSonorities fromRack:fromRack];
   
   NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
-  
-    // match keeps track of dictionary internally
-  NSDictionary *thisDictionary = @{@"chordSonority":chordSonority, @"points":@(points)};
+  NSDictionary *thisDictionary = @{@"chordSonorities":chordSonorities, @"points":@(points), @"fromRack":@(fromRack)};
   [tempArray addObject:thisDictionary];
   self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
   
@@ -638,27 +632,32 @@
 
 -(BOOL)undoFromArrayOfChordsAndPoints {
   
-  NSInteger counter = [(NSArray *)self.arrayOfChordsAndPoints count] - 1;
-  BOOL lastPlayedChordFromRackDyadminoFound = NO;
+  NSUInteger originalCount = [(NSArray *)self.arrayOfChordsAndPoints count];
+  NSInteger counter = originalCount - 1; // starts at end of array
+
+  BOOL lastPlayedChordsFromRackDyadminoFound = NO;
   NSDictionary *chordDictionary;
   
     // ensures that it does not retrieve chord built from moved board dyadmino
-  while (counter >= 0 && !lastPlayedChordFromRackDyadminoFound) {
+  while (counter >= 0 && !lastPlayedChordsFromRackDyadminoFound) {
     
     chordDictionary = self.arrayOfChordsAndPoints[counter];
-    NSUInteger points = [chordDictionary[@"points"] unsignedIntegerValue];
-    if (points != 1) {
-      
-      lastPlayedChordFromRackDyadminoFound = YES;
+    BOOL fromRack = [chordDictionary[@"fromRack"] boolValue];
+    if (fromRack) {
+      lastPlayedChordsFromRackDyadminoFound = YES;
     }
     
     counter--;
   }
   
-  NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
-  [tempArray removeObject:chordDictionary];
-  self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
-  return ([(NSArray *)self.arrayOfChordsAndPoints count] == counter);
+  if (lastPlayedChordsFromRackDyadminoFound) {
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
+    [tempArray removeObject:chordDictionary];
+    self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
+  }
+  
+    // counter was count - 1, so new count should be equal to original counter
+  return ([(NSArray *)self.arrayOfChordsAndPoints count] == originalCount - 1);
 }
 
 -(void)resetArrayOfChordsAndPoints {
@@ -831,20 +830,23 @@
 
 #pragma mark - array of chords and points helper methods
 
--(NSSet *)setOfChordSonoritiesInArrayOfChordsAndPoints {
+-(NSSet *)totalChordSonoritiesThisTurn {
 
-  NSMutableSet *tempChordSonorities = [NSMutableSet new];
+  NSMutableSet *tempTotalChordSonorities = [NSMutableSet new];
   
   for (int i = 0; i < [(NSArray *)self.arrayOfChordsAndPoints count]; i++) {
     NSDictionary *chordDictionary = self.arrayOfChordsAndPoints[i];
-    NSSet *chordSonority = chordDictionary[@"chordSonority"];
-    [tempChordSonorities addObject:chordSonority];
+    NSSet *chordSonorities = chordDictionary[@"chordSonorities"];
+    for (NSSet *chordSonority in chordSonorities) {
+      [tempTotalChordSonorities addObject:chordSonority];
+    }
   }
   
-  return [NSSet setWithSet:tempChordSonorities];
+  NSLog(@"total chord sonorities this turn is %@", tempTotalChordSonorities);
+  return [NSSet setWithSet:tempTotalChordSonorities];
 }
 
--(NSNumber *)sumOfPointsFromArrayOfChordsAndPoints {
+-(NSUInteger)sumOfPointsThisTurn {
   
   NSUInteger sumPoints = 0;
   
@@ -854,7 +856,33 @@
     sumPoints += [chordPointsNumber unsignedIntegerValue];
   }
   
-  return @(sumPoints);
+  return sumPoints;
+}
+
+-(NSUInteger)pointsForChordSonorities:(NSSet *)chordSonorities fromRack:(BOOL)fromRack {
+  
+  NSUInteger points = 0;
+  for (NSSet *chordSonority in chordSonorities) {
+    points += [self pointsForChordSonority:chordSonority fromRack:fromRack];
+  }
+  
+  return points;
+}
+
+-(NSUInteger)pointsForChordSonority:(NSSet *)chordSonority fromRack:(BOOL)fromRack {
+  NSUInteger points;
+  
+    // triad
+  if (chordSonority.count == 3) {
+    points = kPointsTriad;
+    
+      // seventh chord
+  } else {
+    
+      // either placed from rack or moved on board
+    points = fromRack ? kPointsSeventh : kPointsExtendedSeventh;
+  }
+  return points;
 }
 
 #pragma mark = holding container helper methods
@@ -928,10 +956,6 @@
 
 -(NSUInteger)returnFirstDataDyadIndex {
   return [self.firstDataDyadIndex unsignedIntegerValue];
-}
-
--(NSUInteger)returnTempScore {
-  return [self.tempScore unsignedIntegerValue];
 }
 
 -(NSUInteger)returnReplayTurn {

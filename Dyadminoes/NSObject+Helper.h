@@ -199,6 +199,11 @@
 #define kTurnChords @"chords"
 #define kTurnPoints @"points"
 
+  // points
+#define kPointsTriad 2
+#define kPointsSeventh 3
+#define kPointsExtendedSeventh 1
+
   //----------------------------------------------------------------------------
 
   // colours

@@ -50,5 +50,6 @@
 -(void)removeChildViewController:(UIViewController *)childVC;
 -(void)startAnimatingBackground;
 -(void)rememberMostRecentMatch:(Match *)match;
+-(void)reloadTable;
 
 @end
