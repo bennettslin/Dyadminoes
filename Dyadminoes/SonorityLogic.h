@@ -23,10 +23,6 @@
 
 -(NSSet *)sonoritiesInSonorities:(NSSet *)larger thatAreSupersetsOfSonoritiesInSonorities:(NSSet *)smaller;
 
-#pragma mark - point methods
-
-//-(NSUInteger)pointsForSonority:(NSSet *)sonority fromExtension:(BOOL)fromExtension;
-
 #pragma mark - chord logic methods
 
 -(Chord)chordFromSonorityPlusCheckIncompleteSeventh:(NSSet *)sonority;

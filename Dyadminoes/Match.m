@@ -627,8 +627,8 @@
   
   NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
   
-  NSSet *previousChordSonorities;
     // this checks if we now have an extending seventh replacing a previously played triad
+  NSSet *previousChordSonorities;
   for (NSDictionary *previousDictionary in self.arrayOfChordsAndPoints) {
     if (dyadminoID != -1 && [previousDictionary[@"dyadmino"] isEqualToNumber:@(dyadminoID)]) {
       previousChordSonorities = previousDictionary[@"chordSonorities"];
@@ -637,7 +637,7 @@
     }
   }
   
-    // this ensures that extending seventh counts as a new chord, now that original triad has been removed
+    // this ensures that extending seventh will count as a new chord, now that original triad has been removed
   if (previousChordSonorities) {
     NSMutableSet *tempNewExtendedChordSonorities = [NSMutableSet setWithSet:extendedChordSonorities];
     for (NSSet *previousSonority in previousChordSonorities) {
@@ -657,7 +657,7 @@
   [tempArray addObject:thisDictionary];
   self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
   
-    // count should not change if extending dyadmino, otherwise it should add one
+    // count should not change if dyadmino has already been placed this turn, otherwise it should add one
   NSUInteger addedComparisonValue = extendingDyadmino ? 0 : 1;
   return ([(NSArray *)self.arrayOfChordsAndPoints count] == originalCount + addedComparisonValue);
 }

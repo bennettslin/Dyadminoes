@@ -63,38 +63,45 @@
 
 -(void)presentChildViewController:(UIViewController *)childVC {
   
-  NSLog(@"presenting child vc");
-  
   self.vcIsAnimating = YES;
   (self.childVC && self.childVC != childVC) ? [self removeChildViewController:self.childVC] : nil;
   
   self.childVC = childVC;
   
-  NSLog(@"child VC is %@", self.childVC);
-  
   if (![self.darkOverlay superview]) {
     [self fadeOverlayIn:YES];
   }
   
-  CGFloat viewWidth = self.screenWidth * 4 / 5;
-  CGFloat viewHeight = kIsIPhone ? self.screenHeight * 5 / 7 : self.screenHeight * 4 / 5;
-  
-  childVC.view.frame = CGRectMake(0, 0, viewWidth, viewHeight);
-  childVC.view.center = CGPointMake(self.view.center.x - self.screenWidth, self.view.center.y);
-  childVC.view.layer.cornerRadius = kCornerRadius;
-  childVC.view.layer.masksToBounds = YES;
-  
-  [self.view addSubview:childVC.view];
   [self animatePresentVC:childVC];
 }
 
 -(void)animatePresentVC:(UIViewController *)childVC {
   
+  CGFloat viewWidth = self.screenWidth * 4 / 5;
+  CGFloat viewHeight = kIsIPhone ? self.screenHeight * 5 / 7 : self.screenHeight * 4 / 5;
+  
+  childVC.view.frame = CGRectMake(0, 0, viewWidth, viewHeight);
+  childVC.view.center = CGPointMake(self.view.center.x - (self.screenWidth / 4), self.view.center.y);
+  childVC.view.layer.cornerRadius = kCornerRadius;
+  childVC.view.layer.masksToBounds = YES;
+  
+  [self.view addSubview:childVC.view];
+  
+  CGPoint excessCenter = CGPointMake(self.view.center.x + (self.screenWidth * 0.0125f), self.view.center.y);
+  CGPoint finalCenter = self.view.center;
+  
+  childVC.view.alpha = 0.f;
   __weak typeof(self) weakSelf = self;
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-    childVC.view.center = weakSelf.view.center;
+  [UIView animateWithDuration:kViewControllerSpeed * 0.7f delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    childVC.view.center = excessCenter;
+    childVC.view.alpha = 1.f;
   } completion:^(BOOL finished) {
-    weakSelf.vcIsAnimating = NO;
+    [UIView animateWithDuration:kViewControllerSpeed * 0.3f delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+      childVC.view.center = finalCenter;
+    } completion:^(BOOL finished) {
+
+      weakSelf.vcIsAnimating = NO;
+    }];
   }];
 }
 
@@ -102,7 +109,8 @@
   
   __weak typeof(self) weakSelf = self;
   [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    childVC.view.center = CGPointMake(weakSelf.view.center.x + weakSelf.screenWidth, weakSelf.view.center.y);
+    childVC.view.center = CGPointMake(weakSelf.view.center.x + (weakSelf.screenWidth / 4), weakSelf.view.center.y);
+    childVC.view.alpha = 0.f;
   } completion:^(BOOL finished) {
     [childVC.view removeFromSuperview];
   }];

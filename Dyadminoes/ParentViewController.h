@@ -27,7 +27,6 @@
 
 -(void)backToParentViewWithAnimateRemoveVC:(BOOL)animateRemoveVC;
 -(void)presentChildViewController:(UIViewController *)childVC;
--(void)animatePresentVC:(UIViewController *)childVC;
 -(void)removeChildViewController:(UIViewController *)childVC;
 
 -(void)resetDarkOverlay;

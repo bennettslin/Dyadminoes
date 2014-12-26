@@ -29,6 +29,9 @@
 #define kMainTopBarHeight (kIsIPhone ? 64.f : 86.f)
 #define kMainBottomBarHeight (kIsIPhone ? 60.f : 90.f)
 #define kActivityIndicatorFrame (kIsIPhone ? 120.f : 150.f)
+#define kBounceDivisor 10.f
+#define kTopBarPadding (kMainTopBarHeight / kBounceDivisor)
+#define kBottomBarPadding (kMainBottomBarHeight / kBounceDivisor)
 
 @interface MainViewController () <SceneViewDelegate, MatchCellDelegate, LocalGameDelegate>
 
@@ -89,9 +92,7 @@
   [self.view addSubview:self.activityIndicator];
   
   self.bottomBar.backgroundColor = kMainBarsColour;
-  [self addGradientToView:self.bottomBar WithColour:kMainBarsColour andUpsideDown:NO];
   self.topBar.backgroundColor = kMainBarsColour;
-  [self addGradientToView:self.topBar WithColour:kMainBarsColour andUpsideDown:YES];
   
   [self addShadowToView:self.topBar upsideDown:NO];
   [self addShadowToView:self.bottomBar upsideDown:YES];
@@ -131,8 +132,14 @@
   self.cellsShouldBeEditable = YES;
 
   [self resetActivityIndicator];
-  self.topBar.frame = CGRectMake(0, 0, self.screenWidth, kMainTopBarHeight);
-  self.bottomBar.frame = CGRectMake(0, self.screenHeight - kMainBottomBarHeight, self.screenWidth, kMainTopBarHeight);
+  
+  self.topBar.frame = CGRectMake(-kTopBarPadding, -kTopBarPadding, self.screenWidth + (2 * kTopBarPadding), kMainTopBarHeight + kTopBarPadding);
+  
+  self.bottomBar.frame = CGRectMake(-kBottomBarPadding, self.screenHeight - kMainBottomBarHeight, self.screenWidth + (2 * kBottomBarPadding), kMainBottomBarHeight + kBottomBarPadding);
+  
+  [self addGradientToView:self.topBar WithColour:kMainBarsColour andUpsideDown:YES];
+  [self addGradientToView:self.bottomBar WithColour:kMainBarsColour andUpsideDown:NO];
+  
   self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, self.screenWidth - kTableViewXMargin * 2, self.screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
   
   [self determineNewGameButtonAnimation];
@@ -263,8 +270,8 @@
   if (!self.vcIsAnimating && self.childVC && self.overlayEnabled) {
     
     if (animateRemoveVC) {
-      [self slideInTopBarAndBottomBar];
-      [self slideInTableview];
+      [self slideTopBarAndBottomBarOut:NO];
+      [self slideTableviewOut:NO];
       
     } else { // dismiss soloVC after starting new game
       [self performSelectorInBackground:@selector(removeChildViewController:) withObject:self.childVC];
@@ -280,8 +287,8 @@
 
 -(void)presentChildViewController:(UIViewController *)childVC {
   if (![self.darkOverlay superview]) {
-    [self slideOutTopBarAndBottomBar];
-    [self slideOutTableview];
+    [self slideTopBarAndBottomBarOut:YES];
+    [self slideTableviewOut:YES];
   }
   
   [super presentChildViewController:childVC];
@@ -338,43 +345,54 @@
   }
 }
 
--(void)slideOutTopBarAndBottomBar {
-  [self removeLocalGameButtonAnimations];
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    self.topBar.frame = CGRectMake(0, -kMainTopBarHeight, self.screenWidth, kMainTopBarHeight);
-  } completion:nil];
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    self.bottomBar.frame = CGRectMake(0, self.screenHeight, self.screenWidth, kMainBottomBarHeight);
-  } completion:nil];
+-(void)slideAnimateView:(UIView *)movingView toDestinationYPosition:(CGFloat)yPosition {
+
+  CGFloat originalYPosition = movingView.frame.origin.y;
+  CGFloat excessYPosition = (movingView == self.tableView) ?
+      yPosition + (kCellHeight / (kBounceDivisor * 1.5f)) :
+      ((yPosition - originalYPosition) / kBounceDivisor) + yPosition;
+  
+  [UIView animateWithDuration:(kViewControllerSpeed * 0.7f) delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    movingView.frame = CGRectMake(movingView.frame.origin.x, excessYPosition, movingView.frame.size.width, movingView.frame.size.height);
+  } completion:^(BOOL finished) {
+    
+    [UIView animateWithDuration:(kViewControllerSpeed * 0.3f) delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+      movingView.frame = CGRectMake(movingView.frame.origin.x, yPosition, movingView.frame.size.width, movingView.frame.size.height);
+    } completion:nil];
+  }];
 }
 
--(void)slideInTopBarAndBottomBar {
-  [self determineNewGameButtonAnimation];
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-    self.topBar.frame = CGRectMake(0, 0, self.screenWidth, kMainTopBarHeight);
-  } completion:nil];
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-    self.bottomBar.frame = CGRectMake(0, self.screenHeight - kMainBottomBarHeight, self.screenWidth, kMainTopBarHeight);
-  } completion:nil];
+-(void)slideTopBarAndBottomBarOut:(BOOL)out {
+  
+  if (out) { // slide out
+    [self removeLocalGameButtonAnimations];
+  
+    [self slideAnimateView:self.topBar toDestinationYPosition:-(kMainTopBarHeight + kTopBarPadding)];
+    [self slideAnimateView:self.bottomBar toDestinationYPosition:self.screenHeight];
+    
+  } else { // slide in
+    [self determineNewGameButtonAnimation];
+    
+    [self slideAnimateView:self.topBar toDestinationYPosition:-kTopBarPadding];
+    [self slideAnimateView:self.bottomBar toDestinationYPosition:(self.screenHeight - kMainBottomBarHeight)];
+  }
 }
 
--(void)slideOutTableview {
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-        self.tableView.frame = CGRectMake(kTableViewXMargin, 0 - self.screenHeight, self.screenWidth - kTableViewXMargin * 2, self.screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
-  } completion:nil];
-}
-
--(void)slideInTableview {
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, self.screenWidth - kTableViewXMargin * 2, self.screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
-  } completion:nil];
+-(void)slideTableviewOut:(BOOL)out {
+  
+  if (out) { // slide out
+    [self slideAnimateView:self.tableView toDestinationYPosition:(kMainTopBarHeight - self.screenHeight)];
+    
+  } else { // slide in
+    [self slideAnimateView:self.tableView toDestinationYPosition:kMainTopBarHeight];
+  }
 }
 
 -(void)activityIndicatorStart:(BOOL)start {
   if (start) {
     [NSThread detachNewThreadSelector:@selector(transitionToSceneAnimationNewThread:) toTarget:self withObject:nil];
-    [self slideOutTopBarAndBottomBar];
-    [self slideOutTableview];
+    [self slideTopBarAndBottomBarOut:YES];
+    [self slideTableviewOut:YES];
   } else {
     [self resetActivityIndicator];
     [self resetDarkOverlay];
@@ -410,26 +428,26 @@
     dispatch_async(dispatch_get_main_queue(), ^{
       [UIView animateKeyframesWithDuration:18 * unit delay:0.f options: UIViewKeyframeAnimationOptionRepeat | UIViewAnimationOptionAllowUserInteraction animations:^{
         
-        [UIView addKeyframeWithRelativeStartTime:0 relativeDuration:unit animations:^{
+        [UIView addKeyframeWithRelativeStartTime:0 relativeDuration:1 / 18.f animations:^{
           weakSelf.localGameButton.transform = CGAffineTransformRotate(weakSelf.localGameButton.transform, [weakSelf getRadiansFromDegree:degrees]);
           weakSelf.localGameButton.transform = CGAffineTransformScale(weakSelf.localGameButton.transform, kDyadminoHoverResizeFactor, kDyadminoHoverResizeFactor);
         }];
         
         for (int i = 1; i <= 3; i++) {
-          [UIView addKeyframeWithRelativeStartTime:unit * (((i * 2) - 1) - 0.5f) relativeDuration:unit animations:^{
+          [UIView addKeyframeWithRelativeStartTime:(((i * 2) - 1) - 0.5f) / 18.f relativeDuration:1 / 18.f animations:^{
             weakSelf.localGameButton.transform = CGAffineTransformRotate(weakSelf.localGameButton.transform, [weakSelf getRadiansFromDegree:degrees * -2]);
           }];
-          [UIView addKeyframeWithRelativeStartTime:unit * ((i * 2) - 0.5f) relativeDuration:unit animations:^{
+          [UIView addKeyframeWithRelativeStartTime:((i * 2) - 0.5f) / 18.f relativeDuration:1 / 18.f animations:^{
             weakSelf.localGameButton.transform = CGAffineTransformRotate(weakSelf.localGameButton.transform, [weakSelf getRadiansFromDegree:degrees * 2]);
           }];
         }
         
-        [UIView addKeyframeWithRelativeStartTime:unit * 6.5f relativeDuration:unit animations:^{
+        [UIView addKeyframeWithRelativeStartTime:6.5f / 18.f relativeDuration:1 / 18.f animations:^{
           weakSelf.localGameButton.transform = CGAffineTransformRotate(weakSelf.localGameButton.transform, [weakSelf getRadiansFromDegree:-degrees]);
           weakSelf.localGameButton.transform = CGAffineTransformScale(weakSelf.localGameButton.transform, 1 / kDyadminoHoverResizeFactor, 1 / kDyadminoHoverResizeFactor);
         }];
         
-        [UIView addKeyframeWithRelativeStartTime:unit * 7.5f relativeDuration:unit * 10.5 animations:^{
+        [UIView addKeyframeWithRelativeStartTime:7.5f / 18.f relativeDuration:1 / 18.f animations:^{
         }];
         
       } completion:nil];
