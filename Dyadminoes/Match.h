@@ -83,8 +83,11 @@
 -(DataDyadmino *)undoDyadminoToHoldingContainer;
 
   // array of chords and points change methods
--(BOOL)addToArrayOfChordsAndPointsTheseChordSonorities:(NSSet *)chordSonorities andFromRack:(BOOL)fromRack;
--(BOOL)undoFromArrayOfChordsAndPoints;
+-(BOOL)addToArrayOfChordsAndPointsTheseChordSonorities:(NSSet *)chordSonorities
+                               extendedChordSonorities:(NSSet *)extendedChordSonorities
+                                        fromDyadminoID:(NSInteger)dyadminoID;
+
+-(BOOL)undoFromArrayOfChordsAndPointsThisDyadminoID:(NSInteger)dyadminoID;
 
   // replay methods
 -(void)startReplay;
@@ -105,7 +108,9 @@
 
   // array of chords and points helper methods
 -(NSUInteger)sumOfPointsThisTurn;
--(NSUInteger)pointsForChordSonorities:(NSSet *)chordSonorities fromRack:(BOOL)fromRack; // this is made public for action sheet
+
+  // chord sonorities are also in extended chord sonorities
+-(NSUInteger)pointsForChordSonorities:(NSSet *)chordSonorities extendedChordSonorities:(NSSet *)extendedChordSonorities;
 
   // holding container helper methods
 -(BOOL)holdingsContainsDataDyadmino:(DataDyadmino *)dataDyad;
@@ -157,6 +162,7 @@
                          withInitialString:(NSString *)initialString
                            andEndingString:(NSString *)endingString;
 
+-(BOOL)sonority:(NSSet *)smaller IsSubsetOfSonority:(NSSet *)larger;
 -(void)handleSwitchToNextPlayer;
 -(void)handleEndGame;
 

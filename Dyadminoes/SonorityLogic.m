@@ -167,18 +167,18 @@
 
 #pragma mark - point methods
 
--(NSUInteger)pointsForSonority:(NSSet *)sonority fromExtension:(BOOL)fromExtension {
-    // from extension will only be for seventh chord
-    // 2 points for triads, 3 points for sevenths
-  
-  NSSet *chordSonority = [self chordSonorityForSonority:sonority];
-  Chord chord = [self chordFromChordSonority:chordSonority];
-  if (chord.chordType <= kChordFrenchSixth) {
-    return fromExtension ? 1 : chordSonority.count - 1;
-  } else {
-    return 0;
-  }
-}
+//-(NSUInteger)pointsForSonority:(NSSet *)sonority fromExtension:(BOOL)fromExtension {
+//    // from extension will only be for seventh chord
+//    // 2 points for triads, 3 points for sevenths
+//  
+//  NSSet *chordSonority = [self chordSonorityForSonority:sonority];
+//  Chord chord = [self chordFromChordSonority:chordSonority];
+//  if (chord.chordType <= kChordFrenchSixth) {
+//    return fromExtension ? 1 : chordSonority.count - 1;
+//  } else {
+//    return 0;
+//  }
+//}
 
 #pragma mark - chord logic methods
 

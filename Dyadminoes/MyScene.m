@@ -41,7 +41,7 @@
 @property (strong, nonatomic) NSArray *playerRackDyadminoes;
 @property (strong, nonatomic) NSSet *boardDyadminoes; // contains holding container dyadminoes
 @property (strong, nonatomic) NSSet *boardDyadminoBelongsInTheseLegalChords; // instantiated and nillified along with hovering dyadmino
-@property (strong, nonatomic) NSSet *boardChords;
+@property (strong, nonatomic) NSSet *allBoardChords;
 
 @property (strong, nonatomic) NSSet *legalSonoritiesThisTurn;
 
@@ -122,7 +122,7 @@
   BOOL _debugMode;
 }
 
-#pragma mark - init methods
+#pragma mark - set up methods
 
 -(id)initWithSize:(CGSize)size {
   
@@ -240,7 +240,7 @@
   _endTouchLocationToMeasureDoubleTap = CGPointMake(CGFLOAT_MAX, CGFLOAT_MAX);
   _undoButtonAllowed = YES;
   _tempChordSonoritiesFromMovedBoardDyadmino = nil;
-  self.boardChords = nil;
+  self.allBoardChords = nil;
   
   if (_lockMode) {
     [self handleDoubleTapForLockModeWithSound:NO];
@@ -306,25 +306,115 @@
   }
 }
 
-  //----------------------------------------------------------------------------
-
--(void)loadBoardChords {
+-(void)afterNewPlayerReady {
+    // called both when scene is loaded, and when new player is ready in PnP mode
   
-    // board chords are loaded in afterNewPlayerReady
+  [self loadAndVerifyBoardChords];
+
+  if (![self populateRackArray]) {
+    NSLog(@"Rack array was not populated properly.");
+    abort();
+  }
+  
+  if (![self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO]) {
+    NSLog(@"Rack field dyadminoes not refreshed properly.");
+    abort();
+  }
+
+  [self animateRecentlyPlayedDyadminoes];
+  
+  if (![self showTurnInfoOrGameResultsForReplay:NO]) {
+    NSLog(@"Turn info or game results for replay not shown properly.");
+    abort();
+  }
+}
+
+#pragma mark - wrap up methods
+
+-(void)willMoveFromView:(SKView *)view {
+
+  if (_debugMode) {
+    _debugMode = NO;
+    [self toggleDebugMode];
+  }
+
+    // establish that cell and dyadmino alphas are normal
+    // important because next match might have different dyadminoes
+  _dyadminoesStationary = NO;
+  [self toggleCellsAndDyadminoesAlphaAnimated:NO];
+  
+  _swapMode = NO;
+  [self toggleSwapFieldWithAnimation:NO];
+  
+  self.boardDyadminoes = nil;
+  self.allBoardChords = nil;
+  
+  for (SKNode *node in _boardField.children) {
+    if ([node isKindOfClass:[Dyadmino class]]) {
+      Dyadmino *dyadmino = (Dyadmino *)node;
+      [self updateCellsForRemovedDyadmino:dyadmino andColour:YES];
+      [dyadmino resetForNewMatch];
+    }
+  }
+  
+  [_boardField resetForNewMatch];
+  [self prepareRackForNextPlayer];
+}
+
+-(void)prepareRackForNextPlayer {
+    // called both when leaving scene, and when player finalises turn in PnP mode
+  self.playerRackDyadminoes = @[];
+  for (Dyadmino *dyadmino in _rackField.children) {
+    if ([dyadmino isKindOfClass:[Dyadmino class]]) {
+      [dyadmino resetForNewMatch];
+    }
+  }
+}
+
+-(void)goBackToMainViewController {
+  
+  [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
+  [self postSoundNotification:kNotificationToggleBarOrField];
+  
+  _dyadminoesStationary = YES;
+  [self toggleCellsAndDyadminoesAlphaAnimated:YES];
+  
+  if (_pnpBarUp) {
+    _pnpBarUp = NO;
+    [self togglePnPBarSyncWithRack:NO animated:YES];
+  } else {
+    [self toggleRackGoOut:YES completion:nil];
+  }
+  
+  __weak typeof(self) weakSelf = self;
+  void (^completion)(void) = ^void(void) {
+    [weakSelf.myDelegate backToMainMenu];
+  };
+  
+  [self toggleTopBarGoOut:YES completion:completion];
+}
+
+#pragma mark - validate chords methods
+
+-(void)loadAndVerifyBoardChords {
+  
+    // board chords are loaded in afterNewPlayerReady method
     // they are made nil in prepareForNewTurn and willMoveFromView
   
-    /// This proves that chords don't actually need to be persisted
-    /// if we're not keeping track of which chords were played each turn
+    // chord info doesn't actually need to be persisted, since it can be
+    // obtained through data dyadminoes directly
   
-    /// as long as we're just establishing all the chords on the board,
-    /// we can get that from the data dyadminoes directly
+    // for now, this method simply double-checks that the board cells have been
+    // loaded properly
+
+    // however, I may decide not to persist the chords after all
   
   NSSet *sceneChords = [self loadChordsFromSceneBoardDyadminoes];
   NSSet *persistedChords = [self loadChordsFromPersistedTurn];
   if ([[SonorityLogic sharedLogic] setOfLegalChords:sceneChords isSubsetOfSetOfLegalChords:persistedChords] &&
       [[SonorityLogic sharedLogic] setOfLegalChords:persistedChords isSubsetOfSetOfLegalChords:sceneChords]) {
-    NSLog(@"scene chords and persisted chords are equal.");
-    self.boardChords = sceneChords;
+    self.allBoardChords = sceneChords;
+    
   } else {
     NSLog(@"Scene did not load all the board chords properly.");
     abort();
@@ -354,71 +444,6 @@
   }
   
   return [NSSet setWithSet:tempLegalChordSonorities];
-}
-
-  //----------------------------------------------------------------------------
-
--(void)afterNewPlayerReady {
-    // called both when scene is loaded, and when new player is ready in PnP mode
-  
-  [self loadBoardChords];
-
-  if (![self populateRackArray]) {
-    NSLog(@"Rack array was not populated properly.");
-    abort();
-  }
-  
-  if (![self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO]) {
-    NSLog(@"Rack field dyadminoes not refreshed properly.");
-    abort();
-  }
-
-  [self animateRecentlyPlayedDyadminoes];
-  
-  if (![self showTurnInfoOrGameResultsForReplay:NO]) {
-    NSLog(@"Turn info or game results for replay not shown properly.");
-    abort();
-  }
-}
-
--(void)willMoveFromView:(SKView *)view {
-
-  if (_debugMode) {
-    _debugMode = NO;
-    [self toggleDebugMode];
-  }
-
-    // establish that cell and dyadmino alphas are normal
-    // important because next match might have different dyadminoes
-  _dyadminoesStationary = NO;
-  [self toggleCellsAndDyadminoesAlphaAnimated:NO];
-  
-  _swapMode = NO;
-  [self toggleSwapFieldWithAnimation:NO];
-  
-  self.boardDyadminoes = nil;
-  self.boardChords = nil;
-  
-  for (SKNode *node in _boardField.children) {
-    if ([node isKindOfClass:[Dyadmino class]]) {
-      Dyadmino *dyadmino = (Dyadmino *)node;
-      [self updateCellsForRemovedDyadmino:dyadmino andColour:YES];
-      [dyadmino resetForNewMatch];
-    }
-  }
-  
-  [_boardField resetForNewMatch];
-  [self prepareRackForNextPlayer];
-}
-
--(void)prepareRackForNextPlayer {
-    // called both when leaving scene, and when player finalises turn in PnP mode
-  self.playerRackDyadminoes = @[];
-  for (Dyadmino *dyadmino in _rackField.children) {
-    if ([dyadmino isKindOfClass:[Dyadmino class]]) {
-      [dyadmino resetForNewMatch];
-    }
-  }
 }
 
 #pragma mark - sound methods
@@ -1377,31 +1402,6 @@
   [_boardField pivotGuidesBasedOnTouchLocation:touchBoardOffset forDyadmino:dyadmino firstTime:YES];
 }
 
-#pragma mark - view controller methods
-
--(void)goBackToMainViewController {
-  
-  [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
-  [self postSoundNotification:kNotificationToggleBarOrField];
-  
-  _dyadminoesStationary = YES;
-  [self toggleCellsAndDyadminoesAlphaAnimated:YES];
-  
-  if (_pnpBarUp) {
-    _pnpBarUp = NO;
-    [self togglePnPBarSyncWithRack:NO animated:YES];
-  } else {
-    [self toggleRackGoOut:YES completion:nil];
-  }
-  
-  __weak typeof(self) weakSelf = self;
-  void (^completion)(void) = ^void(void) {
-    [weakSelf.myDelegate backToMainMenu];
-  };
-  
-  [self toggleTopBarGoOut:YES completion:completion];
-}
-
 #pragma mark - button methods
 
 -(void)togglePCsUserShaken:(BOOL)userShaken {
@@ -1645,8 +1645,10 @@
       // add chords from this dyadmino to array of chords
     NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
     NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
-        
-    if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:legalChordSonoritiesFormed andFromRack:YES]) {
+    
+    NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
+
+    if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:legalChordSonoritiesFormed extendedChordSonorities:chordSupersets fromDyadminoID:[dataDyad.myID unsignedIntegerValue]]) {
       NSLog(@"Match failed to add to array of chords.");
       abort();
     }
@@ -1693,7 +1695,7 @@
     
   } else {
       // remove chords or this dyadmino from array of chords
-    if (![self.myMatch undoFromArrayOfChordsAndPoints]) {
+    if (![self.myMatch undoFromArrayOfChordsAndPointsThisDyadminoID:[undoneDataDyadmino.myID unsignedIntegerValue]]) {
       NSLog(@"Match failed to undo chords for this data dyadmino.");
       abort();
     };
@@ -2119,22 +2121,35 @@
                 // extra chords formed means we've just built a new chord
             } else if (![[SonorityLogic sharedLogic] setOfLegalChords:legalChordSonoritiesFormed isSubsetOfSetOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords]) {
               
-              NSSet *supersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.boardDyadminoBelongsInTheseLegalChords];
+              NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
               
                 // show action sheet if dyadmino was on board before turn
               if ([self.myMatch.board containsObject:[self getDataDyadminoFromDyadmino:dyadmino]]) {
-                [self presentNewLegalChordActionSheetWithPoints:[self.myMatch pointsForChordSonorities:supersets fromRack:NO]];
-                _tempChordSonoritiesFromMovedBoardDyadmino = supersets;
+                [self presentNewLegalChordActionSheetWithPoints:[self.myMatch pointsForChordSonorities:legalChordSonoritiesFormed extendedChordSonorities:chordSupersets]];
+                _tempChordSonoritiesFromMovedBoardDyadmino = chordSupersets;
                 
-                NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:supersets withInitialString:@"Building " andEndingString:@"?"];
+                NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:chordSupersets withInitialString:@"Building " andEndingString:@"?"];
                 
                 [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
                 [dyadmino keepHovering];
                 
-                  // otherwise it was recently played this turn, so just keep the new chord
+                  // otherwise it's a seventh extended from a triad built this turn, so just keep the new chord
               } else {
+
+                NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
                 
-                NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:supersets withInitialString:@"Built " andEndingString:@"."];
+                DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+                
+                  // this allows the match to replace the triad recorded from the first time the dyadmino was placed
+                if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:legalChordSonoritiesFormed extendedChordSonorities:chordSupersets fromDyadminoID:[dataDyad.myID unsignedIntegerValue]]) {
+                  NSLog(@"Match failed to add to array of chords.");
+                  abort();
+                }
+
+                  // update player's temporary score
+                [self updateTopBarLabelsFinalTurn:NO animated:YES];
+                
+                NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:chordSupersets withInitialString:@"Built " andEndingString:@"."];
                 
                 [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
                 [self finishHoveringAfterCheckDyadmino:dyadmino];
@@ -2190,9 +2205,14 @@
               _recentRackDyadminoFormsLegalChord = NO;
               [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Must build new chord."] sign:kChordMessageBad];
               
+                // it is a legal chord
             } else {
+              
+                // check whether it's extending a triad into a seventh
+              NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
+              
               _recentRackDyadminoFormsLegalChord = YES;
-              NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:legalChordSonoritiesFormed withInitialString:@"Building " andEndingString:@"."];
+              NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:chordSupersets withInitialString:@"Building " andEndingString:@"."];
               [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
             }
           }
@@ -3270,8 +3290,10 @@
       
     } else {
       
-        // add to array of chords, this cannot be undone
-      if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:_tempChordSonoritiesFromMovedBoardDyadmino andFromRack:NO]) {
+      NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:_tempChordSonoritiesFromMovedBoardDyadmino thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
+      
+        // add to array of chords, this cannot be undone since it's not from rack
+      if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:_tempChordSonoritiesFromMovedBoardDyadmino extendedChordSonorities:chordSupersets fromDyadminoID:-1]) { // -1 indicates that match recognises this as a board dyadmino
         NSLog(@"Match failed to add to array of chords.");
         abort();
       } else {
@@ -3331,6 +3353,10 @@
 
 -(NSAttributedString *)stringForSonorities:(NSSet *)sonorities withInitialString:(NSString *)initialString andEndingString:(NSString *)endingString {
   return [[SonorityLogic sharedLogic] stringForSonorities:sonorities withInitialString:initialString andEndingString:endingString];
+}
+
+-(BOOL)sonority:(NSSet *)smaller IsSubsetOfSonority:(NSSet *)larger {
+  return [[SonorityLogic sharedLogic] sonority:smaller IsSubsetOfSonority:larger];
 }
 
 #pragma mark - debugging methods

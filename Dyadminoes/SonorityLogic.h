@@ -15,6 +15,8 @@
 
 -(NSSet *)legalChordSonoritiesFromFormationOfSonorities:(NSSet *)sonorities;
 
+  // scene needs this method to ensure that subsets of extended chords are not added to board chords
+-(BOOL)sonority:(NSSet *)smaller IsSubsetOfSonority:(NSSet *)larger;
 -(BOOL)setOfLegalChords:(NSSet *)setofLegalChords1 isSubsetOfSetOfLegalChords:(NSSet *)setOfLegalChords2;
 
 -(BOOL)sonority:(NSSet *)set containsNote:(NSDictionary *)dictionary;
@@ -23,7 +25,7 @@
 
 #pragma mark - point methods
 
--(NSUInteger)pointsForSonority:(NSSet *)sonority fromExtension:(BOOL)fromExtension;
+//-(NSUInteger)pointsForSonority:(NSSet *)sonority fromExtension:(BOOL)fromExtension;
 
 #pragma mark - chord logic methods
 

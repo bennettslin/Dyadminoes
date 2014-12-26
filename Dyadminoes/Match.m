@@ -617,46 +617,65 @@
   self.holdingIndexContainer = nil;
 }
 
--(BOOL)addToArrayOfChordsAndPointsTheseChordSonorities:(NSSet *)chordSonorities andFromRack:(BOOL)fromRack {
+-(BOOL)addToArrayOfChordsAndPointsTheseChordSonorities:(NSSet *)chordSonorities
+                               extendedChordSonorities:(NSSet *)extendedChordSonorities
+                                        fromDyadminoID:(NSInteger)dyadminoID { // -1 if from board dyadmino
+
+  BOOL extendingDyadmino = NO;
   
   NSUInteger originalCount = [(NSArray *)self.arrayOfChordsAndPoints count];
-  NSUInteger points = [self pointsForChordSonorities:chordSonorities fromRack:fromRack];
   
   NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
-  NSDictionary *thisDictionary = @{@"chordSonorities":chordSonorities, @"points":@(points), @"fromRack":@(fromRack)};
+  
+  NSSet *previousChordSonorities;
+    // this checks if we now have an extending seventh replacing a previously played triad
+  for (NSDictionary *previousDictionary in self.arrayOfChordsAndPoints) {
+    if (dyadminoID != -1 && [previousDictionary[@"dyadmino"] isEqualToNumber:@(dyadminoID)]) {
+      previousChordSonorities = previousDictionary[@"chordSonorities"];
+      [tempArray removeObject:previousDictionary];
+      extendingDyadmino = YES;
+    }
+  }
+  
+    // this ensures that extending seventh counts as a new chord, now that original triad has been removed
+  if (previousChordSonorities) {
+    NSMutableSet *tempNewExtendedChordSonorities = [NSMutableSet setWithSet:extendedChordSonorities];
+    for (NSSet *previousSonority in previousChordSonorities) {
+      for (NSSet *extendedSonority in extendedChordSonorities) {
+        if ([self.delegate sonority:previousSonority IsSubsetOfSonority:extendedSonority]) {
+          [tempNewExtendedChordSonorities removeObject:extendedSonority];
+        }
+      }
+    }
+    extendedChordSonorities = [NSSet setWithSet:tempNewExtendedChordSonorities];
+  }
+
+  
+  NSUInteger points = [self pointsForChordSonorities:chordSonorities extendedChordSonorities:extendedChordSonorities];
+  
+  NSDictionary *thisDictionary = @{@"chordSonorities":chordSonorities, @"points":@(points), @"dyadmino":@(dyadminoID)};
   [tempArray addObject:thisDictionary];
   self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
   
-  return ([(NSArray *)self.arrayOfChordsAndPoints count] == originalCount + 1);
+    // count should not change if extending dyadmino, otherwise it should add one
+  NSUInteger addedComparisonValue = extendingDyadmino ? 0 : 1;
+  return ([(NSArray *)self.arrayOfChordsAndPoints count] == originalCount + addedComparisonValue);
 }
 
--(BOOL)undoFromArrayOfChordsAndPoints {
+-(BOOL)undoFromArrayOfChordsAndPointsThisDyadminoID:(NSInteger)dyadminoID {
   
   NSUInteger originalCount = [(NSArray *)self.arrayOfChordsAndPoints count];
-  NSInteger counter = originalCount - 1; // starts at end of array
+  
+  NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
 
-  BOOL lastPlayedChordsFromRackDyadminoFound = NO;
-  NSDictionary *chordDictionary;
-  
-    // ensures that it does not retrieve chord built from moved board dyadmino
-  while (counter >= 0 && !lastPlayedChordsFromRackDyadminoFound) {
-    
-    chordDictionary = self.arrayOfChordsAndPoints[counter];
-    BOOL fromRack = [chordDictionary[@"fromRack"] boolValue];
-    if (fromRack) {
-      lastPlayedChordsFromRackDyadminoFound = YES;
+  for (NSDictionary *chordDictionary in self.arrayOfChordsAndPoints) {
+    if ([chordDictionary[@"dyadmino"] isEqualToNumber:@(dyadminoID)]) {
+      [tempArray removeObject:chordDictionary];
     }
-    
-    counter--;
   }
-  
-  if (lastPlayedChordsFromRackDyadminoFound) {
-    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
-    [tempArray removeObject:chordDictionary];
-    self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
-  }
-  
-    // counter was count - 1, so new count should be equal to original counter
+
+  self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
+
   return ([(NSArray *)self.arrayOfChordsAndPoints count] == originalCount - 1);
 }
 
@@ -859,17 +878,22 @@
   return sumPoints;
 }
 
--(NSUInteger)pointsForChordSonorities:(NSSet *)chordSonorities fromRack:(BOOL)fromRack {
+-(NSUInteger)pointsForChordSonorities:(NSSet *)chordSonorities extendedChordSonorities:(NSSet *)extendedChordSonorities {
   
   NSUInteger points = 0;
   for (NSSet *chordSonority in chordSonorities) {
-    points += [self pointsForChordSonority:chordSonority fromRack:fromRack];
+    
+    BOOL extended = [extendedChordSonorities containsObject:chordSonority];
+    
+    NSLog(@"chord sonority %@, extendedchordSonorities %@, extended %i", chordSonority, extendedChordSonorities, extended);
+
+    points += [self pointsForChordSonority:chordSonority extended:extended];
   }
   
   return points;
 }
 
--(NSUInteger)pointsForChordSonority:(NSSet *)chordSonority fromRack:(BOOL)fromRack {
+-(NSUInteger)pointsForChordSonority:(NSSet *)chordSonority extended:(BOOL)extended {
   NSUInteger points;
   
     // triad
@@ -879,8 +903,7 @@
       // seventh chord
   } else {
     
-      // either placed from rack or moved on board
-    points = fromRack ? kPointsSeventh : kPointsExtendedSeventh;
+    points = extended ? kPointsExtendedSeventh : kPointsSeventh;
   }
   return points;
 }
