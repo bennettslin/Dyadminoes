@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ChildViewController.h"
 
-@interface GameEndedViewController : UIViewController
+@interface GameEndedViewController : ChildViewController
 
 @end

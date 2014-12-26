@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ChildViewController.h"
 
-@interface RankViewController : UIViewController
+@interface RankViewController : ChildViewController
 
 @end

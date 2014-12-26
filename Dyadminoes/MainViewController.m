@@ -9,7 +9,8 @@
 #import "MyScene.h"
 #import "MainViewController.h"
 #import "NSObject+Helper.h"
-#import "SonorityLogic.h" // needed for accidentals in title label
+//#import "SonorityLogic.h" // needed for accidentals in title label
+#import "UIImage+colouredImage.h"
 
 #import "MatchTableViewCell.h"
 #import "SceneViewController.h"
@@ -23,13 +24,11 @@
 #import "Match.h"
 #import "Player.h"
 #import "CellBackgroundView.h"
-#import "UIImage+colouredImage.h"
 
 #define kTableViewXMargin (kIsIPhone ? 0.f : 60.f)
 #define kMainTopBarHeight (kIsIPhone ? 64.f : 86.f)
 #define kMainBottomBarHeight (kIsIPhone ? 60.f : 90.f)
 #define kActivityIndicatorFrame (kIsIPhone ? 120.f : 150.f)
-#define kBounceDivisor 10.f
 #define kTopBarPadding (kMainTopBarHeight / kBounceDivisor)
 #define kBottomBarPadding (kMainBottomBarHeight / kBounceDivisor)
 
@@ -101,7 +100,6 @@
   self.localVC.delegate = self;
   
   self.aboutVC = [[AboutViewController alloc] init];
-  self.aboutVC.view.backgroundColor = [UIColor blueColor];
   
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
@@ -285,7 +283,7 @@
   [super backToParentViewWithAnimateRemoveVC:animateRemoveVC];
 }
 
--(void)presentChildViewController:(UIViewController *)childVC {
+-(void)presentChildViewController:(ChildViewController *)childVC {
   if (![self.darkOverlay superview]) {
     [self slideTopBarAndBottomBarOut:YES];
     [self slideTableviewOut:YES];
@@ -345,46 +343,29 @@
   }
 }
 
--(void)slideAnimateView:(UIView *)movingView toDestinationYPosition:(CGFloat)yPosition {
-
-  CGFloat originalYPosition = movingView.frame.origin.y;
-  CGFloat excessYPosition = (movingView == self.tableView) ?
-      yPosition + (kCellHeight / (kBounceDivisor * 1.5f)) :
-      ((yPosition - originalYPosition) / kBounceDivisor) + yPosition;
-  
-  [UIView animateWithDuration:(kViewControllerSpeed * 0.7f) delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    movingView.frame = CGRectMake(movingView.frame.origin.x, excessYPosition, movingView.frame.size.width, movingView.frame.size.height);
-  } completion:^(BOOL finished) {
-    
-    [UIView animateWithDuration:(kViewControllerSpeed * 0.3f) delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-      movingView.frame = CGRectMake(movingView.frame.origin.x, yPosition, movingView.frame.size.width, movingView.frame.size.height);
-    } completion:nil];
-  }];
-}
-
 -(void)slideTopBarAndBottomBarOut:(BOOL)out {
   
   if (out) { // slide out
     [self removeLocalGameButtonAnimations];
   
-    [self slideAnimateView:self.topBar toDestinationYPosition:-(kMainTopBarHeight + kTopBarPadding)];
-    [self slideAnimateView:self.bottomBar toDestinationYPosition:self.screenHeight];
+    [self slideAnimateView:self.topBar toDestinationYPosition:-(kMainTopBarHeight + kTopBarPadding) durationConstant:kConstantTime];
+    [self slideAnimateView:self.bottomBar toDestinationYPosition:self.screenHeight durationConstant:kConstantTime];
     
   } else { // slide in
     [self determineNewGameButtonAnimation];
     
-    [self slideAnimateView:self.topBar toDestinationYPosition:-kTopBarPadding];
-    [self slideAnimateView:self.bottomBar toDestinationYPosition:(self.screenHeight - kMainBottomBarHeight)];
+    [self slideAnimateView:self.topBar toDestinationYPosition:-kTopBarPadding durationConstant:kConstantTime];
+    [self slideAnimateView:self.bottomBar toDestinationYPosition:(self.screenHeight - kMainBottomBarHeight) durationConstant:kConstantTime];
   }
 }
 
 -(void)slideTableviewOut:(BOOL)out {
   
   if (out) { // slide out
-    [self slideAnimateView:self.tableView toDestinationYPosition:(kMainTopBarHeight - self.screenHeight)];
+    [self slideAnimateView:self.tableView toDestinationYPosition:(kMainTopBarHeight - self.screenHeight) durationConstant:kConstantTime];
     
   } else { // slide in
-    [self slideAnimateView:self.tableView toDestinationYPosition:kMainTopBarHeight];
+    [self slideAnimateView:self.tableView toDestinationYPosition:kMainTopBarHeight durationConstant:kConstantTime];
   }
 }
 
@@ -465,7 +446,7 @@
 }
 
 -(IBAction)menuButtonLifted:(UIButton *)sender {
-  UIViewController *buttonVC;
+  ChildViewController *buttonVC;
   if (sender == self.helpButton) {
     buttonVC = self.helpVC;
   } else if (sender == self.settingsButton) {
@@ -654,8 +635,6 @@
     }
     
     [self determineNewGameButtonAnimation];
-  } else {
-    NSLog(@"cells not editable.");
   }
 }
 

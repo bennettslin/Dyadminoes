@@ -44,7 +44,6 @@
   [super viewDidLoad];
   
   self.optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"OptionsViewController"];
-  self.optionsVC.view.backgroundColor = kPlayerGreen;
   self.optionsVC.delegate = self;
   
     // first version of app will not have device orientation
@@ -449,38 +448,42 @@
 
 #pragma mark - label animation methods
 
+-(void)slideAnimateView:(UIView *)movingView toDestinationXPosition:(CGFloat)xPosition durationConstant:(CGFloat)constant {
+  
+  CGFloat originalXPosition = movingView.frame.origin.x;
+  CGFloat excessXPosition = ((xPosition - originalXPosition) / kBounceDivisor) + xPosition;
+  
+  [UIView animateWithDuration:(constant * 0.7f) delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    movingView.frame = CGRectMake(excessXPosition, movingView.frame.origin.y, movingView.frame.size.width, movingView.frame.size.height);
+  } completion:^(BOOL finished) {
+    
+    [UIView animateWithDuration:(constant * 0.3f) delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+      movingView.frame = CGRectMake(xPosition, movingView.frame.origin.y, movingView.frame.size.width, movingView.frame.size.height);
+    } completion:nil];
+  }];
+}
+
 -(void)animateTopBarLabelsGoOut:(BOOL)goOut {
   
     // _topBarScoreLabelWidth / 4 is labelView padding
   CGFloat desiredPlayerLabelsX = goOut ? -(kTopBarXEdgeBuffer + _widestPlayerLabelWidth + _topBarScoreLabelWidth + _topBarScoreLabelWidth / 4 + kTopBarPaddingBetweenStuff) : 0;
-  UIViewAnimationOptions option = goOut ?
-  UIViewAnimationOptionCurveEaseIn | UIViewAnimationOptionBeginFromCurrentState :
-  UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState;
-  [UIView animateWithDuration:kConstantTime - 0.05 delay:0.05 options:option animations:^{
-    self.playerLabelsField.frame = CGRectMake(desiredPlayerLabelsX, (kIsIPhone ? kTopBarHeight - kTopBarYEdgeBuffer : 0), self.view.frame.size.width, self.view.frame.size.height);
-  } completion:nil];
+  
+  [self slideAnimateView:self.playerLabelsField toDestinationXPosition:desiredPlayerLabelsX durationConstant:kConstantTime];
   
   CGFloat messageLabelWidth = (kButtonWidth * 5) + kTopBarPaddingBetweenStuff + kTopBarTurnPileLabelsWidth;
   CGFloat desiredMessageLabelX = goOut ? self.view.frame.size.width : self.view.frame.size.width - messageLabelWidth - kTopBarXEdgeBuffer;
   
-  [UIView animateWithDuration:kConstantTime delay:0 options:option animations:^{
-  self.lastTurnLabel.frame = CGRectMake(desiredMessageLabelX, kTopBarHeight, messageLabelWidth, kSceneMessageLabelFontSize);
-  } completion:nil];
+  [self slideAnimateView:self.lastTurnLabel toDestinationXPosition:desiredMessageLabelX durationConstant:kConstantTime];
   
   CGFloat desiredTurnPileLabelsX = goOut ? kTopBarXEdgeBuffer + kTopBarTurnPileLabelsWidth : 0;
-  [UIView animateWithDuration:kConstantTime delay:0 options:option animations:^{
-    self.turnPileCountField.frame = CGRectMake(desiredTurnPileLabelsX, (kIsIPhone ? kTopBarHeight - kTopBarYEdgeBuffer : 0), self.view.frame.size.width, self.view.frame.size.height);
-  } completion:nil];
+  
+  [self slideAnimateView:self.turnPileCountField toDestinationXPosition:desiredTurnPileLabelsX durationConstant:kConstantTime];
 }
 
 -(void)animateReplayLabelGoOut:(BOOL)goOut {
   
   CGFloat desiredY = goOut ? -kTopBarHeight * 0.95 : kTopBarHeight * 0.05;
-  
-  UIViewAnimationOptions option = goOut ? UIViewAnimationOptionCurveEaseIn : UIViewAnimationOptionCurveEaseOut;
-  [UIView animateWithDuration:kConstantTime delay:0 options:option animations:^{
-      self.replayTurnLabel.frame = CGRectMake(kReplayXEdgeBuffer, desiredY, self.view.frame.size.width - (kReplayXEdgeBuffer * 2), kTopBarHeight);
-    } completion:nil];
+  [self slideAnimateView:self.replayTurnLabel toDestinationYPosition:desiredY durationConstant:kConstantTime];
 }
 
 -(void)animatePnPLabelGoOut:(BOOL)goOut {
@@ -488,10 +491,7 @@
   CGFloat desiredY = goOut ? self.view.frame.size.height + (kRackHeight * 0.05) :
       self.view.frame.size.height - (kRackHeight * 0.95);
   
-  UIViewAnimationOptions option = goOut ? UIViewAnimationOptionCurveEaseIn : UIViewAnimationOptionCurveEaseOut;
-  [UIView animateWithDuration:kConstantTime delay:0 options:option animations:^{
-      self.pnpWaitingLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredY, self.view.frame.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
-    } completion:nil];
+  [self slideAnimateView:self.pnpWaitingLabel toDestinationYPosition:desiredY durationConstant:kConstantTime];
 }
 
 -(void)animateScoreLabelFlash:(UILabel *)scoreLabel {

@@ -308,7 +308,7 @@
 -(void)afterNewPlayerReady {
     // called both when scene is loaded, and when new player is ready in PnP mode
   
-  [self loadAndVerifyBoardChords];
+  [self refreshBoardChords];
 
   if (![self populateRackArray]) {
     NSLog(@"Rack array was not populated properly.");
@@ -395,29 +395,14 @@
 
 #pragma mark - validate chords methods
 
--(void)loadAndVerifyBoardChords {
+-(void)refreshBoardChords {
   
-    // board chords are loaded in afterNewPlayerReady method
-    // they are made nil in prepareForNewTurn and willMoveFromView
-  
-    // chord info doesn't actually need to be persisted, since it can be
-    // obtained through data dyadminoes directly
-  
-    // for now, this method simply double-checks that the board cells have been
-    // loaded properly
-
-    // however, I may decide not to persist the chords after all
+    // this is called in afterNewPlayerReady method
+    // and after adding to or undoing from array of chords
+    // self.allBoardChords is made nil in prepareForNewTurn and willMoveFromView
   
   NSSet *sceneChords = [self loadChordsFromSceneBoardDyadminoes];
-//  NSSet *persistedChords = [self loadChordsFromPersistedTurn];
-//  if ([[SonorityLogic sharedLogic] setOfLegalChords:sceneChords isSubsetOfSetOfLegalChords:persistedChords] &&
-//      [[SonorityLogic sharedLogic] setOfLegalChords:persistedChords isSubsetOfSetOfLegalChords:sceneChords]) {
-    self.allBoardChords = sceneChords;
-//    
-//  } else {
-//    NSLog(@"Scene did not load all the board chords properly.");
-//    abort();
-//  }
+  self.allBoardChords = sceneChords;
 }
 
 -(NSSet *)loadChordsFromSceneBoardDyadminoes {
@@ -427,18 +412,6 @@
     Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyadmino];
     NSSet *allSonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
     NSSet *legalChordSonorities = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:allSonorities];
-    [tempLegalChordSonorities addObjectsFromArray:[legalChordSonorities allObjects]];
-  }
-  
-  return [NSSet setWithSet:tempLegalChordSonorities];
-}
-
--(NSSet *)loadChordsFromPersistedTurn {
-  
-  NSMutableSet *tempLegalChordSonorities = [NSMutableSet new];
-  for (int i = 0; i < [(NSArray *)self.myMatch.turns count]; i++) {
-    NSDictionary *turn = self.myMatch.turns[i];
-    NSSet *legalChordSonorities = turn[kTurnChords];
     [tempLegalChordSonorities addObjectsFromArray:[legalChordSonorities allObjects]];
   }
   
@@ -500,7 +473,7 @@
   NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
   [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
   self.playerRackDyadminoes = [tempDyadminoArray sortedArrayUsingDescriptors:@[sortByRackOrder]];
-  return (self.playerRackDyadminoes.count == [(NSArray *)_myPlayer.dataDyadminoIndexesThisTurn count]);
+  return (self.playerRackDyadminoes.count == [(NSArray *)_myPlayer.dataDyadminoIndexesThisTurn count] - [(NSArray *)self.myMatch.holdingIndexContainer count]);
 }
 
 -(BOOL)populateBoardSet {
@@ -527,7 +500,6 @@
   }
   self.boardDyadminoes = [NSSet setWithSet:tempSet];
   
-  NSLog(@"scene's count is %i, match's count is %i", self.boardDyadminoes.count, self.myMatch.board.count);
   return (self.boardDyadminoes.count == self.myMatch.board.count + [(NSArray *)self.myMatch.holdingIndexContainer count]);
 }
 
@@ -777,7 +749,7 @@
   if ([_touchNode isKindOfClass:[Button class]] || [_touchNode.parent isKindOfClass:[Button class]]) {
     Button *touchedButton = [_touchNode isKindOfClass:[Button class]] ? (Button *)_touchNode : (Button *)_touchNode.parent;
     
-    if ([touchedButton isEnabled]) {
+    if ([touchedButton isEnabled] && !_fieldActionInProgress) {
       [self postSoundNotification:kNotificationButtonSunkIn];
       _buttonPressed = touchedButton;
       [_buttonPressed showSunkIn];
@@ -1033,56 +1005,57 @@
 
 -(void)endTouchFromTouches:(NSSet *)touches {
   
-  if (_fieldActionInProgress) {
-    return;
-  }
-  
-    //--------------------------------------------------------------------------
-    /// 2a and b. handle button press and board moved
+  if (!_fieldActionInProgress) {
+      //--------------------------------------------------------------------------
+      /// 2a and b. handle button press and board moved
 
-  SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
-  
-  if (!_touchedDyadmino) { // ensures dyadmino was not placed over button
-    if ([node isKindOfClass:[Button class]] || [node.parent isKindOfClass:[Button class]]) {
-      Button *button = [node isKindOfClass:[Button class]] ? (Button *)node : (Button *)node.parent;
-      if ([button isEnabled]) {
-        [self postSoundNotification:kNotificationButtonLifted];
+    SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
+    
+    if (!_touchedDyadmino) { // ensures dyadmino was not placed over button
+      if ([node isKindOfClass:[Button class]] || [node.parent isKindOfClass:[Button class]]) {
+        Button *button = [node isKindOfClass:[Button class]] ? (Button *)node : (Button *)node.parent;
+        if ([button isEnabled]) {
+          NSLog(@"button lifted sound.");
+          [self postSoundNotification:kNotificationButtonLifted];
+        }
+
+        if (button == _buttonPressed) {
+          [self handleButtonPressed:_buttonPressed];
+        }
+        return;
       }
+    }
 
-      (button == _buttonPressed) ? [self handleButtonPressed:_buttonPressed] : nil;
+      // board no longer being moved
+    if (_boardToBeMovedOrBeingMoved) {
+      _boardToBeMovedOrBeingMoved = NO;
+      
+        // take care of hovering dyadmino
+      if (_hoveringDyadminoStaysFixedToBoard) {
+        _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
+        [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
+      }
+      
+      _boardField.homePosition = _boardField.position;
+    }
+    
+      // check this *after* checking board move
+    if (!_touchedDyadmino) {
       return;
     }
-  }
-
-    // board no longer being moved
-  if (_boardToBeMovedOrBeingMoved) {
-    _boardToBeMovedOrBeingMoved = NO;
+      //--------------------------------------------------------------------------
+      /// 2c. handle touched dyadmino
+    [self determineCurrentSectionOfDyadmino:_touchedDyadmino];
+    Dyadmino *dyadmino = [self assignTouchEndedPointerToDyadmino:_touchedDyadmino];
     
-      // take care of hovering dyadmino
-    if (_hoveringDyadminoStaysFixedToBoard) {
-      _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
-      [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
-    }
+    [self handleTouchEndOfDyadmino:dyadmino];
     
-    _boardField.homePosition = _boardField.position;
+      // cleanup
+    _pivotInProgress = NO;
+    _touchOffsetVector = CGPointZero;
+    _soundedDyadminoFace = nil;
+    _buttonsUpdatedThisTouch = NO;
   }
-  
-    // check this *after* checking board move
-  if (!_touchedDyadmino) {
-    return;
-  }
-    //--------------------------------------------------------------------------
-    /// 2c. handle touched dyadmino
-  [self determineCurrentSectionOfDyadmino:_touchedDyadmino];
-  Dyadmino *dyadmino = [self assignTouchEndedPointerToDyadmino:_touchedDyadmino];
-  
-  [self handleTouchEndOfDyadmino:dyadmino];
-  
-    // cleanup
-  _pivotInProgress = NO;
-  _touchOffsetVector = CGPointZero;
-  _soundedDyadminoFace = nil;
-  _buttonsUpdatedThisTouch = NO;
 }
 
 #pragma mark - board methods
@@ -1425,10 +1398,10 @@
       /// pnp button
   } else if (button == _pnpBar.returnOrStartButton) {
     _dyadminoesStationary = NO;
-    [self toggleCellsAndDyadminoesAlphaAnimated:YES];
-    
+
     _pnpBarUp = NO;
     [self togglePnPBarSyncWithRack:YES animated:YES];
+    [self toggleCellsAndDyadminoesAlphaAnimated:YES];
     [self afterNewPlayerReady];
   
       /// swap button
@@ -1652,6 +1625,8 @@
     if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:legalChordSonoritiesFormed extendedChordSonorities:chordSupersets fromDyadminoID:[dataDyad.myID unsignedIntegerValue]]) {
       NSLog(@"Match failed to add to array of chords.");
       abort();
+    } else {
+      [self refreshBoardChords];
     }
     
       // change scene values
@@ -1699,7 +1674,9 @@
     if (![self.myMatch undoFromArrayOfChordsAndPointsThisDyadminoID:[undoneDataDyadmino.myID unsignedIntegerValue]]) {
       NSLog(@"Match failed to undo chords for this data dyadmino.");
       abort();
-    };
+    } else {
+      [self refreshBoardChords];
+    }
     
       // recalibrate undone dyadmino
     Dyadmino *undoneDyadmino = [self getDyadminoFromDataDyadmino:undoneDataDyadmino];
@@ -2145,6 +2122,8 @@
                 if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:legalChordSonoritiesFormed extendedChordSonorities:chordSupersets fromDyadminoID:[dataDyad.myID unsignedIntegerValue]]) {
                   NSLog(@"Match failed to add to array of chords.");
                   abort();
+                } else {
+                  [self refreshBoardChords];
                 }
 
                   // update player's temporary score
@@ -2475,21 +2454,10 @@
       _rackField.hidden = YES;
     };
     
-//    SKAction *topReplayMoveAction = [SKAction moveToY:self.frame.size.height - kTopBarHeight duration:kConstantTime];
-//    topReplayMoveAction.timingMode = SKActionTimingEaseOut;
-//    SKAction *topReplayCompleteAction = [SKAction runBlock:^{
-//      _fieldActionInProgress = NO;
-//      _topBar.hidden = YES;
-//      _rackField.hidden = YES;
-//    }];
-//    SKAction *topReplaySequenceAction = [SKAction sequence:@[topReplayMoveAction, topReplayCompleteAction]];
-    
     void (^topBarCompletion)(void) = ^void(void) {
       [_replayTop toggleToYPosition:topYPosition goOut:NO completion:replayCompletion withKey:@"toggleReplayTop"];
-//      [_replayTop runAction:topReplaySequenceAction withKey:@"toggleReplayTop"];
       [weakSelf.myDelegate animateReplayLabelGoOut:NO];
     };
-    
     [self toggleTopBarGoOut:YES completion:topBarCompletion];
     
     CGFloat bottomYPosition = CGPointZero.y;
@@ -2499,7 +2467,6 @@
     
     void (^bottomCompletion)(void) = ^void(void) {
       [_replayBottom toggleToYPosition:bottomYPosition goOut:NO completion:nil withKey:@"toggleReplayBottom"];
-//      [_replayBottom runAction:bottomMoveAction withKey:@"toggleReplayBottom"];
     };
     [self toggleRackGoOut:YES completion:bottomCompletion];
     
@@ -2520,26 +2487,7 @@
     };
     
     [_replayTop toggleToYPosition:topYPosition goOut:YES completion:topReplayCompletion withKey:@"toggleReplayTop"];
-    
-//    SKAction *topReplayMoveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
-//    topReplayMoveAction.timingMode = SKActionTimingEaseIn;
-//    
-//    SKAction *topReplayCompleteAction = [SKAction runBlock:^{
-//      _replayTop.hidden = YES;
-//      void (^completion)(void) = ^void(void) {
-//        _fieldActionInProgress = NO;
-//      };
-//      [self toggleTopBarGoOut:NO completion:completion];
-//    }];
-    
-//    SKAction *topReplaySequenceAction = [SKAction sequence:@[topReplayMoveAction, topReplayCompleteAction]];
-//    [_replayTop runAction:topReplaySequenceAction withKey:@"toggleReplayTop"];
-    
     [self.myDelegate animateReplayLabelGoOut:YES];
-
-//    SKAction *bottomReplayMoveAction = [SKAction moveToY:-kRackHeight duration:kConstantTime];
-//    bottomReplayMoveAction.timingMode = SKActionTimingEaseIn;
-//    SKAction *bottomReplayCompleteAction;
 
     _rackField.hidden = NO;
     
@@ -2552,18 +2500,6 @@
       };
       [weakSelf toggleRackGoOut:NO completion:completion];
     };
-    
-//    bottomReplayCompleteAction = [SKAction runBlock:^{
-//      _replayBottom.hidden = YES;
-//      
-//      void (^completion)(void) = ^void(void) {
-//        _fieldActionInProgress = NO;
-//      };
-//      [self toggleRackGoOut:NO completion:completion];
-//    }];
-    
-//    SKAction *bottomSequenceAction = [SKAction sequence:@[bottomReplayMoveAction, bottomReplayCompleteAction]];
-//    [_replayBottom runAction:bottomSequenceAction withKey:@"toggleReplayBottom"];
     
     [_replayBottom toggleToYPosition:bottomYPosition goOut:NO completion:bottomReplayCompletion withKey:@"toggleReplayBottom"];
   }
@@ -3329,6 +3265,7 @@
         abort();
       } else {
         
+        [self refreshBoardChords];
         NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:_tempChordSonoritiesFromMovedBoardDyadmino withInitialString:@"Built " andEndingString:@"."];
         
         [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];

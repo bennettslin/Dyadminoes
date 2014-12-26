@@ -38,6 +38,7 @@
 
   // animation constants
 #define kConstantSpeed (kIsIPhone ? 0.002f : 0.0013333f)
+#define kBounceDivisor 10.f
 
 //------------------------------------------------------------------------------
 
@@ -196,7 +197,7 @@
   // turn dictionary keys
 #define kTurnPlayer @"player"
 #define kTurnDyadminoes @"indexContainer"
-#define kTurnChords @"chords"
+//#define kTurnChords @"chords"
 #define kTurnPoints @"points"
 
   // points

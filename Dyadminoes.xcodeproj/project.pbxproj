@@ -63,6 +63,7 @@
 		3F908C3F19973B0800650C36 /* Face.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F908C3E19973B0800650C36 /* Face.m */; };
 		3F9923091895ECCA00FC9392 /* SonorityLogic.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F9923081895ECCA00FC9392 /* SonorityLogic.m */; };
 		3FB49E301A4D6B19007F2A1E /* SKSpriteNode+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FB49E2F1A4D6B19007F2A1E /* SKSpriteNode+Helper.m */; };
+		3FB49E361A4DF2AE007F2A1E /* ChildViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FB49E351A4DF2AE007F2A1E /* ChildViewController.m */; };
 		3FBC6AD4194E1BBD00420CB8 /* SoundEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FBC6AD3194E1BBD00420CB8 /* SoundEngine.m */; };
 		3FBC6AD7194E208300420CB8 /* hitCat.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3FBC6AD5194E208300420CB8 /* hitCat.wav */; };
 		3FBC6AD8194E208300420CB8 /* hitCatLady.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3FBC6AD6194E208300420CB8 /* hitCatLady.wav */; };
@@ -190,6 +191,8 @@
 		3F9923081895ECCA00FC9392 /* SonorityLogic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SonorityLogic.m; sourceTree = "<group>"; };
 		3FB49E2E1A4D6B19007F2A1E /* SKSpriteNode+Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SKSpriteNode+Helper.h"; sourceTree = "<group>"; };
 		3FB49E2F1A4D6B19007F2A1E /* SKSpriteNode+Helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "SKSpriteNode+Helper.m"; sourceTree = "<group>"; };
+		3FB49E341A4DF2AE007F2A1E /* ChildViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChildViewController.h; sourceTree = "<group>"; };
+		3FB49E351A4DF2AE007F2A1E /* ChildViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChildViewController.m; sourceTree = "<group>"; };
 		3FBC6AD2194E1BBD00420CB8 /* SoundEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoundEngine.h; sourceTree = "<group>"; };
 		3FBC6AD3194E1BBD00420CB8 /* SoundEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoundEngine.m; sourceTree = "<group>"; };
 		3FBC6AD5194E208300420CB8 /* hitCat.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = hitCat.wav; sourceTree = "<group>"; };
@@ -456,6 +459,8 @@
 		3FEBC8EE193BBCA100DA3560 /* Other View Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				3FB49E341A4DF2AE007F2A1E /* ChildViewController.h */,
+				3FB49E351A4DF2AE007F2A1E /* ChildViewController.m */,
 				3F141F1B1A48E4CE00D6D25F /* OptionsViewController.h */,
 				3F141F1C1A48E4CE00D6D25F /* OptionsViewController.m */,
 				3F88EDB519638FBF005CC9A4 /* LocalGameViewController.h */,
@@ -682,6 +687,7 @@
 				3F908C3F19973B0800650C36 /* Face.m in Sources */,
 				3FD06E2318D6544F00E2FF04 /* Cell.m in Sources */,
 				3F141F1D1A48E4CE00D6D25F /* OptionsViewController.m in Sources */,
+				3FB49E361A4DF2AE007F2A1E /* ChildViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

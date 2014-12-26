@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ChildViewController.h"
 
-@interface SettingsViewController : UIViewController
+@interface SettingsViewController : ChildViewController
 
 @end

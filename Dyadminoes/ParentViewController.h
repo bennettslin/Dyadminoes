@@ -10,13 +10,14 @@
 @class HelpViewController;
 @class SettingsViewController;
 @class AboutViewController;
+@class ChildViewController;
 
 @interface ParentViewController : UIViewController
 
 @property (strong, nonatomic) HelpViewController *helpVC;
 @property (strong, nonatomic) SettingsViewController *settingsVC;
 @property (strong, nonatomic) AboutViewController *aboutVC;
-@property (strong, nonatomic) UIViewController *childVC;
+@property (strong, nonatomic) ChildViewController *childVC;
 
 @property (strong, nonatomic) UIButton *darkOverlay;
 @property (assign, nonatomic) BOOL overlayEnabled;
@@ -26,12 +27,14 @@
 @property (assign, nonatomic) CGFloat screenHeight;
 
 -(void)backToParentViewWithAnimateRemoveVC:(BOOL)animateRemoveVC;
--(void)presentChildViewController:(UIViewController *)childVC;
--(void)removeChildViewController:(UIViewController *)childVC;
+-(void)presentChildViewController:(ChildViewController *)childVC;
+-(void)removeChildViewController:(ChildViewController *)childVC;
 
 -(void)resetDarkOverlay;
 
 -(void)fadeOverlayIn:(BOOL)fadeIn;
 -(void)removeChildVCUponEnteringBackground;
+
+-(void)slideAnimateView:(UIView *)movingView toDestinationYPosition:(CGFloat)yPosition durationConstant:(CGFloat)constant;
 
 @end

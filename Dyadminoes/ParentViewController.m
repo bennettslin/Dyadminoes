@@ -8,10 +8,20 @@
 
 #import "ParentViewController.h"
 #import "NSObject+Helper.h"
+#import "LocalGameViewController.h"
+#import "OptionsViewController.h"
 #import "HelpViewController.h"
 #import "SettingsViewController.h"
+#import "AboutViewController.h"
+#import "ChildViewController.h"
 
-@interface ParentViewController ()
+typedef enum axis {
+  kAxisCenter,
+  kAxisX,
+  kAxisY
+} Axis;
+
+@interface ParentViewController () <ChildViewControllerDelegate>
 
 @end
 
@@ -27,10 +37,8 @@
   self.vcIsAnimating = NO;
   
   self.helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
-  self.helpVC.view.backgroundColor = [UIColor redColor];
   
   self.settingsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"SettingsViewController"];
-  self.settingsVC.view.backgroundColor = kPlayerGreen;
   
   [self.darkOverlay addTarget:self action:@selector(backToParentView) forControlEvents:UIControlEventTouchDown];
   
@@ -61,12 +69,13 @@
   }
 }
 
--(void)presentChildViewController:(UIViewController *)childVC {
+-(void)presentChildViewController:(ChildViewController *)childVC {
   
   self.vcIsAnimating = YES;
   (self.childVC && self.childVC != childVC) ? [self removeChildViewController:self.childVC] : nil;
   
   self.childVC = childVC;
+  self.childVC.parentDelegate = self;
   
   if (![self.darkOverlay superview]) {
     [self fadeOverlayIn:YES];
@@ -75,16 +84,10 @@
   [self animatePresentVC:childVC];
 }
 
--(void)animatePresentVC:(UIViewController *)childVC {
+-(void)animatePresentVC:(ChildViewController *)childVC {
   
-  CGFloat viewWidth = self.screenWidth * 4 / 5;
-  CGFloat viewHeight = kIsIPhone ? self.screenHeight * 5 / 7 : self.screenHeight * 4 / 5;
-  
-  childVC.view.frame = CGRectMake(0, 0, viewWidth, viewHeight);
-  childVC.view.center = CGPointMake(self.view.center.x - (self.screenWidth / 4), self.view.center.y);
-  childVC.view.layer.cornerRadius = kCornerRadius;
-  childVC.view.layer.masksToBounds = YES;
-  
+    // FIXME: use axis to determine whether to scale by x, y, or center
+  Axis axis = [self determineFrameAndAxisForViewController:childVC];
   [self.view addSubview:childVC.view];
   
   CGPoint excessCenter = CGPointMake(self.view.center.x + (self.screenWidth * 0.0125f), self.view.center.y);
@@ -103,6 +106,39 @@
       weakSelf.vcIsAnimating = NO;
     }];
   }];
+}
+
+-(Axis)determineFrameAndAxisForViewController:(ChildViewController *)childVC {
+  CGFloat viewWidth = self.screenWidth * 4 / 5;
+  CGFloat viewHeight = kIsIPhone ? self.screenHeight * 5 / 7 : self.screenHeight * 4 / 5;
+  Axis returnAxis = kAxisCenter;
+  
+    // determine colour, frame, and origin center for each kind of view controller
+  if ([childVC isKindOfClass:[LocalGameViewController class]]) {
+    childVC.view.backgroundColor = kEndedMatchCellLightColour;
+    
+  } else if ([childVC isKindOfClass:[SettingsViewController class]]) {
+    childVC.view.backgroundColor = kPlayerGreen;
+    
+  } else if ([childVC isKindOfClass:[AboutViewController class]]) {
+    childVC.view.backgroundColor = [UIColor blueColor];
+    
+  } else if ([childVC isKindOfClass:[HelpViewController class]]) {
+    childVC.view.backgroundColor = [UIColor redColor];
+    
+  } else if ([childVC isKindOfClass:[OptionsViewController class]]) {
+    childVC.view.backgroundColor = kPlayerGreen;
+    
+  }
+  
+  childVC.view.frame = CGRectMake(0, 0, viewWidth, viewHeight);
+  [childVC positionCancelButtonBasedOnWidth:viewWidth];
+
+  childVC.view.center = CGPointMake(self.view.center.x - (self.screenWidth / 4), self.view.center.y);
+  childVC.view.layer.cornerRadius = kCornerRadius;
+  childVC.view.layer.masksToBounds = YES;
+  
+  return returnAxis;
 }
 
 -(void)removeChildViewController:(UIViewController *)childVC {
@@ -154,6 +190,25 @@
     [self.childVC.view removeFromSuperview];
     self.childVC = nil;
   }
+}
+
+#pragma mark - helper methods
+
+-(void)slideAnimateView:(UIView *)movingView toDestinationYPosition:(CGFloat)yPosition durationConstant:(CGFloat)constant {
+  
+  CGFloat originalYPosition = movingView.frame.origin.y;
+  CGFloat excessYPosition = ([movingView isKindOfClass:[UITableView class]]) ?
+  yPosition + (kCellHeight / (kBounceDivisor * 1.4f)) :
+  ((yPosition - originalYPosition) / kBounceDivisor) + yPosition;
+  
+  [UIView animateWithDuration:(constant * 0.7f) delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    movingView.frame = CGRectMake(movingView.frame.origin.x, excessYPosition, movingView.frame.size.width, movingView.frame.size.height);
+  } completion:^(BOOL finished) {
+    
+    [UIView animateWithDuration:(constant * 0.3f) delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+      movingView.frame = CGRectMake(movingView.frame.origin.x, yPosition, movingView.frame.size.width, movingView.frame.size.height);
+    } completion:nil];
+  }];
 }
 
 #pragma mark - system methods

@@ -46,9 +46,7 @@
 
 -(void)viewDidLoad {
   [super viewDidLoad];
-  
-  self.view.backgroundColor = kEndedMatchCellLightColour;
-  
+    
   self.playerKeys = @[kPlayer1Key, kPlayer2Key, kPlayer3Key, kPlayer4Key];
   self.placeholderNames = @[kPlaceholder1Name, kPlaceholder2Name, kPlaceholder3Name, kPlaceholder4Name];
   

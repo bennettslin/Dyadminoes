@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ChildViewController.h"
 
 @protocol LocalGameDelegate <NSObject>
 
@@ -16,7 +17,7 @@
 
 @end
 
-@interface LocalGameViewController : UIViewController
+@interface LocalGameViewController : ChildViewController
 
 @property (weak, nonatomic) id<LocalGameDelegate> delegate;
 

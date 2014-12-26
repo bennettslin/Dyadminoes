@@ -8,22 +8,17 @@
 
 #import <UIKit/UIKit.h>
 #import "NSObject+Helper.h"
+#import "ChildViewController.h"
 @class SettingsViewController;
 @class HelpViewController;
 
 @protocol OptionsDelegate <NSObject>
 
-//@property (strong, nonatomic) SettingsViewController *settingsVC;
-//@property (strong, nonatomic) HelpViewController *helpVC;
-
-//@property (strong, nonatomic) UIViewController *childVC;
-//@property (assign, nonatomic) BOOL vcIsAnimating;
-
 -(void)presentFromOptionsChildViewController:(OptionsVCOptions)optionsNumber;
 
 @end
 
-@interface OptionsViewController : UIViewController
+@interface OptionsViewController : ChildViewController
 
 @property (weak, nonatomic) id<OptionsDelegate> delegate;
 

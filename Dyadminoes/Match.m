@@ -63,8 +63,8 @@
     self.currentPlayerIndex = [NSNumber numberWithUnsignedInteger:0];
     self.randomNumber1To24 = [NSNumber numberWithUnsignedInteger:[self randomIntegerUpTo:24] + 1];
     
-    self.holdingIndexContainer = [NSMutableArray new];
-    self.swapIndexContainer = [NSMutableSet new];
+    self.holdingIndexContainer = [NSArray new];
+    self.swapIndexContainer = [NSSet new];
 
     self.turns = [NSMutableArray new];
     self.replayTurn = [NSNumber numberWithUnsignedInteger:0];
@@ -215,14 +215,14 @@
 
 -(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap {
   
-  NSSet *chordSonorities = [self totalChordSonoritiesThisTurn];
+//  NSSet *chordSonorities = [self totalChordSonoritiesThisTurn];
   NSNumber *points = @([self sumOfPointsThisTurn]);
   
     // a pass has an empty holding container, while a resign has *no* holding container
   NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:
                               [NSNumber numberWithUnsignedInteger:[self returnCurrentPlayerIndex]], kTurnPlayer,
                               self.holdingIndexContainer, kTurnDyadminoes,
-                              chordSonorities, kTurnChords,
+//                              chordSonorities, kTurnChords,
                               points, kTurnPoints,
                               nil];
   
@@ -614,7 +614,8 @@
 }
 
 -(void)resetHoldingContainer {
-  self.holdingIndexContainer = nil;
+    // this ensures that there is an empty array to persist if player passes
+  self.holdingIndexContainer = [NSArray new];
 }
 
 -(BOOL)addToArrayOfChordsAndPointsTheseChordSonorities:(NSSet *)chordSonorities
