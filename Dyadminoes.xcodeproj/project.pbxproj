@@ -39,7 +39,6 @@
 		3F7BD7C9192AF45D009274DE /* Match.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7C8192AF45D009274DE /* Match.m */; };
 		3F7BD7D5192B09D6009274DE /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7D4192B09D6009274DE /* MainViewController.m */; };
 		3F7BD7DB192B0A37009274DE /* MatchTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */; };
-		3F7D0EE3199EE60300F1FBD2 /* SKNode+Animation.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7D0EE2199EE60300F1FBD2 /* SKNode+Animation.m */; };
 		3F7D0F2519A2CE0300F1FBD2 /* Sonata.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3F7D0F2419A2CE0300F1FBD2 /* Sonata.ttf */; };
 		3F87AAAB188DEE4B008C4A0D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAA188DEE4B008C4A0D /* Foundation.framework */; };
 		3F87AAAD188DEE4B008C4A0D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAC188DEE4B008C4A0D /* CoreGraphics.framework */; };
@@ -63,6 +62,7 @@
 		3F8F045B18BFEF3300853C4C /* SnapPoint.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F8F045A18BFEF3300853C4C /* SnapPoint.m */; };
 		3F908C3F19973B0800650C36 /* Face.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F908C3E19973B0800650C36 /* Face.m */; };
 		3F9923091895ECCA00FC9392 /* SonorityLogic.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F9923081895ECCA00FC9392 /* SonorityLogic.m */; };
+		3FB49E301A4D6B19007F2A1E /* SKSpriteNode+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FB49E2F1A4D6B19007F2A1E /* SKSpriteNode+Helper.m */; };
 		3FBC6AD4194E1BBD00420CB8 /* SoundEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FBC6AD3194E1BBD00420CB8 /* SoundEngine.m */; };
 		3FBC6AD7194E208300420CB8 /* hitCat.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3FBC6AD5194E208300420CB8 /* hitCat.wav */; };
 		3FBC6AD8194E208300420CB8 /* hitCatLady.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3FBC6AD6194E208300420CB8 /* hitCatLady.wav */; };
@@ -154,8 +154,6 @@
 		3F7BD7D4192B09D6009274DE /* MainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
 		3F7BD7D9192B0A37009274DE /* MatchTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MatchTableViewCell.h; sourceTree = "<group>"; };
 		3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MatchTableViewCell.m; sourceTree = "<group>"; };
-		3F7D0EE1199EE60300F1FBD2 /* SKNode+Animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SKNode+Animation.h"; sourceTree = "<group>"; };
-		3F7D0EE2199EE60300F1FBD2 /* SKNode+Animation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "SKNode+Animation.m"; sourceTree = "<group>"; };
 		3F7D0F2419A2CE0300F1FBD2 /* Sonata.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Sonata.ttf; sourceTree = "<group>"; };
 		3F87AAA7188DEE4B008C4A0D /* Dyadminoes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dyadminoes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F87AAAA188DEE4B008C4A0D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -190,6 +188,8 @@
 		3F908C3E19973B0800650C36 /* Face.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Face.m; sourceTree = "<group>"; };
 		3F9923071895ECCA00FC9392 /* SonorityLogic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SonorityLogic.h; sourceTree = "<group>"; };
 		3F9923081895ECCA00FC9392 /* SonorityLogic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SonorityLogic.m; sourceTree = "<group>"; };
+		3FB49E2E1A4D6B19007F2A1E /* SKSpriteNode+Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SKSpriteNode+Helper.h"; sourceTree = "<group>"; };
+		3FB49E2F1A4D6B19007F2A1E /* SKSpriteNode+Helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "SKSpriteNode+Helper.m"; sourceTree = "<group>"; };
 		3FBC6AD2194E1BBD00420CB8 /* SoundEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoundEngine.h; sourceTree = "<group>"; };
 		3FBC6AD3194E1BBD00420CB8 /* SoundEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoundEngine.m; sourceTree = "<group>"; };
 		3FBC6AD5194E208300420CB8 /* hitCat.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = hitCat.wav; sourceTree = "<group>"; };
@@ -298,8 +298,6 @@
 		3F4C06B318CC5F12003C4265 /* Logic and Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				3F7D0EE1199EE60300F1FBD2 /* SKNode+Animation.h */,
-				3F7D0EE2199EE60300F1FBD2 /* SKNode+Animation.m */,
 				3F8F045618BFB1B300853C4C /* NSObject+Helper.h */,
 				3F8F045718BFB1B300853C4C /* NSObject+Helper.m */,
 				3F9923071895ECCA00FC9392 /* SonorityLogic.h */,
@@ -498,6 +496,8 @@
 			isa = PBXGroup;
 			children = (
 				3F3C8FF81990E04D0061B208 /* Bar Objects */,
+				3FB49E2E1A4D6B19007F2A1E /* SKSpriteNode+Helper.h */,
+				3FB49E2F1A4D6B19007F2A1E /* SKSpriteNode+Helper.m */,
 				3FBC6AD2194E1BBD00420CB8 /* SoundEngine.h */,
 				3FBC6AD3194E1BBD00420CB8 /* SoundEngine.m */,
 				3FCCA71C18948B0500E0E4B5 /* SceneEngine.h */,
@@ -643,6 +643,7 @@
 				3F3ABBA8198F4CF600015033 /* UIImage+colouredImage.m in Sources */,
 				3F141F171A48C16900D6D25F /* ParentViewController.m in Sources */,
 				3F7BD7D5192B09D6009274DE /* MainViewController.m in Sources */,
+				3FB49E301A4D6B19007F2A1E /* SKSpriteNode+Helper.m in Sources */,
 				3F3C8FF41990DA1A0061B208 /* PnPBar.m in Sources */,
 				3FECDE0D19355B2F00D774AB /* RankViewController.m in Sources */,
 				3FCCA71B18948AF200E0E4B5 /* Dyadmino.m in Sources */,
@@ -671,7 +672,6 @@
 				3F193119198064C10034A5B9 /* StavesView.m in Sources */,
 				3FECDE1019355B3A00D774AB /* SettingsViewController.m in Sources */,
 				3FEBC8ED193B9CC700DA3560 /* DataDyadmino.m in Sources */,
-				3F7D0EE3199EE60300F1FBD2 /* SKNode+Animation.m in Sources */,
 				3FCCA71E18948B0500E0E4B5 /* SceneEngine.m in Sources */,
 				3F6AE50E18D4D1E7000528C1 /* Bar.m in Sources */,
 				3F9923091895ECCA00FC9392 /* SonorityLogic.m in Sources */,

@@ -7,7 +7,6 @@
 //
 
 #import "NSObject+Helper.h"
-#import "SKNode+Animation.h"
 #import "MyScene.h"
 #import "SceneViewController.h"
 #import "SceneEngine.h"
@@ -410,15 +409,15 @@
     // however, I may decide not to persist the chords after all
   
   NSSet *sceneChords = [self loadChordsFromSceneBoardDyadminoes];
-  NSSet *persistedChords = [self loadChordsFromPersistedTurn];
-  if ([[SonorityLogic sharedLogic] setOfLegalChords:sceneChords isSubsetOfSetOfLegalChords:persistedChords] &&
-      [[SonorityLogic sharedLogic] setOfLegalChords:persistedChords isSubsetOfSetOfLegalChords:sceneChords]) {
+//  NSSet *persistedChords = [self loadChordsFromPersistedTurn];
+//  if ([[SonorityLogic sharedLogic] setOfLegalChords:sceneChords isSubsetOfSetOfLegalChords:persistedChords] &&
+//      [[SonorityLogic sharedLogic] setOfLegalChords:persistedChords isSubsetOfSetOfLegalChords:sceneChords]) {
     self.allBoardChords = sceneChords;
-    
-  } else {
-    NSLog(@"Scene did not load all the board chords properly.");
-    abort();
-  }
+//    
+//  } else {
+//    NSLog(@"Scene did not load all the board chords properly.");
+//    abort();
+//  }
 }
 
 -(NSSet *)loadChordsFromSceneBoardDyadminoes {
@@ -527,7 +526,9 @@
     }
   }
   self.boardDyadminoes = [NSSet setWithSet:tempSet];
-  return (self.boardDyadminoes.count == self.myMatch.board.count);
+  
+  NSLog(@"scene's count is %i, match's count is %i", self.boardDyadminoes.count, self.myMatch.board.count);
+  return (self.boardDyadminoes.count == self.myMatch.board.count + [(NSArray *)self.myMatch.holdingIndexContainer count]);
 }
 
 -(BOOL)layoutBoard {
@@ -2364,25 +2365,11 @@
   _dyadminoesHollowed = _dyadminoesStationary;
 }
 
--(void)toggleBar:(SKNode *)bar toYPosition:(CGFloat)toYPosition goOut:(BOOL)goOut completion:(void(^)(void))completion withKey:(NSString *)key {
-  
-  CGFloat originalYPosition = bar.position.y;
-  CGFloat excessYPosition = ((toYPosition - originalYPosition) / 15.f) + toYPosition;
-  
-  SKAction *excessAction = [SKAction moveToY:excessYPosition duration:kConstantTime * 0.7];
-  excessAction.timingMode = SKActionTimingEaseOut;
-  SKAction *bounceBackAction = [SKAction moveToY:toYPosition duration:kConstantTime * 0.3];
-  bounceBackAction.timingMode = SKActionTimingEaseIn;
-  SKAction *completionAction = [SKAction runBlock:completion];
-  SKAction *sequence = [SKAction sequence:@[excessAction, bounceBackAction, completionAction]];
-  [bar runAction:sequence withKey:key];
-}
-
 -(void)toggleTopBarGoOut:(BOOL)goOut completion:(void(^)(void))completion {
 
   _topBar.position = goOut ? CGPointMake(0, self.frame.size.height - kTopBarHeight) : CGPointMake(0, self.frame.size.height);
   CGFloat toYPosition = goOut ? self.frame.size.height : self.frame.size.height - kTopBarHeight;
-  [self toggleBar:_topBar toYPosition:toYPosition goOut:goOut completion:completion withKey:@"toggleTopBar"];
+  [_topBar toggleToYPosition:toYPosition goOut:goOut completion:completion withKey:@"toggleTopBar"];
   [self.myDelegate animateTopBarLabelsGoOut:goOut];
 }
 
@@ -2391,7 +2378,7 @@
   
   _rackField.position = goOut ? CGPointZero : CGPointMake(0, -kRackHeight);
   CGFloat desiredY = goOut ? -kRackHeight : 0;
-  [self toggleBar:_rackField toYPosition:desiredY goOut:goOut completion:completion withKey:@"toggleRackField"];
+  [_rackField toggleToYPosition:desiredY goOut:goOut completion:completion withKey:@"toggleRackField"];
 }
 
 -(void)togglePnPBarSyncWithRack:(BOOL)sync animated:(BOOL)animated {
@@ -2418,14 +2405,14 @@
 
     if (sync) {
       void (^completion)(void) = ^void(void) {
-        [self toggleBar:_pnpBar toYPosition:yPosition goOut:NO completion:pnpCompletion withKey:@"togglePnpBar"];
+        [_pnpBar toggleToYPosition:yPosition goOut:NO completion:pnpCompletion withKey:@"togglePnpBar"];
         [weakSelf.myDelegate animatePnPLabelGoOut:NO];
       };
       
       [self toggleRackGoOut:YES completion:completion];
       
     } else {
-      [self toggleBar:_pnpBar toYPosition:yPosition goOut:NO completion:pnpCompletion withKey:@"togglePnpBar"];
+      [_pnpBar toggleToYPosition:yPosition goOut:NO completion:pnpCompletion withKey:@"togglePnpBar"];
       [self.myDelegate animatePnPLabelGoOut:NO];
     }
     
@@ -2454,7 +2441,7 @@
       };
     }
     
-    [self toggleBar:_pnpBar toYPosition:yPosition goOut:YES completion:pnpCompletion withKey:@"togglePnpBar"];
+    [_pnpBar toggleToYPosition:yPosition goOut:YES completion:pnpCompletion withKey:@"togglePnpBar"];
     [self.myDelegate animatePnPLabelGoOut:YES];
   }
 }
@@ -2481,66 +2468,104 @@
     
     __weak typeof(self) weakSelf = self;
     
-    SKAction *topReplayMoveAction = [SKAction moveToY:self.frame.size.height - kTopBarHeight duration:kConstantTime];
-    topReplayMoveAction.timingMode = SKActionTimingEaseOut;
-    SKAction *topReplayCompleteAction = [SKAction runBlock:^{
+    CGFloat topYPosition = self.frame.size.height - kTopBarHeight;
+    void (^replayCompletion)(void) = ^void(void) {
       _fieldActionInProgress = NO;
       _topBar.hidden = YES;
       _rackField.hidden = YES;
-    }];
-    SKAction *topReplaySequenceAction = [SKAction sequence:@[topReplayMoveAction, topReplayCompleteAction]];
+    };
     
-    void (^topCompletion)(void) = ^void(void) {
-      [_replayTop runAction:topReplaySequenceAction withKey:@"toggleReplayTop"];
+//    SKAction *topReplayMoveAction = [SKAction moveToY:self.frame.size.height - kTopBarHeight duration:kConstantTime];
+//    topReplayMoveAction.timingMode = SKActionTimingEaseOut;
+//    SKAction *topReplayCompleteAction = [SKAction runBlock:^{
+//      _fieldActionInProgress = NO;
+//      _topBar.hidden = YES;
+//      _rackField.hidden = YES;
+//    }];
+//    SKAction *topReplaySequenceAction = [SKAction sequence:@[topReplayMoveAction, topReplayCompleteAction]];
+    
+    void (^topBarCompletion)(void) = ^void(void) {
+      [_replayTop toggleToYPosition:topYPosition goOut:NO completion:replayCompletion withKey:@"toggleReplayTop"];
+//      [_replayTop runAction:topReplaySequenceAction withKey:@"toggleReplayTop"];
       [weakSelf.myDelegate animateReplayLabelGoOut:NO];
     };
     
-    [self toggleTopBarGoOut:YES completion:topCompletion];
+    [self toggleTopBarGoOut:YES completion:topBarCompletion];
+    
+    CGFloat bottomYPosition = CGPointZero.y;
     
     SKAction *bottomMoveAction = [SKAction moveToY:CGPointZero.y duration:kConstantTime];
     bottomMoveAction.timingMode = SKActionTimingEaseOut;
     
     void (^bottomCompletion)(void) = ^void(void) {
-      [_replayBottom runAction:bottomMoveAction withKey:@"toggleReplayBottom"];
+      [_replayBottom toggleToYPosition:bottomYPosition goOut:NO completion:nil withKey:@"toggleReplayBottom"];
+//      [_replayBottom runAction:bottomMoveAction withKey:@"toggleReplayBottom"];
     };
     [self toggleRackGoOut:YES completion:bottomCompletion];
     
       // it's not in replay mode
   } else {
+    
+    __weak typeof(self) weakSelf = self;
+    
     _topBar.hidden = NO;
     
-    SKAction *topReplayMoveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
-    topReplayMoveAction.timingMode = SKActionTimingEaseIn;
-    
-    SKAction *topReplayCompleteAction = [SKAction runBlock:^{
+    CGFloat topYPosition = self.frame.size.height;
+    void (^topReplayCompletion)(void) = ^void(void) {
       _replayTop.hidden = YES;
       void (^completion)(void) = ^void(void) {
         _fieldActionInProgress = NO;
       };
-      [self toggleTopBarGoOut:NO completion:completion];
-    }];
+      [weakSelf toggleTopBarGoOut:NO completion:completion];
+    };
     
-    SKAction *topReplaySequenceAction = [SKAction sequence:@[topReplayMoveAction, topReplayCompleteAction]];
-    [_replayTop runAction:topReplaySequenceAction withKey:@"toggleReplayTop"];
+    [_replayTop toggleToYPosition:topYPosition goOut:YES completion:topReplayCompletion withKey:@"toggleReplayTop"];
+    
+//    SKAction *topReplayMoveAction = [SKAction moveToY:self.frame.size.height duration:kConstantTime];
+//    topReplayMoveAction.timingMode = SKActionTimingEaseIn;
+//    
+//    SKAction *topReplayCompleteAction = [SKAction runBlock:^{
+//      _replayTop.hidden = YES;
+//      void (^completion)(void) = ^void(void) {
+//        _fieldActionInProgress = NO;
+//      };
+//      [self toggleTopBarGoOut:NO completion:completion];
+//    }];
+    
+//    SKAction *topReplaySequenceAction = [SKAction sequence:@[topReplayMoveAction, topReplayCompleteAction]];
+//    [_replayTop runAction:topReplaySequenceAction withKey:@"toggleReplayTop"];
+    
     [self.myDelegate animateReplayLabelGoOut:YES];
 
-    SKAction *bottomReplayMoveAction = [SKAction moveToY:-kRackHeight duration:kConstantTime];
-    bottomReplayMoveAction.timingMode = SKActionTimingEaseIn;
-    SKAction *bottomReplayCompleteAction;
+//    SKAction *bottomReplayMoveAction = [SKAction moveToY:-kRackHeight duration:kConstantTime];
+//    bottomReplayMoveAction.timingMode = SKActionTimingEaseIn;
+//    SKAction *bottomReplayCompleteAction;
 
     _rackField.hidden = NO;
     
-    bottomReplayCompleteAction = [SKAction runBlock:^{
+    CGFloat bottomYPosition = -kRackHeight;
+    void (^bottomReplayCompletion)(void) = ^void(void) {
       _replayBottom.hidden = YES;
       
       void (^completion)(void) = ^void(void) {
         _fieldActionInProgress = NO;
       };
-      [self toggleRackGoOut:NO completion:completion];
-    }];
+      [weakSelf toggleRackGoOut:NO completion:completion];
+    };
     
-    SKAction *bottomSequenceAction = [SKAction sequence:@[bottomReplayMoveAction, bottomReplayCompleteAction]];
-    [_replayBottom runAction:bottomSequenceAction withKey:@"toggleReplayBottom"];
+//    bottomReplayCompleteAction = [SKAction runBlock:^{
+//      _replayBottom.hidden = YES;
+//      
+//      void (^completion)(void) = ^void(void) {
+//        _fieldActionInProgress = NO;
+//      };
+//      [self toggleRackGoOut:NO completion:completion];
+//    }];
+    
+//    SKAction *bottomSequenceAction = [SKAction sequence:@[bottomReplayMoveAction, bottomReplayCompleteAction]];
+//    [_replayBottom runAction:bottomSequenceAction withKey:@"toggleReplayBottom"];
+    
+    [_replayBottom toggleToYPosition:bottomYPosition goOut:NO completion:bottomReplayCompletion withKey:@"toggleReplayBottom"];
   }
 }
 

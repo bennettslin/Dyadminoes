@@ -7,6 +7,7 @@
 //
 
 #import <SpriteKit/SpriteKit.h>
+#import "SKSpriteNode+Helper.h"
 #import "NSObject+Helper.h"
 @class Button;
 @class Label;
@@ -25,14 +26,7 @@
 
 #pragma mark - button methods
 
-  // for both buttons and labels
 -(void)node:(SKNode *)node shouldBeEnabled:(BOOL)enabled;
-
--(BOOL)rotateButtonsBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation;
-
-#pragma mark - label methods
-
-//-(void)updateLabel:(Label *)label withText:(NSString *)text andColour:(UIColor *)colour;
-//-(void)flashLabel:(Label *)label withText:(NSString *)text andColour:(UIColor *)colour;
+//-(BOOL)rotateButtonsBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation;
 
 @end

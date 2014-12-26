@@ -44,6 +44,7 @@
   }
 }
 
+/*
 -(BOOL)rotateButtonsBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation {
   
   NSUInteger rotation = _rotationFromDevice;
@@ -76,5 +77,6 @@
     return NO;
   }
 }
+ */
 
 @end
