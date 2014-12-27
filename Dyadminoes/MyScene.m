@@ -404,8 +404,6 @@
   NSSet *sceneChords = [self loadChordsFromSceneBoardDyadminoes];
   self.allBoardChords = nil;
   self.allBoardChords = sceneChords;
-  
-  NSLog(@"self all board chords is %@", self.allBoardChords);
 }
 
 -(NSSet *)loadChordsFromSceneBoardDyadminoes {
@@ -422,8 +420,6 @@
     DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[indexNumber unsignedIntegerValue]];
     [tempBoardAndPlayedDyadminoes addObject:dataDyad];
   }
-  
-  NSLog(@"loading chords from dyadminoes %@", tempBoardAndPlayedDyadminoes);
   
   for (DataDyadmino *dataDyadmino in tempBoardAndPlayedDyadminoes) {
     Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyadmino];
@@ -1049,7 +1045,6 @@
       if ([node isKindOfClass:[Button class]] || [node.parent isKindOfClass:[Button class]]) {
         Button *button = [node isKindOfClass:[Button class]] ? (Button *)node : (Button *)node.parent;
         if ([button isEnabled]) {
-          NSLog(@"button lifted sound.");
           [self postSoundNotification:kNotificationButtonLifted];
         }
 
@@ -2198,6 +2193,7 @@
             }
             
             [dyadmino keepHovering];
+            [self updateTopBarButtons];
           }
           
             // rack dyadmino
@@ -2234,8 +2230,6 @@
                 // check whether it's extending a triad into a seventh
               NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
               
-              NSLog(@"legal chord sonorities is %@, all board chords is %@", legalChordSonoritiesFormed, self.allBoardChords);
-              
               _recentRackDyadminoFormsLegalChord = YES;
               NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:chordSupersets withInitialString:@"Building " andEndingString:@"."];
               [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
@@ -2248,6 +2242,7 @@
           // placement result is lone dyadmino or stacked dyadminoes
       } else {
         [dyadmino keepHovering];
+        [self updateTopBarButtons];
       }
     }
   }

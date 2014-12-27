@@ -99,7 +99,7 @@
 #pragma mark - Core Data stack
 
 -(NSURL *)applicationDocumentsDirectory {
-    // The directory the application uses to store the Core Data store file. This code uses a directory named "com.bennettslin.FulcrumReceiptApp" in the application's documents directory.
+    // The directory the application uses to store the Core Data store file. This code uses a directory named "com.bennettslin.Dyadminoes" in the application's documents directory.
   return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject];
 }
 

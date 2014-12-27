@@ -215,19 +215,16 @@
 
 -(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap {
   
-//  NSSet *chordSonorities = [self totalChordSonoritiesThisTurn];
   NSNumber *points = @([self sumOfPointsThisTurn]);
   
     // a pass has an empty holding container, while a resign has *no* holding container
   NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:
                               [NSNumber numberWithUnsignedInteger:[self returnCurrentPlayerIndex]], kTurnPlayer,
                               self.holdingIndexContainer, kTurnDyadminoes,
-//                              chordSonorities, kTurnChords,
                               points, kTurnPoints,
                               nil];
   
   [self addTurn:dictionary];
-  NSLog(@"turn dictionary is %@", dictionary);
   
   NSArray *turns = self.turns;
   self.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
@@ -530,8 +527,6 @@
   
   NSString *dyadminoesPlayedString;
   if (points > 0) {
-//    NSAttributedString *chordsText = [self.delegate stringForSonorities:chordSonoritiesPlayed withInitialString:@"" andEndingString:@""];
-//    NSLog(@"chordsText is %@", chordsText);
     
     dyadminoesPlayedString = [NSString stringWithFormat:@"scored %i %@", points, ((points == 1) ? @"point" : @"points")];
   } else if (!dyadminoesPlayed) {
@@ -862,7 +857,6 @@
     }
   }
   
-  NSLog(@"total chord sonorities this turn is %@", tempTotalChordSonorities);
   return [NSSet setWithSet:tempTotalChordSonorities];
 }
 
@@ -885,9 +879,6 @@
   for (NSSet *chordSonority in chordSonorities) {
     
     BOOL extended = [extendedChordSonorities containsObject:chordSonority];
-    
-    NSLog(@"chord sonority %@, extendedchordSonorities %@, extended %i", chordSonority, extendedChordSonorities, extended);
-
     points += [self pointsForChordSonority:chordSonority extended:extended];
   }
   
