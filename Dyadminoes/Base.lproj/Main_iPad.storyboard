@@ -275,6 +275,13 @@
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Register" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="28v-Cg-imw">
+                                <rect key="frame" x="16" y="333" width="73" height="24"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="20"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="yjQ-5G-zfX">
                                 <rect key="frame" x="322" y="75" width="125" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -354,18 +361,39 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="note range" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="Bcd-GT-4jj">
+                                <rect key="frame" x="16" y="358" width="60" height="15"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="(can also toggle in game by shaking device)" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="rrB-8H-wkM">
                                 <rect key="frame" x="20" y="99" width="244" height="15"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="Whm-YX-gr5">
+                                <rect key="frame" x="285" y="329" width="199" height="29"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <segments>
+                                    <segment title="Bass"/>
+                                    <segment title="Baritone"/>
+                                    <segment title="Tenor"/>
+                                    <segment title="Alto"/>
+                                    <segment title="Soprano"/>
+                                </segments>
+                                <connections>
+                                    <action selector="registerChanged:" destination="CRf-ou-lUt" eventType="valueChanged" id="2Ly-Sz-juV"/>
+                                </connections>
+                            </segmentedControl>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <connections>
                         <outlet property="musicSlider" destination="Cbb-FW-dna" id="8LD-Mz-ckh"/>
                         <outlet property="notationControl" destination="yjQ-5G-zfX" id="G6C-gl-rr7"/>
+                        <outlet property="registerControl" destination="Whm-YX-gr5" id="OrL-YY-lF1"/>
                         <outlet property="removeDefaultsButton" destination="VBe-d3-RA3" id="h0h-ta-2tr"/>
                         <outlet property="showPivotGuideSwitch" destination="5La-tn-eEI" id="IXm-8J-kUF"/>
                         <outlet property="soundEffectsSlider" destination="au6-OC-Pw6" id="vt6-Qj-DuF"/>
@@ -469,6 +497,20 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="FXJ-S1-QSH" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1485" y="700"/>
+        </scene>
+        <!--Game Ended View Controller-->
+        <scene sceneID="ewy-Tr-HDX">
+            <objects>
+                <viewController storyboardIdentifier="GameEndedViewController" id="rBf-eb-baU" customClass="GameEndedViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Hbm-pW-nYn">
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="GHf-5O-7Xl" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1969" y="996"/>
         </scene>
     </scenes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">

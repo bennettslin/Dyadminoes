@@ -15,8 +15,9 @@
 @property (weak, nonatomic) IBOutlet UISegmentedControl *notationControl;
 @property (weak, nonatomic) IBOutlet UISlider *musicSlider;
 @property (weak, nonatomic) IBOutlet UISlider *soundEffectsSlider;
+@property (weak, nonatomic) IBOutlet UISegmentedControl *registerControl;
+
 @property (weak, nonatomic) IBOutlet UIButton *removeDefaultsButton;
-@property (strong, nonatomic) NSUserDefaults *defaults;
 
 @end
 
@@ -24,7 +25,6 @@
 
 -(void)viewDidLoad {
   [super viewDidLoad];
-  self.defaults = [NSUserDefaults standardUserDefaults];
 }
 
 -(void)viewWillAppear:(BOOL)animated {
@@ -32,27 +32,34 @@
   
     // defaults are established in app delegate
     // here, just show views
-  [self.showPivotGuideSwitch setOn:[self.defaults boolForKey:@"pivotGuide"] animated:NO];
-  self.notationControl.selectedSegmentIndex = [self.defaults integerForKey:@"notation"];
-  [self.musicSlider setValue:[self.defaults floatForKey:@"music"]];
-  [self.soundEffectsSlider setValue:[self.defaults floatForKey:@"soundEffects"]];
+  
+  [self.showPivotGuideSwitch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"pivotGuide"] animated:NO];
+  self.notationControl.selectedSegmentIndex = [[NSUserDefaults standardUserDefaults] integerForKey:@"notation"];
+  [self.musicSlider setValue:[[NSUserDefaults standardUserDefaults] floatForKey:@"music"]];
+  [self.soundEffectsSlider setValue:[[NSUserDefaults standardUserDefaults] floatForKey:@"soundEffects"]];
+  self.registerControl.selectedSegmentIndex = [[NSUserDefaults standardUserDefaults] integerForKey:@"register"];
 }
 
 -(IBAction)pivotGuideSwitched {
-  [self.defaults setBool:self.showPivotGuideSwitch.isOn forKey:@"pivotGuide"];
-  [self.defaults synchronize];
+  [[NSUserDefaults standardUserDefaults] setBool:self.showPivotGuideSwitch.isOn forKey:@"pivotGuide"];
+  [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 -(IBAction)notationChanged:(UISegmentedControl *)sender {
-  [self.defaults setInteger:sender.selectedSegmentIndex forKey:@"notation"];
-  [self.defaults synchronize];
+  [[NSUserDefaults standardUserDefaults] setInteger:sender.selectedSegmentIndex forKey:@"notation"];
+  [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 -(IBAction)musicSliderTouchEnded:(UISlider *)sender {
   sender.value = [self moduloSliderValue:sender.value];
-  [self.defaults setFloat:sender.value forKey:(sender == self.musicSlider) ? @"music" : @"soundEffects"];
-  [self.defaults synchronize];
+  [[NSUserDefaults standardUserDefaults] setFloat:sender.value forKey:(sender == self.musicSlider) ? @"music" : @"soundEffects"];
+  [[NSUserDefaults standardUserDefaults] synchronize];
   [self soundWithVolume:sender.value andMusic:(sender == self.musicSlider)];
+}
+
+-(IBAction)registerChanged:(UISegmentedControl *)sender {
+  [[NSUserDefaults standardUserDefaults] setInteger:sender.selectedSegmentIndex forKey:@"register"];
+  [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 -(float)moduloSliderValue:(float)value {
@@ -62,11 +69,11 @@
 }
 
 -(IBAction)removeDefaultsTapped:(UIButton *)sender {
-  [self.defaults removeObjectForKey:@"pivotGuide"];
-  [self.defaults removeObjectForKey:@"notation"];
-  [self.defaults removeObjectForKey:@"music"];
-  [self.defaults removeObjectForKey:@"soundEffects"];
-  [self.defaults synchronize];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"pivotGuide"];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"notation"];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"music"];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"soundEffects"];
+  [[NSUserDefaults standardUserDefaults] synchronize];
   
   [self.showPivotGuideSwitch setOn:YES animated:YES];
   self.notationControl.selectedSegmentIndex = 0;

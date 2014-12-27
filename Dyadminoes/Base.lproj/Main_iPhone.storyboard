@@ -106,6 +106,20 @@
             </objects>
             <point key="canvasLocation" x="1390" y="-561"/>
         </scene>
+        <!--Game Ended View Controller-->
+        <scene sceneID="2IL-58-347">
+            <objects>
+                <viewController storyboardIdentifier="GameEndedViewController" id="1ES-uM-6O7" customClass="GameEndedViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="wjM-wD-Tay">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="KbK-HO-flW" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1794" y="-539"/>
+        </scene>
         <!--Scene View Controller-->
         <scene sceneID="CtS-rA-C9T">
             <objects>
@@ -434,7 +448,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="usG-EM-nLX">
-                                <rect key="frame" x="20" y="255" width="99" height="30"/>
+                                <rect key="frame" x="20" y="341" width="99" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Reset defaults">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
@@ -455,12 +469,40 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Register" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="Kai-dF-Fjo">
+                                <rect key="frame" x="20" y="244" width="73" height="24"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="20"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="note range" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="4Ir-U8-LaV">
+                                <rect key="frame" x="20" y="269" width="60" height="15"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="4Lr-oc-oez">
+                                <rect key="frame" x="101" y="256" width="199" height="29"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <segments>
+                                    <segment title="Bass"/>
+                                    <segment title="Baritone"/>
+                                    <segment title="Tenor"/>
+                                    <segment title="Alto"/>
+                                    <segment title="Soprano"/>
+                                </segments>
+                                <connections>
+                                    <action selector="registerChanged:" destination="iBm-M5-xqB" eventType="valueChanged" id="Wkq-rv-crO"/>
+                                </connections>
+                            </segmentedControl>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <connections>
                         <outlet property="musicSlider" destination="HA8-u9-cRv" id="NS3-ay-HC6"/>
                         <outlet property="notationControl" destination="PcK-2g-JWf" id="3Tc-aa-n1V"/>
+                        <outlet property="registerControl" destination="4Lr-oc-oez" id="coJ-Tt-JUh"/>
                         <outlet property="removeDefaultsButton" destination="usG-EM-nLX" id="rHz-H6-4hn"/>
                         <outlet property="showPivotGuideSwitch" destination="29R-a5-mr5" id="f81-L2-2S4"/>
                         <outlet property="soundEffectsSlider" destination="UsU-UW-YhS" id="pZr-OB-ir4"/>

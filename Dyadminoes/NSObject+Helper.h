@@ -38,7 +38,7 @@
 
   // animation constants
 #define kConstantSpeed (kIsIPhone ? 0.002f : 0.0013333f)
-#define kBounceDivisor 10.f
+#define kBounceDivisor 8.f
 
 //------------------------------------------------------------------------------
 

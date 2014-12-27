@@ -12,7 +12,6 @@
 #import "BAudioController.h"
 
 #define kOptionsMusic @"optionsMusic"
-#define kLowestNote 72
 #define kOptionsNote 72
 #define kNoteDelay 0.05f
 
@@ -49,6 +48,10 @@
   return self;
 }
 
+-(NSUInteger)lowestNote {
+  return 36 + [[NSUserDefaults standardUserDefaults] integerForKey:@"register"] * 12;
+}
+
 #pragma mark - piano delegate methods
 
 -(void) noteOn:(Byte)note {
@@ -65,15 +68,16 @@
 
 -(void)handleMusicNote:(NSUInteger)note {
   if (note != -1) {
-      // hard coded value for now (72 is C)
-      // will eventually call method to get dynamic note value
-    [self noteOn:note + kLowestNote];
+
+      // values will range from 36 to 84
+    [self noteOn:note + [self lowestNote]];
   }
 }
 
 -(void)handleMusicNote1:(NSUInteger)note1 andNote2:(NSUInteger)note2 withOrientation:(DyadminoOrientation)dyadminoOrientation {
   
-  note1 = note1 + kLowestNote;
+  NSUInteger lowestNote = [self lowestNote];
+  note1 = note1 + lowestNote;
   
     // first determine pitches
   switch (dyadminoOrientation) {
@@ -81,14 +85,14 @@
     case kPC1atTenOClock:
     case kPC1atTwelveOClock:
     case kPC1atTwoOClock:
-      note2 = note2 + kLowestNote - 12;
+      note2 = note2 + lowestNote - 12;
       break;
       
         // note 2 is higher than note 1
     case kPC1atEightOClock:
     case kPC1atSixOClock:
     case kPC1atFourOClock:
-      note2 = note2 + kLowestNote;
+      note2 = note2 + lowestNote;
       break;
   }
   
@@ -160,13 +164,13 @@
     case kNotificationEaseIntoNode:
     case kNotificationRackExchangeClick:
     case kNotificationButtonSunkIn:
+    case kNotificationButtonLifted:
       return kSoundFileClick;
       break;
     case kNotificationDeviceOrientation:
     case kNotificationPopIntoNode:
     case kNotificationTogglePCs:
     case kNotificationBoardZoom:
-    case kNotificationButtonLifted:
       return kSoundFilePop;
       break;
     case kNotificationToggleBarOrField:

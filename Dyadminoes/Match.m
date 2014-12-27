@@ -401,7 +401,7 @@
 -(void)resignPlayer:(Player *)player {
   
     // a resign has *no* holding container
-  if (self.type != kSelfGame) {
+  if ([self returnType] != kSelfGame) {
     
     NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:[NSNumber numberWithUnsignedInteger:[self returnCurrentPlayerIndex]], kTurnPlayer, nil];
     

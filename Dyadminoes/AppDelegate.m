@@ -60,6 +60,10 @@
     [defaults setFloat:0.5f forKey:@"soundEffects"];
     [defaults synchronize];
   }
+  if (![defaults objectForKey:@"register"]) {
+    [defaults setInteger:2 forKey:@"register"];
+    [defaults synchronize];
+  }
 }
 							
 -(void)applicationWillResignActive:(UIApplication *)application {

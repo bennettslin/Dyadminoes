@@ -14,6 +14,7 @@
 #import "SettingsViewController.h"
 #import "AboutViewController.h"
 #import "ChildViewController.h"
+#import "GameEndedViewController.h"
 
 typedef enum axis {
   kAxisCenter,
@@ -129,6 +130,8 @@ typedef enum axis {
   } else if ([childVC isKindOfClass:[OptionsViewController class]]) {
     childVC.view.backgroundColor = kPlayerGreen;
     
+  } else if ([childVC isKindOfClass:[GameEndedViewController class]]) {
+    childVC.view.backgroundColor = [UIColor lightGrayColor];
   }
   
   childVC.view.frame = CGRectMake(0, 0, viewWidth, viewHeight);

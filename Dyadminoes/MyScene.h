@@ -14,7 +14,7 @@
 @class Dyadmino;
 @class Match;
 @class SoundEngine;
-
+@class ChildViewController;
 @protocol SceneDelegate;
 
 @interface MyScene : SKScene
@@ -59,6 +59,7 @@
 -(void)showChordMessage:(NSAttributedString *)message sign:(ChordMessageSign)sign;
 -(void)fadeChordMessage;
 
--(void)presentOptionsVC;
+-(void)presentFromSceneOptionsVC;
+-(void)presentFromSceneGameEndedVC;
 
 @end

@@ -657,11 +657,10 @@
     for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
       dyadmino.delegate = self;
     }
-    
-      // match has ended
-  } else {
 
-      // FIXME: do something when match has ended
+  } else {
+    [_rackField layoutOrRefreshNodesWithCount:self.playerRackDyadminoes.count];
+    [_rackField repositionDyadminoes:self.playerRackDyadminoes fromUndo:undo withAnimation:animation];
   }
   
   return YES;
@@ -1475,7 +1474,7 @@
       /// options button
   } else if (button == _topBar.optionsButton) {
     
-    [self.myDelegate presentOptionsVC];
+    [self.myDelegate presentFromSceneOptionsVC];
     
       /// replay button
   } else if (button == _topBar.replayButton || button == _replayBottom.returnOrStartButton) {
@@ -1738,9 +1737,12 @@
 }
 
 -(void)handleEndGame {
-  [self updateTopBarLabelsFinalTurn:NO animated:YES];
-  [self toggleRackGoOut:YES completion:nil];
-  [self doSomethingSpecial:@"acknowledge that game has ended"];
+  [self updateTopBarLabelsFinalTurn:YES animated:YES];
+  
+    // FIXME: remove rack dyadminoes here
+  NSLog(@"rack dyadminoes should now be removed.");
+  
+  [self.myDelegate presentFromSceneGameEndedVC];
 }
 
 -(void)tempStoreForPlayerSceneDataDyadminoes {
@@ -3246,7 +3248,7 @@
     }
     
       // resign button
-  } else if (actionSheet.tag == 3 && ([buttonText isEqualToString:@"Resign"] || [buttonText isEqualToString:@"End game"])) {
+  } else if (actionSheet.tag == 3 && ![buttonText isEqualToString:@"Cancel"]) {
     [self.myMatch resignPlayer:_myPlayer];
 
       // board dyadmino forms new chord

@@ -16,6 +16,7 @@
 #import "OptionsViewController.h"
 #import "HelpViewController.h"
 #import "SettingsViewController.h"
+#import "GameEndedViewController.h"
 
 @interface SceneViewController () <SceneDelegate, UIGestureRecognizerDelegate, OptionsDelegate>
 
@@ -24,6 +25,7 @@
 @property (strong, nonatomic) UIView *turnPileCountField;
 
 @property (strong, nonatomic) OptionsViewController *optionsVC;
+@property (strong, nonatomic) GameEndedViewController *gameEndedVC;
 
 @property (nonatomic) CGFloat topBarPlayerLabelWidth;
 @property (nonatomic) CGFloat topBarScoreLabelWidth;
@@ -45,6 +47,8 @@
   
   self.optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"OptionsViewController"];
   self.optionsVC.delegate = self;
+  
+  self.gameEndedVC = [self.storyboard instantiateViewControllerWithIdentifier:@"GameEndedViewController"];
   
     // first version of app will not have device orientation
 //  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
@@ -109,11 +113,19 @@
 
 #pragma mark - navigation methods
 
--(void)presentOptionsVC {
+-(void)presentFromSceneOptionsVC {
   [self.myScene toggleRackGoOut:YES completion:nil];
   [self.myScene toggleTopBarGoOut:YES completion:nil];
   [self.myScene toggleFieldActionInProgress:YES];
   [self presentChildViewController:self.optionsVC];
+}
+
+-(void)presentFromSceneGameEndedVC {
+  NSLog(@"present from scene game ended vc.");
+  [self.myScene toggleRackGoOut:YES completion:nil];
+  [self.myScene toggleTopBarGoOut:YES completion:nil];
+  [self.myScene toggleFieldActionInProgress:YES];
+  [self presentChildViewController:self.gameEndedVC];
 }
 
 -(void)presentFromOptionsChildViewController:(OptionsVCOptions)optionsNumber {

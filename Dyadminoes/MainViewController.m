@@ -362,10 +362,10 @@
 -(void)slideTableviewOut:(BOOL)out {
   
   if (out) { // slide out
-    [self slideAnimateView:self.tableView toDestinationYPosition:(kMainTopBarHeight - self.screenHeight) durationConstant:kConstantTime];
+    [self slideAnimateView:self.tableView toDestinationYPosition:(kMainTopBarHeight - self.screenHeight) durationConstant:kViewControllerSpeed];
     
   } else { // slide in
-    [self slideAnimateView:self.tableView toDestinationYPosition:kMainTopBarHeight durationConstant:kConstantTime];
+    [self slideAnimateView:self.tableView toDestinationYPosition:kMainTopBarHeight durationConstant:kViewControllerSpeed];
   }
 }
 
