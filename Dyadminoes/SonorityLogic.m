@@ -531,11 +531,13 @@
                            andEndingString:(NSString *)endingString {
   
   NSMutableAttributedString *initialText = [[NSMutableAttributedString alloc] initWithString:initialString];
+//  [initialText addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontModern size:kChordMessageLabelFontSize] range:NSMakeRange(0, initialText.length)];
   
   NSSet *chords = [self chordSonoritiesForSonorities:sonorities];
   NSAttributedString *chordsText = [self stringForLegalChords:chords];
   
-  NSAttributedString *endingText = [[NSMutableAttributedString alloc] initWithString:endingString];
+  NSMutableAttributedString *endingText = [[NSMutableAttributedString alloc] initWithString:endingString];
+//  [endingText addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontModern size:kChordMessageLabelFontSize] range:NSMakeRange(0, endingText.length)];
   
   [initialText appendAttributedString:chordsText];
   [initialText appendAttributedString:endingText];

@@ -65,10 +65,11 @@
 @property (strong, nonatomic) Face *pc2Sprite;
 
   // bools and states
-@property (nonatomic) BOOL isInTopBar;
-@property (nonatomic) BOOL belongsInSwap;
+@property (readonly, nonatomic) BOOL isInTopBar;
+@property (readonly, nonatomic) BOOL belongsInSwap;
+
 @property (nonatomic) BOOL canFlip;
-@property (nonatomic) BOOL isRotating;
+@property (readonly, nonatomic) BOOL isRotating;
 @property (nonatomic) BOOL isTouchThenHoverResized;
 @property (nonatomic) BOOL isZoomResized;
 @property (nonatomic) DyadminoHoveringStatus hoveringStatus;
@@ -107,13 +108,12 @@
 
 -(void)startTouchThenHoverResize;
 -(void)endTouchThenHoverResize;
--(void)keepHovering;
--(void)finishHovering;
 -(void)unhighlightOutOfPlay;
+-(void)changeHoveringStatus:(DyadminoHoveringStatus)hoveringStatus;
 -(void)highlightBoardDyadminoWithColour:(UIColor *)colour;
 -(void)adjustHighlightGivenDyadminoOffsetPosition:(CGPoint)dyadminoOffsetPosition;
 
-#pragma mark - change state methods
+#pragma mark - change view methods
 
 -(void)goToTempBoardNodeBySounding:(BOOL)sounding;
 -(void)goHomeToRackByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding fromUndo:(BOOL)undo withResize:(BOOL)resize;
@@ -137,14 +137,16 @@
 
 -(BOOL)belongsInRack;
 -(BOOL)belongsOnBoard;
-
--(BOOL)isOrBelongsInSwap;
 -(BOOL)isInRack;
 -(BOOL)isOnBoard;
--(BOOL)isLocatedInTopBar;
 -(BOOL)isHovering;
 -(BOOL)continuesToHover;
 -(BOOL)isFinishedHovering;
+
+#pragma mark - placement methods
+
+-(void)placeInTopBar:(BOOL)inTopBar;
+-(void)placeInBelongsInSwap:(BOOL)belongsInSwap;
 
 #pragma mark - helper methods
 

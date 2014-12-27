@@ -786,7 +786,7 @@
     // dyadmino is not registered if face is touched
   Dyadmino *dyadmino = [self selectDyadminoFromTouchPoint:_currentTouchLocation];
   
-  if (!dyadmino.hidden && !_canDoubleTapForDyadminoFlip && ([dyadmino isOnBoard] || ![dyadmino isRotating])) {
+  if (!dyadmino.hidden && !_canDoubleTapForDyadminoFlip && ([dyadmino isOnBoard] || !dyadmino.isRotating)) {
     
         // register sound if dyadmino tapped
     if ((!_pnpBarUp && !_replayMode && dyadmino && (!_swapMode || (_swapMode && [dyadmino isInRack])) && !_pivotInProgress) && (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack]))) {
@@ -974,7 +974,7 @@
   }
   
     // continue to reset hover count
-  [_touchedDyadmino isHovering] ? [_touchedDyadmino keepHovering] : nil;
+  [_touchedDyadmino isHovering] ? [_touchedDyadmino changeHoveringStatus:kDyadminoContinuesHovering] : nil;
   
     //  this is the only place that sets dyadmino highlight to YES
     //  dyadmino highlight is reset when sent home or finalised
@@ -1004,7 +1004,7 @@
   
     // if it's a rack dyadmino, then while movement is within rack, rearrange dyadminoes
   if (([_touchedDyadmino belongsInRack] && [_touchedDyadmino isInRack]) ||
-      [_touchedDyadmino isOrBelongsInSwap]) {
+      _touchedDyadmino.belongsInSwap) {
     
     SnapPoint *rackNode = [self findSnapPointClosestToDyadmino:_touchedDyadmino];
     
@@ -1173,7 +1173,7 @@
     self.boardDyadminoBelongsInTheseLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
   }
   
-  [dyadmino isOnBoard] ? [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino != _hoveringDyadmino && ![dyadmino isRotating])] : nil;
+  [dyadmino isOnBoard] ? [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino != _hoveringDyadmino && !dyadmino.isRotating)] : nil;
   
   [dyadmino startTouchThenHoverResize];
   
@@ -1209,13 +1209,13 @@
   
   
     // reset hover count
-  [dyadmino isHovering] ? [dyadmino keepHovering] : nil;
+  [dyadmino isHovering] ? [dyadmino changeHoveringStatus:kDyadminoContinuesHovering] : nil;
   [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
   
     //--------------------------------------------------------------------------
   
     // if it's still in the rack, it can still rotate
-  if ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap]) {
+  if ([dyadmino isInRack] || dyadmino.belongsInSwap) {
     dyadmino.canFlip = YES;
   }
   
@@ -1245,7 +1245,7 @@
       }
       
         // or if dyadmino is in top bar...
-    } else if ([dyadmino isInTopBar]) {;
+    } else if (dyadmino.isInTopBar) {;
       
         // if it's a board dyadmino
       if ([dyadmino.homeNode isBoardNode]) {
@@ -1293,7 +1293,7 @@
     if (dyadmino.isHovering || dyadmino.continuesToHover) {
       
        // add !_canDoubleTapForDyadminoFlip to have delay after touch ends
-      [dyadmino isRotating] ? nil : [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
+      dyadmino.isRotating ? nil : [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
     }
   }
 }
@@ -1325,6 +1325,8 @@
   
   [dyadmino endTouchThenHoverResize];
     // this makes nil tempBoardNode
+  
+  NSLog(@"board zoomed out is %i", _boardZoomedOut);
   
   if ([dyadmino belongsInRack] && !undo) {
     _uponTouchDyadminoNode = nil;
@@ -1568,7 +1570,7 @@
   [self.myMatch removeAllSwaps];
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
-      dyadmino.belongsInSwap = NO;
+      [dyadmino placeInBelongsInSwap:NO];
       [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO withResize:NO];
     }
   }
@@ -1846,10 +1848,10 @@
 }
 
 -(void)updateForHoveringDyadminoBeingCorrectedWithinBounds {
-  if (![_hoveringDyadmino isRotating] && !_boardToBeMovedOrBeingMoved &&
+  if (!_hoveringDyadmino.isRotating && !_boardToBeMovedOrBeingMoved &&
       !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected &&
       _hoveringDyadmino && _hoveringDyadmino != _touchedDyadmino &&
-      ![_hoveringDyadmino isInRack] && ![_hoveringDyadmino isInTopBar]) {
+      ![_hoveringDyadmino isInRack] && !_hoveringDyadmino.isInTopBar) {
     
     CGFloat xLowLimit = -_boardField.position.x;
     CGFloat xHighLimit = self.view.frame.size.width - _boardField.position.x;
@@ -1889,7 +1891,7 @@
         _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
         [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
         
-        if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
+        if (!_canDoubleTapForDyadminoFlip && !_hoveringDyadmino.isRotating) {
           [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
         }
         
@@ -2051,7 +2053,7 @@
         [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
         
         if (_hoveringDyadminoBeingCorrected == 0) {
-          if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
+          if (!_canDoubleTapForDyadminoFlip && !_hoveringDyadmino.isRotating) {
             [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
           }
         }
@@ -2065,7 +2067,7 @@
 -(void)updatePivotForDyadminoMoveWithoutBoardCorrected {
     // if board not shifted or corrected, show prepivot guide
   if (_hoveringDyadmino && _hoveringDyadminoBeingCorrected == 0 && _hoveringDyadmino.zRotationCorrectedAfterPivot && !_touchedDyadmino && !_currentTouch && !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected && ![_boardField.children containsObject:_boardField.prePivotGuide]) {
-    if (!_canDoubleTapForDyadminoFlip && ![_hoveringDyadmino isRotating]) {
+    if (!_canDoubleTapForDyadminoFlip && !_hoveringDyadmino.isRotating) {
       [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
     }
   }
@@ -2082,7 +2084,7 @@
       // reset hover time if continues to hover
     if ([dyadmino continuesToHover]) {
       _hoverTime = currentTime;
-      dyadmino.hoveringStatus = kDyadminoHovering;
+      [dyadmino changeHoveringStatus:kDyadminoHovering];
     }
     
       // 
@@ -2090,7 +2092,7 @@
       _hoverTime = 0.f;
       
       _uponTouchDyadminoNode = nil;
-      [dyadmino finishHovering];
+      [dyadmino changeHoveringStatus:kDyadminoFinishedHovering];
     }
     
     [dyadmino isFinishedHovering] ? [self checkWhetherToEaseOrKeepHovering:dyadmino] : nil;
@@ -2132,7 +2134,7 @@
               NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:supersets withInitialString:@"Can't break " andEndingString:@"."];
               
               [self.myDelegate showChordMessage:chordsText sign:kChordMessageBad];
-              [dyadmino keepHovering];
+              [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
               
                 // extra chords formed means we've just built a new chord
             } else if (![[SonorityLogic sharedLogic] setOfLegalChords:legalChordSonoritiesFormed isSubsetOfSetOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords]) {
@@ -2147,7 +2149,7 @@
                 NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:chordSupersets withInitialString:@"Build " andEndingString:@"?"];
                 
                 [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
-                [dyadmino keepHovering];
+                [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
                 
                   // otherwise it's a seventh extended from a triad built this turn, so just keep the new chord
               } else {
@@ -2192,8 +2194,8 @@
               [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Sonority isn't legal."] sign:kChordMessageBad];
             }
             
-            [dyadmino keepHovering];
-            [self updateTopBarButtons];
+            [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
+            [self updateTopBarButtons]; // ensures that buttons are updated if chords are changed after flip
           }
           
             // rack dyadmino
@@ -2241,15 +2243,15 @@
         
           // placement result is lone dyadmino or stacked dyadminoes
       } else {
-        [dyadmino keepHovering];
-        [self updateTopBarButtons];
+        [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
+        [self updateTopBarButtons]; // ensures that buttons are updated if chords are changed after flip
       }
     }
   }
 }
 
 -(void)finishHoveringAfterCheckDyadmino:(Dyadmino *)dyadmino {
-  [dyadmino finishHovering];
+  [dyadmino changeHoveringStatus:kDyadminoFinishedHovering];
   if ([dyadmino belongsOnBoard]) {
     
       // this is the only place where a board dyadmino's tempBoardNode becomes its new homeNode
@@ -2681,7 +2683,7 @@
 #pragma mark - board helper methods
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour {
-  if (![dyadmino isRotating]) {
+  if (!dyadmino.isRotating) {
     
     SnapPoint *snapPoint = dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode;
     
@@ -2692,7 +2694,7 @@
 }
 
 -(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour {
-  if (![dyadmino isRotating]) {
+  if (!dyadmino.isRotating) {
     if (dyadmino.homeNode) {
       
         // update hexCoord of board dyadmino
@@ -2792,26 +2794,26 @@
   if (_pivotInProgress || (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
       _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight)) {
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
-    dyadmino.isInTopBar = NO;
+    [dyadmino placeInTopBar:NO];
     
       // it's in swap
   } else if (_swapMode && _currentTouchLocation.y - _touchOffsetVector.y > kRackHeight) {
-    dyadmino.belongsInSwap = YES;
+    [dyadmino placeInBelongsInSwap:YES];
     [self addDataDyadminoToSwapContainerForDyadmino:dyadmino];
     
-    dyadmino.isInTopBar = NO;
+    [dyadmino placeInTopBar:NO];
 
     // if in rack field, doesn't matter if it's in swap
   } else if (_currentTouchLocation.y - _touchOffsetVector.y <= kRackHeight) {
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
-    dyadmino.belongsInSwap = NO;
+    [dyadmino placeInBelongsInSwap:NO];
     [self removeDataDyadminoFromSwapContainerForDyadmino:dyadmino];
-    dyadmino.isInTopBar = NO;
+    [dyadmino placeInTopBar:NO];
 
       // else it's in the top bar, but this is a clumsy workaround, so be careful!
   } else if (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >=
              self.frame.size.height - kTopBarHeight) {
-    dyadmino.isInTopBar = YES;
+    [dyadmino placeInTopBar:YES];
   }
 }
 
@@ -2896,7 +2898,7 @@
           return dyadmino;
         }
           // if dyadmino is in rack...
-      } else if (dyadmino && ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap])) {
+      } else if (dyadmino && ([dyadmino isInRack] || dyadmino.belongsInSwap)) {
         if ([self getDistanceFromThisPoint:touchPoint toThisPoint:dyadmino.position] <
             kDistanceForTouchingRestingDyadmino) { // was _rackField.xIncrementInRack
           return dyadmino;
@@ -2938,7 +2940,7 @@
       arrayOrSetToSearch = _boardField.snapPointsTenOClock;
     }
     
-  } else if ([dyadmino isInRack] || [dyadmino isOrBelongsInSwap]) {
+  } else if ([dyadmino isInRack] || dyadmino.belongsInSwap) {
     arrayOrSetToSearch = _rackField.rackNodes;
   }
   

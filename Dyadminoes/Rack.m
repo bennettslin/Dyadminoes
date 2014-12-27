@@ -133,7 +133,7 @@
                         andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode {
   
     // touchedDyadmino is in the rack, eligible for exchange
-  if ([touchedDyadmino isInRack] || [touchedDyadmino isOrBelongsInSwap]) {
+  if ([touchedDyadmino isInRack] || touchedDyadmino.belongsInSwap) {
     
       // touchedDyadmino is closer to another dyadmino's rackNode
     if (touchedDyadminoNewRackNode != touchedDyadmino.homeNode) {
