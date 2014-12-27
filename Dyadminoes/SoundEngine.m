@@ -66,6 +66,14 @@
 
 #pragma mark - notification and sound methods
 
+-(void)handleMusicNote:(NSUInteger)note withHexCoord:(HexCoord)hexCoord {
+  
+    // FIXME: for now, just log hexCoord
+  
+  [self handleMusicNote:note];
+  NSLog(@"hexCoord is %i, %i", hexCoord.x, hexCoord.y);
+}
+
 -(void)handleMusicNote:(NSUInteger)note {
   if (note != -1) {
 

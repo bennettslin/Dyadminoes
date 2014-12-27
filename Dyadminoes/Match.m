@@ -35,7 +35,7 @@
 @dynamic firstDataDyadIndex;
 @dynamic randomNumber1To24;
 @dynamic arrayOfChordsAndPoints;
-@dynamic pointsThisTurn;
+//@dynamic pointsThisTurn;
 
   // not persisted
 @synthesize replayBoard = _replayBoard;
@@ -233,7 +233,7 @@
   self.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
   
       // player passes
-  if ([(NSArray *)self.holdingIndexContainer count] == 0) {
+  if ([self sumOfPointsThisTurn] == 0) {
     
       // if solo game, ends right away
       // FIXME: this will need to be changed to accommodate when board dyadmino
@@ -522,18 +522,18 @@
   Player *turnPlayer = [self playerForIndex:[[self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnPlayer] unsignedIntegerValue]];
   NSArray *dyadminoesPlayed;
   
-  NSUInteger points;
+  NSUInteger points = 0;
   if ([self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes]) {
     dyadminoesPlayed = [self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes];
     points = [[self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnPoints] unsignedIntegerValue];
   }
   
   NSString *dyadminoesPlayedString;
-  if (dyadminoesPlayed.count > 0) {
+  if (points > 0) {
 //    NSAttributedString *chordsText = [self.delegate stringForSonorities:chordSonoritiesPlayed withInitialString:@"" andEndingString:@""];
 //    NSLog(@"chordsText is %@", chordsText);
     
-    dyadminoesPlayedString = [NSString stringWithFormat:@"scored %i points", points];
+    dyadminoesPlayedString = [NSString stringWithFormat:@"scored %i %@", points, ((points == 1) ? @"point" : @"points")];
   } else if (!dyadminoesPlayed) {
     dyadminoesPlayedString = @"resigned";
   } else if (dyadminoesPlayed.count == 0) {

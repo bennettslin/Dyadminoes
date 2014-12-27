@@ -13,6 +13,7 @@
 @interface SoundEngine : SKNode
 
 -(void)handleMusicNote:(NSUInteger)note;
+-(void)handleMusicNote:(NSUInteger)note withHexCoord:(HexCoord)hexCoord;
 -(void)handleMusicNote1:(NSUInteger)note1 andNote2:(NSUInteger)note2 withOrientation:(DyadminoOrientation)dyadminoOrientation;
 
 +(SoundEngine *)sharedSoundEngine;

@@ -12,6 +12,8 @@
 
 #pragma mark - animate methods
 
+-(void)removeAnimationForKey:(NSString *)key withCompletion:(void(^)(void))completion;
 -(void)toggleToYPosition:(CGFloat)toYPosition goOut:(BOOL)goOut completion:(void(^)(void))completion withKey:(NSString *)key;
+-(void)toggleToXPosition:(CGFloat)toYPosition goOut:(BOOL)goOut completion:(void(^)(void))completion withKey:(NSString *)key;
 
 @end

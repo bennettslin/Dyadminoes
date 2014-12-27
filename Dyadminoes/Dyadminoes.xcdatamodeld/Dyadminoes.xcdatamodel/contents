@@ -18,7 +18,6 @@
         <attribute name="gameHasEnded" optional="YES" attributeType="Boolean" syncable="YES"/>
         <attribute name="holdingIndexContainer" optional="YES" attributeType="Transformable" syncable="YES"/>
         <attribute name="lastPlayed" optional="YES" attributeType="Date" syncable="YES"/>
-        <attribute name="pointsThisTurn" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <attribute name="randomNumber1To24" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <attribute name="replayTurn" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <attribute name="rules" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
@@ -42,7 +41,7 @@
     </entity>
     <elements>
         <element name="DataDyadmino" positionX="0" positionY="0" width="128" height="180"/>
-        <element name="Match" positionX="0" positionY="0" width="128" height="285"/>
+        <element name="Match" positionX="0" positionY="0" width="128" height="270"/>
         <element name="Player" positionX="0" positionY="0" width="128" height="180"/>
     </elements>
 </model>

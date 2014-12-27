@@ -60,6 +60,9 @@
 -(IBAction)registerChanged:(UISegmentedControl *)sender {
   [[NSUserDefaults standardUserDefaults] setInteger:sender.selectedSegmentIndex forKey:@"register"];
   [[NSUserDefaults standardUserDefaults] synchronize];
+  
+//  NSUInteger soundedValue = 36 + sender.selectedSegmentIndex * 12;
+//  [self soundWithVolume:soundedValue andMusic:YES];
 }
 
 -(float)moduloSliderValue:(float)value {

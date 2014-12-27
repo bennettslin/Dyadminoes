@@ -24,8 +24,8 @@
 -(void)changeName;
 -(SwapCancelOrUndoButton)confirmSwapCancelOrUndo;
 -(PassPlayOrDoneButton)confirmPassPlayOrDone;
--(void)showSunkIn;
--(void)showLifted;
+-(void)sinkInWithAnimation:(BOOL)animation;
+-(void)liftWithAnimation:(BOOL)animation andCompletion:(void (^)(void))completion;
 
 -(BOOL)isEnabled;
 -(void)enable:(BOOL)isEnabled;

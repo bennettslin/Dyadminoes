@@ -568,6 +568,9 @@
 
 -(HexCoord)getHexCoordOfOtherCellGivenDyadmino:(Dyadmino *)dyadmino andBoardNode:(SnapPoint *)snapPoint {
   
+    // method needs board node
+    // there are situations where it cannot get hexCoord from dyadmino alone
+  
   NSInteger xHex;
   NSInteger yHex;
   if (snapPoint) {

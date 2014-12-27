@@ -58,7 +58,6 @@
   // dyadmino information is not retained
 @property (retain, nonatomic) id arrayOfChordsAndPoints;
 
-@property (retain, nonatomic) NSNumber *pointsThisTurn;
 @property (retain, nonatomic) NSNumber *randomNumber1To24;
 
   // these are not persisted

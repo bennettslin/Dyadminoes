@@ -210,7 +210,7 @@
   
   _zoomChangedCellsAlpha = NO;
   _rackExchangeInProgress = NO;
-  [_buttonPressed showLifted];
+  [_buttonPressed liftWithAnimation:NO andCompletion:nil];
   _buttonPressed = nil;
   _hoveringDyadminoBeingCorrected = 0;
   _hoveringDyadminoFinishedCorrecting = 1;
@@ -437,7 +437,18 @@
     } else {
       pc = -1;
     }
-    [self.mySoundEngine handleMusicNote:pc];
+    
+    HexCoord hexCoord;
+    BOOL dyadminoRightsideUp = dyadmino.orientation <= kPC1atTwoOClock || dyadmino.orientation >= kPC1atTenOClock;
+    if (pc == dyadmino.pc1) {
+      hexCoord = dyadminoRightsideUp ?
+          [_boardField getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil] : dyadmino.myHexCoord;
+    } else {
+      hexCoord = dyadminoRightsideUp ?
+          dyadmino.myHexCoord : [_boardField getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil];
+    }
+
+    [self.mySoundEngine handleMusicNote:pc withHexCoord:hexCoord];
     
       // no face means sound whole dyadmino
   } else {
@@ -751,7 +762,7 @@
     if ([touchedButton isEnabled] && !_fieldActionInProgress) {
       [self postSoundNotification:kNotificationButtonSunkIn];
       _buttonPressed = touchedButton;
-      [_buttonPressed showSunkIn];
+      [_buttonPressed sinkInWithAnimation:YES];
       return;
     }
   }
@@ -852,7 +863,14 @@
     // if the touch started on a button, do nothing and return
   if (_buttonPressed) {
     SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
-    (node == _buttonPressed || node.parent == _buttonPressed) ? [_buttonPressed showSunkIn] : [_buttonPressed showLifted];
+    
+      // although these methods are called, button will check itself
+      // to determine whether animations are actually needed
+    if (node == _buttonPressed || node.parent == _buttonPressed) {
+      [_buttonPressed sinkInWithAnimation:YES];
+    } else {
+      [_buttonPressed liftWithAnimation:YES andCompletion:nil];
+    }
     return;
   }
   
@@ -1019,7 +1037,10 @@
         }
 
         if (button == _buttonPressed) {
-          [self handleButtonPressed:_buttonPressed];
+          __weak typeof(self) weakSelf = self;
+          [button liftWithAnimation:YES andCompletion:^{
+            [weakSelf handleButtonPressed:button];
+          }];
         }
         return;
       }
@@ -1446,8 +1467,9 @@
   } else if (button == _topBar.passPlayOrDoneButton &&
              ([button confirmPassPlayOrDone] == kDoneButton || [button confirmPassPlayOrDone] == kPassButton)) {
     if (!_swapMode) {
-      NSArray *holdingIndexContainer = self.myMatch.holdingIndexContainer;
-      if (holdingIndexContainer.count == 0) {
+//      NSArray *holdingIndexContainer = self.myMatch.holdingIndexContainer;
+      if ([self.myMatch sumOfPointsThisTurn] == 0) {
+        
           // it's a pass, so confirm with action sheet
         [self presentPassActionSheet];
       } else {
@@ -1523,7 +1545,7 @@
 }
 
 -(void)buttonPressedMakeNil {
-  [_buttonPressed showLifted];
+  [_buttonPressed liftWithAnimation:NO andCompletion:nil];
   _buttonPressed = nil;
 }
 
@@ -2108,7 +2130,7 @@
                 [self presentNewLegalChordActionSheetWithPoints:[self.myMatch pointsForChordSonorities:legalChordSonoritiesFormed extendedChordSonorities:chordSupersets]];
                 _tempChordSonoritiesFromMovedBoardDyadmino = chordSupersets;
                 
-                NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:chordSupersets withInitialString:@"Building " andEndingString:@"?"];
+                NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:chordSupersets withInitialString:@"Build " andEndingString:@"?"];
                 
                 [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
                 [dyadmino keepHovering];
@@ -2261,12 +2283,17 @@
   BOOL currentPlayerHasTurn = _myPlayer == [self.myMatch returnCurrentPlayer];
   BOOL thereIsATouchedOrHoveringDyadmino = _touchedDyadmino || _hoveringDyadmino;
   BOOL swapContainerNotEmpty = swapIndexContainer.count > 0;
-  BOOL noDyadminoesPlayedAndNoRecentRackDyadmino = holdingIndexContainer.count == 0 && !_recentRackDyadmino;
+  
+    // this determines whether cancel or undo, so it only cares about rack dyadminoes played
+  BOOL noRackDyadminoesPlayedAndNoRecentRackDyadmino = holdingIndexContainer.count == 0 && !_recentRackDyadmino;
+  
+      // if player has points from moving a board dyadmino, that counts as well
+  BOOL noBoardDyadminoesPlayedAndNoRecentRackDyadmino = ([self.myMatch sumOfPointsThisTurn] == 0) && !_recentRackDyadmino;
   
   [_topBar node:_topBar.returnOrStartButton shouldBeEnabled:!_swapMode && !thereIsATouchedOrHoveringDyadmino];
   [_topBar node:_topBar.replayButton shouldBeEnabled:(gameHasEndedForPlayer || !currentPlayerHasTurn || (currentPlayerHasTurn && !_swapMode)) && (turns.count > 0) && !_pnpBarUp];
   [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:(!gameHasEndedForPlayer && currentPlayerHasTurn) && !_pnpBarUp && _undoButtonAllowed];
-  [_topBar node:_topBar.passPlayOrDoneButton shouldBeEnabled:((!gameHasEndedForPlayer && currentPlayerHasTurn) && (!thereIsATouchedOrHoveringDyadmino) && !_pnpBarUp && ((_swapMode && swapContainerNotEmpty) || !_swapMode) && (_swapMode || (!noDyadminoesPlayedAndNoRecentRackDyadmino || (noDyadminoesPlayedAndNoRecentRackDyadmino && [self.myMatch returnType] != kSelfGame))) && (!_recentRackDyadmino || (_recentRackDyadmino && _recentRackDyadminoFormsLegalChord)))];
+  [_topBar node:_topBar.passPlayOrDoneButton shouldBeEnabled:((!gameHasEndedForPlayer && currentPlayerHasTurn) && (!thereIsATouchedOrHoveringDyadmino) && !_pnpBarUp && ((_swapMode && swapContainerNotEmpty) || !_swapMode) && (_swapMode || (!noBoardDyadminoesPlayedAndNoRecentRackDyadmino || (noBoardDyadminoesPlayedAndNoRecentRackDyadmino && [self.myMatch returnType] != kSelfGame))) && (!_recentRackDyadmino || (_recentRackDyadmino && _recentRackDyadminoFormsLegalChord)))];
   [_topBar node:_topBar.optionsButton shouldBeEnabled:(!gameHasEndedForPlayer && (!currentPlayerHasTurn || (currentPlayerHasTurn && !_swapMode))) && !_pnpBarUp];
   
     // FIXME: can be refactored further
@@ -2280,12 +2307,20 @@
     [_topBar node:_topBar.replayButton shouldBeEnabled:NO];
     
       // no dyadminoes played, and no recent rack dyadmino
-  } else if (noDyadminoesPlayedAndNoRecentRackDyadmino) {
+  } else if (noRackDyadminoesPlayedAndNoRecentRackDyadmino) {
     [_topBar changeSwapCancelOrUndo:kSwapButton];
     
       // no pass option in self mode
-    ([self.myMatch returnType] == kSelfGame) ? [_topBar changePassPlayOrDone:kPlayButton] :
+    if ([self.myMatch returnType] == kSelfGame) {
+      [_topBar changePassPlayOrDone:kPlayButton];
+    } else {
+      
+      if (noBoardDyadminoesPlayedAndNoRecentRackDyadmino) {
         [_topBar changePassPlayOrDone:kPassButton];
+      } else {
+        [_topBar changePassPlayOrDone:kDoneButton];
+      }
+    }
     
       // a recent rack dyadmino placed on board
      // doesn't matter whether holding container is empty
@@ -2525,13 +2560,14 @@
     _fieldActionInProgress = YES;
     
       // swap field action
-    SKAction *moveAction = [SKAction moveToX:-self.frame.size.width duration:kConstantTime];
-    SKAction *completionAction = [SKAction runBlock:^{
+    
+    CGFloat desiredX = -self.frame.size.width;
+    void (^swapCompletion)(void) = ^void(void) {
       _fieldActionInProgress = NO;
       _swapField.hidden = YES;
-    }];
-    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
-    [_swapField runAction:sequenceAction withKey:@"toggleSwap"];
+    };
+    
+    [_swapField toggleToXPosition:desiredX goOut:YES completion:swapCompletion withKey:@"toggleSwap"];
     
       // board action
       // FIXME: when board is moved to top in swap mode, board goes down, then pops back up
@@ -2546,12 +2582,12 @@
     _swapField.position = CGPointMake(self.frame.size.width, kRackHeight);
     
       // swap field action
-    SKAction *moveAction = [SKAction moveToX:0 duration:kConstantTime];
-    SKAction *completionAction = [SKAction runBlock:^{
+    
+    void (^swapCompletion)(void) = ^void(void) {
       _fieldActionInProgress = NO;
-    }];
-    SKAction *sequenceAction = [SKAction sequence:@[moveAction, completionAction]];
-    [_swapField runAction:sequenceAction withKey:@"toggleSwap"];
+    };
+    
+    [_swapField toggleToXPosition:0 goOut:NO completion:swapCompletion withKey:@"toggleSwap"];
     
       // board action
     SKAction *moveBoardAction = [SKAction moveToY:_boardField.position.y + kRackHeight / 2 duration:kConstantTime];
@@ -3158,7 +3194,7 @@
   
     // returns if action sheet is already showing
   if (!_boardDyadminoActionSheetShown) {
-    NSString *playString = [NSString stringWithFormat:@"Are you sure? Building this chord cannot be undone. You will gain %lu points.", (unsigned long)points];
+    NSString *playString = [NSString stringWithFormat:@"Are you sure? Building this chord cannot be undone. You will gain %lu %@.", (unsigned long)points, ((points == 1) ? @"point" : @"points")];
     
     UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:playString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Build" otherButtonTitles:nil, nil];
     actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;

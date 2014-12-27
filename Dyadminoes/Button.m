@@ -11,6 +11,7 @@
 @implementation Button {
   SKLabelNode *_labelNode;
   BOOL _isEnabled;
+  BOOL _isSunkIn;
 }
 
 -(id)initWithName:(NSString *)name andColor:(UIColor *)color
@@ -23,6 +24,7 @@
     self.position = position;
     self.zPosition = zPosition;
     _isEnabled = NO;
+    _isSunkIn = NO;
     
     _labelNode = [SKLabelNode new];
     _labelNode.text = self.name;
@@ -63,18 +65,52 @@
   }
 }
 
--(void)showSunkIn {
-  if (_isEnabled) {
-    self.alpha = 0.3f;
+-(void)sinkInWithAnimation:(BOOL)animation {
+  
+  const CGFloat scaleTo = (1 / 1.1f);
+    // FIXME: highlight button
+  
+  if (!animation) {
+    _isSunkIn = YES;
+    [self setScale:scaleTo];
+    return;
+  }
+  
+  if (!_isSunkIn) {
+    
+    _isSunkIn = YES; // establish right away so method can't be called again
+    [self removeActionForKey:@"buttonScale"];
+    SKAction *moveAction = [SKAction scaleTo:scaleTo duration:kConstantTime * 0.1];
+    moveAction.timingMode = SKActionTimingEaseOut;
+    [self runAction:moveAction withKey:@"buttonScale"];
   }
 }
 
--(void)showLifted {
-  if (_isEnabled) {
+-(void)liftWithAnimation:(BOOL)animation andCompletion:(void (^)(void))completion {
+  
+  self.colorBlendFactor = 0.f;
+    // FIXME: unhighlight button
+  
+  if (!animation) {
+    _isSunkIn = NO;
+    [self setScale:1.f];
+    return;
+  }
+  
+  if (_isEnabled && _isSunkIn) {
+    [self enable:NO];
+    _isSunkIn = NO; // establish right away so method can't be called again
+    [self removeActionForKey:@"buttonScale"];
+    SKAction *excessAction = [SKAction scaleTo:1.1f duration:kConstantTime * 0.275f];
+    excessAction.timingMode = SKActionTimingEaseOut;
+    SKAction *bounceBackAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.125f];
     __weak typeof(self) weakSelf = self;
-    dispatch_async(dispatch_get_main_queue(), ^{
-      weakSelf.alpha = 1.f;
-    });
+    SKAction *enableAction = [SKAction runBlock:^{
+      [weakSelf enable:YES];
+    }];
+    SKAction *completionAction = [SKAction runBlock:completion];
+    SKAction *sequence = [SKAction sequence:@[excessAction, bounceBackAction, enableAction, completionAction]];
+    [self runAction:sequence withKey:@"buttonScale"];
   }
 }
 

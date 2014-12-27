@@ -10,6 +10,7 @@
 #import "Board.h"
 #import "Cell.h"
 #import "Face.h"
+#import "SKSpriteNode+Helper.h"
 
 #define kActionMoveToPoint @"moveToPoint"
 #define kActionPopIntoBoard @"popIntoBoard"
@@ -734,20 +735,19 @@
 
 -(void)animateFace:(SKSpriteNode *)face {
   if (face.parent == self) {
-    [face removeAllActions];
-    
     __weak typeof(self) weakSelf = self;
-    SKAction *begin = [SKAction runBlock:^{
+    [face removeAnimationForKey:kActionSoundFace withCompletion:^{
       [weakSelf resetFaceScales];
     }];
-    SKAction *scaleUp = [SKAction scaleTo:1.5f duration:0.05f];
+    
+    SKAction *scaleUp = [SKAction scaleTo:1.4f duration:0.05f];
     SKAction *scaleOvershootDown = [SKAction scaleTo:0.75f duration:0.1f];
     SKAction *scaleBounceBackUp = [SKAction scaleTo:1.f duration:0.025];
     
     SKAction *complete = [SKAction runBlock:^{
       [weakSelf establishSizeOfSprite:face];
     }];
-    SKAction *sequence = [SKAction sequence:@[begin, scaleUp, scaleOvershootDown, scaleBounceBackUp, complete]];
+    SKAction *sequence = [SKAction sequence:@[scaleUp, scaleOvershootDown, scaleBounceBackUp, complete]];
     
     [face runAction:sequence withKey:kActionSoundFace];
   }
