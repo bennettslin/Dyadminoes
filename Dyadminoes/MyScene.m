@@ -39,7 +39,7 @@
   // the dyadminoes that the player sees
 @property (strong, nonatomic) NSArray *playerRackDyadminoes;
 @property (strong, nonatomic) NSSet *boardDyadminoes; // contains holding container dyadminoes
-@property (strong, nonatomic) NSSet *boardDyadminoBelongsInTheseLegalChords; // instantiated and nillified along with hovering dyadmino
+@property (strong, nonatomic) NSSet *legalChordsForHoveringBoardDyadmino; // instantiated and nillified along with hovering dyadmino
 @property (strong, nonatomic) NSSet *allBoardChords;
 
 @property (strong, nonatomic) NSSet *legalSonoritiesThisTurn;
@@ -233,7 +233,7 @@
   _recentRackDyadminoFormsLegalChord = NO;
   [_hoveringDyadmino animateHover:NO];
   _hoveringDyadmino = nil;
-  self.boardDyadminoBelongsInTheseLegalChords = nil;
+  self.legalChordsForHoveringBoardDyadmino = nil;
   _pivotInProgress = NO;
   _boardDyadminoActionSheetShown = NO;
   _endTouchLocationToMeasureDoubleTap = CGPointMake(CGFLOAT_MAX, CGFLOAT_MAX);
@@ -1170,7 +1170,7 @@
     // this is the only place where self.boardDyadminoBelongsInTheseLegalChords is established
   if ([dyadmino belongsOnBoard] && dyadmino != _hoveringDyadmino) {
     NSSet *formationOfSonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
-    self.boardDyadminoBelongsInTheseLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
+    self.legalChordsForHoveringBoardDyadmino = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
   }
   
   [dyadmino isOnBoard] ? [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino != _hoveringDyadmino && !dyadmino.isRotating)] : nil;
@@ -1184,7 +1184,6 @@
   
     // if it's on the board and not already rotating, two possibilities
   if ([_touchedDyadmino isOnBoard] && !_touchedDyadmino.isRotating) {
-    NSLog(@"upon touch dyadmino node is being set.");
     
     _uponTouchDyadminoNode = dyadmino.tempBoardNode;
     _uponTouchDyadminoOrientation = dyadmino.orientation;
@@ -1327,8 +1326,6 @@
   [dyadmino endTouchThenHoverResize];
     // this makes nil tempBoardNode
   
-  NSLog(@"board zoomed out is %i", _boardZoomedOut);
-  
   if ([dyadmino belongsInRack] && !undo) {
     _uponTouchDyadminoNode = nil;
     [dyadmino goHomeToRackByPoppingIn:poppingIn andSounding:sounding fromUndo:NO withResize:_boardZoomedOut];
@@ -1357,7 +1354,7 @@
       // don't reset self.boardDyadminoBelongsInTheseLegalChords just yet
       // if there's a currently touched dyadmino that still needs to be compared
     if (!_touchedDyadmino) {
-      self.boardDyadminoBelongsInTheseLegalChords = nil;
+      self.legalChordsForHoveringBoardDyadmino = nil;
     }
   }
   
@@ -1679,7 +1676,7 @@
     _recentRackDyadminoFormsLegalChord = NO;
     [_hoveringDyadmino animateHover:NO];
     _hoveringDyadmino = nil;
-    self.boardDyadminoBelongsInTheseLegalChords = nil;
+    self.legalChordsForHoveringBoardDyadmino = nil;
     
       // establish data dyadmino properties
     dataDyad.myHexCoord = dyadmino.myHexCoord;
@@ -2101,36 +2098,27 @@
 }
 
 -(void)checkWhetherToEaseOrKeepHovering:(Dyadmino *)dyadmino {
-  NSLog(@"check whether to ease or keep hovering.");
   
     // if finished hovering
   if ([dyadmino isOnBoard] && _touchedDyadmino != dyadmino) {
-    NSLog(@"dyadmino is on board and not touched dyadmino");
     
       // finish hovering only if placement is legal
     
       // ensures that validation takes place only if placement is uncertain
       // will not get called if returning to homeNode from top bar
     if (dyadmino.tempBoardNode) {
-      NSLog(@"dyadmino has a temp board node %@", dyadmino.tempBoardNode.name);
       PhysicalPlacementResult placementResult = [_boardField validatePhysicallyPlacingDyadmino:dyadmino
                                                                          onBoardNode:dyadmino.tempBoardNode];
-      NSLog(@"placement result is %i", placementResult);
       
         // handle placement results:
         // ease in right away because no error, and dyadmino was not moved from original spot
       
-      NSLog(@"dyadmino temp board node is %@, orientation is %i, upon touch node is %@, orientation is %i", dyadmino.tempBoardNode, dyadmino.orientation, _uponTouchDyadminoNode, _uponTouchDyadminoOrientation);
-      
-      
       if (placementResult == kNoError && !(dyadmino.tempBoardNode == _uponTouchDyadminoNode && dyadmino.orientation == _uponTouchDyadminoOrientation)) {
-        NSLog(@"no placement error.");
         
         NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
         NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
         
         if ([dyadmino belongsOnBoard]) {
-          NSLog(@"dyadmino belongs on board");
 
           id object = [legalChordSonoritiesFormed anyObject];
           
@@ -2138,9 +2126,9 @@
           if (![object isKindOfClass:[NSString class]]) {
 
                 // but fewer chords does means we've broken existing chords
-            if (![[SonorityLogic sharedLogic] setOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords isSubsetOfSetOfLegalChords:legalChordSonoritiesFormed]) {
+            if (![[SonorityLogic sharedLogic] setOfLegalChords:self.legalChordsForHoveringBoardDyadmino isSubsetOfSetOfLegalChords:legalChordSonoritiesFormed]) {
               
-              NSSet *supersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:self.boardDyadminoBelongsInTheseLegalChords thatAreSupersetsOfSonoritiesInSonorities:legalChordSonoritiesFormed];
+              NSSet *supersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:self.legalChordsForHoveringBoardDyadmino thatAreSupersetsOfSonoritiesInSonorities:legalChordSonoritiesFormed];
               
               NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:supersets withInitialString:@"Can't break " andEndingString:@"."];
               
@@ -2148,7 +2136,7 @@
               [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
               
                 // extra chords formed means we've just built a new chord
-            } else if (![[SonorityLogic sharedLogic] setOfLegalChords:legalChordSonoritiesFormed isSubsetOfSetOfLegalChords:self.boardDyadminoBelongsInTheseLegalChords]) {
+            } else if (![[SonorityLogic sharedLogic] setOfLegalChords:legalChordSonoritiesFormed isSubsetOfSetOfLegalChords:self.legalChordsForHoveringBoardDyadmino]) {
               
               NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
               
@@ -2254,8 +2242,6 @@
         
           // placement result is lone dyadmino or stacked dyadminoes
       } else {
-        NSLog(@"placement error.");
-        
         [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
         [self updateTopBarButtons]; // ensures that buttons are updated if chords are changed after flip
       }
@@ -2283,7 +2269,7 @@
   [dyadmino animateEaseIntoNodeAfterHover];
   [_hoveringDyadmino animateHover:NO];
   _hoveringDyadmino = nil;
-  self.boardDyadminoBelongsInTheseLegalChords = nil;
+  self.legalChordsForHoveringBoardDyadmino = nil;
   [self updateTopBarButtons];
 }
 

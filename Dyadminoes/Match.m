@@ -8,12 +8,14 @@
 
 #import "Match.h"
 #import "Player.h"
+#import "DataCell.h"
 #import "DataDyadmino.h"
 
 @interface Match ()
 
 @property (strong, nonatomic) NSMutableArray *pile; // was mutable array
 @property (strong, nonatomic) NSMutableSet *board; // was mutable set
+@property (strong, nonatomic) NSMutableSet *occupiedCells;
 
 @end
 
@@ -42,6 +44,7 @@
 @synthesize delegate = _delegate;
 @synthesize pile = _pile;
 @synthesize board = _board;
+@synthesize occupiedCells = _occupiedCells;
 
 #pragma mark - init methods
 
@@ -128,6 +131,236 @@
 
       [self persistChangedPositionForBoardDataDyadmino:firstDyadmino];
     }
+  }
+}
+
+#pragma mark - cell state methods
+
+-(DataCell *)occupiedCellForHexCoord:(HexCoord)hexCoord {
+  
+  for (DataCell *dataCell in self.occupiedCells) {
+    if (dataCell.hexX == hexCoord.x && dataCell.hexY == hexCoord.y) {
+      return dataCell;
+    }
+  }
+  return nil;
+}
+
+-(BOOL)updateCellsForPlacedDyadminoID:(NSInteger)dyadminoID pc1:(NSInteger)pc1 pc2:(NSInteger)pc2 orientation:(DyadminoOrientation)orientation onBottomCellHexCoord:(HexCoord)bottomHexCoord {
+  
+  HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:orientation];
+  HexCoord cellHexCoords[2] = {topHexCoord, bottomHexCoord};
+  NSInteger pcs[2] = {pc1, pc2};
+  
+  for (int i = 0; i < 2; i++) {
+    HexCoord cellHexCoord = cellHexCoords[i];
+    
+    DataCell *occupiedCell = [self occupiedCellForHexCoord:cellHexCoord];
+    
+      // only assign if no occupied cell already
+    if (!occupiedCell) {
+      NSUInteger myPC;
+      HexCoord hexCoord = [self hexCoordFromX:cellHexCoord.x andY:cellHexCoord.y];
+      
+        // assign pc to cell based on dyadmino orientation
+      switch (orientation) {
+        case kPC1atTwelveOClock:
+        case kPC1atTwoOClock:
+        case kPC1atTenOClock:
+          myPC = pcs[i];
+          break;
+        case kPC1atSixOClock:
+        case kPC1atEightOClock:
+        case kPC1atFourOClock:
+          myPC = pcs[(i + 1) % 2];
+          break;
+      }
+      
+      DataCell *newCell = [[DataCell alloc] initWithPC:myPC dyadminoID:dyadminoID hexCoord:hexCoord];
+      [self.occupiedCells addObject:newCell];
+    }
+  }
+  return [self validateOccupiedCells];
+}
+
+-(BOOL)updateCellsForRemovedDyadminoID:(NSInteger)dyadminoID pc1:(NSInteger)pc1 pc2:(NSInteger)pc2 orientation:(DyadminoOrientation)orientation fromBottomCellHexCoord:(HexCoord)bottomHexCoord {
+  
+  HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:orientation];
+  HexCoord cellHexCoords[2] = {topHexCoord, bottomHexCoord};
+  
+  for (int i = 0; i < 2; i++) {
+    HexCoord cellHexCoord = cellHexCoords[i];
+    DataCell *occupiedCell = [self occupiedCellForHexCoord:cellHexCoord];
+    
+      // only remove if cell dyadmino is dyadmino
+    if (occupiedCell && [occupiedCell isOccupiedByDyadminoID:dyadminoID]) {
+      [self.occupiedCells removeObject:occupiedCell];
+    }
+  }
+  
+  return [self validateOccupiedCells];
+}
+
+-(HexCoord)retrieveTopHexCoordForBottomHexCoord:(HexCoord)bottomHexCoord andOrientation:(DyadminoOrientation)orientation {
+  
+  NSInteger returnXHex;
+  NSInteger returnYHex;
+  returnXHex = bottomHexCoord.x;
+  returnYHex = bottomHexCoord.y;
+  
+  switch (orientation) {
+    case kPC1atTwelveOClock:
+    case kPC1atSixOClock:
+      returnYHex++;
+      break;
+    case kPC1atTwoOClock:
+    case kPC1atEightOClock:
+      returnXHex++;
+      break;
+    case kPC1atFourOClock:
+    case kPC1atTenOClock:
+      returnXHex--;
+      returnYHex++;
+      break;
+  }
+  return [self hexCoordFromX:returnXHex andY:returnYHex];
+}
+
+-(BOOL)validateOccupiedCells {
+    // confirm no cell has same pc and dyadmino
+  
+    // contains arrays like @[@(pc), @(dyadmino)];
+  NSMutableSet *presentPCsAndDyadminoes = [NSMutableSet new];
+  
+    // contains arrays like @[@(hexX), @(hexY)];
+  NSMutableSet *presentHexCoords = [NSMutableSet new];
+  
+  for (DataCell *dataCell in self.occupiedCells) {
+    NSArray *pcAndDyadmino = @[@(dataCell.myPC), @(dataCell.myDyadminoID)];
+    if ([presentPCsAndDyadminoes containsObject:pcAndDyadmino]) {
+      return NO;
+    } else {
+      [presentPCsAndDyadminoes addObject:pcAndDyadmino];
+    }
+    
+    NSArray *hexCoord = @[@(dataCell.hexX), @(dataCell.hexY)];
+    if ([presentHexCoords containsObject:hexCoord]) {
+      return NO;
+    } else {
+      [presentHexCoords addObject:hexCoord];
+    }
+  }
+  
+    // confirm no cell has same hexX and hexY
+  return YES;
+}
+
+#pragma mark - physical cell methods
+
+-(PhysicalPlacementResult)validatePhysicallyPlacingDyadminoID:(NSUInteger)dyadminoID withOrientation:(DyadminoOrientation)orientation onBottomHexCoord:(HexCoord)bottomHexCoord {
+  
+  HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:orientation];
+  HexCoord cellHexCoords[2] = {topHexCoord, bottomHexCoord};
+
+  for (int i = 0; i < 2; i++) {
+    HexCoord cellHexCoord = cellHexCoords[i];
+    DataCell *cell = [self occupiedCellForHexCoord:cellHexCoord];
+
+      // first check if stacked on another dyadmino
+    if (cell && cell.myDyadminoID != dyadminoID) {
+      return kErrorStackedDyadminoes;
+    }
+    
+      // as long as it has one neighbour, there's no error
+    if ([self hexCoord:cellHexCoord hasNeighbourNotOccupiedByDyadminoID:dyadminoID]) {
+      return kNoError;
+    }
+  }
+  
+    // no neighbour; is it the first dyadmino?
+  return [self.firstDataDyadIndex unsignedIntegerValue] == dyadminoID ? kNoError : kErrorLoneDyadmino;
+}
+
+-(BOOL)hexCoord:(HexCoord)hexCoord hasNeighbourNotOccupiedByDyadminoID:(NSUInteger)dyadminoID {
+
+  NSInteger xHex = hexCoord.x;
+  NSInteger yHex = hexCoord.y;
+    // this includes cell and its eight surrounding cells (thinking in terms of square grid)
+  for (NSInteger i = xHex - 1; i <= xHex + 1; i++) {
+    for (NSInteger j = yHex - 1; j <= yHex + 1; j++) {
+        // this excludes cell itself and the two far cells
+      if (!(i == xHex && j == yHex) &&
+          !(i == xHex - 1 && j == yHex - 1) &&
+          !(i == xHex + 1 && j == yHex + 1)) {
+        
+        DataCell *occupiedCell = [self occupiedCellForHexCoord:[self hexCoordFromX:i andY:j]];
+        
+        if (!occupiedCell || occupiedCell.myDyadminoID != dyadminoID) {
+          return YES;
+        }
+      }
+    }
+  }
+  return NO;
+}
+
+-(NSSet *)sonoritiesFromPlacingDyadminoID:(NSUInteger)dyadminoID onBottomHexCoord:(HexCoord)bottomHexCoord {
+  
+  NSMutableSet *tempSetOfSonorities = [NSMutableSet new];
+  
+    // this will check five axes
+    // 1. bottom cell vertical (this axis includes top cell)
+    // 2. bottom cell upslant
+    // 3. bottom cell downslant
+    // 4. top cell upslant
+    // 5. top cell downslant
+  
+  return nil;
+}
+
+-(HexCoord)nextHexCoordFromHexCoord:(HexCoord)hexCoord andAxis:(NSUInteger)axis {
+  HexCoord nextHexCoord;
+  switch (axis) {
+    case 0:
+      nextHexCoord = [self hexCoordFromX:hexCoord.x andY:hexCoord.y + 1];
+      break;
+    case 1:
+      nextHexCoord = [self hexCoordFromX:hexCoord.x + 1 andY:hexCoord.y];
+      break;
+    case 2:
+      nextHexCoord = [self hexCoordFromX:hexCoord.x + 1 andY:hexCoord.y - 1];
+      break;
+    case 3:
+      nextHexCoord = [self hexCoordFromX:hexCoord.x andY:hexCoord.y - 1];
+      break;
+    case 4:
+      nextHexCoord = [self hexCoordFromX:hexCoord.x - 1 andY:hexCoord.y];
+      break;
+    case 5:
+    default:
+      nextHexCoord = [self hexCoordFromX:hexCoord.x - 1 andY:hexCoord.y + 1];
+      break;
+  }
+  return nextHexCoord;
+}
+
+-(NSUInteger)pcForDyadminoIndex:(NSUInteger)index isPC1:(BOOL)isPC1 {
+  
+  NSUInteger addCounter = 11;
+  NSUInteger compareIndex = 0;
+  NSUInteger returnPC = 0;
+  
+  while (compareIndex <= index) {
+    returnPC++;
+    compareIndex += addCounter;
+    addCounter--;
+//    NSLog(@"returnPC is %lu, compareIndex is %lu, addCounter is %lu", (unsigned long)returnPC, (unsigned long)compareIndex, (unsigned long)addCounter);
+  }
+
+  if (isPC1) {
+    return returnPC - 1;
+  } else {
+    return 12 - (compareIndex - index);
   }
 }
 
@@ -807,6 +1040,30 @@
 
 -(void)setBoard:(NSMutableSet *)board {
   _board = board;
+}
+
+-(NSSet *)occupiedCells {
+  if (!_occupiedCells) {
+    _occupiedCells = [NSMutableSet new];
+    NSMutableSet *dataDyadsOnBoard = [NSMutableSet setWithSet:self.board];
+    [dataDyadsOnBoard addObjectsFromArray:self.holdingIndexContainer];
+    
+    for (DataDyadmino *dataDyad in dataDyadsOnBoard) {
+      
+      HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:dataDyad.myHexCoord   andOrientation:(DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue]];
+      HexCoord cellHexCoords[2] = {topHexCoord, dataDyad.myHexCoord};
+      
+        // FIXME: finish this method!
+    }
+    
+    
+    
+  }
+  return _occupiedCells;
+}
+
+-(void)setOccupiedCells:(NSMutableSet *)occupiedCells {
+  _occupiedCells = occupiedCells;
 }
 
 #pragma mark - helper methods

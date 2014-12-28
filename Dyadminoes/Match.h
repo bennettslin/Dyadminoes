@@ -30,12 +30,12 @@
   // date
 @property (strong, nonatomic) NSDate *lastPlayed;
 
+  // game properties
+@property (retain, nonatomic) NSNumber *firstDataDyadIndex;
+
   // player properties
 @property (retain, nonatomic) NSNumber *currentPlayerIndex;
 @property (retain, nonatomic) NSNumber *gameHasEnded;
-
-  // data dyadmino arrays
-@property (retain, nonatomic) NSNumber *firstDataDyadIndex;
 
   // turns and undo
 @property (retain, nonatomic) NSNumber *replayTurn;
@@ -64,12 +64,19 @@
 @property (strong, nonatomic) NSMutableSet *replayBoard;
 @property (weak, nonatomic) id <MatchDelegate> delegate;
 
-  // these will be lazily loaded by dataDyadminoes, depending on place status
+  // these will be lazily loaded with dataDyadminoes, depending on place status
 @property (readonly, nonatomic) NSMutableArray *pile; // was mutable array
 @property (readonly, nonatomic) NSMutableSet *board; // was mutable set
+@property (readonly, nonatomic) NSMutableSet *occupiedCells;
 
   // establish initial properties method
 -(void)initialPlayers:(NSSet *)players andRules:(GameRules)rules andSkill:(GameSkill)skill withContext:(NSManagedObjectContext *)managedObjectContext;
+
+#pragma mark - cell methods
+
+-(BOOL)updateCellsForPlacedDyadminoID:(NSInteger)dyadminoID pc1:(NSInteger)pc1 pc2:(NSInteger)pc2 orientation:(DyadminoOrientation)orientation onBottomCellHexCoord:(HexCoord)bottomHexCoord;
+
+-(BOOL)updateCellsForRemovedDyadminoID:(NSInteger)dyadminoID pc1:(NSInteger)pc1 pc2:(NSInteger)pc2 orientation:(DyadminoOrientation)orientation fromBottomCellHexCoord:(HexCoord)bottomHexCoord;
 
   // game state change methods
 -(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap;
@@ -104,6 +111,7 @@
 -(NSUInteger)wonPlayersCount;
 -(Player *)playerForIndex:(NSUInteger)index;
 -(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index;
+-(NSUInteger)pcForDyadminoIndex:(NSUInteger)index isPC1:(BOOL)isPC1;
 
   // array of chords and points helper methods
 -(NSUInteger)sumOfPointsThisTurn;

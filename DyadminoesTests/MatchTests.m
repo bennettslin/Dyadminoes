@@ -1072,7 +1072,31 @@
   }
 }
 
-#pragma mark - helper methods
+#pragma mark - match helper tests
+
+-(void)testPCForDyadminoIndex {
+  
+  [self setupGameForNumberOfPlayers:1];
+  
+  NSUInteger myID = 0;
+  
+  for (int pc1 = 0; pc1 < 12; pc1++) {
+    for (int pc2 = 0; pc2 < 12; pc2++) {
+      if (pc1 != pc2 && pc1 < pc2) {
+        
+        NSUInteger returnPC1 = [self.myMatch pcForDyadminoIndex:myID isPC1:YES];
+        NSUInteger returnPC2 = [self.myMatch pcForDyadminoIndex:myID isPC1:NO];
+        
+        XCTAssertEqual(pc1, returnPC1, @"for dyadmino %lu, returned pc1 is %lu, expected pc1 is %i", (unsigned long)myID, (unsigned long)returnPC1, pc1);
+        XCTAssertEqual(pc2, returnPC2, @"for dyadmino %lu, returned pc2 is %lu, expected pc2 is %i", (unsigned long)myID, (unsigned long)returnPC2, pc2);
+        
+        myID++;
+      }
+    }
+  }
+}
+
+#pragma mark - test helper methods
 
 -(NSArray *)arrayOfNumbersWithCount:(NSUInteger)count {
   NSMutableArray *numberArray = [NSMutableArray new];
@@ -1111,7 +1135,7 @@
   return [NSArray arrayWithArray:powerSet];
 }
 
-#pragma mark - helper test methods
+#pragma mark - test helper test methods
 
 -(void)testPileRemovalMethod {
   
