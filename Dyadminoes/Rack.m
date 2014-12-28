@@ -79,7 +79,7 @@
 
     //--------------------------------------------------------------------------
   
-    CGPoint shouldBePosition = [dyadmino getHomeNodePosition];
+    CGPoint shouldBePosition = [dyadmino getHomeNodePositionConsideringSwap];
     
     SKAction *completeAction;
     
@@ -118,7 +118,7 @@
     if (animation) {
       SKAction *waitAction = [SKAction waitForDuration:(undo ? 0 : index * kWaitTimeForRackDyadminoPopulate)];
       SKAction *moveAction = [SKAction runBlock:^{
-        [dyadmino animateMoveToPoint:shouldBePosition andSounding:NO];
+        [dyadmino animateInRackOrReplayMoveToPoint:shouldBePosition andSounding:NO];
       }];
       SKAction *sequenceAction = [SKAction sequence:@[waitAction, moveAction, completeAction]];
       [dyadmino runAction:sequenceAction withKey:@"repositionDyadmino"];
@@ -170,7 +170,7 @@
           // take care of state change and animation of exchanged dyadmino, as long as it's not on the board
         if (!scootedDyadmino.tempBoardNode) {
           scootedDyadmino.zPosition = kZPositionRackMovedDyadmino;
-          [scootedDyadmino animateMoveToPoint:[scootedDyadmino getHomeNodePosition] andSounding:NO];
+          [scootedDyadmino animateInRackOrReplayMoveToPoint:[scootedDyadmino getHomeNodePositionConsideringSwap] andSounding:NO];
           scootedDyadmino.zPosition = kZPositionRackRestingDyadmino;
           
             // sound it

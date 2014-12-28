@@ -101,7 +101,7 @@
 
 -(void)selectAndPositionSprites;
 -(void)orientBySnapNode:(SnapPoint *)snapNode;
--(CGPoint)getHomeNodePosition;
+-(CGPoint)getHomeNodePositionConsideringSwap;
 -(void)correctZRotationAfterHover;
 
 #pragma mark - change status methods
@@ -126,7 +126,7 @@
 
 #pragma mark - animation methods
 
--(void)animateMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding;
+-(void)animateInRackOrReplayMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding;
 -(void)animateFlip;
 -(void)animateEaseIntoNodeAfterHover;
 -(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour;

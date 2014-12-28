@@ -15,7 +15,6 @@
 #define kActionMoveToPoint @"moveToPoint"
 #define kActionPopIntoBoard @"popIntoBoard"
 #define kActionPopIntoRack @"popIntoRack"
-#define kActionPopIntoNode @"popIntoNode"
 #define kActionFlip @"flip"
 #define kActionEaseIntoNode @"easeIntoNode"
 #define kActionSoundFace @"animateFace"
@@ -212,7 +211,7 @@
   [self selectAndPositionSprites];
 }
 
--(CGPoint)getHomeNodePosition {
+-(CGPoint)getHomeNodePositionConsideringSwap {
   return (self.belongsInSwap) ?
       [self addToThisPoint:self.homeNode.position thisPoint:CGPointMake(0.f, self.homeNode.position.y + kRackHeight * 0.5)] :
       self.homeNode.position;
@@ -227,7 +226,7 @@
     SKAction *zCompletion = [SKAction runBlock:^{
       [weakSelf determineNewAnchorPointDuringPivot:NO];
       weakSelf.zRotationCorrectedAfterPivot = YES;
-//      [weakSelf.delegate prepareForHoverThisDyadmino:self];
+      [weakSelf.delegate prepareForHoverThisDyadmino:self];
     }];
     SKAction *sequence = [SKAction sequence:@[zRotationAction, zCompletion]];
     [self runAction:sequence withKey:@"correctZRotation"];
@@ -280,7 +279,7 @@
     
     self.colorBlendFactor = 0.f;
     [self orientBySnapNode:self.homeNode];
-    [self animateMoveToPoint:[self getHomeNodePosition] andSounding:sounding];
+    [self animateInRackOrReplayMoveToPoint:[self getHomeNodePositionConsideringSwap] andSounding:sounding];
   }
   self.tempBoardNode = nil;
   [self changeHoveringStatus:kDyadminoFinishedHovering];
@@ -292,7 +291,7 @@
     [self animatePopBackIntoBoardNode];
   } else {
     [self orientBySnapNode:self.homeNode];
-    [self animateMoveToPoint:[self getHomeNodePosition] andSounding:sounding];
+    [self animateInRackOrReplayMoveToPoint:[self getHomeNodePositionConsideringSwap] andSounding:sounding];
   }
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
@@ -300,7 +299,7 @@
 -(void)goToTempBoardNodeBySounding:(BOOL)sounding { // called after replay, perhaps will be used elsewhere
   SnapPoint *destinationNode = self.tempBoardNode ? self.tempBoardNode : self.homeNode;
   [self orientBySnapNode:destinationNode];
-  [self animateMoveToPoint:destinationNode.position andSounding:sounding];
+  [self animateInRackOrReplayMoveToPoint:destinationNode.position andSounding:sounding];
 }
 
 -(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove {
@@ -538,113 +537,6 @@
 
 #pragma mark - animation methods
 
--(void)animateMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding {
-  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
-  SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime]; // was kConstantSpeed * distance
-  moveAction.timingMode = SKActionTimingEaseIn;
-  
-  __weak typeof(self) weakSelf = self;
-  if (sounding) {
-    SKAction *completeAction = [SKAction runBlock:^{
-      [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
-      [weakSelf setToHomeZPositionAndSyncOrientation];
-    }];
-    SKAction *sequence = [SKAction sequence:@[moveAction, completeAction]];
-    [self runAction:sequence withKey:kActionMoveToPoint];
-  } else {
-    [self runAction:moveAction withKey:kActionMoveToPoint];
-  }
-}
-
--(void)animatePopIntoNodeWithRackRefresh:(BOOL)rackRefresh andRepositionBlock:(void(^)(void))repositionBlock {
-  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
-  [self.delegate postSoundNotification:kNotificationPopIntoNode];
-  [self setToHomeZPositionAndSyncOrientation];
-
-  SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
-  SKAction *repositionAction = [SKAction runBlock:repositionBlock];
-  
-  __weak typeof(self) weakSelf = self;
-  SKAction *refreshAction = [SKAction runBlock:^{
-    [weakSelf.delegate refreshRackFieldAndDyadminoesFromUndo:YES withAnimation:YES];
-  }];
-  
-  SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
-  
-    // no grow action with rack refresh, because dyadmino will enter after rack nodes are repositioned
-  SKAction *sequenceAction = rackRefresh ?
-      [SKAction sequence:@[shrinkAction, repositionAction, refreshAction]] :
-      [SKAction sequence:@[shrinkAction, repositionAction, growAction]];
-  [self runAction:sequenceAction withKey:kActionPopIntoNode];
-
-}
-
--(void)animatePopBackIntoBoardNode {
-  __weak typeof(self) weakSelf = self;
-  
-  void (^repositionBlock)(void) = ^void(void) {
-//    [weakSelf setToHomeZPositionAndSyncOrientation];
-    [weakSelf orientBySnapNode:([weakSelf belongsInRack] ? weakSelf.tempBoardNode : weakSelf.homeNode)];
-    weakSelf.position = [weakSelf belongsInRack] ? weakSelf.tempBoardNode.position : weakSelf.homeNode.position;
-    [weakSelf.delegate changeColoursAroundDyadmino:weakSelf withSign:+1];
-  };
-  
-  [self animatePopIntoNodeWithRackRefresh:NO andRepositionBlock:repositionBlock];
-}
-
--(void)animatePopBackIntoRackNodeFromUndo:(BOOL)undo withResize:(BOOL)resize {
-
-  __weak typeof(self) weakSelf = self;
-  void (^repositionBlock)(void);
-  
-    NSLog(@"resizing");
-    repositionBlock = ^void(void) {
-      weakSelf.color = (SKColor *)kNeutralYellow;
-      [weakSelf unhighlightOutOfPlay];
-      [weakSelf orientBySnapNode:self.homeNode];
-      
-      if (resize) {
-        weakSelf.isZoomResized = NO;
-        [weakSelf resize];
-        [weakSelf selectAndPositionSprites];
-      }
-      
-      weakSelf.position = [weakSelf getHomeNodePosition];
-    };
-  
-  [self animatePopIntoNodeWithRackRefresh:undo andRepositionBlock:repositionBlock];
-}
-
--(void)animateEaseIntoNodeAfterHover {
-  NSLog(@"animate ease into node after hover");
-  
-    // animate to tempBoardNode if it's a rack dyadmino, otherwise to homeNode
-  CGPoint settledPosition = ([self belongsInRack] && [self isOnBoard]) ?
-      settledPosition = self.tempBoardNode.position : [self getHomeNodePosition];
-  
-  __weak typeof(self) weakSelf = self;
-  void (^completion)(void) = ^void(void) {
-    [weakSelf endTouchThenHoverResize];
-    [weakSelf setToHomeZPositionAndSyncOrientation];
-    
-    weakSelf.canFlip = NO;
-    [weakSelf changeHoveringStatus:kDyadminoNoHoverStatus];
-    weakSelf.initialPivotPosition = self.position;
-    
-    [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
-    [weakSelf.delegate changeColoursAroundDyadmino:weakSelf withSign:+1];
-  };
-  
-  [self animateToPosition:settledPosition duration:kConstantTime withKey:kActionEaseIntoNode completion:completion];
-}
-
--(void)animateToPosition:(CGPoint)toPosition duration:(CGFloat)duration withKey:(NSString *)key completion:(void(^)(void))completion {
-  SKAction *moveAction = [SKAction moveTo:toPosition duration:duration];
-  SKAction *completionAction = [SKAction runBlock:completion];
-  SKAction *sequence = [SKAction sequence:@[moveAction, completionAction]];
-  [self runAction:sequence withKey:key];
-}
-
 -(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour {
   NSLog(@"animate dyadminoes recently played");
   [self removeActionsAndEstablishNotRotatingIncludingMove:NO];
@@ -703,6 +595,120 @@
   }
 }
 
+#pragma mark - animate placement methods
+
+-(void)animateInRackOrReplayMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding {
+  NSLog(@"animate in rack or replay move to point.");
+  
+  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
+  SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime]; // was kConstantSpeed * distance
+  moveAction.timingMode = SKActionTimingEaseIn;
+  
+  __weak typeof(self) weakSelf = self;
+  if (sounding) {
+    SKAction *completeAction = [SKAction runBlock:^{
+      [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
+      [weakSelf setToHomeZPositionAndSyncOrientation];
+    }];
+    SKAction *sequence = [SKAction sequence:@[moveAction, completeAction]];
+    [self runAction:sequence withKey:kActionMoveToPoint];
+  } else {
+    [self runAction:moveAction withKey:kActionMoveToPoint];
+  }
+}
+
+-(void)animateEaseIntoNodeAfterHover {
+  NSLog(@"animate ease into node after hover");
+  
+    // animate to tempBoardNode if it's a rack dyadmino, otherwise to homeNode
+  CGPoint settledPosition = ([self belongsInRack] && [self isOnBoard]) ?
+  settledPosition = self.tempBoardNode.position : [self getHomeNodePositionConsideringSwap];
+  
+  __weak typeof(self) weakSelf = self;
+  void (^completion)(void) = ^void(void) {
+    [weakSelf endTouchThenHoverResize];
+    [weakSelf setToHomeZPositionAndSyncOrientation];
+    
+    weakSelf.canFlip = NO;
+    [weakSelf changeHoveringStatus:kDyadminoNoHoverStatus];
+    weakSelf.initialPivotPosition = self.position;
+    
+    [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
+    [weakSelf.delegate changeColoursAroundDyadmino:weakSelf withSign:+1];
+  };
+  
+  [self animateToPosition:settledPosition duration:kConstantTime withKey:kActionEaseIntoNode completion:completion];
+}
+
+-(void)animateToPosition:(CGPoint)toPosition duration:(CGFloat)duration withKey:(NSString *)key completion:(void(^)(void))completion {
+  
+  NSLog(@"animate to position");
+  SKAction *moveAction = [SKAction moveTo:toPosition duration:duration];
+  SKAction *completionAction = [SKAction runBlock:completion];
+  SKAction *sequence = [SKAction sequence:@[moveAction, completionAction]];
+  [self runAction:sequence withKey:key];
+}
+
+#pragma mark - animate pop methods
+
+-(void)animatePopBackIntoBoardNode {
+  __weak typeof(self) weakSelf = self;
+  
+  void (^repositionBlock)(void) = ^void(void) {
+    [weakSelf orientBySnapNode:([weakSelf belongsInRack] ? weakSelf.tempBoardNode : weakSelf.homeNode)];
+    weakSelf.position = [weakSelf belongsInRack] ? weakSelf.tempBoardNode.position : weakSelf.homeNode.position;
+    [weakSelf.delegate changeColoursAroundDyadmino:weakSelf withSign:+1];
+  };
+  
+  [self animatePopIntoNodeWithKey:kActionPopIntoBoard andRackRefresh:NO andRepositionBlock:repositionBlock];
+}
+
+-(void)animatePopBackIntoRackNodeFromUndo:(BOOL)undo withResize:(BOOL)resize {
+  
+  __weak typeof(self) weakSelf = self;
+  void (^repositionBlock)(void);
+  
+  NSLog(@"resizing");
+  repositionBlock = ^void(void) {
+    weakSelf.color = (SKColor *)kNeutralYellow;
+    [weakSelf unhighlightOutOfPlay];
+    [weakSelf orientBySnapNode:self.homeNode];
+    
+    if (resize) {
+      weakSelf.isZoomResized = NO;
+      [weakSelf resize];
+      [weakSelf selectAndPositionSprites];
+    }
+    
+    weakSelf.position = [weakSelf getHomeNodePositionConsideringSwap];
+  };
+  
+  [self animatePopIntoNodeWithKey:kActionPopIntoRack andRackRefresh:undo andRepositionBlock:repositionBlock];
+}
+
+-(void)animatePopIntoNodeWithKey:(NSString *)key andRackRefresh:(BOOL)rackRefresh andRepositionBlock:(void(^)(void))repositionBlock {
+  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
+  [self.delegate postSoundNotification:kNotificationPopIntoNode];
+  [self setToHomeZPositionAndSyncOrientation];
+  
+  SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
+  SKAction *repositionAction = [SKAction runBlock:repositionBlock];
+  
+  __weak typeof(self) weakSelf = self;
+  SKAction *refreshAction = [SKAction runBlock:^{
+    [weakSelf.delegate refreshRackFieldAndDyadminoesFromUndo:YES withAnimation:YES];
+  }];
+  
+  SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
+  
+    // no grow action with rack refresh, because dyadmino will enter after rack nodes are repositioned
+  SKAction *sequenceAction = rackRefresh ?
+  [SKAction sequence:@[shrinkAction, repositionAction, refreshAction]] :
+  [SKAction sequence:@[shrinkAction, repositionAction, growAction]];
+  [self runAction:sequenceAction withKey:key];
+  
+}
+
 #pragma mark - animate flip methods
 
 -(void)animateFlip {
@@ -710,6 +716,38 @@
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   self.isRotating = YES;
   [self animateOneThirdFlipClockwise:YES times:3 withFullFlip:YES];
+}
+
+-(void)animateCompletionOfFullFlip {
+  SKAction *finishAction;
+  
+  __weak typeof(self) weakSelf = self;
+  
+    // rotation
+  if ([self isInRack] || self.belongsInSwap) {
+    finishAction = [SKAction runBlock:^{
+      [weakSelf changeHoveringStatus:kDyadminoFinishedHovering];
+      [weakSelf setToHomeZPositionAndSyncOrientation];
+      [weakSelf endTouchThenHoverResize];
+      weakSelf.isRotating = NO;
+      [weakSelf.delegate postSoundNotification:kNotificationPivotClick];
+    }];
+      // just to ensure that dyadmino is back in its node position
+    self.position = [self getHomeNodePositionConsideringSwap];
+    
+  } else if ([self isOnBoard]) {
+    finishAction = [SKAction runBlock:^{
+      weakSelf.isRotating = NO;
+      [weakSelf changeHoveringStatus:kDyadminoContinuesHovering];
+      [weakSelf.delegate prepareForHoverThisDyadmino:weakSelf];
+      weakSelf.canFlip = NO;
+    }];
+  } else {
+    finishAction = [SKAction runBlock:^{
+        // to ensure that finishAction is not nil
+    }];
+  }
+  [self runAction:finishAction];
 }
 
 -(void)animateOneThirdFlipClockwise:(BOOL)clockwise times:(NSUInteger)times withFullFlip:(BOOL)fullFlip {
@@ -754,38 +792,6 @@
   } else {
     self.orientation = (self.orientation + (clockwise ? 1 : 5)) % 6;
   }
-}
-
--(void)animateCompletionOfFullFlip {
-  SKAction *finishAction;
-  
-  __weak typeof(self) weakSelf = self;
-  
-    // rotation
-  if ([self isInRack] || self.belongsInSwap) {
-    finishAction = [SKAction runBlock:^{
-      [weakSelf changeHoveringStatus:kDyadminoFinishedHovering];
-      [weakSelf setToHomeZPositionAndSyncOrientation];
-      [weakSelf endTouchThenHoverResize];
-      weakSelf.isRotating = NO;
-      [weakSelf.delegate postSoundNotification:kNotificationPivotClick];
-    }];
-      // just to ensure that dyadmino is back in its node position
-    self.position = [self getHomeNodePosition];
-    
-  } else if ([self isOnBoard]) {
-    finishAction = [SKAction runBlock:^{
-      weakSelf.isRotating = NO;
-      [weakSelf changeHoveringStatus:kDyadminoContinuesHovering];
-      [weakSelf.delegate prepareForHoverThisDyadmino:weakSelf];
-      weakSelf.canFlip = NO;
-    }];
-  } else {
-    finishAction = [SKAction runBlock:^{
-        // to ensure that finishAction is not nil
-    }];
-  }
-  [self runAction:finishAction];
 }
 
 #pragma mark - query methods

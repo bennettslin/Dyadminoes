@@ -1184,6 +1184,7 @@
   
     // if it's on the board and not already rotating, two possibilities
   if ([_touchedDyadmino isOnBoard] && !_touchedDyadmino.isRotating) {
+    NSLog(@"upon touch dyadmino node is being set.");
     
     _uponTouchDyadminoNode = dyadmino.tempBoardNode;
     _uponTouchDyadminoOrientation = dyadmino.orientation;
@@ -2100,26 +2101,36 @@
 }
 
 -(void)checkWhetherToEaseOrKeepHovering:(Dyadmino *)dyadmino {
+  NSLog(@"check whether to ease or keep hovering.");
   
     // if finished hovering
   if ([dyadmino isOnBoard] && _touchedDyadmino != dyadmino) {
+    NSLog(@"dyadmino is on board and not touched dyadmino");
     
       // finish hovering only if placement is legal
     
       // ensures that validation takes place only if placement is uncertain
       // will not get called if returning to homeNode from top bar
     if (dyadmino.tempBoardNode) {
+      NSLog(@"dyadmino has a temp board node %@", dyadmino.tempBoardNode.name);
       PhysicalPlacementResult placementResult = [_boardField validatePhysicallyPlacingDyadmino:dyadmino
                                                                          onBoardNode:dyadmino.tempBoardNode];
+      NSLog(@"placement result is %i", placementResult);
       
         // handle placement results:
         // ease in right away because no error, and dyadmino was not moved from original spot
+      
+      NSLog(@"dyadmino temp board node is %@, orientation is %i, upon touch node is %@, orientation is %i", dyadmino.tempBoardNode, dyadmino.orientation, _uponTouchDyadminoNode, _uponTouchDyadminoOrientation);
+      
+      
       if (placementResult == kNoError && !(dyadmino.tempBoardNode == _uponTouchDyadminoNode && dyadmino.orientation == _uponTouchDyadminoOrientation)) {
+        NSLog(@"no placement error.");
         
         NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
         NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
         
         if ([dyadmino belongsOnBoard]) {
+          NSLog(@"dyadmino belongs on board");
 
           id object = [legalChordSonoritiesFormed anyObject];
           
@@ -2243,6 +2254,8 @@
         
           // placement result is lone dyadmino or stacked dyadminoes
       } else {
+        NSLog(@"placement error.");
+        
         [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
         [self updateTopBarButtons]; // ensures that buttons are updated if chords are changed after flip
       }
