@@ -1121,7 +1121,7 @@
         NSUInteger pc = [self pcForDyadminoIndex:dyadminoID isPC1:(BOOL)(orientation <= 1 || orientation >= 5 ? (i + 1) % 2 : i)];
         DataCell *newCell = [[DataCell alloc] initWithPC:pc dyadminoID:dyadminoID hexCoord:cellHexCoord];
         
-        NSLog(@"pc:%i, dyadID:%i, hex:%i, %i", newCell.myPC, newCell.myDyadminoID, newCell.hexX, newCell.hexY);
+        NSLog(@"pc:%lu, dyadID:%lu, hex:%li, %li", (unsigned long)newCell.myPC, (unsigned long)newCell.myDyadminoID, (long)newCell.hexX, (long)newCell.hexY);
         
         [_occupiedCells addObject:newCell];
       }

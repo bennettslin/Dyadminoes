@@ -151,7 +151,7 @@
       NSInteger currentPlayerIndex = [currentPlayer returnPlayerOrder];
       NSUInteger currentTurnCount = [(NSArray *)self.myMatch.turns count];
       
-      [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+      [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
       
       Player *nextPlayer = [self.myMatch returnCurrentPlayer];
       NSInteger nextPlayerIndex = [nextPlayer returnPlayerOrder];
@@ -338,7 +338,7 @@
       
         // pass this many times, depending on order of player
       for (int k = 1; k < j; k++) {
-        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
       }
       
       Player *currentPlayer = [self.myMatch returnCurrentPlayer];
@@ -396,7 +396,7 @@
       
         // pass this many times, depending on order of player
       for (int k = 1; k < j; k++) {
-        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
       }
       
       Player *currentPlayer = [self.myMatch returnCurrentPlayer];
@@ -406,7 +406,7 @@
       
         // pass to player before in next round
       for (int k = 0; k < i - 1; k++) {
-        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
       }
       
       Player *afterPlayer = [self.myMatch returnCurrentPlayer];
@@ -485,7 +485,7 @@
         NSArray *playedDataDyads = [NSArray arrayWithArray:tempPlayedDataDyads];
         
           // played!
-        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
         
         NSUInteger afterPileCount = self.myMatch.pile.count;
         NSUInteger afterDataDyadminoIndexesCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
@@ -531,7 +531,7 @@
           [self.myMatch addToHoldingContainer:dataDyad];
         }
         
-        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
         
         NSUInteger rackCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
         
@@ -573,7 +573,7 @@
     for (int j = 0; j < 2 * i; j++) {
       
       preTurnCount = [(NSArray *)self.myMatch.turns count];
-      [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+      [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
       postTurnCount = [(NSArray *)self.myMatch.turns count];
       
       XCTAssertTrue(preTurnCount == j, @"Turns start at 0.");
@@ -592,7 +592,7 @@
     for (int j = 0; j < 2 * i; j++) {
       
       NSUInteger expectedPlayerOrder = [[self.myMatch currentPlayerIndex] unsignedIntegerValue];
-      [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+      [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
       
       NSDictionary *turn = [(NSArray *)self.myMatch.turns lastObject];
       NSUInteger returnedPlayerOrder = [(NSNumber *)[turn objectForKey:@"player"] unsignedIntegerValue];
@@ -607,7 +607,7 @@
   for (int i = 1; i <= kMaxNumPlayers; i++) {
     [self setupGameForNumberOfPlayers:i];
     
-    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
     
     NSDictionary *turn = [(NSArray *)self.myMatch.turns lastObject];
     id indexContainer = [turn objectForKey:@"indexContainer"];
@@ -657,7 +657,7 @@
 
         // pass this many times, depending on order of player
       for (int k = 1; k < j; k++) {
-        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
       }
       
       Player *currentPlayer = [self.myMatch returnCurrentPlayer];
@@ -681,13 +681,13 @@
 
     // three passes in a row
   [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
-  [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+  [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
   
   [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
-  [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+  [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
 
   [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
-  [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+  [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
   
     // should only have one turn change, which records its initial placement
   XCTAssertTrue([(NSArray *)firstDataDyad.turnChanges count] == 1, @"Extra turn change should not have been added.");
@@ -714,7 +714,7 @@
     firstDataDyad.myHexCoord = movedCoord;
     firstDataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
     [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
-    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
     
     NSDictionary *turnChange = (NSDictionary *)[(NSArray *)firstDataDyad.turnChanges lastObject];
 
@@ -764,7 +764,7 @@
       firstDataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
     
       [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
-      [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+      [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
     
         // if moved
       if (originalCoord.x != movedCoord.x || originalCoord.y != movedCoord.y || originalOrientation != movedOrientation) {
@@ -805,7 +805,7 @@
     dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
     
     [self.myMatch addToHoldingContainer:dataDyad];
-    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
     [self.myMatch persistChangedPositionForBoardDataDyadmino:dataDyad];
 
     NSDictionary *turnChange = (NSDictionary *)[(NSArray *)dataDyad.turnChanges lastObject];
@@ -882,7 +882,7 @@
 
 -(void)testPassEndsSelfGame {
   [self setupGameForNumberOfPlayers:1];
-  [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+  [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
   XCTAssertTrue(self.myMatch.gameHasEnded, @"Game does not end after pass in self game.");
 }
 
@@ -894,12 +894,12 @@
     
       // pass this many times, up until the last turn before game ends
     for (int j = 0; j < 2 * i - 1; j++) {
-      [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+      [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
     }
     XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with dyadminoes left in pile.");
     
       // now pass once, and game should end
-    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
     XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game should have ended with dyadminoes left in pile.");
   }
   
@@ -910,12 +910,12 @@
     
       // pass this many times, up until the last turn before game ends
     for (int j = 0; j < i - 1; j++) {
-      [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+      [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
     }
     XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with no dyadminoes left in pile.");
     
       // now pass once, and game should end
-    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
     XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game should have ended with no dyadminoes left in pile.");
   }
 }
@@ -933,13 +933,13 @@
       if ((i == 3 && j == 1) || (i == 4 && (j == 1 || j == 5))) {
         [self.myMatch resignPlayer:[self.myMatch returnCurrentPlayer]];
       } else {
-        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
       }
     }
     XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with dyadminoes left in pile.");
     
       // now pass once, and game should end
-    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
     XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game should have ended with dyadminoes left in pile.");
   }
   
@@ -955,13 +955,13 @@
         [self.myMatch resignPlayer:[self.myMatch returnCurrentPlayer]];
         [self.myMatch removeFromPileNumberOfDataDyadminoes:kNumDyadminoesInRack]; // ensures that pile remains empty upon resign
       } else {
-        [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
       }
     }
     XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with no dyadminoes left in pile.");
     
       // now pass once, and game should end
-    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
     XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game should have ended with no dyadminoes left in pile.");
   }
 }
@@ -1009,7 +1009,7 @@
       [self.myMatch addToHoldingContainer:dataDyad];
     }
     
-    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
     NSUInteger rackCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
     XCTAssertTrue(rackCount == 0, @"Rack should be empty because player played all dyadminoes.");
     XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game did not end after play leaves empty pile and empty rack.");
@@ -1068,7 +1068,7 @@
       [self.myMatch addToHoldingContainer:dataDyad];
     }
 
-    [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
+    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
   }
 }
 

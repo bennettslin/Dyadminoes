@@ -979,7 +979,6 @@
   
     // not DRY, but repeats the above, only with touched dyadmino that belongs on board
     // recent rack must be sent home, otherwise chords get messed up
-    // touched dyadmino is now on board
   if ([_touchedDyadmino belongsOnBoard] && [_touchedDyadmino isOnBoard]) {
     [self sendHomeRecentRackDyadminoFromBoardDyadminoMove];
   }
@@ -1022,20 +1021,6 @@
     self.playerRackDyadminoes = [_rackField handleRackExchangeOfTouchedDyadmino:_touchedDyadmino
                                      withDyadminoes:self.playerRackDyadminoes
                                  andClosestRackNode:rackNode];
-  }
-}
-
--(void)sendHomeRecentRackDyadminoFromBoardDyadminoMove {
-    // if there's a recent rack dyadmino, send home recentRack dyadmino
-  if (_recentRackDyadmino) {
-    [self changeColoursAroundDyadmino:_recentRackDyadmino withSign:-1];
-    [self sendDyadminoHome:_recentRackDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
-  }
-  
-    // buttons updated once
-  if (!_buttonsUpdatedThisTouch) {
-    [self updateTopBarButtons];
-    _buttonsUpdatedThisTouch = YES;
   }
 }
 
@@ -1222,6 +1207,8 @@
         // 2. it's already hovering, so tap inside to flip
     } else {
       [_touchedDyadmino animateFlip];
+      
+        // sends home recent rack 
       [self sendHomeRecentRackDyadminoFromBoardDyadminoMove];
     }
   }
@@ -1397,6 +1384,20 @@
   }
   
   [self updateTopBarButtons];
+}
+
+-(void)sendHomeRecentRackDyadminoFromBoardDyadminoMove {
+    // if there's a recent rack dyadmino, send home recentRack dyadmino
+  if (_recentRackDyadmino) {
+    [self changeColoursAroundDyadmino:_recentRackDyadmino withSign:-1];
+    [self sendDyadminoHome:_recentRackDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+  }
+  
+    // buttons updated once
+  if (!_buttonsUpdatedThisTouch) {
+    [self updateTopBarButtons];
+    _buttonsUpdatedThisTouch = YES;
+  }
 }
 
 -(void)handlePivotOfDyadmino:(Dyadmino *)dyadmino {
@@ -2142,7 +2143,7 @@
   // permanent or recently played board dyadmino, no illegal sonorities
   //----------------------------------------------------------------------------
         
-        NSLog(@"recent rack dyadmino is %i", _recentRackDyadmino.myID);
+        NSLog(@"recent rack dyadmino is %lu", (unsigned long)_recentRackDyadmino.myID);
         
         if ([dyadmino belongsOnBoard]) {
           
@@ -3510,7 +3511,7 @@
   NSLog(@"sonorities is %@", set);
 
   for (DataCell *dataCell in self.myMatch.occupiedCells) {
-    NSLog(@"cell with pc: %i, dyadmino: %i, hex: %i, %i", dataCell.myPC, dataCell.myDyadminoID, dataCell.hexCoord.x, dataCell.hexCoord.y);
+    NSLog(@"cell with pc: %lu, dyadmino: %lu, hex: %li, %li", (unsigned long)dataCell.myPC, (unsigned long)dataCell.myDyadminoID, (long)dataCell.hexCoord.x, (long)dataCell.hexCoord.y);
   }
 }
 

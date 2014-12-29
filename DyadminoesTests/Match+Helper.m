@@ -7,6 +7,8 @@
 //
 
 #import "Match+Helper.h"
+#import "Player.h"
+#import "DataDyadmino.h"
 
 @implementation Match (Helper)
 
@@ -15,6 +17,22 @@
     NSUInteger randomIndex = arc4random() % self.pile.count;
     [self.pile removeObjectAtIndex:randomIndex];
   }
+}
+
+-(void)recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:(BOOL)swap {
+  
+    // adds a mock score if there is a dyadmino in the holding container
+    // because recordDyadminoes method uses this score to determine if turn was pass or play
+  
+  if ([self.holdingIndexContainer count] != 0) {
+    NSMutableArray *tempArray = [NSMutableArray new];
+    NSDictionary *newDictionary = @{@"points":@1};
+    [tempArray addObject:newDictionary];
+    self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
+  }
+  
+  [self recordDyadminoesFromCurrentPlayerWithSwap:swap];
+
 }
 
 @end
