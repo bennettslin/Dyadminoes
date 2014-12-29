@@ -269,12 +269,13 @@
 
       // first check if stacked on another dyadmino
     if (cell && cell.myDyadminoID != dyadminoID) {
-      return kErrorStackedDyadminoes;
+      return kErrorStackedDyadminoes; // return right away
+
     }
     
       // if not stacked, then as long as it has one neighbour, there's no error
     if ([self hexCoord:cellHexCoord hasNeighbourNotOccupiedByDyadminoID:dyadminoID]) {
-      result = kNoError;
+      result = kNoError; // wait to return
     }
   }
   
