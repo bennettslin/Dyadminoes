@@ -16,7 +16,7 @@
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino;
 -(void)correctBoardForPositionAfterZoom;
 -(NSSet *)allBoardDyadminoesPlusRecentRackDyadmino;
--(BOOL)sonority:(NSSet *)sonority containsNote:(NSDictionary *)note;
+//-(BOOL)sonority:(NSSet *)sonority containsNote:(NSDictionary *)note;
 -(BOOL)actionSheetShown;
 
 @end
@@ -47,7 +47,7 @@
 @property (strong, nonatomic) NSMutableSet *snapPointsTenOClock;
 
 @property (strong, nonatomic) NSMutableSet *allCells;
-@property (strong, nonatomic) NSMutableSet *occupiedCells;
+//@property (strong, nonatomic) NSMutableSet *occupiedCells;
 
   // pivot properties
 
@@ -90,11 +90,12 @@
 
 -(BOOL)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes;
 //-(Cell *)acknowledgeOrAddCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex; // called by scene's replay methods
+
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
 
   // called by scene for sound purposes
--(HexCoord)getHexCoordOfOtherCellGivenDyadmino:(Dyadmino *)dyadmino andBoardNode:(SnapPoint *)snapPoint;
+//-(HexCoord)getHexCoordOfOtherCellGivenDyadmino:(Dyadmino *)dyadmino andBoardNode:(SnapPoint *)snapPoint;
 
 #pragma mark - cell colour methods
 
@@ -118,8 +119,8 @@
 
 #pragma mark - legality methods
 
--(PhysicalPlacementResult)validatePhysicallyPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint;
--(NSSet *)collectSonoritiesFromPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint;
+//-(PhysicalPlacementResult)validatePhysicallyPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint;
+//-(NSSet *)collectSonoritiesFromPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint;
 
 #pragma mark - distance helper methods
 

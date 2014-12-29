@@ -71,7 +71,7 @@
     // FIXME: for now, just log hexCoord
   
   [self handleMusicNote:note];
-  NSLog(@"hexCoord is %i, %i", hexCoord.x, hexCoord.y);
+//  NSLog(@"hexCoord is %i, %i", hexCoord.x, hexCoord.y);
 }
 
 -(void)handleMusicNote:(NSUInteger)note {

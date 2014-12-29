@@ -78,6 +78,14 @@
 
 -(BOOL)updateCellsForRemovedDyadminoID:(NSInteger)dyadminoID pc1:(NSInteger)pc1 pc2:(NSInteger)pc2 orientation:(DyadminoOrientation)orientation fromBottomCellHexCoord:(HexCoord)bottomHexCoord;
 
+-(HexCoord)retrieveTopHexCoordForBottomHexCoord:(HexCoord)bottomHexCoord andOrientation:(DyadminoOrientation)orientation;
+
+-(NSSet *)sonoritiesFromPlacingDyadminoID:(NSUInteger)dyadminoID onBottomHexCoord:(HexCoord)bottomHexCoord;
+
+#pragma mark - physical cell methods
+
+-(PhysicalPlacementResult)validatePhysicallyPlacingDyadminoID:(NSUInteger)dyadminoID withOrientation:(DyadminoOrientation)orientation onBottomHexCoord:(HexCoord)bottomHexCoord;
+
   // game state change methods
 -(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap;
 -(void)persistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad;
@@ -169,7 +177,9 @@
                          withInitialString:(NSString *)initialString
                            andEndingString:(NSString *)endingString;
 
+-(BOOL)sonority:(NSSet *)sonority containsNote:(NSDictionary *)note;
 -(BOOL)sonority:(NSSet *)smaller IsSubsetOfSonority:(NSSet *)larger;
+-(BOOL)isFirstAndOnlyDyadminoID:(NSUInteger)dyadminoID;
 -(void)handleSwitchToNextPlayer;
 -(void)handleEndGame;
 

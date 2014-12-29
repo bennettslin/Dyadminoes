@@ -69,7 +69,7 @@
     self.snapPointsTwelveOClock = [NSMutableSet new];
     self.snapPointsTwoOClock = [NSMutableSet new];
     self.snapPointsTenOClock = [NSMutableSet new];
-    self.occupiedCells = [NSMutableSet new];
+//    self.occupiedCells = [NSMutableSet new];
     self.allCells = [NSMutableSet new];
     
     _cellSize = [Cell establishCellSizeForResize:NO];
@@ -114,7 +114,7 @@
 -(void)resetForNewMatch {
   
   NSSet *tempAllCells = [NSSet setWithSet:self.allCells];
-  [self.occupiedCells removeAllObjects];
+//  [self.occupiedCells removeAllObjects];
   
   for (Cell *cell in tempAllCells) {
     [self ignoreCell:cell];
@@ -493,9 +493,9 @@
     [cell updatePCLabel];
     
       // add to board's array of occupied cells to search
-    if (![self.occupiedCells containsObject:cell]) {
-      [self.occupiedCells addObject:cell];
-    }
+//    if (![self.occupiedCells containsObject:cell]) {
+//      [self.occupiedCells addObject:cell];
+//    }
     return YES;
     
   } else if (cell.myPC == dyadmino.pc2) {
@@ -509,9 +509,9 @@
     [cell updatePCLabel];
     
       // add to board's array of occupied cells to search
-    if (![self.occupiedCells containsObject:cell]) {
-      [self.occupiedCells addObject:cell];
-    }
+//    if (![self.occupiedCells containsObject:cell]) {
+//      [self.occupiedCells addObject:cell];
+//    }
     return YES;
   }
   return NO;
@@ -556,9 +556,9 @@
   cell.myDyadmino = nil;
   cell.myPC = -1;
   
-  if ([self.occupiedCells containsObject:cell]) {
-    [self.occupiedCells removeObject:cell];
-  }
+//  if ([self.occupiedCells containsObject:cell]) {
+//    [self.occupiedCells removeObject:cell];
+//  }
   
     // testing purposes
   [cell updatePCLabel];
@@ -1102,6 +1102,7 @@
   return NO;
 }
 
+/*
 -(NSSet *)collectSonoritiesFromPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint {
   
   NSMutableSet *tempSetOfSonorities = [NSMutableSet new];
@@ -1288,6 +1289,7 @@
   }
   return [self getCellWithHexCoord:nextHexCoord];
 }
+*/
 
 #pragma mark - distance helper methods
 

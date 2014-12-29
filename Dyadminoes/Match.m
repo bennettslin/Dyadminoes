@@ -13,9 +13,9 @@
 
 @interface Match ()
 
-@property (strong, nonatomic) NSMutableArray *pile; // was mutable array
-@property (strong, nonatomic) NSMutableSet *board; // was mutable set
-@property (strong, nonatomic) NSMutableSet *occupiedCells;
+@property (readwrite, nonatomic) NSMutableArray *pile; // was mutable array
+@property (readwrite, nonatomic) NSMutableSet *board; // was mutable set
+@property (readwrite, nonatomic) NSMutableSet *occupiedCells;
 
 @end
 
@@ -262,6 +262,7 @@
   HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:orientation];
   HexCoord cellHexCoords[2] = {topHexCoord, bottomHexCoord};
 
+  PhysicalPlacementResult result = kErrorLoneDyadmino;
   for (int i = 0; i < 2; i++) {
     HexCoord cellHexCoord = cellHexCoords[i];
     DataCell *cell = [self occupiedCellForHexCoord:cellHexCoord];
@@ -271,14 +272,18 @@
       return kErrorStackedDyadminoes;
     }
     
-      // as long as it has one neighbour, there's no error
+      // if not stacked, then as long as it has one neighbour, there's no error
     if ([self hexCoord:cellHexCoord hasNeighbourNotOccupiedByDyadminoID:dyadminoID]) {
-      return kNoError;
+      result = kNoError;
     }
   }
   
     // no neighbour; is it the first dyadmino?
-  return [self.firstDataDyadIndex unsignedIntegerValue] == dyadminoID ? kNoError : kErrorLoneDyadmino;
+  if (result == kErrorLoneDyadmino) {
+    return [self.delegate isFirstAndOnlyDyadminoID:dyadminoID] ? kNoError : kErrorLoneDyadmino;
+  } else {
+    return result;
+  }
 }
 
 -(BOOL)hexCoord:(HexCoord)hexCoord hasNeighbourNotOccupiedByDyadminoID:(NSUInteger)dyadminoID {
@@ -295,7 +300,7 @@
         
         DataCell *occupiedCell = [self occupiedCellForHexCoord:[self hexCoordFromX:i andY:j]];
         
-        if (!occupiedCell || occupiedCell.myDyadminoID != dyadminoID) {
+        if (occupiedCell && occupiedCell.myDyadminoID != dyadminoID) {
           return YES;
         }
       }
@@ -315,7 +320,43 @@
     // 4. top cell upslant
     // 5. top cell downslant
   
-  return nil;
+    // each checking first up, then down
+  
+  DataDyadmino *dataDyad = [self dataDyadminoForIndex:dyadminoID];
+  DyadminoOrientation dyadOrient = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
+  
+  HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadOrient];
+  
+  HexCoord nextHexCoord;
+  NSUInteger realOrientation = NSUIntegerMax; // change
+  
+  HexCoord hexCoords[2] = {topHexCoord, bottomHexCoord};
+  NSUInteger whichHexCoord[10] = {((dyadOrient >= 5 || dyadOrient <= 1) ? 0 : 1), ((dyadOrient >= 5 || dyadOrient <= 1) ? 1 : 0), 1, 1, 1, 1, 0, 0, 0, 0};
+  
+  NSUInteger whichOrientation[5] = {0, 1, 2, 1, 2};
+  
+  for (int axis = 0; axis < 5; axis++) {
+    
+    NSMutableSet *tempSonority = [NSMutableSet new];
+      for (int direction = 0; direction < 2; direction++) {
+      
+      nextHexCoord = hexCoords[(whichHexCoord[2 * axis + direction])];
+      realOrientation = (direction == 0) ? (dyadOrient + whichOrientation[axis]) % 6 : (dyadOrient + whichOrientation[axis] + 3) % 6;
+      DataCell *nextCell = [self occupiedCellForHexCoord:nextHexCoord];
+      while (nextCell) {
+        NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadminoID)};
+        if (![self.delegate sonority:tempSonority containsNote:note]) {
+          [tempSonority addObject:note];
+        }
+        nextHexCoord = [self nextHexCoordFromHexCoord:nextHexCoord andAxis:realOrientation];
+        nextCell = [self occupiedCellForHexCoord:nextHexCoord];
+      }
+    }
+    
+    NSSet *sonority = [NSSet setWithSet:tempSonority];
+    [tempSetOfSonorities addObject:sonority];
+  }
+  return [NSSet setWithSet:tempSetOfSonorities];
 }
 
 -(HexCoord)nextHexCoordFromHexCoord:(HexCoord)hexCoord andAxis:(NSUInteger)axis {
@@ -465,6 +506,10 @@
       // player passes
   if ([self sumOfPointsThisTurn] == 0) {
     
+      // this is the original condition, which allowed original match tests to pass
+      // original tests did not include information about score
+//  if ([(NSArray *)self.holdingIndexContainer count] == 0) {
+  
       // if solo game, ends right away
       // FIXME: this will need to be changed to accommodate when board dyadmino
       // is moved to create a chord and nothing else, which counts as a turn and
@@ -761,7 +806,7 @@
   NSString *dyadminoesPlayedString;
   if (points > 0) {
     
-    dyadminoesPlayedString = [NSString stringWithFormat:@"scored %i %@", points, ((points == 1) ? @"point" : @"points")];
+    dyadminoesPlayedString = [NSString stringWithFormat:@"scored %lu %@", (unsigned long)points, ((points == 1) ? @"point" : @"points")];
   } else if (!dyadminoesPlayed) {
     dyadminoesPlayedString = @"resigned";
   } else if (dyadminoesPlayed.count == 0) {
@@ -1044,6 +1089,7 @@
 
 -(NSSet *)occupiedCells {
   if (!_occupiedCells) {
+    
     _occupiedCells = [NSMutableSet new];
     NSMutableSet *dataDyadsOnBoard = [NSMutableSet setWithSet:self.board];
     [dataDyadsOnBoard addObjectsFromArray:self.holdingIndexContainer];
@@ -1053,11 +1099,16 @@
       HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:dataDyad.myHexCoord   andOrientation:(DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue]];
       HexCoord cellHexCoords[2] = {topHexCoord, dataDyad.myHexCoord};
       
-        // FIXME: finish this method!
+      for (int i = 0; i < 2; i++) {
+        HexCoord cellHexCoord = cellHexCoords[i];
+        NSUInteger dyadminoID = [dataDyad.myID unsignedIntegerValue];
+        NSUInteger pc = [self pcForDyadminoIndex:dyadminoID isPC1:(BOOL)i];
+        
+        DataCell *newCell = [[DataCell alloc] initWithPC:pc dyadminoID:dyadminoID hexCoord:cellHexCoord];
+        
+        [_occupiedCells addObject:newCell];
+      }
     }
-    
-    
-    
   }
   return _occupiedCells;
 }

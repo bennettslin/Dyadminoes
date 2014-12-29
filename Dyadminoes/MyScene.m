@@ -26,6 +26,7 @@
 #import "DataDyadmino.h"
 #import "SoundEngine.h"
 #import "SonorityLogic.h"
+#import "DataCell.h" // for debugging purposes
 
 #define kTopBarIn @"topBarIn"
 #define kTopBarOut @"topBarOut"
@@ -423,7 +424,8 @@
   
   for (DataDyadmino *dataDyadmino in tempBoardAndPlayedDyadminoes) {
     Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyadmino];
-    NSSet *allSonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
+//    NSSet *allSonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
+    NSSet *allSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.homeNode.myCell.hexCoord];
     NSSet *legalChordSonorities = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:allSonorities];
     [tempLegalChordSonorities addObjectsFromArray:[legalChordSonorities allObjects]];
   }
@@ -455,10 +457,13 @@
     BOOL dyadminoRightsideUp = dyadmino.orientation <= kPC1atTwoOClock || dyadmino.orientation >= kPC1atTenOClock;
     if (pc == dyadmino.pc1) {
       hexCoord = dyadminoRightsideUp ?
-          [_boardField getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil] : dyadmino.myHexCoord;
+//          [_boardField getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil] : dyadmino.myHexCoord;
+      [self.myMatch retrieveTopHexCoordForBottomHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.orientation] : dyadmino.myHexCoord;
+      
     } else {
       hexCoord = dyadminoRightsideUp ?
-          dyadmino.myHexCoord : [_boardField getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil];
+//          dyadmino.myHexCoord : [_boardField getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil];
+      dyadmino.myHexCoord : [self.myMatch retrieveTopHexCoordForBottomHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.orientation];
     }
 
     [self.mySoundEngine handleMusicNote:pc withHexCoord:hexCoord];
@@ -853,7 +858,9 @@
         // check to see if hovering dyadmino should be moved along with board or not
       if (_hoveringDyadmino) {
         [_boardField hideAllPivotGuides];
-        if ([_boardField validatePhysicallyPlacingDyadmino:_hoveringDyadmino onBoardNode:_hoveringDyadmino.tempBoardNode] != kNoError) {
+//        if ([_boardField validatePhysicallyPlacingDyadmino:_hoveringDyadmino onBoardNode:_hoveringDyadmino.tempBoardNode] != kNoError) {
+        if ([self.myMatch validatePhysicallyPlacingDyadminoID:_hoveringDyadmino.myID withOrientation:_hoveringDyadmino.orientation onBottomHexCoord:_hoveringDyadmino.tempBoardNode.myCell.hexCoord]) {
+          
           _hoveringDyadminoStaysFixedToBoard = YES;
           [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
         } else {
@@ -1169,7 +1176,8 @@
     // if it belongs on the board, get the chords that it's a part of
     // this is the only place where self.boardDyadminoBelongsInTheseLegalChords is established
   if ([dyadmino belongsOnBoard] && dyadmino != _hoveringDyadmino) {
-    NSSet *formationOfSonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
+//    NSSet *formationOfSonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.homeNode];
+    NSSet *formationOfSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.homeNode.myCell.hexCoord];
     self.legalChordsForHoveringBoardDyadmino = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
   }
   
@@ -1650,7 +1658,8 @@
     };
     
       // add chords from this dyadmino to array of chords
-    NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
+//    NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
+    NSSet *sonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord];
     NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
     
     NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
@@ -2107,15 +2116,17 @@
       // ensures that validation takes place only if placement is uncertain
       // will not get called if returning to homeNode from top bar
     if (dyadmino.tempBoardNode) {
-      PhysicalPlacementResult placementResult = [_boardField validatePhysicallyPlacingDyadmino:dyadmino
-                                                                         onBoardNode:dyadmino.tempBoardNode];
+//      PhysicalPlacementResult placementResult = [_boardField validatePhysicallyPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
+      PhysicalPlacementResult placementResult = [self.myMatch validatePhysicallyPlacingDyadminoID:dyadmino.myID withOrientation:dyadmino.orientation onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord];
       
         // handle placement results:
         // ease in right away because no error, and dyadmino was not moved from original spot
       
       if (placementResult == kNoError && !(dyadmino.tempBoardNode == _uponTouchDyadminoNode && dyadmino.orientation == _uponTouchDyadminoOrientation)) {
         
-        NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
+//        NSSet *sonorities = [_boardField collectSonoritiesFromPlacingDyadmino:dyadmino onBoardNode:dyadmino.tempBoardNode];
+        NSSet *sonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord];
+        
         NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
         
         if ([dyadmino belongsOnBoard]) {
@@ -2689,6 +2700,8 @@
       // update hexCoord of board dyadmino
     dyadmino.myHexCoord = snapPoint.myCell.hexCoord;
     [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:snapPoint andColour:colour];
+    
+    [self.myMatch updateCellsForPlacedDyadminoID:dyadmino.myID pc1:dyadmino.pc1 pc2:dyadmino.pc2 orientation:dyadmino.orientation onBottomCellHexCoord:snapPoint.myCell.hexCoord];
   }
 }
 
@@ -2702,6 +2715,8 @@
     }
     
     [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:(dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode) andColour:colour];
+    
+    [self.myMatch updateCellsForRemovedDyadminoID:dyadmino.myID pc1:dyadmino.pc1 pc2:dyadmino.pc2 orientation:dyadmino.orientation fromBottomCellHexCoord:(dyadmino.tempBoardNode ? dyadmino.tempBoardNode.myCell.hexCoord : dyadmino.homeNode.myCell.hexCoord)];
   }
 }
 
@@ -3353,6 +3368,12 @@
   return firstDyadmino;
 }
 
+-(BOOL)isFirstAndOnlyDyadminoID:(NSUInteger)dyadminoID {
+  Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:[self.myMatch dataDyadminoForIndex:dyadminoID]];
+  BOOL firstDyadmino = (self.boardDyadminoes.count == 1 && dyadmino == [self.boardDyadminoes anyObject] && !_recentRackDyadmino);
+  return firstDyadmino;
+}
+
 -(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign {
   [_boardField changeColoursAroundDyadmino:dyadmino withSign:sign];
 }
@@ -3424,6 +3445,15 @@
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
   [self logRackDyadminoes];
+  
+  NSLog(@"match's occupied cells is %@", self.myMatch.occupiedCells);
+  NSLog(@"scene's board chords are %@", self.allBoardChords);
+  NSSet *set = [self.myMatch sonoritiesFromPlacingDyadminoID:_recentRackDyadmino.myID onBottomHexCoord:_recentRackDyadmino.tempBoardNode.myCell.hexCoord];
+  NSLog(@"sonorities is %@", set);
+
+  for (DataCell *dataCell in self.myMatch.occupiedCells) {
+    NSLog(@"cell with pc: %i, dyadmino: %i, hex: %i, %i", dataCell.myPC, dataCell.myDyadminoID, dataCell.hexCoord.x, dataCell.hexCoord.y);
+  }
 }
 
 -(void)logRackDyadminoes {
