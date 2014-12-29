@@ -310,7 +310,7 @@
   return NO;
 }
 
--(NSSet *)sonoritiesFromPlacingDyadminoID:(NSUInteger)dyadminoID onBottomHexCoord:(HexCoord)bottomHexCoord rulingOutRecentRackID:(NSInteger)recentRackDyadminoID {
+-(NSSet *)sonoritiesFromPlacingDyadminoID:(NSUInteger)dyadminoID onBottomHexCoord:(HexCoord)bottomHexCoord withOrientation:(DyadminoOrientation)orientation rulingOutRecentRackID:(NSInteger)recentRackDyadminoID {
     // if no recent rack dyadmino to rule out, value is -1
   
   NSMutableSet *tempSetOfSonorities = [NSMutableSet new];
@@ -324,16 +324,17 @@
   
     // each checking first up, then down
   
-  DataDyadmino *dataDyad = [self dataDyadminoForIndex:dyadminoID];
-  DyadminoOrientation dyadOrient = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
+//  DataDyadmino *dataDyad = [self dataDyadminoForIndex:dyadminoID];
+//  DyadminoOrientation orientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
+//  NSLog(@"dyadOrient is %i", orientation);
   
-  HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadOrient];
+  HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:orientation];
   
   HexCoord nextHexCoord;
   NSUInteger realOrientation = NSUIntegerMax; // change
   
   HexCoord hexCoords[2] = {topHexCoord, bottomHexCoord};
-  NSUInteger whichHexCoord[10] = {((dyadOrient >= 5 || dyadOrient <= 1) ? 0 : 1), ((dyadOrient >= 5 || dyadOrient <= 1) ? 1 : 0), 1, 1, 1, 1, 0, 0, 0, 0};
+  NSUInteger whichHexCoord[10] = {((orientation >= 5 || orientation <= 1) ? 0 : 1), ((orientation >= 5 || orientation <= 1) ? 1 : 0), 1, 1, 1, 1, 0, 0, 0, 0};
   
   NSUInteger whichOrientation[5] = {0, 1, 2, 1, 2};
   
@@ -343,7 +344,7 @@
       for (int direction = 0; direction < 2; direction++) {
       
       nextHexCoord = hexCoords[(whichHexCoord[2 * axis + direction])];
-      realOrientation = (direction == 0) ? (dyadOrient + whichOrientation[axis]) % 6 : (dyadOrient + whichOrientation[axis] + 3) % 6;
+      realOrientation = (direction == 0) ? (orientation + whichOrientation[axis]) % 6 : (orientation + whichOrientation[axis] + 3) % 6;
       DataCell *nextCell = [self occupiedCellForHexCoord:nextHexCoord];
       while (nextCell) {
         

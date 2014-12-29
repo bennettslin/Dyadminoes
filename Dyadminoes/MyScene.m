@@ -424,7 +424,7 @@
   
   for (DataDyadmino *dataDyadmino in tempBoardAndPlayedDyadminoes) {
     Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyadmino];
-    NSSet *allSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.homeNode.myCell.hexCoord rulingOutRecentRackID:-1];
+    NSSet *allSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.homeNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:-1];
     NSSet *legalChordSonorities = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:allSonorities];
     [tempLegalChordSonorities addObjectsFromArray:[legalChordSonorities allObjects]];
   }
@@ -456,12 +456,10 @@
     BOOL dyadminoRightsideUp = dyadmino.orientation <= kPC1atTwoOClock || dyadmino.orientation >= kPC1atTenOClock;
     if (pc == dyadmino.pc1) {
       hexCoord = dyadminoRightsideUp ?
-//          [_boardField getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil] : dyadmino.myHexCoord;
       [self.myMatch retrieveTopHexCoordForBottomHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.orientation] : dyadmino.myHexCoord;
       
     } else {
       hexCoord = dyadminoRightsideUp ?
-//          dyadmino.myHexCoord : [_boardField getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil];
       dyadmino.myHexCoord : [self.myMatch retrieveTopHexCoordForBottomHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.orientation];
     }
 
@@ -1175,7 +1173,7 @@
     // this is the only place where self.boardDyadminoBelongsInTheseLegalChords is established
     // this particular formation does not care about recent rack dyadmino
   if ([dyadmino belongsOnBoard] && dyadmino != _hoveringDyadmino) {
-    NSSet *formationOfSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.homeNode.myCell.hexCoord rulingOutRecentRackID:(_recentRackDyadmino ? _recentRackDyadmino.myID : -1)];
+    NSSet *formationOfSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.homeNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:(_recentRackDyadmino ? _recentRackDyadmino.myID : -1)];
     self.legalChordsForHoveringBoardDyadmino = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
   }
   
@@ -1655,7 +1653,7 @@
     };
     
       // add chords from this dyadmino to array of chords
-    NSSet *sonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord rulingOutRecentRackID:-1];
+    NSSet *sonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:-1];
     NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
     
     NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
@@ -2121,10 +2119,11 @@
   // permanent or recently played board dyadmino, no illegal sonorities
   //----------------------------------------------------------------------------
         
+        NSLog(@"recent rack dyadmino is %i", _recentRackDyadmino.myID);
+        
         if ([dyadmino belongsOnBoard]) {
           
-          NSLog(@"no recent rack sonorities created to be checked");
-          NSSet *noRecentRackSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord rulingOutRecentRackID:(_recentRackDyadmino ? _recentRackDyadmino.myID : -1)];
+          NSSet *noRecentRackSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:(_recentRackDyadmino ? _recentRackDyadmino.myID : -1)];
           NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:noRecentRackSonorities];
 
           id object = [legalChordSonoritiesFormed anyObject];
@@ -2140,6 +2139,8 @@
             if (![[SonorityLogic sharedLogic] setOfLegalChords:self.legalChordsForHoveringBoardDyadmino isSubsetOfSetOfLegalChords:legalChordSonoritiesFormed]) {
               
               NSSet *supersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:self.legalChordsForHoveringBoardDyadmino thatAreSupersetsOfSonoritiesInSonorities:legalChordSonoritiesFormed];
+              
+              NSLog(@"legalChordsForHover %@, supersets %@", self.legalChordsForHoveringBoardDyadmino, supersets);
               
               NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:supersets withInitialString:@"Can't break " andEndingString:@"."];
               
@@ -2227,8 +2228,10 @@
             // rack dyadmino
         } else if ([dyadmino belongsInRack]) {
           
-          NSSet *sonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord rulingOutRecentRackID:-1];
+          NSSet *sonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:-1];
           NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
+          
+          NSLog(@"sonorities %@, legalChordSonoritiesFormed %@", sonorities, legalChordSonoritiesFormed);
           
             // totally not DRY
           id object = [legalChordSonoritiesFormed anyObject];
@@ -3480,7 +3483,7 @@
   
   NSLog(@"match's occupied cells is %@", self.myMatch.occupiedCells);
   NSLog(@"scene's board chords are %@", self.allBoardChords);
-  NSSet *set = [self.myMatch sonoritiesFromPlacingDyadminoID:_recentRackDyadmino.myID onBottomHexCoord:_recentRackDyadmino.tempBoardNode.myCell.hexCoord rulingOutRecentRackID:-1];
+  NSSet *set = [self.myMatch sonoritiesFromPlacingDyadminoID:_recentRackDyadmino.myID onBottomHexCoord:_recentRackDyadmino.tempBoardNode.myCell.hexCoord withOrientation:_recentRackDyadmino.orientation rulingOutRecentRackID:-1];
   NSLog(@"sonorities is %@", set);
 
   for (DataCell *dataCell in self.myMatch.occupiedCells) {
