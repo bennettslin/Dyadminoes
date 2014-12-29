@@ -9,7 +9,6 @@
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
 @class SceneViewController;
-//@class SceneEngine;
 @class Player;
 @class Dyadmino;
 @class Match;
@@ -20,7 +19,6 @@
 @interface MyScene : SKScene
 
 @property (strong, nonatomic) SoundEngine *mySoundEngine;
-//@property (strong, nonatomic) SceneEngine *mySceneEngine;
 @property (strong, nonatomic) Match *myMatch;
 
 @property (weak, nonatomic) id <SceneDelegate> myDelegate;

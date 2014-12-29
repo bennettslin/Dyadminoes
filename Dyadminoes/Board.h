@@ -89,13 +89,9 @@
 #pragma mark - cell methods
 
 -(BOOL)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes;
-//-(Cell *)acknowledgeOrAddCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex; // called by scene's replay methods
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
-
-  // called by scene for sound purposes
-//-(HexCoord)getHexCoordOfOtherCellGivenDyadmino:(Dyadmino *)dyadmino andBoardNode:(SnapPoint *)snapPoint;
 
 #pragma mark - cell colour methods
 
@@ -116,11 +112,6 @@
 
 -(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes; // called by scene's toggle board zoom method only
 -(void)determineBoardPositionBounds;
-
-#pragma mark - legality methods
-
-//-(PhysicalPlacementResult)validatePhysicallyPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint;
-//-(NSSet *)collectSonoritiesFromPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint;
 
 #pragma mark - distance helper methods
 

@@ -310,7 +310,8 @@
   return NO;
 }
 
--(NSSet *)sonoritiesFromPlacingDyadminoID:(NSUInteger)dyadminoID onBottomHexCoord:(HexCoord)bottomHexCoord {
+-(NSSet *)sonoritiesFromPlacingDyadminoID:(NSUInteger)dyadminoID onBottomHexCoord:(HexCoord)bottomHexCoord rulingOutRecentRackID:(NSInteger)recentRackDyadminoID {
+    // if no recent rack dyadmino to rule out, value is -1
   
   NSMutableSet *tempSetOfSonorities = [NSMutableSet new];
   
@@ -345,12 +346,19 @@
       realOrientation = (direction == 0) ? (dyadOrient + whichOrientation[axis]) % 6 : (dyadOrient + whichOrientation[axis] + 3) % 6;
       DataCell *nextCell = [self occupiedCellForHexCoord:nextHexCoord];
       while (nextCell) {
-        NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadminoID)};
-        if (![self.delegate sonority:tempSonority containsNote:note]) {
-          [tempSonority addObject:note];
+        
+          // either there is no recent rack dyadmino to rule out
+          // or this cell does not have the recent rack dyadmino
+        if (recentRackDyadminoID == -1 || (nextCell.myDyadminoID != recentRackDyadminoID)) {
+          NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadminoID)};
+          if (![self.delegate sonority:tempSonority containsNote:note]) {
+            [tempSonority addObject:note];
+          }
+          nextHexCoord = [self nextHexCoordFromHexCoord:nextHexCoord andAxis:realOrientation];
+          nextCell = [self occupiedCellForHexCoord:nextHexCoord];
+        } else {
+          nextCell = nil;
         }
-        nextHexCoord = [self nextHexCoordFromHexCoord:nextHexCoord andAxis:realOrientation];
-        nextCell = [self occupiedCellForHexCoord:nextHexCoord];
       }
     }
     
