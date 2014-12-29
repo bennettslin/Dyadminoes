@@ -969,11 +969,19 @@
     } else if (_hoveringDyadmino && _touchedDyadmino != _hoveringDyadmino) {
       [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
     }
+    
       // buttons updated once
     if (!_buttonsUpdatedThisTouch) {
       [self updateTopBarButtons];
       _buttonsUpdatedThisTouch = YES;
     }
+  }
+  
+    // not DRY, but repeats the above, only with touched dyadmino that belongs on board
+    // recent rack must be sent home, otherwise chords get messed up
+    // touched dyadmino is now on board
+  if ([_touchedDyadmino belongsOnBoard] && [_touchedDyadmino isOnBoard]) {
+    [self sendHomeRecentRackDyadminoFromBoardDyadminoMove];
   }
   
     // continue to reset hover count
@@ -1014,6 +1022,20 @@
     self.playerRackDyadminoes = [_rackField handleRackExchangeOfTouchedDyadmino:_touchedDyadmino
                                      withDyadminoes:self.playerRackDyadminoes
                                  andClosestRackNode:rackNode];
+  }
+}
+
+-(void)sendHomeRecentRackDyadminoFromBoardDyadminoMove {
+    // if there's a recent rack dyadmino, send home recentRack dyadmino
+  if (_recentRackDyadmino) {
+    [self changeColoursAroundDyadmino:_recentRackDyadmino withSign:-1];
+    [self sendDyadminoHome:_recentRackDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+  }
+  
+    // buttons updated once
+  if (!_buttonsUpdatedThisTouch) {
+    [self updateTopBarButtons];
+    _buttonsUpdatedThisTouch = YES;
   }
 }
 
@@ -1200,6 +1222,7 @@
         // 2. it's already hovering, so tap inside to flip
     } else {
       [_touchedDyadmino animateFlip];
+      [self sendHomeRecentRackDyadminoFromBoardDyadminoMove];
     }
   }
 }

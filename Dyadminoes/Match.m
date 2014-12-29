@@ -1102,19 +1102,26 @@
     
     _occupiedCells = [NSMutableSet new];
     NSMutableSet *dataDyadsOnBoard = [NSMutableSet setWithSet:self.board];
-    [dataDyadsOnBoard addObjectsFromArray:self.holdingIndexContainer];
+    
+      // add objects in holding container
+    for (NSNumber *dyadIndex in self.holdingIndexContainer) {
+      DataDyadmino *dataDyad = [self dataDyadminoForIndex:[dyadIndex unsignedIntegerValue]];
+      [dataDyadsOnBoard addObject:dataDyad];
+    }
     
     for (DataDyadmino *dataDyad in dataDyadsOnBoard) {
       
-      HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:dataDyad.myHexCoord   andOrientation:(DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue]];
+      DyadminoOrientation orientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
+      HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:dataDyad.myHexCoord andOrientation:orientation];
       HexCoord cellHexCoords[2] = {topHexCoord, dataDyad.myHexCoord};
       
       for (int i = 0; i < 2; i++) {
         HexCoord cellHexCoord = cellHexCoords[i];
         NSUInteger dyadminoID = [dataDyad.myID unsignedIntegerValue];
-        NSUInteger pc = [self pcForDyadminoIndex:dyadminoID isPC1:(BOOL)i];
-        
+        NSUInteger pc = [self pcForDyadminoIndex:dyadminoID isPC1:(BOOL)(orientation <= 1 || orientation >= 5 ? (i + 1) % 2 : i)];
         DataCell *newCell = [[DataCell alloc] initWithPC:pc dyadminoID:dyadminoID hexCoord:cellHexCoord];
+        
+        NSLog(@"pc:%i, dyadID:%i, hex:%i, %i", newCell.myPC, newCell.myDyadminoID, newCell.hexX, newCell.hexY);
         
         [_occupiedCells addObject:newCell];
       }
