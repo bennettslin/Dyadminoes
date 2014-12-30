@@ -1011,7 +1011,7 @@
   _touchedDyadmino.position =
     [self getOffsetForTouchPoint:_currentTouchLocation forDyadmino:_touchedDyadmino];
   
-    // move the pivot guide
+    // move the pivot guide, taking into consideration whether dyadmino is child of board or rack
   CGPoint pivotGuidePosition = [_touchedDyadmino isOnBoard] ? _touchedDyadmino.position :
       [self subtractFromThisPoint:_touchedDyadmino.position thisPoint:_boardField.position];
   [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:pivotGuidePosition];
@@ -1216,8 +1216,11 @@
     } else {
       [_touchedDyadmino animateFlip];
       
-        // sends home recent rack 
-      [self sendHomeRecentRackDyadminoFromBoardDyadminoMove];
+        // if it's not the recent rack dyadmino, send home recent rack dyadmino
+      if (_touchedDyadmino != _recentRackDyadmino) {
+        [self sendHomeRecentRackDyadminoFromBoardDyadminoMove];
+      }
+      
     }
   }
 }
