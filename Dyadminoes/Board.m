@@ -491,11 +491,7 @@
     
       /// testing purposes
     [cell updatePCLabel];
-    
-      // add to board's array of occupied cells to search
-//    if (![self.occupiedCells containsObject:cell]) {
-//      [self.occupiedCells addObject:cell];
-//    }
+
     return YES;
     
   } else if (cell.myPC == dyadmino.pc2) {
@@ -508,12 +504,9 @@
       /// testing purposes
     [cell updatePCLabel];
     
-      // add to board's array of occupied cells to search
-//    if (![self.occupiedCells containsObject:cell]) {
-//      [self.occupiedCells addObject:cell];
-//    }
     return YES;
   }
+  
   return NO;
 }
 
@@ -805,24 +798,35 @@
     if (i != 2 && i != 3) { // for now, leave out second, double-speed guide
       SKShapeNode *shapeNode = [SKShapeNode new];
       CGMutablePathRef shapePath = CGPathCreateMutable();
+      
+      CGFloat startAngleInRadians = [self getRadiansFromDegree:startAngle[i]];
+      CGFloat endAngleInRadians = [self getRadiansFromDegree:endAngle[i]];
     
-        // outer arc
-      CGPathAddArc(shapePath, NULL, 0.f, 0.f + pivotYOffset, maxDistance[i], [self getRadiansFromDegree:startAngle[i]],
-                   [self getRadiansFromDegree:endAngle[i]], NO);
-        // line in
-      CGPathAddLineToPoint(shapePath, NULL, minDistance[i] * cosf([self getRadiansFromDegree:endAngle[i]]),
-                           minDistance[i] * sinf([self getRadiansFromDegree:endAngle[i]]));
-        // inner arc
-      CGPathAddArc(shapePath, NULL, 0.f, 0.f + pivotYOffset, minDistance[i], [self getRadiansFromDegree:endAngle[i]],
-                   [self getRadiansFromDegree:startAngle[i]], YES);
         // line out
-      CGPathAddLineToPoint(shapePath, NULL, maxDistance[i] * cosf([self getRadiansFromDegree:startAngle[i]]),
-                           maxDistance[i] * sinf([self getRadiansFromDegree:startAngle[i]]));
+      CGPathMoveToPoint(shapePath, NULL, maxDistance[i] * cosf(startAngleInRadians) * 0.5,
+                        maxDistance[i] * sinf(startAngleInRadians) * 0.5);
+      
+      CGPathAddLineToPoint(shapePath, NULL, maxDistance[i] * cosf(startAngleInRadians),
+                           maxDistance[i] * sinf(startAngleInRadians));
+      
+        // outer arc
+      CGPathAddArc(shapePath, NULL, 0.f, 0.f + pivotYOffset, maxDistance[i], startAngleInRadians,
+                   endAngleInRadians, NO);
+        // line in
+      CGPathAddLineToPoint(shapePath, NULL, minDistance[i] * cosf(endAngleInRadians),
+                           minDistance[i] * sinf(endAngleInRadians));
+        // inner arc
+      CGPathAddArc(shapePath, NULL, 0.f, 0.f + pivotYOffset, minDistance[i], endAngleInRadians,
+                   startAngleInRadians, YES);
+        // line out
+      CGPathAddLineToPoint(shapePath, NULL, maxDistance[i] * cosf(startAngleInRadians) * 0.5,
+                           maxDistance[i] * sinf(startAngleInRadians) * 0.5);
       
       shapeNode.path = shapePath;
       CGPathRelease(shapePath);
       
-      shapeNode.lineWidth = 0.75;
+      shapeNode.lineWidth = 0.05;
+      shapeNode.glowWidth = 7.f;
       shapeNode.alpha = kPivotGuideAlpha;
       shapeNode.strokeColor = colourArray[i];
       shapeNode.fillColor = colourArray[i];
@@ -835,6 +839,19 @@
 -(void)handleUserWantsPivotGuides {
     // called before scene appears
   self.userWantsPivotGuides = [[NSUserDefaults standardUserDefaults] boolForKey:@"pivotGuide"];
+}
+
+-(void)updatePositionsOfPivotGuidesForDyadmino:(Dyadmino *)dyadmino {
+  CGPoint position = dyadmino.position;
+  if (!self.prePivotGuide.hidden) {
+    self.prePivotGuide.position = position;
+  }
+  if (!self.pivotAroundGuide.hidden) {
+    self.pivotAroundGuide.position = position;
+  }
+  if (!self.pivotRotateGuide.hidden) {
+    self.pivotRotateGuide.position = position;
+  }
 }
 
 -(void)showPivotGuide:(SKNode *)pivotGuide forDyadmino:(Dyadmino *)dyadmino {
@@ -850,21 +867,44 @@
     pivotGuide.zRotation = [self getRadiansFromDegree:degree];
     
     [self addChild:pivotGuide];
-    [pivotGuide removeActionForKey:@"pivotGuideScale"];
-    SKAction *scaleStart = [SKAction scaleTo:0.f duration:0.f];
-    SKAction *unhide = [SKAction runBlock:^{
-      pivotGuide.hidden = NO;
-    }];
-    SKAction *scaleUp = [SKAction scaleTo:1.f duration:.08f];
-    SKAction *sequence = [SKAction sequence:@[scaleStart, unhide, scaleUp]];
-    [pivotGuide runAction:sequence withKey:@"pivotGuideScale"];
+    [self animatePivotGuide:pivotGuide toShow:YES completion:nil];
   }
+}
+
+-(void)animatePivotGuide:(SKNode *)pivotGuide toShow:(BOOL)toShow completion:(void(^)(void))completion {
+  
+  NSLog(@"animate pivot guide called, to show %i", toShow);
+  if (toShow && ![pivotGuide actionForKey:@"pivotGuideScaleUp"]) {
+    [pivotGuide removeActionForKey:@"pivotGuideScaleDown"];
+    [pivotGuide setScale:0.f];
+    pivotGuide.hidden = NO;
+    SKAction *scaleExcessUp = [SKAction scaleTo:kDyadminoHoverResizeFactor duration:.105f];
+    scaleExcessUp.timingMode = SKActionTimingEaseOut;
+    SKAction *scaleDown = [SKAction scaleTo:1.f duration:0.035f];
+    scaleDown.timingMode = SKActionTimingEaseIn;
+    SKAction *completionAction = [SKAction runBlock:completion];
+    SKAction *sequence = [SKAction sequence:@[scaleExcessUp, scaleDown, completionAction]];
+    [pivotGuide runAction:sequence withKey:@"pivotGuideScaleUp"];
+    
+  } else if (!toShow && ![pivotGuide actionForKey:@"pivotGuideScaleDown"]) {
+    [pivotGuide removeActionForKey:@"pivotGuideScaleUp"];
+    SKAction *scaleDown = [SKAction scaleTo:0.f duration:0.14f];
+    scaleDown.timingMode = SKActionTimingEaseIn;
+    SKAction *hideAction = [SKAction runBlock:^{
+      pivotGuide.hidden = YES;
+    }];
+    SKAction *completionAction = [SKAction runBlock:completion];
+    SKAction *sequence = [SKAction sequence:@[scaleDown, completionAction, hideAction]];
+    [pivotGuide runAction:sequence withKey:@"pivotGuideScaleDown"];
+  }
+  
 }
 
 -(void)hidePivotGuide:(SKNode *)pivotGuide {
   if (self.userWantsPivotGuides && pivotGuide.parent) {
-    [pivotGuide removeFromParent];
-    pivotGuide.hidden = YES;
+    [self animatePivotGuide:pivotGuide toShow:NO completion:^{
+      [pivotGuide removeFromParent];
+    }];
   }
 }
 
@@ -1101,195 +1141,6 @@
   }
   return NO;
 }
-
-/*
--(NSSet *)collectSonoritiesFromPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint {
-  
-  NSMutableSet *tempSetOfSonorities = [NSMutableSet new];
-  
-    // this will check five axes
-    // 1. bottom cell vertical (this axis includes top cell)
-    // 2. bottom cell upslant
-    // 3. bottom cell downslant
-    // 4. top cell upslant
-    // 5. top cell downslant
-  
-  Cell *bottomCell = snapPoint.myCell;
-  HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
-  Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
-  
-  Cell *nextCell;
-  NSUInteger realOrientation;
-  
-    // 1. bottom cell vertical
-  NSMutableSet *tempBottomVerticalSet = [NSMutableSet new];
-  
-    // up
-  nextCell = (dyadmino.orientation >= 5 || dyadmino.orientation <= 1) ? topCell : bottomCell;
-  realOrientation = dyadmino.orientation;
-  while (nextCell.myPC != -1) {
-    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
-    if (![self.delegate sonority:tempBottomVerticalSet containsNote:note]) {
-      [tempBottomVerticalSet addObject:note];
-    }
-    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
-  }
-  
-    // down
-  nextCell = (dyadmino.orientation >= 5 || dyadmino.orientation <= 1) ? bottomCell : topCell;
-  realOrientation = (dyadmino.orientation + 3) % 6;
-  while (nextCell.myPC != -1) {
-    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
-    if (![self.delegate sonority:tempBottomVerticalSet containsNote:note]) {
-      [tempBottomVerticalSet addObject:note];
-    }
-    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
-  }
-  
-  NSSet *bottomVerticalSet = [NSSet setWithSet:tempBottomVerticalSet];
-  [tempSetOfSonorities addObject:bottomVerticalSet];
-  
-    // 2. bottom cell upslant
-  NSMutableSet *tempBottomUpslantSet = [NSMutableSet new];
-  
-    // up
-  nextCell = bottomCell;
-  realOrientation = (dyadmino.orientation + 1) % 6;
-  while (nextCell.myPC != -1) {
-    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
-    if (![self.delegate sonority:tempBottomUpslantSet containsNote:note]) {
-      [tempBottomUpslantSet addObject:note];
-    }
-    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
-  }
-  
-    // down
-  nextCell = bottomCell;
-  realOrientation = (dyadmino.orientation + 4) % 6;
-  while (nextCell.myPC != -1) {
-    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
-    if (![self.delegate sonority:tempBottomUpslantSet containsNote:note]) {
-      [tempBottomUpslantSet addObject:note];
-    }
-    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
-  }
-  
-  NSSet *bottomUpslantSet = [NSSet setWithSet:tempBottomUpslantSet];
-  [tempSetOfSonorities addObject:bottomUpslantSet];
-  
-    // 3. bottom cell downslant
-  NSMutableSet *tempBottomDownslantSet = [NSMutableSet new];
-  
-    // up
-  nextCell = bottomCell;
-  realOrientation = (dyadmino.orientation + 2) % 6;
-  while (nextCell.myPC != -1) {
-    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
-    if (![self.delegate sonority:tempBottomDownslantSet containsNote:note]) {
-      [tempBottomDownslantSet addObject:note];
-    }
-    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
-  }
-  
-    // down
-  nextCell = bottomCell;
-  realOrientation = (dyadmino.orientation + 5) % 6;
-  while (nextCell.myPC != -1) {
-    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
-    if (![self.delegate sonority:tempBottomDownslantSet containsNote:note]) {
-      [tempBottomDownslantSet addObject:note];
-    }
-    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
-  }
-  
-  NSSet *bottomDownslantSet = [NSSet setWithSet:tempBottomDownslantSet];
-  [tempSetOfSonorities addObject:bottomDownslantSet];
-  
-    // 4. top cell upslant
-  NSMutableSet *tempTopUpslantSet = [NSMutableSet new];
-  
-    // up
-  nextCell = topCell;
-  realOrientation = (dyadmino.orientation + 1) % 6;
-  while (nextCell.myPC != -1) {
-    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
-    if (![self.delegate sonority:tempTopUpslantSet containsNote:note]) {
-      [tempTopUpslantSet addObject:note];
-    }
-    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
-  }
-  
-    // down
-  nextCell = topCell;
-  realOrientation = (dyadmino.orientation + 4) % 6;
-  while (nextCell.myPC != -1) {
-    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
-    if (![self.delegate sonority:tempTopUpslantSet containsNote:note]) {
-      [tempTopUpslantSet addObject:note];
-    }
-    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
-  }
-  
-  NSSet *topUpslantSet = [NSSet setWithSet:tempTopUpslantSet];
-  [tempSetOfSonorities addObject:topUpslantSet];
-  
-    // 5. top cell downslant
-  NSMutableSet *tempTopDownslantSet = [NSMutableSet new];
-  
-    // up
-  nextCell = topCell;
-  realOrientation = (dyadmino.orientation + 2) % 6;
-  while (nextCell.myPC != -1) {
-    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
-    if (![self.delegate sonority:tempTopDownslantSet containsNote:note]) {
-      [tempTopDownslantSet addObject:note];
-    }
-    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
-  }
-  
-    // down
-  nextCell = topCell;
-  realOrientation = (dyadmino.orientation + 5) % 6;
-  while (nextCell.myPC != -1) {
-    NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadmino.myID)};
-    if (![self.delegate sonority:tempTopDownslantSet containsNote:note]) {
-      [tempTopDownslantSet addObject:note];
-    }
-    nextCell = [self nextCellForCell:nextCell andOrientation:realOrientation];
-  }
-  
-  NSSet *topDownslantSet = [NSSet setWithSet:tempTopDownslantSet];
-  [tempSetOfSonorities addObject:topDownslantSet];
-  return [NSSet setWithSet:tempSetOfSonorities];
-}
-
--(Cell *)nextCellForCell:(Cell *)cell andOrientation:(NSUInteger)orientation {
-  HexCoord nextHexCoord;
-  switch (orientation) {
-    case 0:
-      nextHexCoord = [self hexCoordFromX:cell.hexCoord.x andY:cell.hexCoord.y + 1];
-      break;
-    case 1:
-      nextHexCoord = [self hexCoordFromX:cell.hexCoord.x + 1 andY:cell.hexCoord.y];
-      break;
-    case 2:
-      nextHexCoord = [self hexCoordFromX:cell.hexCoord.x + 1 andY:cell.hexCoord.y - 1];
-      break;
-    case 3:
-      nextHexCoord = [self hexCoordFromX:cell.hexCoord.x andY:cell.hexCoord.y - 1];
-      break;
-    case 4:
-      nextHexCoord = [self hexCoordFromX:cell.hexCoord.x - 1 andY:cell.hexCoord.y];
-      break;
-    case 5:
-      nextHexCoord = [self hexCoordFromX:cell.hexCoord.x - 1 andY:cell.hexCoord.y + 1];
-      break;
-    default:
-      break;
-  }
-  return [self getCellWithHexCoord:nextHexCoord];
-}
-*/
 
 #pragma mark - distance helper methods
 

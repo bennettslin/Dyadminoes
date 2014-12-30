@@ -310,65 +310,6 @@
   return NO;
 }
 
--(NSSet *)sonoritiesFromPlacingDyadminoID:(NSUInteger)dyadminoID onBottomHexCoord:(HexCoord)bottomHexCoord withOrientation:(DyadminoOrientation)orientation rulingOutRecentRackID:(NSInteger)recentRackDyadminoID {
-    // if no recent rack dyadmino to rule out, value is -1
-  
-  NSMutableSet *tempSetOfSonorities = [NSMutableSet new];
-  
-    // this will check five axes
-    // 1. bottom cell vertical (this axis includes top cell)
-    // 2. bottom cell upslant
-    // 3. bottom cell downslant
-    // 4. top cell upslant
-    // 5. top cell downslant
-  
-    // each checking first up, then down
-  
-//  DataDyadmino *dataDyad = [self dataDyadminoForIndex:dyadminoID];
-//  DyadminoOrientation orientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
-//  NSLog(@"dyadOrient is %i", orientation);
-  
-  HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:orientation];
-  
-  HexCoord nextHexCoord;
-  NSUInteger realOrientation = NSUIntegerMax; // change
-  
-  HexCoord hexCoords[2] = {topHexCoord, bottomHexCoord};
-  NSUInteger whichHexCoord[10] = {((orientation >= 5 || orientation <= 1) ? 0 : 1), ((orientation >= 5 || orientation <= 1) ? 1 : 0), 1, 1, 1, 1, 0, 0, 0, 0};
-  
-  NSUInteger whichOrientation[5] = {0, 1, 2, 1, 2};
-  
-  for (int axis = 0; axis < 5; axis++) {
-    
-    NSMutableSet *tempSonority = [NSMutableSet new];
-      for (int direction = 0; direction < 2; direction++) {
-      
-      nextHexCoord = hexCoords[(whichHexCoord[2 * axis + direction])];
-      realOrientation = (direction == 0) ? (orientation + whichOrientation[axis]) % 6 : (orientation + whichOrientation[axis] + 3) % 6;
-      DataCell *nextCell = [self occupiedCellForHexCoord:nextHexCoord];
-      while (nextCell) {
-        
-          // either there is no recent rack dyadmino to rule out
-          // or this cell does not have the recent rack dyadmino
-        if (recentRackDyadminoID == -1 || (nextCell.myDyadminoID != recentRackDyadminoID)) {
-          NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadminoID)};
-          if (![self.delegate sonority:tempSonority containsNote:note]) {
-            [tempSonority addObject:note];
-          }
-          nextHexCoord = [self nextHexCoordFromHexCoord:nextHexCoord andAxis:realOrientation];
-          nextCell = [self occupiedCellForHexCoord:nextHexCoord];
-        } else {
-          nextCell = nil;
-        }
-      }
-    }
-    
-    NSSet *sonority = [NSSet setWithSet:tempSonority];
-    [tempSetOfSonorities addObject:sonority];
-  }
-  return [NSSet setWithSet:tempSetOfSonorities];
-}
-
 -(HexCoord)nextHexCoordFromHexCoord:(HexCoord)hexCoord andAxis:(NSUInteger)axis {
   HexCoord nextHexCoord;
   switch (axis) {
@@ -395,24 +336,65 @@
   return nextHexCoord;
 }
 
--(NSUInteger)pcForDyadminoIndex:(NSUInteger)index isPC1:(BOOL)isPC1 {
-  
-  NSUInteger addCounter = 11;
-  NSUInteger compareIndex = 0;
-  NSUInteger returnPC = 0;
-  
-  while (compareIndex <= index) {
-    returnPC++;
-    compareIndex += addCounter;
-    addCounter--;
-//    NSLog(@"returnPC is %lu, compareIndex is %lu, addCounter is %lu", (unsigned long)returnPC, (unsigned long)compareIndex, (unsigned long)addCounter);
-  }
+#pragma mark - sonority collection methods
 
-  if (isPC1) {
-    return returnPC - 1;
-  } else {
-    return 12 - (compareIndex - index);
+-(NSSet *)sonoritiesFromPlacingDyadminoID:(NSUInteger)dyadminoID onBottomHexCoord:(HexCoord)bottomHexCoord withOrientation:(DyadminoOrientation)orientation rulingOutRecentRackID:(NSInteger)recentRackDyadminoID {
+    // if no recent rack dyadmino to rule out, value is -1
+  
+  NSMutableSet *tempSetOfSonorities = [NSMutableSet new];
+  
+    // this will check five axes
+    // 1. bottom cell vertical (this axis includes top cell)
+    // 2. bottom cell upslant
+    // 3. bottom cell downslant
+    // 4. top cell upslant
+    // 5. top cell downslant
+  
+    // each checking first up, then down
+  
+    //  DataDyadmino *dataDyad = [self dataDyadminoForIndex:dyadminoID];
+    //  DyadminoOrientation orientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
+    //  NSLog(@"dyadOrient is %i", orientation);
+  
+  HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:orientation];
+  
+  HexCoord nextHexCoord;
+  NSUInteger realOrientation = NSUIntegerMax; // change
+  
+  HexCoord hexCoords[2] = {topHexCoord, bottomHexCoord};
+  NSUInteger whichHexCoord[10] = {((orientation >= 5 || orientation <= 1) ? 0 : 1), ((orientation >= 5 || orientation <= 1) ? 1 : 0), 1, 1, 1, 1, 0, 0, 0, 0};
+  
+  NSUInteger whichOrientation[5] = {0, 1, 2, 1, 2};
+  
+  for (int axis = 0; axis < 5; axis++) {
+    
+    NSMutableSet *tempSonority = [NSMutableSet new];
+    for (int direction = 0; direction < 2; direction++) {
+      
+      nextHexCoord = hexCoords[(whichHexCoord[2 * axis + direction])];
+      realOrientation = (direction == 0) ? (orientation + whichOrientation[axis]) % 6 : (orientation + whichOrientation[axis] + 3) % 6;
+      DataCell *nextCell = [self occupiedCellForHexCoord:nextHexCoord];
+      while (nextCell) {
+        
+          // either there is no recent rack dyadmino to rule out
+          // or this cell does not have the recent rack dyadmino
+        if (recentRackDyadminoID == -1 || (nextCell.myDyadminoID != recentRackDyadminoID)) {
+          NSDictionary *note = @{@"pc": @(nextCell.myPC), @"dyadmino": @(nextCell.myDyadminoID)};
+          if (![self.delegate sonority:tempSonority containsNote:note]) {
+            [tempSonority addObject:note];
+          }
+          nextHexCoord = [self nextHexCoordFromHexCoord:nextHexCoord andAxis:realOrientation];
+          nextCell = [self occupiedCellForHexCoord:nextHexCoord];
+        } else {
+          nextCell = nil;
+        }
+      }
+    }
+    
+    NSSet *sonority = [NSSet setWithSet:tempSonority];
+    [tempSetOfSonorities addObject:sonority];
   }
+  return [NSSet setWithSet:tempSetOfSonorities];
 }
 
 #pragma mark - game play methods
@@ -1168,9 +1150,29 @@
   return nil;
 }
 
+-(NSUInteger)pcForDyadminoIndex:(NSUInteger)index isPC1:(BOOL)isPC1 {
+  
+  NSUInteger addCounter = 11;
+  NSUInteger compareIndex = 0;
+  NSUInteger returnPC = 0;
+  
+  while (compareIndex <= index) {
+    returnPC++;
+    compareIndex += addCounter;
+    addCounter--;
+      //    NSLog(@"returnPC is %lu, compareIndex is %lu, addCounter is %lu", (unsigned long)returnPC, (unsigned long)compareIndex, (unsigned long)addCounter);
+  }
+  
+  if (isPC1) {
+    return returnPC - 1;
+  } else {
+    return 12 - (compareIndex - index);
+  }
+}
+
 #pragma mark - array of chords and points helper methods
 
--(NSSet *)totalChordSonoritiesThisTurn {
+/*-(NSSet *)totalChordSonoritiesThisTurn {
 
   NSMutableSet *tempTotalChordSonorities = [NSMutableSet new];
   
@@ -1183,7 +1185,7 @@
   }
   
   return [NSSet setWithSet:tempTotalChordSonorities];
-}
+}*/
 
 -(NSUInteger)sumOfPointsThisTurn {
   

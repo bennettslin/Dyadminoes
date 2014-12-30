@@ -1008,6 +1008,7 @@
     // move the dyadmino!
   _touchedDyadmino.position =
     [self getOffsetForTouchPoint:_currentTouchLocation forDyadmino:_touchedDyadmino];
+  [_boardField updatePositionsOfPivotGuidesForDyadmino:_touchedDyadmino];
   
   //--------------------------------------------------------------------------
   /// 3c. dyadmino is just being exchanged in rack
@@ -1115,6 +1116,7 @@
       _hoveringDyadmino.position = [self addToThisPoint:_hoveringDyadmino.position
                                               thisPoint:[self subtractFromThisPoint:oldBoardPosition
                                                                           thisPoint:adjustedNewPosition]];
+      [_boardField updatePositionsOfPivotGuidesForDyadmino:_hoveringDyadmino];
     }
   }
 }
@@ -1277,6 +1279,7 @@
       dyadmino.tempBoardNode = nil;
       [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
       dyadmino.position = [_boardField getOffsetFromPoint:dyadmino.position];
+      [_boardField updatePositionsOfPivotGuidesForDyadmino:dyadmino];
       [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
       
         // otherwise, prepare it for hover
@@ -1890,11 +1893,13 @@
       _hoveringDyadminoBeingCorrected++;
       thisDistance = 1.f + (xLowLimit - (_hoveringDyadmino.position.x - dyadminoXBuffer)) / distanceDivisor;
       _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x + thisDistance, _hoveringDyadmino.position.y);
+      [_boardField updatePositionsOfPivotGuidesForDyadmino:_hoveringDyadmino];
       
     } else if (_hoveringDyadmino.position.x + dyadminoXBuffer > xHighLimit) {
       _hoveringDyadminoBeingCorrected++;
       thisDistance = 1.f + ((_hoveringDyadmino.position.x + dyadminoXBuffer) - xHighLimit) / distanceDivisor;
       _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x - thisDistance, _hoveringDyadmino.position.y);
+      [_boardField updatePositionsOfPivotGuidesForDyadmino:_hoveringDyadmino];
       
     } else {
       _hoveringDyadminoFinishedCorrecting++;
@@ -2018,6 +2023,7 @@
       
       if (_hoveringDyadminoStaysFixedToBoard) {
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x - thisDistance, _hoveringDyadmino.position.y);
+        [_boardField updatePositionsOfPivotGuidesForDyadmino:_hoveringDyadmino];
       }
       
     } else {
@@ -2032,6 +2038,7 @@
       
       if (_hoveringDyadminoStaysFixedToBoard) {
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x, _hoveringDyadmino.position.y - thisDistance);
+        [_boardField updatePositionsOfPivotGuidesForDyadmino:_hoveringDyadmino];
       }
       
     } else {
@@ -2046,6 +2053,7 @@
       
       if (_hoveringDyadminoStaysFixedToBoard) {
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x + thisDistance, _hoveringDyadmino.position.y);
+        [_boardField updatePositionsOfPivotGuidesForDyadmino:_hoveringDyadmino];
       }
       
     } else {
@@ -2060,6 +2068,7 @@
       
       if (_hoveringDyadminoStaysFixedToBoard) {
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x, _hoveringDyadmino.position.y + thisDistance);
+        [_boardField updatePositionsOfPivotGuidesForDyadmino:_hoveringDyadmino];
       }
       
     } else {

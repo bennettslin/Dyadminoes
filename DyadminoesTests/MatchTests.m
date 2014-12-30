@@ -1016,9 +1016,49 @@
   }
 }
 
-#pragma mark - win tests
+#pragma mark - cell tests
+
+-(void)testUpdateCellsForPlacedDyadminoes {
+  XCTFail(@"Did not update cell for placed dyadmino.");
+}
+
+-(void)testUpdateCellsForRemovedDyadminoes {
+  XCTFail(@"Did not update cell for removed dyadmino.");
+}
+
+-(void)testRetrieveTopHexCoordForBottomHexCoord {
+  XCTFail(@"Did not retrieve top hex coord for bottom hex coord.");
+}
+
+#pragma mark - physical cell tests
+
+-(void)testValidatePhysicallyPlacingDyadminoes {
+  XCTFail(@"Method did not return proper result for placement of dyadmino.");
+}
+
+#pragma mark - sonority collection tests
+
+-(void)testCollectionOfSonorities {
+  XCTFail(@"Did not properly collect sonorities from placing dyadmino.");
+}
 
 #pragma mark - score tests
+
+-(void)testSumOfPointsThisTurn {
+  XCTFail(@"Did not properly calculate sum of points this turn.");
+}
+
+-(void)testPointsForChordSonorities {
+  XCTFail(@"Did not properly calculate points for chord sonority.");
+}
+
+#pragma mark - win tests
+
+#pragma mark - helper tests
+
+-(void)testPCsForIndexMethod {
+  XCTFail(@"Did not properly return pcs for dyadmino index.");
+}
 
 #pragma mark - additional setup methods
 

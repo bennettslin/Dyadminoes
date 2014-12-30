@@ -147,8 +147,8 @@
 #define kDistanceForTouchingRestingDyadmino (kDyadminoFaceRadius * 0.8f) // was 25.f
 #define kDistanceToDoubleTap 22.f // tweak as necessary
 #define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
-#define kMaxDistanceForPivot (kDyadminoFaceRadius * 3.5f)
-#define kPivotGuideAlpha 0.9f
+#define kMaxDistanceForPivot (kDyadminoFaceRadius * 5.f) // (kDyadminoFaceRadius * 3.5f)
+#define kPivotGuideAlpha 0.3f // was 0.9f
 #define kGapForHighlight (kRackHeight / 3.6f)
 
   //----------------------------------------------------------------------------
@@ -233,16 +233,21 @@
 #define kScrollingBackgroundFade [UIColor colorWithRed:0.33f green:.30f blue:0.24f alpha:1.f]
 
 #define kNeutralYellow [UIColor yellowColor]
-#define kPlayerBlue [UIColor colorWithRed:.04f green:.52f blue:.91f alpha:1.f]
-#define kPlayerRed [UIColor colorWithRed:.81f green:.31f blue:.83f alpha:1.f]
-#define kPlayerGreen [UIColor colorWithRed:0.f green:.65f blue:.19f alpha:1.f]
-#define kPlayerOrange [UIColor colorWithRed:0.85f green:.50f blue:.18f alpha:1.f]
+
+#define kPlayerBlue [UIColor colorWithRed:0.04f green:0.52f blue:0.91f alpha:1.f]
+#define kPlayerRed [UIColor colorWithRed:0.81f green:0.31f blue:0.83f alpha:1.f]
+#define kPlayerGreen [UIColor colorWithRed:0.f green:0.65f blue:0.19f alpha:1.f]
+#define kPlayerOrange [UIColor colorWithRed:0.85f green:0.50f blue:0.18f alpha:1.f]
+
+#define kPlayerLightBlue [UIColor colorWithRed:0.14f green:0.62f blue:1.f alpha:1.f]
+#define kPlayerLightRed [UIColor colorWithRed:0.91f green:0.41f blue:0.93f alpha:1.f]
+#define kPlayerLightGreen [UIColor colorWithRed:0.1f green:0.75f blue:0.29f alpha:1.f]
+#define kPlayerLightOrange [UIColor colorWithRed:0.95f green:0.60f blue:0.28f alpha:1.f]
 
 #define kDarkBlue [SKColor colorWithRed:.29f green:.4f blue:.63f alpha:1.f]
 #define kSkyBlue [SKColor colorWithRed:.7f green:.8f blue:.9f alpha:1.f]
 #define kFieldPurple [SKColor colorWithRed:.3f green:.2f blue:.4f alpha:1.f]
 #define kSolidBlue [SKColor colorWithRed:.15f green:.19f blue:.55f alpha:1.f]
-//#define kGold 
 #define kTestRed [SKColor colorWithRed:1.f green:.7f blue:.7f alpha:1.f]
 #define kDarkGreen [SKColor colorWithRed:0.f green:.6f blue:.2f alpha:1.f]
 #define kBarBrown [SKColor colorWithRed:0.3f green:0.15f blue:0.1f alpha:1.f]

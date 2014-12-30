@@ -103,6 +103,8 @@
 -(void)hideAllPivotGuides;
 -(void)handleUserWantsPivotGuides;
 
+-(void)updatePositionsOfPivotGuidesForDyadmino:(Dyadmino *)dyadmino;
+
 #pragma mark - pivot methods
 
 -(PivotOnPC)determinePivotOnPCForDyadmino:(Dyadmino *)dyadmino;
