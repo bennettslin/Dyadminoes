@@ -14,9 +14,10 @@
 @protocol BoardDelegate <NSObject>
 
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino;
+-(UIColor *)pivotColourForCurrentPlayerLight:(BOOL)light;
+
 -(void)correctBoardForPositionAfterZoom;
 -(NSSet *)allBoardDyadminoesPlusRecentRackDyadmino;
-//-(BOOL)sonority:(NSSet *)sonority containsNote:(NSDictionary *)note;
 -(BOOL)actionSheetShown;
 
 @end
@@ -60,6 +61,8 @@
   //----------------------------------------------------------------------------
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size andCellTexture:(SKTexture *)cellTexture;
+
+-(void)updatePivotGuidesForNewPlayer;
 
 -(void)repositionBoardWithHomePosition:(CGPoint)homePosition
                              andOrigin:(CGPoint)origin;

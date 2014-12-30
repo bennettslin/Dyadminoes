@@ -150,7 +150,7 @@
 
 #pragma mark - helper methods
 
--(UIColor *)colourForPlayer:(Player *)player;
+-(UIColor *)colourForPlayer:(Player *)player forLabel:(BOOL)forLabel light:(BOOL)light;
 -(Player *)returnCurrentPlayer;
 
 @end

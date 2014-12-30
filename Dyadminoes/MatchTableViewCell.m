@@ -86,7 +86,7 @@
       
         // static player colours, check if player resigned
       playerLabel.textColor = ([player returnResigned] && [self.myMatch returnType] != kSelfGame) ?
-      kResignedGray : [self.myMatch colourForPlayer:player];
+      kResignedGray : [self.myMatch colourForPlayer:player forLabel:YES light:NO];
       
         // score label--------------------------------------------------------
       scoreLabel.text = (player && !([player returnResigned] && [self.myMatch returnType] != kSelfGame)) ?

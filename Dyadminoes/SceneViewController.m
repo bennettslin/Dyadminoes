@@ -326,7 +326,7 @@
       
         // colour changes if player resigned
       playerLabel.textColor = ([player returnResigned] && [self.myMatch returnType] != kSelfGame) ?
-          kResignedGray : [self.myMatch colourForPlayer:player];
+          kResignedGray : [self.myMatch colourForPlayer:player forLabel:YES light:NO];
       
       NSString *scoreText;
       

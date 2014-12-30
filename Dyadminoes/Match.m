@@ -818,33 +818,53 @@
   }
 }
 
--(UIColor *)colourForPlayer:(Player *)player {
+-(UIColor *)colourForPlayer:(Player *)player forLabel:(BOOL)forLabel light:(BOOL)light {
   if ([self.players containsObject:player]) {
     
     NSUInteger playerIndex = [player returnPlayerOrder];
     NSUInteger randomIndex = (playerIndex + [self returnRandomNumber1To24]) % 4;
-    return [self colourForIndex:randomIndex];
+    return [self colourForIndex:randomIndex forLabel:forLabel light:light];
   }
   return nil;
 }
 
--(UIColor *)colourForIndex:(NSUInteger)index {
-  switch (index) {
-    case 0:
-      return kPlayerBlue;
-      break;
-    case 1:
-      return kPlayerRed;
-      break;
-    case 2:
-      return kPlayerGreen;
-      break;
-    case 3:
-      return kPlayerOrange;
-      break;
-    default:
-      return nil;
-      break;
+-(UIColor *)colourForIndex:(NSUInteger)index forLabel:(BOOL)forLabel light:(BOOL)light {
+  if (forLabel) {
+    switch (index) {
+      case 0:
+        return kPlayerBlue;
+        break;
+      case 1:
+        return kPlayerRed;
+        break;
+      case 2:
+        return kPlayerGreen;
+        break;
+      case 3:
+        return kPlayerOrange;
+        break;
+      default:
+        return nil;
+        break;
+    }
+  } else {
+    switch (index) {
+      case 0:
+        return light ? kPlayerLighterBlue : kPlayerLightBlue;
+        break;
+      case 1:
+        return light ? kPlayerLighterRed : kPlayerLightRed;
+        break;
+      case 2:
+        return light ? kPlayerLighterGreen : kPlayerLightGreen;
+        break;
+      case 3:
+        return light ? kPlayerLighterOrange : kPlayerLightOrange;
+        break;
+      default:
+        return nil;
+        break;
+    }
   }
 }
 

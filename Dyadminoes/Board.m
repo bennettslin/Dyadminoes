@@ -80,22 +80,22 @@
     
       // these values are necessary for board movement
       // see determineBoardPositionBounds method for explanation
-    
-      // create pivot guides
-      // TODO: refactor into one method?
-    SKNode *prePivotGuide = [self createPivotGuideNamed:@"prePivotGuide"];
-    SKNode *pivotRotateGuide = [self createPivotGuideNamed:@"pivotRotateGuide"];
-    SKNode *pivotAroundGuide = [self createPivotGuideNamed:@"pivotAroundGuide"];
-
-      // assign pivot guides
-    self.prePivotGuide = prePivotGuide;
-    self.prePivotGuide.name = @"prePivotGuide";
-    self.pivotRotateGuide = pivotRotateGuide;
-    self.pivotRotateGuide.name = @"pivotRotateGuide";
-    self.pivotAroundGuide = pivotAroundGuide;
-    self.pivotAroundGuide.name = @"pivotAroundGuide";
   }
   return self;
+}
+
+-(void)updatePivotGuidesForNewPlayer {
+  SKNode *prePivotGuide = [self createPivotGuideNamed:@"prePivotGuide"];
+  SKNode *pivotRotateGuide = [self createPivotGuideNamed:@"pivotRotateGuide"];
+  SKNode *pivotAroundGuide = [self createPivotGuideNamed:@"pivotAroundGuide"];
+  
+    // assign pivot guides
+  self.prePivotGuide = prePivotGuide;
+  self.prePivotGuide.name = @"prePivotGuide";
+  self.pivotRotateGuide = pivotRotateGuide;
+  self.pivotRotateGuide.name = @"pivotRotateGuide";
+  self.pivotAroundGuide = pivotAroundGuide;
+  self.pivotAroundGuide.name = @"pivotAroundGuide";
 }
 
 -(void)instantiateDequeuedCells {
@@ -748,15 +748,9 @@
                        27.5, 207.5,
                        60, 60, 60};
   
-  NSArray *colourArray = @[kEndedMatchCellDarkColour,
-                           kEndedMatchCellDarkColour,
-                           kEndedMatchCellDarkColour,
-                           kEndedMatchCellDarkColour,
-                           kEndedMatchCellLightColour,
-                           kEndedMatchCellLightColour,
-                           kEndedMatchCellLightColour,
-                           kEndedMatchCellDarkColour,
-                           kEndedMatchCellDarkColour];
+  BOOL colourArray[9] = {NO, NO, NO, NO, YES, YES, YES, NO, NO};
+  
+  NSArray *colours = @[[self.delegate pivotColourForCurrentPlayerLight:YES], [self.delegate pivotColourForCurrentPlayerLight:NO]];
   
   CGFloat outerMin = kMaxDistanceForPivot + 5.f;
   CGFloat outerMax = kMaxDistanceForPivot + kMaxDistanceForPivot - kMinDistanceForPivot;
@@ -828,8 +822,8 @@
       shapeNode.lineWidth = 0.05;
       shapeNode.glowWidth = 7.f;
       shapeNode.alpha = kPivotGuideAlpha;
-      shapeNode.strokeColor = colourArray[i];
-      shapeNode.fillColor = colourArray[i];
+      shapeNode.strokeColor = colours[colourArray[i]];
+      shapeNode.fillColor = colours[colourArray[i]];
       [pivotGuide addChild:shapeNode];
     }
   }

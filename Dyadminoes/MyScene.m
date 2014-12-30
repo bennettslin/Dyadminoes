@@ -182,7 +182,7 @@
     _pnpBar.position = CGPointZero;
     _pnpBar.hidden = NO;
     
-    [self.myDelegate barOrRackLabel:kPnPWaitingLabel show:_pnpBarUp toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:[self.myMatch returnCurrentPlayer]]];
+    [self.myDelegate barOrRackLabel:kPnPWaitingLabel show:_pnpBarUp toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:[self.myMatch returnCurrentPlayer] forLabel:YES light:NO]];
     
     _rackField.position = CGPointMake(0, -kRackHeight);
     _rackField.hidden = YES;
@@ -310,6 +310,8 @@
     // called both when scene is loaded, and when new player is ready in PnP mode
   
   [self refreshBoardChords];
+  
+  [_boardField updatePivotGuidesForNewPlayer];
 
   if (![self populateRackArray]) {
     NSLog(@"Rack array was not populated properly.");
@@ -1699,7 +1701,7 @@
       // do cleanup, dyadmino's home node is now the board node
     dyadmino.homeNode = dyadmino.tempBoardNode;
     dyadmino.myHexCoord = dyadmino.homeNode.myCell.hexCoord;
-    [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer]];
+    [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer forLabel:YES light:NO]];
     
       // empty pointers
     _recentRackDyadmino = nil;
@@ -2503,7 +2505,7 @@
   _fieldActionInProgress = YES;
   if (_pnpBarUp) {
     
-    [self.myDelegate barOrRackLabel:kPnPWaitingLabel show:YES toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:[self.myMatch returnCurrentPlayer]]];
+    [self.myDelegate barOrRackLabel:kPnPWaitingLabel show:YES toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:[self.myMatch returnCurrentPlayer] forLabel:YES light:NO]];
     
     _pnpBar.hidden = NO;
     CGFloat yPosition = CGPointZero.y;
@@ -3066,9 +3068,9 @@
     
       // animate last played dyadminoes, and highlight dyadminoes currently in holding container
     
-    [lastContainerDataDyads containsObject:dataDyad] ? [dyadmino animateDyadminoesRecentlyPlayedWithColour:[self.myMatch colourForPlayer:lastPlayer]] : nil;
+    [lastContainerDataDyads containsObject:dataDyad] ? [dyadmino animateDyadminoesRecentlyPlayedWithColour:[self.myMatch colourForPlayer:lastPlayer forLabel:YES light:NO]] : nil;
     
-    [self.myMatch holdingsContainsDataDyadmino:dataDyad] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer]] : nil;
+    [self.myMatch holdingsContainsDataDyadmino:dataDyad] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer forLabel:YES light:NO]] : nil;
   }
 }
 
@@ -3088,7 +3090,7 @@
       
       NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:kTurnPlayer] unsignedIntegerValue];
       turnPlayer = [self.myMatch playerForIndex:playerOrder];
-      colour = [self.myMatch colourForPlayer:turnPlayer];
+      colour = [self.myMatch colourForPlayer:turnPlayer forLabel:YES light:NO];
 
     } else {
       if ([self.myMatch returnGameHasEnded]) {
@@ -3100,7 +3102,7 @@
         
         NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:kTurnPlayer] unsignedIntegerValue];
         turnPlayer = [self.myMatch playerForIndex:playerOrder];
-        colour = [self.myMatch colourForPlayer:turnPlayer];
+        colour = [self.myMatch colourForPlayer:turnPlayer forLabel:YES light:NO];
       }
     }
     
@@ -3190,7 +3192,7 @@
       [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO];
       
         // highlight dyadminoes played on this turn
-      [turnDataDyadminoIndexes containsObject:dataDyad.myID] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer]] : [dyadmino unhighlightOutOfPlay];
+      [turnDataDyadminoIndexes containsObject:dataDyad.myID] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer forLabel:YES light:NO]] : [dyadmino unhighlightOutOfPlay];
       
         // if leaving replay, properties have already been reset
       if (inReplay) {
@@ -3444,6 +3446,10 @@
 
 -(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign {
   [_boardField changeColoursAroundDyadmino:dyadmino withSign:sign];
+}
+
+-(UIColor *)pivotColourForCurrentPlayerLight:(BOOL)light {
+  return [self.myMatch colourForPlayer:_myPlayer forLabel:NO light:light];
 }
 
 -(BOOL)sonority:(NSSet *)sonority containsNote:(NSDictionary *)note {

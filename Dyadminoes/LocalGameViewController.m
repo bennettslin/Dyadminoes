@@ -151,6 +151,7 @@
     }
   }
   if (tempSelectedPlayers.count > 0) {
+    [self resignTextField:nil];
     [self.delegate startLocalGameWithPlayerNames:[NSArray arrayWithArray:tempSelectedPlayers]];
   }
 }
