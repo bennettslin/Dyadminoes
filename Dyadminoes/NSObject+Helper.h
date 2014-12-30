@@ -168,7 +168,8 @@
 #define kZPositionBoardCell 10.f
 #define kZPositionBoardRestingDyadmino 20.f
 #define kZPositionBoardReplayAnimatedDyadmino 30.f
-#define kZPositionPivotGuide 450.f
+
+#define kZPositionPivotGuide 95.f // below dyadmino whether it's child of board or rack
 #define kZPositionHoveredDyadmino 500.f
 
   // children of top bar

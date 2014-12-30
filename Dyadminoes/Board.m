@@ -835,16 +835,16 @@
   self.userWantsPivotGuides = [[NSUserDefaults standardUserDefaults] boolForKey:@"pivotGuide"];
 }
 
--(void)updatePositionsOfPivotGuidesForDyadmino:(Dyadmino *)dyadmino {
-  CGPoint position = dyadmino.position;
+-(void)updatePositionsOfPivotGuidesForDyadminoPosition:(CGPoint)dyadminoPosition {
+  
   if (!self.prePivotGuide.hidden) {
-    self.prePivotGuide.position = position;
+    self.prePivotGuide.position = dyadminoPosition;
   }
   if (!self.pivotAroundGuide.hidden) {
-    self.pivotAroundGuide.position = position;
+    self.pivotAroundGuide.position = dyadminoPosition;
   }
   if (!self.pivotRotateGuide.hidden) {
-    self.pivotRotateGuide.position = position;
+    self.pivotRotateGuide.position = dyadminoPosition;
   }
 }
 
@@ -880,6 +880,11 @@
     SKAction *sequence = [SKAction sequence:@[scaleExcessUp, scaleDown, completionAction]];
     [pivotGuide runAction:sequence withKey:@"pivotGuideScaleUp"];
     
+    pivotGuide.alpha = 0.f;
+    [pivotGuide removeActionForKey:@"pivotGuideFadeOut"];
+    SKAction *fadeInAction = [SKAction fadeInWithDuration:.1f];
+    [pivotGuide runAction:fadeInAction withKey:@"pivotGuideFadeIn"];
+    
   } else if (!toShow && ![pivotGuide actionForKey:@"pivotGuideScaleDown"]) {
     [pivotGuide removeActionForKey:@"pivotGuideScaleUp"];
     SKAction *scaleDown = [SKAction scaleTo:0.f duration:0.14f];
@@ -890,8 +895,13 @@
     SKAction *completionAction = [SKAction runBlock:completion];
     SKAction *sequence = [SKAction sequence:@[scaleDown, completionAction, hideAction]];
     [pivotGuide runAction:sequence withKey:@"pivotGuideScaleDown"];
+    
+    pivotGuide.alpha = 1.f;
+    [pivotGuide removeActionForKey:@"pivotGuideFadeIn"];
+    SKAction *fadeOutAction = [SKAction fadeOutWithDuration:.1f];
+    [pivotGuide runAction:fadeOutAction withKey:@"pivotGuideFadeOut"];
   }
-  
+
 }
 
 -(void)hidePivotGuide:(SKNode *)pivotGuide {

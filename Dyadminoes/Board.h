@@ -106,7 +106,7 @@
 -(void)hideAllPivotGuides;
 -(void)handleUserWantsPivotGuides;
 
--(void)updatePositionsOfPivotGuidesForDyadmino:(Dyadmino *)dyadmino;
+-(void)updatePositionsOfPivotGuidesForDyadminoPosition:(CGPoint)dyadminoPosition;
 
 #pragma mark - pivot methods
 
