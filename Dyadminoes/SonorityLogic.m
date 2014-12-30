@@ -16,7 +16,7 @@
 
 #pragma mark - validation methods
 
--(NSSet *)legalChordSonoritiesFromFormationOfSonorities:(NSSet *)sonorities {
+-(id)legalChordSonoritiesFromFormationOfSonorities:(NSSet *)sonorities {
     // returns all sonorities that are legal chords, with pc and dyadmino information
     // returns empty set if no legal chords
     // returns nil if illegal chords

@@ -13,7 +13,7 @@
 
 #pragma mark - validation methods
 
--(NSSet *)legalChordSonoritiesFromFormationOfSonorities:(NSSet *)sonorities;
+-(id)legalChordSonoritiesFromFormationOfSonorities:(NSSet *)sonorities;
 
   // scene needs this method to ensure that subsets of extended chords are not added to board chords
 -(BOOL)sonority:(NSSet *)smaller IsSubsetOfSonority:(NSSet *)larger;
