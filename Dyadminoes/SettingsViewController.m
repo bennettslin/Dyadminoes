@@ -7,7 +7,6 @@
 //
 
 #import "SettingsViewController.h"
-#import "NSObject+Helper.h"
 
 @interface SettingsViewController ()
 
@@ -25,6 +24,9 @@
 
 -(void)viewDidLoad {
   [super viewDidLoad];
+  
+  self.view.backgroundColor = kPlayerLighterBlue;
+  self.startingQuadrant = kQuadrantDown;
 }
 
 -(void)viewWillAppear:(BOOL)animated {

@@ -8,7 +8,7 @@
 
 #import "ChildViewController.h"
 
-#define kCancelButtonEdge 100
+#define kCancelButtonEdge 48.f
 
 @interface ChildViewController ()
 

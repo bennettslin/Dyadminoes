@@ -21,6 +21,8 @@
 -(void)viewDidLoad {
   [super viewDidLoad];
   
+  self.view.backgroundColor = kEndedMatchCellLightColour;
+  self.startingQuadrant = kQuadrantCenter;
 }
 
 -(IBAction)buttonTapped:(UIButton *)sender {

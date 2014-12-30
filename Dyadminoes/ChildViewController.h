@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "NSObject+Helper.h"
 
 @protocol ChildViewControllerDelegate <NSObject>
 
@@ -16,6 +17,7 @@
 
 @interface ChildViewController : UIViewController
 
+@property (assign, nonatomic) StartingQuadrant startingQuadrant;
 @property (weak, nonatomic) id<ChildViewControllerDelegate> parentDelegate;
 
 -(void)positionCancelButtonBasedOnWidth:(CGFloat)width;

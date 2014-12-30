@@ -16,12 +16,6 @@
 #import "ChildViewController.h"
 #import "GameEndedViewController.h"
 
-typedef enum axis {
-  kAxisCenter,
-  kAxisX,
-  kAxisY
-} Axis;
-
 @interface ParentViewController () <ChildViewControllerDelegate>
 
 @end
@@ -38,6 +32,7 @@ typedef enum axis {
   self.vcIsAnimating = NO;
   
   self.helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
+  
   
   self.settingsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"SettingsViewController"];
   
@@ -86,73 +81,128 @@ typedef enum axis {
 }
 
 -(void)animatePresentVC:(ChildViewController *)childVC {
+
+  [self determineFrameForViewController:childVC];
+  childVC.view.center = [self determineCenterForViewController:childVC];
+  CGPoint excessCenter;
   
-    // FIXME: use axis to determine whether to scale by x, y, or center
-  Axis axis = [self determineFrameAndAxisForViewController:childVC];
+  CGPoint finalCenter = self.view.center;
   [self.view addSubview:childVC.view];
   
-  CGPoint excessCenter = CGPointMake(self.view.center.x + (self.screenWidth * 0.0125f), self.view.center.y);
-  CGPoint finalCenter = self.view.center;
+  switch (childVC.startingQuadrant) {
+    case kQuadrantLeft:
+      excessCenter = CGPointMake(self.view.center.x + (self.screenWidth * 0.0125f), self.view.center.y);
+      break;
+    case kQuadrantRight:
+      excessCenter = CGPointMake(self.view.center.x - (self.screenWidth * 0.0125f), self.view.center.y);
+      break;
+    case kQuadrantUp:
+      excessCenter = CGPointMake(self.view.center.x, self.view.center.y + (self.screenHeight * 0.0125f));
+      break;
+    case kQuadrantDown:
+      excessCenter = CGPointMake(self.view.center.x, self.view.center.y - (self.screenHeight * 0.0125f));
+      break;
+      default:
+      break;
+  }
   
   childVC.view.alpha = 0.f;
   __weak typeof(self) weakSelf = self;
-  [UIView animateWithDuration:kViewControllerSpeed * 0.7f delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    childVC.view.center = excessCenter;
-    childVC.view.alpha = 1.f;
-  } completion:^(BOOL finished) {
-    [UIView animateWithDuration:kViewControllerSpeed * 0.3f delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-      childVC.view.center = finalCenter;
+  
+    // pop in from center
+  if (childVC.startingQuadrant == kQuadrantCenter) {
+    childVC.view.center = finalCenter;
+    childVC.view.transform = CGAffineTransformMakeScale(0.75f, 0.75f);
+    [UIView animateWithDuration:kViewControllerSpeed * 0.7f delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+      childVC.view.transform = CGAffineTransformMakeScale(1.05f, 1.05f);
+      childVC.view.alpha = 1.f;
     } completion:^(BOOL finished) {
-
-      weakSelf.vcIsAnimating = NO;
+      [UIView animateWithDuration:kViewControllerSpeed * 0.3f delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+        childVC.view.transform = CGAffineTransformMakeScale(1.f, 1.f);
+      } completion:^(BOOL finished) {
+        
+        weakSelf.vcIsAnimating = NO;
+      }];
     }];
-  }];
+    
+      // move in from quadrant
+  } else {
+    [UIView animateWithDuration:kViewControllerSpeed * 0.7f delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+      childVC.view.center = excessCenter;
+      childVC.view.alpha = 1.f;
+    } completion:^(BOOL finished) {
+      [UIView animateWithDuration:kViewControllerSpeed * 0.3f delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+        childVC.view.center = finalCenter;
+      } completion:^(BOOL finished) {
+
+        weakSelf.vcIsAnimating = NO;
+      }];
+    }];
+  }
 }
 
--(Axis)determineFrameAndAxisForViewController:(ChildViewController *)childVC {
+-(void)determineFrameForViewController:(ChildViewController *)childVC {
   CGFloat viewWidth = self.screenWidth * 4 / 5;
   CGFloat viewHeight = kIsIPhone ? self.screenHeight * 5 / 7 : self.screenHeight * 4 / 5;
-  Axis returnAxis = kAxisCenter;
-  
-    // determine colour, frame, and origin center for each kind of view controller
-  if ([childVC isKindOfClass:[LocalGameViewController class]]) {
-    childVC.view.backgroundColor = kEndedMatchCellLightColour;
-    
-  } else if ([childVC isKindOfClass:[SettingsViewController class]]) {
-    childVC.view.backgroundColor = kPlayerGreen;
-    
-  } else if ([childVC isKindOfClass:[AboutViewController class]]) {
-    childVC.view.backgroundColor = [UIColor blueColor];
-    
-  } else if ([childVC isKindOfClass:[HelpViewController class]]) {
-    childVC.view.backgroundColor = [UIColor redColor];
-    
-  } else if ([childVC isKindOfClass:[OptionsViewController class]]) {
-    childVC.view.backgroundColor = kPlayerGreen;
-    
-  } else if ([childVC isKindOfClass:[GameEndedViewController class]]) {
-    childVC.view.backgroundColor = [UIColor lightGrayColor];
-  }
-  
-  childVC.view.frame = CGRectMake(0, 0, viewWidth, viewHeight);
-  [childVC positionCancelButtonBasedOnWidth:viewWidth];
 
-  childVC.view.center = CGPointMake(self.view.center.x - (self.screenWidth / 4), self.view.center.y);
+  childVC.view.frame = CGRectMake(childVC.view.frame.origin.x, childVC.view.frame.origin.y, viewWidth, viewHeight);
+  [childVC positionCancelButtonBasedOnWidth:viewWidth];
+  
   childVC.view.layer.cornerRadius = kCornerRadius;
   childVC.view.layer.masksToBounds = YES;
-  
-  return returnAxis;
 }
 
--(void)removeChildViewController:(UIViewController *)childVC {
+-(CGPoint)determineCenterForViewController:(ChildViewController *)childVC {
+    // determine center for each kind of view controller
+  CGPoint center;
   
+  switch (childVC.startingQuadrant) {
+    case kQuadrantLeft:
+      center = CGPointMake(self.view.center.x - (self.screenWidth / 4), self.view.center.y);
+      break;
+    case kQuadrantRight:
+      center = CGPointMake(self.view.center.x + (self.screenWidth / 4), self.view.center.y);
+      break;
+    case kQuadrantUp:
+      center = CGPointMake(self.view.center.x, self.view.center.y - (self.screenHeight / 4));
+      break;
+    case kQuadrantDown:
+      center = CGPointMake(self.view.center.x, self.view.center.y + (self.screenHeight / 4));
+      break;
+    case kQuadrantCenter:
+      center = self.view.center;
+      break;
+    default:
+      break;
+  }
+  
+  return center;
+}
+
+-(void)removeChildViewController:(ChildViewController *)childVC {
+  
+  self.vcIsAnimating = YES;
   __weak typeof(self) weakSelf = self;
-  [UIView animateWithDuration:kViewControllerSpeed delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    childVC.view.center = CGPointMake(weakSelf.view.center.x + (weakSelf.screenWidth / 4), weakSelf.view.center.y);
-    childVC.view.alpha = 0.f;
-  } completion:^(BOOL finished) {
-    [childVC.view removeFromSuperview];
-  }];
+  
+  if (childVC.startingQuadrant == kQuadrantCenter) {
+    [UIView animateWithDuration:kViewControllerSpeed * 0.9f delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+      childVC.view.transform = CGAffineTransformMakeScale(0.75f, 0.75f);
+      childVC.view.alpha = 0.f;
+    } completion:^(BOOL finished) {
+      childVC.view.transform = CGAffineTransformMakeScale(1.f, 1.f);
+      weakSelf.vcIsAnimating = NO;
+      [childVC.view removeFromSuperview];
+    }];
+    
+  } else {
+    [UIView animateWithDuration:kViewControllerSpeed * 0.9f delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+      childVC.view.center = [weakSelf determineCenterForViewController:childVC];
+      childVC.view.alpha = 0.f;
+    } completion:^(BOOL finished) {
+      weakSelf.vcIsAnimating = NO;
+      [childVC.view removeFromSuperview];
+    }];
+  }
 }
 
 -(void)fadeOverlayIn:(BOOL)fadeIn {
@@ -164,12 +214,12 @@ typedef enum axis {
     CGFloat overlayAlpha = kIsIPhone ? 0.2f : 0.5f;
     self.darkOverlay.backgroundColor = [UIColor clearColor];
     [self.view addSubview:self.darkOverlay]; // this part is different in subclass VC
-    [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    [UIView animateWithDuration:kViewControllerSpeed * 0.8f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
       weakSelf.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:overlayAlpha];
     } completion:nil];
 
   } else {
-    [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    [UIView animateWithDuration:kViewControllerSpeed * 0.7f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
       weakSelf.darkOverlay.backgroundColor = [UIColor clearColor];
     } completion:^(BOOL finished) {
       [weakSelf resetDarkOverlay];
@@ -213,6 +263,26 @@ typedef enum axis {
     } completion:nil];
   }];
 }
+
+-(void)scaleAnimateView:(UIView *)scalingView goOut:(BOOL)goOut durationConstant:(CGFloat)constant {
+  
+  CGFloat scale = goOut ? .75f : 1.f;
+  
+  [UIView animateWithDuration:(constant * 0.7f) delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    scalingView.transform = CGAffineTransformMakeScale(scale * 1.05f, scale * 1.05f);
+    scalingView.alpha = goOut ? 0.f : 1.f;
+    
+  } completion:^(BOOL finished) {
+    [UIView animateWithDuration:(constant * 0.3f) delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+      scalingView.transform = CGAffineTransformMakeScale(scale, scale);
+      
+    } completion:^(BOOL finished) {
+      scalingView.transform = CGAffineTransformMakeScale(1.f, 1.f);
+      scalingView.alpha = goOut ? 0.f : 1.f;
+    }];
+  }];
+}
+
 
 #pragma mark - system methods
 

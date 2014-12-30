@@ -427,6 +427,7 @@
   for (DataDyadmino *dataDyadmino in tempBoardAndPlayedDyadminoes) {
     Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyadmino];
     NSSet *allSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.homeNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:-1];
+
     NSSet *legalChordSonorities = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:allSonorities];
     [tempLegalChordSonorities addObjectsFromArray:[legalChordSonorities allObjects]];
   }
@@ -2156,6 +2157,8 @@
         // handle placement results:
         // ease in right away if no error, and if dyadmino was not moved from original spot
       PhysicalPlacementResult placementResult = [self.myMatch validatePhysicallyPlacingDyadminoID:dyadmino.myID withOrientation:dyadmino.orientation onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord];
+      
+      NSLog(@"physical placement result is %i", placementResult);
       
       if (placementResult == kNoError && !(dyadmino.tempBoardNode == _uponTouchDyadminoNode && dyadmino.orientation == _uponTouchDyadminoOrientation)) {
         

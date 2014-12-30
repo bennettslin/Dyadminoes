@@ -7,7 +7,6 @@
 //
 
 #import "LocalGameViewController.h"
-#import "NSObject+Helper.h"
 
 #define kPlaceholder1Name @"Clara"
 #define kPlaceholder2Name @"Igor"
@@ -46,7 +45,10 @@
 
 -(void)viewDidLoad {
   [super viewDidLoad];
-    
+  
+  self.view.backgroundColor = kPlayerLighterOrange;
+  self.startingQuadrant = kQuadrantUp;
+  
   self.playerKeys = @[kPlayer1Key, kPlayer2Key, kPlayer3Key, kPlayer4Key];
   self.placeholderNames = @[kPlaceholder1Name, kPlaceholder2Name, kPlaceholder3Name, kPlaceholder4Name];
   

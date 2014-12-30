@@ -21,6 +21,9 @@
 
 -(void)viewDidLoad {
   [super viewDidLoad];
+  
+  self.view.backgroundColor = kPlayerLighterRed;
+  self.startingQuadrant = kQuadrantLeft;
 
     // Create the data model
   self.helpPageTitles = @[@"Over 200 Tips and Tricks", @"Discover Hidden Features", @"Bookmark Favorite Tip", @"Free Regular Update"];

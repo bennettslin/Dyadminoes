@@ -131,6 +131,9 @@
 
   [self resetActivityIndicator];
   
+  self.tableView.transform = CGAffineTransformMakeScale(1.f, 1.f);
+  self.tableView.alpha = 1.f;
+  
   self.topBar.frame = CGRectMake(-kTopBarPadding, -kTopBarPadding, self.screenWidth + (2 * kTopBarPadding), kMainTopBarHeight + kTopBarPadding);
   
   self.bottomBar.frame = CGRectMake(-kBottomBarPadding, self.screenHeight - kMainBottomBarHeight, self.screenWidth + (2 * kBottomBarPadding), kMainBottomBarHeight + kBottomBarPadding);
@@ -269,7 +272,7 @@
     
     if (animateRemoveVC) {
       [self slideTopBarAndBottomBarOut:NO];
-      [self slideTableviewOut:NO];
+      [self scaleTableviewOut:NO];
       
     } else { // dismiss soloVC after starting new game
       [self performSelectorInBackground:@selector(removeChildViewController:) withObject:self.childVC];
@@ -286,7 +289,7 @@
 -(void)presentChildViewController:(ChildViewController *)childVC {
   if (![self.darkOverlay superview]) {
     [self slideTopBarAndBottomBarOut:YES];
-    [self slideTableviewOut:YES];
+    [self scaleTableviewOut:YES];
   }
   
   [super presentChildViewController:childVC];
@@ -308,23 +311,23 @@
     // FIXME: this method overrides parent method for now, but can be more DRY
   __weak typeof(self) weakSelf = self;
   
-    if (fadeIn) {
-      
-      CGFloat overlayAlpha = kIsIPhone ? 0.2f : 0.5f;
+  if (fadeIn) {
+    
+    CGFloat overlayAlpha = kIsIPhone ? 0.2f : 0.5f;
+    weakSelf.darkOverlay.backgroundColor = [UIColor clearColor];
+    [weakSelf.view insertSubview:self.darkOverlay belowSubview:weakSelf.activityIndicator]; // this part is different in superclass VC
+    [UIView animateWithDuration:kViewControllerSpeed * 0.8f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+      weakSelf.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:overlayAlpha];
+    } completion:nil];
+    
+  } else {
+    
+    [UIView animateWithDuration:kViewControllerSpeed * 0.7f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
       weakSelf.darkOverlay.backgroundColor = [UIColor clearColor];
-      [weakSelf.view insertSubview:self.darkOverlay belowSubview:weakSelf.activityIndicator]; // this part is different in superclass VC
-      [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        weakSelf.darkOverlay.backgroundColor = [UIColor colorWithRed:0.1f green:0.1f blue:0.1f alpha:overlayAlpha];
-      } completion:nil];
-      
-    } else {
-      
-      [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        weakSelf.darkOverlay.backgroundColor = [UIColor clearColor];
-      } completion:^(BOOL finished) {
-        [weakSelf.darkOverlay removeFromSuperview];
-      }];
-    }
+    } completion:^(BOOL finished) {
+      [weakSelf.darkOverlay removeFromSuperview];
+    }];
+  }
 }
 
 -(void)fadeOverlayOutWithNewMatch:(Match *)newMatch {
@@ -334,7 +337,7 @@
   
   __weak typeof(self) weakSelf = self;
   if (weakSelf.darkOverlay.superview == self.view) {
-    [UIView animateWithDuration:0.1f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    [UIView animateWithDuration:kViewControllerSpeed * 0.7f delay:0.f options:UIViewAnimationOptionCurveEaseInOut animations:^{
       weakSelf.darkOverlay.backgroundColor = [UIColor clearColor];
     } completion:^(BOOL finished) {
       [weakSelf performSegueWithIdentifier:@"sceneSegue" sender:newMatch];
@@ -348,32 +351,26 @@
   if (out) { // slide out
     [self removeLocalGameButtonAnimations];
   
-    [self slideAnimateView:self.topBar toDestinationYPosition:-(kMainTopBarHeight + kTopBarPadding) durationConstant:kConstantTime];
-    [self slideAnimateView:self.bottomBar toDestinationYPosition:self.screenHeight durationConstant:kConstantTime];
+    [self slideAnimateView:self.topBar toDestinationYPosition:-(kMainTopBarHeight + kTopBarPadding) durationConstant:kViewControllerSpeed];
+    [self slideAnimateView:self.bottomBar toDestinationYPosition:self.screenHeight durationConstant:kViewControllerSpeed];
     
   } else { // slide in
     [self determineNewGameButtonAnimation];
     
-    [self slideAnimateView:self.topBar toDestinationYPosition:-kTopBarPadding durationConstant:kConstantTime];
-    [self slideAnimateView:self.bottomBar toDestinationYPosition:(self.screenHeight - kMainBottomBarHeight) durationConstant:kConstantTime];
+    [self slideAnimateView:self.topBar toDestinationYPosition:-kTopBarPadding durationConstant:kViewControllerSpeed];
+    [self slideAnimateView:self.bottomBar toDestinationYPosition:(self.screenHeight - kMainBottomBarHeight) durationConstant:kViewControllerSpeed];
   }
 }
 
--(void)slideTableviewOut:(BOOL)out {
-  
-  if (out) { // slide out
-    [self slideAnimateView:self.tableView toDestinationYPosition:(kMainTopBarHeight - self.screenHeight) durationConstant:kViewControllerSpeed];
-    
-  } else { // slide in
-    [self slideAnimateView:self.tableView toDestinationYPosition:kMainTopBarHeight durationConstant:kViewControllerSpeed];
-  }
+-(void)scaleTableviewOut:(BOOL)out {
+  [self scaleAnimateView:self.tableView goOut:out durationConstant:kViewControllerSpeed];
 }
 
 -(void)activityIndicatorStart:(BOOL)start {
   if (start) {
     [NSThread detachNewThreadSelector:@selector(transitionToSceneAnimationNewThread:) toTarget:self withObject:nil];
     [self slideTopBarAndBottomBarOut:YES];
-    [self slideTableviewOut:YES];
+    [self scaleTableviewOut:YES];
   } else {
     [self resetActivityIndicator];
     [self resetDarkOverlay];

@@ -37,4 +37,6 @@
 
 -(void)slideAnimateView:(UIView *)movingView toDestinationYPosition:(CGFloat)yPosition durationConstant:(CGFloat)constant;
 
+-(void)scaleAnimateView:(UIView *)scalingView goOut:(BOOL)goOut durationConstant:(CGFloat)constant;
+
 @end

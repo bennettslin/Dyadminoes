@@ -44,7 +44,7 @@
 
   // view controller constants
 #define kCornerRadius 25.f
-#define kViewControllerSpeed 0.225f
+#define kViewControllerSpeed 0.275f
 
   // table view cell constants
 #define kCellRowHeight (kIsIPhone ? 90.f : 90.f)
@@ -466,6 +466,14 @@ typedef enum textureDyadmino {
   kTextureDyadminoPnPNwSe,
   kTextureDyadminoReplayNwSe
 } TextureDyadmino;
+
+typedef enum startingQuadrant {
+  kQuadrantCenter,
+  kQuadrantLeft,
+  kQuadrantRight,
+  kQuadrantUp,
+  kQuadrantDown
+} StartingQuadrant;
 
 @interface NSObject (Helper)
 
