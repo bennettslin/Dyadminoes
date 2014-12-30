@@ -1005,15 +1005,17 @@
   }
   
     // this ensures that pivot guides are not hidden if rack exchange
-  (_touchedDyadmino == _hoveringDyadmino) ? [_boardField hideAllPivotGuides] : nil;
+  if (_touchedDyadmino == _hoveringDyadmino) {
+    [_boardField hideAllPivotGuides];
+  }
   
     // move the dyadmino!
   _touchedDyadmino.position =
     [self getOffsetForTouchPoint:_currentTouchLocation forDyadmino:_touchedDyadmino];
   
     // move the pivot guide, taking into consideration whether dyadmino is child of board or rack
-  CGPoint pivotGuidePosition = [_touchedDyadmino isOnBoard] ? _touchedDyadmino.position :
-      [self subtractFromThisPoint:_touchedDyadmino.position thisPoint:_boardField.position];
+  CGPoint pivotGuidePosition = [_hoveringDyadmino isOnBoard] ? _hoveringDyadmino.position :
+      [self subtractFromThisPoint:_hoveringDyadmino.position thisPoint:_boardField.position];
   [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:pivotGuidePosition];
   
   //--------------------------------------------------------------------------

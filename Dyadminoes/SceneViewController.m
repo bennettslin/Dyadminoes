@@ -203,6 +203,17 @@
   self.pileCountLabel.textAlignment = NSTextAlignmentRight;
   [self.turnPileCountField addSubview:self.pileCountLabel];
   
+  self.soundedChordLabel = [UILabel new];
+  self.soundedChordLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneMessageLabelFontSize];
+  self.soundedChordLabel.textAlignment = NSTextAlignmentLeft;
+  self.soundedChordLabel.adjustsFontSizeToFitWidth = YES;
+  self.soundedChordLabel.layer.borderColor = [UIColor redColor].CGColor;
+  self.soundedChordLabel.layer.borderWidth = 2.f;
+  self.soundedChordLabel.layer.borderColor = [UIColor redColor].CGColor;
+  self.soundedChordLabel.layer.borderWidth = 2.f;
+
+  [self.view insertSubview:self.soundedChordLabel aboveSubview:self.playerLabelsField];
+  
   self.lastTurnLabel = [UILabel new];
   self.lastTurnLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneMessageLabelFontSize];
   self.lastTurnLabel.textAlignment = NSTextAlignmentRight;
@@ -232,8 +243,6 @@
   self.chordMessageLabel.textAlignment = NSTextAlignmentCenter;
   self.chordMessageLabel.adjustsFontSizeToFitWidth = YES;
   self.chordMessageLabel.numberOfLines = kIsIPhone ? 2 : 1;
-//  self.chordMessageLabel.layer.borderWidth = 1.f;
-//  self.chordMessageLabel.layer.borderColor = [UIColor redColor].CGColor;
   [self.view addSubview:self.chordMessageLabel];
   
     // frames
@@ -242,6 +251,9 @@
   self.pileCountLabel.frame = CGRectMake(self.view.bounds.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer + kSceneLabelFontSize, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize * 1.25);
   
   CGFloat messageLabelWidth = (kButtonWidth * 5) + kTopBarPaddingBetweenStuff + kTopBarTurnPileLabelsWidth;
+  
+  self.soundedChordLabel.frame = CGRectMake(kTopBarXEdgeBuffer, kTopBarHeight, messageLabelWidth, kSceneMessageLabelFontSize);
+  
   self.lastTurnLabel.frame = CGRectMake(self.view.bounds.size.width - messageLabelWidth - kTopBarXEdgeBuffer, kTopBarHeight, messageLabelWidth, kSceneMessageLabelFontSize);
   
   CGFloat desiredPnPY = ([self.myMatch returnType] == kPnPGame && ![self.myMatch returnGameHasEnded]) ?
@@ -483,9 +495,14 @@
   [self slideAnimateView:self.playerLabelsField toDestinationXPosition:desiredPlayerLabelsX durationConstant:kConstantTime];
   
   CGFloat messageLabelWidth = (kButtonWidth * 5) + kTopBarPaddingBetweenStuff + kTopBarTurnPileLabelsWidth;
-  CGFloat desiredMessageLabelX = goOut ? self.view.frame.size.width : self.view.frame.size.width - messageLabelWidth - kTopBarXEdgeBuffer;
   
-  [self slideAnimateView:self.lastTurnLabel toDestinationXPosition:desiredMessageLabelX durationConstant:kConstantTime];
+  CGFloat desiredSoundedChordLabelX = goOut ? -messageLabelWidth : kTopBarXEdgeBuffer;
+  
+  [self slideAnimateView:self.soundedChordLabel toDestinationXPosition:desiredSoundedChordLabelX durationConstant:kConstantTime];
+  
+  CGFloat desiredLastTurnLabelX = goOut ? self.view.frame.size.width : self.view.frame.size.width - messageLabelWidth - kTopBarXEdgeBuffer;
+  
+  [self slideAnimateView:self.lastTurnLabel toDestinationXPosition:desiredLastTurnLabelX durationConstant:kConstantTime];
   
   CGFloat desiredTurnPileLabelsX = goOut ? kTopBarXEdgeBuffer + kTopBarTurnPileLabelsWidth : 0;
   

@@ -147,8 +147,8 @@
 #define kDistanceForTouchingRestingDyadmino (kDyadminoFaceRadius * 0.8f) // was 25.f
 #define kDistanceToDoubleTap 22.f // tweak as necessary
 #define kMinDistanceForPivot kDistanceForTouchingHoveringDyadmino
-#define kMaxDistanceForPivot (kDyadminoFaceRadius * 5.f) // (kDyadminoFaceRadius * 3.5f)
-#define kPivotGuideAlpha 0.3f // was 0.9f
+#define kMaxDistanceForPivot (kDyadminoFaceRadius * 4.5f) // (kDyadminoFaceRadius * 3.5f)
+#define kPivotGuideAlpha 0.24f // was 0.9f
 #define kGapForHighlight (kRackHeight / 3.6f)
 
   //----------------------------------------------------------------------------
@@ -198,7 +198,6 @@
   // turn dictionary keys
 #define kTurnPlayer @"player"
 #define kTurnDyadminoes @"indexContainer"
-//#define kTurnChords @"chords"
 #define kTurnPoints @"points"
 
   // points
@@ -224,6 +223,7 @@
 
 #define kMainBarsColour [UIColor colorWithRed:0.37f green:0.24f blue:0.21f alpha:1.f]
 #define kMainButtonsColour [UIColor colorWithRed:.64f green:.57f blue:.38f alpha:1.f]
+
 #define kEndedMatchCellLightColour [UIColor colorWithRed:0.94f green:0.85f blue:0.71f alpha:1.f]
 #define kEndedMatchCellDarkColour [UIColor colorWithRed:0.83f green:0.74f blue:0.6f alpha:1.f]
 #define kEndedMatchCellSelectedColour [UIColor colorWithRed:0.96f green:.88f blue:0.76f alpha:1.f]
@@ -240,15 +240,15 @@
 #define kPlayerGreen [UIColor colorWithRed:0.f green:0.65f blue:0.19f alpha:1.f]
 #define kPlayerOrange [UIColor colorWithRed:0.85f green:0.50f blue:0.18f alpha:1.f]
 
-#define kPlayerLightBlue [UIColor colorWithRed:0.14f green:0.62f blue:1.f alpha:1.f]
-#define kPlayerLightRed [UIColor colorWithRed:0.91f green:0.41f blue:0.93f alpha:1.f]
-#define kPlayerLightGreen [UIColor colorWithRed:0.1f green:0.75f blue:0.29f alpha:1.f]
-#define kPlayerLightOrange [UIColor colorWithRed:0.95f green:0.60f blue:0.28f alpha:1.f]
+#define kPlayerLightBlue [UIColor colorWithRed:0.31f green:0.65f blue:0.84f alpha:1.f]
+#define kPlayerLightRed [UIColor colorWithRed:0.81f green:0.51f blue:0.83f alpha:1.f]
+#define kPlayerLightGreen [UIColor colorWithRed:0.3f green:0.85f blue:0.39f alpha:1.f]
+#define kPlayerLightOrange [UIColor colorWithRed:0.85f green:0.60f blue:0.28f alpha:1.f]
 
-#define kPlayerLighterBlue [UIColor colorWithRed:0.14f green:0.62f blue:1.f alpha:1.f]
-#define kPlayerLighterRed [UIColor colorWithRed:0.91f green:0.41f blue:0.93f alpha:1.f]
-#define kPlayerLighterGreen [UIColor colorWithRed:0.1f green:0.75f blue:0.29f alpha:1.f]
-#define kPlayerLighterOrange [UIColor colorWithRed:0.95f green:0.60f blue:0.28f alpha:1.f]
+#define kPlayerLighterBlue [UIColor colorWithRed:0.51f green:0.85f blue:1.f alpha:1.f]
+#define kPlayerLighterRed [UIColor colorWithRed:1.f green:0.71f blue:1.f alpha:1.f]
+#define kPlayerLighterGreen [UIColor colorWithRed:0.5f green:1.f blue:0.59f alpha:1.f]
+#define kPlayerLighterOrange [UIColor colorWithRed:1.f green:0.80f blue:0.48f alpha:1.f]
 
 #define kDarkBlue [SKColor colorWithRed:.29f green:.4f blue:.63f alpha:1.f]
 #define kSkyBlue [SKColor colorWithRed:.7f green:.8f blue:.9f alpha:1.f]

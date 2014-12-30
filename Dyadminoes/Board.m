@@ -820,7 +820,7 @@
       CGPathRelease(shapePath);
       
       shapeNode.lineWidth = 0.05;
-      shapeNode.glowWidth = 7.f;
+      shapeNode.glowWidth = 4.f;
       shapeNode.alpha = kPivotGuideAlpha;
       shapeNode.strokeColor = colours[colourArray[i]];
       shapeNode.fillColor = colours[colourArray[i]];
