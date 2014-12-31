@@ -1545,7 +1545,7 @@
           // it's a pass, so confirm with action sheet
         [self presentPassActionSheet];
       } else {
-        [self finalisePlayerTurn];
+        [self presentTurnDoneConfirmationActionSheetWithPoints:[self.myMatch sumOfPointsThisTurn]];
       }
           // finalising a swap
     } else if (_swapMode) {
@@ -3320,47 +3320,25 @@
 
 #pragma mark - action sheet methods
 
--(void)doSomethingSpecial:(NSString *)specialThing {
-    // FIXME: eventually show a screen of some kind
-  /*
-  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:specialThing delegate:self cancelButtonTitle:@"OK" destructiveButtonTitle:nil otherButtonTitles:nil, nil];
-  actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
-  [actionSheet showInView:self.view];
-   */
-}
-
--(void)presentNewLegalChordActionSheetWithPoints:(NSUInteger)points {
+-(void)presentNotEnoughInPileActionSheet {
+  NSString *notEnoughString = @"There aren't enough dyadminoes left in the pile.";
   
-    // returns if action sheet is already showing
-  if (!_boardDyadminoActionSheetShown) {
-    NSString *playString = [NSString stringWithFormat:@"Are you sure? Building this chord cannot be undone. You will gain %lu %@.", (unsigned long)points, ((points == 1) ? @"point" : @"points")];
-    
-    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:playString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Build" otherButtonTitles:nil, nil];
-    actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
-    actionSheet.tag = 4;
-    [actionSheet showInView:self.view];
-    _boardDyadminoActionSheetShown = YES;
-  }
+  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:notEnoughString delegate:self cancelButtonTitle:@"OK" destructiveButtonTitle:nil otherButtonTitles:nil, nil];
+  actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
+  actionSheet.tag = 0;
+  [actionSheet showInView:self.view];
 }
 
 -(void)presentPassActionSheet {
   NSString *passString = ([self.myMatch returnType] == kSelfGame) ?
-    @"Are you sure? Passing once in solo mode ends the game." :
-    @"Are you sure? This will count as your turn.";
+  @"Are you sure? Passing once in solo mode ends the game." :
+  @"Are you sure? This will count as your turn.";
   
   NSString *buttonText = ([self.myMatch returnType] == kSelfGame) ? @"End game" : @"Pass";
   
   UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:passString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:buttonText otherButtonTitles:nil, nil];
   actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
   actionSheet.tag = 1;
-  [actionSheet showInView:self.view];
-}
-
--(void)presentNotEnoughInPileActionSheet {
-  NSString *notEnoughString = @"There aren't enough dyadminoes left in the pile.";
-
-  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:notEnoughString delegate:self cancelButtonTitle:@"OK" destructiveButtonTitle:nil otherButtonTitles:nil, nil];
-  actionSheet.actionSheetStyle = UIActionSheetStyleBlackOpaque;
   [actionSheet showInView:self.view];
 }
 
@@ -3393,17 +3371,46 @@
   [actionSheet showInView:self.view];
 }
 
+-(void)presentNewLegalChordActionSheetWithPoints:(NSUInteger)points {
+  
+    // returns if action sheet is already showing
+  if (!_boardDyadminoActionSheetShown) {
+    NSString *playString = [NSString stringWithFormat:@"Are you sure? Building this chord cannot be undone. You will gain %lu %@.", (unsigned long)points, ((points == 1) ? @"point" : @"points")];
+    
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:playString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Build" otherButtonTitles:nil, nil];
+    actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
+    actionSheet.tag = 4;
+    [actionSheet showInView:self.view];
+    _boardDyadminoActionSheetShown = YES;
+  }
+}
+
+-(void)presentTurnDoneConfirmationActionSheetWithPoints:(NSUInteger)points {
+  NSString *doneString = [NSString stringWithFormat:@"Complete your turn for %lu %@?", (unsigned long)points, ((points == 1) ? @"point" : @"points")];
+  
+  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:doneString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Complete" otherButtonTitles:nil, nil];
+  actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
+  actionSheet.tag = 5;
+  [actionSheet showInView:self.view];
+}
+
 -(void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
   NSString *buttonText = [actionSheet buttonTitleAtIndex:buttonIndex];
   
-      // pass button
+  //----------------------------------------------------------------------------
+  // pass
+  //----------------------------------------------------------------------------
+
   if (actionSheet.tag == 1 && ([buttonText isEqualToString:@"Pass"] || [buttonText isEqualToString:@"End game"])) {
     [self finalisePlayerTurn];
     
-      // swap button
+  //----------------------------------------------------------------------------
+  // swap
+  //----------------------------------------------------------------------------
+    
   } else if (actionSheet.tag == 2) {
     
-      // swap
+      // finalise swap
     if ([buttonText isEqualToString:@"Swap"]) {
       [self finaliseSwap];
       
@@ -3421,11 +3428,18 @@
       [self updateTopBarButtons];
       return;
     }
+
+  //----------------------------------------------------------------------------
+  // resign
+  //----------------------------------------------------------------------------
     
-      // resign button
   } else if (actionSheet.tag == 3 && ![buttonText isEqualToString:@"Cancel"]) {
     [self.myMatch resignPlayer:_myPlayer];
 
+  //----------------------------------------------------------------------------
+  // board dyadmino forms new chord
+  //----------------------------------------------------------------------------
+    
       // board dyadmino forms new chord
   } else if (actionSheet.tag == 4) {
     _boardDyadminoActionSheetShown = NO;
@@ -3451,10 +3465,26 @@
       [self finishHoveringAfterCheckDyadmino:_hoveringDyadmino];
     }
   _tempChordSonoritiesFromMovedBoardDyadmino = nil;
+
+  //----------------------------------------------------------------------------
+  // turn done
+  //----------------------------------------------------------------------------
+    
+  } else if (actionSheet.tag == 5 && ![buttonText isEqualToString:@"Cancel"]) {
+    [self finalisePlayerTurn];
   }
   
   [self updateTopBarLabelsFinalTurn:YES animated:NO];
   [self updateTopBarButtons];
+}
+
+-(void)doSomethingSpecial:(NSString *)specialThing {
+    // FIXME: eventually show a screen of some kind
+  /*
+   UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:specialThing delegate:self cancelButtonTitle:@"OK" destructiveButtonTitle:nil otherButtonTitles:nil, nil];
+   actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
+   [actionSheet showInView:self.view];
+   */
 }
 
 #pragma mark - delegate methods

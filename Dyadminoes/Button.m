@@ -39,6 +39,9 @@
 
 -(void)changeName {
   _labelNode.text = self.name;
+  if ([self.name isEqualToString:@"play"] || [self.name isEqualToString:@"done"]) {
+    [self glowOn:_isEnabled];
+  }
 }
 
 -(SwapCancelOrUndoButton)confirmSwapCancelOrUndo {
@@ -114,11 +117,56 @@
   }
 }
 
+-(void)glowOn:(BOOL)on {
+  
+    // remove any previous glow
+  for (SKNode *node in self.children) {
+    if ([node isKindOfClass:[SKShapeNode class]] && [node.name isEqualToString:[NSString stringWithFormat:@"%@ glow", self.name]]) {
+      
+      NSArray *array = @[node];
+      [self removeChildrenInArray:array];
+    }
+  }
+  
+  if (on) {
+    SKShapeNode *shapeNode = [SKShapeNode new];
+    CGMutablePathRef shapePath = CGPathCreateMutable();
+    
+      // line out
+    CGPathMoveToPoint(shapePath, NULL, -self.size.width * 0.5f, -self.size.height * 0.5f);
+    CGPathAddLineToPoint(shapePath, NULL, self.size.width * 0.5f, -self.size.height * 0.5f);
+    CGPathAddLineToPoint(shapePath, NULL, self.size.width * 0.5f, self.size.height * 0.5f);
+    CGPathAddLineToPoint(shapePath, NULL, -self.size.width * 0.5f, self.size.height * 0.5f);
+      CGPathAddLineToPoint(shapePath, NULL, -self.size.width * 0.5f, -self.size.height * 0.5f);
+
+    shapeNode.path = shapePath;
+    CGPathRelease(shapePath);
+    
+    shapeNode.lineWidth = 1.f;
+    shapeNode.glowWidth = self.size.width * 0.1f;
+    shapeNode.alpha = 0.75f;
+    shapeNode.strokeColor = kEndedMatchCellLightColour;
+    shapeNode.fillColor = kEndedMatchCellLightColour;
+    shapeNode.zPosition = - 1.f;
+    shapeNode.name = [NSString stringWithFormat:@"%@ glow", self.name];
+    [self addChild:shapeNode];
+    
+    self.zPosition = kZPositionTopBarButton + 2.f;
+    
+  } else {
+    self.zPosition = kZPositionTopBarButton;
+  }
+}
+
 -(BOOL)isEnabled {
   return _isEnabled;
 }
 
 -(void)enable:(BOOL)isEnabled {
+  
+  if ([self.name isEqualToString:@"play"] || [self.name isEqualToString:@"done"]) {
+    [self glowOn:isEnabled];
+  }
   _isEnabled = isEnabled;
 }
 

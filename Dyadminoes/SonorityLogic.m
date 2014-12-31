@@ -21,6 +21,8 @@
     // returns empty set if no legal chords
     // returns nil if illegal chords
   
+    // ensure that all calls of this method check the class of the returned object!
+  
   NSMutableSet *tempChordSonorities = [NSMutableSet new];
   
   for (NSSet *sonority in sonorities) {
