@@ -137,6 +137,10 @@
 -(void)removeFromSwapDataDyadmino:(DataDyadmino *)dataDyad;
 -(void)removeAllSwaps;
 
+  // reset methods
+-(void)resetDyadminoesOnBoard;
+-(BOOL)boardDyadminoesHaveMovedSinceStartOfTurn;
+
 #pragma mark - query number methods
 
 -(GameRules)returnRules;

@@ -74,6 +74,7 @@
   BOOL _replayMode;
   BOOL _swapMode;
   BOOL _lockMode;
+  BOOL _boardDyadminoMovedShowResetButton;
   BOOL _dyadminoesStationary;
   BOOL _dyadminoesHollowed;
   BOOL _rackExchangeInProgress;
@@ -91,7 +92,7 @@
   BOOL _boardZoomedOut;
   BOOL _buttonsUpdatedThisTouch;
   
-  BOOL _boardDyadminoActionSheetShown;
+  BOOL _actionSheetShown;
   
   NSSet *_tempChordSonoritiesFromMovedBoardDyadmino;
   
@@ -169,15 +170,17 @@
   return self;
 }
 
--(BOOL)loadAfterNewMatchRetrieved {
+-(BOOL)loadAfterNewMatchRetrievedForReset:(BOOL)forReset {
+  NSLog(@"load after new match retrieved");
   
   _topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
   
    // it should not happen that previous match was left
    // while pnpBar was still moving, but just in case
-  [_pnpBar removeAllActions];
   
-  if ([self.myMatch returnType] == kPnPGame && ![self.myMatch returnGameHasEnded]) {
+  [_pnpBar removeAllActions];
+    
+  if ([self.myMatch returnType] == kPnPGame && ![self.myMatch returnGameHasEnded] && !forReset) {
     _pnpBarUp = YES;
     _pnpBar.position = CGPointZero;
     _pnpBar.hidden = NO;
@@ -205,10 +208,12 @@
 }
 
 -(void)prepareForNewTurn {
+  NSLog(@"prepare for new turn");
     // called both when scene is loaded, and when player finalises turn in PnP mode
   
   [self.mySoundEngine removeAllActions];
   
+  _boardDyadminoMovedShowResetButton = NO;
   _zoomChangedCellsAlpha = NO;
   _rackExchangeInProgress = NO;
   [_buttonPressed liftWithAnimation:NO andCompletion:nil];
@@ -236,7 +241,7 @@
   _hoveringDyadmino = nil;
   self.legalChordsForHoveringBoardDyadmino = nil;
   _pivotInProgress = NO;
-  _boardDyadminoActionSheetShown = NO;
+  _actionSheetShown = NO;
   _endTouchLocationToMeasureDoubleTap = CGPointMake(CGFLOAT_MAX, CGFLOAT_MAX);
   _undoButtonAllowed = YES;
   _tempChordSonoritiesFromMovedBoardDyadmino = nil;
@@ -249,11 +254,14 @@
   _myPlayer = [self.myMatch returnCurrentPlayer];
   NSArray *turns = self.myMatch.turns;
   self.myMatch.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
-  
-  
 }
 
 -(void)didMoveToView:(SKView *)view {
+  [self didMoveToViewForReset:NO];
+}
+
+-(void)didMoveToViewForReset:(BOOL)forReset {
+  NSLog(@"did move to view");
   
     // ensures that match's board dyadminoes are reset
   [self.myMatch last];
@@ -278,7 +286,7 @@
   
     // not for first version
   /*
-  [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
+   [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
    */
   
     // kludge way to remove activity indicator
@@ -296,17 +304,18 @@
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
   
-    // cell alphas are visible by default, hide if PnP mode
-  _dyadminoesStationary = ([self.myMatch returnType] == kPnPGame && ![self.myMatch returnGameHasEnded]);
+    // cell alphas are visible by default, hide if PnP mode and not for reset
+  _dyadminoesStationary = ([self.myMatch returnType] == kPnPGame && ![self.myMatch returnGameHasEnded] && !forReset);
   [self toggleCellsAndDyadminoesAlphaAnimated:NO];
   
-    // don't call just yet if it's a PnP game
-  if ([self.myMatch returnType] != kPnPGame) {
+    // don't call just yet if it's a PnP game, unless it's just for reset
+  if ([self.myMatch returnType] != kPnPGame || forReset) {
     [self afterNewPlayerReady];
   }
 }
 
 -(void)afterNewPlayerReady {
+  NSLog(@"after new player ready");
     // called both when scene is loaded, and when new player is ready in PnP mode
   
   [self refreshBoardChords];
@@ -334,12 +343,15 @@
 #pragma mark - wrap up methods
 
 -(void)willMoveFromView:(SKView *)view {
+  [self willMoveFromViewForReset:NO];
+}
 
+-(void)willMoveFromViewForReset:(BOOL)forReset {
   if (_debugMode) {
     _debugMode = NO;
     [self toggleDebugMode];
   }
-
+  
     // establish that cell and dyadmino alphas are normal
     // important because next match might have different dyadminoes
   _dyadminoesStationary = NO;
@@ -360,7 +372,11 @@
   }
   
   [_boardField resetForNewMatch];
-  [self prepareRackForNextPlayer];
+  
+  
+  if (!forReset) {
+    [self prepareRackForNextPlayer];
+  }
 }
 
 -(void)prepareRackForNextPlayer {
@@ -1524,6 +1540,11 @@
       [self sendDyadminoHome:_recentRackDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
     }
     
+      /// reset button
+  } else if (button == _topBar.swapCancelOrUndoButton &&
+             [button confirmSwapCancelOrUndo] == kResetButton) {
+    [self presentActionSheet:kActionSheetReset withPoints:0];
+    
       /// undo button
   } else if (button == _topBar.swapCancelOrUndoButton &&
              [button confirmSwapCancelOrUndo] == kUndoButton) {
@@ -1543,9 +1564,9 @@
       if ([self.myMatch sumOfPointsThisTurn] == 0) {
         
           // it's a pass, so confirm with action sheet
-        [self presentPassActionSheet];
+        [self presentActionSheet:kActionSheetPass withPoints:0];
       } else {
-        [self presentTurnDoneConfirmationActionSheetWithPoints:[self.myMatch sumOfPointsThisTurn]];
+        [self presentActionSheet:kActionSheetTurnDone withPoints:[self.myMatch sumOfPointsThisTurn]];
       }
           // finalising a swap
     } else if (_swapMode) {
@@ -1553,10 +1574,10 @@
       NSSet *swapIndexContainer = self.myMatch.swapIndexContainer;
       if (swapIndexContainer.count > self.myMatch.pile.count) {
         
-        [self presentNotEnoughInPileActionSheet];
+        [self presentActionSheet:kActionSheetPileNotEnough withPoints:0];
         return;
       } else {
-        [self presentSwapActionSheet];
+        [self presentActionSheet:kActionSheetSwap withPoints:0];
       }
     }
     
@@ -1798,6 +1819,26 @@
   }
 }
 
+-(void)resetBoard {
+  NSLog(@"Reset board called.");
+  [self.myMatch resetDyadminoesOnBoard];
+  for (Dyadmino *dyadmino in self.boardDyadminoes) {
+    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+    
+    dyadmino.myHexCoord = dataDyad.myHexCoord;
+    dyadmino.orientation = [dataDyad.myOrientation unsignedIntegerValue];
+    dyadmino.tempReturnOrientation = dyadmino.orientation;
+    NSLog(@"Dyadmino new hex is %i, %i, new orientation is %i", dyadmino.myHexCoord.x, dyadmino.myHexCoord.y, dyadmino.orientation);
+    dyadmino.homeNode = nil;
+    dyadmino.tempBoardNode = nil;
+  }
+  
+  [self willMoveFromViewForReset:YES];
+  [self loadAfterNewMatchRetrievedForReset:YES];
+  [self didMoveToViewForReset:YES];
+  [self afterNewPlayerReady];
+}
+
 -(void)finalisePlayerTurn {
   
   [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
@@ -1863,6 +1904,7 @@
 }
 
 -(void)tempStoreForPlayerSceneDataDyadmino:(Dyadmino *)dyadmino {
+  
   DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
   
   if ([dyadmino belongsOnBoard]) {
@@ -2231,12 +2273,12 @@
               
                 // show action sheet if dyadmino was on board before turn
               if ([self.myMatch.board containsObject:[self getDataDyadminoFromDyadmino:dyadmino]]) {
-                [self presentNewLegalChordActionSheetWithPoints:[self.myMatch pointsForChordSonorities:legalChordSonoritiesFormed extendedChordSonorities:chordSupersets]];
+                [self presentActionSheet:kActionSheetNewLegalChord withPoints:[self.myMatch pointsForChordSonorities:legalChordSonoritiesFormed extendedChordSonorities:chordSupersets]];
                 _tempChordSonoritiesFromMovedBoardDyadmino = chordSupersets;
                 
                 NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:chordSupersets withInitialString:@"Build " andEndingString:@"?"];
                 
-                [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
+                [self.myDelegate showChordMessage:chordsText sign:kChordMessageNeutral];
                 [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
                 
                   // otherwise it's a seventh extended from a triad built this turn, so just keep the new chord
@@ -2335,7 +2377,7 @@
           } else {
             if (legalChordSonoritiesFormed.count == 0) {
               _recentRackDyadminoFormsLegalChord = NO;
-              [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Must build new chord."] sign:kChordMessageBad];
+              [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Must build new chord."] sign:kChordMessageNeutral];
 
       //------------------------------------------------------------------------
       // new chord made!
@@ -2443,7 +2485,9 @@
     
       // no dyadminoes played, and no recent rack dyadmino
   } else if (noRackDyadminoesPlayedAndNoRecentRackDyadmino) {
-    [_topBar changeSwapCancelOrUndo:kSwapButton];
+    
+      // reset button shows when board dyadminoes have been moved
+    [self.myMatch boardDyadminoesHaveMovedSinceStartOfTurn] ? [_topBar changeSwapCancelOrUndo:kResetButton] : [_topBar changeSwapCancelOrUndo:kSwapButton];
     
       // no pass option in self mode
     if ([self.myMatch returnType] == kSelfGame) {
@@ -2457,7 +2501,7 @@
       }
     }
     
-      // a recent rack dyadmino placed on board
+      // there is a recent rack dyadmino placed on board
      // doesn't matter whether holding container is empty
   } else if (_recentRackDyadmino) {
     [_topBar changeSwapCancelOrUndo:kCancelButton];
@@ -3320,158 +3364,149 @@
 
 #pragma mark - action sheet methods
 
--(void)presentNotEnoughInPileActionSheet {
-  NSString *notEnoughString = @"There aren't enough dyadminoes left in the pile.";
+-(void)presentActionSheet:(ActionSheetTag)actionSheetTag withPoints:(NSUInteger)points {
   
-  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:notEnoughString delegate:self cancelButtonTitle:@"OK" destructiveButtonTitle:nil otherButtonTitles:nil, nil];
-  actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
-  actionSheet.tag = 0;
-  [actionSheet showInView:self.view];
-}
-
--(void)presentPassActionSheet {
-  NSString *passString = ([self.myMatch returnType] == kSelfGame) ?
-  @"Are you sure? Passing once in solo mode ends the game." :
-  @"Are you sure? This will count as your turn.";
-  
-  NSString *buttonText = ([self.myMatch returnType] == kSelfGame) ? @"End game" : @"Pass";
-  
-  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:passString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:buttonText otherButtonTitles:nil, nil];
-  actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
-  actionSheet.tag = 1;
-  [actionSheet showInView:self.view];
-}
-
--(void)presentSwapActionSheet {
-  
-  NSString *swapString = ([self.myMatch returnType] == kSelfGame) ? @"Are you sure you want to swap?" : @"Are you sure? This will count as your turn.";
-  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:swapString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Swap" otherButtonTitles:nil, nil];
-  actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
-  actionSheet.tag = 2;
-  [actionSheet showInView:self.view];
-}
-
--(void)presentResignActionSheet {
-  
-  NSString *resignString;
-  GameType type = [self.myMatch returnType];
-  if (type == kSelfGame) {
-    resignString = @"Are you sure you want to end the game?";
-  } else if (type == kPnPGame || type == kGCFriendGame) {
-    resignString = @"Are you sure you want to resign?";
-  } else if (type == kGCRandomGame) {
-    resignString = @"Are you sure? This will count as a loss in Game Center.";
-  }
-  
-  NSString *buttonText = (type == kSelfGame) ? @"End game" : @"Resign";
-  
-  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:resignString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:buttonText otherButtonTitles:nil, nil];
-  actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
-  actionSheet.tag = 3;
-  [actionSheet showInView:self.view];
-}
-
--(void)presentNewLegalChordActionSheetWithPoints:(NSUInteger)points {
-  
-    // returns if action sheet is already showing
-  if (!_boardDyadminoActionSheetShown) {
-    NSString *playString = [NSString stringWithFormat:@"Are you sure? Building this chord cannot be undone. You will gain %lu %@.", (unsigned long)points, ((points == 1) ? @"point" : @"points")];
+  if (!_actionSheetShown) {
+    NSString *messageString;
+    NSString *cancelButtonString = @"Cancel";
+    NSString *destructiveButtonString;
+    GameType gameType;
     
-    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:playString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Build" otherButtonTitles:nil, nil];
+    switch (actionSheetTag) {
+      case kActionSheetPileNotEnough:
+        messageString = @"There aren't enough dyadminoes left in the pile.";
+        cancelButtonString = @"Okay";
+        break;
+        
+      case kActionSheetPass:
+        messageString = @"Are you sure? This will count as your turn.";
+        destructiveButtonString = @"Pass";
+        break;
+        
+      case kActionSheetSwap:
+        messageString = ([self.myMatch returnType] == kSelfGame) ?
+            @"Are you sure you want to swap?" :
+            @"Are you sure? This will count as your turn.";
+        destructiveButtonString = @"Swap";
+        break;
+        
+      case kActionSheetReset:
+        messageString = @"Reset the board and restart this turn?";
+        destructiveButtonString = @"Reset";
+        break;
+        
+      case kActionSheetNewLegalChord:
+        messageString = [NSString stringWithFormat:@"Are you sure? This can only be undone by resetting the board. You will gain %lu %@.", (unsigned long)points, ((points == 1) ? @"point" : @"points")];
+        destructiveButtonString = @"Build";
+        break;
+        
+      case kActionSheetResignPlayer:
+         gameType = [self.myMatch returnType];
+        if (gameType == kSelfGame) {
+          messageString = @"Are you sure you want to end the game?";
+        } else if (gameType == kPnPGame || gameType == kGCFriendGame) {
+          messageString = @"Are you sure you want to resign?";
+        } else if (gameType == kGCRandomGame) {
+          messageString = @"Are you sure? This will count as a loss in Game Center.";
+        }
+        destructiveButtonString = ([self.myMatch returnType] == kSelfGame) ? @"End game" : @"Resign";
+        break;
+        
+      case kActionSheetTurnDone:
+        messageString = [NSString stringWithFormat:@"Complete your turn for %lu %@?", (unsigned long)points, ((points == 1) ? @"point" : @"points")];
+        destructiveButtonString = @"Complete";
+        break;
+      default:
+        break;
+    }
+    
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:messageString delegate:self cancelButtonTitle:cancelButtonString destructiveButtonTitle:destructiveButtonString otherButtonTitles:nil, nil];
     actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
-    actionSheet.tag = 4;
+    actionSheet.tag = actionSheetTag;
     [actionSheet showInView:self.view];
-    _boardDyadminoActionSheetShown = YES;
+    _actionSheetShown = YES;
   }
-}
-
--(void)presentTurnDoneConfirmationActionSheetWithPoints:(NSUInteger)points {
-  NSString *doneString = [NSString stringWithFormat:@"Complete your turn for %lu %@?", (unsigned long)points, ((points == 1) ? @"point" : @"points")];
-  
-  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:doneString delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Complete" otherButtonTitles:nil, nil];
-  actionSheet.actionSheetStyle = UIActionSheetStyleAutomatic;
-  actionSheet.tag = 5;
-  [actionSheet showInView:self.view];
 }
 
 -(void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
   NSString *buttonText = [actionSheet buttonTitleAtIndex:buttonIndex];
   
-  //----------------------------------------------------------------------------
-  // pass
-  //----------------------------------------------------------------------------
-
-  if (actionSheet.tag == 1 && ([buttonText isEqualToString:@"Pass"] || [buttonText isEqualToString:@"End game"])) {
-    [self finalisePlayerTurn];
-    
-  //----------------------------------------------------------------------------
-  // swap
-  //----------------------------------------------------------------------------
-    
-  } else if (actionSheet.tag == 2) {
-    
-      // finalise swap
-    if ([buttonText isEqualToString:@"Swap"]) {
-      [self finaliseSwap];
+  _actionSheetShown = NO;
+  
+  switch (actionSheet.tag) {
+    case kActionSheetPileNotEnough:
+      break;
       
-        // because of swap animation, updating topBar labels and buttons must be delayed
-        // and thus will be called in finaliseSwap; so just return at this point
-      return;
-      
-        // cancel swap
-    } else if ([buttonText isEqualToString:@"Cancel"]) {
-      if (_swapMode) {
-        _swapMode = NO;
-        [self toggleSwapFieldWithAnimation:YES];
-        [self cancelSwappedDyadminoes];
+    case kActionSheetPass:
+      if ([buttonText isEqualToString:@"Pass"]) {
+        [self finalisePlayerTurn];
       }
-      [self updateTopBarButtons];
-      return;
-    }
-
-  //----------------------------------------------------------------------------
-  // resign
-  //----------------------------------------------------------------------------
-    
-  } else if (actionSheet.tag == 3 && ![buttonText isEqualToString:@"Cancel"]) {
-    [self.myMatch resignPlayer:_myPlayer];
-
-  //----------------------------------------------------------------------------
-  // board dyadmino forms new chord
-  //----------------------------------------------------------------------------
-    
-      // board dyadmino forms new chord
-  } else if (actionSheet.tag == 4) {
-    _boardDyadminoActionSheetShown = NO;
-    if ([buttonText isEqualToString:@"Cancel"]) {
-      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+      break;
       
-    } else {
-      
-      NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:_tempChordSonoritiesFromMovedBoardDyadmino thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
-      
-        // add to array of chords, this cannot be undone since it's not from rack
-      if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:_tempChordSonoritiesFromMovedBoardDyadmino extendedChordSonorities:chordSupersets fromDyadminoID:-1]) { // -1 indicates that match recognises this as a board dyadmino
-        NSLog(@"Match failed to add to array of chords.");
-        abort();
-      } else {
+    case kActionSheetSwap:
+      if ([buttonText isEqualToString:@"Swap"]) {
         
-        [self refreshBoardChords];
-        NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:_tempChordSonoritiesFromMovedBoardDyadmino withInitialString:@"Built " andEndingString:@"."];
+          // because of swap animation, updating topBar labels and buttons must be delayed
+          // and thus will be called in finaliseSwap; so just return at this point
+        [self finaliseSwap];
+        return;
         
-        [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
+      } else if ([buttonText isEqualToString:@"Cancel"]) {
+        if (_swapMode) {
+          _swapMode = NO;
+          [self toggleSwapFieldWithAnimation:YES];
+          [self cancelSwappedDyadminoes];
+        }
+        [self updateTopBarButtons];
+        return;
       }
+      break;
       
-      [self finishHoveringAfterCheckDyadmino:_hoveringDyadmino];
-    }
-  _tempChordSonoritiesFromMovedBoardDyadmino = nil;
-
-  //----------------------------------------------------------------------------
-  // turn done
-  //----------------------------------------------------------------------------
-    
-  } else if (actionSheet.tag == 5 && ![buttonText isEqualToString:@"Cancel"]) {
-    [self finalisePlayerTurn];
+    case kActionSheetReset:
+      if ([buttonText isEqualToString:@"Reset"]) {
+        [self resetBoard];
+      }
+      break;
+      
+    case kActionSheetNewLegalChord:
+      if ([buttonText isEqualToString:@"Build"]) {
+        
+        NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:_tempChordSonoritiesFromMovedBoardDyadmino thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
+        
+          // add to array of chords, this cannot be undone since it's not from rack
+        if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:_tempChordSonoritiesFromMovedBoardDyadmino extendedChordSonorities:chordSupersets fromDyadminoID:-1]) { // -1 indicates that match recognises this as a board dyadmino
+          NSLog(@"Match failed to add to array of chords.");
+          abort();
+        } else {
+          
+          [self refreshBoardChords];
+          NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:_tempChordSonoritiesFromMovedBoardDyadmino withInitialString:@"Built " andEndingString:@"."];
+          
+          [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
+        }
+        
+        [self finishHoveringAfterCheckDyadmino:_hoveringDyadmino];
+        
+      } else if ([buttonText isEqualToString:@"Cancel"]) {
+        [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+      }
+      _tempChordSonoritiesFromMovedBoardDyadmino = nil;
+      break;
+      
+    case kActionSheetResignPlayer:
+      if ([buttonText isEqualToString:@"Resign"] || [buttonText isEqualToString:@"End game"]) {
+        [self.myMatch resignPlayer:_myPlayer];
+      }
+      break;
+      
+    case kActionSheetTurnDone:
+      if ([buttonText isEqualToString:@"Complete"]) {
+        [self finalisePlayerTurn];
+      }
+      break;
+      
+    default:
+      break;
   }
   
   [self updateTopBarLabelsFinalTurn:YES animated:NO];
@@ -3529,7 +3564,7 @@
 }
 
 -(BOOL)actionSheetShown {
-  return _boardDyadminoActionSheetShown;
+  return _actionSheetShown;
 }
 
 -(void)toggleFieldActionInProgress:(BOOL)actionInProgress {
@@ -3621,15 +3656,3 @@
 }
 
 @end
-
-/*
- -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation {
- if ([self.mySceneEngine rotateDyadminoesBasedOnDeviceOrientation:deviceOrientation]) {
- [self postSoundNotification:kNotificationDeviceOrientation];
- }
- 
- [_topBar rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
- [_replayTop rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
- [_replayBottom rotateButtonsBasedOnDeviceOrientation:deviceOrientation];
- }
- */

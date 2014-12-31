@@ -1052,6 +1052,20 @@
   XCTFail(@"Did not properly calculate points for chord sonority.");
 }
 
+#pragma mark - reset tests
+
+-(void)testResettingOfBoardDyadminoes {
+  XCTFail(@"Board dyadminoes were not reset to pre-turn state.");
+}
+
+-(void)testThatPassedTurnResetsBoardDyadminoes {
+  XCTFail(@"Passed turn did not reset board dyadminoes.");
+}
+
+-(void)testBoardDyadminoesHaveMovedSinceStartOfTurnMethod {
+  XCTFail(@"Did not note that board dyadminoes have moved since start of turn.");
+}
+
 #pragma mark - win tests
 
 #pragma mark - helper tests

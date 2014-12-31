@@ -75,7 +75,7 @@
   
   self.myScene.myMatch = self.myMatch;
   self.myScene.myDelegate = self;
-  if (![self.myScene loadAfterNewMatchRetrieved]) {
+  if (![self.myScene loadAfterNewMatchRetrievedForReset:NO]) {
     NSLog(@"New match not properly retrieved.");
     abort();
   }
@@ -132,7 +132,7 @@
   switch (optionsNumber) {
     case kResignOption:
       [self backToParentViewWithAnimateRemoveVC:YES];
-      [self.myScene presentResignActionSheet];
+      [self.myScene presentActionSheet:kActionSheetResignPlayer withPoints:0];
       break;
     case kHelpOption:
       [self presentChildViewController:self.helpVC];

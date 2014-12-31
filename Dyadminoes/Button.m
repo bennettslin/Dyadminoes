@@ -41,12 +41,16 @@
   _labelNode.text = self.name;
   if ([self.name isEqualToString:@"play"] || [self.name isEqualToString:@"done"]) {
     [self glowOn:_isEnabled];
+  } else {
+    [self glowOn:NO];
   }
 }
 
 -(SwapCancelOrUndoButton)confirmSwapCancelOrUndo {
   if ([self.name isEqualToString:@"swap"]) {
     return kSwapButton;
+  } else if ([self.name isEqualToString:@"reset"]) {
+    return kResetButton;
   } else if ([self.name isEqualToString:@"cancel"]) {
     return kCancelButton;
   } else if ([self.name isEqualToString:@"undo"]) {
@@ -121,7 +125,7 @@
   
     // remove any previous glow
   for (SKNode *node in self.children) {
-    if ([node isKindOfClass:[SKShapeNode class]] && [node.name isEqualToString:[NSString stringWithFormat:@"%@ glow", self.name]]) {
+    if ([node isKindOfClass:[SKShapeNode class]] && [node.name isEqualToString:@"glow"]) {
       
       NSArray *array = @[node];
       [self removeChildrenInArray:array];
@@ -148,7 +152,7 @@
     shapeNode.strokeColor = kEndedMatchCellLightColour;
     shapeNode.fillColor = kEndedMatchCellLightColour;
     shapeNode.zPosition = - 1.f;
-    shapeNode.name = [NSString stringWithFormat:@"%@ glow", self.name];
+    shapeNode.name = @"glow";
     [self addChild:shapeNode];
     
     self.zPosition = kZPositionTopBarButton + 2.f;

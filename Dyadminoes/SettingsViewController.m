@@ -27,6 +27,8 @@
   
   self.view.backgroundColor = kPlayerLighterBlue;
   self.startingQuadrant = kQuadrantDown;
+  
+  [self.showPivotGuideSwitch setOnTintColor:kPlayerBlue];
 }
 
 -(void)viewWillAppear:(BOOL)animated {

@@ -19,6 +19,7 @@
 @implementation ChildViewController
 
 -(void)viewDidLoad {
+  [super viewDidLoad];
   self.cancelButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, kCancelButtonEdge, kCancelButtonEdge)];
   self.cancelButton.backgroundColor = [UIColor whiteColor];
   [self.view addSubview:self.cancelButton];

@@ -416,6 +416,7 @@ typedef struct Chord {
 
 typedef enum swapCancelOrUndoButton {
   kSwapButton,
+  kResetButton,
   kCancelButton,
   kUndoButton
 } SwapCancelOrUndoButton;
@@ -474,6 +475,16 @@ typedef enum startingQuadrant {
   kQuadrantUp,
   kQuadrantDown
 } StartingQuadrant;
+
+typedef enum actionSheetTag {
+  kActionSheetPileNotEnough,
+  kActionSheetPass,
+  kActionSheetSwap,
+  kActionSheetReset,
+  kActionSheetNewLegalChord,
+  kActionSheetResignPlayer,
+  kActionSheetTurnDone
+} ActionSheetTag;
 
 @interface NSObject (Helper)
 

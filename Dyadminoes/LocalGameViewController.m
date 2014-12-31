@@ -144,6 +144,21 @@
 
 -(IBAction)startGameTapped:(id)sender {
   
+    // ensure at least one button is selected
+  BOOL atLeastOneButtonSelected = NO;
+  for (UIButton *button in self.playerButtons) {
+    if (button.selected) {
+      atLeastOneButtonSelected = YES;
+    }
+  }
+  
+  if (!atLeastOneButtonSelected) {
+    return;
+  }
+  
+    // this resigns text field and saves names
+  [self resignTextField:nil];
+  
   NSMutableArray *tempSelectedPlayers = [NSMutableArray new];
   for (int i = 0; i < kMaxNumPlayers; i++) {
     UIButton *button = self.playerButtons[i];
@@ -152,10 +167,8 @@
       [tempSelectedPlayers addObject:playerName];
     }
   }
-  if (tempSelectedPlayers.count > 0) {
-    [self resignTextField:nil];
-    [self.delegate startLocalGameWithPlayerNames:[NSArray arrayWithArray:tempSelectedPlayers]];
-  }
+  
+  [self.delegate startLocalGameWithPlayerNames:[NSArray arrayWithArray:tempSelectedPlayers]];
 }
 
 -(IBAction)buttonTapped:(UIButton *)button {
@@ -234,8 +247,12 @@
   
   if (textField) {
     [textField resignFirstResponder];
-    NSUInteger index = [self.playerNameFields indexOfObject:textField];
-    [self saveNameForPlayerIndex:index];
+    
+      // save names in all text fields
+    for (int i = 0; i < self.playerNameFields.count; i++) {
+      [self saveNameForPlayerIndex:i];
+    }
+    
     self.startGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
     [self.delegate enableOverlay];
   }

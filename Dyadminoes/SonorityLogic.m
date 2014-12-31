@@ -267,13 +267,13 @@
   NSArray *fakeRootOffsets = @[@0, @8, @2, @2, @2, @0, @0, @0, @1, @1, @1, @2, @2];
 
     // establish default
-  BOOL isLegalChord = NO;
+//  BOOL isLegalChord = NO;
   ChordType chordType = kChordIllegalChord;
   NSInteger root = -1;
   
   for (NSArray *legalICPrimeForm in legalICPrimeForms) {
     if ([icPrimeForm isEqualToArray:legalICPrimeForm]) {
-      isLegalChord = YES;
+//      isLegalChord = YES;
       NSUInteger index = [legalICPrimeForms indexOfObject:legalICPrimeForm];
       NSUInteger realRootPC = [fakeRootPC unsignedIntegerValue] +
                       [fakeRootOffsets[index] unsignedIntegerValue];

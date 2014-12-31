@@ -9,7 +9,6 @@
 #import "MyScene.h"
 #import "MainViewController.h"
 #import "NSObject+Helper.h"
-//#import "SonorityLogic.h" // needed for accidentals in title label
 #import "UIImage+colouredImage.h"
 
 #import "MatchTableViewCell.h"
@@ -147,6 +146,7 @@
 }
 
 -(void)viewDidAppear:(BOOL)animated {
+  [super viewDidAppear:animated];
   
 //  __weak typeof(self) weakSelf = self;
 //  

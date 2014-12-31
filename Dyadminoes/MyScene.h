@@ -23,7 +23,7 @@
 
 @property (weak, nonatomic) id <SceneDelegate> myDelegate;
 
--(BOOL)loadAfterNewMatchRetrieved;
+-(BOOL)loadAfterNewMatchRetrievedForReset:(BOOL)forReset;
 /*
 -(void)handleDeviceOrientationChange:(UIDeviceOrientation)deviceOrientation;
  */
@@ -32,7 +32,7 @@
 -(void)tempStoreForPlayerSceneDataDyadminoes;
 -(void)togglePCsUserShaken:(BOOL)userShaken;
 -(void)handleUserWantsPivotGuides;
--(void)presentResignActionSheet;
+-(void)presentActionSheet:(ActionSheetTag)actionSheetTag withPoints:(NSUInteger)points;
 
 -(void)toggleRackGoOut:(BOOL)goOut completion:(void (^)(void))completion;
 -(void)toggleTopBarGoOut:(BOOL)goOut completion:(void(^)(void))completion;

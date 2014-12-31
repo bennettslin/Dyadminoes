@@ -498,6 +498,9 @@
       // player passes
   if ([self sumOfPointsThisTurn] == 0) {
     
+      // test to make sure that board is definitely reset when player passes
+    [self resetDyadminoesOnBoard];
+    
       // this is the original condition, which allowed original match tests to pass
       // original tests did not include information about score
 //  if ([(NSArray *)self.holdingIndexContainer count] == 0) {
@@ -610,6 +613,7 @@
 }
 
 -(void)persistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad {
+  NSLog(@"persist changed position for board data dyadmino.");
   if ([self.board containsObject:dataDyad]) {
     
     NSNumber *lastHexX;
@@ -1284,6 +1288,31 @@
 -(void)removeAllSwaps {
   self.swapIndexContainer = nil;
   self.swapIndexContainer = [NSMutableSet new];
+}
+
+#pragma mark - reset methods
+
+-(void)resetDyadminoesOnBoard {
+  NSUInteger index = [(NSArray *)self.turns count];
+  for (DataDyadmino *dataDyad in self.board) {
+    dataDyad.myHexCoord = [dataDyad getHexCoordForTurn:index];
+    dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:[dataDyad getOrientationForTurn:index]];
+    [self persistChangedPositionForBoardDataDyadmino:dataDyad];
+  }
+}
+
+-(BOOL)boardDyadminoesHaveMovedSinceStartOfTurn {
+  NSLog(@"board dyadminoes have moved since start of turn.");
+  NSLog(@"turns count is %i", [self.turns count]);
+  NSUInteger index = [(NSArray *)self.turns count];
+  for (DataDyadmino *dataDyad in self.board) {
+    HexCoord persistedHexCoord = [dataDyad getHexCoordForTurn:index];
+    DyadminoOrientation persistedOrientation = [dataDyad getOrientationForTurn:index];
+    if (dataDyad.myHexCoord.x != persistedHexCoord.x || dataDyad.myHexCoord.y != persistedHexCoord.y || [dataDyad.myOrientation unsignedIntegerValue] != persistedOrientation) {
+      return YES;
+    }
+  }
+  return NO;
 }
 
 #pragma mark - turns methods

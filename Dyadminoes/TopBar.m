@@ -70,6 +70,10 @@
       self.swapCancelOrUndoButton.color = [SKColor brownColor];
       self.swapCancelOrUndoButton.name = @"swap";
       break;
+    case kResetButton:
+      self.swapCancelOrUndoButton.color = [SKColor lightGrayColor];
+      self.swapCancelOrUndoButton.name = @"reset";
+      break;
     case kCancelButton:
       self.swapCancelOrUndoButton.color = [SKColor redColor];
       self.swapCancelOrUndoButton.name = @"cancel";

@@ -598,7 +598,7 @@
 #pragma mark - animate placement methods
 
 -(void)animateInRackOrReplayMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding {
-  NSLog(@"animate in rack or replay move to point.");
+//  NSLog(@"animate in rack or replay move to point.");
   
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime]; // was kConstantSpeed * distance
