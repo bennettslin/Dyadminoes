@@ -461,7 +461,7 @@
 
 #pragma mark - match creation methods
 
--(void)startLocalGameWithPlayerNames:(NSArray *)playerNames {
+-(void)startSelfOrPnPGameWithPlayerNames:(NSArray *)playerNames {
   
   [self backToParentViewWithAnimateRemoveVC:NO];
   

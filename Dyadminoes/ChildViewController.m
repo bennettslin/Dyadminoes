@@ -8,8 +8,6 @@
 
 #import "ChildViewController.h"
 
-#define kCancelButtonEdge 48.f
-
 @interface ChildViewController ()
 
 @property (strong, nonatomic) UIButton *cancelButton;
@@ -21,7 +19,7 @@
 -(void)viewDidLoad {
   [super viewDidLoad];
   self.cancelButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, kCancelButtonEdge, kCancelButtonEdge)];
-  self.cancelButton.backgroundColor = [UIColor whiteColor];
+  [self.cancelButton setImage:[UIImage imageNamed:@"button_cancel"] forState:UIControlStateNormal];
   [self.view addSubview:self.cancelButton];
   [self.cancelButton addTarget:self action:@selector(cancelButtonPressed) forControlEvents:UIControlEventTouchUpInside];
 }

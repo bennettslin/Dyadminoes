@@ -29,6 +29,7 @@
 		3F3C8FF41990DA1A0061B208 /* PnPBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3C8FF31990DA1A0061B208 /* PnPBar.m */; };
 		3F3C8FF71990DA4E0061B208 /* TopBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3C8FF61990DA4E0061B208 /* TopBar.m */; };
 		3F463CBE1A182498004544AB /* Dyadminoes.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 3F463CBC1A182498004544AB /* Dyadminoes.xcdatamodeld */; };
+		3F5036E71A5500D700A99EF1 /* button_cancel.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F5036E61A5500D700A99EF1 /* button_cancel.png */; };
 		3F55E1FD18D7A8520048E67E /* Button.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F55E1FC18D7A8520048E67E /* Button.m */; };
 		3F580BDC194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */; };
 		3F580BDE194F710F0040B5D0 /* Click2-Sebastian-759472264.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3F580BDD194F710F0040B5D0 /* Click2-Sebastian-759472264.wav */; };
@@ -138,6 +139,7 @@
 		3F3C8FF51990DA4E0061B208 /* TopBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TopBar.h; sourceTree = "<group>"; };
 		3F3C8FF61990DA4E0061B208 /* TopBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TopBar.m; sourceTree = "<group>"; };
 		3F463CBD1A182498004544AB /* Dyadminoes.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Dyadminoes.xcdatamodel; sourceTree = "<group>"; };
+		3F5036E61A5500D700A99EF1 /* button_cancel.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = button_cancel.png; sourceTree = "<group>"; };
 		3F55E1FB18D7A8520048E67E /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
 		3F55E1FC18D7A8520048E67E /* Button.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Button.m; sourceTree = "<group>"; };
 		3F580BDB194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Electronic_Chime-KevanGC-495939803.wav"; sourceTree = "<group>"; };
@@ -267,6 +269,7 @@
 		3F0526C21936CE92003D3C04 /* Images and Sounds */ = {
 			isa = PBXGroup;
 			children = (
+				3F5036E61A5500D700A99EF1 /* button_cancel.png */,
 				3FF255C2197A3F4000B40D8D /* Filmotype-Harmony.otf */,
 				3FF255C1197A3F3900B40D8D /* Filmotype-Modern.otf */,
 				3F7D0F2419A2CE0300F1FBD2 /* Sonata.ttf */,
@@ -625,6 +628,7 @@
 				3FE8CD6C19FCA26E00D097B6 /* AJH_Piano.sf2 in Resources */,
 				3F87AAC0188DEE4B008C4A0D /* Main_iPhone.storyboard in Resources */,
 				3F580BDC194F71030040B5D0 /* Electronic_Chime-KevanGC-495939803.wav in Resources */,
+				3F5036E71A5500D700A99EF1 /* button_cancel.png in Resources */,
 				3F0526CA1936CE9F003D3C04 /* page1.png in Resources */,
 				3F7D0F2519A2CE0300F1FBD2 /* Sonata.ttf in Resources */,
 				3F87AAB7188DEE4B008C4A0D /* InfoPlist.strings in Resources */,

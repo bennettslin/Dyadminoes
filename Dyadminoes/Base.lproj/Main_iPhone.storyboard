@@ -44,7 +44,7 @@
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="startGameTapped:" destination="FdT-xq-dLr" eventType="touchUpInside" id="7vc-M5-gp8"/>
+                                    <action selector="startSelfOrPnPGameTapped:" destination="FdT-xq-dLr" eventType="touchUpInside" id="lIU-a0-fcn"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="10s-8h-srM">
@@ -99,7 +99,7 @@
                         <outlet property="player3NameField" destination="04U-3P-eim" id="xf0-H4-CAV"/>
                         <outlet property="player4Button" destination="Av3-yg-M4F" id="WYE-QW-PAe"/>
                         <outlet property="player4NameField" destination="Bds-67-9cw" id="WYN-Cz-5um"/>
-                        <outlet property="startGameButton" destination="b8X-U3-9Zv" id="wkk-pz-PTA"/>
+                        <outlet property="startSelfOrPnPGameButton" destination="b8X-U3-9Zv" id="PRX-bk-29y"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="PT4-FE-xf5" userLabel="First Responder" sceneMemberID="firstResponder"/>

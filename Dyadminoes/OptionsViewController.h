@@ -14,12 +14,14 @@
 
 @protocol OptionsDelegate <NSObject>
 
+-(NSString *)resignText;
 -(void)presentFromOptionsChildViewController:(OptionsVCOptions)optionsNumber;
 
 @end
 
 @interface OptionsViewController : ChildViewController
 
+@property (strong, nonatomic) IBOutlet UIButton *resignButton;
 @property (weak, nonatomic) id<OptionsDelegate> delegate;
 
 @end

@@ -9,6 +9,13 @@
 #import <UIKit/UIKit.h>
 #import "NSObject+Helper.h"
 
+#define kChildVCButtonSize (kIsIPhone ? 44.f : 80.f)
+
+#define kCancelButtonEdge 48.f
+#define kChildVCTopMargin (kCancelButtonEdge * 1.5f)
+#define kChildVCSideMargin (kChildVCTopMargin * 0.5f)
+#define kChildVCBottomMargin (kChildVCTopMargin * 0.75f)
+
 @protocol ChildViewControllerDelegate <NSObject>
 
 -(void)backToParentViewWithAnimateRemoveVC:(BOOL)animateRemoveVC;

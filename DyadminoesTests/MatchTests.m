@@ -1058,6 +1058,10 @@
   XCTFail(@"Board dyadminoes were not reset to pre-turn state.");
 }
 
+-(void)testThatPointsAreBackToZeroAfterReset {
+  XCTFail(@"Turn points were not reset back to zero after board reset.");
+}
+
 -(void)testThatPassedTurnResetsBoardDyadminoes {
   XCTFail(@"Passed turn did not reset board dyadminoes.");
 }

@@ -34,7 +34,7 @@
 @property (strong, nonatomic) NSArray *playerNameFields;
 @property (strong, nonatomic) NSArray *playerButtons;
 
-@property (weak, nonatomic) IBOutlet UIButton *startGameButton;
+@property (weak, nonatomic) IBOutlet UIButton *startSelfOrPnPGameButton;
 @property (strong, nonatomic) NSUserDefaults *defaults;
 
 @property (nonatomic) NSUInteger selectedPlayerCount;
@@ -45,6 +45,29 @@
 
 -(void)viewDidLoad {
   [super viewDidLoad];
+  
+  /***************************************
+   
+   [Main player text field]
+   
+   ---------------------------------------
+   
+   [Guest player 1 text field]  (Join? button)
+   [Guest player 2 text field]  (Join? button)
+   [Guest player 3 text field]  (Join? button)
+   
+       (Start self or PnP game button)
+   
+   ----------------- or -----------------
+   
+            (Start computer game)
+   
+   ----------------- or -----------------
+   
+           (Start Game Center game)
+   
+   **************************************/
+  
   
   self.view.backgroundColor = kPlayerLighterOrange;
   self.startingQuadrant = kQuadrantUp;
@@ -116,12 +139,12 @@
 
 #pragma mark - button methods
 
--(void)changeStartGameText {
+-(void)changeStartSelfOrPnPGameButtonText {
   NSUInteger numberOfPlayers = self.selectedPlayerCount;
   if (numberOfPlayers == 0) {
-    [self.startGameButton setTitle:@"Choose a player" forState:UIControlStateNormal];
+    [self.startSelfOrPnPGameButton setTitle:@"Choose a player" forState:UIControlStateNormal];
   } else if (numberOfPlayers == 1) {
-    [self.startGameButton setTitle:@"Start solo game" forState:UIControlStateNormal];
+    [self.startSelfOrPnPGameButton setTitle:@"Start solo practice game" forState:UIControlStateNormal];
   } else if (numberOfPlayers >= 2) {
     NSString *numberText;
     switch (numberOfPlayers) {
@@ -138,11 +161,11 @@
         break;
     }
     NSString *gameText = [NSString stringWithFormat:@"Start %@-player game", numberText];
-    [self.startGameButton setTitle:gameText forState:UIControlStateNormal];
+    [self.startSelfOrPnPGameButton setTitle:gameText forState:UIControlStateNormal];
   }
 }
 
--(IBAction)startGameTapped:(id)sender {
+-(IBAction)startSelfOrPnPGameTapped:(id)sender {
   
     // ensure at least one button is selected
   BOOL atLeastOneButtonSelected = NO;
@@ -168,7 +191,7 @@
     }
   }
   
-  [self.delegate startLocalGameWithPlayerNames:[NSArray arrayWithArray:tempSelectedPlayers]];
+  [self.delegate startSelfOrPnPGameWithPlayerNames:[NSArray arrayWithArray:tempSelectedPlayers]];
 }
 
 -(IBAction)buttonTapped:(UIButton *)button {
@@ -188,14 +211,14 @@
     self.selectedPlayerCount++;
   }
   
-  self.startGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
-  [self changeStartGameText];
+  self.startSelfOrPnPGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
+  [self changeStartSelfOrPnPGameButtonText];
 }
 
 -(void)initialiseButtonAndTextFieldState {
   
   self.selectedPlayerCount = 1;
-  [self changeStartGameText];
+  [self changeStartSelfOrPnPGameButtonText];
   
   self.player1Button.selected = YES;
   self.player1NameField.backgroundColor = kMainLighterYellow;
@@ -208,7 +231,7 @@
     textField.textColor = [UIColor darkGrayColor];
   }
   
-  self.startGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
+  self.startSelfOrPnPGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
 }
 
 #pragma mark - text field methods
@@ -224,7 +247,7 @@
   UIButton *playerButton = self.playerButtons[[self.playerNameFields indexOfObject:textField]];
   playerButton.selected ? nil : [self buttonTapped:playerButton];
   
-  self.startGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
+  self.startSelfOrPnPGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
   
   [self.delegate disableOverlay];
 }
@@ -253,7 +276,7 @@
       [self saveNameForPlayerIndex:i];
     }
     
-    self.startGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
+    self.startSelfOrPnPGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
     [self.delegate enableOverlay];
   }
 }

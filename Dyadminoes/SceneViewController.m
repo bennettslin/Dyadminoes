@@ -48,10 +48,10 @@
 -(void)viewDidLoad {
   [super viewDidLoad];
   
-  self.optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"OptionsViewController"];
-  self.optionsVC.delegate = self;
-  
-  self.gameEndedVC = [self.storyboard instantiateViewControllerWithIdentifier:@"GameEndedViewController"];
+//  self.optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"OptionsViewController"];
+//  self.optionsVC.delegate = self;
+//  
+//  self.gameEndedVC = [self.storyboard instantiateViewControllerWithIdentifier:@"GameEndedViewController"];
   
     // first version of app will not have device orientation
 //  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
@@ -120,6 +120,7 @@
   [self.myScene toggleRackGoOut:YES completion:nil];
   [self.myScene toggleTopBarGoOut:YES completion:nil];
   [self.myScene toggleFieldActionInProgress:YES];
+  
   [self presentChildViewController:self.optionsVC];
 }
 
@@ -617,6 +618,7 @@
 -(OptionsViewController *)optionsVC {
   if (!_optionsVC) {
     _optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"OptionsViewController"];
+    _optionsVC.delegate = self;
   }
   return _optionsVC;
 }
@@ -630,6 +632,13 @@
     _gameEndedVC = [self.storyboard instantiateViewControllerWithIdentifier:@"GameEndedViewController"];
   }
   return _gameEndedVC;
+}
+
+#pragma mark - delegate methods
+
+-(NSString *)resignText {
+  return [self.myMatch returnType] == kSelfGame ?
+  @"End game" : @"Resign";
 }
 
 #pragma mark - system methods

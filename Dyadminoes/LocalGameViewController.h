@@ -11,7 +11,7 @@
 
 @protocol LocalGameDelegate <NSObject>
 
--(void)startLocalGameWithPlayerNames:(NSArray *)playerNames;
+-(void)startSelfOrPnPGameWithPlayerNames:(NSArray *)playerNames;
 -(void)disableOverlay;
 -(void)enableOverlay;
 

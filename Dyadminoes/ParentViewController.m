@@ -140,10 +140,20 @@
 }
 
 -(void)determineFrameForViewController:(ChildViewController *)childVC {
-  CGFloat viewWidth = self.screenWidth * 4 / 5;
-  CGFloat viewHeight = kIsIPhone ? self.screenHeight * 5 / 7 : self.screenHeight * 4 / 5;
+  CGFloat viewWidth;
+  CGFloat viewHeight;
 
+  if ([childVC isKindOfClass:[OptionsViewController class]] ||
+      [childVC isKindOfClass:[GameEndedViewController class]]) {
+    viewWidth = self.screenWidth * 3 / 5;
+    viewHeight = kIsIPhone ? self.screenHeight * 4 / 7 : self.screenHeight * 3 / 5;
+  } else {
+    viewWidth = self.screenWidth * 4 / 5;
+    viewHeight = kIsIPhone ? self.screenHeight * 5 / 7 : self.screenHeight * 4 / 5;
+  }
+  
   childVC.view.frame = CGRectMake(childVC.view.frame.origin.x, childVC.view.frame.origin.y, viewWidth, viewHeight);
+  
   [childVC positionCancelButtonBasedOnWidth:viewWidth];
   
   childVC.view.layer.cornerRadius = kCornerRadius;
