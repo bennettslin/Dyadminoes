@@ -576,6 +576,11 @@
       }
     }
     
+      // persist changed position and orientation of all board dyadminoes
+    for (DataDyadmino *dataDyad in self.board) {
+      [self persistChangedPositionForBoardDataDyadmino:dataDyad];
+    }
+    
       // reset rack order
     NSArray *dataDyadminoIndexesThisTurn = player.dataDyadminoIndexesThisTurn;
     for (NSInteger i = 0; i < dataDyadminoIndexesThisTurn.count; i++) {
@@ -650,6 +655,8 @@
 }
 
 -(void)persistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad {
+    // this gets called in placeFirstDyadmino, resetBoard, and recordDyadminoes
+  
   NSLog(@"persist changed position for board data dyadmino.");
   if ([self.board containsObject:dataDyad]) {
     
@@ -1259,7 +1266,6 @@
     returnPC++;
     compareIndex += addCounter;
     addCounter--;
-      //    NSLog(@"returnPC is %lu, compareIndex is %lu, addCounter is %lu", (unsigned long)returnPC, (unsigned long)compareIndex, (unsigned long)addCounter);
   }
   
   if (isPC1) {
@@ -1271,31 +1277,14 @@
 
 #pragma mark - array of chords and points helper methods
 
-/*-(NSSet *)totalChordSonoritiesThisTurn {
-
-  NSMutableSet *tempTotalChordSonorities = [NSMutableSet new];
-  
-  for (int i = 0; i < [(NSArray *)self.arrayOfChordsAndPoints count]; i++) {
-    NSDictionary *chordDictionary = self.arrayOfChordsAndPoints[i];
-    NSSet *chordSonorities = chordDictionary[@"chordSonorities"];
-    for (NSSet *chordSonority in chordSonorities) {
-      [tempTotalChordSonorities addObject:chordSonority];
-    }
-  }
-  
-  return [NSSet setWithSet:tempTotalChordSonorities];
-}*/
-
 -(NSUInteger)sumOfPointsThisTurn {
   
   NSUInteger sumPoints = 0;
-  
   for (int i = 0; i < [(NSArray *)self.arrayOfChordsAndPoints count]; i++) {
     NSDictionary *chordDictionary = self.arrayOfChordsAndPoints[i];
     NSNumber *chordPointsNumber = chordDictionary[@"points"];
     sumPoints += [chordPointsNumber unsignedIntegerValue];
   }
-  
   return sumPoints;
 }
 
@@ -1303,11 +1292,9 @@
   
   NSUInteger points = 0;
   for (NSSet *chordSonority in chordSonorities) {
-    
     BOOL extended = [extendedChordSonorities containsObject:chordSonority];
     points += [self pointsForChordSonority:chordSonority extended:extended];
   }
-  
   return points;
 }
 
@@ -1320,7 +1307,6 @@
     
       // seventh chord
   } else {
-    
     points = extended ? kPointsExtendedSeventh : kPointsSeventh;
   }
   return points;

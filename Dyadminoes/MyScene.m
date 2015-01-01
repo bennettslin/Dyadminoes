@@ -1816,7 +1816,6 @@
   if (!_recentRackDyadmino) {
     [self tempStoreForPlayerSceneDataDyadminoes]; // for player view
     [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
-    [self persistChangedBoardDyadminoPositionsAndOrientations]; // for match
 
     if ([self.myMatch returnType] != kPnPGame) {
       [self populateRackArray];
@@ -1885,14 +1884,6 @@
       [NSNumber numberWithUnsignedInteger:dyadmino.orientation];
   
   dataDyad.myRackOrder = [NSNumber numberWithInteger:dyadmino.myRackOrder];
-}
-
--(void)persistChangedBoardDyadminoPositionsAndOrientations {
-    // call this *after* recordDyadminoes to ensure that dataDyad is in match's board
-  for (Dyadmino *dyadmino in self.boardDyadminoes) {
-    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-    [self.myMatch persistChangedPositionForBoardDataDyadmino:dataDyad];
-  }
 }
 
 #pragma mark - realtime update methods
@@ -2226,8 +2217,6 @@
             
             NSSet *supersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:self.legalChordsForHoveringBoardDyadmino thatAreSupersetsOfSonoritiesInSonorities:legalChordSonoritiesFormed inclusive:NO];
             
-            NSLog(@"legalChordsForHover %@, supersets %@", self.legalChordsForHoveringBoardDyadmino, supersets);
-            
             NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:supersets withInitialString:@"Can't break " andEndingString:@"."];
             
             [self.myDelegate showChordMessage:chordsText sign:kChordMessageBad];
@@ -2242,7 +2231,7 @@
             
             NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.myMatch.allBoardChords inclusive:NO];
             
-              // show action sheet if dyadmino was on board before turn
+              // dyadmino was on board before turn
             if ([self.myMatch.board containsObject:[self getDataDyadminoFromDyadmino:dyadmino]]) {
               
                 // only show points from newly built chord
