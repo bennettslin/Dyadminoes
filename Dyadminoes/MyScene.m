@@ -42,6 +42,7 @@
 @property (strong, nonatomic) NSSet *boardDyadminoes; // contains holding container dyadminoes
 @property (strong, nonatomic) NSSet *legalChordsForHoveringBoardDyadmino; // instantiated and nillified along with hovering dyadmino
 @property (strong, nonatomic) NSSet *allBoardChords;
+@property (strong, nonatomic) NSMutableSet *swapContainer;
 
 @property (strong, nonatomic) NSSet *legalSonoritiesThisTurn;
 
@@ -72,7 +73,6 @@
     // bools and modes
   BOOL _pnpBarUp;
   BOOL _replayMode;
-  BOOL _swapMode;
   BOOL _lockMode;
   BOOL _boardDyadminoMovedShowResetButton;
   BOOL _dyadminoesStationary;
@@ -133,7 +133,7 @@
     self.mySoundEngine = [SoundEngine sharedSoundEngine];
     [self addChild:self.mySoundEngine];
     
-    _swapMode = NO;
+    self.swapContainer = nil;
     _dyadminoesStationary = NO;
     _dyadminoesHollowed = NO;
 
@@ -358,7 +358,7 @@
   _dyadminoesStationary = NO;
   [self toggleCellsAndDyadminoesAlphaAnimated:NO];
   
-  _swapMode = NO;
+  self.swapContainer = nil;
   [self toggleSwapFieldWithAnimation:NO];
   
   self.boardDyadminoes = nil;
@@ -604,7 +604,7 @@
   [self addChild:_swapField];
   
     // initially sets swap mode
-  _swapMode = NO;
+  self.swapContainer = nil;
   _swapField.hidden = YES;
   
   return (_swapField.parent == self);
@@ -716,7 +716,7 @@
   
     // sceneVC sends Y upside down
   CGFloat rightSideUpY = self.size.height - location.y;
-  CGFloat bottomFloat = _swapMode ? kRackHeight * 2 : kRackHeight;
+  CGFloat bottomFloat = self.swapContainer ? kRackHeight * 2 : kRackHeight;
   return (rightSideUpY > bottomFloat && rightSideUpY < self.size.height - kTopBarHeight) ? YES : NO;
 }
 
@@ -787,7 +787,7 @@
   if (!dyadmino.hidden && !_canDoubleTapForDyadminoFlip && ([dyadmino isOnBoard] || !dyadmino.isRotating)) {
     
         // register sound if dyadmino tapped
-    if ((!_pnpBarUp && !_replayMode && dyadmino && (!_swapMode || (_swapMode && [dyadmino isInRack])) && !_pivotInProgress) && (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack]))) {
+    if ((!_pnpBarUp && !_replayMode && dyadmino && (!self.swapContainer || (self.swapContainer && [dyadmino isInRack])) && !_pivotInProgress) && (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack]))) {
       
           // when face is nil, sound both faces
         [self soundDyadmino:dyadmino withFace:nil];
@@ -839,7 +839,7 @@
       if (_canDoubleTapForBoardZoom && !_hoveringDyadmino) {
         CGFloat distance = [self getDistanceFromThisPoint:_beganTouchLocation toThisPoint:_endTouchLocationToMeasureDoubleTap];
         if (distance < kDistanceToDoubleTap) {
-          if (!_pnpBarUp && !_swapMode && !_replayMode) {
+          if (!_pnpBarUp && !self.swapContainer && !_replayMode) {
             [self handleDoubleTapForLockModeWithSound:YES];
           }
         }
@@ -984,7 +984,7 @@
   
     //  this is the only place that sets dyadmino highlight to YES
     //  dyadmino highlight is reset when sent home or finalised
-  if ([_touchedDyadmino belongsInRack] && !_swapMode && !_pivotInProgress) {
+  if ([_touchedDyadmino belongsInRack] && !self.swapContainer && !_pivotInProgress) {
       CGPoint dyadminoOffsetPosition = [self addToThisPoint:_currentTouchLocation thisPoint:_touchOffsetVector];
       [_touchedDyadmino adjustHighlightGivenDyadminoOffsetPosition:dyadminoOffsetPosition];
   }
@@ -1112,7 +1112,7 @@
     
     CGPoint oldBoardPosition = _boardField.position;
     
-    CGPoint adjustedNewPosition = [_boardField adjustToNewPositionFromBeganLocation:_beganTouchLocation toCurrentLocation:_currentTouchLocation withSwap:_swapMode];
+    CGPoint adjustedNewPosition = [_boardField adjustToNewPositionFromBeganLocation:_beganTouchLocation toCurrentLocation:_currentTouchLocation withSwap:(BOOL)self.swapContainer];
     
     if (_hoveringDyadminoStaysFixedToBoard) {
       _hoveringDyadmino.position = [self addToThisPoint:_hoveringDyadmino.position
@@ -1146,7 +1146,7 @@
     // if in replay, only determine cells based on these dyadminoes
   [_boardField determineOutermostCellsBasedOnDyadminoes:(_replayMode ? [self dyadminoesOnBoardThisReplayTurn] : [self allBoardDyadminoesPlusRecentRackDyadmino])];
   [_boardField determineBoardPositionBounds];
-  [_boardField repositionCellsForZoomWithSwap:_swapMode];
+  [_boardField repositionCellsForZoomWithSwap:(BOOL)self.swapContainer];
   
     // resize dyadminoes
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
@@ -1463,10 +1463,9 @@
   
       /// games button
   if (button == _topBar.returnOrStartButton) {
-    if (_swapMode) {
-      _swapMode = NO;
-      [self toggleSwapFieldWithAnimation:YES];
+    if (self.swapContainer) {
       [self cancelSwappedDyadminoes];
+      [self toggleSwapFieldWithAnimation:YES];
     }
     [self goBackToMainViewController];
     return;
@@ -1483,8 +1482,8 @@
       /// swap button
   } else if (button == _topBar.swapCancelOrUndoButton &&
              [button confirmSwapCancelOrUndo] == kSwapButton) {
-    if (!_swapMode) {
-      _swapMode = YES;
+    if (!self.swapContainer) {
+      self.swapContainer = [NSMutableSet new];
       [self toggleSwapFieldWithAnimation:YES];
     }
     
@@ -1493,10 +1492,9 @@
              [button confirmSwapCancelOrUndo] == kCancelButton) {
     
       // if in swap mode, cancel swap
-    if (_swapMode) {
-      _swapMode = NO;
-      [self toggleSwapFieldWithAnimation:YES];
+    if (self.swapContainer) {
       [self cancelSwappedDyadminoes];
+      [self toggleSwapFieldWithAnimation:YES];
       
         // else send dyadmino home
     } else if (_hoveringDyadmino) {
@@ -1527,7 +1525,7 @@
       /// pass or done button
   } else if (button == _topBar.passPlayOrDoneButton &&
              ([button confirmPassPlayOrDone] == kDoneButton || [button confirmPassPlayOrDone] == kPassButton)) {
-    if (!_swapMode) {
+    if (!self.swapContainer) {
       if ([self.myMatch sumOfPointsThisTurn] == 0) {
         
           // it's a pass, so confirm with action sheet
@@ -1536,10 +1534,10 @@
         [self presentActionSheet:kActionSheetTurnDone withPoints:[self.myMatch sumOfPointsThisTurn]];
       }
           // finalising a swap
-    } else if (_swapMode) {
+    } else if (self.swapContainer) {
         // confirm that there's enough dyadminoes in the pile
-      NSSet *swapIndexContainer = self.myMatch.swapIndexContainer;
-      if (swapIndexContainer.count > self.myMatch.pile.count) {
+//      NSSet *swapIndexContainer = self.myMatch.swapIndexContainer;
+      if (self.swapContainer.count > self.myMatch.pile.count) {
         
         [self presentActionSheet:kActionSheetPileNotEnough withPoints:0];
         return;
@@ -1612,8 +1610,8 @@
 #pragma mark - match interaction methods
 
 -(void)cancelSwappedDyadminoes {
-  _swapMode = NO;
-  [self.myMatch removeAllSwaps];
+  self.swapContainer = nil;
+//  [self.myMatch removeAllSwaps];
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
       [dyadmino placeInBelongsInSwap:NO];
@@ -1625,9 +1623,9 @@
 -(BOOL)finaliseSwap {
   
   __weak typeof(self) weakSelf = self;
-  NSSet *swapIndexContainer = self.myMatch.swapIndexContainer;
+//  NSSet *swapIndexContainer = self.myMatch.swapIndexContainer;
     // extra confirmation; this will have been checked when button was done button was first pressed
-  if (swapIndexContainer.count <= self.myMatch.pile.count) {
+  if (self.swapContainer.count <= self.myMatch.pile.count) {
     
     NSMutableArray *toPile = [NSMutableArray new];
     for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
@@ -1653,11 +1651,10 @@
           
           [weakSelf updateOrderOfDataDyadsThisTurnToReflectRackOrder];
           
-          _swapMode = NO;
-          [weakSelf toggleSwapFieldWithAnimation:YES];
-          
             // then swap in the logic
-          [weakSelf.myMatch swapDyadminoesFromCurrentPlayer];
+          [weakSelf.myMatch passTurnBySwappingDyadminoes:self.swapContainer];
+          weakSelf.swapContainer = nil;
+          [weakSelf toggleSwapFieldWithAnimation:YES];
           
           if ([weakSelf.myMatch returnType] != kPnPGame) {
             [weakSelf populateRackArray];
@@ -1974,7 +1971,7 @@
 -(void)correctBoardForPositionAfterZoom {
   
   CGFloat zoomFactor = _boardZoomedOut ? kZoomResizeFactor : 1.f;
-  CGFloat swapBuffer = _swapMode ? kRackHeight : 0.f; // the height of the swap field
+  CGFloat swapBuffer = self.swapContainer ? kRackHeight : 0.f; // the height of the swap field
   
   CGFloat lowestXBuffer = _boardField.lowestXPos + (kDyadminoFaceAverageWideRadius * zoomFactor);
   CGFloat lowestYBuffer = _boardField.lowestYPos + (kDyadminoFaceRadius * zoomFactor);
@@ -2016,7 +2013,7 @@
 //    return;
   }
 
-  CGFloat swapBuffer = _swapMode ? kRackHeight : 0.f; // the height of the swap field
+  CGFloat swapBuffer = self.swapContainer ? kRackHeight : 0.f; // the height of the swap field
   
     // only prevents board move from touch if it's truly out of bounds
     // it's fine if it's still within the buffer
@@ -2148,7 +2145,7 @@
 }
 
 -(void)updateDyadmino:(Dyadmino *)dyadmino forHover:(CFTimeInterval)currentTime {
-  if (!_swapMode) {
+  if (!self.swapContainer) {
     if ([dyadmino isHovering]) {
       if (_hoverTime == 0.f) {
         _hoverTime = currentTime;
@@ -2410,12 +2407,12 @@
   
   NSArray *turns = self.myMatch.turns;
   NSArray *holdingIndexContainer = self.myMatch.holdingIndexContainer;
-  NSSet *swapIndexContainer = self.myMatch.swapIndexContainer;
+//  NSSet *swapIndexContainer = self.myMatch.swapIndexContainer;
     // three main possibilities: game has ended, in game but not player's turn, in game and player's turn
   BOOL gameHasEndedForPlayer = [_myPlayer returnResigned] || [self.myMatch returnGameHasEnded];
   BOOL currentPlayerHasTurn = _myPlayer == [self.myMatch returnCurrentPlayer];
   BOOL thereIsATouchedOrHoveringDyadmino = _touchedDyadmino || _hoveringDyadmino;
-  BOOL swapContainerNotEmpty = swapIndexContainer.count > 0;
+  BOOL swapContainerNotEmpty = self.swapContainer.count > 0;
   
     // this determines whether cancel or undo, so it only cares about rack dyadminoes played
   BOOL noRackDyadminoesPlayedAndNoRecentRackDyadmino = holdingIndexContainer.count == 0 && !_recentRackDyadmino;
@@ -2423,14 +2420,14 @@
       // if player has points from moving a board dyadmino, that counts as well
   BOOL noBoardDyadminoesPlayedAndNoRecentRackDyadmino = ([self.myMatch sumOfPointsThisTurn] == 0) && !_recentRackDyadmino;
   
-  [_topBar node:_topBar.returnOrStartButton shouldBeEnabled:!_swapMode && !thereIsATouchedOrHoveringDyadmino];
-  [_topBar node:_topBar.replayButton shouldBeEnabled:(gameHasEndedForPlayer || !currentPlayerHasTurn || (currentPlayerHasTurn && !_swapMode)) && (turns.count > 0) && !_pnpBarUp];
+  [_topBar node:_topBar.returnOrStartButton shouldBeEnabled:!self.swapContainer && !thereIsATouchedOrHoveringDyadmino];
+  [_topBar node:_topBar.replayButton shouldBeEnabled:(gameHasEndedForPlayer || !currentPlayerHasTurn || (currentPlayerHasTurn && !self.swapContainer)) && (turns.count > 0) && !_pnpBarUp];
   [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:(!gameHasEndedForPlayer && currentPlayerHasTurn) && !_pnpBarUp && _undoButtonAllowed];
-  [_topBar node:_topBar.passPlayOrDoneButton shouldBeEnabled:((!gameHasEndedForPlayer && currentPlayerHasTurn) && (!thereIsATouchedOrHoveringDyadmino) && !_pnpBarUp && ((_swapMode && swapContainerNotEmpty) || !_swapMode) && (_swapMode || (!noBoardDyadminoesPlayedAndNoRecentRackDyadmino || (noBoardDyadminoesPlayedAndNoRecentRackDyadmino && [self.myMatch returnType] != kSelfGame))) && (!_recentRackDyadmino || (_recentRackDyadmino && _recentRackDyadminoFormsLegalChord)))];
-  [_topBar node:_topBar.optionsButton shouldBeEnabled:(!gameHasEndedForPlayer && (!currentPlayerHasTurn || (currentPlayerHasTurn && !_swapMode))) && !_pnpBarUp];
+  [_topBar node:_topBar.passPlayOrDoneButton shouldBeEnabled:((!gameHasEndedForPlayer && currentPlayerHasTurn) && (!thereIsATouchedOrHoveringDyadmino) && !_pnpBarUp && ((self.swapContainer && swapContainerNotEmpty) || !self.swapContainer) && (self.swapContainer || (!noBoardDyadminoesPlayedAndNoRecentRackDyadmino || (noBoardDyadminoesPlayedAndNoRecentRackDyadmino && [self.myMatch returnType] != kSelfGame))) && (!_recentRackDyadmino || (_recentRackDyadmino && _recentRackDyadminoFormsLegalChord)))];
+  [_topBar node:_topBar.optionsButton shouldBeEnabled:(!gameHasEndedForPlayer && (!currentPlayerHasTurn || (currentPlayerHasTurn && !self.swapContainer))) && !_pnpBarUp];
   
     // FIXME: can be refactored further
-  if (_swapMode) {
+  if (self.swapContainer) {
     [_topBar changeSwapCancelOrUndo:kCancelButton];
     [_topBar changePassPlayOrDone:kDoneButton];
 
@@ -2686,12 +2683,12 @@
   }
   
     // cells will toggle faster than field moves
-  _dyadminoesStationary = _swapMode;
+  _dyadminoesStationary = (BOOL)self.swapContainer;
   [self toggleCellsAndDyadminoesAlphaAnimated:YES]; // only animate if board zoomed in
   
   [self postSoundNotification:kNotificationToggleBarOrField];
   
-  if (!_swapMode) {
+  if (!self.swapContainer) {
     _fieldActionInProgress = YES;
     
       // swap field action
@@ -2734,12 +2731,14 @@
 
 -(void)addDataDyadminoToSwapContainerForDyadmino:(Dyadmino *)dyadmino {
   DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-  [self.myMatch addToSwapDataDyadmino:dataDyad];
+//  [self.myMatch addToSwapDataDyadmino:dataDyad];
+  [self.swapContainer addObject:dataDyad];
 }
 
 -(void)removeDataDyadminoFromSwapContainerForDyadmino:(Dyadmino *)dyadmino {
   DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-  [self.myMatch removeFromSwapDataDyadmino:dataDyad];
+//  [self.myMatch removeFromSwapDataDyadmino:dataDyad];
+  [self.swapContainer removeObject:dataDyad];
 }
 
 -(void)updateOrderOfDataDyadsThisTurnToReflectRackOrder {
@@ -2752,7 +2751,9 @@
     dataDyad.myRackOrder = [NSNumber numberWithInteger:i];
     
     if ([_myPlayer thisTurnContainsDataDyadmino:dataDyad] &&
-        ![self.myMatch swapContainerContainsDataDyadmino:dataDyad]) {
+        ![self.swapContainer containsObject:dataDyad]) {
+//      ![self.myMatch swapContainerContainsDataDyadmino:dataDyad]) {
+
       
       [_myPlayer removeFromThisTurnsDataDyadmino:dataDyad];
       [_myPlayer insertInThisTurnsDataDyadmino:dataDyad atIndex:i];
@@ -2912,13 +2913,13 @@
     // if it's pivoting, it's on the board, period
     // it's also on board, if not in swap and above rack and below top bar
   
-  if (_pivotInProgress || (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
+  if (_pivotInProgress || (!self.swapContainer && _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
       _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight)) {
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
     [dyadmino placeInTopBar:NO];
     
       // it's in swap
-  } else if (_swapMode && _currentTouchLocation.y - _touchOffsetVector.y > kRackHeight) {
+  } else if (self.swapContainer && _currentTouchLocation.y - _touchOffsetVector.y > kRackHeight) {
     [dyadmino placeInBelongsInSwap:YES];
     [self addDataDyadminoToSwapContainerForDyadmino:dyadmino];
     
@@ -2932,7 +2933,7 @@
     [dyadmino placeInTopBar:NO];
 
       // else it's in the top bar, but this is a clumsy workaround, so be careful!
-  } else if (!_swapMode && _currentTouchLocation.y - _touchOffsetVector.y >=
+  } else if (!self.swapContainer && _currentTouchLocation.y - _touchOffsetVector.y >=
              self.frame.size.height - kTopBarHeight) {
     [dyadmino placeInTopBar:YES];
   }
@@ -3010,7 +3011,7 @@
         // second restriction is that touch point is close enough based on following criteria:
         // if dyadmino is on board, not hovering and thus locked in a node, and we're not in swap mode...
       [self determineCurrentSectionOfDyadmino:dyadmino];
-      if ([dyadmino isOnBoard] && !_swapMode) {
+      if ([dyadmino isOnBoard] && !self.swapContainer) {
         
           // accommodate the fact that dyadmino's position is now relative to board
         CGPoint relativeToBoardPoint = [_boardField getOffsetFromPoint:touchPoint];
@@ -3052,7 +3053,7 @@
     }
   }
   
-  if (!_swapMode && [dyadmino isOnBoard]) {
+  if (!self.swapContainer && [dyadmino isOnBoard]) {
     if (dyadmino.orientation == kPC1atTwelveOClock || dyadmino.orientation == kPC1atSixOClock) {
       arrayOrSetToSearch = _boardField.snapPointsTwelveOClock;
     } else if (dyadmino.orientation == kPC1atTwoOClock || dyadmino.orientation == kPC1atEightOClock) {
@@ -3409,10 +3410,9 @@
         return;
         
       } else if ([buttonText isEqualToString:@"Cancel"]) {
-        if (_swapMode) {
-          _swapMode = NO;
-          [self toggleSwapFieldWithAnimation:YES];
+        if (self.swapContainer) {
           [self cancelSwappedDyadminoes];
+          [self toggleSwapFieldWithAnimation:YES];
         }
         [self updateTopBarButtons];
         return;
@@ -3593,7 +3593,7 @@
   NSLog(@"dataDyads are:  %@", [[_myPlayer.dataDyadminoIndexesThisTurn valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
   NSLog(@"Dyadminoes are: %@", [[self.playerRackDyadminoes valueForKey:@"name"] componentsJoinedByString:@", "]);
   NSLog(@"holdingCon is:  %@", [[self.myMatch.holdingIndexContainer valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
-  NSLog(@"swapContainer:  %@", [[[self.myMatch.swapIndexContainer allObjects] valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
+  NSLog(@"swapContainer:  %@", [[[self.swapContainer allObjects] valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
   NSLog(@"rackDyad order: %@", [[self.playerRackDyadminoes valueForKey:@"myRackOrder"] componentsJoinedByString:@", "]);
   NSLog(@"board is:       %@", self.boardDyadminoes);
   NSLog(@"match board is  %@", self.myMatch.board);

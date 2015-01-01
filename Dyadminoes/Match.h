@@ -48,7 +48,7 @@
 @property (retain, nonatomic) id holdingIndexContainer;
 
   // NSSet, contains dataDyad indices as NSNumbers
-@property (retain, nonatomic) id swapIndexContainer;
+//@property (retain, nonatomic) id swapIndexContainer;
 
   // NSArray of NSDictionaries each representing a played dyadmino or moved board dyadmino
   // each of dyadmino is an NSDictionary of chordSonorities: NSSet, points: NSNumber, and fromRack: NSNumber
@@ -99,7 +99,8 @@
 -(DataDyadmino *)undoLastPlayedDyadmino;
 
   // swap
--(BOOL)swapDyadminoesFromCurrentPlayer;
+//-(BOOL)swapDyadminoesFromCurrentPlayer;
+-(BOOL)passTurnBySwappingDyadminoes:(NSSet *)dyadminoesToSwap;
 
   // pass or turn done
 -(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap;
@@ -142,11 +143,11 @@
 -(BOOL)holdingsContainsDataDyadmino:(DataDyadmino *)dataDyad;
 -(NSArray *)dataDyadsInIndexContainer:(NSArray *)holdingContainer;
 
-  // swap container helper methods
--(BOOL)swapContainerContainsDataDyadmino:(DataDyadmino *)dataDyad;
--(void)addToSwapDataDyadmino:(DataDyadmino *)dataDyad;
--(void)removeFromSwapDataDyadmino:(DataDyadmino *)dataDyad;
--(void)removeAllSwaps;
+//  // swap container helper methods
+//-(BOOL)swapContainerContainsDataDyadmino:(DataDyadmino *)dataDyad;
+//-(void)addToSwapDataDyadmino:(DataDyadmino *)dataDyad;
+//-(void)removeFromSwapDataDyadmino:(DataDyadmino *)dataDyad;
+//-(void)removeAllSwaps;
 
   // reset methods
 -(void)resetDyadminoesOnBoard;
@@ -178,9 +179,9 @@
 
 @end
 
-@interface SwapIndexContainer : NSValueTransformer
-
-@end
+//@interface SwapIndexContainer : NSValueTransformer
+//
+//@end
 
 @interface ArrayOfChordsAndPoints : NSValueTransformer
 

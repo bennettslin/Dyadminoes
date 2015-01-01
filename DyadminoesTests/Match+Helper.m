@@ -35,4 +35,16 @@
 
 }
 
+-(void)addToSwapDataDyadmino:(DataDyadmino *)dataDyad {
+  NSMutableSet *tempSet = [NSMutableSet setWithSet:self.swapIndexContainer];
+  [tempSet addObject:[NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]]];
+  self.swapIndexContainer = [NSSet setWithSet:tempSet];
+}
+
+-(void)removeFromSwapDataDyadmino:(DataDyadmino *)dataDyad {
+  NSMutableSet *tempSet = [NSMutableSet setWithSet:self.swapIndexContainer];
+  [tempSet removeObject:[NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]]];
+  self.swapIndexContainer = [NSSet setWithSet:tempSet];
+}
+
 @end

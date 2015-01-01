@@ -33,13 +33,12 @@
 @dynamic gameHasEnded;
 @dynamic dataDyadminoes;
 @dynamic holdingIndexContainer;
-@dynamic swapIndexContainer;
+//@dynamic swapIndexContainer;
 @dynamic replayTurn;
 @dynamic turns;
 @dynamic firstDataDyadIndex;
 @dynamic randomNumber1To24;
 @dynamic arrayOfChordsAndPoints;
-//@dynamic pointsThisTurn;
 
   // not persisted
 @synthesize replayBoard = _replayBoard;
@@ -70,7 +69,7 @@
     self.randomNumber1To24 = [NSNumber numberWithUnsignedInteger:[self randomIntegerUpTo:24] + 1];
     
     self.holdingIndexContainer = [NSArray new];
-    self.swapIndexContainer = [NSSet new];
+//    self.swapIndexContainer = [NSSet new];
 
     self.turns = [NSMutableArray new];
     self.replayTurn = [NSNumber numberWithUnsignedInteger:0];
@@ -481,9 +480,9 @@
   };
 }
 
--(BOOL)swapDyadminoesFromCurrentPlayer {
+-(BOOL)passTurnBySwappingDyadminoes:(NSSet *)dyadminoesToSwap {
 
-  NSUInteger swapContainerCount = [(NSArray *)self.swapIndexContainer count];
+  NSUInteger swapContainerCount = dyadminoesToSwap.count;
   if (swapContainerCount <= self.pile.count && swapContainerCount > 0) {
     
     Player *player = [self returnCurrentPlayer];
@@ -492,8 +491,9 @@
     NSMutableArray *tempDataDyadminoes = [NSMutableArray new];
     
       // remove data dyadminoes from player rack, store in temp array
-    for (NSNumber *number in self.swapIndexContainer) {
-      DataDyadmino *dataDyad = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
+//    for (NSNumber *number in self.swapIndexContainer) {
+    for (DataDyadmino *dataDyad in dyadminoesToSwap) {
+//      DataDyadmino *dataDyad = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
       dataDyad.placeStatus = [NSNumber numberWithUnsignedInteger:kInPile];
       [player removeFromThisTurnsDataDyadmino:dataDyad];
       [tempDataDyadminoes addObject:dataDyad];
@@ -507,7 +507,7 @@
       [self.pile addObject:dataDyad];
     }
     
-    [self removeAllSwaps];
+//    [self removeAllSwaps];
     
     [self resetHoldingContainer];
     [self resetArrayOfChordsAndPoints];
@@ -536,11 +536,11 @@
   self.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
   
       // player passes
-  if ([self sumOfPointsThisTurn] == 0) {
-    
+//  if ([self sumOfPointsThisTurn] == 0) {
+  
       // this is the original condition, which allowed original match tests to pass
       // original tests did not include information about score
-//  if ([(NSArray *)self.holdingIndexContainer count] == 0) {
+  if ([(NSArray *)self.holdingIndexContainer count] == 0) {
   
       // if solo game, ends right away
       // FIXME: this will need to be changed to accommodate when board dyadmino
@@ -1204,7 +1204,7 @@
     NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:allSonorities];
     IllegalPlacementResult result = [[SonorityLogic sharedLogic] checkIllegalPlacementFromFormationOfSonorities:allSonorities];
     
-    if (legalChordSonoritiesFormed.count == 0) {
+    if (legalChordSonoritiesFormed.count == 0 && [dataDyadmino.myID unsignedIntegerValue] != [self returnFirstDataDyadIndex]) {
       NSLog(@"Persisted dyadmino %@ does not form any legal chords. This is a critical failure.", dataDyadmino.myID);
       abort();
     } else if (result != kNotIllegal) {
@@ -1328,28 +1328,28 @@
   return [NSArray arrayWithArray:tempArray];
 }
 
-#pragma mark - swap container helper methods
-
--(BOOL)swapContainerContainsDataDyadmino:(DataDyadmino *)dataDyad {
-  return [self.swapIndexContainer containsObject:[NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]]];
-}
-
--(void)addToSwapDataDyadmino:(DataDyadmino *)dataDyad {
-  NSMutableSet *tempSet = [NSMutableSet setWithSet:self.swapIndexContainer];
-  [tempSet addObject:[NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]]];
-  self.swapIndexContainer = [NSSet setWithSet:tempSet];
-}
-
--(void)removeFromSwapDataDyadmino:(DataDyadmino *)dataDyad {
-  NSMutableSet *tempSet = [NSMutableSet setWithSet:self.swapIndexContainer];
-  [tempSet removeObject:[NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]]];
-  self.swapIndexContainer = [NSSet setWithSet:tempSet];
-}
-
--(void)removeAllSwaps {
-  self.swapIndexContainer = nil;
-  self.swapIndexContainer = [NSMutableSet new];
-}
+//#pragma mark - swap container helper methods
+//
+//-(BOOL)swapContainerContainsDataDyadmino:(DataDyadmino *)dataDyad {
+//  return [self.swapIndexContainer containsObject:[NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]]];
+//}
+//
+//-(void)addToSwapDataDyadmino:(DataDyadmino *)dataDyad {
+//  NSMutableSet *tempSet = [NSMutableSet setWithSet:self.swapIndexContainer];
+//  [tempSet addObject:[NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]]];
+//  self.swapIndexContainer = [NSSet setWithSet:tempSet];
+//}
+//
+//-(void)removeFromSwapDataDyadmino:(DataDyadmino *)dataDyad {
+//  NSMutableSet *tempSet = [NSMutableSet setWithSet:self.swapIndexContainer];
+//  [tempSet removeObject:[NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]]];
+//  self.swapIndexContainer = [NSSet setWithSet:tempSet];
+//}
+//
+//-(void)removeAllSwaps {
+//  self.swapIndexContainer = nil;
+//  self.swapIndexContainer = [NSMutableSet new];
+//}
 
 #pragma mark - reset methods
 
@@ -1462,25 +1462,25 @@
 
 @end
 
-@implementation SwapIndexContainer
-
-+(Class)transformedValueClass {
-  return [NSSet class];
-}
-
-+(BOOL)allowsReverseTransformation {
-  return YES;
-}
-
--(id)transformedValue:(id)value {
-  return [NSKeyedArchiver archivedDataWithRootObject:value];
-}
-
--(id)reverseTransformedValue:(id)value {
-  return [NSKeyedUnarchiver unarchiveObjectWithData:value];
-}
-
-@end
+//@implementation SwapIndexContainer
+//
+//+(Class)transformedValueClass {
+//  return [NSSet class];
+//}
+//
+//+(BOOL)allowsReverseTransformation {
+//  return YES;
+//}
+//
+//-(id)transformedValue:(id)value {
+//  return [NSKeyedArchiver archivedDataWithRootObject:value];
+//}
+//
+//-(id)reverseTransformedValue:(id)value {
+//  return [NSKeyedUnarchiver unarchiveObjectWithData:value];
+//}
+//
+//@end
 
 @implementation ArrayOfChordsAndPoints
 

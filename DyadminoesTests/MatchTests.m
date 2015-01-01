@@ -18,6 +18,7 @@
 @property (strong, nonatomic) NSManagedObjectContext *myContext;
 @property (strong, nonatomic) Match *myMatch;
 @property (strong, nonatomic) NSArray *playerNames;
+@property (strong, nonatomic) NSMutableSet *swapContainer;
 
 @end
 
@@ -169,6 +170,9 @@
 #pragma mark - swap tests
 
 -(void)testSwapPassesToNextPlayer {
+  
+  self.swapContainer = [NSMutableSet new];
+  
     // duplicates testPassesToNextPlayer, except with swap
   
     // test 1 to 4 players
@@ -187,8 +191,8 @@
       NSNumber *randomDataDyadminoIndex = [(NSArray *)currentPlayer.dataDyadminoIndexesThisTurn objectAtIndex:randomDataDyadminoRackIndex];
       DataDyadmino *dataDyadmino = [self.myMatch dataDyadminoForIndex:[randomDataDyadminoIndex unsignedIntegerValue]];
       
-      [self.myMatch addToSwapDataDyadmino:dataDyadmino];
-      [self.myMatch swapDyadminoesFromCurrentPlayer];
+      [self.swapContainer addObject:dataDyadmino];
+      [self.myMatch passTurnBySwappingDyadminoes:self.swapContainer];
       
       Player *nextPlayer = [self.myMatch returnCurrentPlayer];
       NSInteger nextPlayerIndex = [nextPlayer returnPlayerOrder];
@@ -206,6 +210,8 @@
 }
 
 -(void)testSwapCorrectlyExchangesBetweenPileAndRack {
+  
+  self.swapContainer = [NSMutableSet new];
   
     // test 1 to 4 players
   for (int i = 1; i <= kMaxNumPlayers; i++) {
@@ -231,14 +237,14 @@
         NSUInteger rackOrderIndex = [index unsignedIntegerValue];
         NSUInteger dataDyadminoIndex = [dataDyadminoIndexes[rackOrderIndex] unsignedIntegerValue];
         DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:dataDyadminoIndex];
-        [self.myMatch addToSwapDataDyadmino:dataDyad];
+        [self.swapContainer addObject:dataDyad];
         [tempSwappedDataDyads addObject:dataDyad];
       }
       
       NSArray *swappedDataDyads = [NSArray arrayWithArray:tempSwappedDataDyads];
       
         // swapped!
-      [self.myMatch swapDyadminoesFromCurrentPlayer];
+      [self.myMatch passTurnBySwappingDyadminoes:self.swapContainer];
       
       NSUInteger afterPileCount = self.myMatch.pile.count;
       NSUInteger afterDataDyadminoIndexesCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
@@ -260,6 +266,8 @@
 
 -(void)testPlayerNeverGetsSameDyadminoesBackAfterSwap {
   
+  self.swapContainer = [NSMutableSet new];
+  
     // repeat 100 times to be sure
   for (int i = 0; i < 100; i++) {
 
@@ -272,10 +280,10 @@
     for (NSNumber *index in dataDyadminoIndexes) {
       DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[index unsignedIntegerValue]];
       [tempSwappedDataDyadminoIndexes addObject:index];
-      [self.myMatch addToSwapDataDyadmino:dataDyad];
+      [self.swapContainer addObject:dataDyad];
     }
     
-    [self.myMatch swapDyadminoesFromCurrentPlayer];
+    [self.myMatch passTurnBySwappingDyadminoes:self.swapContainer];
     NSArray *postSwapDataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
 
     BOOL noDataDyadminoesReturnedToRack = YES;
@@ -290,6 +298,8 @@
 }
 
 -(void)testSwapNotPossibleIfSwapContainerExceedsPileCount {
+  
+  self.swapContainer = [NSMutableSet new];
   
     // test 1 to 4 players
   for (int i = 1; i <= kMaxNumPlayers; i++) {
@@ -310,11 +320,11 @@
         for (int l = 0; l < j; l++) {
           NSNumber *numberIndex = dataDyadminoIndexes[l];
           DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[numberIndex unsignedIntegerValue]];
-          [self.myMatch addToSwapDataDyadmino:dataDyad];
+          [self.swapContainer addObject:dataDyad];
         }
         
         BOOL dyadminoesShouldBeSwapped = (j > 0 && j <= k);
-        BOOL dyadminoesWereSwapped = [self.myMatch swapDyadminoesFromCurrentPlayer];
+        BOOL dyadminoesWereSwapped = [self.myMatch passTurnBySwappingDyadminoes:self.swapContainer];
         
         XCTAssertTrue(dyadminoesShouldBeSwapped == dyadminoesWereSwapped, @"Dyadminoes should have been swapped but weren't, or vice versa.");
       }
