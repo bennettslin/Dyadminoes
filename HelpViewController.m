@@ -106,4 +106,8 @@
   return 0;
 }
 
+-(void)dealloc {
+  NSLog(@"Help VC deallocated.");
+}
+
 @end

@@ -45,4 +45,8 @@
   [super didReceiveMemoryWarning];
 }
 
+-(void)dealloc {
+  NSLog(@"Options VC deallocated.");
+}
+
 @end

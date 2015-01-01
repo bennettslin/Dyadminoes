@@ -498,9 +498,6 @@
       // player passes
   if ([self sumOfPointsThisTurn] == 0) {
     
-      // test to make sure that board is definitely reset when player passes
-    [self resetDyadminoesOnBoard];
-    
       // this is the original condition, which allowed original match tests to pass
       // original tests did not include information about score
 //  if ([(NSArray *)self.holdingIndexContainer count] == 0) {
@@ -1303,7 +1300,7 @@
 
 -(BOOL)boardDyadminoesHaveMovedSinceStartOfTurn {
   NSLog(@"board dyadminoes have moved since start of turn.");
-  NSLog(@"turns count is %i", [self.turns count]);
+  NSLog(@"turns count is %lu", (unsigned long)[self.turns count]);
   NSUInteger index = [(NSArray *)self.turns count];
   for (DataDyadmino *dataDyad in self.board) {
     HexCoord persistedHexCoord = [dataDyad getHexCoordForTurn:index];

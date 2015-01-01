@@ -52,6 +52,7 @@
 @property (strong, nonatomic) NSArray *allButtons;
 @property (strong, nonatomic) UIButton *highlightedBottomButton;
 
+@property (strong, nonatomic) AboutViewController *aboutVC;
 @property (strong, nonatomic) LocalGameViewController *localVC;
 
 @property (strong, nonatomic) UIActivityIndicatorView *activityIndicator;
@@ -62,6 +63,8 @@
 @end
 
 @implementation MainViewController
+@synthesize aboutVC = _aboutVC;
+@synthesize localVC = _localVC;
 
 -(void)viewDidLoad {
   [super viewDidLoad];
@@ -94,9 +97,6 @@
   
   [self addShadowToView:self.topBar upsideDown:NO];
   [self addShadowToView:self.bottomBar upsideDown:YES];
-  
-  self.localVC = [self.storyboard instantiateViewControllerWithIdentifier:@"LocalViewController"];
-  self.localVC.delegate = self;
   
   self.aboutVC = [[AboutViewController alloc] init];
   
@@ -637,6 +637,39 @@
 
 -(void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
   [self.tableView endUpdates];
+}
+
+#pragma mark - accessor methods
+
+
+-(void)setAboutVC:(AboutViewController *)aboutVC {
+  _aboutVC = aboutVC;
+}
+
+-(AboutViewController *)aboutVC {
+  if (!_aboutVC) {
+    _aboutVC = [[AboutViewController alloc] init];
+  }
+  return _aboutVC;
+}
+
+
+-(void)setLocalVC:(LocalGameViewController *)localVC {
+  _localVC = localVC;
+}
+
+-(LocalGameViewController *)localVC {
+  if (!_localVC) {
+    _localVC = [self.storyboard instantiateViewControllerWithIdentifier:@"LocalViewController"];
+    _localVC.delegate = self;
+  }
+  return _localVC;
+}
+
+-(void)didReceiveMemoryWarning {
+  [super didReceiveMemoryWarning];
+  self.aboutVC = nil;
+  self.localVC = nil;
 }
 
 @end

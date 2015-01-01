@@ -310,26 +310,27 @@
   
     // don't call just yet if it's a PnP game, unless it's just for reset
   if ([self.myMatch returnType] != kPnPGame || forReset) {
-    [self afterNewPlayerReady];
+    [self afterNewPlayerReadyForReset:forReset];
   }
 }
 
--(void)afterNewPlayerReady {
+-(void)afterNewPlayerReadyForReset:(BOOL)forReset {
   NSLog(@"after new player ready");
     // called both when scene is loaded, and when new player is ready in PnP mode
   
   [self refreshBoardChords];
   
   [_boardField updatePivotGuidesForNewPlayer];
-
-  if (![self populateRackArray]) {
-    NSLog(@"Rack array was not populated properly.");
-    abort();
-  }
-  
-  if (![self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO]) {
-    NSLog(@"Rack field dyadminoes not refreshed properly.");
-    abort();
+    if (!forReset) {
+    if (![self populateRackArray]) {
+      NSLog(@"Rack array was not populated properly.");
+      abort();
+    }
+    
+    if (![self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO]) {
+      NSLog(@"Rack field dyadminoes not refreshed properly.");
+      abort();
+    }
   }
 
   [self animateRecentlyPlayedDyadminoes];
@@ -1511,7 +1512,7 @@
     _pnpBarUp = NO;
     [self togglePnPBarSyncWithRack:YES animated:YES];
     [self toggleCellsAndDyadminoesAlphaAnimated:YES];
-    [self afterNewPlayerReady];
+    [self afterNewPlayerReadyForReset:NO];
   
       /// swap button
   } else if (button == _topBar.swapCancelOrUndoButton &&
@@ -1820,23 +1821,41 @@
 }
 
 -(void)resetBoard {
-  NSLog(@"Reset board called.");
-  [self.myMatch resetDyadminoesOnBoard];
-  for (Dyadmino *dyadmino in self.boardDyadminoes) {
-    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-    
-    dyadmino.myHexCoord = dataDyad.myHexCoord;
-    dyadmino.orientation = [dataDyad.myOrientation unsignedIntegerValue];
-    dyadmino.tempReturnOrientation = dyadmino.orientation;
-    NSLog(@"Dyadmino new hex is %i, %i, new orientation is %i", dyadmino.myHexCoord.x, dyadmino.myHexCoord.y, dyadmino.orientation);
-    dyadmino.homeNode = nil;
-    dyadmino.tempBoardNode = nil;
-  }
+  SKAction *fadeOut = [SKAction fadeAlphaTo:0.f duration:0.1f];
   
-  [self willMoveFromViewForReset:YES];
-  [self loadAfterNewMatchRetrievedForReset:YES];
-  [self didMoveToViewForReset:YES];
-  [self afterNewPlayerReady];
+  __weak typeof(self) weakSelf = self;
+  SKAction *completion = [SKAction runBlock:^{
+    [weakSelf.myMatch resetDyadminoesOnBoard];
+    for (Dyadmino *dyadmino in self.boardDyadminoes) {
+      DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+      
+      dyadmino.myHexCoord = dataDyad.myHexCoord;
+      dyadmino.orientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
+      dyadmino.tempReturnOrientation = dyadmino.orientation;
+      NSLog(@"Dyadmino new hex is %li, %li, new orientation is %i", (long)dyadmino.myHexCoord.x, (long)dyadmino.myHexCoord.y, dyadmino.orientation);
+      dyadmino.homeNode = nil;
+      dyadmino.tempBoardNode = nil;
+      
+      [weakSelf willMoveFromViewForReset:YES];
+      
+      SKAction *fadeIn = [SKAction fadeAlphaTo:1.f duration:0.1f];
+      SKAction *fadeInCompletion = [SKAction runBlock:^{
+
+        [weakSelf loadAfterNewMatchRetrievedForReset:YES];
+        [weakSelf didMoveToViewForReset:YES];
+        [weakSelf afterNewPlayerReadyForReset:YES];
+      }];
+
+      SKAction *fadeInSequence = [SKAction sequence:@[fadeIn, fadeInCompletion]];
+      NSLog(@"Reset board called.");
+      [_boardField runAction:fadeInSequence withKey:@"fadeInBoard"];
+      
+    }
+  }];
+
+  SKAction *sequence = [SKAction sequence:@[fadeOut, completion]];
+  NSLog(@"Reset board called.");
+  [_boardField runAction:sequence withKey:@"fadeOutBoard"];
 }
 
 -(void)finalisePlayerTurn {
@@ -3439,6 +3458,7 @@
       
     case kActionSheetPass:
       if ([buttonText isEqualToString:@"Pass"]) {
+        [self resetBoard];
         [self finalisePlayerTurn];
       }
       break;

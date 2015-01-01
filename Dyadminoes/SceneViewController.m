@@ -37,6 +37,9 @@
   CGFloat _widestPlayerLabelWidth;
 }
 
+@synthesize optionsVC = _optionsVC;
+@synthesize gameEndedVC = _gameEndedVC;
+
 -(void)setTopBarPlayerLabelWidth:(CGFloat)topBarPlayerLabelWidth {
   _topBarPlayerLabelWidth = topBarPlayerLabelWidth;
   _topBarScoreLabelWidth = topBarPlayerLabelWidth / 3;
@@ -603,6 +606,36 @@
     NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
     abort();
   }
+}
+
+#pragma mark - accessor methods
+
+-(void)setOptionsVC:(OptionsViewController *)optionsVC {
+  _optionsVC = optionsVC;
+}
+
+-(OptionsViewController *)optionsVC {
+  if (!_optionsVC) {
+    _optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"OptionsViewController"];
+  }
+  return _optionsVC;
+}
+
+-(void)setGameEndedVC:(GameEndedViewController *)gameEndedVC {
+  _gameEndedVC = gameEndedVC;
+}
+
+-(GameEndedViewController *)gameEndedVC {
+  if (!_gameEndedVC) {
+    _gameEndedVC = [self.storyboard instantiateViewControllerWithIdentifier:@"GameEndedViewController"];
+  }
+  return _gameEndedVC;
+}
+
+#pragma mark - system methods
+
+-(void)didReceiveMemoryWarning {
+  [super didReceiveMemoryWarning];
 }
 
 @end

@@ -16,7 +16,6 @@
 
 @property (strong, nonatomic) HelpViewController *helpVC;
 @property (strong, nonatomic) SettingsViewController *settingsVC;
-@property (strong, nonatomic) AboutViewController *aboutVC;
 @property (strong, nonatomic) ChildViewController *childVC;
 
 @property (strong, nonatomic) UIButton *darkOverlay;

@@ -123,6 +123,7 @@
   
   self.zoomedOut = NO;
 //  [self zoomInBackgroundImage];
+  
   [self removeAllActions];
 }
 

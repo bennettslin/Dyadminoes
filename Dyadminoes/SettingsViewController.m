@@ -96,4 +96,8 @@
   [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound" object:self userInfo:@{@"sound": whichNotificationObject}];
 }
 
+-(void)dealloc {
+  NSLog(@"Settings VC deallocated.");
+}
+
 @end

@@ -22,6 +22,9 @@
 
 @implementation ParentViewController
 
+@synthesize helpVC = _helpVC;
+@synthesize settingsVC = _settingsVC;
+
 -(void)viewDidLoad {
   [super viewDidLoad];
   
@@ -30,11 +33,6 @@
 
   self.darkOverlay = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.screenWidth, self.screenHeight)];
   self.vcIsAnimating = NO;
-  
-  self.helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
-  
-  
-  self.settingsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"SettingsViewController"];
   
   [self.darkOverlay addTarget:self action:@selector(backToParentView) forControlEvents:UIControlEventTouchDown];
   
@@ -283,6 +281,29 @@
   }];
 }
 
+#pragma mark - accessor methods
+
+-(void)setHelpVC:(HelpViewController *)helpVC {
+  _helpVC = helpVC;
+}
+
+-(HelpViewController *)helpVC {
+  if (!_helpVC) {
+    _helpVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
+  }
+  return _helpVC;
+}
+
+-(void)setSettingsVC:(SettingsViewController *)settingsVC {
+  _settingsVC = settingsVC;
+}
+
+-(SettingsViewController *)settingsVC {
+  if (!_settingsVC) {
+    _settingsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"SettingsViewController"];
+  }
+  return _settingsVC;
+}
 
 #pragma mark - system methods
 
@@ -292,6 +313,9 @@
 
 -(void)didReceiveMemoryWarning {
   [super didReceiveMemoryWarning];
+  
+  self.helpVC = nil;
+  self.settingsVC = nil;
 }
 
 -(void)dealloc {

@@ -268,4 +268,8 @@
   return nil;
 }
 
+-(void)dealloc {
+  NSLog(@"Local VC deallocated.");
+}
+
 @end
