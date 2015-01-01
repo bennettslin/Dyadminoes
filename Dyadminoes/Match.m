@@ -10,12 +10,14 @@
 #import "Player.h"
 #import "DataCell.h"
 #import "DataDyadmino.h"
+#import "SonorityLogic.h"
 
 @interface Match ()
 
 @property (readwrite, nonatomic) NSMutableArray *pile; // was mutable array
 @property (readwrite, nonatomic) NSMutableSet *board; // was mutable set
 @property (readwrite, nonatomic) NSMutableSet *occupiedCells;
+@property (readwrite, nonatomic) NSMutableSet *allBoardChords;
 
 @end
 
@@ -45,6 +47,7 @@
 @synthesize pile = _pile;
 @synthesize board = _board;
 @synthesize occupiedCells = _occupiedCells;
+@synthesize allBoardChords = _allBoardChords;
 
 #pragma mark - init methods
 
@@ -440,6 +443,43 @@
 }
 
 #pragma mark - game state change methods
+
+-(NSSet *)playDataDyadmino:(DataDyadmino *)dataDyad onBottomHexCoord:(HexCoord)bottomHexCoord withOrientation:(DyadminoOrientation)orientation rulingOutRecentRackID:(NSInteger)recentRackDyadminoID {
+  
+  dataDyad.myHexCoord = bottomHexCoord;
+  dataDyad.myOrientation = @(orientation);
+  
+  if (![self addToHoldingContainer:dataDyad]) {
+    NSLog(@"Match failed to add data dyadmino to holding container.");
+    abort();
+  };
+  
+    // add chords from this dyadmino to array of chords
+  NSSet *formationOfSonorities = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID] onBottomHexCoord:bottomHexCoord withOrientation:orientation rulingOutRecentRackID:recentRackDyadminoID];
+  
+  NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
+  IllegalPlacementResult result = [[SonorityLogic sharedLogic] checkIllegalPlacementFromFormationOfSonorities:formationOfSonorities];
+  
+  if (legalChordSonoritiesFormed.count == 0) {
+    NSLog(@"Dyadmino %@ being played does not form any legal chords.", dataDyad.myID);
+    abort();
+  } else if (result != kNotIllegal) {
+    NSLog(@"Dyadmino %@ being played creates illegal formation.", dataDyad.myID);
+    abort();
+  }
+  
+  NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords inclusive:NO];
+  
+  if ([self addToArrayOfChordsAndPointsTheseChordSonorities:legalChordSonoritiesFormed extendedChordSonorities:chordSupersets fromDyadminoID:[dataDyad returnMyID]]) {
+    
+      // this should never be nil, because all played dyadminoes must form a legal chord
+    return legalChordSonoritiesFormed;
+  } else {
+    
+      // this will throw an error
+    return nil;
+  };
+}
 
 -(BOOL)swapDyadminoesFromCurrentPlayer {
 
@@ -1137,6 +1177,44 @@
   _occupiedCells = occupiedCells;
 }
 
+-(NSSet *)allBoardChords {
+  
+  NSMutableSet *tempLegalChordSonorities = [NSMutableSet new];
+  NSMutableSet *tempBoardAndPlayedDyadminoes = [NSMutableSet new];
+  
+    // add board dyadminoes
+  [tempBoardAndPlayedDyadminoes addObjectsFromArray:[self.board allObjects]];
+  
+    // add played dyadminoes
+  for (NSNumber *indexNumber in self.holdingIndexContainer) {
+    DataDyadmino *dataDyad = [self dataDyadminoForIndex:[indexNumber unsignedIntegerValue]];
+    [tempBoardAndPlayedDyadminoes addObject:dataDyad];
+  }
+  
+  for (DataDyadmino *dataDyadmino in tempBoardAndPlayedDyadminoes) {
+    NSSet *allSonorities = [self sonoritiesFromPlacingDyadminoID:[dataDyadmino returnMyID] onBottomHexCoord:dataDyadmino.myHexCoord withOrientation:[dataDyadmino returnMyOrientation] rulingOutRecentRackID:-1];
+    
+    NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:allSonorities];
+    IllegalPlacementResult result = [[SonorityLogic sharedLogic] checkIllegalPlacementFromFormationOfSonorities:allSonorities];
+    
+    if (legalChordSonoritiesFormed.count == 0) {
+      NSLog(@"Persisted dyadmino %@ does not form any legal chords. This is a critical failure.", dataDyadmino.myID);
+      abort();
+    } else if (result != kNotIllegal) {
+      NSLog(@"Persisted dyadmino %@ creates an illegal formation. This is a critical failure.", dataDyadmino.myID);
+      abort();
+    }
+    
+    [tempLegalChordSonorities addObjectsFromArray:[legalChordSonoritiesFormed allObjects]];
+  }
+  
+  return [NSSet setWithSet:tempLegalChordSonorities];
+}
+
+-(void)setAllBoardChords:(NSMutableSet *)allBoardChords {
+  _allBoardChords = allBoardChords;
+}
+
 #pragma mark - helper methods
 
 -(NSUInteger)wonPlayersCount {
@@ -1296,6 +1374,8 @@
     dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:[dataDyad getOrientationForTurn:index]];
     [self persistChangedPositionForBoardDataDyadmino:dataDyad];
   }
+  
+  [self resetArrayOfChordsAndPoints];
 }
 
 -(BOOL)boardDyadminoesHaveMovedSinceStartOfTurn {

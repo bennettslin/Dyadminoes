@@ -16,24 +16,38 @@
 
 #pragma mark - validation methods
 
--(id)legalChordSonoritiesFromFormationOfSonorities:(NSSet *)sonorities {
+-(NSSet *)legalChordSonoritiesFromFormationOfSonorities:(NSSet *)sonorities {
     // returns all sonorities that are legal chords, with pc and dyadmino information
     // returns empty set if no legal chords
-    // returns nil if illegal chords
-  
-    // ensure that all calls of this method check the class of the returned object!
   
   NSMutableSet *tempChordSonorities = [NSMutableSet new];
   
   for (NSSet *sonority in sonorities) {
     
+    NSSet *chordSonority = [self chordSonorityForSonority:sonority];
+    Chord chord = [self chordFromSonorityPlusCheckIncompleteSeventh:chordSonority];
+    
+    if (chord.chordType <= kChordFrenchSixth) {
+      [tempChordSonorities addObject:sonority];
+    }
+  }
+  
+  return tempChordSonorities;
+}
+
+-(IllegalPlacementResult)checkIllegalPlacementFromFormationOfSonorities:(NSSet *)sonorities {
+
+  IllegalPlacementResult mostEgregiousError = kNotIllegal;
+  
+  for (NSSet *sonority in sonorities) {
+
       // ensures no chord exceeds maximum
     if (![self validateSonorityDoesNotExceedMaximum:sonority]) {
-      return [NSSet setWithObject:kExcessNotes];
-    
-      // ensures chord does not have double pcs
+      mostEgregiousError = kExcessNotes > mostEgregiousError ? kExcessNotes : mostEgregiousError;
+      
+        // ensures chord does not have double pcs
     } else if (![self validateSonorityHasNoDoublePCs:sonority]) {
-      return [NSSet setWithObject:kDoublePCs];
+      mostEgregiousError = kDoublePCs > mostEgregiousError ? kDoublePCs : mostEgregiousError;
     }
     
     NSSet *chordSonority = [self chordSonorityForSonority:sonority];
@@ -41,16 +55,13 @@
     
       // ensures chord is not illegal
     if (chord.chordType == kChordIllegalChord) {
-      return [NSSet setWithObject:kIllegalSonority];
-      
-        // bothers to distinguish only if chord is legal
-    } else if (chord.chordType <= kChordFrenchSixth) {
-      [tempChordSonorities addObject:sonority];
+      mostEgregiousError = kIllegalSonority > mostEgregiousError ? kIllegalSonority : mostEgregiousError;
     }
   }
   
-  return tempChordSonorities;
+  return mostEgregiousError;
 }
+
 
 -(NSSet *)chordSonorityForSonority:(NSSet *)sonority {
   NSMutableSet *tempChordSonority = [NSMutableSet new];
@@ -136,7 +147,7 @@
   return returnValue;
 }
 
--(NSSet *)sonoritiesInSonorities:(NSSet *)larger thatAreSupersetsOfSonoritiesInSonorities:(NSSet *)smaller {
+-(NSSet *)sonoritiesInSonorities:(NSSet *)larger thatAreSupersetsOfSonoritiesInSonorities:(NSSet *)smaller inclusive:(BOOL)inclusive {
   
   NSMutableSet *tempSupersetsSonorities = [NSMutableSet new];
   
@@ -150,8 +161,9 @@
         if (![largerSetSonority isSubsetOfSet:smallerSetSonority]) {
           [tempSupersetsSonorities addObject:largerSetSonority];
           
-            // sonorities are equal, do not add it to temp set
-        } else {
+            // sonorities are equal, check inclusive bool
+            // to decidedo whether to add it to temp set
+        } else if (!inclusive) {
           smallerFoundInLarger = YES;
         }
       }

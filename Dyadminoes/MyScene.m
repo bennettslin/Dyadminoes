@@ -421,43 +421,11 @@
     // and after adding to or undoing from array of chords
     // self.allBoardChords is made nil in prepareForNewTurn and willMoveFromView
   
-  NSSet *sceneChords = [self loadChordsFromSceneBoardDyadminoes];
-  self.allBoardChords = nil;
-  self.allBoardChords = sceneChords;
+  self.allBoardChords = [self loadChordsFromSceneBoardDyadminoes];
 }
 
 -(NSSet *)loadChordsFromSceneBoardDyadminoes {
-  
-  NSMutableSet *tempLegalChordSonorities = [NSMutableSet new];
-  
-  NSMutableSet *tempBoardAndPlayedDyadminoes = [NSMutableSet new];
-  
-    // add board dyadminoes
-  [tempBoardAndPlayedDyadminoes addObjectsFromArray:[self.myMatch.board allObjects]];
-  
-    // add played dyadminoes
-  for (NSNumber *indexNumber in self.myMatch.holdingIndexContainer) {
-    DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[indexNumber unsignedIntegerValue]];
-    [tempBoardAndPlayedDyadminoes addObject:dataDyad];
-  }
-  
-  for (DataDyadmino *dataDyadmino in tempBoardAndPlayedDyadminoes) {
-    Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyadmino];
-    NSSet *allSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.homeNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:-1];
-
-    NSSet *legalChordSonoritiesFormed;
-    id legalChordSonoritiesFormedObject = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:allSonorities];
-    if ([legalChordSonoritiesFormedObject isKindOfClass:[NSSet class]]) {
-      legalChordSonoritiesFormed = (NSSet *)legalChordSonoritiesFormedObject;
-    } else {
-      NSLog(@"Persisted dyadmino %@ does not form any legal chords.", dyadmino.name);
-      abort();
-    }
-    
-    [tempLegalChordSonorities addObjectsFromArray:[legalChordSonoritiesFormed allObjects]];
-  }
-  
-  return [NSSet setWithSet:tempLegalChordSonorities];
+  return self.myMatch.allBoardChords;
 }
 
 #pragma mark - sound methods
@@ -1218,16 +1186,14 @@
   if ([dyadmino belongsOnBoard] && dyadmino != _hoveringDyadmino) {
     NSSet *formationOfSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.homeNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:(_recentRackDyadmino ? _recentRackDyadmino.myID : -1)];
     
-    NSSet *legalChordSonoritiesFormed;
-    id legalChordSonoritiesFormedObject = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
-    if ([legalChordSonoritiesFormedObject isKindOfClass:[NSSet class]]) {
-      legalChordSonoritiesFormed = (NSSet *)legalChordSonoritiesFormedObject;
-    } else {
-      NSLog(@"Hovering board dyadmino %@ did not form any legal chords.", dyadmino.name);
-      abort();
-    }
+    NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
     
-    self.legalChordsForHoveringBoardDyadmino = legalChordSonoritiesFormed;
+    if (!legalChordSonoritiesFormed) {
+      NSLog(@"Board dyadmino should form at least one legal chord.");
+      abort();
+    } else {
+      self.legalChordsForHoveringBoardDyadmino = legalChordSonoritiesFormed;
+    }
   }
   
   [dyadmino isOnBoard] ? [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino != _hoveringDyadmino && !dyadmino.isRotating)] : nil;
@@ -1556,7 +1522,7 @@
       /// play button
   } else if (button == _topBar.passPlayOrDoneButton &&
              [button confirmPassPlayOrDone] == kPlayButton) {
-    [self playDyadmino:_recentRackDyadmino];
+    [self playDyadmino];
     
       /// pass or done button
   } else if (button == _topBar.passPlayOrDoneButton &&
@@ -1719,38 +1685,30 @@
   }
 }
 
--(void)playDyadmino:(Dyadmino *)dyadmino {
+-(void)playDyadmino {
+  
+    // played dyadmino will only ever be the recent rack dyadmino
+  Dyadmino *dyadmino = _recentRackDyadmino;
   
     // establish that dyadmino is indeed a rack dyadmino placed on the board
   if ([dyadmino belongsInRack] && [dyadmino isOnBoard]) {
     
-      // confirm that the dyadmino was successfully played before proceeding with anything else
+      // confirm that the dyadmino was successfully played in match
+      // before proceeding with anything else
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-    if (![self.myMatch addToHoldingContainer:dataDyad]) {
-      NSLog(@"Match failed to add data dyadmino to holding container.");
-      abort();
-    };
     
-      // add chords from this dyadmino to array of chords
-    NSSet *sonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:-1];
+    NSSet *legalChordSonoritiesFormed = [self.myMatch playDataDyadmino:dataDyad onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:-1];
     
-    NSSet *legalChordSonoritiesFormed;
-    id legalChordSonoritiesFormedObject = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
-    if ([legalChordSonoritiesFormedObject isKindOfClass:[NSSet class]]) {
-      legalChordSonoritiesFormed = (NSSet *)legalChordSonoritiesFormedObject;
+    if (legalChordSonoritiesFormed) {
+      [self refreshBoardChords];
     } else {
-      NSLog(@"Dyadmino %@ being played does not form any legal chords.", dyadmino.name);
-      abort();
-    }
-    
-    NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
-
-    if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:legalChordSonoritiesFormed extendedChordSonorities:chordSupersets fromDyadminoID:[dataDyad.myID unsignedIntegerValue]]) {
       NSLog(@"Match failed to add to array of chords.");
       abort();
-    } else {
-      [self refreshBoardChords];
     }
+    
+      // show chord message
+    NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:legalChordSonoritiesFormed withInitialString:@"Built " andEndingString:@"."];
+    [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
     
       // change scene values
     [self removeFromPlayerRackDyadminoes:dyadmino];
@@ -1767,14 +1725,6 @@
     [_hoveringDyadmino animateHover:NO];
     _hoveringDyadmino = nil;
     self.legalChordsForHoveringBoardDyadmino = nil;
-    
-      // establish data dyadmino properties
-    dataDyad.myHexCoord = dyadmino.myHexCoord;
-    dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:dyadmino.orientation];
-    
-      // show chord message
-    NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:legalChordSonoritiesFormed withInitialString:@"Built " andEndingString:@"."];
-    [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
   }
   
   [self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
@@ -2257,82 +2207,85 @@
         
         if ([dyadmino belongsOnBoard]) {
           
-          NSSet *noRecentRackSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:(_recentRackDyadmino ? _recentRackDyadmino.myID : -1)];
-          NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:noRecentRackSonorities];
-
-          id object = [legalChordSonoritiesFormed anyObject];
+            // collect all sonorities from dyadmino placement on temp board node
+            // ignoring recent rack dyadmino just to be safe
+            // (technically, recent rack dyadmino should have been sent home by this point)
           
-            // if object is not a string, then there's technically no illegal sonorities
-          if (![object isKindOfClass:[NSString class]]) {
+          NSSet *formationOfSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:(_recentRackDyadmino ? _recentRackDyadmino.myID : -1)];
+          
+          NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
+
+          IllegalPlacementResult result = [[SonorityLogic sharedLogic] checkIllegalPlacementFromFormationOfSonorities:formationOfSonorities];
 
       //------------------------------------------------------------------------
-      // broke existing chords
+      // broke existing chords, doesn't matter if illegals created
       //------------------------------------------------------------------------
             
-                // but fewer chords does means we've broken existing chords
-            if (![[SonorityLogic sharedLogic] setOfLegalChords:self.legalChordsForHoveringBoardDyadmino isSubsetOfSetOfLegalChords:legalChordSonoritiesFormed]) {
+              // but fewer chords does means we've broken existing chords
+          if (![[SonorityLogic sharedLogic] setOfLegalChords:self.legalChordsForHoveringBoardDyadmino isSubsetOfSetOfLegalChords:legalChordSonoritiesFormed]) {
+            
+            NSSet *supersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:self.legalChordsForHoveringBoardDyadmino thatAreSupersetsOfSonoritiesInSonorities:legalChordSonoritiesFormed inclusive:NO];
+            
+            NSLog(@"legalChordsForHover %@, supersets %@", self.legalChordsForHoveringBoardDyadmino, supersets);
+            
+            NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:supersets withInitialString:@"Can't break " andEndingString:@"."];
+            
+            [self.myDelegate showChordMessage:chordsText sign:kChordMessageBad];
+            [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
               
-              NSSet *supersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:self.legalChordsForHoveringBoardDyadmino thatAreSupersetsOfSonoritiesInSonorities:legalChordSonoritiesFormed];
+      //------------------------------------------------------------------------
+      // moved board dyadmino created new chords, check no illegals created
+      //------------------------------------------------------------------------
+            
+              // extra chords formed means we've just built a new chord
+          } else if (![[SonorityLogic sharedLogic] setOfLegalChords:legalChordSonoritiesFormed isSubsetOfSetOfLegalChords:self.legalChordsForHoveringBoardDyadmino] && result == kNotIllegal) {
+            
+            NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.myMatch.allBoardChords inclusive:NO];
+            
+              // show action sheet if dyadmino was on board before turn
+            if ([self.myMatch.board containsObject:[self getDataDyadminoFromDyadmino:dyadmino]]) {
               
-              NSLog(@"legalChordsForHover %@, supersets %@", self.legalChordsForHoveringBoardDyadmino, supersets);
+                // only show points from newly built chord
+              [self presentActionSheet:kActionSheetNewLegalChord withPoints:[self.myMatch pointsForChordSonorities:chordSupersets extendedChordSonorities:chordSupersets]];
+              _tempChordSonoritiesFromMovedBoardDyadmino = chordSupersets;
               
-              NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:supersets withInitialString:@"Can't break " andEndingString:@"."];
+              NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:chordSupersets withInitialString:@"Build " andEndingString:@"?"];
               
-              [self.myDelegate showChordMessage:chordsText sign:kChordMessageBad];
+              [self.myDelegate showChordMessage:chordsText sign:kChordMessageNeutral];
               [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
               
-      //------------------------------------------------------------------------
-      // moved board dyadmino created new chords
-      //------------------------------------------------------------------------
-              
-                // extra chords formed means we've just built a new chord
-            } else if (![[SonorityLogic sharedLogic] setOfLegalChords:legalChordSonoritiesFormed isSubsetOfSetOfLegalChords:self.legalChordsForHoveringBoardDyadmino]) {
-              
-              NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
-              
-                // show action sheet if dyadmino was on board before turn
-              if ([self.myMatch.board containsObject:[self getDataDyadminoFromDyadmino:dyadmino]]) {
-                [self presentActionSheet:kActionSheetNewLegalChord withPoints:[self.myMatch pointsForChordSonorities:legalChordSonoritiesFormed extendedChordSonorities:chordSupersets]];
-                _tempChordSonoritiesFromMovedBoardDyadmino = chordSupersets;
-                
-                NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:chordSupersets withInitialString:@"Build " andEndingString:@"?"];
-                
-                [self.myDelegate showChordMessage:chordsText sign:kChordMessageNeutral];
-                [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
-                
-                  // otherwise it's a seventh extended from a triad built this turn, so just keep the new chord
-              } else {
-
-                NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
-                
-                DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-                
-                  // this allows the match to replace the triad recorded from the first time the dyadmino was placed
-                if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:legalChordSonoritiesFormed extendedChordSonorities:chordSupersets fromDyadminoID:[dataDyad.myID unsignedIntegerValue]]) {
-                  NSLog(@"Match failed to add to array of chords.");
-                  abort();
-                } else {
-                  [self refreshBoardChords];
-                }
-
-                  // update player's temporary score
-                [self updateTopBarLabelsFinalTurn:NO animated:YES];
-                
-                NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:chordSupersets withInitialString:@"Built " andEndingString:@"."];
-                
-                [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
-                [self finishHoveringAfterCheckDyadmino:dyadmino];
-              }
-              
-      //------------------------------------------------------------------------
-      // no chords broken or made, perfect!
-      //------------------------------------------------------------------------
-              
-                // just the right amount of chords formed, perfect
+                // otherwise it's a seventh extended from a triad built this turn, so just keep the new chord
             } else {
-              [self.myDelegate fadeChordMessage];
+
+              NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.myMatch.allBoardChords inclusive:NO];
+              
+              DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+              
+                // this allows the match to replace the triad recorded from the first time the dyadmino was placed
+              if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:legalChordSonoritiesFormed extendedChordSonorities:chordSupersets fromDyadminoID:[dataDyad.myID unsignedIntegerValue]]) {
+                NSLog(@"Match failed to add to array of chords.");
+                abort();
+              } else {
+                [self refreshBoardChords];
+              }
+
+                // update player's temporary score
+              [self updateTopBarLabelsFinalTurn:NO animated:YES];
+              
+              NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:chordSupersets withInitialString:@"Built " andEndingString:@"."];
+              
+              [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
               [self finishHoveringAfterCheckDyadmino:dyadmino];
             }
+              
+      //------------------------------------------------------------------------
+      // no chords broken or made, check no illegals created
+      //------------------------------------------------------------------------
+            
+              // just the right amount of chords formed, perfect
+          } else if (result == kNotIllegal) {
+            [self.myDelegate fadeChordMessage];
+            [self finishHoveringAfterCheckDyadmino:dyadmino];
             
   //----------------------------------------------------------------------------
   // permanent or recently played dyadmino, illegal sonorities
@@ -2340,14 +2293,14 @@
             
               // object is a string, so it's either excess notes, double pcs, or illegal sonority
           } else {
-            if ([object isEqualToString:kExcessNotes]) {
+            if (result == kExcessNotes) {
               [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Can't have excess notes."] sign:kChordMessageBad];
               
-            } else if ([object isEqualToString:kDoublePCs]) {
+            } else if (result == kDoublePCs) {
               [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Can't repeat notes."] sign:kChordMessageBad];
               
                 // illegal chords, keep hovering
-            } else if ([object isEqualToString:kIllegalSonority]) {
+            } else if (result == kIllegalSonority) {
               [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Sonority isn't legal."] sign:kChordMessageBad];
             }
             
@@ -2362,28 +2315,23 @@
             // rack dyadmino
         } else if ([dyadmino belongsInRack]) {
           
-          NSSet *sonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:-1];
-          NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:sonorities];
+          NSSet *formationOfSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:-1];
+          NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
 
             // totally not DRY
-          id object = [legalChordSonoritiesFormed anyObject];
-          _recentRackDyadminoFormsLegalChord = NO;
+          IllegalPlacementResult result = [[SonorityLogic sharedLogic] checkIllegalPlacementFromFormationOfSonorities:formationOfSonorities];
 
-            // object is a string, which means it's an illegal sonority of some kind
-          if ([object isKindOfClass:[NSString class]]) {
-          
-            if ([object isEqualToString:kExcessNotes]) {
-//              _recentRackDyadminoFormsLegalChord = NO;
-              [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Can't have excess notes."] sign:kChordMessageBad];
-              
-            } else if ([object isEqualToString:kDoublePCs]) {
-//              _recentRackDyadminoFormsLegalChord = NO;
-              [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Can't repeat notes."] sign:kChordMessageBad];
-              
-            } else if ([object isEqualToString:kIllegalSonority]) {
-//              _recentRackDyadminoFormsLegalChord = NO;
-              [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Sonority isn't legal."] sign:kChordMessageBad];
-            }
+          if (result == kExcessNotes) {
+            _recentRackDyadminoFormsLegalChord = NO;
+            [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Can't have excess notes."] sign:kChordMessageBad];
+            
+          } else if (result == kDoublePCs) {
+            _recentRackDyadminoFormsLegalChord = NO;
+            [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Can't repeat notes."] sign:kChordMessageBad];
+            
+          } else if (result == kIllegalSonority) {
+            _recentRackDyadminoFormsLegalChord = NO;
+            [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Sonority isn't legal."] sign:kChordMessageBad];
             
   //----------------------------------------------------------------------------
   // rack dyadmino, no illegal sonorities
@@ -2405,7 +2353,7 @@
             } else {
               
                 // check whether it's extending a triad into a seventh
-              NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
+              NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.myMatch.allBoardChords inclusive:YES];
               
               _recentRackDyadminoFormsLegalChord = YES;
               NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:chordSupersets withInitialString:@"Building " andEndingString:@"."];
@@ -3491,7 +3439,7 @@
     case kActionSheetNewLegalChord:
       if ([buttonText isEqualToString:@"Build"]) {
         
-        NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:_tempChordSonoritiesFromMovedBoardDyadmino thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords];
+        NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:_tempChordSonoritiesFromMovedBoardDyadmino thatAreSupersetsOfSonoritiesInSonorities:self.myMatch.allBoardChords inclusive:YES];
         
           // add to array of chords, this cannot be undone since it's not from rack
         if (![self.myMatch addToArrayOfChordsAndPointsTheseChordSonorities:_tempChordSonoritiesFromMovedBoardDyadmino extendedChordSonorities:chordSupersets fromDyadminoID:-1]) { // -1 indicates that match recognises this as a board dyadmino
@@ -3643,7 +3591,7 @@
   [self logRackDyadminoes];
   
   NSLog(@"match's occupied cells is %@", self.myMatch.occupiedCells);
-  NSLog(@"scene's board chords are %@", self.allBoardChords);
+  NSLog(@"scene's board chords are %@", self.myMatch.allBoardChords);
   NSSet *set = [self.myMatch sonoritiesFromPlacingDyadminoID:_recentRackDyadmino.myID onBottomHexCoord:_recentRackDyadmino.tempBoardNode.myCell.hexCoord withOrientation:_recentRackDyadmino.orientation rulingOutRecentRackID:-1];
   NSLog(@"sonorities is %@", set);
 

@@ -68,6 +68,7 @@
 @property (readonly, nonatomic) NSMutableArray *pile; // was mutable array
 @property (readonly, nonatomic) NSMutableSet *board; // was mutable set
 @property (readonly, nonatomic) NSMutableSet *occupiedCells;
+@property (readonly, nonatomic) NSMutableSet *allBoardChords;
 
   // establish initial properties method
 -(void)initialPlayers:(NSSet *)players andRules:(GameRules)rules andSkill:(GameSkill)skill withContext:(NSManagedObjectContext *)managedObjectContext;
@@ -87,6 +88,8 @@
 -(PhysicalPlacementResult)validatePhysicallyPlacingDyadminoID:(NSUInteger)dyadminoID withOrientation:(DyadminoOrientation)orientation onBottomHexCoord:(HexCoord)bottomHexCoord;
 
   // game state change methods
+
+-(NSSet *)playDataDyadmino:(DataDyadmino *)dataDyad onBottomHexCoord:(HexCoord)bottomHexCoord withOrientation:(DyadminoOrientation)orientation rulingOutRecentRackID:(NSInteger)recentRackDyadminoID;
 -(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap;
 -(void)persistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad;
 -(BOOL)swapDyadminoesFromCurrentPlayer;

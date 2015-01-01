@@ -190,11 +190,6 @@
 #define kMatchesKey @"myMatches"
 #define kDyadminoIDKey @"myID"
 
-  // legal placement error keys
-#define kExcessNotes @"excessNotes"
-#define kDoublePCs @"doublePCs"
-#define kIllegalSonority @"illegalSonority"
-
   // turn dictionary keys
 #define kTurnPlayer @"player"
 #define kTurnDyadminoes @"indexContainer"
@@ -388,6 +383,13 @@ typedef enum physicalPlacementResult {
   kErrorStackedDyadminoes,
   kErrorLoneDyadmino
 } PhysicalPlacementResult;
+
+typedef enum illegalPlacementResult {
+  kNotIllegal,
+  kIllegalSonority,
+  kDoublePCs,
+  kExcessNotes,
+} IllegalPlacementResult;
 
 typedef enum chordType {
   kChordMinorTriad,
