@@ -70,6 +70,31 @@
   return newChord;
 }
 
+#pragma mark - dyadmino rack stuff
+
+-(Dyadmino *)dyadminoInSet:(NSSet *)set withRackOrder:(NSUInteger)rackOrder {
+  Dyadmino *returnedDyadmino;
+  for (Dyadmino *dyadmino in set) {
+    if (dyadmino.myRackOrder == rackOrder) {
+      returnedDyadmino = dyadmino;
+    }
+  }
+  return returnedDyadmino;
+}
+
+-(BOOL)validateUniqueRackOrdersInSet:(NSSet *)set {
+  NSMutableSet *tempSet = [NSMutableSet new];
+  
+  for (Dyadmino *dyadmino in set) {
+    if (dyadmino.myRackOrder >= set.count) {
+      return NO;
+    } else {
+      [tempSet addObject:@(dyadmino.myRackOrder)];
+    }
+  }
+  return (tempSet.count == set.count);
+}
+
 #pragma mark - date stuff
 
 -(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date {

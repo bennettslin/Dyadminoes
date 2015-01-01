@@ -33,7 +33,6 @@
 @dynamic gameHasEnded;
 @dynamic dataDyadminoes;
 @dynamic holdingIndexContainer;
-//@dynamic swapIndexContainer;
 @dynamic replayTurn;
 @dynamic turns;
 @dynamic firstDataDyadIndex;
@@ -59,20 +58,19 @@
     abort();
     
   } else {
-    self.rules = [NSNumber numberWithUnsignedInteger:rules];
-    self.skill = [NSNumber numberWithUnsignedInteger:skill];
-    self.type = (players.count == 1) ? [NSNumber numberWithUnsignedInteger:kSelfGame] : [NSNumber numberWithUnsignedInteger:kPnPGame];
+    self.rules = @(rules);
+    self.skill = @(skill);
+    self.type = (players.count == 1) ? @(kSelfGame) : @(kPnPGame);
     
     self.lastPlayed = [NSDate date];
-    self.gameHasEnded = [NSNumber numberWithBool:NO];
-    self.currentPlayerIndex = [NSNumber numberWithUnsignedInteger:0];
-    self.randomNumber1To24 = [NSNumber numberWithUnsignedInteger:[self randomIntegerUpTo:24] + 1];
+    self.gameHasEnded = @NO;
+    self.currentPlayerIndex = @0;
+    self.randomNumber1To24 = @([self randomIntegerUpTo:24] + 1);
     
     self.holdingIndexContainer = [NSArray new];
-//    self.swapIndexContainer = [NSSet new];
 
     self.turns = [NSMutableArray new];
-    self.replayTurn = [NSNumber numberWithUnsignedInteger:0];
+    self.replayTurn = @0;
     
     if (![self generateDataDyadminoesWithContext:managedObjectContext]) {
       NSLog(@"Data dyadminoes not generated properly.");
@@ -119,15 +117,16 @@
   while (self.board.count == 0 && self.pile.count > 0) {
     
     NSUInteger randIndex = [self randomIntegerUpTo:self.pile.count];
-    self.firstDataDyadIndex = [NSNumber numberWithUnsignedInteger:randIndex];
+    self.firstDataDyadIndex = @(randIndex);
     DataDyadmino *firstDyadmino = [self dataDyadminoForIndex:randIndex];
+    firstDyadmino.myRackOrder = @(-1);
     
     if ([self.pile containsObject:firstDyadmino]) {
       struct HexCoord myHex = {0, 0};
       firstDyadmino.myHexCoord = myHex;
       
         // establish first dyadmino is out of pile and now on board
-      firstDyadmino.placeStatus = [NSNumber numberWithUnsignedInteger:kOnBoard];
+      firstDyadmino.placeStatus = @(kOnBoard);
       [self.pile removeObject:firstDyadmino];
       [self.board addObject:firstDyadmino];
 
@@ -345,14 +344,16 @@
   
   NSMutableSet *tempSetOfSonorities = [NSMutableSet new];
   
-    // this will check five axes
-    // 1. bottom cell vertical (this axis includes top cell)
-    // 2. bottom cell upslant
-    // 3. bottom cell downslant
-    // 4. top cell upslant
-    // 5. top cell downslant
+  /*
+     this will check five axes
+     1. bottom cell vertical (this axis includes top cell)
+     2. bottom cell upslant
+     3. bottom cell downslant
+     4. top cell upslant
+     5. top cell downslant
   
-    // each checking first up, then down
+     each checking first up, then down
+  */
   
     //  DataDyadmino *dataDyad = [self dataDyadminoForIndex:dyadminoID];
     //  DyadminoOrientation orientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
@@ -409,10 +410,10 @@
     NSUInteger randIndex = [self randomIntegerUpTo:self.pile.count];
     DataDyadmino *dataDyad = self.pile[randIndex];
       // rack order is total count at the time
-    dataDyad.myRackOrder = [NSNumber numberWithInteger:dataDyadminoIndexesThisTurn.count];
+    dataDyad.myRackOrder = @(dataDyadminoIndexesThisTurn.count);
     
       // establish dyadmino is out of pile and in rack
-    dataDyad.placeStatus = [NSNumber numberWithUnsignedInteger:kInRack];
+    dataDyad.placeStatus = @(kInRack);
     [self.pile removeObjectAtIndex:randIndex];
     [player addToThisTurnsDataDyadmino:dataDyad];
     dataDyadminoIndexesThisTurn = player.dataDyadminoIndexesThisTurn;
@@ -430,7 +431,7 @@
       if ([nextPlayer returnResigned]) {
         index++;
       } else {
-        self.currentPlayerIndex = [NSNumber numberWithUnsignedInteger:[nextPlayer returnPlayerOrder]];
+        self.currentPlayerIndex =@([nextPlayer returnPlayerOrder]);
         
         [self.delegate handleSwitchToNextPlayer];
         
@@ -491,10 +492,8 @@
     NSMutableArray *tempDataDyadminoes = [NSMutableArray new];
     
       // remove data dyadminoes from player rack, store in temp array
-//    for (NSNumber *number in self.swapIndexContainer) {
     for (DataDyadmino *dataDyad in dyadminoesToSwap) {
-//      DataDyadmino *dataDyad = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
-      dataDyad.placeStatus = [NSNumber numberWithUnsignedInteger:kInPile];
+      dataDyad.placeStatus = @(kInPile);
       [player removeFromThisTurnsDataDyadmino:dataDyad];
       [tempDataDyadminoes addObject:dataDyad];
     }
@@ -506,8 +505,6 @@
     for (DataDyadmino *dataDyad in tempDataDyadminoes) {
       [self.pile addObject:dataDyad];
     }
-    
-//    [self removeAllSwaps];
     
     [self resetHoldingContainer];
     [self resetArrayOfChordsAndPoints];
@@ -525,7 +522,7 @@
   
     // a pass has an empty holding container, while a resign has *no* holding container
   NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:
-                              [NSNumber numberWithUnsignedInteger:[self returnCurrentPlayerIndex]], kTurnPlayer,
+                              @([self returnCurrentPlayerIndex]), kTurnPlayer,
                               self.holdingIndexContainer, kTurnDyadminoes,
                               points, kTurnPoints,
                               nil];
@@ -533,14 +530,14 @@
   [self addTurn:dictionary];
   
   NSArray *turns = self.turns;
-  self.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
+  self.replayTurn = @(turns.count);
   
       // player passes
-//  if ([self sumOfPointsThisTurn] == 0) {
+  if ([self sumOfPointsThisTurn] == 0) {
   
       // this is the original condition, which allowed original match tests to pass
       // original tests did not include information about score
-  if ([(NSArray *)self.holdingIndexContainer count] == 0) {
+//  if ([(NSArray *)self.holdingIndexContainer count] == 0) {
   
       // if solo game, ends right away
       // FIXME: this will need to be changed to accommodate when board dyadmino
@@ -566,11 +563,11 @@
       /// and will consider chords formed
     Player *player = [self returnCurrentPlayer];
     NSUInteger newScore = [player returnPlayerScore] + [self sumOfPointsThisTurn];
-    player.playerScore = [NSNumber numberWithUnsignedInteger:newScore];
+    player.playerScore = @(newScore);
     
     for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:self.holdingIndexContainer]) {
       if ([player.dataDyadminoIndexesThisTurn containsObject:dataDyad.myID]) {
-        dataDyad.placeStatus = [NSNumber numberWithUnsignedInteger:kOnBoard];
+        dataDyad.placeStatus = @(kOnBoard);
         [player removeFromThisTurnsDataDyadmino:dataDyad];
         [self.board addObject:dataDyad];
       }
@@ -586,7 +583,7 @@
     for (NSInteger i = 0; i < dataDyadminoIndexesThisTurn.count; i++) {
       NSNumber *number = dataDyadminoIndexesThisTurn[i];
       DataDyadmino *dataDyad = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
-      dataDyad.myRackOrder = [NSNumber numberWithInteger:i];
+      dataDyad.myRackOrder = @(i);
     }
     
       // if player ran out and pile is empty, then end game
@@ -689,20 +686,20 @@
         // create new dictionary
       NSMutableDictionary *newDictionary = [NSMutableDictionary new];
       NSArray *turns = self.turns;
-      NSNumber *thisTurn = [NSNumber numberWithUnsignedInteger:turns.count]; // first dyadmino turn count will be 0
+      NSNumber *thisTurn = @(turns.count); // first dyadmino turn count will be 0
       [newDictionary setObject:thisTurn forKey:@"turn"];
       
         // set object for changed hexCoord position
       if (!(lastHexX || lastHexY) || !(dataDyad.myHexCoord.x == [lastHexX integerValue] && dataDyad.myHexCoord.y == [lastHexY integerValue])) {
-        NSNumber *newHexX = [NSNumber numberWithInteger:dataDyad.myHexCoord.x];
-        NSNumber *newHexY = [NSNumber numberWithInteger:dataDyad.myHexCoord.y];
+        NSNumber *newHexX = @(dataDyad.myHexCoord.x);
+        NSNumber *newHexY = @(dataDyad.myHexCoord.y);
         [newDictionary setObject:newHexX forKey:@"hexX"];
         [newDictionary setObject:newHexY forKey:@"hexY"];
       }
       
         // set object for changed orientation
       if (!lastOrientation || [dataDyad returnMyOrientation] != [lastOrientation unsignedIntegerValue]) {
-        NSNumber *newOrientation = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyOrientation]];
+        NSNumber *newOrientation = @([dataDyad returnMyOrientation]);
         [newDictionary setObject:newOrientation forKey:@"orientation"];
       }
       
@@ -718,17 +715,17 @@
     // a resign has *no* holding container
   if ([self returnType] != kSelfGame) {
     
-    NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:[NSNumber numberWithUnsignedInteger:[self returnCurrentPlayerIndex]], kTurnPlayer, nil];
+    NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:@([self returnCurrentPlayerIndex]), kTurnPlayer, nil];
     
     [self addTurn:dictionary];
     NSArray *turns = self.turns;
-    self.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
+    self.replayTurn = @(turns.count);
   }
 
-  player.resigned = [NSNumber numberWithBool:YES];
+  player.resigned = @YES;
   NSArray *dataDyads = [self dataDyadsInIndexContainer:player.dataDyadminoIndexesThisTurn];
   for (DataDyadmino *dataDyad in dataDyads) {
-    dataDyad.placeStatus = [NSNumber numberWithUnsignedInteger:kInPile];
+    dataDyad.placeStatus = @(kInPile);
   }
   
   [self.pile addObjectsFromArray:dataDyads];
@@ -745,7 +742,7 @@
 }
 
 -(void)endGame {
-  self.currentPlayerIndex = [NSNumber numberWithUnsignedInteger:0];
+  self.currentPlayerIndex = @0;
   [self resetHoldingContainer];
   [self resetArrayOfChordsAndPoints];
   
@@ -753,7 +750,7 @@
   if ([self returnType] == kSelfGame) {
     Player *soloPlayer = [self playerForIndex:0];
       // player only won if score greater than 0
-    soloPlayer.won = ([soloPlayer returnPlayerScore] > 0) ? [NSNumber numberWithBool:YES] : [NSNumber numberWithBool:NO];
+    soloPlayer.won = ([soloPlayer returnPlayerScore] > 0) ? @YES : @NO;
     
   } else {
       // rules out that players with no points can win
@@ -771,12 +768,12 @@
     
     for (Player *player in self.players) {
       if ([player returnPlayerScore] == maxScore) {
-        player.won = [NSNumber numberWithBool:YES];
+        player.won = @YES;
       }
     }
   }
 
-  self.gameHasEnded = [NSNumber numberWithBool:YES];
+  self.gameHasEnded = @YES;
   [self.delegate handleEndGame];
 }
 
@@ -922,7 +919,7 @@
   
   NSUInteger originalCount = [(NSArray *)self.holdingIndexContainer count];
   
-  NSNumber *number = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]];
+  NSNumber *number = @([dataDyad returnMyID]);
   if (![self holdingsContainsDataDyadmino:dataDyad]) {
     NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.holdingIndexContainer];
     [tempArray addObject:number];
@@ -1021,13 +1018,13 @@
 
 -(void)startReplay {
   NSArray *turns = self.turns;
-  self.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
+  self.replayTurn = @(turns.count);
   self.replayBoard = [NSMutableSet setWithSet:self.board];
 }
 
 -(void)leaveReplay {
   NSArray *turns = self.turns;
-  self.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
+  self.replayTurn = @(turns.count);
   self.replayBoard = nil;
 }
 
@@ -1036,7 +1033,7 @@
     return;
   }
   
-  self.replayTurn = [NSNumber numberWithUnsignedInteger:1];
+  self.replayTurn = @1;
   [self.replayBoard removeAllObjects];
   [self.replayBoard addObject:[self dataDyadminoForIndex:[self returnFirstDataDyadIndex]]];
   NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes];
@@ -1059,7 +1056,7 @@
           [self.replayBoard removeObject:dataDyad];
         }
       }
-    self.replayTurn = [NSNumber numberWithUnsignedInteger:[self returnReplayTurn] - 1];
+    self.replayTurn = @([self returnReplayTurn] - 1);
     return YES;
   }
 }
@@ -1070,7 +1067,7 @@
     return NO;
     
   } else {
-      self.replayTurn = [NSNumber numberWithUnsignedInteger:[self returnReplayTurn] + 1];
+      self.replayTurn = @([self returnReplayTurn] + 1);
       NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes];
       for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:holdingContainer]) {
         if (![self.replayBoard containsObject:dataDyad]) {
@@ -1083,7 +1080,7 @@
 
 -(void)last {
   NSArray *turns = self.turns;
-  self.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
+  self.replayTurn = @(turns.count);
   for (int i = 0; i < turns.count; i++) {
     NSArray *holdingContainer = [self.turns[i] objectForKey:kTurnDyadminoes];
     for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:holdingContainer]) {
@@ -1315,7 +1312,7 @@
 #pragma mark = holding container helper methods
 
 -(BOOL)holdingsContainsDataDyadmino:(DataDyadmino *)dataDyad {
-  return [self.holdingIndexContainer containsObject:[NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]]];
+  return [self.holdingIndexContainer containsObject:@([dataDyad returnMyID])];
 }
 
 -(NSArray *)dataDyadsInIndexContainer:(NSArray *)holdingContainer {
@@ -1328,36 +1325,13 @@
   return [NSArray arrayWithArray:tempArray];
 }
 
-//#pragma mark - swap container helper methods
-//
-//-(BOOL)swapContainerContainsDataDyadmino:(DataDyadmino *)dataDyad {
-//  return [self.swapIndexContainer containsObject:[NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]]];
-//}
-//
-//-(void)addToSwapDataDyadmino:(DataDyadmino *)dataDyad {
-//  NSMutableSet *tempSet = [NSMutableSet setWithSet:self.swapIndexContainer];
-//  [tempSet addObject:[NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]]];
-//  self.swapIndexContainer = [NSSet setWithSet:tempSet];
-//}
-//
-//-(void)removeFromSwapDataDyadmino:(DataDyadmino *)dataDyad {
-//  NSMutableSet *tempSet = [NSMutableSet setWithSet:self.swapIndexContainer];
-//  [tempSet removeObject:[NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]]];
-//  self.swapIndexContainer = [NSSet setWithSet:tempSet];
-//}
-//
-//-(void)removeAllSwaps {
-//  self.swapIndexContainer = nil;
-//  self.swapIndexContainer = [NSMutableSet new];
-//}
-
 #pragma mark - reset methods
 
 -(void)resetDyadminoesOnBoard {
   NSUInteger index = [(NSArray *)self.turns count];
   for (DataDyadmino *dataDyad in self.board) {
     dataDyad.myHexCoord = [dataDyad getHexCoordForTurn:index];
-    dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:[dataDyad getOrientationForTurn:index]];
+    dataDyad.myOrientation = @([dataDyad getOrientationForTurn:index]);
     [self persistChangedPositionForBoardDataDyadmino:dataDyad];
   }
   
@@ -1461,26 +1435,6 @@
 }
 
 @end
-
-//@implementation SwapIndexContainer
-//
-//+(Class)transformedValueClass {
-//  return [NSSet class];
-//}
-//
-//+(BOOL)allowsReverseTransformation {
-//  return YES;
-//}
-//
-//-(id)transformedValue:(id)value {
-//  return [NSKeyedArchiver archivedDataWithRootObject:value];
-//}
-//
-//-(id)reverseTransformedValue:(id)value {
-//  return [NSKeyedUnarchiver unarchiveObjectWithData:value];
-//}
-//
-//@end
 
 @implementation ArrayOfChordsAndPoints
 

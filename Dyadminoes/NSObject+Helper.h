@@ -507,6 +507,11 @@ typedef enum actionSheetTag {
 -(HexCoord)hexCoordFromX:(NSInteger)x andY:(NSInteger)y;
 -(Chord)chordFromRoot:(NSInteger)root andChordType:(ChordType)chordType;
 
+#pragma mark - dyadmino rack stuff
+
+-(Dyadmino *)dyadminoInSet:(NSSet *)set withRackOrder:(NSUInteger)rackOrder;
+-(BOOL)validateUniqueRackOrdersInSet:(NSSet *)set;
+
   // date stuff
 -(NSString *)returnGameEndedDateStringFromDate:(NSDate *)date;
 -(NSString *)returnLastPlayedStringFromDate:(NSDate *)date andTurn:(NSUInteger)turn;

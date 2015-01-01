@@ -130,7 +130,7 @@
   [self resetActivityIndicator];
   
   self.titleLogo.frame = CGRectMake(0, 0, 768, 60);
-  self.titleLogo.center = CGPointMake(self.topBar.frame.size.width / 2, kMainTopBarHeight / 2);
+  self.titleLogo.center = CGPointMake(self.screenWidth / 2, kMainTopBarHeight / 2);
   
   self.tableView.transform = CGAffineTransformMakeScale(1.f, 1.f);
   self.tableView.alpha = 1.f;
