@@ -38,7 +38,7 @@
 @interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIActionSheetDelegate, UIAlertViewDelegate, MatchDelegate, ReturnToGamesButtonDelegate>
 
   // the dyadminoes that the player sees
-@property (strong, nonatomic) NSSet *playerRackDyadminoes;
+@property (strong, nonatomic) NSArray *playerRackDyadminoes;
 @property (strong, nonatomic) NSSet *boardDyadminoes; // contains holding container dyadminoes
 @property (strong, nonatomic) NSSet *legalChordsForHoveringBoardDyadmino; // instantiated and nillified along with hovering dyadmino
 @property (strong, nonatomic) NSSet *allBoardChords;
@@ -476,6 +476,7 @@
   NSArray *dataDyadsThisTurn = [self.myMatch dataDyadsInIndexContainer:_myPlayer.dataDyadminoIndexesThisTurn];
   
   for (DataDyadmino *dataDyad in dataDyadsThisTurn) {
+    
       // only add if it's not in the holding container
       // if it is, then don't add because holding container is added to board set instead
     if (![self.myMatch holdingsContainsDataDyadmino:dataDyad]) {
@@ -492,11 +493,9 @@
   }
   
     // make sure dyadminoes are sorted
-//  NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
-//  [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
-//  self.playerRackDyadminoes = [tempDyadminoArray sortedArrayUsingDescriptors:@[sortByRackOrder]];
-  self.playerRackDyadminoes = [NSSet setWithArray:tempDyadminoArray];
-
+  NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
+  [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
+  self.playerRackDyadminoes = [tempDyadminoArray sortedArrayUsingDescriptors:@[sortByRackOrder]];
   return (self.playerRackDyadminoes.count == [(NSArray *)_myPlayer.dataDyadminoIndexesThisTurn count] - [(NSArray *)self.myMatch.holdingIndexContainer count]);
 }
 
@@ -1023,17 +1022,9 @@
     
     SnapPoint *rackNode = [self findSnapPointClosestToDyadmino:_touchedDyadmino];
     
-    if ([_rackField handleRackExchangeOfTouchedDyadmino:_touchedDyadmino
+    self.playerRackDyadminoes = [_rackField handleRackExchangeOfTouchedDyadmino:_touchedDyadmino
                                      withDyadminoes:self.playerRackDyadminoes
-                                     andClosestRackNode:rackNode]) {
-      
-      if ([self validateUniqueRackOrdersInSet:self.playerRackDyadminoes]) {
-        [self recordChangedDataForRackDyadminoes:self.playerRackDyadminoes];
-      } else {
-        NSLog(@"There was an error exchanging rack dyadminoes.");
-        abort();
-      }
-    }
+                                 andClosestRackNode:rackNode];
   }
 }
 
@@ -2748,7 +2739,7 @@
 -(void)updateOrderOfDataDyadsThisTurnToReflectRackOrder {
   
   for (NSInteger i = 0; i < self.playerRackDyadminoes.count; i++) {
-    Dyadmino *dyadmino = [self dyadminoInSet:self.playerRackDyadminoes withRackOrder:i];
+    Dyadmino *dyadmino = self.playerRackDyadminoes[i];
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     
     dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:dyadmino.orientation];
@@ -2767,17 +2758,17 @@
 
 -(void)reAddToPlayerRackDyadminoes:(Dyadmino *)dyadmino {
   if (![self.playerRackDyadminoes containsObject:dyadmino]) {
-    NSMutableSet *tempRackSet = [NSMutableSet setWithSet:self.playerRackDyadminoes];
-    [tempRackSet addObject:dyadmino];
-    self.playerRackDyadminoes = [NSSet setWithSet:tempRackSet];
+    NSMutableArray *tempRackArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
+    [tempRackArray addObject:dyadmino];
+    self.playerRackDyadminoes = [NSArray arrayWithArray:tempRackArray];
   }
 }
 
 -(void)removeFromPlayerRackDyadminoes:(Dyadmino *)dyadmino {
   if ([self.playerRackDyadminoes containsObject:dyadmino]) {
-    NSMutableSet *tempRackSet = [NSMutableSet setWithSet:self.playerRackDyadminoes];
-    [tempRackSet removeObject:dyadmino];
-    self.playerRackDyadminoes = [NSSet setWithSet:tempRackSet];
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.playerRackDyadminoes];
+    [tempArray removeObject:dyadmino];
+    self.playerRackDyadminoes = [NSArray arrayWithArray:tempArray];
   }
 }
 
@@ -3484,11 +3475,13 @@
 #pragma mark - delegate methods
 
   // called from rack exchange
--(void)recordChangedDataForRackDyadminoes:(NSSet *)rackArray {
+-(void)recordChangedDataForRackDyadminoes:(NSArray *)rackArray {
   for (int i = 0; i < rackArray.count; i++) {
-
-    Dyadmino *dyadmino = [self dyadminoInSet:rackArray withRackOrder:i];
-    [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
+    if ([rackArray[i] isKindOfClass:[Dyadmino class]]) {
+      Dyadmino *dyadmino = (Dyadmino *)rackArray[i];
+      dyadmino.myRackOrder = i;
+      [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
+    }
   }
 }
 

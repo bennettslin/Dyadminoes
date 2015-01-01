@@ -14,7 +14,7 @@
 
 @protocol FieldNodeDelegate <NSObject>
 
--(void)recordChangedDataForRackDyadminoes:(NSSet *)rackArray;
+-(void)recordChangedDataForRackDyadminoes:(NSArray *)rackArray;
 -(void)postSoundNotification:(NotificationName)whichNotification;
 -(void)allowUndoButton;
 
@@ -37,15 +37,11 @@
 
 #pragma mark - reposition methods
 
--(void)repositionDyadminoes:(NSSet *)dyadminoesInArray fromUndo:(BOOL)undo withAnimation:(BOOL)animation;
+-(void)repositionDyadminoes:(NSArray *)dyadminoesInArray fromUndo:(BOOL)undo withAnimation:(BOOL)animation;
 
--(BOOL)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
-                            withDyadminoes:(NSSet *)dyadminoesInArray
-                        andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode;
-
-//-(NSArray *)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
-//                                 withDyadminoes:(NSArray *)dyadminoesInArray
-//                             andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode;
+-(NSArray *)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
+                                 withDyadminoes:(NSArray *)dyadminoesInArray
+                             andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode;
 
 @end
 

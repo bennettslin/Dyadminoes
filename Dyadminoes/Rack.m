@@ -63,7 +63,7 @@
 
 #pragma mark - reposition methods
 
--(void)repositionDyadminoes:(NSSet *)dyadminoesInArray fromUndo:(BOOL)undo withAnimation:(BOOL)animation {
+-(void)repositionDyadminoes:(NSArray *)dyadminoesInArray fromUndo:(BOOL)undo withAnimation:(BOOL)animation {
     // dyadminoes are already in array, this method manages the sprite views
   
   __weak typeof(self) weakSelf = self;
@@ -71,7 +71,7 @@
   for (NSUInteger index = 0; index < rackCount; index++) {
     
     // assign pointers
-    Dyadmino *dyadmino = [self dyadminoInSet:dyadminoesInArray withRackOrder:index];
+    Dyadmino *dyadmino = [dyadminoesInArray objectAtIndex:index];
 
     // this has to be reset after turn
     dyadmino.homeNode = self.rackNodes[index];
@@ -128,8 +128,8 @@
   }
 }
 
--(BOOL)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
-                            withDyadminoes:(NSSet *)dyadminoesInArray
+-(NSArray *)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
+                            withDyadminoes:(NSArray *)dyadminoesInArray
                         andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode {
   
     // touchedDyadmino is in the rack, eligible for exchange
@@ -140,7 +140,7 @@
       
         // assign pointers
       NSUInteger newRackNodeIndex = [self.rackNodes indexOfObject:touchedDyadminoNewRackNode];
-      NSUInteger touchedDyadminoIndex = touchedDyadmino.myRackOrder;
+      NSUInteger touchedDyadminoIndex = [dyadminoesInArray indexOfObject:touchedDyadmino];
       NSUInteger iterator;
       
         // decide which direction to scoot dyadminoes
@@ -152,21 +152,15 @@
         iterator = 0;
       }
       
-      Dyadmino *scootedDyadmino = [self dyadminoInSet:dyadminoesInArray withRackOrder:newRackNodeIndex];
-      if (!scootedDyadmino) {
-        return NO;
-      }
+      Dyadmino *scootedDyadmino = [dyadminoesInArray objectAtIndex:newRackNodeIndex];
 
         // displaces intermediary dyadminoes one by one until scooted dyadmino is in right node
       while (scootedDyadmino.homeNode != touchedDyadmino.homeNode) {
         
-        NSUInteger scootedIndex = scootedDyadmino.myRackOrder;
+        NSUInteger scootedIndex = [dyadminoesInArray indexOfObject:scootedDyadmino];
         NSUInteger displacedIndex = (scootedIndex + iterator) % 6;
     
-        Dyadmino *displacedDyadmino = [self dyadminoInSet:dyadminoesInArray withRackOrder:displacedIndex];
-        if (!displacedDyadmino) {
-          return NO;
-        }
+        Dyadmino *displacedDyadmino = [dyadminoesInArray objectAtIndex:displacedIndex];
         
           // dyadminoes exchange rack nodes, and vice versa
         scootedDyadmino.homeNode = displacedDyadmino.homeNode;
@@ -190,11 +184,19 @@
       
         // everything scooted, now do it for the touched dyadmino
       touchedDyadmino.homeNode = touchedDyadminoNewRackNode;
-      return YES;
+      
+      NSMutableArray *tempArray = [NSMutableArray arrayWithArray:dyadminoesInArray];
+      [tempArray removeObject:touchedDyadmino];
+      [tempArray insertObject:touchedDyadmino atIndex:newRackNodeIndex];
+      
+        // delegate method makes it easier to call only if there was indeed a rack exchange
+      NSArray *immutableArray = [NSArray arrayWithArray:tempArray];
+      [self.delegate recordChangedDataForRackDyadminoes:immutableArray];
+      
+      return immutableArray;
     }
   }
-
-  return NO;
+  return dyadminoesInArray;
 }
 
 -(void)addRackNodeAtIndex:(NSUInteger)nodeIndex withCountNumber:(NSUInteger)countNumber {
