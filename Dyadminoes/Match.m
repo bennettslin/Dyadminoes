@@ -932,7 +932,7 @@
   return ([(NSArray *)self.holdingIndexContainer count] == originalCount + 1);
 }
 
--(DataDyadmino *)undoDyadminoToHoldingContainer {
+-(DataDyadmino *)undoLastPlayedDyadmino {
   NSArray *holdingIndexContainer = self.holdingIndexContainer;
   if (holdingIndexContainer.count > 0) {
     

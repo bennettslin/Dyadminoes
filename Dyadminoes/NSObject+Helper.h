@@ -308,7 +308,9 @@ typedef enum notificationName {
   kNotificationButtonSunkIn,
   kNotificationButtonLifted,
   kNotificationTogglePCs,
-  kNotificationOptionsMusic
+  kNotificationOptionsSoundEffects,
+  kNotificationOptionsMusic,
+  kNotificationOptionsRegister
 } NotificationName;
 
 typedef enum faceVector {

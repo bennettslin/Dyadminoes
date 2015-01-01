@@ -11,8 +11,7 @@
 #import "BPianoDelegate.h"
 #import "BAudioController.h"
 
-#define kOptionsMusic @"optionsMusic"
-#define kOptionsNote 72
+#define kOptionsNote 0
 #define kNoteDelay 0.05f
 
 @interface SoundEngine () <BPianoDelegate>
@@ -150,8 +149,8 @@
     NSString *soundFile = [self fileNameForNotificationName:notificationName];
     
       // called from options page
-    if ([soundFile isEqualToString:kOptionsMusic]) {
-      [self noteOn:kOptionsNote];
+    if (notificationName == kNotificationOptionsMusic || notificationName == kNotificationOptionsRegister) {
+      [self handleMusicNote:kOptionsNote];
     } else {
       [self playSoundFile:soundFile];
     }
@@ -179,13 +178,15 @@
     case kNotificationPopIntoNode:
     case kNotificationTogglePCs:
     case kNotificationBoardZoom:
+    case kNotificationOptionsSoundEffects:
       return kSoundFilePop;
       break;
     case kNotificationToggleBarOrField:
       return kSoundFileSwoosh;
       break;
     case kNotificationOptionsMusic:
-      return kOptionsMusic;
+    case kNotificationOptionsRegister:
+      return nil;
       break;
   }
 }

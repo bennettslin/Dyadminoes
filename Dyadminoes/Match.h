@@ -87,17 +87,25 @@
 
 -(PhysicalPlacementResult)validatePhysicallyPlacingDyadminoID:(NSUInteger)dyadminoID withOrientation:(DyadminoOrientation)orientation onBottomHexCoord:(HexCoord)bottomHexCoord;
 
-  // game state change methods
+#pragma mark - game state change methods
 
--(NSSet *)playDataDyadmino:(DataDyadmino *)dataDyad onBottomHexCoord:(HexCoord)bottomHexCoord withOrientation:(DyadminoOrientation)orientation rulingOutRecentRackID:(NSInteger)recentRackDyadminoID;
--(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap;
--(void)persistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad;
+  // play
+-(NSSet *)playDataDyadmino:(DataDyadmino *)dataDyad
+          onBottomHexCoord:(HexCoord)bottomHexCoord
+           withOrientation:(DyadminoOrientation)orientation
+     rulingOutRecentRackID:(NSInteger)recentRackDyadminoID;
+
+  // undo
+-(DataDyadmino *)undoLastPlayedDyadmino;
+
+  // swap
 -(BOOL)swapDyadminoesFromCurrentPlayer;
--(void)resignPlayer:(Player *)player;
 
-  // holding container change methods
--(BOOL)addToHoldingContainer:(DataDyadmino *)dyadmino;
--(DataDyadmino *)undoDyadminoToHoldingContainer;
+  // pass or turn done
+-(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap;
+
+  // resign
+-(void)resignPlayer:(Player *)player;
 
   // array of chords and points change methods
 -(BOOL)addToArrayOfChordsAndPointsTheseChordSonorities:(NSSet *)chordSonorities

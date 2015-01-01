@@ -1736,7 +1736,7 @@
 
 -(void)undoLastPlayedDyadmino {
     // remove data dyadmino from holding container
-  DataDyadmino *undoneDataDyadmino = [self.myMatch undoDyadminoToHoldingContainer];
+  DataDyadmino *undoneDataDyadmino = [self.myMatch undoLastPlayedDyadmino];
   
   if (!undoneDataDyadmino) {
     NSLog(@"Match failed to undo data dyadmino.");

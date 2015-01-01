@@ -443,7 +443,7 @@
     NSNumber *dataDyadIndex = dataDyadminoIndexes[i];
     XCTAssertEqualObjects([self.myMatch.holdingIndexContainer lastObject], dataDyadIndex, @"Data dyadmino index was not removed from holding container after last undo.");
     
-    [self.myMatch undoDyadminoToHoldingContainer];
+    [self.myMatch undoLastPlayedDyadmino];
     
     XCTAssertTrue([self.myMatch.holdingIndexContainer count] == i, @"Holding container count is incorrect after undo.");
   }

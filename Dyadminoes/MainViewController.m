@@ -74,7 +74,6 @@
 
   self.titleLogo.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? 30.f : 60.f)];
   self.titleLogo.text = @"Dyadminoes";
-  self.titleLogo.frame = CGRectMake(20, 20, 768, 60);
   self.titleLogo.textColor = [UIColor whiteColor];
   
   self.tableView.backgroundColor = [UIColor clearColor];
@@ -130,12 +129,30 @@
 
   [self resetActivityIndicator];
   
+  self.titleLogo.frame = CGRectMake(0, 0, 768, 60);
+  self.titleLogo.center = CGPointMake(self.topBar.frame.size.width / 2, kMainTopBarHeight / 2);
+  
   self.tableView.transform = CGAffineTransformMakeScale(1.f, 1.f);
   self.tableView.alpha = 1.f;
   
   self.topBar.frame = CGRectMake(-kTopBarPadding, -kTopBarPadding, self.screenWidth + (2 * kTopBarPadding), kMainTopBarHeight + kTopBarPadding);
   
   self.bottomBar.frame = CGRectMake(-kBottomBarPadding, self.screenHeight - kMainBottomBarHeight, self.screenWidth + (2 * kBottomBarPadding), kMainBottomBarHeight + kBottomBarPadding);
+  
+  NSArray *buttons = @[self.localGameButton, self.helpButton, self.settingsButton, self.aboutButton];
+  const CGFloat bottomBarXMargin = kIsIPhone ? 10.f : 20.f;
+  const CGFloat paddingBetweenButtons = bottomBarXMargin;
+  const CGFloat buttonWidth = (self.screenWidth - (bottomBarXMargin * 2) - (paddingBetweenButtons * 3)) / 4;
+  
+  for (int i = 0; i < buttons.count; i++) {
+    
+    CGFloat xOrigin = bottomBarXMargin + (buttonWidth * i) + (paddingBetweenButtons * i);
+    UIButton *button = buttons[i];
+    button.frame = CGRectMake(xOrigin, 0, buttonWidth, kMainBottomBarHeight * 0.5f);
+    button.titleLabel.font = [UIFont fontWithName:kFontModern size:kMainBottomBarHeight * 0.5f];
+    [button.titleLabel sizeToFit];
+    button.center = CGPointMake(button.center.x, kMainBottomBarHeight / 2);
+  }
   
   [self addGradientToView:self.topBar WithColour:kMainBarsColour andUpsideDown:YES];
   [self addGradientToView:self.bottomBar WithColour:kMainBarsColour andUpsideDown:NO];
