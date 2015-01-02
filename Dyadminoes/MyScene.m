@@ -1507,6 +1507,8 @@
   } else if (button == _topBar.passPlayOrDoneButton &&
              ([button confirmPassPlayOrDone] == kDoneButton || [button confirmPassPlayOrDone] == kPassButton)) {
     if (!self.swapContainer) {
+      
+      NSLog(@"points for legal chords called from pass or done button.");
       NSUInteger pointsThisTurn = [self.myMatch pointsForLegalChords:self.myMatch.thisTurnChords];
       if (pointsThisTurn == 0) {
         
@@ -1677,12 +1679,16 @@
       // before proceeding with anything else
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     
+    NSLog(@"DataDyad %@ hex is %i, %i, orientation is %@", dataDyad.myID, dataDyad.myHexCoord.x, dataDyad.myHexCoord.y, dataDyad.myOrientation);
+    
     NSSet *legalChordSonoritiesFormed = [self.myMatch playDataDyadmino:dataDyad onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:-1];
     
     if (!legalChordSonoritiesFormed) {
       NSLog(@"Match failed to add to array of chords.");
       abort();
     }
+    
+    NSLog(@"Now dataDyad %@ hex is %i, %i, orientation is %@", dataDyad.myID, dataDyad.myHexCoord.x, dataDyad.myHexCoord.y, dataDyad.myOrientation);
     
       // show chord message
     NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:legalChordSonoritiesFormed withInitialString:@"Built " andEndingString:@"."];
@@ -2196,7 +2202,6 @@
   //----------------------------------------------------------------------------
         
         if (result != kNotIllegal) {
-          NSLog(@"result is not not illegal");
           
           NSString *messageString;
           switch (result) {
@@ -2270,6 +2275,7 @@
               
               _tempChordSonoritiesFromMovedBoardDyadmino = newOrExtendingChords;
               
+              NSLog(@"points for legal chords called from checkwhether, moved board dyadmino created hew chords.");
               [self presentActionSheet:kActionSheetNewLegalChord
                             withPoints:[self.myMatch pointsForLegalChords:newOrExtendingChords]];
               
@@ -2281,6 +2287,15 @@
                 // otherwise it's a seventh extended from a triad built this turn, so just keep the new chord
             } else {
               NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:newOrExtendingChords withInitialString:@"Built " andEndingString:@"."];
+              
+                // for test
+              DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+              NSLog(@"dataDyad %@ hex is %i, %i, orientation is %@", dataDyad.myID, dataDyad.myHexCoord.x, dataDyad.myHexCoord.y, dataDyad.myOrientation);
+              
+              [self.myMatch addLegalChordsFormed:newOrExtendingChords
+                      fromMovedBoardDataDyadmino:[self getDataDyadminoFromDyadmino:dyadmino] onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation];
+              
+              NSLog(@"Now dataDyad %@ hex is %i, %i, orientation is %@", dataDyad.myID, dataDyad.myHexCoord.x, dataDyad.myHexCoord.y, dataDyad.myOrientation);
               
               [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
               [self finishHoveringAfterCheckDyadmino:dyadmino];
@@ -2401,6 +2416,8 @@
   BOOL noRackDyadminoesPlayedAndNoRecentRackDyadmino = holdingIndexContainer.count == 0 && !_recentRackDyadmino;
   
       // if player has points from moving a board dyadmino, that counts as well
+  
+  NSLog(@"points for legal chords called from update top bar buttons");
   BOOL noBoardDyadminoesPlayedAndNoRecentRackDyadmino = ([self.myMatch pointsForLegalChords:self.myMatch.thisTurnChords] == 0) && !_recentRackDyadmino;
   
   [_topBar node:_topBar.returnOrStartButton shouldBeEnabled:!self.swapContainer && !thereIsATouchedOrHoveringDyadmino];
@@ -3406,6 +3423,9 @@
       
     case kActionSheetNewLegalChord:
       if ([buttonText isEqualToString:@"Build"]) {
+        
+        [self.myMatch addLegalChordsFormed:_tempChordSonoritiesFromMovedBoardDyadmino
+                fromMovedBoardDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] onBottomHexCoord:_hoveringDyadmino.tempBoardNode.myCell.hexCoord withOrientation:_hoveringDyadmino.orientation];
 
         NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:_tempChordSonoritiesFromMovedBoardDyadmino withInitialString:@"Built " andEndingString:@"."];
         

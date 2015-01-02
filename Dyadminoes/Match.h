@@ -95,6 +95,12 @@
            withOrientation:(DyadminoOrientation)orientation
      rulingOutRecentRackID:(NSInteger)recentRackDyadminoID;
 
+  // play moved board dyadmino
+-(BOOL)addLegalChordsFormed:(NSSet *)chordsFormed
+ fromMovedBoardDataDyadmino:(DataDyadmino *)dataDyad
+           onBottomHexCoord:(HexCoord)bottomHexCoord
+            withOrientation:(DyadminoOrientation)orientation;
+
   // undo
 -(DataDyadmino *)undoLastPlayedDyadmino;
 

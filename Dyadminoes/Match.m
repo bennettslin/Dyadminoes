@@ -449,8 +449,9 @@
 
 -(NSSet *)playDataDyadmino:(DataDyadmino *)dataDyad onBottomHexCoord:(HexCoord)bottomHexCoord withOrientation:(DyadminoOrientation)orientation rulingOutRecentRackID:(NSInteger)recentRackDyadminoID {
   
-  dataDyad.myHexCoord = bottomHexCoord;
-  dataDyad.myOrientation = @(orientation);
+    // test to see if this is needed
+//  dataDyad.myHexCoord = bottomHexCoord;
+//  dataDyad.myOrientation = @(orientation);
   
   if (![self addToHoldingContainer:dataDyad]) {
     NSLog(@"Match failed to add data dyadmino to holding container.");
@@ -470,10 +471,7 @@
     NSLog(@"Dyadmino %@ being played creates illegal formation.", dataDyad.myID);
     abort();
   }
-  
-//  NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords inclusive:NO];
-//  NSSet *chordSupersets; // fix
-//  
+
   if ([self addToThisTurnChordsTheseNewOrExtendingChords:legalChordSonoritiesFormed]) {
     
       // this should never be nil, because all played dyadminoes must form a legal chord
@@ -483,6 +481,12 @@
       // this will throw an error
     return nil;
   };
+}
+
+-(BOOL)addLegalChordsFormed:(NSSet *)chordsFormed fromMovedBoardDataDyadmino:(DataDyadmino *)dataDyad onBottomHexCoord:(HexCoord)bottomHexCoord withOrientation:(DyadminoOrientation)orientation {
+  
+  [self addToThisTurnChordsTheseNewOrExtendingChords:chordsFormed];
+  return YES;
 }
 
 -(BOOL)passTurnBySwappingDyadminoes:(NSSet *)dyadminoesToSwap {
@@ -528,6 +532,7 @@
 
 -(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap {
   
+  NSLog(@"points for legal chords called from record dyadminoes");
   NSUInteger pointsThisTurn = [self pointsForLegalChords:self.thisTurnChords];
   
     // a pass has an empty holding container, while a resign has *no* holding container
@@ -1386,9 +1391,13 @@
   
     // don't add thisTurn chords to checked set
     // if we're getting points for thisTurn chords
-  if (![legalChords isEqualToSet:self.thisTurnChords]) {
-    [checkedSet addObjectsFromArray:[self.thisTurnChords allObjects]];
-  }
+//  if (![legalChords isEqualToSet:self.thisTurnChords]) {
+  
+    // might not need the above bool
+  [checkedSet addObjectsFromArray:[self.thisTurnChords allObjects]];
+  
+  
+//  }
   
   NSLog(@"for points, legal chords is %@, checked set is %@", legalChords, checkedSet);
   
@@ -1398,13 +1407,13 @@
       
         // checked chord is subset of this chord, which means they're either equal or extending
       if ([[SonorityLogic sharedLogic] sonority:checkedChord isSubsetOfSonority:thisChord]) {
-        thisChordHasSubset = YES;
         
           // they are equal, so it's the same chord
         if ([[SonorityLogic sharedLogic] sonority:thisChord isEqualToSonority:checkedChord]) {
           
             // they are not equal, and therefore this chord extends checked chord
         } else {
+          thisChordHasSubset = YES;
           points += [self pointsForChordSonority:thisChord extended:YES];
         }
       }
@@ -1461,6 +1470,12 @@
   
     // triad
   if (chordSonority.count == 3) {
+    
+    if (extended) {
+      NSLog(@"This is an error. A triad never extends another chords.");
+      abort();
+    }
+    
     points = kPointsTriad;
     
       // seventh chord

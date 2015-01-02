@@ -332,6 +332,7 @@
 -(void)updatePlayerLabelsWithFinalTurn:(BOOL)finalTurn andAnimatedScore:(BOOL)animated {
   
   NSLog(@"update player labels with final turn");
+  NSUInteger pointsForThisTurnChords = [self.myMatch pointsForLegalChords:self.myMatch.thisTurnChords];
   
   if (self.myMatch) {
     
@@ -347,11 +348,12 @@
           kResignedGray : [self.myMatch colourForPlayer:player forLabel:YES light:NO];
       
       NSString *scoreText;
+
       
       if (!player || ([player returnResigned] && [self.myMatch returnType] != kSelfGame)) {
         scoreText = @"";
-      } else if (player == [self.myMatch returnCurrentPlayer] && [self.myMatch pointsForLegalChords:self.myMatch.thisTurnChords] > 0) {
-        scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)[player returnPlayerScore], (unsigned long)[self.myMatch pointsForLegalChords:self.myMatch.thisTurnChords]];
+      } else if (player == [self.myMatch returnCurrentPlayer] && pointsForThisTurnChords > 0) {
+        scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)[player returnPlayerScore], (unsigned long)pointsForThisTurnChords];
       } else {
         scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)[player returnPlayerScore]];
       }
@@ -364,7 +366,7 @@
       
         // FIXME: so that this is animated
         // score label
-      if (player == [self.myMatch returnCurrentPlayer] && (finalTurn || [self.myMatch pointsForLegalChords:self.myMatch.thisTurnChords] > 0)) {
+      if (player == [self.myMatch returnCurrentPlayer] && (finalTurn || pointsForThisTurnChords > 0)) {
         
           // upon final turn, score is animated
         if (animated) {
