@@ -17,8 +17,12 @@
 -(IllegalPlacementResult)checkIllegalPlacementFromFormationOfSonorities:(NSSet *)sonorities;
 
   // scene needs this method to ensure that subsets of extended chords are not added to board chords
--(BOOL)sonority:(NSSet *)smaller IsSubsetOfSonority:(NSSet *)larger;
+-(BOOL)sonority:(NSSet *)smaller isSubsetOfSonority:(NSSet *)larger;
+-(BOOL)sonority:(NSSet *)sonority1 isEqualToSonority:(NSSet *)sonority2;
+
 -(BOOL)setOfLegalChords:(NSSet *)setofLegalChords1 isSubsetOfSetOfLegalChords:(NSSet *)setOfLegalChords2;
+-(NSSet *)legalChords:(NSSet *)legalChords1 notFoundInAndNotSubsetsOfLegalChords:(NSSet *)legalChords2;
+  
 -(BOOL)sonority:(NSSet *)set containsNote:(NSDictionary *)dictionary;
 
 -(NSSet *)sonoritiesInSonorities:(NSSet *)larger thatAreSupersetsOfSonoritiesInSonorities:(NSSet *)smaller inclusive:(BOOL)inclusive;

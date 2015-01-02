@@ -47,9 +47,6 @@
   // NSArray, contains dataDyad indices as NSNumbers
 @property (retain, nonatomic) id holdingIndexContainer;
 
-  // NSSet, contains dataDyad indices as NSNumbers
-//@property (retain, nonatomic) id swapIndexContainer;
-
   // NSArray of NSDictionaries each representing a played dyadmino or moved board dyadmino
   // each of dyadmino is an NSDictionary of chordSonorities: NSSet, points: NSNumber, and fromRack: NSNumber
   // each chordSonorities is an NSSet of objects representing sets of sonorities
@@ -68,7 +65,10 @@
 @property (readonly, nonatomic) NSMutableArray *pile; // was mutable array
 @property (readonly, nonatomic) NSMutableSet *board; // was mutable set
 @property (readonly, nonatomic) NSMutableSet *occupiedCells;
-@property (readonly, nonatomic) NSMutableSet *allBoardChords;
+
+//@property (readonly, nonatomic) NSMutableSet *allBoardChords;
+@property (readonly, nonatomic) NSSet *preTurnChords;
+@property (readonly, nonatomic) NSMutableSet *thisTurnChords;
 
   // establish initial properties method
 -(void)initialPlayers:(NSSet *)players andRules:(GameRules)rules andSkill:(GameSkill)skill withContext:(NSManagedObjectContext *)managedObjectContext;
@@ -108,12 +108,9 @@
   // resign
 -(void)resignPlayer:(Player *)player;
 
-  // array of chords and points change methods
--(BOOL)addToArrayOfChordsAndPointsTheseChordSonorities:(NSSet *)chordSonorities
-                               extendedChordSonorities:(NSSet *)extendedChordSonorities
-                                        fromDyadminoID:(NSInteger)dyadminoID;
-
--(BOOL)undoFromArrayOfChordsAndPointsThisDyadminoID:(NSInteger)dyadminoID;
+  // for tests
+-(BOOL)testAddToHoldingContainer:(DataDyadmino *)dataDyad;
+-(void)testPersistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad;
 
   // replay methods
 -(void)startReplay;
@@ -133,21 +130,18 @@
 -(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index;
 -(NSUInteger)pcForDyadminoIndex:(NSUInteger)index isPC1:(BOOL)isPC1;
 
-  // array of chords and points helper methods
--(NSUInteger)sumOfPointsThisTurn;
+#pragma mark - chord methods
 
-  // chord sonorities are also in extended chord sonorities
--(NSUInteger)pointsForChordSonorities:(NSSet *)chordSonorities extendedChordSonorities:(NSSet *)extendedChordSonorities;
+-(NSDictionary *)getNewChordsOrExtendingChordsFromTheseChords:(NSSet *)theseChords;
+
+  // this method excludes duplicates, and takes into account extending chords
+  // this method calculates player's score this turn when input with self.thisTurnChords
+  // it can also be used to calculate points in action sheet for moved board dyadmino
+-(NSUInteger)pointsForLegalChords:(NSSet *)legalChords;
 
   // holding container helper methods
 -(BOOL)holdingsContainsDataDyadmino:(DataDyadmino *)dataDyad;
 -(NSArray *)dataDyadsInIndexContainer:(NSArray *)holdingContainer;
-
-//  // swap container helper methods
-//-(BOOL)swapContainerContainsDataDyadmino:(DataDyadmino *)dataDyad;
-//-(void)addToSwapDataDyadmino:(DataDyadmino *)dataDyad;
-//-(void)removeFromSwapDataDyadmino:(DataDyadmino *)dataDyad;
-//-(void)removeAllSwaps;
 
   // reset methods
 -(void)resetDyadminoesOnBoard;
@@ -178,10 +172,6 @@
 @interface HoldingIndexContainer : NSValueTransformer
 
 @end
-
-//@interface SwapIndexContainer : NSValueTransformer
-//
-//@end
 
 @interface ArrayOfChordsAndPoints : NSValueTransformer
 

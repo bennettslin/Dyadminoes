@@ -331,6 +331,8 @@
 
 -(void)updatePlayerLabelsWithFinalTurn:(BOOL)finalTurn andAnimatedScore:(BOOL)animated {
   
+  NSLog(@"update player labels with final turn");
+  
   if (self.myMatch) {
     
     Player *player;
@@ -348,8 +350,8 @@
       
       if (!player || ([player returnResigned] && [self.myMatch returnType] != kSelfGame)) {
         scoreText = @"";
-      } else if (player == [self.myMatch returnCurrentPlayer] && [self.myMatch sumOfPointsThisTurn] > 0) {
-        scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)[player returnPlayerScore], (unsigned long)[self.myMatch sumOfPointsThisTurn]];
+      } else if (player == [self.myMatch returnCurrentPlayer] && [self.myMatch pointsForLegalChords:self.myMatch.thisTurnChords] > 0) {
+        scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)[player returnPlayerScore], (unsigned long)[self.myMatch pointsForLegalChords:self.myMatch.thisTurnChords]];
       } else {
         scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)[player returnPlayerScore]];
       }
@@ -362,7 +364,7 @@
       
         // FIXME: so that this is animated
         // score label
-      if (player == [self.myMatch returnCurrentPlayer] && (finalTurn || [self.myMatch sumOfPointsThisTurn] > 0)) {
+      if (player == [self.myMatch returnCurrentPlayer] && (finalTurn || [self.myMatch pointsForLegalChords:self.myMatch.thisTurnChords] > 0)) {
         
           // upon final turn, score is animated
         if (animated) {

@@ -171,8 +171,6 @@
 
 -(void)testSwapPassesToNextPlayer {
   
-  self.swapContainer = [NSMutableSet new];
-  
     // duplicates testPassesToNextPlayer, except with swap
   
     // test 1 to 4 players
@@ -182,6 +180,7 @@
     
       // test that passes to next player for any number of players
     for (int j = 1; j <= numberOfPlayers; j++) {
+      self.swapContainer = [NSMutableSet new];
       Player *currentPlayer = [self.myMatch returnCurrentPlayer];
       NSInteger currentPlayerIndex = [currentPlayer returnPlayerOrder];
       NSUInteger currentTurnCount = [(NSArray *)self.myMatch.turns count];
@@ -211,8 +210,6 @@
 
 -(void)testSwapCorrectlyExchangesBetweenPileAndRack {
   
-  self.swapContainer = [NSMutableSet new];
-  
     // test 1 to 4 players
   for (int i = 1; i <= kMaxNumPlayers; i++) {
     
@@ -223,6 +220,7 @@
       // for this particular combination of data dyadminoes to be swapped
     for (NSArray *rackOrderArray in powerSetArray) {
       
+      self.swapContainer = [NSMutableSet new];
       [self setupGameForNumberOfPlayers:i];
       
       Player *player = [self.myMatch returnCurrentPlayer];
@@ -266,12 +264,12 @@
 
 -(void)testPlayerNeverGetsSameDyadminoesBackAfterSwap {
   
-  self.swapContainer = [NSMutableSet new];
-  
     // repeat 100 times to be sure
   for (int i = 0; i < 100; i++) {
 
     [self setupGameForNumberOfPlayers:1];
+    self.swapContainer = [NSMutableSet new];
+    
     NSMutableArray *tempSwappedDataDyadminoIndexes = [NSMutableArray new];
     Player *player = [self.myMatch returnCurrentPlayer];
     NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
@@ -299,8 +297,6 @@
 
 -(void)testSwapNotPossibleIfSwapContainerExceedsPileCount {
   
-  self.swapContainer = [NSMutableSet new];
-  
     // test 1 to 4 players
   for (int i = 1; i <= kMaxNumPlayers; i++) {
     
@@ -310,6 +306,8 @@
         // test all possible number of dyadminoes left in pile
       for (int k = 0; k <= kNumDyadminoesInRack; k++) {
         [self setupGameForNumberOfPlayers:i];
+        self.swapContainer = [NSMutableSet new];
+        
         NSUInteger numberToRemove = kPileCount - (i * kNumDyadminoesInRack) - 1 - k;
         [self.myMatch removeFromPileNumberOfDataDyadminoes:numberToRemove];
         
@@ -330,6 +328,11 @@
       }
     }
   }
+}
+
+-(void)testThatSwapFailsIfSwapContainerContainsDyadminoNotInRack {
+  
+  XCTFail(@"Tried to swap a dyadmino that was not in rack.");
 }
 
 #pragma mark - resign tests
@@ -441,7 +444,7 @@
   for (int i = 0; i < kNumDyadminoesInRack; i++) {
     NSNumber *dataDyadIndex = dataDyadminoIndexes[i];
     DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[dataDyadIndex unsignedIntegerValue]];
-    [self.myMatch addToHoldingContainer:dataDyad];
+    [self.myMatch testAddToHoldingContainer:dataDyad];
 
     XCTAssertEqualObjects([self.myMatch.holdingIndexContainer lastObject], dataDyadIndex, @"Data dyadmino index was not added to holding container.");
     XCTAssertTrue([self.myMatch.holdingIndexContainer count] == i + 1, @"Holding container count is incorrect for added dyadmino.");
@@ -488,7 +491,7 @@
           NSUInteger rackOrderIndex = [index unsignedIntegerValue];
           NSUInteger dataDyadminoIndex = [dataDyadminoIndexes[rackOrderIndex] unsignedIntegerValue];
           DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:dataDyadminoIndex];
-          [self.myMatch addToHoldingContainer:dataDyad];
+          [self.myMatch testAddToHoldingContainer:dataDyad];
           [tempPlayedDataDyads addObject:dataDyad];
         }
         
@@ -538,7 +541,7 @@
         for (int l = 0; l < j; l++) {
           NSNumber *numberIndex = dataDyadminoIndexes[l];
           DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[numberIndex unsignedIntegerValue]];
-          [self.myMatch addToHoldingContainer:dataDyad];
+          [self.myMatch testAddToHoldingContainer:dataDyad];
         }
         
         [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
@@ -629,6 +632,7 @@
 }
 
 -(void)testTurnForSwapIsRecordedLikePass {
+  self.swapContainer = [NSMutableSet new];
 
     // test 1 to 4 players
   for (int i = 1; i <= kMaxNumPlayers; i++) {
@@ -644,8 +648,8 @@
       NSNumber *randomDataDyadminoIndex = [(NSArray *)currentPlayer.dataDyadminoIndexesThisTurn objectAtIndex:randomDataDyadminoRackIndex];
       DataDyadmino *dataDyadmino = [self.myMatch dataDyadminoForIndex:[randomDataDyadminoIndex unsignedIntegerValue]];
       
-      [self.myMatch addToSwapDataDyadmino:dataDyadmino];
-      [self.myMatch swapDyadminoesFromCurrentPlayer];
+      [self.swapContainer addObject:dataDyadmino];
+      [self.myMatch passTurnBySwappingDyadminoes:self.swapContainer];
       
       NSDictionary *turn = [(NSArray *)self.myMatch.turns lastObject];
       NSArray *indexContainer = (NSArray *)[turn objectForKey:@"indexContainer"];
@@ -690,13 +694,13 @@
   DataDyadmino *firstDataDyad = [self.myMatch dataDyadminoForIndex:[self.myMatch returnFirstDataDyadIndex]];
 
     // three passes in a row
-  [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
+  [self.myMatch testPersistChangedPositionForBoardDataDyadmino:firstDataDyad];
   [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
   
-  [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
+  [self.myMatch testPersistChangedPositionForBoardDataDyadmino:firstDataDyad];
   [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
 
-  [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
+  [self.myMatch testPersistChangedPositionForBoardDataDyadmino:firstDataDyad];
   [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
   
     // should only have one turn change, which records its initial placement
@@ -723,7 +727,7 @@
     
     firstDataDyad.myHexCoord = movedCoord;
     firstDataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
-    [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
+    [self.myMatch testPersistChangedPositionForBoardDataDyadmino:firstDataDyad];
     [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
     
     NSDictionary *turnChange = (NSDictionary *)[(NSArray *)firstDataDyad.turnChanges lastObject];
@@ -773,7 +777,7 @@
       firstDataDyad.myHexCoord = movedCoord;
       firstDataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
     
-      [self.myMatch persistChangedPositionForBoardDataDyadmino:firstDataDyad];
+      [self.myMatch testPersistChangedPositionForBoardDataDyadmino:firstDataDyad];
       [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
     
         // if moved
@@ -814,9 +818,9 @@
     dataDyad.myHexCoord = movedCoord;
     dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
     
-    [self.myMatch addToHoldingContainer:dataDyad];
+    [self.myMatch testAddToHoldingContainer:dataDyad];
     [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
-    [self.myMatch persistChangedPositionForBoardDataDyadmino:dataDyad];
+    [self.myMatch testPersistChangedPositionForBoardDataDyadmino:dataDyad];
 
     NSDictionary *turnChange = (NSDictionary *)[(NSArray *)dataDyad.turnChanges lastObject];
     
@@ -1016,7 +1020,7 @@
     for (int k = 0; k < kNumDyadminoesInRack; k++) {
       NSNumber *numberIndex = dataDyadminoIndexes[k];
       DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[numberIndex unsignedIntegerValue]];
-      [self.myMatch addToHoldingContainer:dataDyad];
+      [self.myMatch testAddToHoldingContainer:dataDyad];
     }
     
     [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
@@ -1133,7 +1137,7 @@
       
       dataDyad.myHexCoord = movedCoord;
       dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
-      [self.myMatch addToHoldingContainer:dataDyad];
+      [self.myMatch testAddToHoldingContainer:dataDyad];
     }
 
     [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];

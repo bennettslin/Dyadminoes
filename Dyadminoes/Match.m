@@ -17,7 +17,8 @@
 @property (readwrite, nonatomic) NSMutableArray *pile; // was mutable array
 @property (readwrite, nonatomic) NSMutableSet *board; // was mutable set
 @property (readwrite, nonatomic) NSMutableSet *occupiedCells;
-@property (readwrite, nonatomic) NSMutableSet *allBoardChords;
+@property (readwrite, nonatomic) NSSet *preTurnChords;
+@property (readwrite, nonatomic) NSMutableSet *thisTurnChords;
 
 @end
 
@@ -45,7 +46,9 @@
 @synthesize pile = _pile;
 @synthesize board = _board;
 @synthesize occupiedCells = _occupiedCells;
-@synthesize allBoardChords = _allBoardChords;
+
+@synthesize preTurnChords = _preTurnChords;
+@synthesize thisTurnChords = _thisTurnChords;
 
 #pragma mark - init methods
 
@@ -468,9 +471,10 @@
     abort();
   }
   
-  NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords inclusive:NO];
-  
-  if ([self addToArrayOfChordsAndPointsTheseChordSonorities:legalChordSonoritiesFormed extendedChordSonorities:chordSupersets fromDyadminoID:[dataDyad returnMyID]]) {
+//  NSSet *chordSupersets = [[SonorityLogic sharedLogic] sonoritiesInSonorities:legalChordSonoritiesFormed thatAreSupersetsOfSonoritiesInSonorities:self.allBoardChords inclusive:NO];
+//  NSSet *chordSupersets; // fix
+//  
+  if ([self addToThisTurnChordsTheseNewOrExtendingChords:legalChordSonoritiesFormed]) {
     
       // this should never be nil, because all played dyadminoes must form a legal chord
     return legalChordSonoritiesFormed;
@@ -482,7 +486,13 @@
 }
 
 -(BOOL)passTurnBySwappingDyadminoes:(NSSet *)dyadminoesToSwap {
-
+  
+  for (DataDyadmino *dataDyad in dyadminoesToSwap) {
+    if ([dataDyad.placeStatus unsignedIntegerValue] != kInRack) {
+      return NO;
+    }
+  }
+  
   NSUInteger swapContainerCount = dyadminoesToSwap.count;
   if (swapContainerCount <= self.pile.count && swapContainerCount > 0) {
     
@@ -507,7 +517,7 @@
     }
     
     [self resetHoldingContainer];
-    [self resetArrayOfChordsAndPoints];
+    [self emptyThisTurnChordsByMovingIntoPreTurnChords:NO];
     [self recordDyadminoesFromCurrentPlayerWithSwap:YES]; // this records turn as a pass
       // sort the board and pile
     [self sortPileArray];
@@ -518,13 +528,13 @@
 
 -(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap {
   
-  NSNumber *points = @([self sumOfPointsThisTurn]);
+  NSUInteger pointsThisTurn = [self pointsForLegalChords:self.thisTurnChords];
   
     // a pass has an empty holding container, while a resign has *no* holding container
   NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys:
                               @([self returnCurrentPlayerIndex]), kTurnPlayer,
                               self.holdingIndexContainer, kTurnDyadminoes,
-                              points, kTurnPoints,
+                              @(pointsThisTurn), kTurnPoints,
                               nil];
   
   [self addTurn:dictionary];
@@ -533,16 +543,13 @@
   self.replayTurn = @(turns.count);
   
       // player passes
-  if ([self sumOfPointsThisTurn] == 0) {
+  if (pointsThisTurn == 0) {
   
       // this is the original condition, which allowed original match tests to pass
       // original tests did not include information about score
 //  if ([(NSArray *)self.holdingIndexContainer count] == 0) {
   
       // if solo game, ends right away
-      // FIXME: this will need to be changed to accommodate when board dyadmino
-      // is moved to create a chord and nothing else, which counts as a turn and
-      // not a pass
     if ([self returnType] == kSelfGame && !swap) {
       [self endGame];
       return;
@@ -562,7 +569,7 @@
       /// obviously scorekeeping will be more sophisticated
       /// and will consider chords formed
     Player *player = [self returnCurrentPlayer];
-    NSUInteger newScore = [player returnPlayerScore] + [self sumOfPointsThisTurn];
+    NSUInteger newScore = [player returnPlayerScore] + pointsThisTurn;
     player.playerScore = @(newScore);
     
     for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:self.holdingIndexContainer]) {
@@ -600,7 +607,9 @@
   
       // whether pass or not, game continues
   [self resetHoldingContainer];
-  [self resetArrayOfChordsAndPoints];
+  [self emptyThisTurnChordsByMovingIntoPreTurnChords:YES];
+  
+//  [self resetArrayOfChordsAndPoints];
   self.lastPlayed = [NSDate date];
   [self switchToNextPlayer];
 }
@@ -732,7 +741,7 @@
   [self sortPileArray];
   
   [self resetHoldingContainer];
-  [self resetArrayOfChordsAndPoints];
+  [self emptyThisTurnChordsByMovingIntoPreTurnChords:NO];
   [player removeAllDataDyadminoesThisTurn];
   if (![self switchToNextPlayer]) {
     [self endGame];
@@ -744,7 +753,7 @@
 -(void)endGame {
   self.currentPlayerIndex = @0;
   [self resetHoldingContainer];
-  [self resetArrayOfChordsAndPoints];
+  [self emptyThisTurnChordsByMovingIntoPreTurnChords:NO];
   
     // if solo game, sole player is winner if any score at all
   if ([self returnType] == kSelfGame) {
@@ -938,6 +947,7 @@
     [tempArray removeObject:number];
     self.holdingIndexContainer = [NSArray arrayWithArray:tempArray];
     DataDyadmino *lastDataDyadmino = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
+    [self undoFromChordsDyadminoID:lastDataDyadmino.myID];
     return lastDataDyadmino;
   }
   return nil;
@@ -948,71 +958,71 @@
   self.holdingIndexContainer = [NSArray new];
 }
 
--(BOOL)addToArrayOfChordsAndPointsTheseChordSonorities:(NSSet *)chordSonorities
-                               extendedChordSonorities:(NSSet *)extendedChordSonorities
-                                        fromDyadminoID:(NSInteger)dyadminoID { // -1 if from board dyadmino
+//-(BOOL)addToArrayOfChordsAndPointsTheseChordSonorities:(NSSet *)chordSonorities
+//                               extendedChordSonorities:(NSSet *)extendedChordSonorities
+//                                        fromDyadminoID:(NSInteger)dyadminoID { // -1 if from board dyadmino
+//
+//  BOOL extendingDyadmino = NO;
+//  
+//  NSUInteger originalCount = [(NSArray *)self.arrayOfChordsAndPoints count];
+//  
+//  NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
+//  
+//    // this checks if we now have an extending seventh replacing a previously played triad
+//  NSSet *previousChordSonorities;
+//  for (NSDictionary *previousDictionary in self.arrayOfChordsAndPoints) {
+//    if (dyadminoID != -1 && [previousDictionary[@"dyadmino"] isEqualToNumber:@(dyadminoID)]) {
+//      previousChordSonorities = previousDictionary[@"chordSonorities"];
+//      [tempArray removeObject:previousDictionary];
+//      extendingDyadmino = YES;
+//    }
+//  }
+//  
+//    // this ensures that extending seventh will count as a new chord, now that original triad has been removed
+//  if (previousChordSonorities) {
+//    NSMutableSet *tempNewExtendedChordSonorities = [NSMutableSet setWithSet:extendedChordSonorities];
+//    for (NSSet *previousSonority in previousChordSonorities) {
+//      for (NSSet *extendedSonority in extendedChordSonorities) {
+//        if ([self.delegate sonority:previousSonority IsSubsetOfSonority:extendedSonority]) {
+//          [tempNewExtendedChordSonorities removeObject:extendedSonority];
+//        }
+//      }
+//    }
+//    extendedChordSonorities = [NSSet setWithSet:tempNewExtendedChordSonorities];
+//  }
+//
+//  
+//  NSUInteger points = [self pointsForChordSonorities:chordSonorities extendedChordSonorities:extendedChordSonorities];
+//  
+//  NSDictionary *thisDictionary = @{@"chordSonorities":chordSonorities, @"points":@(points), @"dyadmino":@(dyadminoID)};
+//  [tempArray addObject:thisDictionary];
+//  self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
+//  
+//    // count should not change if dyadmino has already been placed this turn, otherwise it should add one
+//  NSUInteger addedComparisonValue = extendingDyadmino ? 0 : 1;
+//  return ([(NSArray *)self.arrayOfChordsAndPoints count] == originalCount + addedComparisonValue);
+//}
 
-  BOOL extendingDyadmino = NO;
-  
-  NSUInteger originalCount = [(NSArray *)self.arrayOfChordsAndPoints count];
-  
-  NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
-  
-    // this checks if we now have an extending seventh replacing a previously played triad
-  NSSet *previousChordSonorities;
-  for (NSDictionary *previousDictionary in self.arrayOfChordsAndPoints) {
-    if (dyadminoID != -1 && [previousDictionary[@"dyadmino"] isEqualToNumber:@(dyadminoID)]) {
-      previousChordSonorities = previousDictionary[@"chordSonorities"];
-      [tempArray removeObject:previousDictionary];
-      extendingDyadmino = YES;
-    }
-  }
-  
-    // this ensures that extending seventh will count as a new chord, now that original triad has been removed
-  if (previousChordSonorities) {
-    NSMutableSet *tempNewExtendedChordSonorities = [NSMutableSet setWithSet:extendedChordSonorities];
-    for (NSSet *previousSonority in previousChordSonorities) {
-      for (NSSet *extendedSonority in extendedChordSonorities) {
-        if ([self.delegate sonority:previousSonority IsSubsetOfSonority:extendedSonority]) {
-          [tempNewExtendedChordSonorities removeObject:extendedSonority];
-        }
-      }
-    }
-    extendedChordSonorities = [NSSet setWithSet:tempNewExtendedChordSonorities];
-  }
+//-(BOOL)undoFromArrayOfChordsAndPointsThisDyadminoID:(NSInteger)dyadminoID {
+//  
+//  NSUInteger originalCount = [(NSArray *)self.arrayOfChordsAndPoints count];
+//  
+//  NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
+//
+//  for (NSDictionary *chordDictionary in self.arrayOfChordsAndPoints) {
+//    if ([chordDictionary[@"dyadmino"] isEqualToNumber:@(dyadminoID)]) {
+//      [tempArray removeObject:chordDictionary];
+//    }
+//  }
+//
+//  self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
+//
+//  return ([(NSArray *)self.arrayOfChordsAndPoints count] == originalCount - 1);
+//}
 
-  
-  NSUInteger points = [self pointsForChordSonorities:chordSonorities extendedChordSonorities:extendedChordSonorities];
-  
-  NSDictionary *thisDictionary = @{@"chordSonorities":chordSonorities, @"points":@(points), @"dyadmino":@(dyadminoID)};
-  [tempArray addObject:thisDictionary];
-  self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
-  
-    // count should not change if dyadmino has already been placed this turn, otherwise it should add one
-  NSUInteger addedComparisonValue = extendingDyadmino ? 0 : 1;
-  return ([(NSArray *)self.arrayOfChordsAndPoints count] == originalCount + addedComparisonValue);
-}
-
--(BOOL)undoFromArrayOfChordsAndPointsThisDyadminoID:(NSInteger)dyadminoID {
-  
-  NSUInteger originalCount = [(NSArray *)self.arrayOfChordsAndPoints count];
-  
-  NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
-
-  for (NSDictionary *chordDictionary in self.arrayOfChordsAndPoints) {
-    if ([chordDictionary[@"dyadmino"] isEqualToNumber:@(dyadminoID)]) {
-      [tempArray removeObject:chordDictionary];
-    }
-  }
-
-  self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
-
-  return ([(NSArray *)self.arrayOfChordsAndPoints count] == originalCount - 1);
-}
-
--(void)resetArrayOfChordsAndPoints {
-  self.arrayOfChordsAndPoints = nil;
-}
+//-(void)resetArrayOfChordsAndPoints {
+//  self.arrayOfChordsAndPoints = nil;
+//}
 
 #pragma mark - replay methods
 
@@ -1181,42 +1191,48 @@
   _occupiedCells = occupiedCells;
 }
 
--(NSSet *)allBoardChords {
-  
-  NSMutableSet *tempLegalChordSonorities = [NSMutableSet new];
-  NSMutableSet *tempBoardAndPlayedDyadminoes = [NSMutableSet new];
-  
-    // add board dyadminoes
-  [tempBoardAndPlayedDyadminoes addObjectsFromArray:[self.board allObjects]];
-  
-    // add played dyadminoes
-  for (NSNumber *indexNumber in self.holdingIndexContainer) {
-    DataDyadmino *dataDyad = [self dataDyadminoForIndex:[indexNumber unsignedIntegerValue]];
-    [tempBoardAndPlayedDyadminoes addObject:dataDyad];
-  }
-  
-  for (DataDyadmino *dataDyadmino in tempBoardAndPlayedDyadminoes) {
-    NSSet *allSonorities = [self sonoritiesFromPlacingDyadminoID:[dataDyadmino returnMyID] onBottomHexCoord:dataDyadmino.myHexCoord withOrientation:[dataDyadmino returnMyOrientation] rulingOutRecentRackID:-1];
-    
-    NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:allSonorities];
-    IllegalPlacementResult result = [[SonorityLogic sharedLogic] checkIllegalPlacementFromFormationOfSonorities:allSonorities];
-    
-    if (legalChordSonoritiesFormed.count == 0 && [dataDyadmino.myID unsignedIntegerValue] != [self returnFirstDataDyadIndex]) {
-      NSLog(@"Persisted dyadmino %@ does not form any legal chords. This is a critical failure.", dataDyadmino.myID);
-      abort();
-    } else if (result != kNotIllegal) {
-      NSLog(@"Persisted dyadmino %@ creates an illegal formation. This is a critical failure.", dataDyadmino.myID);
-      abort();
+-(NSSet *)preTurnChords {
+  if (!_preTurnChords) {
+    NSMutableSet *tempSet = [NSMutableSet new];
+    for (DataDyadmino *dataDyad in self.board) {
+      
+        // first get all legal chords, there must be at least one
+      NSSet *formationOfSonorities = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID] onBottomHexCoord:dataDyad.myHexCoord withOrientation:[dataDyad returnMyOrientation] rulingOutRecentRackID:YES];
+      NSSet *legalChordSonorities = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
+      if (legalChordSonorities.count == 0 && [dataDyad returnMyID] != [self returnFirstDataDyadIndex]) {
+        NSLog(@"Persisted dyadmino %i does not form any legal chords. This is a critical failure.", [dataDyad returnMyID]);
+        abort();
+      }
+      
+        // next ensure that there are no illegal chords
+      IllegalPlacementResult result = [[SonorityLogic sharedLogic] checkIllegalPlacementFromFormationOfSonorities:formationOfSonorities];
+      if (result != kNotIllegal) {
+        NSLog(@"Persisted dyadmino %i creates an illegal formation. This is a critical failure.", [dataDyad returnMyID]);
+        abort();
+      }
+      
+        // good, add dyadmino to array
+      [tempSet addObjectsFromArray:[legalChordSonorities allObjects]];
     }
     
-    [tempLegalChordSonorities addObjectsFromArray:[legalChordSonoritiesFormed allObjects]];
+    _preTurnChords = [NSSet setWithSet:tempSet];
   }
-  
-  return [NSSet setWithSet:tempLegalChordSonorities];
+  return _preTurnChords;
 }
 
--(void)setAllBoardChords:(NSMutableSet *)allBoardChords {
-  _allBoardChords = allBoardChords;
+-(void)setPreTurnChords:(NSMutableSet *)preTurnChords {
+  _preTurnChords = preTurnChords;
+}
+
+-(NSMutableSet *)thisTurnChords {
+  if (!_thisTurnChords) {
+    _thisTurnChords = [NSMutableSet new];
+  }
+  return _thisTurnChords;
+}
+
+-(void)setThisTurnChords:(NSMutableSet *)thisTurnChords {
+  _thisTurnChords = thisTurnChords;
 }
 
 #pragma mark - helper methods
@@ -1272,28 +1288,173 @@
   }
 }
 
-#pragma mark - array of chords and points helper methods
+#pragma turn - chords methods
 
--(NSUInteger)sumOfPointsThisTurn {
+-(NSDictionary *)getNewChordsOrExtendingChordsFromTheseChords:(NSSet *)theseChords {
+    // this checks both preTurn chords and whatever chords are already in thisTurn chords
   
-  NSUInteger sumPoints = 0;
-  for (int i = 0; i < [(NSArray *)self.arrayOfChordsAndPoints count]; i++) {
-    NSDictionary *chordDictionary = self.arrayOfChordsAndPoints[i];
-    NSNumber *chordPointsNumber = chordDictionary[@"points"];
-    sumPoints += [chordPointsNumber unsignedIntegerValue];
+    // returns dictionary
+    // key @"newOrExtending" is set of new or extending chords
+    // key @"these" is just theseChords returned
+  
+  NSMutableSet *tempNewOrExtendingSet = [NSMutableSet new];
+  NSMutableSet *tempExistingSet = [NSMutableSet new];
+  
+  NSMutableSet *checkedSet = [NSMutableSet setWithSet:self.preTurnChords];
+  [checkedSet addObjectsFromArray:[self.thisTurnChords allObjects]];
+  
+  for (NSSet *thisChord in theseChords) {
+    BOOL thisChordHasSubset = NO;
+    
+    for (NSSet *alreadyCheckedChord in checkedSet) {
+      
+        // checked chord is subset of this chord, which means they're either equal or extending
+      if ([[SonorityLogic sharedLogic] sonority:alreadyCheckedChord isSubsetOfSonority:thisChord]) {
+        thisChordHasSubset = YES;
+        
+          // they are equal
+        if ([[SonorityLogic sharedLogic] sonority:thisChord isEqualToSonority:alreadyCheckedChord]) {
+          NSLog(@"this chord %@ is equal to this chord %@", thisChord, alreadyCheckedChord);
+          [tempExistingSet addObject:thisChord];
+
+            // they are not equal, and therefore this chord extends checked chord
+        } else {
+          NSLog(@"this chord %@ extends this chord %@", thisChord, alreadyCheckedChord);
+          [tempNewOrExtendingSet addObject:thisChord];
+        }
+        
+      }
+    }
+    
+      // this chord is new
+    if (!thisChordHasSubset) {
+      NSLog(@"this chord is neither equal nor extends an existing chord");
+      [tempNewOrExtendingSet addObject:thisChord];
+    }
   }
-  return sumPoints;
+  
+  NSSet *newSet = [NSSet setWithSet:tempNewOrExtendingSet];
+  NSSet *existingSet = [NSSet setWithSet:tempExistingSet];
+  
+  return @{@"newOrExtending": newSet, @"existing": existingSet, @"these": theseChords};
 }
 
--(NSUInteger)pointsForChordSonorities:(NSSet *)chordSonorities extendedChordSonorities:(NSSet *)extendedChordSonorities {
+-(BOOL)addToThisTurnChordsTheseNewOrExtendingChords:(NSSet *)newOrExtendingChords {
+  
+    // return right away if set is empty
+  if (newOrExtendingChords.count == 0) {
+    return NO;
+  }
+  
+  for (NSSet *newOrExtendingChord in newOrExtendingChords) {
+    [self.thisTurnChords addObject:newOrExtendingChord];
+  }
+  
+  return YES;
+}
+
+-(BOOL)undoFromChordsDyadminoID:(NSNumber *)dyadminoID {
+  
+  NSMutableSet *checkedSet = [NSMutableSet setWithSet:self.preTurnChords];
+  [checkedSet addObjectsFromArray:[self.thisTurnChords allObjects]];
+  
+  for (NSSet *checkedChord in checkedSet) {
+    for (NSDictionary *note in checkedChord) {
+      if ([note[@"dyadmino"] isEqualToNumber:dyadminoID]) {
+        if ([self.thisTurnChords containsObject:checkedChord]) {
+          [self.thisTurnChords removeObject:checkedChord];
+        }
+        
+        if ([self.preTurnChords containsObject:checkedChord]) {
+          NSMutableSet *tempSet = [NSMutableSet setWithSet:self.thisTurnChords];
+          [tempSet removeObject:checkedChord];
+          self.preTurnChords = [NSSet setWithSet:tempSet];
+        }
+      }
+    }
+  }
+  
+  return YES;
+}
+
+-(NSUInteger)pointsForLegalChords:(NSSet *)legalChords {
   
   NSUInteger points = 0;
-  for (NSSet *chordSonority in chordSonorities) {
-    BOOL extended = [extendedChordSonorities containsObject:chordSonority];
-    points += [self pointsForChordSonority:chordSonority extended:extended];
+  
+  
+  NSMutableSet *checkedSet = [NSMutableSet setWithSet:self.preTurnChords];
+  
+    // don't add thisTurn chords to checked set
+    // if we're getting points for thisTurn chords
+  if (![legalChords isEqualToSet:self.thisTurnChords]) {
+    [checkedSet addObjectsFromArray:[self.thisTurnChords allObjects]];
   }
+  
+  NSLog(@"for points, legal chords is %@, checked set is %@", legalChords, checkedSet);
+  
+  for (NSSet *thisChord in legalChords) {
+    BOOL thisChordHasSubset = NO;
+    for (NSSet *checkedChord in checkedSet) {
+      
+        // checked chord is subset of this chord, which means they're either equal or extending
+      if ([[SonorityLogic sharedLogic] sonority:checkedChord isSubsetOfSonority:thisChord]) {
+        thisChordHasSubset = YES;
+        
+          // they are equal, so it's the same chord
+        if ([[SonorityLogic sharedLogic] sonority:thisChord isEqualToSonority:checkedChord]) {
+          
+            // they are not equal, and therefore this chord extends checked chord
+        } else {
+          points += [self pointsForChordSonority:thisChord extended:YES];
+        }
+      }
+    }
+    
+      // they are neither equal nor extending, so this chord is new
+    if (!thisChordHasSubset) {
+      points += [self pointsForChordSonority:thisChord extended:NO];
+    }
+  }
+  
+  NSLog(@"points is %i", points);
   return points;
 }
+
+-(BOOL)emptyThisTurnChordsByMovingIntoPreTurnChords:(BOOL)move {
+  
+//  if (move) {
+//    NSMutableSet *tempSet = [NSMutableSet setWithSet:self.preTurnChords];
+//    [tempSet addObjectsFromArray:[self.preTurnChords allObjects]];
+//    self.preTurnChords = [NSSet setWithSet:tempSet];
+//  }
+  self.preTurnChords = nil;
+  self.thisTurnChords = nil;
+  return YES;
+}
+
+#pragma mark - array of chords and points helper methods
+
+//-(NSUInteger)sumOfPointsThisTurn {
+//  
+//  NSUInteger sumPoints = 0;
+//  for (int i = 0; i < [(NSArray *)self.arrayOfChordsAndPoints count]; i++) {
+//    NSDictionary *chordDictionary = self.arrayOfChordsAndPoints[i];
+//    NSNumber *chordPointsNumber = chordDictionary[@"points"];
+//    sumPoints += [chordPointsNumber unsignedIntegerValue];
+//  }
+//  return sumPoints;
+//}
+//
+//-(NSUInteger)pointsForChordSonorities:(NSSet *)chordSonorities extendedChordSonorities:(NSSet *)extendedChordSonorities {
+//  
+//  NSUInteger points = 0;
+//  for (NSSet *chordSonority in chordSonorities) {
+//    BOOL extended = [extendedChordSonorities containsObject:chordSonority];
+//    points += [self pointsForChordSonority:chordSonority extended:extended];
+//  }
+//  return points;
+//}
+//
 
 -(NSUInteger)pointsForChordSonority:(NSSet *)chordSonority extended:(BOOL)extended {
   NSUInteger points;
@@ -1335,7 +1496,8 @@
     [self persistChangedPositionForBoardDataDyadmino:dataDyad];
   }
   
-  [self resetArrayOfChordsAndPoints];
+//  [self resetArrayOfChordsAndPoints];
+  [self emptyThisTurnChordsByMovingIntoPreTurnChords:NO];
 }
 
 -(BOOL)boardDyadminoesHaveMovedSinceStartOfTurn {
@@ -1392,6 +1554,16 @@
 
 -(NSInteger)returnRandomNumber1To24 {
   return [self.randomNumber1To24 integerValue];
+}
+
+#pragma mark - test methods
+
+-(BOOL)testAddToHoldingContainer:(DataDyadmino *)dataDyad {
+  return [self addToHoldingContainer:dataDyad];
+}
+
+-(void)testPersistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad {
+  [self persistChangedPositionForBoardDataDyadmino:dataDyad];
 }
 
 @end

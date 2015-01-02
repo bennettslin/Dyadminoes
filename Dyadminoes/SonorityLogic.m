@@ -59,6 +59,7 @@
     }
   }
   
+  NSLog(@"error is %i", mostEgregiousError);
   return mostEgregiousError;
 }
 
@@ -93,7 +94,7 @@
 
     BOOL sonority1IsAlsoInSet2 = NO;
     for (NSSet *chord2 in setOfLegalChords2) {
-      if ([self sonority:chord1 IsSubsetOfSonority:chord2]) {
+      if ([self sonority:chord1 isSubsetOfSonority:chord2]) {
         sonority1IsAlsoInSet2 = YES;
       }
     }
@@ -104,6 +105,25 @@
   }
   
   return returnValue;
+}
+
+-(NSSet *)legalChords:(NSSet *)legalChords1 notFoundInAndNotSubsetsOfLegalChords:(NSSet *)legalChords2 {
+  
+  NSMutableSet *tempSet = [NSMutableSet new];
+  for (NSSet *chord1 in legalChords1) {
+    
+    BOOL thisChordInSet1IsFoundInOrASubsetOfAChordInSet2 = NO;
+    for (NSSet *chord2 in legalChords2) {
+      if ([self sonority:chord1 isSubsetOfSonority:chord2]) {
+        thisChordInSet1IsFoundInOrASubsetOfAChordInSet2 = YES;
+      }
+    }
+    if (!thisChordInSet1IsFoundInOrASubsetOfAChordInSet2) {
+      [tempSet addObject:chord1];
+    }
+  }
+  
+  return [NSSet setWithSet:tempSet];
 }
 
 -(BOOL)validateSonorityDoesNotExceedMaximum:(NSSet *)sonority {
@@ -133,18 +153,31 @@
   return NO;
 }
 
--(BOOL)sonority:(NSSet *)smaller IsSubsetOfSonority:(NSSet *)larger {
+-(BOOL)sonority:(NSSet *)smaller isSubsetOfSonority:(NSSet *)larger {
     // every note in smaller sonority is also in larger sonority
     // possible that sonorities are equal
   
-  BOOL returnValue = YES;
   for (NSDictionary *note in smaller) {
     if (![self sonority:larger containsNote:note]) {
-      returnValue = NO;
+      return NO;
     }
   }
   
-  return returnValue;
+  return YES;
+}
+
+-(BOOL)sonority:(NSSet *)sonority1 isEqualToSonority:(NSSet *)sonority2 {
+  if (sonority1.count != sonority2.count) {
+    return NO;
+  }
+  
+  for (NSDictionary *note in sonority1) {
+    if (![self sonority:sonority2 containsNote:note]) {
+      return NO;
+    }
+  }
+  
+  return YES;
 }
 
 -(NSSet *)sonoritiesInSonorities:(NSSet *)larger thatAreSupersetsOfSonoritiesInSonorities:(NSSet *)smaller inclusive:(BOOL)inclusive {

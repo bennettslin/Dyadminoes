@@ -377,7 +377,7 @@
       set2 = noCommonNote ? trialSet2 : nil;
     }
   
-    XCTAssertFalse([self.sonorityLogic sonority:set1 IsSubsetOfSonority:set2], @"Failed to see that sonorities have no notes in common.");
+    XCTAssertFalse([self.sonorityLogic sonority:set1 isSubsetOfSonority:set2], @"Failed to see that sonorities have no notes in common.");
   }
   
     // test 50 times
@@ -412,7 +412,7 @@
       set1 = tempSet;
     }
 
-    XCTAssertTrue([self.sonorityLogic sonority:set1 IsSubsetOfSonority:set2], @"Smaller sonority not recognised as subset of larger one.");
+    XCTAssertTrue([self.sonorityLogic sonority:set1 isSubsetOfSonority:set2], @"Smaller sonority not recognised as subset of larger one.");
 
     NSMutableSet *tempSet1 = [NSMutableSet setWithSet:set1];
     while (set1.count < set2.count) {
@@ -428,7 +428,7 @@
     }
     
 //    NSLog(@"set1 is %@, set2 is %@", set1, set2);
-    XCTAssertFalse([self.sonorityLogic sonority:set1 IsSubsetOfSonority:set2], @"Failed to see that sonority is not subset despite some notes in common, because it also has extra notes not found in other sonority.");
+    XCTAssertFalse([self.sonorityLogic sonority:set1 isSubsetOfSonority:set2], @"Failed to see that sonority is not subset despite some notes in common, because it also has extra notes not found in other sonority.");
   }
 }
 
@@ -440,8 +440,8 @@
     NSSet *sonority1 = [self randomSonority];
     NSSet *sonority2 = [NSSet setWithSet:sonority1];
     
-    XCTAssertTrue([self.sonorityLogic sonority:sonority1 IsSubsetOfSonority:sonority2], @"Sonority1 should be subset of sonority2.");
-    XCTAssertTrue([self.sonorityLogic sonority:sonority2 IsSubsetOfSonority:sonority1], @"Sonority1 should be subset of sonority2.");
+    XCTAssertTrue([self.sonorityLogic sonority:sonority1 isSubsetOfSonority:sonority2], @"Sonority1 should be subset of sonority2.");
+    XCTAssertTrue([self.sonorityLogic sonority:sonority2 isSubsetOfSonority:sonority1], @"Sonority1 should be subset of sonority2.");
   }
 }
 

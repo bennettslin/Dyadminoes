@@ -13,7 +13,7 @@
 -(BOOL)validateSonorityDoesNotExceedMaximum:(NSSet *)sonority;
 -(BOOL)validateSonorityHasNoDoublePCs:(NSSet *)sonority;
 
--(BOOL)sonority:(NSSet *)smaller IsSubsetOfSonority:(NSSet *)larger;
+-(BOOL)sonority:(NSSet *)smaller isSubsetOfSonority:(NSSet *)larger;
 -(BOOL)sonorityIsIncompleteSeventh:(NSSet *)sonority;
 
 -(NSString *)stringForChord:(Chord)chord;
