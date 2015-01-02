@@ -170,7 +170,7 @@
 }
 
 -(BOOL)loadAfterNewMatchRetrievedForReset:(BOOL)forReset {
-  NSLog(@"load after new match retrieved");
+//  NSLog(@"load after new match retrieved");
   
   _topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
   
@@ -207,7 +207,7 @@
 }
 
 -(void)prepareForNewTurn {
-  NSLog(@"prepare for new turn");
+//  NSLog(@"prepare for new turn");
     // called both when scene is loaded, and when player finalises turn in PnP mode
   
   [self.mySoundEngine removeAllActions];
@@ -259,7 +259,7 @@
 }
 
 -(void)didMoveToViewForReset:(BOOL)forReset {
-  NSLog(@"did move to view");
+//  NSLog(@"did move to view");
   
     // ensures that match's board dyadminoes are reset
   [self.myMatch last];
@@ -313,7 +313,7 @@
 }
 
 -(void)afterNewPlayerReadyForReset:(BOOL)forReset {
-  NSLog(@"after new player ready");
+//  NSLog(@"after new player ready");
     // called both when scene is loaded, and when new player is ready in PnP mode
   
   [_boardField updatePivotGuidesForNewPlayer];
@@ -1508,7 +1508,6 @@
              ([button confirmPassPlayOrDone] == kDoneButton || [button confirmPassPlayOrDone] == kPassButton)) {
     if (!self.swapContainer) {
       
-      NSLog(@"points for legal chords called from pass or done button.");
       NSUInteger pointsThisTurn = [self.myMatch pointsForLegalChords:self.myMatch.thisTurnChords];
       if (pointsThisTurn == 0) {
         
@@ -1679,16 +1678,12 @@
       // before proceeding with anything else
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     
-    NSLog(@"DataDyad %@ hex is %i, %i, orientation is %@", dataDyad.myID, dataDyad.myHexCoord.x, dataDyad.myHexCoord.y, dataDyad.myOrientation);
-    
     NSSet *legalChordSonoritiesFormed = [self.myMatch playDataDyadmino:dataDyad onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation rulingOutRecentRackID:-1];
     
     if (!legalChordSonoritiesFormed) {
       NSLog(@"Match failed to add to array of chords.");
       abort();
     }
-    
-    NSLog(@"Now dataDyad %@ hex is %i, %i, orientation is %@", dataDyad.myID, dataDyad.myHexCoord.x, dataDyad.myHexCoord.y, dataDyad.myOrientation);
     
       // show chord message
     NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:legalChordSonoritiesFormed withInitialString:@"Built " andEndingString:@"."];
@@ -1758,7 +1753,6 @@
       dyadmino.myHexCoord = dataDyad.myHexCoord;
       dyadmino.orientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
       dyadmino.tempReturnOrientation = dyadmino.orientation;
-      NSLog(@"Dyadmino new hex is %li, %li, new orientation is %i", (long)dyadmino.myHexCoord.x, (long)dyadmino.myHexCoord.y, dyadmino.orientation);
       dyadmino.homeNode = nil;
       dyadmino.tempBoardNode = nil;
       
@@ -1773,14 +1767,12 @@
       }];
 
       SKAction *fadeInSequence = [SKAction sequence:@[fadeIn, fadeInCompletion]];
-      NSLog(@"Reset board called.");
       [_boardField runAction:fadeInSequence withKey:@"fadeInBoard"];
       
     }
   }];
 
   SKAction *sequence = [SKAction sequence:@[fadeOut, completion]];
-  NSLog(@"Reset board called.");
   [_boardField runAction:sequence withKey:@"fadeOutBoard"];
 }
 
@@ -1829,7 +1821,7 @@
   [self updateTopBarLabelsFinalTurn:YES animated:YES];
   
     // FIXME: remove rack dyadminoes here
-  NSLog(@"rack dyadminoes should now be removed.");
+//  NSLog(@"rack dyadminoes should now be removed.");
   
   [self.myDelegate presentFromSceneGameEndedVC];
 }
@@ -2150,16 +2142,13 @@
 }
 
 -(void)checkWhetherToEaseOrKeepHovering:(Dyadmino *)dyadmino {
-  NSLog(@"check whether to ease or keep hovering");
   
       // finish hovering only if placement is legal
   if ([dyadmino isOnBoard] && _touchedDyadmino != dyadmino) {
-    NSLog(@"dyadmino is on board and not touched");
 
       // ensures that validation takes place only if placement is uncertain
       // will not get called if returning to homeNode from top bar
     if (dyadmino.tempBoardNode) {
-      NSLog(@"dyadmino has tempboardnode");
       
         // handle placement results:
         // ease in right away if no error, and if dyadmino was not moved from original spot
@@ -2170,7 +2159,6 @@
   //----------------------------------------------------------------------------
       
       if (placementResult != kNoError) {
-        NSLog(@"no placement error");
         
         [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
         [self updateTopBarButtons]; // ensures that buttons are updated if chords are changed after flip
@@ -2185,14 +2173,11 @@
         [self updateTopBarButtons]; // ensures that buttons are updated if chords are changed after flip
         
       } else {
-        NSLog(@"changed from upon touch node or orientation");
         
           // get all the info in one go
         NSDictionary *chordDictionary = [self legalChordDictionaryFromFormationOfSonoritiesForDyadmino:dyadmino forBoardDyadmino:[dyadmino belongsOnBoard]];
         NSSet *existingChords = (NSSet *)chordDictionary[@"existing"];
         NSSet *newOrExtendingChords = (NSSet *)chordDictionary[@"newOrExtending"];
-        
-        NSLog(@"new or extending chords is %@", newOrExtendingChords);
         
         NSSet *formationOfSonorities = chordDictionary[@"formation"];
         IllegalPlacementResult result = [[SonorityLogic sharedLogic] checkIllegalPlacementFromFormationOfSonorities:formationOfSonorities];
@@ -2275,7 +2260,6 @@
               
               _tempChordSonoritiesFromMovedBoardDyadmino = newOrExtendingChords;
               
-              NSLog(@"points for legal chords called from checkwhether, moved board dyadmino created hew chords.");
               [self presentActionSheet:kActionSheetNewLegalChord
                             withPoints:[self.myMatch pointsForLegalChords:newOrExtendingChords]];
               
@@ -2288,14 +2272,8 @@
             } else {
               NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:newOrExtendingChords withInitialString:@"Built " andEndingString:@"."];
               
-                // for test
-              DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-              NSLog(@"dataDyad %@ hex is %i, %i, orientation is %@", dataDyad.myID, dataDyad.myHexCoord.x, dataDyad.myHexCoord.y, dataDyad.myOrientation);
-              
               [self.myMatch addLegalChordsFormed:newOrExtendingChords
                       fromMovedBoardDataDyadmino:[self getDataDyadminoFromDyadmino:dyadmino] onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation];
-              
-              NSLog(@"Now dataDyad %@ hex is %i, %i, orientation is %@", dataDyad.myID, dataDyad.myHexCoord.x, dataDyad.myHexCoord.y, dataDyad.myOrientation);
               
               [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
               [self finishHoveringAfterCheckDyadmino:dyadmino];
@@ -2354,14 +2332,11 @@
   
   [tempDictionary setObject:formationOfSonorities forKey:@"formation"];
   
-  NSLog(@"formation of sonorities is %@, legal chord sonorities is %@, dictionary is %@", formationOfSonorities, legalChordSonorities, tempDictionary);
-  
   return [NSDictionary dictionaryWithDictionary:tempDictionary];
 }
 
 -(void)finishHoveringAfterCheckDyadmino:(Dyadmino *)dyadmino {
   
-  NSLog(@"finish hovering after check dyadmino");
   [dyadmino changeHoveringStatus:kDyadminoFinishedHovering];
   if ([dyadmino belongsOnBoard]) {
     
@@ -2417,7 +2392,6 @@
   
       // if player has points from moving a board dyadmino, that counts as well
   
-  NSLog(@"points for legal chords called from update top bar buttons");
   BOOL noBoardDyadminoesPlayedAndNoRecentRackDyadmino = ([self.myMatch pointsForLegalChords:self.myMatch.thisTurnChords] == 0) && !_recentRackDyadmino;
   
   [_topBar node:_topBar.returnOrStartButton shouldBeEnabled:!self.swapContainer && !thereIsATouchedOrHoveringDyadmino];
@@ -2803,8 +2777,9 @@
     
       // update hexCoord of board dyadmino
     dyadmino.myHexCoord = snapPoint.myCell.hexCoord;
-    [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:snapPoint andColour:colour];
     
+      // board cells and data cells are always updated together
+    [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:snapPoint andColour:colour];
     [self.myMatch updateCellsForPlacedDyadminoID:dyadmino.myID pc1:dyadmino.pc1 pc2:dyadmino.pc2 orientation:dyadmino.orientation onBottomCellHexCoord:snapPoint.myCell.hexCoord];
   }
 }
@@ -2818,8 +2793,8 @@
       dyadmino.myHexCoord = snapPoint.myCell.hexCoord;
     }
     
+      // board cells and data cells are always updated together
     [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:(dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode) andColour:colour];
-    
     [self.myMatch updateCellsForRemovedDyadminoID:dyadmino.myID pc1:dyadmino.pc1 pc2:dyadmino.pc2 orientation:dyadmino.orientation fromBottomCellHexCoord:(dyadmino.tempBoardNode ? dyadmino.tempBoardNode.myCell.hexCoord : dyadmino.homeNode.myCell.hexCoord)];
   }
 }

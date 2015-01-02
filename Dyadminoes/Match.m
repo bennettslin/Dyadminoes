@@ -521,7 +521,7 @@
     }
     
     [self resetHoldingContainer];
-    [self emptyThisTurnChordsByMovingIntoPreTurnChords:NO];
+    [self emptyThisTurnChordsByMovingIntoPreTurnChords];
     [self recordDyadminoesFromCurrentPlayerWithSwap:YES]; // this records turn as a pass
       // sort the board and pile
     [self sortPileArray];
@@ -532,7 +532,6 @@
 
 -(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap {
   
-  NSLog(@"points for legal chords called from record dyadminoes");
   NSUInteger pointsThisTurn = [self pointsForLegalChords:self.thisTurnChords];
   
     // a pass has an empty holding container, while a resign has *no* holding container
@@ -612,7 +611,7 @@
   
       // whether pass or not, game continues
   [self resetHoldingContainer];
-  [self emptyThisTurnChordsByMovingIntoPreTurnChords:YES];
+  [self emptyThisTurnChordsByMovingIntoPreTurnChords];
   
 //  [self resetArrayOfChordsAndPoints];
   self.lastPlayed = [NSDate date];
@@ -668,7 +667,6 @@
 -(void)persistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad {
     // this gets called in placeFirstDyadmino, resetBoard, and recordDyadminoes
   
-  NSLog(@"persist changed position for board data dyadmino.");
   if ([self.board containsObject:dataDyad]) {
     
     NSNumber *lastHexX;
@@ -746,7 +744,7 @@
   [self sortPileArray];
   
   [self resetHoldingContainer];
-  [self emptyThisTurnChordsByMovingIntoPreTurnChords:NO];
+  [self emptyThisTurnChordsByMovingIntoPreTurnChords];
   [player removeAllDataDyadminoesThisTurn];
   if (![self switchToNextPlayer]) {
     [self endGame];
@@ -758,7 +756,7 @@
 -(void)endGame {
   self.currentPlayerIndex = @0;
   [self resetHoldingContainer];
-  [self emptyThisTurnChordsByMovingIntoPreTurnChords:NO];
+  [self emptyThisTurnChordsByMovingIntoPreTurnChords];
   
     // if solo game, sole player is winner if any score at all
   if ([self returnType] == kSelfGame) {
@@ -1385,21 +1383,9 @@
 -(NSUInteger)pointsForLegalChords:(NSSet *)legalChords {
   
   NSUInteger points = 0;
-  
-  
+
   NSMutableSet *checkedSet = [NSMutableSet setWithSet:self.preTurnChords];
-  
-    // don't add thisTurn chords to checked set
-    // if we're getting points for thisTurn chords
-//  if (![legalChords isEqualToSet:self.thisTurnChords]) {
-  
-    // might not need the above bool
   [checkedSet addObjectsFromArray:[self.thisTurnChords allObjects]];
-  
-  
-//  }
-  
-  NSLog(@"for points, legal chords is %@, checked set is %@", legalChords, checkedSet);
   
   for (NSSet *thisChord in legalChords) {
     BOOL thisChordHasSubset = NO;
@@ -1425,45 +1411,15 @@
     }
   }
   
-  NSLog(@"points is %i", points);
   return points;
 }
 
--(BOOL)emptyThisTurnChordsByMovingIntoPreTurnChords:(BOOL)move {
-  
-//  if (move) {
-//    NSMutableSet *tempSet = [NSMutableSet setWithSet:self.preTurnChords];
-//    [tempSet addObjectsFromArray:[self.preTurnChords allObjects]];
-//    self.preTurnChords = [NSSet setWithSet:tempSet];
-//  }
+-(BOOL)emptyThisTurnChordsByMovingIntoPreTurnChords {
+
   self.preTurnChords = nil;
   self.thisTurnChords = nil;
   return YES;
 }
-
-#pragma mark - array of chords and points helper methods
-
-//-(NSUInteger)sumOfPointsThisTurn {
-//  
-//  NSUInteger sumPoints = 0;
-//  for (int i = 0; i < [(NSArray *)self.arrayOfChordsAndPoints count]; i++) {
-//    NSDictionary *chordDictionary = self.arrayOfChordsAndPoints[i];
-//    NSNumber *chordPointsNumber = chordDictionary[@"points"];
-//    sumPoints += [chordPointsNumber unsignedIntegerValue];
-//  }
-//  return sumPoints;
-//}
-//
-//-(NSUInteger)pointsForChordSonorities:(NSSet *)chordSonorities extendedChordSonorities:(NSSet *)extendedChordSonorities {
-//  
-//  NSUInteger points = 0;
-//  for (NSSet *chordSonority in chordSonorities) {
-//    BOOL extended = [extendedChordSonorities containsObject:chordSonority];
-//    points += [self pointsForChordSonority:chordSonority extended:extended];
-//  }
-//  return points;
-//}
-//
 
 -(NSUInteger)pointsForChordSonority:(NSSet *)chordSonority extended:(BOOL)extended {
   NSUInteger points;
@@ -1511,13 +1467,11 @@
     [self persistChangedPositionForBoardDataDyadmino:dataDyad];
   }
   
-//  [self resetArrayOfChordsAndPoints];
-  [self emptyThisTurnChordsByMovingIntoPreTurnChords:NO];
+  [self emptyThisTurnChordsByMovingIntoPreTurnChords];
 }
 
 -(BOOL)boardDyadminoesHaveMovedSinceStartOfTurn {
-  NSLog(@"board dyadminoes have moved since start of turn.");
-  NSLog(@"turns count is %lu", (unsigned long)[self.turns count]);
+
   NSUInteger index = [(NSArray *)self.turns count];
   for (DataDyadmino *dataDyad in self.board) {
     HexCoord persistedHexCoord = [dataDyad getHexCoordForTurn:index];
