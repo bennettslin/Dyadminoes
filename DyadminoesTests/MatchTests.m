@@ -68,8 +68,8 @@
     
     for (int j = 1; j <= i; j++) {
       Player *player = [self.myMatch playerForIndex:j - 1];
-      XCTAssertEqualObjects(player.playerName, self.playerNames[j - 1], @"Player name is wrong.");
-      XCTAssertEqual([player.playerOrder unsignedIntegerValue], j - 1, @"Player order number is wrong.");
+      XCTAssertEqualObjects(player.name, self.playerNames[j - 1], @"Player name is wrong.");
+      XCTAssertEqual([player.order unsignedIntegerValue], j - 1, @"Player order number is wrong.");
     }
   }
 }
@@ -88,7 +88,7 @@
     
     for (int j = 0; j <= i; j++) {
       Player *player = [self.myMatch playerForIndex:j];
-      NSArray *dataDyadminoIndexesThisTurn = (NSArray *)player.dataDyadminoIndexesThisTurn;
+      NSArray *dataDyadminoIndexesThisTurn = (NSArray *)player.rackIndexes;
       NSUInteger numberOfDataDyadminoesThisTurn = dataDyadminoIndexesThisTurn.count;
       XCTAssertTrue(numberOfDataDyadminoesThisTurn == kNumDyadminoesInRack, @"There isn't six dyadminoes in player %i's hand for %lu players", j, (unsigned long)numberOfPlayers);
     }
@@ -121,7 +121,7 @@
     
     for (int j = 0; j <= i; j++) {
       Player *player = [self.myMatch playerForIndex:j];
-      NSArray *dataDyadminoIndexesThisTurn = (NSArray *)player.dataDyadminoIndexesThisTurn;
+      NSArray *dataDyadminoIndexesThisTurn = (NSArray *)player.rackIndexes;
       [allDyadminoes addObjectsFromArray:dataDyadminoIndexesThisTurn];
     }
 
@@ -149,13 +149,13 @@
       // test that passes to next player for each player
     for (int j = 1; j <= numberOfPlayers; j++) {
       Player *currentPlayer = [self.myMatch returnCurrentPlayer];
-      NSInteger currentPlayerIndex = [currentPlayer returnPlayerOrder];
+      NSInteger currentPlayerIndex = [currentPlayer returnOrder];
       NSUInteger currentTurnCount = [(NSArray *)self.myMatch.turns count];
       
       [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
       
       Player *nextPlayer = [self.myMatch returnCurrentPlayer];
-      NSInteger nextPlayerIndex = [nextPlayer returnPlayerOrder];
+      NSInteger nextPlayerIndex = [nextPlayer returnOrder];
       NSUInteger nextTurnCount = [(NSArray *)self.myMatch.turns count];
       
         // next player will be current player for solo game
@@ -182,19 +182,19 @@
     for (int j = 1; j <= numberOfPlayers; j++) {
       self.swapContainer = [NSMutableSet new];
       Player *currentPlayer = [self.myMatch returnCurrentPlayer];
-      NSInteger currentPlayerIndex = [currentPlayer returnPlayerOrder];
+      NSInteger currentPlayerIndex = [currentPlayer returnOrder];
       NSUInteger currentTurnCount = [(NSArray *)self.myMatch.turns count];
       
         // random data dyadmino
-      NSUInteger randomDataDyadminoRackIndex = arc4random() % [(NSArray *)currentPlayer.dataDyadminoIndexesThisTurn count];
-      NSNumber *randomDataDyadminoIndex = [(NSArray *)currentPlayer.dataDyadminoIndexesThisTurn objectAtIndex:randomDataDyadminoRackIndex];
+      NSUInteger randomDataDyadminoRackIndex = arc4random() % [(NSArray *)currentPlayer.rackIndexes count];
+      NSNumber *randomDataDyadminoIndex = [(NSArray *)currentPlayer.rackIndexes objectAtIndex:randomDataDyadminoRackIndex];
       DataDyadmino *dataDyadmino = [self.myMatch dataDyadminoForIndex:[randomDataDyadminoIndex unsignedIntegerValue]];
       
       [self.swapContainer addObject:dataDyadmino];
       [self.myMatch passTurnBySwappingDyadminoes:self.swapContainer];
       
       Player *nextPlayer = [self.myMatch returnCurrentPlayer];
-      NSInteger nextPlayerIndex = [nextPlayer returnPlayerOrder];
+      NSInteger nextPlayerIndex = [nextPlayer returnOrder];
       NSUInteger nextTurnCount = [(NSArray *)self.myMatch.turns count];
       
         // next player will be current player for solo game
@@ -224,7 +224,7 @@
       [self setupGameForNumberOfPlayers:i];
       
       Player *player = [self.myMatch returnCurrentPlayer];
-      NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+      NSArray *dataDyadminoIndexes = (NSArray *)player.rackIndexes;
       
       NSUInteger beforePileCount = self.myMatch.pile.count;
       NSUInteger beforeDataDyadminoIndexesCount = dataDyadminoIndexes.count;
@@ -245,7 +245,7 @@
       [self.myMatch passTurnBySwappingDyadminoes:self.swapContainer];
       
       NSUInteger afterPileCount = self.myMatch.pile.count;
-      NSUInteger afterDataDyadminoIndexesCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
+      NSUInteger afterDataDyadminoIndexesCount = [(NSArray *)player.rackIndexes count];
       
         // check pile count is same
       XCTAssertEqual(beforePileCount, afterPileCount, @"Pile count is different after swap.");
@@ -272,7 +272,7 @@
     
     NSMutableArray *tempSwappedDataDyadminoIndexes = [NSMutableArray new];
     Player *player = [self.myMatch returnCurrentPlayer];
-    NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+    NSArray *dataDyadminoIndexes = (NSArray *)player.rackIndexes;
     
       // exchange all data dyadminoes in rack
     for (NSNumber *index in dataDyadminoIndexes) {
@@ -282,7 +282,7 @@
     }
     
     [self.myMatch passTurnBySwappingDyadminoes:self.swapContainer];
-    NSArray *postSwapDataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+    NSArray *postSwapDataDyadminoIndexes = (NSArray *)player.rackIndexes;
 
     BOOL noDataDyadminoesReturnedToRack = YES;
     for (NSNumber *index in tempSwappedDataDyadminoIndexes) {
@@ -312,7 +312,7 @@
         [self.myMatch removeFromPileNumberOfDataDyadminoes:numberToRemove];
         
         Player *player = [self.myMatch returnCurrentPlayer];
-        NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+        NSArray *dataDyadminoIndexes = (NSArray *)player.rackIndexes;
         
           // exchange data dyadminoes
         for (int l = 0; l < j; l++) {
@@ -355,13 +355,13 @@
       }
       
       Player *currentPlayer = [self.myMatch returnCurrentPlayer];
-      NSInteger currentPlayerIndex = [currentPlayer returnPlayerOrder];
+      NSInteger currentPlayerIndex = [currentPlayer returnOrder];
       NSUInteger currentTurnCount = [(NSArray *)self.myMatch.turns count];
       
       [self.myMatch resignPlayer:currentPlayer];
       
       Player *nextPlayer = [self.myMatch returnCurrentPlayer];
-      NSInteger nextPlayerIndex = [nextPlayer returnPlayerOrder];
+      NSInteger nextPlayerIndex = [nextPlayer returnOrder];
       NSUInteger nextTurnCount = [(NSArray *)self.myMatch.turns count];
       
         // next player will be current player for solo game
@@ -381,7 +381,7 @@
     [self setupGameForNumberOfPlayers:i];
     
     Player *player = [self.myMatch returnCurrentPlayer];
-    NSArray *dataDyadminoIndexes = [NSArray arrayWithArray:(NSArray *)player.dataDyadminoIndexesThisTurn];
+    NSArray *dataDyadminoIndexes = [NSArray arrayWithArray:(NSArray *)player.rackIndexes];
     
     [self.myMatch resignPlayer:player];
     
@@ -413,7 +413,7 @@
       }
       
       Player *currentPlayer = [self.myMatch returnCurrentPlayer];
-      NSInteger currentPlayerIndex = [currentPlayer returnPlayerOrder];
+      NSInteger currentPlayerIndex = [currentPlayer returnOrder];
       
       [self.myMatch resignPlayer:currentPlayer];
       
@@ -423,7 +423,7 @@
       }
       
       Player *afterPlayer = [self.myMatch returnCurrentPlayer];
-      NSInteger afterPlayerIndex = [afterPlayer returnPlayerOrder];
+      NSInteger afterPlayerIndex = [afterPlayer returnOrder];
 
       BOOL afterPlayerComesAfter = ((afterPlayerIndex - currentPlayerIndex + i) % i) == 1;
       XCTAssertTrue(afterPlayerComesAfter, @"Resigned player is not skipped over in next round.");
@@ -438,7 +438,7 @@
   [self setupGameForNumberOfPlayers:1];
   
   Player *player = [self.myMatch returnCurrentPlayer];
-  NSArray *dataDyadminoIndexes = [NSArray arrayWithArray:(NSArray *)player.dataDyadminoIndexesThisTurn];
+  NSArray *dataDyadminoIndexes = [NSArray arrayWithArray:(NSArray *)player.rackIndexes];
   
     // add dyadminoes to holding container one by one, in sequential order
   for (int i = 0; i < kNumDyadminoesInRack; i++) {
@@ -480,7 +480,7 @@
         [self setupGameForNumberOfPlayers:i];
         
         Player *player = [self.myMatch returnCurrentPlayer];
-        NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+        NSArray *dataDyadminoIndexes = (NSArray *)player.rackIndexes;
         
         NSUInteger beforePileCount = self.myMatch.pile.count;
         NSUInteger beforeDataDyadminoIndexesCount = dataDyadminoIndexes.count;
@@ -501,7 +501,7 @@
         [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
         
         NSUInteger afterPileCount = self.myMatch.pile.count;
-        NSUInteger afterDataDyadminoIndexesCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
+        NSUInteger afterDataDyadminoIndexesCount = [(NSArray *)player.rackIndexes count];
         
           // check after pile count is before pile count minus data dyadminoes played
         XCTAssertTrue(beforePileCount == afterPileCount + rackOrderArray.count, @"Pile count did not subtract dyadmino count properly after play.");
@@ -532,7 +532,7 @@
         [self setupGameForNumberOfPlayers:i];
         
         Player *player = [self.myMatch returnCurrentPlayer];
-        NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+        NSArray *dataDyadminoIndexes = (NSArray *)player.rackIndexes;
         
         NSUInteger numberToRemove = kPileCount - (i * kNumDyadminoesInRack) - 1 - k;
         [self.myMatch removeFromPileNumberOfDataDyadminoes:numberToRemove];
@@ -546,7 +546,7 @@
         
         [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
         
-        NSUInteger rackCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
+        NSUInteger rackCount = [(NSArray *)player.rackIndexes count];
         
         BOOL pileIsEmptyAndPlayerRackLessThanFullIfMoreDyadminoesPlayedThanLeftInPile = YES;
         
@@ -604,7 +604,7 @@
       // pass this many times
     for (int j = 0; j < 2 * i; j++) {
       
-      NSUInteger expectedPlayerOrder = [[self.myMatch currentPlayerIndex] unsignedIntegerValue];
+      NSUInteger expectedPlayerOrder = [[self.myMatch currentPlayerOrder] unsignedIntegerValue];
       [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
       
       NSDictionary *turn = [(NSArray *)self.myMatch.turns lastObject];
@@ -644,8 +644,8 @@
       Player *currentPlayer = [self.myMatch returnCurrentPlayer];
       
         // random data dyadmino
-      NSUInteger randomDataDyadminoRackIndex = arc4random() % [(NSArray *)currentPlayer.dataDyadminoIndexesThisTurn count];
-      NSNumber *randomDataDyadminoIndex = [(NSArray *)currentPlayer.dataDyadminoIndexesThisTurn objectAtIndex:randomDataDyadminoRackIndex];
+      NSUInteger randomDataDyadminoRackIndex = arc4random() % [(NSArray *)currentPlayer.rackIndexes count];
+      NSNumber *randomDataDyadminoIndex = [(NSArray *)currentPlayer.rackIndexes objectAtIndex:randomDataDyadminoRackIndex];
       DataDyadmino *dataDyadmino = [self.myMatch dataDyadminoForIndex:[randomDataDyadminoIndex unsignedIntegerValue]];
       
       [self.swapContainer addObject:dataDyadmino];
@@ -802,7 +802,7 @@
     [self setupGameForNumberOfPlayers:2];
     
     Player *player = [self.myMatch returnCurrentPlayer];
-    NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+    NSArray *dataDyadminoIndexes = (NSArray *)player.rackIndexes;
     
       // play first dyadmino
     NSUInteger dataDyadminoIndex = [dataDyadminoIndexes[0] unsignedIntegerValue];
@@ -847,11 +847,11 @@
   [self playFullGameForNumberOfPlayers:4];
   [self.myMatch startReplay];
   
-  NSUInteger replayTurn = [self.myMatch returnReplayTurn];
+  NSUInteger replayTurn = self.myMatch.replayTurn;
   XCTAssertEqual(replayTurn, [(NSArray *)self.myMatch.turns count], @"Replay does not start on last turn.");
   
   [self.myMatch leaveReplay];
-  replayTurn = [self.myMatch returnReplayTurn];
+  replayTurn = self.myMatch.replayTurn;
   XCTAssertEqual(replayTurn, [(NSArray *)self.myMatch.turns count], @"Replay does not leave on last turn.");
 }
 
@@ -860,11 +860,11 @@
   [self.myMatch startReplay];
   [self.myMatch first];
   
-  NSUInteger replayTurn = [self.myMatch returnReplayTurn];
+  NSUInteger replayTurn = self.myMatch.replayTurn;
   XCTAssertEqual(replayTurn, 1, @"Replay first does not go to turn 1.");
   
   [self.myMatch last];
-  replayTurn = [self.myMatch returnReplayTurn];
+  replayTurn = self.myMatch.replayTurn;
   XCTAssertEqual(replayTurn, [(NSArray *)self.myMatch.turns count], @"Replay last does not go to last turn.");
 }
 
@@ -872,13 +872,13 @@
   [self playFullGameForNumberOfPlayers:4];
   [self.myMatch startReplay];
   
-  NSUInteger expectedReplayTurn = [self.myMatch returnReplayTurn];
+  NSUInteger expectedReplayTurn = self.myMatch.replayTurn;
     // press previous one by one
   do {
     [self.myMatch previous];
     expectedReplayTurn--;
-    XCTAssertEqual([self.myMatch returnReplayTurn], expectedReplayTurn, @"Replay previous does not go to previous turn.");
-  } while ([self.myMatch returnReplayTurn] > 1);
+    XCTAssertEqual(self.myMatch.replayTurn, expectedReplayTurn, @"Replay previous does not go to previous turn.");
+  } while (self.myMatch.replayTurn > 1);
   
     // now it's at turn 1
     // press next one by one
@@ -886,8 +886,8 @@
   do {
     [self.myMatch next];
     expectedReplayTurn++;
-    XCTAssertEqual([self.myMatch returnReplayTurn], expectedReplayTurn, @"Replay next does not go to next turnturn.");
-  } while ([self.myMatch returnReplayTurn] < [(NSArray *)self.myMatch.turns count]);
+    XCTAssertEqual(self.myMatch.replayTurn, expectedReplayTurn, @"Replay next does not go to next turnturn.");
+  } while (self.myMatch.replayTurn < [(NSArray *)self.myMatch.turns count]);
   
   [self.myMatch leaveReplay];
 }
@@ -1010,7 +1010,7 @@
     [self setupGameForNumberOfPlayers:i];
     
     Player *player = [self.myMatch returnCurrentPlayer];
-    NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+    NSArray *dataDyadminoIndexes = (NSArray *)player.rackIndexes;
     
       // remove all dyadminoes in pile
     NSUInteger numberToRemove = kPileCount - (i * kNumDyadminoesInRack) - 1;
@@ -1024,7 +1024,7 @@
     }
     
     [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
-    NSUInteger rackCount = [(NSArray *)player.dataDyadminoIndexesThisTurn count];
+    NSUInteger rackCount = [(NSArray *)player.rackIndexes count];
     XCTAssertTrue(rackCount == 0, @"Rack should be empty because player played all dyadminoes.");
     XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game did not end after play leaves empty pile and empty rack.");
   }
@@ -1100,7 +1100,7 @@
   NSMutableSet *tempSet = [NSMutableSet new];
   for (NSUInteger i = 0; i < numberOfPlayers; i++) {
     Player *newPlayer = [NSEntityDescription insertNewObjectForEntityForName:@"Player" inManagedObjectContext:self.myContext];
-    [newPlayer initialUniqueID:@"" andPlayerName:self.playerNames[i] andPlayerOrder:i];
+    [newPlayer initialUniqueID:@"" andName:self.playerNames[i] andOrder:i];
     [tempSet addObject:newPlayer];
   }
   NSSet *players = [NSSet setWithSet:tempSet];
@@ -1120,7 +1120,7 @@
   
   while (![self.myMatch returnGameHasEnded]) {
     Player *player = [self.myMatch returnCurrentPlayer];
-    NSArray *dataDyadminoIndexes = (NSArray *)player.dataDyadminoIndexesThisTurn;
+    NSArray *dataDyadminoIndexes = (NSArray *)player.rackIndexes;
     
       // play random number of dyadminoes
     NSUInteger randomNumberToPlay = dataDyadminoIndexes.count;
@@ -1156,8 +1156,8 @@
     for (int pc2 = 0; pc2 < 12; pc2++) {
       if (pc1 != pc2 && pc1 < pc2) {
         
-        NSUInteger returnPC1 = [self.myMatch pcForDyadminoIndex:myID isPC1:YES];
-        NSUInteger returnPC2 = [self.myMatch pcForDyadminoIndex:myID isPC1:NO];
+        NSUInteger returnPC1 = [self.myMatch testPCForDyadminoIndex:myID isPC1:YES];
+        NSUInteger returnPC2 = [self.myMatch testPCForDyadminoIndex:myID isPC1:NO];
         
         XCTAssertEqual(pc1, returnPC1, @"for dyadmino %lu, returned pc1 is %lu, expected pc1 is %i", (unsigned long)myID, (unsigned long)returnPC1, pc1);
         XCTAssertEqual(pc2, returnPC2, @"for dyadmino %lu, returned pc2 is %lu, expected pc2 is %i", (unsigned long)myID, (unsigned long)returnPC2, pc2);

@@ -19,18 +19,17 @@
 @property (retain, nonatomic) NSNumber *hexX;
 @property (retain, nonatomic) NSNumber *hexY;
 
-  // not persisted, gets from hexX and hexY
-@property (assign, nonatomic) HexCoord myHexCoord;
-
 @property (retain, nonatomic) NSNumber *myRackOrder;
-@property (retain, nonatomic) NSNumber *placeStatus;
 
-  // chords formed when this dyadmino was played
-@property (retain, nonatomic) id chordsThisPlay;
+  // this persists pile and board for match
+@property (retain, nonatomic) NSNumber *placeStatus;
 
   // for replay mode, remembers turns that involved change of state
 @property (retain, nonatomic) id turnChanges;
 @property (strong, nonatomic) Match *match;
+
+  // not persisted, gets from hexX and hexY
+@property (assign, nonatomic) HexCoord myHexCoord;
 
   // query number properties
 -(NSUInteger)returnMyID;

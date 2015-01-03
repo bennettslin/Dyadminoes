@@ -15,35 +15,36 @@
 
   // permanent properties
 @property (strong, nonatomic) NSString *uniqueID;
-@property (strong, nonatomic) NSString *playerName;
-@property (retain, nonatomic) NSNumber *playerOrder;
+@property (strong, nonatomic) NSString *name;
+@property (retain, nonatomic) NSNumber *order;
 
-  // game state properties
-@property (retain, nonatomic) NSNumber *playerScore;
-@property (retain, nonatomic) id dataDyadminoIndexesThisTurn;
+  // match progression properties
+@property (retain, nonatomic) NSNumber *score;
+@property (retain, nonatomic) id rackIndexes;
 @property (retain, nonatomic) NSNumber *resigned;
 @property (retain, nonatomic) NSNumber *won;
 
 @property (strong, nonatomic) Match *match;
 
 -(void)initialUniqueID:(NSString *)uniqueID
-         andPlayerName:(NSString *)playerName
-        andPlayerOrder:(NSUInteger)playerOrder;
+         andName:(NSString *)name
+        andOrder:(NSUInteger)order;
 
--(BOOL)thisTurnContainsDataDyadmino:(DataDyadmino *)dataDyad;
--(void)addToThisTurnsDataDyadmino:(DataDyadmino *)dataDyad;
--(void)insertInThisTurnsDataDyadmino:(DataDyadmino *)dataDyad atIndex:(NSUInteger)index;
--(void)removeFromThisTurnsDataDyadmino:(DataDyadmino *)dataDyad;
--(void)removeAllDataDyadminoesThisTurn;
+-(BOOL)doesRackContainDataDyadmino:(DataDyadmino *)dataDyad;
+-(void)addToRackDataDyadmino:(DataDyadmino *)dataDyad;
+-(void)insertIntoRackDataDyadmino:(DataDyadmino *)dataDyad
+                  withOrderNumber:(NSUInteger)orderNumber;
+-(void)removeFromRackDataDyadmino:(DataDyadmino *)dataDyad;
+-(void)removeAllRackIndexes;
 
   // query number properties
--(NSUInteger)returnPlayerOrder;
--(NSUInteger)returnPlayerScore;
+-(NSUInteger)returnOrder;
+-(NSUInteger)returnScore;
 -(BOOL)returnResigned;
 -(BOOL)returnWon;
 
 @end
 
-@interface DataDyadminoIndexesThisTurn : NSValueTransformer
+@interface RackIndexes : NSValueTransformer
 
 @end

@@ -30,18 +30,17 @@
 @dynamic type;
 @dynamic lastPlayed;
 @dynamic players;
-@dynamic currentPlayerIndex;
+@dynamic currentPlayerOrder;
 @dynamic gameHasEnded;
 @dynamic dataDyadminoes;
 @dynamic holdingIndexContainer;
-@dynamic replayTurn;
 @dynamic turns;
 @dynamic firstDataDyadIndex;
 @dynamic randomNumber1To24;
-@dynamic arrayOfChordsAndPoints;
 
   // not persisted
 @synthesize replayBoard = _replayBoard;
+@synthesize replayTurn = _replayTurn;
 @synthesize delegate = _delegate;
 @synthesize pile = _pile;
 @synthesize board = _board;
@@ -58,7 +57,7 @@
 
   if (self.players.count != players.count) {
     NSLog(@"Players not set properly.");
-    abort();
+//    abort();
     
   } else {
     self.rules = @(rules);
@@ -67,23 +66,23 @@
     
     self.lastPlayed = [NSDate date];
     self.gameHasEnded = @NO;
-    self.currentPlayerIndex = @0;
+    self.currentPlayerOrder = @0;
     self.randomNumber1To24 = @([self randomIntegerUpTo:24] + 1);
     
     self.holdingIndexContainer = [NSArray new];
 
     self.turns = [NSMutableArray new];
-    self.replayTurn = @0;
+    self.replayTurn = 0;
     
     if (![self generateDataDyadminoesWithContext:managedObjectContext]) {
       NSLog(@"Data dyadminoes not generated properly.");
-      abort();
+//      abort();
 
     } else {
       [self placeFirstDyadminoOnBoard];
       if (![self distributePileAmongstPlayers]) {
         NSLog(@"Pile not distributed amongst players properly.");
-        abort();
+//        abort();
       }
     }
   }
@@ -108,7 +107,7 @@
 -(BOOL)distributePileAmongstPlayers {
   for (Player *player in self.players) {
     [self fillRackFromPileForPlayer:player];
-    if ([(NSArray *)player.dataDyadminoIndexesThisTurn count] != kNumDyadminoesInRack) {
+    if ([(NSArray *)player.rackIndexes count] != kNumDyadminoesInRack) {
       return NO;
     }
   }
@@ -151,6 +150,11 @@
 }
 
 -(BOOL)updateCellsForPlacedDyadminoID:(NSInteger)dyadminoID pc1:(NSInteger)pc1 pc2:(NSInteger)pc2 orientation:(DyadminoOrientation)orientation onBottomCellHexCoord:(HexCoord)bottomHexCoord {
+  
+    // not sure if updating here is necessary
+  DataDyadmino *dataDyad = [self dataDyadminoForIndex:dyadminoID];
+  dataDyad.myHexCoord = bottomHexCoord;
+  dataDyad.myOrientation = @(orientation);
   
   HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:orientation];
   HexCoord cellHexCoords[2] = {topHexCoord, bottomHexCoord};
@@ -407,7 +411,7 @@
 
 -(void)fillRackFromPileForPlayer:(Player *)player {
     // reset rack order of data dyadminoes already in rack
-  NSArray *dataDyadminoIndexesThisTurn = player.dataDyadminoIndexesThisTurn;
+  NSArray *dataDyadminoIndexesThisTurn = player.rackIndexes;
   
   while (dataDyadminoIndexesThisTurn.count < kNumDyadminoesInRack && self.pile.count > 0) {
     NSUInteger randIndex = [self randomIntegerUpTo:self.pile.count];
@@ -418,15 +422,15 @@
       // establish dyadmino is out of pile and in rack
     dataDyad.placeStatus = @(kInRack);
     [self.pile removeObjectAtIndex:randIndex];
-    [player addToThisTurnsDataDyadmino:dataDyad];
-    dataDyadminoIndexesThisTurn = player.dataDyadminoIndexesThisTurn;
+    [player addToRackDataDyadmino:dataDyad];
+    dataDyadminoIndexesThisTurn = player.rackIndexes;
   }
 }
 
 -(Player *)switchToNextPlayer {
   
   Player *currentPlayer = [self returnCurrentPlayer];
-  NSUInteger index = [currentPlayer returnPlayerOrder];
+  NSUInteger index = [currentPlayer returnOrder];
   if ([self checkNumberOfPlayersStillInGame] > 1) {
 
     while (index < self.players.count * 2) {
@@ -434,7 +438,7 @@
       if ([nextPlayer returnResigned]) {
         index++;
       } else {
-        self.currentPlayerIndex =@([nextPlayer returnPlayerOrder]);
+        self.currentPlayerOrder =@([nextPlayer returnOrder]);
         
         [self.delegate handleSwitchToNextPlayer];
         
@@ -449,13 +453,12 @@
 
 -(NSSet *)playDataDyadmino:(DataDyadmino *)dataDyad onBottomHexCoord:(HexCoord)bottomHexCoord withOrientation:(DyadminoOrientation)orientation rulingOutRecentRackID:(NSInteger)recentRackDyadminoID {
   
-    // test to see if this is needed
-//  dataDyad.myHexCoord = bottomHexCoord;
-//  dataDyad.myOrientation = @(orientation);
+  dataDyad.myHexCoord = bottomHexCoord;
+  dataDyad.myOrientation = @(orientation);
   
   if (![self addToHoldingContainer:dataDyad]) {
     NSLog(@"Match failed to add data dyadmino to holding container.");
-    abort();
+//    abort();
   };
   
     // add chords from this dyadmino to array of chords
@@ -466,10 +469,10 @@
   
   if (legalChordSonoritiesFormed.count == 0) {
     NSLog(@"Dyadmino %@ being played does not form any legal chords.", dataDyad.myID);
-    abort();
+//    abort();
   } else if (result != kNotIllegal) {
     NSLog(@"Dyadmino %@ being played creates illegal formation.", dataDyad.myID);
-    abort();
+//    abort();
   }
 
   if ([self addToThisTurnChordsTheseNewOrExtendingChords:legalChordSonoritiesFormed]) {
@@ -486,6 +489,17 @@
 -(BOOL)addLegalChordsFormed:(NSSet *)chordsFormed fromMovedBoardDataDyadmino:(DataDyadmino *)dataDyad onBottomHexCoord:(HexCoord)bottomHexCoord withOrientation:(DyadminoOrientation)orientation {
   
   [self addToThisTurnChordsTheseNewOrExtendingChords:chordsFormed];
+  
+  
+  NSUInteger pc1 = [self pcForDyadminoIndex:[dataDyad.myID unsignedIntegerValue] isPC1:YES];
+  NSUInteger pc2 = [self pcForDyadminoIndex:[dataDyad.myID unsignedIntegerValue] isPC1:NO];
+  
+  [self updateCellsForPlacedDyadminoID:[dataDyad returnMyID]
+                                   pc1:pc1
+                                   pc2:pc2
+                           orientation:[dataDyad returnMyOrientation]
+                   onBottomCellHexCoord:bottomHexCoord];
+  
   return YES;
 }
 
@@ -508,7 +522,7 @@
       // remove data dyadminoes from player rack, store in temp array
     for (DataDyadmino *dataDyad in dyadminoesToSwap) {
       dataDyad.placeStatus = @(kInPile);
-      [player removeFromThisTurnsDataDyadmino:dataDyad];
+      [player removeFromRackDataDyadmino:dataDyad];
       [tempDataDyadminoes addObject:dataDyad];
     }
     
@@ -544,14 +558,14 @@
   [self addTurn:dictionary];
   
   NSArray *turns = self.turns;
-  self.replayTurn = @(turns.count);
+  self.replayTurn = turns.count;
   
       // player passes
-  if (pointsThisTurn == 0) {
+//  if (pointsThisTurn == 0) {
   
       // this is the original condition, which allowed original match tests to pass
       // original tests did not include information about score
-//  if ([(NSArray *)self.holdingIndexContainer count] == 0) {
+  if ([(NSArray *)self.holdingIndexContainer count] == 0) {
   
       // if solo game, ends right away
     if ([self returnType] == kSelfGame && !swap) {
@@ -573,13 +587,13 @@
       /// obviously scorekeeping will be more sophisticated
       /// and will consider chords formed
     Player *player = [self returnCurrentPlayer];
-    NSUInteger newScore = [player returnPlayerScore] + pointsThisTurn;
-    player.playerScore = @(newScore);
+    NSUInteger newScore = [player returnScore] + pointsThisTurn;
+    player.score = @(newScore);
     
     for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:self.holdingIndexContainer]) {
-      if ([player.dataDyadminoIndexesThisTurn containsObject:dataDyad.myID]) {
+      if ([player.rackIndexes containsObject:dataDyad.myID]) {
         dataDyad.placeStatus = @(kOnBoard);
-        [player removeFromThisTurnsDataDyadmino:dataDyad];
+        [player removeFromRackDataDyadmino:dataDyad];
         [self.board addObject:dataDyad];
       }
     }
@@ -590,7 +604,7 @@
     }
     
       // reset rack order
-    NSArray *dataDyadminoIndexesThisTurn = player.dataDyadminoIndexesThisTurn;
+    NSArray *dataDyadminoIndexesThisTurn = player.rackIndexes;
     for (NSInteger i = 0; i < dataDyadminoIndexesThisTurn.count; i++) {
       NSNumber *number = dataDyadminoIndexesThisTurn[i];
       DataDyadmino *dataDyad = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
@@ -731,11 +745,11 @@
     
     [self addTurn:dictionary];
     NSArray *turns = self.turns;
-    self.replayTurn = @(turns.count);
+    self.replayTurn = turns.count;
   }
 
   player.resigned = @YES;
-  NSArray *dataDyads = [self dataDyadsInIndexContainer:player.dataDyadminoIndexesThisTurn];
+  NSArray *dataDyads = [self dataDyadsInIndexContainer:player.rackIndexes];
   for (DataDyadmino *dataDyad in dataDyads) {
     dataDyad.placeStatus = @(kInPile);
   }
@@ -745,7 +759,7 @@
   
   [self resetHoldingContainer];
   [self emptyThisTurnChordsByMovingIntoPreTurnChords];
-  [player removeAllDataDyadminoesThisTurn];
+  [player removeAllRackIndexes];
   if (![self switchToNextPlayer]) {
     [self endGame];
   }
@@ -754,7 +768,7 @@
 }
 
 -(void)endGame {
-  self.currentPlayerIndex = @0;
+  self.currentPlayerOrder = @0;
   [self resetHoldingContainer];
   [self emptyThisTurnChordsByMovingIntoPreTurnChords];
   
@@ -762,7 +776,7 @@
   if ([self returnType] == kSelfGame) {
     Player *soloPlayer = [self playerForIndex:0];
       // player only won if score greater than 0
-    soloPlayer.won = ([soloPlayer returnPlayerScore] > 0) ? @YES : @NO;
+    soloPlayer.won = ([soloPlayer returnScore] > 0) ? @YES : @NO;
     
   } else {
       // rules out that players with no points can win
@@ -771,7 +785,7 @@
     for (Player *player in self.players) {
       if (![player returnResigned]) {
         
-        NSUInteger playerScore = [player returnPlayerScore];
+        NSUInteger playerScore = [player returnScore];
         if (playerScore > maxScore) {
           maxScore = playerScore;
         }
@@ -779,7 +793,7 @@
     }
     
     for (Player *player in self.players) {
-      if ([player returnPlayerScore] == maxScore) {
+      if ([player returnScore] == maxScore) {
         player.won = @YES;
       }
     }
@@ -793,7 +807,7 @@
 
 -(BOOL)checkPlayerFirstToRunOut {
   Player *currentPlayer = [self returnCurrentPlayer];
-  NSArray *dataDyadminoIndexesThisTurn = currentPlayer.dataDyadminoIndexesThisTurn;
+  NSArray *dataDyadminoIndexesThisTurn = currentPlayer.rackIndexes;
   return (dataDyadminoIndexesThisTurn.count == 0 && self.pile.count == 0);
 }
 
@@ -825,7 +839,7 @@
     
     NSMutableArray *wonPlayerNames = [[NSMutableArray alloc] initWithCapacity:[self wonPlayersCount]];
     for (Player *player in self.players) {
-      [player returnWon] ? [wonPlayerNames addObject:player.playerName] : nil;
+      [player returnWon] ? [wonPlayerNames addObject:player.name] : nil;
     }
     
     NSString *wonPlayers = [wonPlayerNames componentsJoinedByString:@" and "];
@@ -843,13 +857,13 @@
 }
 
 -(NSString *)turnTextLastPlayed:(BOOL)lastPlayed {
-  Player *turnPlayer = [self playerForIndex:[[self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnPlayer] unsignedIntegerValue]];
+  Player *turnPlayer = [self playerForIndex:[[self.turns[self.replayTurn - 1] objectForKey:kTurnPlayer] unsignedIntegerValue]];
   NSArray *dyadminoesPlayed;
   
   NSUInteger points = 0;
-  if ([self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes]) {
-    dyadminoesPlayed = [self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes];
-    points = [[self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnPoints] unsignedIntegerValue];
+  if ([self.turns[self.replayTurn - 1] objectForKey:kTurnDyadminoes]) {
+    dyadminoesPlayed = [self.turns[self.replayTurn - 1] objectForKey:kTurnDyadminoes];
+    points = [[self.turns[self.replayTurn - 1] objectForKey:kTurnPoints] unsignedIntegerValue];
   }
   
   NSString *dyadminoesPlayedString;
@@ -864,64 +878,14 @@
   
   if (lastPlayed) {
     if (dyadminoesPlayed.count > 0) {
-      return [NSString stringWithFormat:@"%@ last %@.", turnPlayer.playerName, dyadminoesPlayedString];
+      return [NSString stringWithFormat:@"%@ last %@.", turnPlayer.name, dyadminoesPlayedString];
     } else {
-      return [NSString stringWithFormat:@"%@ %@ last turn.", turnPlayer.playerName, dyadminoesPlayedString];
+      return [NSString stringWithFormat:@"%@ %@ last turn.", turnPlayer.name, dyadminoesPlayedString];
     }
 
   } else {
     NSArray *turns = self.turns;
-    return [NSString stringWithFormat:@"%@ %@ for turn %lu of %lu.", turnPlayer.playerName, dyadminoesPlayedString, (unsigned long)[self returnReplayTurn], (unsigned long)turns.count];
-  }
-}
-
--(UIColor *)colourForPlayer:(Player *)player forLabel:(BOOL)forLabel light:(BOOL)light {
-  if ([self.players containsObject:player]) {
-    
-    NSUInteger playerIndex = [player returnPlayerOrder];
-    NSUInteger randomIndex = (playerIndex + [self returnRandomNumber1To24]) % 4;
-    return [self colourForIndex:randomIndex forLabel:forLabel light:light];
-  }
-  return nil;
-}
-
--(UIColor *)colourForIndex:(NSUInteger)index forLabel:(BOOL)forLabel light:(BOOL)light {
-  if (forLabel) {
-    switch (index) {
-      case 0:
-        return kPlayerBlue;
-        break;
-      case 1:
-        return kPlayerRed;
-        break;
-      case 2:
-        return kPlayerGreen;
-        break;
-      case 3:
-        return kPlayerOrange;
-        break;
-      default:
-        return nil;
-        break;
-    }
-  } else {
-    switch (index) {
-      case 0:
-        return light ? kPlayerLighterBlue : kPlayerLightBlue;
-        break;
-      case 1:
-        return light ? kPlayerLighterRed : kPlayerLightRed;
-        break;
-      case 2:
-        return light ? kPlayerLighterGreen : kPlayerLightGreen;
-        break;
-      case 3:
-        return light ? kPlayerLighterOrange : kPlayerLightOrange;
-        break;
-      default:
-        return nil;
-        break;
-    }
+    return [NSString stringWithFormat:@"%@ %@ for turn %lu of %lu.", turnPlayer.name, dyadminoesPlayedString, (unsigned long)self.replayTurn, (unsigned long)turns.count];
   }
 }
 
@@ -961,95 +925,29 @@
   self.holdingIndexContainer = [NSArray new];
 }
 
-//-(BOOL)addToArrayOfChordsAndPointsTheseChordSonorities:(NSSet *)chordSonorities
-//                               extendedChordSonorities:(NSSet *)extendedChordSonorities
-//                                        fromDyadminoID:(NSInteger)dyadminoID { // -1 if from board dyadmino
-//
-//  BOOL extendingDyadmino = NO;
-//  
-//  NSUInteger originalCount = [(NSArray *)self.arrayOfChordsAndPoints count];
-//  
-//  NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
-//  
-//    // this checks if we now have an extending seventh replacing a previously played triad
-//  NSSet *previousChordSonorities;
-//  for (NSDictionary *previousDictionary in self.arrayOfChordsAndPoints) {
-//    if (dyadminoID != -1 && [previousDictionary[@"dyadmino"] isEqualToNumber:@(dyadminoID)]) {
-//      previousChordSonorities = previousDictionary[@"chordSonorities"];
-//      [tempArray removeObject:previousDictionary];
-//      extendingDyadmino = YES;
-//    }
-//  }
-//  
-//    // this ensures that extending seventh will count as a new chord, now that original triad has been removed
-//  if (previousChordSonorities) {
-//    NSMutableSet *tempNewExtendedChordSonorities = [NSMutableSet setWithSet:extendedChordSonorities];
-//    for (NSSet *previousSonority in previousChordSonorities) {
-//      for (NSSet *extendedSonority in extendedChordSonorities) {
-//        if ([self.delegate sonority:previousSonority IsSubsetOfSonority:extendedSonority]) {
-//          [tempNewExtendedChordSonorities removeObject:extendedSonority];
-//        }
-//      }
-//    }
-//    extendedChordSonorities = [NSSet setWithSet:tempNewExtendedChordSonorities];
-//  }
-//
-//  
-//  NSUInteger points = [self pointsForChordSonorities:chordSonorities extendedChordSonorities:extendedChordSonorities];
-//  
-//  NSDictionary *thisDictionary = @{@"chordSonorities":chordSonorities, @"points":@(points), @"dyadmino":@(dyadminoID)};
-//  [tempArray addObject:thisDictionary];
-//  self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
-//  
-//    // count should not change if dyadmino has already been placed this turn, otherwise it should add one
-//  NSUInteger addedComparisonValue = extendingDyadmino ? 0 : 1;
-//  return ([(NSArray *)self.arrayOfChordsAndPoints count] == originalCount + addedComparisonValue);
-//}
-
-//-(BOOL)undoFromArrayOfChordsAndPointsThisDyadminoID:(NSInteger)dyadminoID {
-//  
-//  NSUInteger originalCount = [(NSArray *)self.arrayOfChordsAndPoints count];
-//  
-//  NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.arrayOfChordsAndPoints];
-//
-//  for (NSDictionary *chordDictionary in self.arrayOfChordsAndPoints) {
-//    if ([chordDictionary[@"dyadmino"] isEqualToNumber:@(dyadminoID)]) {
-//      [tempArray removeObject:chordDictionary];
-//    }
-//  }
-//
-//  self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
-//
-//  return ([(NSArray *)self.arrayOfChordsAndPoints count] == originalCount - 1);
-//}
-
-//-(void)resetArrayOfChordsAndPoints {
-//  self.arrayOfChordsAndPoints = nil;
-//}
-
 #pragma mark - replay methods
 
 -(void)startReplay {
   NSArray *turns = self.turns;
-  self.replayTurn = @(turns.count);
+  self.replayTurn = turns.count;
   self.replayBoard = [NSMutableSet setWithSet:self.board];
 }
 
 -(void)leaveReplay {
   NSArray *turns = self.turns;
-  self.replayTurn = @(turns.count);
+  self.replayTurn = turns.count;
   self.replayBoard = nil;
 }
 
 -(void)first {
-  if ([self returnReplayTurn] == 0) { // in case the replay is before any turn made
+  if (self.replayTurn == 0) { // in case the replay is before any turn made
     return;
   }
   
-  self.replayTurn = @1;
+  self.replayTurn = 1;
   [self.replayBoard removeAllObjects];
   [self.replayBoard addObject:[self dataDyadminoForIndex:[self returnFirstDataDyadIndex]]];
-  NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes];
+  NSArray *holdingContainer = [self.turns[self.replayTurn - 1] objectForKey:kTurnDyadminoes];
   for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:holdingContainer]) {
     if (![self.replayBoard containsObject:dataDyad]) {
       [self.replayBoard addObject:dataDyad];
@@ -1059,29 +957,29 @@
 
 -(BOOL)previous {
 
-  if ([self returnReplayTurn] <= 1) {
+  if (self.replayTurn <= 1) {
     return NO;
     
   } else {
-      NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes];
+      NSArray *holdingContainer = [self.turns[self.replayTurn - 1] objectForKey:kTurnDyadminoes];
       for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:holdingContainer]) {
         if ([self.replayBoard containsObject:dataDyad]) {
           [self.replayBoard removeObject:dataDyad];
         }
       }
-    self.replayTurn = @([self returnReplayTurn] - 1);
+    self.replayTurn--;
     return YES;
   }
 }
 
 -(BOOL)next {
   NSArray *turns = self.turns;
-  if ([self returnReplayTurn] >= turns.count) {
+  if (self.replayTurn >= turns.count) {
     return NO;
     
   } else {
-      self.replayTurn = @([self returnReplayTurn] + 1);
-      NSArray *holdingContainer = [self.turns[[self returnReplayTurn] - 1] objectForKey:kTurnDyadminoes];
+      self.replayTurn++;
+      NSArray *holdingContainer = [self.turns[self.replayTurn - 1] objectForKey:kTurnDyadminoes];
       for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:holdingContainer]) {
         if (![self.replayBoard containsObject:dataDyad]) {
           [self.replayBoard addObject:dataDyad];
@@ -1093,7 +991,7 @@
 
 -(void)last {
   NSArray *turns = self.turns;
-  self.replayTurn = @(turns.count);
+  self.replayTurn = turns.count;
   for (int i = 0; i < turns.count; i++) {
     NSArray *holdingContainer = [self.turns[i] objectForKey:kTurnDyadminoes];
     for (DataDyadmino *dataDyad in [self dataDyadsInIndexContainer:holdingContainer]) {
@@ -1101,193 +999,6 @@
         [self.replayBoard addObject:dataDyad];
       }
     }
-  }
-}
-
-#pragma mark - custom accessor methods
-
--(NSMutableSet *)replayBoard {
-  if (!_replayBoard) {
-    _replayBoard = [NSMutableSet new];
-  }
-  return _replayBoard;
-}
-
--(void)setReplayBoard:(NSMutableSet *)replayBoard {
-  _replayBoard = replayBoard;
-}
-
--(id<MatchDelegate>)delegate {
-  return _delegate;
-}
-
--(void)setDelegate:(id<MatchDelegate>)delegate {
-  _delegate = delegate;
-}
-
--(NSArray *)pile {
-  if (!_pile) {
-    _pile = [NSMutableArray new];
-    for (DataDyadmino *dataDyad in self.dataDyadminoes) {
-      if ([dataDyad returnPlaceStatus] == kInPile) {
-        [_pile addObject:dataDyad];
-      }
-    }
-  }
-  return _pile;
-}
-
--(void)setPile:(NSMutableArray *)pile {
-  _pile = pile;
-}
-
--(NSSet *)board {
-  if (!_board) {
-    _board = [NSMutableSet new];
-    for (DataDyadmino *dataDyad in self.dataDyadminoes) {
-      if ([dataDyad returnPlaceStatus] == kOnBoard) {
-        [_board addObject:dataDyad];
-      }
-    }
-  }
-  return _board;
-}
-
--(void)setBoard:(NSMutableSet *)board {
-  _board = board;
-}
-
--(NSSet *)occupiedCells {
-  if (!_occupiedCells) {
-    
-    _occupiedCells = [NSMutableSet new];
-    NSMutableSet *dataDyadsOnBoard = [NSMutableSet setWithSet:self.board];
-    
-      // add objects in holding container
-    for (NSNumber *dyadIndex in self.holdingIndexContainer) {
-      DataDyadmino *dataDyad = [self dataDyadminoForIndex:[dyadIndex unsignedIntegerValue]];
-      [dataDyadsOnBoard addObject:dataDyad];
-    }
-    
-    for (DataDyadmino *dataDyad in dataDyadsOnBoard) {
-      
-      DyadminoOrientation orientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
-      HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:dataDyad.myHexCoord andOrientation:orientation];
-      HexCoord cellHexCoords[2] = {topHexCoord, dataDyad.myHexCoord};
-      
-      for (int i = 0; i < 2; i++) {
-        HexCoord cellHexCoord = cellHexCoords[i];
-        NSUInteger dyadminoID = [dataDyad.myID unsignedIntegerValue];
-        NSUInteger pc = [self pcForDyadminoIndex:dyadminoID isPC1:(BOOL)(orientation <= 1 || orientation >= 5 ? (i + 1) % 2 : i)];
-        DataCell *newCell = [[DataCell alloc] initWithPC:pc dyadminoID:dyadminoID hexCoord:cellHexCoord];
-        
-        NSLog(@"pc:%lu, dyadID:%lu, hex:%li, %li", (unsigned long)newCell.myPC, (unsigned long)newCell.myDyadminoID, (long)newCell.hexX, (long)newCell.hexY);
-        
-        [_occupiedCells addObject:newCell];
-      }
-    }
-  }
-  return _occupiedCells;
-}
-
--(void)setOccupiedCells:(NSMutableSet *)occupiedCells {
-  _occupiedCells = occupiedCells;
-}
-
--(NSSet *)preTurnChords {
-  if (!_preTurnChords) {
-    NSMutableSet *tempSet = [NSMutableSet new];
-    for (DataDyadmino *dataDyad in self.board) {
-      
-        // first get all legal chords, there must be at least one
-      NSSet *formationOfSonorities = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID] onBottomHexCoord:dataDyad.myHexCoord withOrientation:[dataDyad returnMyOrientation] rulingOutRecentRackID:YES];
-      NSSet *legalChordSonorities = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
-      if (legalChordSonorities.count == 0 && [dataDyad returnMyID] != [self returnFirstDataDyadIndex]) {
-        NSLog(@"Persisted dyadmino %i does not form any legal chords. This is a critical failure.", [dataDyad returnMyID]);
-        abort();
-      }
-      
-        // next ensure that there are no illegal chords
-      IllegalPlacementResult result = [[SonorityLogic sharedLogic] checkIllegalPlacementFromFormationOfSonorities:formationOfSonorities];
-      if (result != kNotIllegal) {
-        NSLog(@"Persisted dyadmino %i creates an illegal formation. This is a critical failure.", [dataDyad returnMyID]);
-        abort();
-      }
-      
-        // good, add dyadmino to array
-      [tempSet addObjectsFromArray:[legalChordSonorities allObjects]];
-    }
-    
-    _preTurnChords = [NSSet setWithSet:tempSet];
-  }
-  return _preTurnChords;
-}
-
--(void)setPreTurnChords:(NSMutableSet *)preTurnChords {
-  _preTurnChords = preTurnChords;
-}
-
--(NSMutableSet *)thisTurnChords {
-  if (!_thisTurnChords) {
-    _thisTurnChords = [NSMutableSet new];
-  }
-  return _thisTurnChords;
-}
-
--(void)setThisTurnChords:(NSMutableSet *)thisTurnChords {
-  _thisTurnChords = thisTurnChords;
-}
-
-#pragma mark - helper methods
-
--(NSUInteger)wonPlayersCount {
-  NSUInteger counter = 0;
-  for (Player *player in self.players) {
-    if ([player returnWon]) {
-      counter++;
-    }
-  }
-  return counter;
-}
-
--(Player *)playerForIndex:(NSUInteger)index {
-  for (Player *player in self.players) {
-    if ([player returnPlayerOrder] == index) {
-      return player;
-    }
-  }
-  return nil;
-}
-
--(Player *)returnCurrentPlayer {
-  return [self playerForIndex:[self returnCurrentPlayerIndex]];
-}
-
--(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index {
-  for (DataDyadmino *dataDyadmino in self.dataDyadminoes) {
-    if ([dataDyadmino returnMyID] == index) {
-      return dataDyadmino;
-    }
-  }
-  return nil;
-}
-
--(NSUInteger)pcForDyadminoIndex:(NSUInteger)index isPC1:(BOOL)isPC1 {
-  
-  NSUInteger addCounter = 11;
-  NSUInteger compareIndex = 0;
-  NSUInteger returnPC = 0;
-  
-  while (compareIndex <= index) {
-    returnPC++;
-    compareIndex += addCounter;
-    addCounter--;
-  }
-  
-  if (isPC1) {
-    return returnPC - 1;
-  } else {
-    return 12 - (compareIndex - index);
   }
 }
 
@@ -1411,6 +1122,11 @@
     }
   }
   
+    // bonus five points if rack is empty
+  if ([self.holdingIndexContainer count] >= kNumDyadminoesInRack) {
+    points += 5;
+  }
+  
   return points;
 }
 
@@ -1429,7 +1145,7 @@
     
     if (extended) {
       NSLog(@"This is an error. A triad never extends another chords.");
-      abort();
+//      abort();
     }
     
     points = kPointsTriad;
@@ -1470,19 +1186,6 @@
   [self emptyThisTurnChordsByMovingIntoPreTurnChords];
 }
 
--(BOOL)boardDyadminoesHaveMovedSinceStartOfTurn {
-
-  NSUInteger index = [(NSArray *)self.turns count];
-  for (DataDyadmino *dataDyad in self.board) {
-    HexCoord persistedHexCoord = [dataDyad getHexCoordForTurn:index];
-    DyadminoOrientation persistedOrientation = [dataDyad getOrientationForTurn:index];
-    if (dataDyad.myHexCoord.x != persistedHexCoord.x || dataDyad.myHexCoord.y != persistedHexCoord.y || [dataDyad.myOrientation unsignedIntegerValue] != persistedOrientation) {
-      return YES;
-    }
-  }
-  return NO;
-}
-
 #pragma mark - turns methods
 
 -(void)addTurn:(NSDictionary *)turn {
@@ -1506,7 +1209,7 @@
 }
 
 -(NSUInteger)returnCurrentPlayerIndex {
-  return [self.currentPlayerIndex unsignedIntegerValue];
+  return [self.currentPlayerOrder unsignedIntegerValue];
 }
 
 -(BOOL)returnGameHasEnded {
@@ -1517,12 +1220,273 @@
   return [self.firstDataDyadIndex unsignedIntegerValue];
 }
 
--(NSUInteger)returnReplayTurn {
-  return [self.replayTurn unsignedIntegerValue];
-}
+//-(NSUInteger)returnReplayTurn {
+//  return [self.replayTurn unsignedIntegerValue];
+//}
 
 -(NSInteger)returnRandomNumber1To24 {
   return [self.randomNumber1To24 integerValue];
+}
+
+#pragma mark - custom accessor methods
+
+-(NSMutableSet *)replayBoard {
+  if (!_replayBoard) {
+    _replayBoard = [NSMutableSet new];
+  }
+  return _replayBoard;
+}
+
+-(void)setReplayBoard:(NSMutableSet *)replayBoard {
+  _replayBoard = replayBoard;
+}
+
+-(id<MatchDelegate>)delegate {
+  return _delegate;
+}
+
+-(void)setDelegate:(id<MatchDelegate>)delegate {
+  _delegate = delegate;
+}
+
+-(NSArray *)pile {
+  if (!_pile) {
+    _pile = [NSMutableArray new];
+    for (DataDyadmino *dataDyad in self.dataDyadminoes) {
+      if ([dataDyad returnPlaceStatus] == kInPile) {
+        [_pile addObject:dataDyad];
+      }
+    }
+  }
+  return _pile;
+}
+
+-(void)setPile:(NSMutableArray *)pile {
+  _pile = pile;
+}
+
+-(NSSet *)board {
+  if (!_board) {
+    _board = [NSMutableSet new];
+    for (DataDyadmino *dataDyad in self.dataDyadminoes) {
+      if ([dataDyad returnPlaceStatus] == kOnBoard) {
+        [_board addObject:dataDyad];
+      }
+    }
+  }
+  return _board;
+}
+
+-(void)setBoard:(NSMutableSet *)board {
+  _board = board;
+}
+
+-(NSSet *)occupiedCells {
+  if (!_occupiedCells) {
+    
+    _occupiedCells = [NSMutableSet new];
+    NSMutableSet *dataDyadsOnBoard = [NSMutableSet setWithSet:self.board];
+    
+      // add objects in holding container
+    for (NSNumber *dyadIndex in self.holdingIndexContainer) {
+      DataDyadmino *dataDyad = [self dataDyadminoForIndex:[dyadIndex unsignedIntegerValue]];
+      [dataDyadsOnBoard addObject:dataDyad];
+    }
+    
+    for (DataDyadmino *dataDyad in dataDyadsOnBoard) {
+      
+      DyadminoOrientation orientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
+      HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:dataDyad.myHexCoord andOrientation:orientation];
+      HexCoord cellHexCoords[2] = {topHexCoord, dataDyad.myHexCoord};
+      
+      for (int i = 0; i < 2; i++) {
+        HexCoord cellHexCoord = cellHexCoords[i];
+        NSUInteger dyadminoID = [dataDyad.myID unsignedIntegerValue];
+        NSUInteger pc = [self pcForDyadminoIndex:dyadminoID isPC1:(BOOL)(orientation <= 1 || orientation >= 5 ? (i + 1) % 2 : i)];
+        DataCell *newCell = [[DataCell alloc] initWithPC:pc dyadminoID:dyadminoID hexCoord:cellHexCoord];
+        
+        NSLog(@"pc:%lu, dyadID:%lu, hex:%li, %li", (unsigned long)newCell.myPC, (unsigned long)newCell.myDyadminoID, (long)newCell.hexX, (long)newCell.hexY);
+        
+        [_occupiedCells addObject:newCell];
+      }
+    }
+  }
+  return _occupiedCells;
+}
+
+-(void)setOccupiedCells:(NSMutableSet *)occupiedCells {
+  _occupiedCells = occupiedCells;
+}
+
+-(NSSet *)preTurnChords {
+  if (!_preTurnChords) {
+    NSMutableSet *tempSet = [NSMutableSet new];
+    for (DataDyadmino *dataDyad in self.board) {
+      
+        // first get all legal chords, there must be at least one
+      NSSet *formationOfSonorities = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID] onBottomHexCoord:dataDyad.myHexCoord withOrientation:[dataDyad returnMyOrientation] rulingOutRecentRackID:YES];
+      NSSet *legalChordSonorities = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
+      if (legalChordSonorities.count == 0 && [dataDyad returnMyID] != [self returnFirstDataDyadIndex]) {
+        NSLog(@"Persisted dyadmino %lu does not form any legal chords. This is a critical failure.", (unsigned long)[dataDyad returnMyID]);
+//        abort();
+      }
+      
+        // next ensure that there are no illegal chords
+      IllegalPlacementResult result = [[SonorityLogic sharedLogic] checkIllegalPlacementFromFormationOfSonorities:formationOfSonorities];
+      if (result != kNotIllegal) {
+        NSLog(@"Persisted dyadmino %lu creates an illegal formation. This is a critical failure.", (unsigned long)[dataDyad returnMyID]);
+//        abort();
+      }
+      
+        // good, add dyadmino to array
+      [tempSet addObjectsFromArray:[legalChordSonorities allObjects]];
+    }
+    
+    _preTurnChords = [NSSet setWithSet:tempSet];
+  }
+  return _preTurnChords;
+}
+
+-(void)setPreTurnChords:(NSMutableSet *)preTurnChords {
+  _preTurnChords = preTurnChords;
+}
+
+-(NSMutableSet *)thisTurnChords {
+  if (!_thisTurnChords) {
+    _thisTurnChords = [NSMutableSet new];
+  }
+  return _thisTurnChords;
+}
+
+-(void)setThisTurnChords:(NSMutableSet *)thisTurnChords {
+  _thisTurnChords = thisTurnChords;
+}
+
+-(NSUInteger)replayTurn {
+  if (!_replayTurn) {
+    _replayTurn = 0;
+  }
+  return _replayTurn;
+}
+
+-(void)setReplayTurn:(NSUInteger)replayTurn {
+  _replayTurn = replayTurn;
+}
+
+#pragma mark - helper methods
+
+-(NSUInteger)wonPlayersCount {
+  NSUInteger counter = 0;
+  for (Player *player in self.players) {
+    if ([player returnWon]) {
+      counter++;
+    }
+  }
+  return counter;
+}
+
+-(Player *)playerForIndex:(NSUInteger)index {
+  for (Player *player in self.players) {
+    if ([player returnOrder] == index) {
+      return player;
+    }
+  }
+  return nil;
+}
+
+-(Player *)returnCurrentPlayer {
+  return [self playerForIndex:[self returnCurrentPlayerIndex]];
+}
+
+-(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index {
+  for (DataDyadmino *dataDyadmino in self.dataDyadminoes) {
+    if ([dataDyadmino returnMyID] == index) {
+      return dataDyadmino;
+    }
+  }
+  return nil;
+}
+
+-(NSUInteger)pcForDyadminoIndex:(NSUInteger)index isPC1:(BOOL)isPC1 {
+  
+  NSUInteger addCounter = 11;
+  NSUInteger compareIndex = 0;
+  NSUInteger returnPC = 0;
+  
+  while (compareIndex <= index) {
+    returnPC++;
+    compareIndex += addCounter;
+    addCounter--;
+  }
+  
+  if (isPC1) {
+    return returnPC - 1;
+  } else {
+    return 12 - (compareIndex - index);
+  }
+}
+
+-(UIColor *)colourForPlayer:(Player *)player forLabel:(BOOL)forLabel light:(BOOL)light {
+  if ([self.players containsObject:player]) {
+    
+    NSUInteger playerIndex = [player returnOrder];
+    NSUInteger randomIndex = (playerIndex + [self returnRandomNumber1To24]) % 4;
+    return [self colourForIndex:randomIndex forLabel:forLabel light:light];
+  }
+  return nil;
+}
+
+-(UIColor *)colourForIndex:(NSUInteger)index forLabel:(BOOL)forLabel light:(BOOL)light {
+  if (forLabel) {
+    switch (index) {
+      case 0:
+        return kPlayerBlue;
+        break;
+      case 1:
+        return kPlayerRed;
+        break;
+      case 2:
+        return kPlayerGreen;
+        break;
+      case 3:
+        return kPlayerOrange;
+        break;
+      default:
+        return nil;
+        break;
+    }
+  } else {
+    switch (index) {
+      case 0:
+        return light ? kPlayerLighterBlue : kPlayerLightBlue;
+        break;
+      case 1:
+        return light ? kPlayerLighterRed : kPlayerLightRed;
+        break;
+      case 2:
+        return light ? kPlayerLighterGreen : kPlayerLightGreen;
+        break;
+      case 3:
+        return light ? kPlayerLighterOrange : kPlayerLightOrange;
+        break;
+      default:
+        return nil;
+        break;
+    }
+  }
+}
+
+-(BOOL)boardDyadminoesHaveMovedSinceStartOfTurn {
+  
+  NSUInteger index = [(NSArray *)self.turns count];
+  for (DataDyadmino *dataDyad in self.board) {
+    HexCoord persistedHexCoord = [dataDyad getHexCoordForTurn:index];
+    DyadminoOrientation persistedOrientation = [dataDyad getOrientationForTurn:index];
+    if (dataDyad.myHexCoord.x != persistedHexCoord.x || dataDyad.myHexCoord.y != persistedHexCoord.y || [dataDyad.myOrientation unsignedIntegerValue] != persistedOrientation) {
+      return YES;
+    }
+  }
+  return NO;
 }
 
 #pragma mark - test methods
@@ -1533,6 +1497,10 @@
 
 -(void)testPersistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad {
   [self persistChangedPositionForBoardDataDyadmino:dataDyad];
+}
+
+-(NSUInteger)testPCForDyadminoIndex:(NSUInteger)index isPC1:(BOOL)isPC1 {
+  return [self pcForDyadminoIndex:index isPC1:isPC1];
 }
 
 @end

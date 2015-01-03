@@ -510,6 +510,7 @@ typedef enum actionSheetTag {
 #pragma mark - dyadmino rack stuff
 
 -(Dyadmino *)dyadminoInSet:(NSSet *)set withRackOrder:(NSUInteger)rackOrder;
+
 -(BOOL)validateUniqueRackOrdersInSet:(NSSet *)set;
 
   // date stuff

@@ -18,72 +18,71 @@
 
   // persisted
 @dynamic uniqueID;
-@dynamic playerName;
-@dynamic playerOrder;
-@dynamic playerScore;
-@dynamic dataDyadminoIndexesThisTurn;
+@dynamic name;
+@dynamic order;
+@dynamic score;
+@dynamic rackIndexes;
 @dynamic resigned;
 @dynamic won;
 @dynamic match;
 
 -(void)initialUniqueID:(NSString *)uniqueID
-         andPlayerName:(NSString *)playerName
-        andPlayerOrder:(NSUInteger)playerOrder {
+         andName:(NSString *)name
+        andOrder:(NSUInteger)order {
 
   self.uniqueID = uniqueID;
-  self.playerName = playerName;
-  self.playerOrder = [NSNumber numberWithUnsignedInteger:playerOrder];
+  self.name = name;
+  self.order = [NSNumber numberWithUnsignedInteger:order];
   
     // game state
-  self.dataDyadminoIndexesThisTurn = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
-  self.resigned = [NSNumber numberWithBool:NO];
-  self.won = [NSNumber numberWithBool:NO];
+  self.rackIndexes = [[NSMutableArray alloc] initWithCapacity:kNumDyadminoesInRack];
+  self.resigned = @NO;
+  self.won = @NO;
 }
 
--(BOOL)thisTurnContainsDataDyadmino:(DataDyadmino *)dataDyad {
-  return [self.dataDyadminoIndexesThisTurn containsObject:[NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]]];
+-(BOOL)doesRackContainDataDyadmino:(DataDyadmino *)dataDyad {
+  return [self.rackIndexes containsObject:@([dataDyad returnMyID])];
 }
 
--(void)addToThisTurnsDataDyadmino:(DataDyadmino *)dataDyad {
-  NSNumber *number = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]];
-  if (![self thisTurnContainsDataDyadmino:dataDyad]) {
-    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.dataDyadminoIndexesThisTurn];
+-(void)addToRackDataDyadmino:(DataDyadmino *)dataDyad {
+  NSNumber *number = @([dataDyad returnMyID]);
+  if (![self doesRackContainDataDyadmino:dataDyad]) {
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.rackIndexes];
     [tempArray addObject:number];
-    self.dataDyadminoIndexesThisTurn = [NSArray arrayWithArray:tempArray];
+    self.rackIndexes = [NSArray arrayWithArray:tempArray];
   }
 }
 
--(void)insertInThisTurnsDataDyadmino:(DataDyadmino *)dataDyad atIndex:(NSUInteger)index {
-  NSNumber *number = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]];
-  if (![self thisTurnContainsDataDyadmino:dataDyad]) {
-    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.dataDyadminoIndexesThisTurn];
-    [tempArray insertObject:number atIndex:index];
-    self.dataDyadminoIndexesThisTurn = [NSArray arrayWithArray:tempArray];
+-(void)insertIntoRackDataDyadmino:(DataDyadmino *)dataDyad withOrderNumber:(NSUInteger)orderNumber {
+  NSNumber *number = @([dataDyad returnMyID]);
+  if (![self doesRackContainDataDyadmino:dataDyad]) {
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.rackIndexes];
+    [tempArray insertObject:number atIndex:orderNumber];
+    self.rackIndexes = [NSArray arrayWithArray:tempArray];
   }
 }
 
--(void)removeFromThisTurnsDataDyadmino:(DataDyadmino *)dataDyad {
-  if ([self thisTurnContainsDataDyadmino:dataDyad]) {
-    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.dataDyadminoIndexesThisTurn];
-    NSNumber *number = [NSNumber numberWithUnsignedInteger:[dataDyad returnMyID]];
+-(void)removeFromRackDataDyadmino:(DataDyadmino *)dataDyad {
+  if ([self doesRackContainDataDyadmino:dataDyad]) {
+    NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.rackIndexes];
+    NSNumber *number = @([dataDyad returnMyID]);
     [tempArray removeObject:number];
-    self.dataDyadminoIndexesThisTurn = [NSArray arrayWithArray:tempArray];
+    self.rackIndexes = [NSArray arrayWithArray:tempArray];
   }
 }
 
--(void)removeAllDataDyadminoesThisTurn {
-  self.dataDyadminoIndexesThisTurn = nil;
-  self.dataDyadminoIndexesThisTurn = [NSMutableArray new];
+-(void)removeAllRackIndexes {
+  self.rackIndexes = [NSMutableArray new];
 }
 
 #pragma mark - return query properties
 
--(NSUInteger)returnPlayerOrder {
-  return [self.playerOrder unsignedIntegerValue];
+-(NSUInteger)returnOrder {
+  return [self.order unsignedIntegerValue];
 }
 
--(NSUInteger)returnPlayerScore {
-  return [self.playerScore unsignedIntegerValue];
+-(NSUInteger)returnScore {
+  return [self.score unsignedIntegerValue];
 }
 
 -(BOOL)returnResigned {
@@ -96,7 +95,7 @@
 
 @end
 
-@implementation DataDyadminoIndexesThisTurn
+@implementation RackIndexes
 
 +(Class)transformedValueClass {
   return [NSArray class];

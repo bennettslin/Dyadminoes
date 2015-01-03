@@ -16,7 +16,7 @@
 
 @interface Match : NSManagedObject
 
-#pragma mark - query number methods
+#pragma mark - persisted properties
 
   // relationship properties
 @property (strong, nonatomic) NSSet *dataDyadminoes;
@@ -34,11 +34,8 @@
 @property (retain, nonatomic) NSNumber *firstDataDyadIndex;
 
   // player properties
-@property (retain, nonatomic) NSNumber *currentPlayerIndex;
+@property (retain, nonatomic) NSNumber *currentPlayerOrder;
 @property (retain, nonatomic) NSNumber *gameHasEnded;
-
-  // turns and undo
-@property (retain, nonatomic) NSNumber *replayTurn;
 
   // NSArray
 @property (retain, nonatomic) id turns; // turns start from 1
@@ -46,31 +43,25 @@
   // temp containers, persisted for one turn
   // NSArray, contains dataDyad indices as NSNumbers
 @property (retain, nonatomic) id holdingIndexContainer;
-
-  // NSArray of NSDictionaries each representing a played dyadmino or moved board dyadmino
-  // each of dyadmino is an NSDictionary of chordSonorities: NSSet, points: NSNumber, and fromRack: NSNumber
-  // each chordSonorities is an NSSet of objects representing sets of sonorities
-  // each sonority is an NSSet of notes
-  // each note is an NSDictionary of pc: NSNumbers and dyadmino: NSNumbers
-  // dyadmino information is not retained
-@property (retain, nonatomic) id arrayOfChordsAndPoints;
-
 @property (retain, nonatomic) NSNumber *randomNumber1To24;
 
-  // these are not persisted
-@property (strong, nonatomic) NSMutableSet *replayBoard;
+#pragma mark - not persisted properties
+
 @property (weak, nonatomic) id <MatchDelegate> delegate;
+
+@property (strong, nonatomic) NSMutableSet *replayBoard;
+@property (assign, nonatomic) NSUInteger replayTurn;
 
   // these will be lazily loaded with dataDyadminoes, depending on place status
 @property (readonly, nonatomic) NSMutableArray *pile; // was mutable array
 @property (readonly, nonatomic) NSMutableSet *board; // was mutable set
 @property (readonly, nonatomic) NSMutableSet *occupiedCells;
 
-//@property (readonly, nonatomic) NSMutableSet *allBoardChords;
 @property (readonly, nonatomic) NSSet *preTurnChords;
 @property (readonly, nonatomic) NSMutableSet *thisTurnChords;
 
-  // establish initial properties method
+#pragma mark - setup methods
+
 -(void)initialPlayers:(NSSet *)players andRules:(GameRules)rules andSkill:(GameSkill)skill withContext:(NSManagedObjectContext *)managedObjectContext;
 
 #pragma mark - cell methods
@@ -87,9 +78,9 @@
 
 -(PhysicalPlacementResult)validatePhysicallyPlacingDyadminoID:(NSUInteger)dyadminoID withOrientation:(DyadminoOrientation)orientation onBottomHexCoord:(HexCoord)bottomHexCoord;
 
-#pragma mark - game state change methods
+#pragma mark - game progression methods
 
-  // play
+  // play rack dyadmino
 -(NSSet *)playDataDyadmino:(DataDyadmino *)dataDyad
           onBottomHexCoord:(HexCoord)bottomHexCoord
            withOrientation:(DyadminoOrientation)orientation
@@ -105,36 +96,22 @@
 -(DataDyadmino *)undoLastPlayedDyadmino;
 
   // swap
-//-(BOOL)swapDyadminoesFromCurrentPlayer;
 -(BOOL)passTurnBySwappingDyadminoes:(NSSet *)dyadminoesToSwap;
 
-  // pass or turn done
+  // pass or complete turn
 -(void)recordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap;
 
   // resign
 -(void)resignPlayer:(Player *)player;
 
-  // for tests
--(BOOL)testAddToHoldingContainer:(DataDyadmino *)dataDyad;
--(void)testPersistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad;
+#pragma mark - replay methods
 
-  // replay methods
 -(void)startReplay;
 -(void)first;
 -(BOOL)previous;
 -(BOOL)next;
 -(void)last;
 -(void)leaveReplay;
-
-  // label methods
--(NSString *)endGameResultsText;
--(NSString *)turnTextLastPlayed:(BOOL)lastPlayed;
-
-  // helper methods
--(NSUInteger)wonPlayersCount;
--(Player *)playerForIndex:(NSUInteger)index;
--(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index;
--(NSUInteger)pcForDyadminoIndex:(NSUInteger)index isPC1:(BOOL)isPC1;
 
 #pragma mark - chord methods
 
@@ -151,23 +128,38 @@
 
   // reset methods
 -(void)resetDyadminoesOnBoard;
--(BOOL)boardDyadminoesHaveMovedSinceStartOfTurn;
 
-#pragma mark - query number methods
+#pragma mark - query methods
 
 -(GameRules)returnRules;
 -(GameSkill)returnSkill;
 -(GameType)returnType;
--(NSUInteger)returnCurrentPlayerIndex;
 -(BOOL)returnGameHasEnded;
 -(NSUInteger)returnFirstDataDyadIndex;
--(NSUInteger)returnReplayTurn;
 -(NSInteger)returnRandomNumber1To24;
+
+#pragma mark - label methods
+
+-(NSString *)endGameResultsText;
+-(NSString *)turnTextLastPlayed:(BOOL)lastPlayed;
 
 #pragma mark - helper methods
 
+-(NSUInteger)wonPlayersCount;
+-(Player *)playerForIndex:(NSUInteger)index;
+-(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index;
 -(UIColor *)colourForPlayer:(Player *)player forLabel:(BOOL)forLabel light:(BOOL)light;
 -(Player *)returnCurrentPlayer;
+
+  // this is called by scene to determine whether to show reset button
+-(BOOL)boardDyadminoesHaveMovedSinceStartOfTurn;
+
+#pragma mark - methods for unit tests only
+
+  // for tests
+-(BOOL)testAddToHoldingContainer:(DataDyadmino *)dataDyad;
+-(void)testPersistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad;
+-(NSUInteger)testPCForDyadminoIndex:(NSUInteger)index isPC1:(BOOL)isPC1;
 
 @end
 

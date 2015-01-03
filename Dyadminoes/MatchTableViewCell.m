@@ -75,7 +75,7 @@
     } else {
       
         // player label-------------------------------------------------------
-      playerLabel.text = player ? player.playerName : @"";
+      playerLabel.text = player ? player.name : @"";
       [playerLabel sizeToFit];
       
         // frame width can never be greater than maximum label width
@@ -90,7 +90,7 @@
       
         // score label--------------------------------------------------------
       scoreLabel.text = (player && !([player returnResigned] && [self.myMatch returnType] != kSelfGame)) ?
-      [NSString stringWithFormat:@"%lu", (unsigned long)[player returnPlayerScore]] : @"";
+      [NSString stringWithFormat:@"%lu", (unsigned long)[player returnScore]] : @"";
       scoreLabel.frame = CGRectMake(0, 0, kCellPlayerSlotWidth, kStaveYHeight * 2);
       
       if ([self.myMatch returnGameHasEnded]) {
@@ -141,7 +141,8 @@
         self.labelView.backgroundColor = [UIColor clearColor];
         
       } else {
-        if ([player returnPlayerOrder] == [self.myMatch returnCurrentPlayerIndex]) {
+//        if ([player returnPlayerOrder] == [self.myMatch returnCurrentPlayerIndex]) {
+        if (player == [self.myMatch returnCurrentPlayer]) {
           self.labelView.frame = CGRectMake(0, 0, playerLabelFrameWidth + kPlayerLabelWidthPadding, playerLabel.frame.size.height + kPlayerLabelHeightPadding);
           self.labelView.layer.cornerRadius = self.labelView.frame.size.height / 2.f;
           self.labelView.clipsToBounds = YES;
@@ -176,7 +177,7 @@
     
       // add score only if player is in game
     if (![player returnResigned] || [self.myMatch returnType] == kSelfGame) {
-      NSNumber *playerScore = [NSNumber numberWithUnsignedInteger:[player returnPlayerScore]];
+      NSNumber *playerScore = [NSNumber numberWithUnsignedInteger:[player returnScore]];
       
         // ensure no double numbers
       ![tempScores containsObject:playerScore] ? [tempScores addObject:playerScore] : nil;
@@ -191,19 +192,20 @@
 
 //    Player *player = self.myMatch.players[i];
     
-    NSUInteger index = [player returnPlayerOrder];
+    NSUInteger index = [player returnOrder];
     UILabel *playerLabel = self.playerLabelsArray[index];
     UILabel *scoreLabel = self.scoreLabelsArray[index];
     
     NSInteger playerPosition = ([player returnResigned] && [self.myMatch returnType] != kSelfGame) ?
-        -1 : [sortedScores indexOfObject:[NSNumber numberWithUnsignedInteger:[player returnPlayerScore]]] + 1;
+        -1 : [sortedScores indexOfObject:[NSNumber numberWithUnsignedInteger:[player returnScore]]] + 1;
 
     playerLabel.center = CGPointMake(kStaveXBuffer + kCellClefWidth + kCellKeySigWidth + ((index + 0.5) * kCellPlayerSlotWidth),
                                      [self yPositionForMaxPosition:sortedScores.count andPlayerPosition:playerPosition]);
 
     scoreLabel.center = CGPointMake(playerLabel.center.x, playerLabel.center.y + kStaveYHeight * 1.75f);
     
-    if ([player returnPlayerOrder] == [self.myMatch returnCurrentPlayerIndex]) {
+//    if ([player returnPlayerOrder] == [self.myMatch returnCurrentPlayerIndex]) {
+    if (player == [self.myMatch returnCurrentPlayer]) {
       self.labelView.center = CGPointMake(playerLabel.center.x, playerLabel.center.y - (kCellRowHeight / 40.f));
     }
   }

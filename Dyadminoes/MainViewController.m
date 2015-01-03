@@ -75,6 +75,7 @@
   self.titleLogo.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? 30.f : 60.f)];
   self.titleLogo.text = @"Dyadminoes";
   self.titleLogo.textColor = [UIColor whiteColor];
+  self.titleLogo.textAlignment = NSTextAlignmentCenter;
   
   self.tableView.backgroundColor = [UIColor clearColor];
   self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
@@ -115,6 +116,7 @@
   
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(startAnimatingBackground) name:UIApplicationDidBecomeActiveNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(determineNewGameButtonAnimation) name:UIApplicationDidBecomeActiveNotification object:nil];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(backToParentViewAfterBecomingActive) name:UIApplicationDidBecomeActiveNotification object:nil];
   
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removeLocalGameButtonAnimations) name:UIApplicationDidEnterBackgroundNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stopAnimatingBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
@@ -129,7 +131,7 @@
 
   [self resetActivityIndicator];
   
-  self.titleLogo.frame = CGRectMake(0, 0, 768, 60);
+  self.titleLogo.frame = CGRectMake(0, 0, self.screenWidth, kMainTopBarHeight);
   self.titleLogo.center = CGPointMake(self.screenWidth / 2, kMainTopBarHeight / 2);
   
   self.tableView.transform = CGAffineTransformMakeScale(1.f, 1.f);
@@ -257,6 +259,11 @@
 }
 
 #pragma mark - Navigation
+
+-(void)backToParentViewAfterBecomingActive {
+  NSLog(@"back to parent view after becoming active");
+  [self backToParentViewWithAnimateRemoveVC:NO];
+}
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
 
@@ -487,7 +494,7 @@
   NSMutableSet *tempSet = [NSMutableSet new];
   for (NSUInteger i = 0; i < playerNames.count; i++) {
     Player *newPlayer = [NSEntityDescription insertNewObjectForEntityForName:@"Player" inManagedObjectContext:self.managedObjectContext];
-    [newPlayer initialUniqueID:@"" andPlayerName:playerNames[i] andPlayerOrder:i];
+    [newPlayer initialUniqueID:@"" andName:playerNames[i] andOrder:i];
     [tempSet addObject:newPlayer];
   }
   NSSet *players = [NSSet setWithSet:tempSet];

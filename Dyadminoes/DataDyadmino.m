@@ -20,7 +20,6 @@
 @dynamic hexX;
 @dynamic hexY;
 @dynamic myRackOrder;
-@dynamic chordsThisPlay;
 @dynamic turnChanges;
 @dynamic placeStatus;
 @dynamic match;
@@ -44,12 +43,14 @@
 
 -(void)initialID:(NSUInteger)myID {
 
-  self.myID = [NSNumber numberWithUnsignedInteger:myID];
-  self.placeStatus = [NSNumber numberWithUnsignedInteger:kInPile];
+  self.myID = @(myID);
+  self.placeStatus = @(kInPile);
   
     // set rack orientation randomly
   int randNum = arc4random() % 2;
-  self.myOrientation = (randNum == 0) ? [NSNumber numberWithUnsignedInteger:kPC1atTwelveOClock] : [NSNumber numberWithUnsignedInteger:kPC1atSixOClock];
+  self.myOrientation = (randNum == 0) ?
+      @(kPC1atTwelveOClock) :
+      @(kPC1atSixOClock);
 }
 
 -(NSUInteger)getTurnAdded {
@@ -145,26 +146,6 @@
 
 +(Class)transformedValueClass {
   return [NSArray class];
-}
-
-+(BOOL)allowsReverseTransformation {
-  return YES;
-}
-
--(id)transformedValue:(id)value {
-  return [NSKeyedArchiver archivedDataWithRootObject:value];
-}
-
--(id)reverseTransformedValue:(id)value {
-  return [NSKeyedUnarchiver unarchiveObjectWithData:value];
-}
-
-@end
-
-@implementation ChordsThisPlay
-
-+(Class)transformedValueClass {
-  return [NSSet class];
 }
 
 +(BOOL)allowsReverseTransformation {

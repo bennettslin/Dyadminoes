@@ -299,7 +299,7 @@
     
       // player labels----------------------------------------------------------
     playerLabel.frame = CGRectMake(kTopBarXEdgeBuffer, kTopBarYEdgeBuffer + (playerLabelHeight) * i, _topBarPlayerLabelWidth, playerLabelHeight);
-    playerLabel.text = player ? player.playerName : @"";
+    playerLabel.text = player ? player.name : @"";
     playerLabel.font = [UIFont fontWithName:kFontModern size:playerLabelHeight];
     playerLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     playerLabel.adjustsFontSizeToFitWidth = YES;
@@ -353,9 +353,9 @@
       if (!player || ([player returnResigned] && [self.myMatch returnType] != kSelfGame)) {
         scoreText = @"";
       } else if (player == [self.myMatch returnCurrentPlayer] && pointsForThisTurnChords > 0) {
-        scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)[player returnPlayerScore], (unsigned long)pointsForThisTurnChords];
+        scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)[player returnScore], (unsigned long)pointsForThisTurnChords];
       } else {
-        scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)[player returnPlayerScore]];
+        scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)[player returnScore]];
       }
       
       if ([self.myMatch returnGameHasEnded]) {

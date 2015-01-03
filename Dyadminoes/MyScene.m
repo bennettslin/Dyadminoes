@@ -251,7 +251,7 @@
   
   _myPlayer = [self.myMatch returnCurrentPlayer];
   NSArray *turns = self.myMatch.turns;
-  self.myMatch.replayTurn = [NSNumber numberWithUnsignedInteger:turns.count];
+  self.myMatch.replayTurn = turns.count;
 }
 
 -(void)didMoveToView:(SKView *)view {
@@ -453,7 +453,7 @@
     // keep player's order and orientation of dyadminoes until turn is submitted
   
   NSMutableArray *tempDyadminoArray = [NSMutableArray new];
-  NSArray *dataDyadsThisTurn = [self.myMatch dataDyadsInIndexContainer:_myPlayer.dataDyadminoIndexesThisTurn];
+  NSArray *dataDyadsThisTurn = [self.myMatch dataDyadsInIndexContainer:_myPlayer.rackIndexes];
   
   for (DataDyadmino *dataDyad in dataDyadsThisTurn) {
     
@@ -476,7 +476,7 @@
   NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
   [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
   self.playerRackDyadminoes = [tempDyadminoArray sortedArrayUsingDescriptors:@[sortByRackOrder]];
-  return (self.playerRackDyadminoes.count == [(NSArray *)_myPlayer.dataDyadminoIndexesThisTurn count] - [(NSArray *)self.myMatch.holdingIndexContainer count]);
+  return (self.playerRackDyadminoes.count == [(NSArray *)_myPlayer.rackIndexes count] - [(NSArray *)self.myMatch.holdingIndexContainer count]);
 }
 
 -(BOOL)populateBoardSet {
@@ -2149,28 +2149,37 @@
       // ensures that validation takes place only if placement is uncertain
       // will not get called if returning to homeNode from top bar
     if (dyadmino.tempBoardNode) {
-      
-        // handle placement results:
-        // ease in right away if no error, and if dyadmino was not moved from original spot
-      PhysicalPlacementResult placementResult = [self.myMatch validatePhysicallyPlacingDyadminoID:dyadmino.myID withOrientation:dyadmino.orientation onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord];
 
+        // ease in right away if no error,
+        // and if dyadmino was not moved from original spot
+   
+  //----------------------------------------------------------------------------
+  // no change, just hover for a bit
+  //----------------------------------------------------------------------------
+      
+        // this doesn't get called if dyadmino goes right back
+        // to its original board node and orientation
+      
+        // we keep hovering to allow for pivot
+      if ((dyadmino.tempBoardNode == _uponTouchDyadminoNode &&
+           dyadmino.orientation == _uponTouchDyadminoOrientation)) {
+        
+          // however, ensure that buttons are updated if chords are changed after flip
+        [self updateTopBarButtons];
+        [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
+      
   //----------------------------------------------------------------------------
   // illegal placement, either lone dyadmino or stacked dyadminoes
   //----------------------------------------------------------------------------
-      
-      if (placementResult != kNoError) {
         
+      } else if ([self.myMatch validatePhysicallyPlacingDyadminoID:dyadmino.myID
+                                                   withOrientation:dyadmino.orientation
+                                                  onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord] != kNoError) {
+        
+          // ensures that buttons are updated if chords are changed after flip
+        [self updateTopBarButtons];
         [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
-        [self updateTopBarButtons]; // ensures that buttons are updated if chords are changed after flip
         return;
-        
-          // this doesn't get called if dyadmino goes right back
-          // to its original board node and orientation
-      } else if ((dyadmino.tempBoardNode == _uponTouchDyadminoNode &&
-                   dyadmino.orientation == _uponTouchDyadminoOrientation)) {
-        
-        [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
-        [self updateTopBarButtons]; // ensures that buttons are updated if chords are changed after flip
         
       } else {
         
@@ -2253,7 +2262,8 @@
           } else if (newOrExtendingChords.count > 0) {
 
               // dyadmino was on board before turn
-            if ([self.myMatch.board containsObject:[self getDataDyadminoFromDyadmino:dyadmino]]) {
+            DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+            if ([self.myMatch.board containsObject:dataDyad]) {
               
                 // show action sheet with potential points from newly built chord
                 // updates will be made from after action sheet button is clicked
@@ -2272,13 +2282,21 @@
             } else {
               NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:newOrExtendingChords withInitialString:@"Built " andEndingString:@"."];
               
-              [self.myMatch addLegalChordsFormed:newOrExtendingChords
-                      fromMovedBoardDataDyadmino:[self getDataDyadminoFromDyadmino:dyadmino] onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation];
+              NSSet *firstTimeToBeAddedChords = [[SonorityLogic sharedLogic] legalChords:existingChords
+                                     notFoundInAndNotSubsetsOfLegalChords:newOrExtendingChords];
               
-              [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
-              [self finishHoveringAfterCheckDyadmino:dyadmino];
-              
-              [self updateTopBarLabelsFinalTurn:NO animated:YES];
+              if (firstTimeToBeAddedChords) {
+                
+                [self.myMatch addLegalChordsFormed:newOrExtendingChords
+                        fromMovedBoardDataDyadmino:[self getDataDyadminoFromDyadmino:dyadmino]
+                                  onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord
+                                   withOrientation:dyadmino.orientation];
+                
+                [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
+                [self finishHoveringAfterCheckDyadmino:dyadmino];
+                
+                [self updateTopBarLabelsFinalTurn:NO animated:YES];
+              }
             }
               
       //------------------------------------------------------------------------
@@ -2414,7 +2432,9 @@
   } else if (noRackDyadminoesPlayedAndNoRecentRackDyadmino) {
     
       // reset button shows when board dyadminoes have been moved
-    [self.myMatch boardDyadminoesHaveMovedSinceStartOfTurn] ? [_topBar changeSwapCancelOrUndo:kResetButton] : [_topBar changeSwapCancelOrUndo:kSwapButton];
+    [self.myMatch boardDyadminoesHaveMovedSinceStartOfTurn] ?
+        [_topBar changeSwapCancelOrUndo:kResetButton] :
+        [_topBar changeSwapCancelOrUndo:kSwapButton];
     
       // no pass option in self mode
     if ([self.myMatch returnType] == kSelfGame) {
@@ -2444,8 +2464,8 @@
 -(void)updateReplayButtons {
   NSArray *turns = self.myMatch.turns;
   BOOL zeroTurns = turns.count <= 1;
-  BOOL firstTurn = [self.myMatch returnReplayTurn] == 1;
-  BOOL lastTurn = [self.myMatch returnReplayTurn] == turns.count;
+  BOOL firstTurn = (self.myMatch.replayTurn == 1);
+  BOOL lastTurn = (self.myMatch.replayTurn == turns.count);
   
   [_replayBottom node:_replayBottom.firstTurnButton shouldBeEnabled:!zeroTurns && !firstTurn];
   [_replayBottom node:_replayBottom.previousTurnButton shouldBeEnabled:!zeroTurns && !firstTurn];
@@ -2457,8 +2477,8 @@
   Player *currentPlayer = [self.myMatch returnCurrentPlayer];
   
   return kIsIPhone ?
-      [NSString stringWithFormat:@"%@,\nit's your turn!", currentPlayer.playerName] :
-      [NSString stringWithFormat:@"%@, it's your turn!", currentPlayer.playerName];
+      [NSString stringWithFormat:@"%@,\nit's your turn!", currentPlayer.name] :
+      [NSString stringWithFormat:@"%@, it's your turn!", currentPlayer.name];
 }
 
 #pragma mark - field animation methods
@@ -2722,11 +2742,11 @@
     dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:dyadmino.orientation];
     dataDyad.myRackOrder = [NSNumber numberWithInteger:i];
     
-    if ([_myPlayer thisTurnContainsDataDyadmino:dataDyad] &&
+    if ([_myPlayer doesRackContainDataDyadmino:dataDyad] &&
         ![self.swapContainer containsObject:dataDyad]) {
       
-      [_myPlayer removeFromThisTurnsDataDyadmino:dataDyad];
-      [_myPlayer insertInThisTurnsDataDyadmino:dataDyad atIndex:i];
+      [_myPlayer removeFromRackDataDyadmino:dataDyad];
+      [_myPlayer insertIntoRackDataDyadmino:dataDyad withOrderNumber:i];
     }
   }
 }
@@ -2865,7 +2885,7 @@
   
   NSMutableSet *tempDataDyadSet = [NSMutableSet setWithSet:self.myMatch.board];
   
-  [tempDataDyadSet addObjectsFromArray:[self.myMatch dataDyadsInIndexContainer:_myPlayer.dataDyadminoIndexesThisTurn]];
+  [tempDataDyadSet addObjectsFromArray:[self.myMatch dataDyadsInIndexContainer:_myPlayer.rackIndexes]];
   
   for (DataDyadmino *dataDyad in tempDataDyadSet) {
     if ([dataDyad returnMyID] == dyadmino.myID) {
@@ -3097,7 +3117,7 @@
     if (replay) {
       turnOrResultsText = [self.myMatch turnTextLastPlayed:NO];
       
-      NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:kTurnPlayer] unsignedIntegerValue];
+      NSUInteger playerOrder = [[self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:kTurnPlayer] unsignedIntegerValue];
       turnPlayer = [self.myMatch playerForIndex:playerOrder];
       colour = [self.myMatch colourForPlayer:turnPlayer forLabel:YES light:NO];
 
@@ -3109,7 +3129,7 @@
       } else {
         turnOrResultsText = [self.myMatch turnTextLastPlayed:YES];
         
-        NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:kTurnPlayer] unsignedIntegerValue];
+        NSUInteger playerOrder = [[self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:kTurnPlayer] unsignedIntegerValue];
         turnPlayer = [self.myMatch playerForIndex:playerOrder];
         colour = [self.myMatch colourForPlayer:turnPlayer forLabel:YES light:NO];
       }
@@ -3174,9 +3194,9 @@
   Player *turnPlayer;
   NSArray *turnDataDyadminoIndexes;
   if (inReplay) {
-    NSUInteger playerOrder = [[self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:kTurnPlayer] unsignedIntegerValue];
+    NSUInteger playerOrder = [[self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:kTurnPlayer] unsignedIntegerValue];
     turnPlayer = [self.myMatch playerForIndex:playerOrder];
-    turnDataDyadminoIndexes = [self.myMatch.turns[[self.myMatch returnReplayTurn] - 1] objectForKey:kTurnDyadminoes];
+    turnDataDyadminoIndexes = [self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:kTurnDyadminoes];
   } else {
     turnPlayer = _myPlayer;
     turnDataDyadminoIndexes = @[];
@@ -3206,8 +3226,8 @@
         // if leaving replay, properties have already been reset
       if (inReplay) {
           // get position and orientation attrivutes
-        dyadmino.myHexCoord = [dataDyad getHexCoordForTurn:[self.myMatch returnReplayTurn]];
-        dyadmino.orientation = [dataDyad getOrientationForTurn:[self.myMatch returnReplayTurn]];
+        dyadmino.myHexCoord = [dataDyad getHexCoordForTurn:self.myMatch.replayTurn];
+        dyadmino.orientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
         dyadmino.tempReturnOrientation = dyadmino.orientation;
       }
       
@@ -3552,7 +3572,7 @@
 }
 
 -(void)logRackDyadminoes {
-  NSLog(@"dataDyads are:  %@", [[_myPlayer.dataDyadminoIndexesThisTurn valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
+  NSLog(@"dataDyads are:  %@", [[_myPlayer.rackIndexes valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
   NSLog(@"Dyadminoes are: %@", [[self.playerRackDyadminoes valueForKey:@"name"] componentsJoinedByString:@", "]);
   NSLog(@"holdingCon is:  %@", [[self.myMatch.holdingIndexContainer valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
   NSLog(@"swapContainer:  %@", [[[self.swapContainer allObjects] valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
