@@ -29,7 +29,6 @@
  */
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location;
 -(BOOL)validatePinchLocation:(CGPoint)location;
--(void)tempStoreForPlayerSceneDataDyadminoes;
 -(void)togglePCsUserShaken:(BOOL)userShaken;
 -(void)handleUserWantsPivotGuides;
 -(void)presentActionSheet:(ActionSheetTag)actionSheetTag withPoints:(NSUInteger)points;

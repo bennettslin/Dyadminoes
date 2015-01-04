@@ -38,6 +38,7 @@
 -(PlaceStatus)returnPlaceStatus;
 
 -(void)initWithID:(NSUInteger)myID;
+-(void)resetHexCoord;
 -(HexCoord)getHexCoordForTurn:(NSUInteger)turn;
 -(DyadminoOrientation)getOrientationForTurn:(NSUInteger)turn;
 

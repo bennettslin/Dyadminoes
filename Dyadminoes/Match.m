@@ -17,8 +17,6 @@
 @property (readwrite, nonatomic) NSMutableArray *pile; // was mutable array
 @property (readwrite, nonatomic) NSMutableSet *board; // was mutable set
 @property (readwrite, nonatomic) NSMutableSet *occupiedCells;
-//@property (readwrite, nonatomic) NSSet *preTurnChords;
-//@property (readwrite, nonatomic) NSMutableSet *thisTurnChords;
 
 @end
 
@@ -45,9 +43,6 @@
 @synthesize pile = _pile;
 @synthesize board = _board;
 @synthesize occupiedCells = _occupiedCells;
-
-//@synthesize preTurnChords = _preTurnChords;
-//@synthesize thisTurnChords = _thisTurnChords;
 
 #pragma mark - setup methods
 
@@ -525,13 +520,14 @@
 
 -(void)resetToStartOfTurn {
   NSUInteger index = [(NSArray *)self.turns count];
+  [self.occupiedCells removeAllObjects];
+  
   for (DataDyadmino *dataDyad in self.board) {
     dataDyad.myHexCoord = [dataDyad getHexCoordForTurn:index];
     dataDyad.myOrientation = @([dataDyad getOrientationForTurn:index]);
     [self persistChangedPositionForBoardDataDyadmino:dataDyad];
+    [self updateDataCellsForPlacedDyadminoID:[dataDyad returnMyID] orientation:[dataDyad returnMyOrientation] onBottomCellHexCoord:dataDyad.myHexCoord];
   }
-  
-//  [self emptyThisTurnChordsByMovingIntoPreTurnChords];
 }
 
 -(BOOL)playDataDyadmino:(DataDyadmino *)dataDyad
@@ -558,13 +554,16 @@
             toBottomHexCoord:(HexCoord)bottomHexCoord
              withOrientation:(DyadminoOrientation)orientation {
   
-  BOOL removedWithNoissues = [self updateDataCellsForRemovedDyadminoID:[dataDyad returnMyID] orientation:orientation fromBottomCellHexCoord:bottomHexCoord];
+    // remove from data dyadmino's last hexCoord and orientation
+  BOOL removedWithNoissues = [self updateDataCellsForRemovedDyadminoID:[dataDyad returnMyID] orientation:[dataDyad returnMyOrientation] fromBottomCellHexCoord:dataDyad.myHexCoord];
   
     // data dyadmino placement info is strongly tied to cells
   dataDyad.myHexCoord = bottomHexCoord;
   dataDyad.myOrientation = @(orientation);
   
   BOOL placedWithNoIssues = [self updateDataCellsForPlacedDyadminoID:[dataDyad returnMyID] orientation:orientation onBottomCellHexCoord:bottomHexCoord];
+  
+  NSLog(@"removed with no issues %i, placed with no issues %i", removedWithNoissues, placedWithNoIssues);
   return (removedWithNoissues && placedWithNoIssues);
 }
 
@@ -572,12 +571,15 @@
   NSArray *holdingIndexContainer = self.holdingIndexContainer;
   if (holdingIndexContainer.count > 0) {
     
-    NSNumber *number = [self.holdingIndexContainer lastObject];
+    NSNumber *dyadminoIndex = [self.holdingIndexContainer lastObject];
     NSMutableArray *tempArray = [NSMutableArray arrayWithArray:self.holdingIndexContainer];
-    [tempArray removeObject:number];
+    [tempArray removeObject:dyadminoIndex];
     self.holdingIndexContainer = [NSArray arrayWithArray:tempArray];
-    DataDyadmino *lastDataDyadmino = [self dataDyadminoForIndex:[number unsignedIntegerValue]];
-//    [self undoFromChordsDyadminoID:lastDataDyadmino.myID];
+    DataDyadmino *lastDataDyadmino = [self dataDyadminoForIndex:[dyadminoIndex unsignedIntegerValue]];
+    [self updateDataCellsForRemovedDyadminoID:[lastDataDyadmino returnMyID]
+                                  orientation:[lastDataDyadmino returnMyOrientation]
+                       fromBottomCellHexCoord:lastDataDyadmino.myHexCoord];
+    [lastDataDyadmino resetHexCoord];
     return lastDataDyadmino;
   }
   return nil;
@@ -615,7 +617,6 @@
     }
     
     [self resetHoldingContainer];
-//    [self emptyThisTurnChordsByMovingIntoPreTurnChords];
     [self recordDyadminoesFromCurrentPlayerWithSwap:YES]; // this records turn as a pass
       // sort the board and pile
     [self sortPileArray];
@@ -705,7 +706,6 @@
   
       // whether pass or not, game continues
   [self resetHoldingContainer];
-//  [self emptyThisTurnChordsByMovingIntoPreTurnChords];
   
   self.lastPlayed = [NSDate date];
   [self switchToNextPlayer];
@@ -733,7 +733,6 @@
   [self sortPileArray];
   
   [self resetHoldingContainer];
-//  [self emptyThisTurnChordsByMovingIntoPreTurnChords];
   [player removeAllRackIndexes];
   if (![self switchToNextPlayer]) {
     [self endGame];
@@ -790,51 +789,6 @@
   self.holdingIndexContainer = [NSArray new];
 }
 
-//-(BOOL)addToThisTurnChordsTheseNewOrExtendingChords:(NSSet *)newOrExtendingChords {
-//  
-//    // return right away if set is empty
-//  if (newOrExtendingChords.count == 0) {
-//    return NO;
-//  }
-//  
-//  for (NSSet *newOrExtendingChord in newOrExtendingChords) {
-//    [self.thisTurnChords addObject:newOrExtendingChord];
-//  }
-//  
-//  return YES;
-//}
-
-//-(BOOL)undoFromChordsDyadminoID:(NSNumber *)dyadminoID {
-//  
-//  NSMutableSet *checkedSet = [NSMutableSet setWithSet:self.preTurnChords];
-//  [checkedSet addObjectsFromArray:[self.thisTurnChords allObjects]];
-//  
-//  for (NSSet *checkedChord in checkedSet) {
-//    for (NSDictionary *note in checkedChord) {
-//      if ([note[@"dyadmino"] isEqualToNumber:dyadminoID]) {
-//        if ([self.thisTurnChords containsObject:checkedChord]) {
-//          [self.thisTurnChords removeObject:checkedChord];
-//        }
-//        
-//        if ([self.preTurnChords containsObject:checkedChord]) {
-//          NSMutableSet *tempSet = [NSMutableSet setWithSet:self.thisTurnChords];
-//          [tempSet removeObject:checkedChord];
-//          self.preTurnChords = [NSSet setWithSet:tempSet];
-//        }
-//      }
-//    }
-//  }
-//  
-//  return YES;
-//}
-
-//-(BOOL)emptyThisTurnChordsByMovingIntoPreTurnChords {
-//
-//  self.preTurnChords = nil;
-//  self.thisTurnChords = nil;
-//  return YES;
-//}
-
 -(NSUInteger)pointsForChordSonority:(NSSet *)chordSonority extended:(BOOL)extended {
   NSUInteger points;
   
@@ -856,6 +810,25 @@
 }
 
 #pragma mark - cell methods
+
+/*
+ Match's data cells do *not* work like scene's board cells.
+ 
+ Whereas scene removes board cells while dyadmino is hovering
+ and replaces them when dyadmino eases, match's data cells are
+ strongly tied to data dyadmino hexCoords and orientations,
+ and will *always* reflect a legal formation.
+ 
+ Data cells *only* know preTurn and thisTurn dyadminoes.
+ Match should *never* know recent rack dyadmino, which is used
+ for testing placement. AI opponent will do the same thing.
+ 
+ When testing placement of preTurn or thisTurn dyadmino,
+ Match does not take into consideration dyadmino's original
+ placement on board, and only tests new placement.
+ 
+ Data cells do not distinguish between preTurn and thisTurn dyadminoes.
+ */
 
 -(DataCell *)occupiedCellForHexCoord:(HexCoord)hexCoord {
   
@@ -1468,52 +1441,6 @@
 -(void)setOccupiedCells:(NSMutableSet *)occupiedCells {
   _occupiedCells = occupiedCells;
 }
-
-//-(NSSet *)preTurnChords {
-//  if (!_preTurnChords) {
-//    NSMutableSet *tempSet = [NSMutableSet new];
-//    for (DataDyadmino *dataDyad in self.board) {
-//      
-//        // first get all legal chords, there must be at least one
-//      NSSet *formationOfSonorities = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID] onBottomHexCoord:dataDyad.myHexCoord withOrientation:[dataDyad returnMyOrientation]];
-//      
-////      NSLog(@"is it being called here in preTurnChords?");
-//      NSSet *legalChordSonorities = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
-//      if (legalChordSonorities.count == 0 && [dataDyad returnMyID] != [self returnFirstDataDyadIndex]) {
-//        NSLog(@"Persisted dyadmino %lu does not form any legal chords. This is a critical failure.", (unsigned long)[dataDyad returnMyID]);
-//          //        abort();
-//      }
-//      
-//        // next ensure that there are no illegal chords
-//      IllegalPlacementResult result = [[SonorityLogic sharedLogic] checkIllegalPlacementFromFormationOfSonorities:formationOfSonorities];
-//      if (result != kNotIllegal) {
-//        NSLog(@"Persisted dyadmino %lu creates an illegal formation. This is a critical failure.", (unsigned long)[dataDyad returnMyID]);
-//          //        abort();
-//      }
-//      
-//        // good, add dyadmino to array
-//      [tempSet addObjectsFromArray:[legalChordSonorities allObjects]];
-//    }
-//    
-//    _preTurnChords = [NSSet setWithSet:tempSet];
-//  }
-//  return _preTurnChords;
-//}
-
-//-(void)setPreTurnChords:(NSMutableSet *)preTurnChords {
-//  _preTurnChords = preTurnChords;
-//}
-//
-//-(NSMutableSet *)thisTurnChords {
-//  if (!_thisTurnChords) {
-//    _thisTurnChords = [NSMutableSet new];
-//  }
-//  return _thisTurnChords;
-//}
-//
-//-(void)setThisTurnChords:(NSMutableSet *)thisTurnChords {
-//  _thisTurnChords = thisTurnChords;
-//}
 
 -(NSUInteger)replayTurn {
   if (!_replayTurn) {

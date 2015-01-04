@@ -57,9 +57,6 @@
 @property (readonly, nonatomic) NSMutableSet *board; // was mutable set
 @property (readonly, nonatomic) NSMutableSet *occupiedCells;
 
-//@property (readonly, nonatomic) NSSet *preTurnChords;
-//@property (readonly, nonatomic) NSMutableSet *thisTurnChords;
-
 #pragma mark - setup methods
 
 -(void)initialPlayers:(NSSet *)players

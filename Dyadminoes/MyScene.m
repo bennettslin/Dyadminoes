@@ -1675,17 +1675,7 @@
     // establish that dyadmino is indeed a rack dyadmino placed on the board
   if ([dyadmino belongsInRack] && [dyadmino isOnBoard]) {
     
-      // confirm that the dyadmino was successfully played in match
-      // before proceeding with anything else
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-    
-      if (![self.myMatch playDataDyadmino:dataDyad
-                         onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord
-                          withOrientation:dyadmino.orientation]) {
-        
-      NSLog(@"Match failed to play dyadmino.");
-      abort();
-    }
     
       // show chord message
     NSSet *newOrExtendingChords = [self.myMatch getNewOrExtendedChords:kBothNewAndExtendedChords
@@ -1695,6 +1685,15 @@
     
     NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:newOrExtendingChords withInitialString:@"Built " andEndingString:@"."];
     [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
+    
+      // confirm that the dyadmino was successfully played in match
+    if (![self.myMatch playDataDyadmino:dataDyad
+                       onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord
+                        withOrientation:dyadmino.orientation]) {
+      
+      NSLog(@"Match failed to play dyadmino.");
+      abort();
+    }
     
       // change scene values
     [self removeFromPlayerRackDyadminoes:dyadmino];
@@ -1744,7 +1743,6 @@
     
       // take care of views
     [self sendDyadminoHome:undoneDyadmino fromUndo:YES byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
-    [self tempStoreForPlayerSceneDataDyadmino:undoneDyadmino];
   }
 }
 
@@ -1789,7 +1787,6 @@
   
     // no recent rack dyadmino on board
   if (!_recentRackDyadmino) {
-    [self tempStoreForPlayerSceneDataDyadminoes]; // for player view
     [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
 
     if ([self.myMatch returnType] != kPnPGame) {
@@ -1831,35 +1828,6 @@
 //  NSLog(@"rack dyadminoes should now be removed.");
   
   [self.myDelegate presentFromSceneGameEndedVC];
-}
-
--(void)tempStoreForPlayerSceneDataDyadminoes {
-//  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
-//    
-//    if (dyadmino != _recentRackDyadmino) { // this should ensure that recent rack dyadmino does not move
-//      [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
-//    }
-//  }
-//  
-//  for (Dyadmino *dyadmino in self.boardDyadminoes) {
-//    [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
-//  }
-}
-
--(void)tempStoreForPlayerSceneDataDyadmino:(Dyadmino *)dyadmino {
-  
-//  DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-//  
-//  if ([dyadmino belongsOnBoard]) {
-//    dataDyad.myHexCoord = dyadmino.homeNode.myCell.hexCoord;
-//  }
-//  
-//  NSLog(@"temp store for player scene data dyadmino");
-//  dataDyad.myOrientation = ([dyadmino isOnBoard] && [dyadmino belongsInRack]) ?
-//      [NSNumber numberWithUnsignedInteger:dyadmino.tempReturnOrientation] :
-//      [NSNumber numberWithUnsignedInteger:dyadmino.orientation];
-//  
-//  dataDyad.myRackOrder = [NSNumber numberWithInteger:dyadmino.myRackOrder];
 }
 
 #pragma mark - realtime update methods
@@ -2299,21 +2267,6 @@
   }
 }
 
-//-(NSDictionary *)legalChordDictionaryFromFormationOfSonoritiesForDyadmino:(Dyadmino *)dyadmino forBoardDyadmino:(BOOL)boardDyadmino {
-//  
-//  NSSet *formationOfSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID
-//                                                              onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord
-//                                                               withOrientation:dyadmino.orientation];
-//  
-//  NSSet *legalChordSonorities = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
-//  
-//  NSMutableDictionary *tempDictionary = [NSMutableDictionary dictionaryWithDictionary:[self.myMatch getNewChordsOrExtendingChordsFromTheseChords:legalChordSonorities]];
-//  
-//  [tempDictionary setObject:formationOfSonorities forKey:@"formation"];
-//  
-//  return [NSDictionary dictionaryWithDictionary:tempDictionary];
-//}
-
 -(void)finishHoveringAfterCheckDyadmino:(Dyadmino *)dyadmino {
   
   [dyadmino changeHoveringStatus:kDyadminoFinishedHovering];
@@ -2332,7 +2285,6 @@
       // this method also gets called if a recently played dyadmino
       // has been moved, but data will not be submitted until the turn is officially done.
     dyadmino.homeNode = dyadmino.tempBoardNode;
-    [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
   }
   
     // this is one of two places where board bounds are updated
@@ -3439,7 +3391,9 @@
   for (int i = 0; i < rackArray.count; i++) {
     if ([rackArray[i] isKindOfClass:[Dyadmino class]]) {
       Dyadmino *dyadmino = (Dyadmino *)rackArray[i];
-      [self tempStoreForPlayerSceneDataDyadmino:dyadmino];
+      DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+      dataDyad.myOrientation = @(dyadmino.orientation);
+      dataDyad.myRackOrder = [NSNumber numberWithInteger:dyadmino.myRackOrder];
     }
   }
 }
