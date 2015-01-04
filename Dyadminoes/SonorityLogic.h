@@ -16,26 +16,23 @@
 -(NSSet *)legalChordSonoritiesFromFormationOfSonorities:(NSSet *)sonorities;
 -(IllegalPlacementResult)checkIllegalPlacementFromFormationOfSonorities:(NSSet *)sonorities;
 
-  // scene needs this method to ensure that subsets of extended chords are not added to board chords
--(BOOL)sonority:(NSSet *)smaller isSubsetOfSonority:(NSSet *)larger;
--(BOOL)sonority:(NSSet *)sonority1 isEqualToSonority:(NSSet *)sonority2;
-
--(BOOL)setOfLegalChords:(NSSet *)setofLegalChords1 isSubsetOfSetOfLegalChords:(NSSet *)setOfLegalChords2;
--(NSSet *)legalChords:(NSSet *)legalChords1 notFoundInAndNotSubsetsOfLegalChords:(NSSet *)legalChords2;
-  
 -(BOOL)sonority:(NSSet *)set containsNote:(NSDictionary *)dictionary;
+-(BOOL)sonority:(NSSet *)sonority1 is:(Condition)condition ofSonority:(NSSet *)sonority2;
+-(BOOL)sonorities:(NSSet *)sonorities1 is:(Condition)condition ofSonorities:(NSSet *)sonorities2;
 
--(NSSet *)sonoritiesInSonorities:(NSSet *)larger thatAreSupersetsOfSonoritiesInSonorities:(NSSet *)smaller inclusive:(BOOL)inclusive;
-
-#pragma mark - chord logic methods
-
--(Chord)chordFromSonorityPlusCheckIncompleteSeventh:(NSSet *)sonority;
+-(NSSet *)sonorities:(NSSet *)sonorities1 thatExtendASonorityInSonorities:(NSSet *)sonorities2;
+-(NSSet *)sonorities:(NSSet *)sonorities1 thatAreCompletelyNotFoundInSonorities:(NSSet *)sonorities2;
+-(NSSet *)sonorities:(NSSet *)sonorities1 thatAreEitherNewOrExtendingRelativeToSonorities:(NSSet *)sonorities2;
 
 #pragma mark - chord label methods
 
 -(NSAttributedString *)stringForSonorities:(NSSet *)sonorities
                          withInitialString:(NSString *)initialString
                            andEndingString:(NSString *)endingString;
+
+  // only used for logging and testing purposes
+-(Chord)testChordFromSonorityPlusCheckIncompleteSeventh:(NSSet *)sonority;
+-(NSString *)testStringForLegalChordSonoritiesWithSonorities:(NSSet *)sonorities;
 
 #pragma mark - singleton method
 

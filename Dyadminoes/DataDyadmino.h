@@ -37,7 +37,7 @@
 -(NSInteger)returnMyRackOrder;
 -(PlaceStatus)returnPlaceStatus;
 
--(void)initialID:(NSUInteger)myID;
+-(void)initWithID:(NSUInteger)myID;
 -(HexCoord)getHexCoordForTurn:(NSUInteger)turn;
 -(DyadminoOrientation)getOrientationForTurn:(NSUInteger)turn;
 

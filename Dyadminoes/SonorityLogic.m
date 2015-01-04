@@ -63,7 +63,6 @@
   return mostEgregiousError;
 }
 
-
 -(NSSet *)chordSonorityForSonority:(NSSet *)sonority {
   NSMutableSet *tempChordSonority = [NSMutableSet new];
   for (id note in sonority) {
@@ -84,46 +83,6 @@
     }
   }
   return [NSSet setWithSet:tempChordSonorities];
-}
-
--(BOOL)setOfLegalChords:(NSSet *)setofLegalChords1 isSubsetOfSetOfLegalChords:(NSSet *)setOfLegalChords2 {
-    // this method will break if the chords are not all legal
-
-  BOOL returnValue = YES;
-  for (NSSet *chord1 in setofLegalChords1) {
-
-    BOOL sonority1IsAlsoInSet2 = NO;
-    for (NSSet *chord2 in setOfLegalChords2) {
-      if ([self sonority:chord1 isSubsetOfSonority:chord2]) {
-        sonority1IsAlsoInSet2 = YES;
-      }
-    }
-
-    if (!sonority1IsAlsoInSet2) {
-      returnValue = NO;
-    }
-  }
-  
-  return returnValue;
-}
-
--(NSSet *)legalChords:(NSSet *)legalChords1 notFoundInAndNotSubsetsOfLegalChords:(NSSet *)legalChords2 {
-  
-  NSMutableSet *tempSet = [NSMutableSet new];
-  for (NSSet *chord1 in legalChords1) {
-    
-    BOOL thisChordInSet1IsFoundInOrASubsetOfAChordInSet2 = NO;
-    for (NSSet *chord2 in legalChords2) {
-      if ([self sonority:chord1 isSubsetOfSonority:chord2]) {
-        thisChordInSet1IsFoundInOrASubsetOfAChordInSet2 = YES;
-      }
-    }
-    if (!thisChordInSet1IsFoundInOrASubsetOfAChordInSet2) {
-      [tempSet addObject:chord1];
-    }
-  }
-  
-  return [NSSet setWithSet:tempSet];
 }
 
 -(BOOL)validateSonorityDoesNotExceedMaximum:(NSSet *)sonority {
@@ -153,31 +112,178 @@
   return NO;
 }
 
--(BOOL)sonority:(NSSet *)smaller isSubsetOfSonority:(NSSet *)larger {
-    // every note in smaller sonority is also in larger sonority
-    // possible that sonorities are equal
-  
-  for (NSDictionary *note in smaller) {
-    if (![self sonority:larger containsNote:note]) {
-      return NO;
-    }
+-(BOOL)sonority:(NSSet *)sonority1 is:(Condition)condition ofSonority:(NSSet *)sonority2 {
+
+  switch (condition) {
+    case kSubset:
+      for (NSDictionary *note in sonority1) {
+        if (![self sonority:sonority2 containsNote:note]) {
+          return NO;
+        }
+      }
+      return YES;
+      break;
+      
+    case kEqual:
+        // if counts aren't equal, return no right away
+      if (sonority1.count != sonority2.count) {
+        return NO;
+      }
+      
+      for (NSDictionary *note in sonority1) {
+        if (![self sonority:sonority2 containsNote:note]) {
+          return NO;
+        }
+      }
+      return YES;
+      break;
   }
-  
-  return YES;
+  return NO;
 }
 
--(BOOL)sonority:(NSSet *)sonority1 isEqualToSonority:(NSSet *)sonority2 {
-  if (sonority1.count != sonority2.count) {
-    return NO;
+-(BOOL)sonorities:(NSSet *)sonorities1 is:(Condition)condition ofSonorities:(NSSet *)sonorities2 {
+  
+          BOOL returnValue = YES;
+          BOOL conditionSatisfied;
+  
+  switch (condition) {
+    case kSubset:
+      returnValue = YES;
+      
+        // for every sonority in sonorities1,
+        // there is a sonority in sonorities2 that is equal to or a superset of it
+      for (NSSet *sonority1 in sonorities1) {
+        
+        conditionSatisfied = NO;
+        for (NSSet *sonority2 in sonorities2) {
+          if ([self sonority:sonority1 is:kSubset ofSonority:sonority2]) {
+            conditionSatisfied = YES;
+          }
+        }
+        
+        if (!conditionSatisfied) {
+          returnValue = NO;
+        }
+      }
+      
+      return returnValue;
+      break;
+      
+    case kEqual:
+        // if counts aren't equal, return no right away
+      if (sonorities1.count != sonorities2.count) {
+        return NO;
+      }
+      
+      returnValue = YES;
+      
+        // for every sonority in sonorities1,
+        // there is a sonority in sonorities2 that is equal to it
+      for (NSSet *sonority1 in sonorities1) {
+        
+        conditionSatisfied = NO;
+        for (NSSet *sonority2 in sonorities2) {
+          if ([self sonority:sonority1 is:kEqual ofSonority:sonority2]) {
+            conditionSatisfied = YES;
+          }
+        }
+        
+        if (!conditionSatisfied) {
+          returnValue = NO;
+        }
+      }
+      
+      return returnValue;
+      break;
   }
   
-  for (NSDictionary *note in sonority1) {
-    if (![self sonority:sonority2 containsNote:note]) {
-      return NO;
+  return NO;
+}
+
+-(NSSet *)sonorities:(NSSet *)sonorities1 thatExtendASonorityInSonorities:(NSSet *)sonorities2 {
+  
+  NSMutableSet *returnedSonorities = [NSMutableSet new];
+  
+  for (NSSet *sonority2 in sonorities2) {
+    for (NSSet *sonority1 in sonorities1) {
+      
+        // subset and not equal
+      if ([self sonority:sonority2 is:kSubset ofSonority:sonority1] &&
+          ![self sonority:sonority2 is:kEqual ofSonority:sonority1]) {
+        
+        [returnedSonorities addObject:sonority1];
+      }
+    }
+  }
+  return [NSSet setWithSet:returnedSonorities];
+}
+
+-(NSSet *)sonorities:(NSSet *)sonorities1 thatAreCompletelyNotFoundInSonorities:(NSSet *)sonorities2 {
+  
+  NSMutableSet *returnedSonorities = [NSMutableSet new];
+  
+  for (NSSet *sonority1 in sonorities1) {
+    
+    BOOL thereIsAnEqualSonority = NO;
+    for (NSSet *sonority2 in sonorities2) {
+      if ([self sonority:sonority1 is:kEqual ofSonority:sonority2]) {
+        thereIsAnEqualSonority = YES;
+      }
+    }
+    
+    if (!thereIsAnEqualSonority) {
+      [returnedSonorities addObject:sonority1];
+    }
+  }
+  return [NSSet setWithSet:returnedSonorities];
+}
+
+-(NSSet *)sonorities:(NSSet *)sonorities1 thatAreEitherNewOrExtendingRelativeToSonorities:(NSSet *)sonorities2 {
+  NSSet *newSonorities = [self sonorities:sonorities1 thatAreCompletelyNotFoundInSonorities:sonorities2];
+  NSSet *extendingSonorities = [self sonorities:sonorities1 thatExtendASonorityInSonorities:sonorities2];
+  NSMutableSet *tempReturnedSet = [NSMutableSet setWithSet:newSonorities];
+  [tempReturnedSet addObjectsFromArray:extendingSonorities.allObjects];
+  return [NSSet setWithSet:tempReturnedSet];
+}
+
+//-(BOOL)setOfLegalChords:(NSSet *)setofLegalChords1 isSubsetOfSetOfLegalChords:(NSSet *)setOfLegalChords2 {
+//    // this method will break if the chords are not all legal
+//  
+//  BOOL returnValue = YES;
+//  for (NSSet *chord1 in setofLegalChords1) {
+//    
+//    BOOL sonority1IsAlsoInSet2 = NO;
+//    for (NSSet *chord2 in setOfLegalChords2) {
+//      if ([self sonority:chord1 is:kSubset ofSonority:chord2]) {
+//        sonority1IsAlsoInSet2 = YES;
+//      }
+//    }
+//    
+//    if (!sonority1IsAlsoInSet2) {
+//      returnValue = NO;
+//    }
+//  }
+//  
+//  return returnValue;
+//}
+
+-(NSSet *)legalChords:(NSSet *)legalChords1 notFoundInAndNotSubsetsOfLegalChords:(NSSet *)legalChords2 {
+  
+  NSMutableSet *tempSet = [NSMutableSet new];
+  for (NSSet *chord1 in legalChords1) {
+    
+    BOOL thisChordInSet1IsFoundInOrASubsetOfAChordInSet2 = NO;
+    for (NSSet *chord2 in legalChords2) {
+      if ([self sonority:chord1 is:kSubset ofSonority:chord2]) {
+        thisChordInSet1IsFoundInOrASubsetOfAChordInSet2 = YES;
+      }
+    }
+    if (!thisChordInSet1IsFoundInOrASubsetOfAChordInSet2) {
+      [tempSet addObject:chord1];
     }
   }
   
-  return YES;
+  return [NSSet setWithSet:tempSet];
 }
 
 -(NSSet *)sonoritiesInSonorities:(NSSet *)larger thatAreSupersetsOfSonoritiesInSonorities:(NSSet *)smaller inclusive:(BOOL)inclusive {
@@ -641,6 +747,18 @@
   }
 
   return mutableAttributedString;
+}
+
+#pragma mark - test methods
+
+-(Chord)testChordFromSonorityPlusCheckIncompleteSeventh:(NSSet *)sonority {
+  return [self chordFromSonorityPlusCheckIncompleteSeventh:(NSSet *)sonority];
+}
+
+-(NSString *)testStringForLegalChordSonoritiesWithSonorities:(NSSet *)sonorities {
+  
+  NSSet *chords = [self chordSonoritiesForSonorities:sonorities];
+  return [[self stringForLegalChords:chords] string];
 }
 
 #pragma mark - singleton method

@@ -57,40 +57,52 @@
 @property (readonly, nonatomic) NSMutableSet *board; // was mutable set
 @property (readonly, nonatomic) NSMutableSet *occupiedCells;
 
-@property (readonly, nonatomic) NSSet *preTurnChords;
-@property (readonly, nonatomic) NSMutableSet *thisTurnChords;
+//@property (readonly, nonatomic) NSSet *preTurnChords;
+//@property (readonly, nonatomic) NSMutableSet *thisTurnChords;
 
 #pragma mark - setup methods
 
--(void)initialPlayers:(NSSet *)players andRules:(GameRules)rules andSkill:(GameSkill)skill withContext:(NSManagedObjectContext *)managedObjectContext;
+-(void)initialPlayers:(NSSet *)players
+             andRules:(GameRules)rules
+             andSkill:(GameSkill)skill
+          withContext:(NSManagedObjectContext *)managedObjectContext;
 
-#pragma mark - cell methods
+  //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
 
--(BOOL)updateCellsForPlacedDyadminoID:(NSInteger)dyadminoID pc1:(NSInteger)pc1 pc2:(NSInteger)pc2 orientation:(DyadminoOrientation)orientation onBottomCellHexCoord:(HexCoord)bottomHexCoord;
+#pragma mark - move query method
 
--(BOOL)updateCellsForRemovedDyadminoID:(NSInteger)dyadminoID pc1:(NSInteger)pc1 pc2:(NSInteger)pc2 orientation:(DyadminoOrientation)orientation fromBottomCellHexCoord:(HexCoord)bottomHexCoord;
+-(PlacementResult)checkPlacementOfDataDyadmino:(DataDyadmino *)dataDyad
+                              onBottomHexCoord:(HexCoord)bottomHexCoord
+                               withOrientation:(DyadminoOrientation)orientation;
 
--(HexCoord)retrieveTopHexCoordForBottomHexCoord:(HexCoord)bottomHexCoord andOrientation:(DyadminoOrientation)orientation;
+-(NSSet *)getNewOrExtendedChords:(GetNewOrExtendedChords)newOrExtendedChords
+             addedByDataDyadmino:(DataDyadmino *)dataDyad
+                onBottomHexCoord:(HexCoord)bottomHexCoord
+                 withOrientation:(DyadminoOrientation)orientation;
 
--(NSSet *)sonoritiesFromPlacingDyadminoID:(NSUInteger)dyadminoID onBottomHexCoord:(HexCoord)bottomHexCoord withOrientation:(DyadminoOrientation)orientation rulingOutRecentRackID:(NSInteger)recentRackDyadminoID;
+-(NSUInteger)pointsForLegalChords:(NSSet *)legalChords;
+-(NSUInteger)pointsForAllChordsThisTurn;
 
-#pragma mark - physical cell methods
+#pragma mark - scene game progression methods
 
--(PhysicalPlacementResult)validatePhysicallyPlacingDyadminoID:(NSUInteger)dyadminoID withOrientation:(DyadminoOrientation)orientation onBottomHexCoord:(HexCoord)bottomHexCoord;
+  // reset methods
+-(void)resetToStartOfTurn;
 
-#pragma mark - game progression methods
+  // play rack dyadmino (scene only calls in playDyadmino)
+-(BOOL)playDataDyadmino:(DataDyadmino *)dataDyad
+       onBottomHexCoord:(HexCoord)bottomHexCoord
+        withOrientation:(DyadminoOrientation)orientation;
 
-  // play rack dyadmino
--(NSSet *)playDataDyadmino:(DataDyadmino *)dataDyad
-          onBottomHexCoord:(HexCoord)bottomHexCoord
-           withOrientation:(DyadminoOrientation)orientation
-     rulingOutRecentRackID:(NSInteger)recentRackDyadminoID;
+  // play moved board dyadmino (scene only calls in finishHovering)
+-(BOOL)moveBoardDataDyadmino:(DataDyadmino *)dataDyad
+            toBottomHexCoord:(HexCoord)bottomHexCoord
+             withOrientation:(DyadminoOrientation)orientation;
 
-  // play moved board dyadmino
--(BOOL)addLegalChordsFormed:(NSSet *)chordsFormed
- fromMovedBoardDataDyadmino:(DataDyadmino *)dataDyad
-           onBottomHexCoord:(HexCoord)bottomHexCoord
-            withOrientation:(DyadminoOrientation)orientation;
+//-(BOOL)addLegalChordsFormed:(NSSet *)chordsFormed
+// fromMovedBoardDataDyadmino:(DataDyadmino *)dataDyad
+//           onBottomHexCoord:(HexCoord)bottomHexCoord
+//            withOrientation:(DyadminoOrientation)orientation;
 
   // undo
 -(DataDyadmino *)undoLastPlayedDyadmino;
@@ -104,6 +116,38 @@
   // resign
 -(void)resignPlayer:(Player *)player;
 
+  //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
+
+#pragma mark - cell methods
+
+//-(BOOL)updateDataCellsForPlacedDyadminoID:(NSInteger)dyadminoID
+//                              orientation:(DyadminoOrientation)orientation
+//                     onBottomCellHexCoord:(HexCoord)bottomHexCoord;
+//
+//-(BOOL)updateDataCellsForRemovedDyadminoID:(NSInteger)dyadminoID
+//                               orientation:(DyadminoOrientation)orientation
+//                    fromBottomCellHexCoord:(HexCoord)bottomHexCoord;
+//
+//-(NSSet *)sonoritiesFromPlacingDyadminoID:(NSUInteger)dyadminoID
+//                         onBottomHexCoord:(HexCoord)bottomHexCoord
+//                          withOrientation:(DyadminoOrientation)orientation;
+
+#pragma mark - physical cell methods
+
+//-(PhysicalPlacementResult)validatePhysicallyPlacingDyadminoID:(NSUInteger)dyadminoID
+//                                              withOrientation:(DyadminoOrientation)orientation
+//                                             onBottomHexCoord:(HexCoord)bottomHexCoord;
+
+#pragma mark - chord methods
+
+//-(NSSet *)getNewChordsOrExtendingChordsFromTheseChords:(NSSet *)theseChords;
+
+  // this method excludes duplicates, and takes into account extending chords
+  // this method calculates player's score this turn when input with self.thisTurnChords
+  // it can also be used to calculate points in action sheet for moved board dyadmino
+//-(NSUInteger)pointsForLegalChords:(NSSet *)legalChords;
+
 #pragma mark - replay methods
 
 -(void)startReplay;
@@ -113,23 +157,20 @@
 -(void)last;
 -(void)leaveReplay;
 
-#pragma mark - chord methods
+#pragma mark - scene query methods
 
--(NSDictionary *)getNewChordsOrExtendingChordsFromTheseChords:(NSSet *)theseChords;
+-(NSUInteger)wonPlayersCount;
+-(Player *)playerForIndex:(NSUInteger)index;
+-(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index;
+-(UIColor *)colourForPlayer:(Player *)player forLabel:(BOOL)forLabel light:(BOOL)light;
+-(Player *)returnCurrentPlayer;
 
-  // this method excludes duplicates, and takes into account extending chords
-  // this method calculates player's score this turn when input with self.thisTurnChords
-  // it can also be used to calculate points in action sheet for moved board dyadmino
--(NSUInteger)pointsForLegalChords:(NSSet *)legalChords;
+#pragma mark - label methods
 
-  // holding container helper methods
--(BOOL)holdingsContainsDataDyadmino:(DataDyadmino *)dataDyad;
--(NSArray *)dataDyadsInIndexContainer:(NSArray *)holdingContainer;
+-(NSString *)endGameResultsText;
+-(NSString *)turnTextLastPlayed:(BOOL)lastPlayed;
 
-  // reset methods
--(void)resetDyadminoesOnBoard;
-
-#pragma mark - query methods
+#pragma mark - scene getter methods
 
 -(GameRules)returnRules;
 -(GameSkill)returnSkill;
@@ -138,18 +179,10 @@
 -(NSUInteger)returnFirstDataDyadIndex;
 -(NSInteger)returnRandomNumber1To24;
 
-#pragma mark - label methods
+#pragma mark - holding container helper methods
 
--(NSString *)endGameResultsText;
--(NSString *)turnTextLastPlayed:(BOOL)lastPlayed;
-
-#pragma mark - helper methods
-
--(NSUInteger)wonPlayersCount;
--(Player *)playerForIndex:(NSUInteger)index;
--(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index;
--(UIColor *)colourForPlayer:(Player *)player forLabel:(BOOL)forLabel light:(BOOL)light;
--(Player *)returnCurrentPlayer;
+-(BOOL)holdingsContainsDataDyadmino:(DataDyadmino *)dataDyad;
+-(NSArray *)dataDyadsInIndexContainer:(NSArray *)holdingContainer;
 
   // this is called by scene to determine whether to show reset button
 -(BOOL)boardDyadminoesHaveMovedSinceStartOfTurn;
@@ -181,8 +214,6 @@
                          withInitialString:(NSString *)initialString
                            andEndingString:(NSString *)endingString;
 
--(BOOL)sonority:(NSSet *)sonority containsNote:(NSDictionary *)note;
--(BOOL)sonority:(NSSet *)smaller IsSubsetOfSonority:(NSSet *)larger;
 -(BOOL)isFirstAndOnlyDyadminoID:(NSUInteger)dyadminoID;
 -(void)handleSwitchToNextPlayer;
 -(void)handleEndGame;

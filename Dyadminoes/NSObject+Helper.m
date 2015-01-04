@@ -70,6 +70,32 @@
   return newChord;
 }
 
+-(HexCoord)retrieveTopHexCoordForBottomHexCoord:(HexCoord)bottomHexCoord
+                                 andOrientation:(DyadminoOrientation)orientation {
+  
+  NSInteger returnXHex;
+  NSInteger returnYHex;
+  returnXHex = bottomHexCoord.x;
+  returnYHex = bottomHexCoord.y;
+  
+  switch (orientation) {
+    case kPC1atTwelveOClock:
+    case kPC1atSixOClock:
+      returnYHex++;
+      break;
+    case kPC1atTwoOClock:
+    case kPC1atEightOClock:
+      returnXHex++;
+      break;
+    case kPC1atFourOClock:
+    case kPC1atTenOClock:
+      returnXHex--;
+      returnYHex++;
+      break;
+  }
+  return [self hexCoordFromX:returnXHex andY:returnYHex];
+}
+
 #pragma mark - dyadmino rack stuff
 
 -(Dyadmino *)dyadminoInSet:(NSSet *)set withRackOrder:(NSUInteger)rackOrder {

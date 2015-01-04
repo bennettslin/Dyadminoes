@@ -393,6 +393,28 @@ typedef enum illegalPlacementResult {
   kExcessNotes,
 } IllegalPlacementResult;
 
+typedef enum placementResult {
+  kIllegalPhysicalPlacement,
+  kExcessNotesResult,
+  kDoublePCsResult,
+  kIllegalSonorityResult,
+  kBreaksExistingChords,
+  kAddsOrExtendsNewChords,
+  kNoChange
+} PlacementResult;
+
+typedef enum getNewOrExtendedChords {
+  kNeitherNewNorExtendedChords,
+  kJustNewChords,
+  kJustExtendedChords,
+  kBothNewAndExtendedChords
+} GetNewOrExtendedChords;
+
+typedef enum condition {
+  kSubset,
+  kEqual
+} Condition;
+
 typedef enum chordType {
   kChordMinorTriad,
   kChordMajorTriad,
@@ -506,6 +528,7 @@ typedef enum actionSheetTag {
   // struct stuff
 -(HexCoord)hexCoordFromX:(NSInteger)x andY:(NSInteger)y;
 -(Chord)chordFromRoot:(NSInteger)root andChordType:(ChordType)chordType;
+-(HexCoord)retrieveTopHexCoordForBottomHexCoord:(HexCoord)bottomHexCoord andOrientation:(DyadminoOrientation)orientation;
 
 #pragma mark - dyadmino rack stuff
 

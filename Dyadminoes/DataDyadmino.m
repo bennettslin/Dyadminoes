@@ -27,24 +27,14 @@
   // not persisted
 @synthesize myHexCoord = _myHexCoord;
 
-#pragma mark - custom accessor methods
-
--(HexCoord)myHexCoord {
-  return [self hexCoordFromX:[self.hexX integerValue] andY:[self.hexY integerValue]];
-}
-
--(void)setMyHexCoord:(HexCoord)myHexCoord {
-  _myHexCoord = myHexCoord;
-  self.hexX = [NSNumber numberWithInteger:myHexCoord.x];
-  self.hexY = [NSNumber numberWithInteger:myHexCoord.y];
-}
-
 #pragma mark - attribute methods
 
--(void)initialID:(NSUInteger)myID {
+-(void)initWithID:(NSUInteger)myID {
 
   self.myID = @(myID);
   self.placeStatus = @(kInPile);
+  self.hexX = @(INT32_MAX);
+  self.hexY = @(INT32_MAX);
   
     // set rack orientation randomly
   int randNum = arc4random() % 2;
@@ -120,6 +110,18 @@
   } else {
     return (DyadminoOrientation)[lastOrientation unsignedIntegerValue];
   }
+}
+
+#pragma mark - custom accessor methods
+
+-(HexCoord)myHexCoord {
+  return [self hexCoordFromX:[self.hexX integerValue] andY:[self.hexY integerValue]];
+}
+
+-(void)setMyHexCoord:(HexCoord)myHexCoord {
+  _myHexCoord = myHexCoord;
+  self.hexX = [NSNumber numberWithInteger:myHexCoord.x];
+  self.hexY = [NSNumber numberWithInteger:myHexCoord.y];
 }
 
 #pragma mark - return query properties

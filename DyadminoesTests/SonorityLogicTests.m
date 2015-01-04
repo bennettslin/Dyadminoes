@@ -135,10 +135,10 @@
 
 -(void)testRecognitionOfSpecificNonChords {
   
-  Chord noChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:@[]]];
-  Chord monad = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:@[@0]]];
-  Chord dyad = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:@[@0, @1]]];
-  Chord illegal = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:@[@0, @1, @2, @3]]];
+  Chord noChord = [self.sonorityLogic testChordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:@[]]];
+  Chord monad = [self.sonorityLogic testChordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:@[@0]]];
+  Chord dyad = [self.sonorityLogic testChordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:@[@0, @1]]];
+  Chord illegal = [self.sonorityLogic testChordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:@[@0, @1, @2, @3]]];
   
   XCTAssert(noChord.chordType == kChordNoChord);
   XCTAssert(monad.chordType == kChordLegalMonad);
@@ -163,7 +163,7 @@
 
       NSSet *transposedChord = [self transposeChord:rootCChord by:j];
       
-      Chord chordForTransposedChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithSet:transposedChord]];
+      Chord chordForTransposedChord = [self.sonorityLogic testChordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithSet:transposedChord]];
       if (chordForTransposedChord.chordType != (ChordType)i) {
         chordTypesAllCorrect = NO;
       }
@@ -205,7 +205,7 @@
       NSMutableArray *tempIncompleteRootCSeventh = [NSMutableArray arrayWithArray:rootCSeventh];
       [tempIncompleteRootCSeventh removeObjectAtIndex:j];
       NSArray *incompleteRootCSeventh = [NSArray arrayWithArray:tempIncompleteRootCSeventh];
-      Chord chordFromIncompleteRootCSeventh = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:incompleteRootCSeventh]];
+      Chord chordFromIncompleteRootCSeventh = [self.sonorityLogic testChordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:incompleteRootCSeventh]];
       
         // only checks triads that are not legal triads
       if (chordFromIncompleteRootCSeventh.chordType == kChordIllegalChord) {
@@ -222,7 +222,7 @@
           }
           NSArray *transposedChord = [NSArray arrayWithArray:mutableTransposedChord];
           
-          Chord chordForTransposedChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:transposedChord]];
+          Chord chordForTransposedChord = [self.sonorityLogic testChordFromSonorityPlusCheckIncompleteSeventh:[NSSet setWithArray:transposedChord]];
           if (chordForTransposedChord.chordType != kChordLegalIncompleteSeventh) {
             
             incompleteSeventhTypesAllCorrect = NO;
@@ -300,7 +300,7 @@
     }
     
     NSSet *illegalChord = [NSSet setWithSet:tempIllegalChord];
-    ChordType returnedChordType = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:illegalChord].chordType;
+    ChordType returnedChordType = [self.sonorityLogic testChordFromSonorityPlusCheckIncompleteSeventh:illegalChord].chordType;
     
     XCTAssertTrue(returnedChordType == kChordIllegalChord, @"Logic failed to detect that sonority is illegal chord.");
   }
@@ -321,7 +321,7 @@
     }
     
     NSSet *legalChord = [NSSet setWithSet:tempLegalChord];
-    ChordType returnedChordType = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:legalChord].chordType;
+    ChordType returnedChordType = [self.sonorityLogic testChordFromSonorityPlusCheckIncompleteSeventh:legalChord].chordType;
     
     BOOL chordIsLegal = YES;
     
@@ -348,7 +348,7 @@
     }
     
     NSSet *legalIncompleteSeventhChord = [NSSet setWithSet:tempLegalIncompleteSeventhChord];
-    ChordType returnedChordType = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:legalIncompleteSeventhChord].chordType;
+    ChordType returnedChordType = [self.sonorityLogic testChordFromSonorityPlusCheckIncompleteSeventh:legalIncompleteSeventhChord].chordType;
     
     XCTAssertTrue(returnedChordType == kChordLegalIncompleteSeventh, @"Logic failed to detect that sonority is legal incomplete seventh for %@, saw it as %i instead.", legalIncompleteSeventhChord, returnedChordType);
   }
@@ -377,7 +377,7 @@
       set2 = noCommonNote ? trialSet2 : nil;
     }
   
-    XCTAssertFalse([self.sonorityLogic sonority:set1 isSubsetOfSonority:set2], @"Failed to see that sonorities have no notes in common.");
+    XCTAssertFalse([self.sonorityLogic sonority:set1 is:kSubset ofSonority:set2], @"Failed to see that sonorities have no notes in common.");
   }
   
     // test 50 times
@@ -412,7 +412,7 @@
       set1 = tempSet;
     }
 
-    XCTAssertTrue([self.sonorityLogic sonority:set1 isSubsetOfSonority:set2], @"Smaller sonority not recognised as subset of larger one.");
+    XCTAssertTrue([self.sonorityLogic sonority:set1 is:kSubset ofSonority:set2], @"Smaller sonority not recognised as subset of larger one.");
 
     NSMutableSet *tempSet1 = [NSMutableSet setWithSet:set1];
     while (set1.count < set2.count) {
@@ -428,7 +428,7 @@
     }
     
 //    NSLog(@"set1 is %@, set2 is %@", set1, set2);
-    XCTAssertFalse([self.sonorityLogic sonority:set1 isSubsetOfSonority:set2], @"Failed to see that sonority is not subset despite some notes in common, because it also has extra notes not found in other sonority.");
+    XCTAssertFalse([self.sonorityLogic sonority:set1 is:kSubset ofSonority:set2], @"Failed to see that sonority is not subset despite some notes in common, because it also has extra notes not found in other sonority.");
   }
 }
 
@@ -440,14 +440,14 @@
     NSSet *sonority1 = [self randomSonority];
     NSSet *sonority2 = [NSSet setWithSet:sonority1];
     
-    XCTAssertTrue([self.sonorityLogic sonority:sonority1 isSubsetOfSonority:sonority2], @"Sonority1 should be subset of sonority2.");
-    XCTAssertTrue([self.sonorityLogic sonority:sonority2 isSubsetOfSonority:sonority1], @"Sonority1 should be subset of sonority2.");
+    XCTAssertTrue([self.sonorityLogic sonority:sonority1 is:kSubset ofSonority:sonority2], @"Sonority1 should be subset of sonority2.");
+    XCTAssertTrue([self.sonorityLogic sonority:sonority2 is:kSubset ofSonority:sonority1], @"Sonority1 should be subset of sonority2.");
   }
 }
 
 -(void)testChordForPersonalPurposes {
   NSSet *chordSonority = [NSSet setWithArray:@[@1, @4, @7]];
-  Chord chord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:chordSonority];
+  Chord chord = [self.sonorityLogic testChordFromSonorityPlusCheckIncompleteSeventh:chordSonority];
   NSLog(@"chord type is %i", chord.chordType);
   XCTAssertTrue(chord.chordType == kChordDiminishedTriad, @"This chord should be diminished triad!");
 }
@@ -544,7 +544,7 @@
       [tempSonority addObject:@(pc)];
     }
 
-    Chord trialChord = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:tempSonority];
+    Chord trialChord = [self.sonorityLogic testChordFromSonorityPlusCheckIncompleteSeventh:tempSonority];
     if (trialChord.chordType == kChordIllegalChord) {
       illegalChord = [NSSet setWithSet:tempSonority];
     }
@@ -600,7 +600,7 @@
     
       // this ensures that a legal triad is not returned
     NSSet *trialChord = [NSSet setWithSet:tempIncompleteSeventh];
-    ChordType chordType = [self.sonorityLogic chordFromSonorityPlusCheckIncompleteSeventh:trialChord].chordType;
+    ChordType chordType = [self.sonorityLogic testChordFromSonorityPlusCheckIncompleteSeventh:trialChord].chordType;
     if (chordType > kChordFrenchSixth) {
       incompleteSeventh = trialChord;
     }
