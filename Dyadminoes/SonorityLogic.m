@@ -337,7 +337,7 @@
   }
   
     // puts in pc normal form
-  NSMutableArray *pcNormalForm = [NSMutableArray arrayWithArray:[sonority allObjects]];
+  NSMutableArray *pcNormalForm = [NSMutableArray arrayWithArray:sonority.allObjects];
   [pcNormalForm sortUsingSelector:@selector(compare:)];
   
     // puts in ic normal form

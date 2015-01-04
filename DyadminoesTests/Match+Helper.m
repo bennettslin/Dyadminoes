@@ -28,7 +28,6 @@
     NSMutableArray *tempArray = [NSMutableArray new];
     NSDictionary *newDictionary = @{@"points":@1};
     [tempArray addObject:newDictionary];
-//    self.arrayOfChordsAndPoints = [NSArray arrayWithArray:tempArray];
   }
   
   [self recordDyadminoesFromCurrentPlayerWithSwap:swap];

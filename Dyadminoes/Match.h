@@ -73,12 +73,17 @@
                               onBottomHexCoord:(HexCoord)bottomHexCoord
                                withOrientation:(DyadminoOrientation)orientation;
 
--(NSSet *)getNewOrExtendedChords:(GetNewOrExtendedChords)newOrExtendedChords
-             addedByDataDyadmino:(DataDyadmino *)dataDyad
-                onBottomHexCoord:(HexCoord)bottomHexCoord
-                 withOrientation:(DyadminoOrientation)orientation;
+-(NSAttributedString *)stringForPlacementOfDataDyadmino:(DataDyadmino *)dataDyad
+                                       onBottomHexCoord:(HexCoord)bottomHexCoord
+                                        withOrientation:(DyadminoOrientation)orientation
+                                          withCondition:(GetNewOrExtendedChords)condition
+                                      withInitialString:(NSString *)initialString
+                                        andEndingString:(NSString *)endingString;
 
--(NSUInteger)pointsForLegalChords:(NSSet *)legalChords;
+-(NSUInteger)pointsForPlacingDyadmino:(DataDyadmino *)dataDyad
+                     onBottomHexCoord:(HexCoord)bottomHexCoord
+                      withOrientation:(DyadminoOrientation)orientation;
+
 -(NSUInteger)pointsForAllChordsThisTurn;
 
 #pragma mark - scene game progression methods
@@ -207,9 +212,9 @@
 
 @protocol MatchDelegate <NSObject>
 
--(NSAttributedString *)stringForSonorities:(NSSet *)sonorities
-                         withInitialString:(NSString *)initialString
-                           andEndingString:(NSString *)endingString;
+//-(NSAttributedString *)stringForSonorities:(NSSet *)sonorities
+//                         withInitialString:(NSString *)initialString
+//                           andEndingString:(NSString *)endingString;
 
 -(BOOL)isFirstAndOnlyDyadminoID:(NSUInteger)dyadminoID;
 -(void)handleSwitchToNextPlayer;

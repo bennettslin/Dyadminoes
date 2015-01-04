@@ -14,9 +14,14 @@
 
 @interface Match ()
 
-@property (readwrite, nonatomic) NSMutableArray *pile; // was mutable array
-@property (readwrite, nonatomic) NSMutableSet *board; // was mutable set
+@property (readwrite, nonatomic) NSMutableArray *pile;
+@property (readwrite, nonatomic) NSMutableSet *board;
 @property (readwrite, nonatomic) NSMutableSet *occupiedCells;
+
+  // established when board is established
+  // this is necessary if chords were added or extended
+  // by moving board dyadminoes this turn
+@property (strong, nonatomic) NSSet *preTurnChords;
 
 @end
 
@@ -43,6 +48,7 @@
 @synthesize pile = _pile;
 @synthesize board = _board;
 @synthesize occupiedCells = _occupiedCells;
+@synthesize preTurnChords = _preTurnChords;
 
 #pragma mark - setup methods
 
@@ -324,7 +330,7 @@
 -(void)endGame {
   self.currentPlayerOrder = @0;
   [self resetHoldingContainer];
-//  [self emptyThisTurnChordsByMovingIntoPreTurnChords];
+  self.preTurnChords = nil;
   
     // if solo game, sole player is winner if any score at all
   if ([self returnType] == kSelfGame) {
@@ -411,7 +417,8 @@
   if ([[SonorityLogic sharedLogic] sonorities:originalLegalChords is:kEqual ofSonorities:checkedLegalChords]) {
     tentativeResult = kNoChange; // *not* returned right away
     
-      // they are definitely *not* equal, so checked being subset of original means we've broken existing chords
+      // they are definitely *not* equal,
+      // so checked chords being subset of original chords means we've broken existing chords
   } else if (![[SonorityLogic sharedLogic] sonorities:originalLegalChords is:kSubset ofSonorities:checkedLegalChords]) {
     return kBreaksExistingChords;
     
@@ -444,34 +451,43 @@
   return tentativeResult;
 }
 
--(NSSet *)getNewOrExtendedChords:(GetNewOrExtendedChords)newOrExtendedChords
-             addedByDataDyadmino:(DataDyadmino *)dataDyad
-                onBottomHexCoord:(HexCoord)bottomHexCoord
-                 withOrientation:(DyadminoOrientation)orientation {
- 
-    // original formation of sonorities
-  NSSet *originalFormation;
-  
-    // if it's a recent rack dyadmino, it won't have an original formation
-  if (![self.board containsObject:dataDyad] && ![self.holdingIndexContainer containsObject:dataDyad.myID]) {
-    originalFormation = [NSSet new];
-  } else {
-    originalFormation = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID]
-                                             onBottomHexCoord:dataDyad.myHexCoord
-                                              withOrientation:[dataDyad returnMyOrientation]];
-    [self logLegalChordSonorities:originalFormation withInitialString:@"Original formation"];
-  }
-  
-  NSSet *originalLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:originalFormation];
-  [self logLegalChordSonorities:originalLegalChords withInitialString:@"From get, original legal chords"];
+-(NSAttributedString *)stringForPlacementOfDataDyadmino:(DataDyadmino *)dataDyad
+                                       onBottomHexCoord:(HexCoord)bottomHexCoord
+                                        withOrientation:(DyadminoOrientation)orientation
+                                          withCondition:(GetNewOrExtendedChords)condition
+                                      withInitialString:(NSString *)initialString
+                                        andEndingString:(NSString *)endingString {
   
   NSSet *checkedFormation = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID]
                                                  onBottomHexCoord:bottomHexCoord
                                                   withOrientation:orientation];
-  NSLog(@"checked formation is %@", checkedFormation);
   
   NSSet *checkedLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:checkedFormation];
-  [self logLegalChordSonorities:checkedLegalChords withInitialString:@"From get, checked legal chords"];
+
+    NSSet *returnedChords;
+  if (condition == kBothNewAndExtendedChords) {
+    returnedChords = [self checkLegalChords:checkedLegalChords thatare:kBothNewAndExtendedChords ofOriginalLegalChords:[self thisTurnChords]];
+    
+  } else if (condition == kNeitherNewNorExtendedChords) {
+    
+    NSSet *originalFormation = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID]
+                                                    onBottomHexCoord:dataDyad.myHexCoord
+                                                     withOrientation:[dataDyad returnMyOrientation]];
+  
+    NSSet *originalLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:originalFormation];
+    [self logLegalChordSonorities:originalLegalChords withInitialString:@"Original legal chords"];
+    
+    returnedChords = [self checkLegalChords:originalLegalChords thatare:kNeitherNewNorExtendedChords ofOriginalLegalChords:checkedLegalChords];
+  }
+  
+  return [[SonorityLogic sharedLogic] stringForSonorities:returnedChords
+                                        withInitialString:initialString
+                                          andEndingString:endingString];
+}
+
+-(NSSet *)checkLegalChords:(NSSet *)checkedLegalChords
+                   thatare:(GetNewOrExtendedChords)newOrExtendedChords
+     ofOriginalLegalChords:(NSSet *)originalLegalChords {
   
   switch (newOrExtendedChords) {
     case kNeitherNewNorExtendedChords:
@@ -491,58 +507,72 @@
   return nil;
 }
 
--(NSUInteger)pointsForLegalChords:(NSSet *)legalChords {
+-(NSUInteger)pointsForPlacingDyadmino:(DataDyadmino *)dataDyad
+                     onBottomHexCoord:(HexCoord)bottomHexCoord
+                      withOrientation:(DyadminoOrientation)orientation {
+  
+  NSSet *checkedFormation = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID]
+                                                 onBottomHexCoord:bottomHexCoord
+                                                  withOrientation:orientation];
+  
+  NSSet *checkedLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:checkedFormation];
+  return [self pointsForTheseChords:checkedLegalChords];
+}
+
+-(NSUInteger)pointsForAllChordsThisTurn {
+  return [self pointsForTheseChords:[self thisTurnChords]];
+}
+
+-(NSUInteger)pointsForTheseChords:(NSSet *)theseChords {
   
   NSUInteger points = 0;
+
+//  [self logLegalChordSonorities:self.preTurnChords withInitialString:@"preTurn chords"];
+//  [self logLegalChordSonorities:[self thisTurnChords] withInitialString:@"thisTurn chords"];
+
+  NSSet *justNewChords = [self checkLegalChords:theseChords thatare:kJustNewChords ofOriginalLegalChords:self.preTurnChords];
+  NSSet *justExtendedChords = [self checkLegalChords:theseChords thatare:kJustExtendedChords ofOriginalLegalChords:self.preTurnChords];
   
-//  NSMutableSet *checkedSet = [NSMutableSet setWithSet:self.preTurnChords];
-  NSMutableSet *checkedSet = [NSMutableSet new];
-  
-  for (NSSet *thisChord in legalChords) {
-    BOOL thisChordHasSubset = NO;
-    for (NSSet *checkedChord in checkedSet) {
-      
-        // checked chord is subset of this chord, which means they're either equal or extending
-      if ([[SonorityLogic sharedLogic] sonority:checkedChord is:kSubset ofSonority:thisChord]) {
-        
-          // they are equal, so it's the same chord
-        if ([[SonorityLogic sharedLogic] sonority:thisChord is:kEqual ofSonority:checkedChord]) {
-          
-            // they are not equal, and therefore this chord extends checked chord
-        } else {
-          thisChordHasSubset = YES;
-          points += [self pointsForChordSonority:thisChord extended:YES];
-        }
-      }
-    }
-    
-      // they are neither equal nor extending, so this chord is new
-    if (!thisChordHasSubset) {
-      points += [self pointsForChordSonority:thisChord extended:NO];
-    }
+  for (NSSet *newChord in justNewChords) {
+    points += [self pointsForChordSonority:newChord extended:NO];
   }
   
-    // bonus five points if rack is empty
-  if ([self.holdingIndexContainer count] >= kNumDyadminoesInRack) {
-    points += 5;
+  for (NSSet *extendedChord in justExtendedChords) {
+    points += [self pointsForChordSonority:extendedChord extended:YES];
   }
   
   return points;
 }
 
--(NSUInteger)pointsForAllChordsThisTurn {
-  return 0;
+-(NSSet *)thisTurnChords {
+    // check all dyadminoes on board, both preTurn and thisTurn
+  NSMutableSet *checkedDyadminoes = [NSMutableSet setWithSet:self.board];
+  for (NSNumber *dyadminoIndex in self.holdingIndexContainer) {
+    DataDyadmino *dataDyad = [self dataDyadminoForIndex:[dyadminoIndex unsignedIntegerValue]];
+    [checkedDyadminoes addObject:dataDyad];
+  }
+  
+  NSMutableSet *theseChords = [NSMutableSet new];
+  for (DataDyadmino *dataDyad in checkedDyadminoes) {
+    NSSet *checkedFormation = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID]
+                                                   onBottomHexCoord:dataDyad.myHexCoord
+                                                    withOrientation:[dataDyad returnMyOrientation]];
+    
+    NSSet *checkedLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:checkedFormation];
+    [theseChords addObjectsFromArray:checkedLegalChords.allObjects];
+  }
+  return [NSSet setWithSet:theseChords];
 }
 
 #pragma mark - scene game progression methods
 
 -(void)resetToStartOfTurn {
-  NSUInteger index = [(NSArray *)self.turns count];
+  NSUInteger lastTurnIndex = [(NSArray *)self.turns count];
   [self.occupiedCells removeAllObjects];
   
   for (DataDyadmino *dataDyad in self.board) {
-    dataDyad.myHexCoord = [dataDyad getHexCoordForTurn:index];
-    dataDyad.myOrientation = @([dataDyad getOrientationForTurn:index]);
+    dataDyad.myHexCoord = [dataDyad getHexCoordForTurn:lastTurnIndex];
+    dataDyad.myOrientation = @([dataDyad getOrientationForTurn:lastTurnIndex]);
     [self persistChangedPositionForBoardDataDyadmino:dataDyad];
     [self updateDataCellsForPlacedDyadminoID:[dataDyad returnMyID] orientation:[dataDyad returnMyOrientation] onBottomCellHexCoord:dataDyad.myHexCoord];
   }
@@ -1404,6 +1434,70 @@
   _pile = pile;
 }
 
+-(NSSet *)preTurnChords {
+  if (!_preTurnChords) {
+    NSUInteger lastTurnIndex = [(NSArray *)self.turns count];
+    
+    NSMutableSet *tempChords = [NSMutableSet new];
+    
+    for (NSNumber *dyadminoIndex in self.holdingIndexContainer) {
+      DataDyadmino *dataDyad = [self dataDyadminoForIndex:[dyadminoIndex unsignedIntegerValue]];
+      [self updateDataCellsForRemovedDyadminoID:[dataDyad returnMyID]
+                                    orientation:[dataDyad returnMyOrientation]
+                         fromBottomCellHexCoord:dataDyad.myHexCoord];
+    }
+    
+      // temporarily change data cells
+    for (DataDyadmino *dataDyad in self.board) {
+      [self updateDataCellsForRemovedDyadminoID:[dataDyad returnMyID]
+                                    orientation:[dataDyad returnMyOrientation]
+                         fromBottomCellHexCoord:dataDyad.myHexCoord];
+    }
+    
+    for (DataDyadmino *dataDyad in self.board) {
+      [self updateDataCellsForPlacedDyadminoID:[dataDyad returnMyID]
+                                   orientation:[dataDyad getOrientationForTurn:lastTurnIndex]
+                          onBottomCellHexCoord:[dataDyad getHexCoordForTurn:lastTurnIndex]];
+    }
+    
+      // get all legal chords from temporary board arrangement
+    for (DataDyadmino *dataDyad in self.board) {
+      
+      NSSet *preTurnFormation = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID] onBottomHexCoord:[dataDyad getHexCoordForTurn:lastTurnIndex] withOrientation:[dataDyad getOrientationForTurn:lastTurnIndex]];
+      NSSet *preTurnLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:preTurnFormation];
+      
+      [tempChords addObjectsFromArray:preTurnLegalChords.allObjects];
+    }
+    
+      // restore data cells
+    for (DataDyadmino *dataDyad in self.board) {
+      [self updateDataCellsForRemovedDyadminoID:[dataDyad returnMyID]
+                                    orientation:[dataDyad getOrientationForTurn:lastTurnIndex]
+                         fromBottomCellHexCoord:[dataDyad getHexCoordForTurn:lastTurnIndex]];
+    }
+    
+    for (DataDyadmino *dataDyad in self.board) {
+      [self updateDataCellsForPlacedDyadminoID:[dataDyad returnMyID]
+                                   orientation:[dataDyad returnMyOrientation]
+                          onBottomCellHexCoord:dataDyad.myHexCoord];
+    }
+    
+    for (NSNumber *dyadminoIndex in self.holdingIndexContainer) {
+      DataDyadmino *dataDyad = [self dataDyadminoForIndex:[dyadminoIndex unsignedIntegerValue]];
+      [self updateDataCellsForPlacedDyadminoID:[dataDyad returnMyID]
+                                   orientation:[dataDyad returnMyOrientation]
+                          onBottomCellHexCoord:dataDyad.myHexCoord];
+    }
+    
+    _preTurnChords = [NSSet setWithSet:tempChords];
+  }
+  return _preTurnChords;
+}
+
+-(void)setPreTurnChords:(NSSet *)preTurnChords {
+  _preTurnChords = preTurnChords;
+}
+
 -(NSSet *)board {
   if (!_board) {
     _board = [NSMutableSet new];
@@ -1415,6 +1509,7 @@
                             onBottomCellHexCoord:dataDyad.myHexCoord];
       }
     }
+    [self preTurnChords];
   }
   return _board;
 }

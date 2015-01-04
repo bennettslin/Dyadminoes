@@ -1677,12 +1677,12 @@
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     
       // show chord message
-    NSSet *newOrExtendingChords = [self.myMatch getNewOrExtendedChords:kBothNewAndExtendedChords
-                                                   addedByDataDyadmino:dataDyad
-                                                      onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord
-                                                       withOrientation:dyadmino.orientation];
-    
-    NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:newOrExtendingChords withInitialString:@"Built " andEndingString:@"."];
+    NSAttributedString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
+                                                                   onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord
+                                                                    withOrientation:dyadmino.orientation
+                                                                      withCondition:kBothNewAndExtendedChords
+                                                                  withInitialString:@"Built "
+                                                                    andEndingString:@"."];
     [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
     
       // confirm that the dyadmino was successfully played in match
@@ -2193,12 +2193,14 @@
       //------------------------------------------------------------------------
 
         } else if (placementResult == kBreaksExistingChords) {
-        
-          NSSet *notFoundOrExtendedChords = [self.myMatch getNewOrExtendedChords:kNeitherNewNorExtendedChords addedByDataDyadmino:dataDyad onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation];
-          
-          NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:notFoundOrExtendedChords
-                                                                          withInitialString:@"Can't break "
-                                                                            andEndingString:@"."];
+
+          NSAttributedString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
+                                                                         onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord
+                                                                          withOrientation:dyadmino.orientation
+                                                                            withCondition:kNeitherNewNorExtendedChords
+                                                                        withInitialString:@"Can't break "
+                                                                          andEndingString:@"."];
+
           [self.myDelegate showChordMessage:chordsText sign:kChordMessageBad];
           
           [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
@@ -2210,17 +2212,24 @@
           
         } else if (placementResult == kAddsOrExtendsNewChords) {
           
-          NSSet *addedOrExtendedChords = [self.myMatch getNewOrExtendedChords:kBothNewAndExtendedChords addedByDataDyadmino:dataDyad onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord withOrientation:dyadmino.orientation];
-          
             // it's a preTurn dyadmino
             // show action sheet with potential points from newly built chord
             // updates will be made from after action sheet button is clicked
           if ([dyadmino belongsOnBoard] && [self.myMatch.board containsObject:dataDyad]) {
             
-            [self presentActionSheet:kActionSheetNewLegalChord
-                          withPoints:[self.myMatch pointsForLegalChords:addedOrExtendedChords]];
+            NSUInteger pointsForPlacement = [self.myMatch pointsForPlacingDyadmino:dataDyad
+                                                                  onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord
+                                                                   withOrientation:dyadmino.orientation];
             
-            NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:addedOrExtendedChords withInitialString:@"Build " andEndingString:@"?"];
+            [self presentActionSheet:kActionSheetNewLegalChord
+                          withPoints:pointsForPlacement];
+            
+            NSAttributedString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
+                                                                           onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord
+                                                                            withOrientation:dyadmino.orientation
+                                                                              withCondition:kBothNewAndExtendedChords
+                                                                          withInitialString:@"Build "
+                                                                            andEndingString:@"?"];
             [self.myDelegate showChordMessage:chordsText sign:kChordMessageNeutral];
             
             [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
@@ -2230,14 +2239,24 @@
               // just keep the new chord
           } else if ([dyadmino belongsOnBoard] && [self.myMatch.holdingIndexContainer containsObject:dataDyad.myID]) {
             
-            NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:addedOrExtendedChords withInitialString:@"Built " andEndingString:@"."];
+            NSAttributedString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
+                                                                           onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord
+                                                                            withOrientation:dyadmino.orientation
+                                                                              withCondition:kBothNewAndExtendedChords
+                                                                          withInitialString:@"Built "
+                                                                            andEndingString:@"."];
             [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
             
               // recent rack dyadmino
           } else if (dyadmino == _recentRackDyadmino) {
             _recentRackDyadminoFormsLegalChord = YES;
             
-            NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:addedOrExtendedChords withInitialString:@"Building " andEndingString:@"."];
+            NSAttributedString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
+                                                                           onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord
+                                                                            withOrientation:dyadmino.orientation
+                                                                              withCondition:kBothNewAndExtendedChords
+                                                                          withInitialString:@"Building "
+                                                                            andEndingString:@"."];
             [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
           }
           
@@ -3397,11 +3416,13 @@
   }
 }
 
+  // called by board
 -(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino {
   BOOL firstDyadmino = (self.boardDyadminoes.count == 1 && dyadmino == [self.boardDyadminoes anyObject] && !_recentRackDyadmino);
   return firstDyadmino;
 }
 
+  // called by rack
 -(BOOL)isFirstAndOnlyDyadminoID:(NSUInteger)dyadminoID {
   Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:[self.myMatch dataDyadminoForIndex:dyadminoID]];
   BOOL firstDyadmino = (self.boardDyadminoes.count == 1 && dyadmino == [self.boardDyadminoes anyObject] && !_recentRackDyadmino);
@@ -3427,14 +3448,6 @@
 
 -(void)toggleFieldActionInProgress:(BOOL)actionInProgress {
   _fieldActionInProgress = actionInProgress;
-}
-
--(NSAttributedString *)stringForSonorities:(NSSet *)sonorities withInitialString:(NSString *)initialString andEndingString:(NSString *)endingString {
-  return [[SonorityLogic sharedLogic] stringForSonorities:sonorities withInitialString:initialString andEndingString:endingString];
-}
-
--(BOOL)sonority:(NSSet *)smaller IsSubsetOfSonority:(NSSet *)larger {
-  return [[SonorityLogic sharedLogic] sonority:smaller IsSubsetOfSonority:larger];
 }
 
 #pragma mark - debugging methods
@@ -3493,7 +3506,7 @@
   NSLog(@"dataDyads are:  %@", [[_myPlayer.rackIndexes valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
   NSLog(@"Dyadminoes are: %@", [[self.playerRackDyadminoes valueForKey:@"name"] componentsJoinedByString:@", "]);
   NSLog(@"holdingCon is:  %@", [[self.myMatch.holdingIndexContainer valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
-  NSLog(@"swapContainer:  %@", [[[self.swapContainer allObjects] valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
+  NSLog(@"swapContainer:  %@", [[self.swapContainer.allObjects valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
   NSLog(@"rackDyad order: %@", [[self.playerRackDyadminoes valueForKey:@"myRackOrder"] componentsJoinedByString:@", "]);
   NSLog(@"board is:       %@", self.boardDyadminoes);
   NSLog(@"match board is  %@", self.myMatch.board);
