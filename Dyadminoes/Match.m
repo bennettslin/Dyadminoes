@@ -143,13 +143,17 @@
   
     // establish whether we're validating current placement or testing new one
   DataDyadmino *dataDyad = [self dataDyadminoForIndex:dyadminoID];
+  
   BOOL checkedPlacementIsCurrentPlacement =
       (dataDyad.myHexCoord.x == bottomHexCoord.x &&
        dataDyad.myHexCoord.y == bottomHexCoord.y &&
        [dataDyad returnMyOrientation] == orientation);
   
   NSUInteger pc1, pc2;
-  if (!checkedPlacementIsCurrentPlacement) {
+  if (checkedPlacementIsCurrentPlacement) {
+    NSLog(@"checked placement is current placement");
+    
+  } else if (!checkedPlacementIsCurrentPlacement) {
     NSLog(@"checked placement is not current placement");
     
       // temporarily place dyadmino on new cells, and remove it from original one
@@ -161,8 +165,6 @@
     [self updateDataCellsForPlacedDyadminoID:dyadminoID
                                  orientation:orientation
                         onBottomCellHexCoord:bottomHexCoord];
-  } else {
-    NSLog(@"checked placement is current placement");
   }
   
   NSMutableSet *tempSetOfSonorities = [NSMutableSet new];
@@ -379,14 +381,21 @@
   //----------------------------------------------------------------------------
 
   // original formation of sonorities
-  NSSet *originalFormation = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID]
-                                                  onBottomHexCoord:dataDyad.myHexCoord
-                                                   withOrientation:[dataDyad returnMyOrientation]];
-  [self logLegalChordSonorities:originalFormation withInitialString:@"Original formation"];
+  NSSet *originalFormation;
   
-  NSSet *originalLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:originalFormation];
-  [self logLegalChordSonorities:originalLegalChords withInitialString:@"Original legal chords"];
+    // if it's a recent rack dyadmino, it won't have an original formation
+  if (![self.board containsObject:dataDyad] && ![self.holdingIndexContainer containsObject:dataDyad.myID]) {
+    originalFormation = [NSSet new];
+  } else {
+    originalFormation = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID]
+                                             onBottomHexCoord:dataDyad.myHexCoord
+                                              withOrientation:[dataDyad returnMyOrientation]];
+    [self logLegalChordSonorities:originalFormation withInitialString:@"Original formation"];
+  }
 
+  NSSet *originalLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:originalFormation];
+    [self logLegalChordSonorities:originalLegalChords withInitialString:@"Original legal chords"];
+  
     // checked formation of sonorities
   NSSet *checkedFormation = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID]
                                                  onBottomHexCoord:bottomHexCoord
@@ -403,11 +412,10 @@
     tentativeResult = kNoChange; // *not* returned right away
     
       // they are definitely *not* equal, so checked being subset of original means we've broken existing chords
-  } else if ([[SonorityLogic sharedLogic] sonorities:checkedLegalChords is:kSubset ofSonorities:originalLegalChords]) {
+  } else if (![[SonorityLogic sharedLogic] sonorities:originalLegalChords is:kSubset ofSonorities:checkedLegalChords]) {
     return kBreaksExistingChords;
     
       // adds or extends new legal chords
-//  } else if ([[SonorityLogic sharedLogic] sonorities:originalLegalChords is:kSubset ofSonorities:checkedLegalChords]) {
   } else {
     tentativeResult = kAddsOrExtendsNewChords; // *not* returned right away
   }
@@ -441,9 +449,18 @@
                 onBottomHexCoord:(HexCoord)bottomHexCoord
                  withOrientation:(DyadminoOrientation)orientation {
  
-  NSSet *originalFormation = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID]
-                                                  onBottomHexCoord:dataDyad.myHexCoord
-                                                   withOrientation:[dataDyad returnMyOrientation]];
+    // original formation of sonorities
+  NSSet *originalFormation;
+  
+    // if it's a recent rack dyadmino, it won't have an original formation
+  if (![self.board containsObject:dataDyad] && ![self.holdingIndexContainer containsObject:dataDyad.myID]) {
+    originalFormation = [NSSet new];
+  } else {
+    originalFormation = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID]
+                                             onBottomHexCoord:dataDyad.myHexCoord
+                                              withOrientation:[dataDyad returnMyOrientation]];
+    [self logLegalChordSonorities:originalFormation withInitialString:@"Original formation"];
+  }
   
   NSSet *originalLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:originalFormation];
   [self logLegalChordSonorities:originalLegalChords withInitialString:@"From get, original legal chords"];
@@ -451,6 +468,7 @@
   NSSet *checkedFormation = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID]
                                                  onBottomHexCoord:bottomHexCoord
                                                   withOrientation:orientation];
+  NSLog(@"checked formation is %@", checkedFormation);
   
   NSSet *checkedLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:checkedFormation];
   [self logLegalChordSonorities:checkedLegalChords withInitialString:@"From get, checked legal chords"];

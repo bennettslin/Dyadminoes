@@ -832,8 +832,7 @@
         // check to see if hovering dyadmino should be moved along with board or not
       if (_hoveringDyadmino) {
         [_boardField hideAllPivotGuides];
-//        if ([self.myMatch validatePhysicallyPlacingDyadminoID:_hoveringDyadmino.myID withOrientation:_hoveringDyadmino.orientation onBottomHexCoord:_hoveringDyadmino.tempBoardNode.myCell.hexCoord]) {
-        if ([self.myMatch checkPlacementOfDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] onBottomHexCoord:_hoveringDyadmino.tempBoardNode.myCell.hexCoord withOrientation:_hoveringDyadmino.orientation]) {
+        if ([self.myMatch checkPlacementOfDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] onBottomHexCoord:_hoveringDyadmino.tempBoardNode.myCell.hexCoord withOrientation:_hoveringDyadmino.orientation] == kNoChange) {
         
           _hoveringDyadminoStaysFixedToBoard = YES;
           [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
