@@ -36,6 +36,7 @@
 }
 
 @synthesize name = _name;
+@synthesize pcMode = _pcMode;
 
 #pragma mark - init and layout methods
 
@@ -902,6 +903,7 @@
 -(NSString *)stringForPC:(NSUInteger)pc {
   
     // Unicode u266d is flat, u00b7 is small bullet, u266f is sharp
+  
   switch (pc) {
     case 0:
       return @"C";
@@ -947,16 +949,40 @@
 
 #pragma mark - custom accessor methods
 
+-(PCMode)pcMode {
+  if (!_pcMode) {
+    _pcMode = kPCModeLetter;
+  }
+  return _pcMode;
+}
+
+-(void)setPcMode:(PCMode)pcMode {
+  _pcMode = pcMode;
+  self.name = [self updateName];
+}
+
 -(NSString *)name {
   if (!_name) {
-      // Unicode u2011 is unbreaking hyphen
-    _name = [NSString stringWithFormat:@"%@/%@", [self stringForPC:self.pc1], [self stringForPC:self.pc2]];
+    _name = [self updateName];
   }
   return _name;
 }
 
 -(void)setName:(NSString *)name {
   _name = name;
+}
+
+-(NSString *)updateName {
+
+    // Unicode u2011 is non-breaking hyphen, u2013 is N-dash, u2014 is M-dash
+  switch (self.pcMode) {
+    case kPCModeLetter:
+      return [NSString stringWithFormat:@"%@\u2013%@", [self stringForPC:self.pc1], [self stringForPC:self.pc2]];
+      break;
+    case kPCModeNumber:
+      return [NSString stringWithFormat:@"%i\u2013%i", self.pc1, self.pc2];
+      break;
+  }
 }
 
 #pragma mark - debugging methods

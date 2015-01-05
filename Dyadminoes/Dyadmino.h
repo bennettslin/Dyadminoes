@@ -25,13 +25,13 @@
 
 @interface Dyadmino : SKSpriteNode
 
-@property (nonatomic) NSUInteger myID;
+@property (assign, nonatomic) NSUInteger myID;
 @property (weak, nonatomic) id<DyadminoDelegate> delegate;
 
   // pcs
-@property NSUInteger pc1;
-@property NSUInteger pc2;
-@property (nonatomic) PCMode pcMode;
+@property (assign, nonatomic) NSUInteger pc1;
+@property (assign, nonatomic) NSUInteger pc2;
+@property (assign, nonatomic) PCMode pcMode;
 
   // cells
 @property (strong, nonatomic) Cell *cellForPC1;
