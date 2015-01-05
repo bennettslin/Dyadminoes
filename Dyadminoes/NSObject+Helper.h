@@ -508,6 +508,7 @@ typedef enum actionSheetTag {
   kActionSheetPass,
   kActionSheetSwap,
   kActionSheetReset,
+  kActionSheetStrandedCannotUndo,
   kActionSheetNewLegalChord,
   kActionSheetResignPlayer,
   kActionSheetTurnDone

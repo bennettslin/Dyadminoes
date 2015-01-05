@@ -7,6 +7,7 @@
 //
 
 #import "SettingsViewController.h"
+#import "AppDelegate.h"
 
 @interface SettingsViewController ()
 
@@ -74,11 +75,7 @@
   
   self.removeDefaultsButton.center = CGPointMake(self.view.frame.size.width * 0.5f, self.view.frame.size.height - kChildVCBottomMargin - self.removeDefaultsButton.frame.size.height * 0.5f);
   
-  [self.showPivotGuideSwitch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"pivotGuide"] animated:NO];
-  self.notationControl.selectedSegmentIndex = [[NSUserDefaults standardUserDefaults] integerForKey:@"notation"];
-  [self.musicSlider setValue:[[NSUserDefaults standardUserDefaults] floatForKey:@"music"]];
-  [self.soundEffectsSlider setValue:[[NSUserDefaults standardUserDefaults] floatForKey:@"soundEffects"]];
-  self.registerControl.selectedSegmentIndex = [[NSUserDefaults standardUserDefaults] integerForKey:@"register"];
+  [self establishControlViews];
 }
 
 -(IBAction)pivotGuideSwitched {
@@ -116,12 +113,21 @@
   [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"notation"];
   [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"music"];
   [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"soundEffects"];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"register"];
   [[NSUserDefaults standardUserDefaults] synchronize];
   
-  [self.showPivotGuideSwitch setOn:YES animated:YES];
-  self.notationControl.selectedSegmentIndex = 0;
-  [self.soundEffectsSlider setValue:0.5f animated:YES];
-  [self.musicSlider setValue:0.5f animated:YES];
+  AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+  [appDelegate establishDefaults];
+  
+  [self establishControlViews];
+}
+
+-(void)establishControlViews {
+  [self.showPivotGuideSwitch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"pivotGuide"] animated:NO];
+  self.notationControl.selectedSegmentIndex = [[NSUserDefaults standardUserDefaults] integerForKey:@"notation"];
+  [self.musicSlider setValue:[[NSUserDefaults standardUserDefaults] floatForKey:@"music"]];
+  [self.soundEffectsSlider setValue:[[NSUserDefaults standardUserDefaults] floatForKey:@"soundEffects"]];
+  self.registerControl.selectedSegmentIndex = [[NSUserDefaults standardUserDefaults] integerForKey:@"register"];
 }
 
 -(void)soundWithVolume:(float)volume andNotificationName:(NotificationName)notificationName {

@@ -462,6 +462,10 @@
   }
 }
 
+-(void)testUndoNotPossibleWithStrandedDyadminoes {
+  XCTFail(@"Undo should not be possible if it leaves dyadminoes stranded.");
+}
+
 #pragma mark - turn tests
 
 -(void)testRackIsProperlyRefilledAfterPlayedTurn {

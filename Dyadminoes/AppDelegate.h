@@ -19,6 +19,8 @@
 @property (readonly, nonatomic) NSManagedObjectModel *managedObjectModel;
 @property (readonly, nonatomic) NSPersistentStoreCoordinator *persistentStoreCoordinator;
 
+-(void)establishDefaults;
+
 -(void)saveContext;
 -(NSURL *)applicationDocumentsDirectory;
 

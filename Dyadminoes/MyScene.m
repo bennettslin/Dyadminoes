@@ -317,17 +317,17 @@
     // called both when scene is loaded, and when new player is ready in PnP mode
   
   [_boardField updatePivotGuidesForNewPlayer];
-    if (!forReset) {
+//    if (!forReset) {
     if (![self populateRackArray]) {
       NSLog(@"Rack array was not populated properly.");
       abort();
     }
     
-    if (![self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO]) {
+    if (![self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:forReset]) {
       NSLog(@"Rack field dyadminoes not refreshed properly.");
       abort();
     }
-  }
+//  }
 
   [self animateRecentlyPlayedDyadminoes];
   
@@ -1495,7 +1495,6 @@
   } else if (button == _topBar.swapCancelOrUndoButton &&
              [button confirmSwapCancelOrUndo] == kUndoButton) {
     
-    _undoButtonAllowed = NO;
     [self undoLastPlayedDyadmino];
   
       /// play button
@@ -1722,12 +1721,13 @@
     // remove data dyadmino from holding container
   DataDyadmino *undoneDataDyadmino = [self.myMatch undoLastPlayedDyadmino];
   
+    // couldn't play because it leaves stranded dyadminoes
   if (!undoneDataDyadmino) {
-    NSLog(@"Match failed to undo data dyadmino.");
-    abort();
+    [self presentActionSheet:kActionSheetStrandedCannotUndo withPoints:0];
     
   } else {
-
+    _undoButtonAllowed = NO;
+    
       // recalibrate undone dyadmino
     Dyadmino *undoneDyadmino = [self getDyadminoFromDataDyadmino:undoneDataDyadmino];
     undoneDyadmino.tempReturnOrientation = [undoneDataDyadmino returnMyOrientation];
@@ -1746,7 +1746,7 @@
 }
 
 -(void)resetBoard {
-  SKAction *fadeOut = [SKAction fadeAlphaTo:0.f duration:0.1f];
+  SKAction *fadeOut = [SKAction fadeAlphaTo:0.f duration:0.01f];
   
   __weak typeof(self) weakSelf = self;
   SKAction *completion = [SKAction runBlock:^{
@@ -1762,7 +1762,7 @@
       
       [weakSelf willMoveFromViewForReset:YES];
       
-      SKAction *fadeIn = [SKAction fadeAlphaTo:1.f duration:0.1f];
+      SKAction *fadeIn = [SKAction fadeAlphaTo:1.f duration:0.01f];
       SKAction *fadeInCompletion = [SKAction runBlock:^{
 
         [weakSelf loadAfterNewMatchRetrievedForReset:YES];
@@ -1772,7 +1772,6 @@
 
       SKAction *fadeInSequence = [SKAction sequence:@[fadeIn, fadeInCompletion]];
       [_boardField runAction:fadeInSequence withKey:@"fadeInBoard"];
-      
     }
   }];
 
@@ -3272,6 +3271,11 @@
         destructiveButtonString = @"Swap";
         break;
         
+      case kActionSheetStrandedCannotUndo:
+        messageString = [NSString stringWithFormat:@"Can't undo dyadmino %@ without leaving others stranded. Reset board instead?", [self messageStringForStrandedCannotUndo]];
+        destructiveButtonString = @"Reset";
+        break;
+        
       case kActionSheetReset:
         messageString = @"Reset the board and restart this turn?";
         destructiveButtonString = @"Reset";
@@ -3310,6 +3314,12 @@
   }
 }
 
+-(NSString *)messageStringForStrandedCannotUndo {
+  DataDyadmino *dataDyad = [self.myMatch mostRecentDyadminoPlayed];
+  Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
+  return dyadmino.name;
+}
+
 -(void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
   NSString *buttonText = [actionSheet buttonTitleAtIndex:buttonIndex];
   
@@ -3343,8 +3353,10 @@
         return;
       }
       break;
-      
+
+    case kActionSheetStrandedCannotUndo:
     case kActionSheetReset:
+      _undoButtonAllowed = YES;
       if ([buttonText isEqualToString:@"Reset"]) {
         [self resetBoard];
       }
@@ -3354,8 +3366,6 @@
       if ([buttonText isEqualToString:@"Build"]) {
         
         [self.myMatch moveBoardDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] toBottomHexCoord:_hoveringDyadmino.tempBoardNode.myCell.hexCoord withOrientation:_hoveringDyadmino.orientation];
-//        [self.myMatch addLegalChordsFormed:_tempChordSonoritiesFromMovedBoardDyadmino
-//                fromMovedBoardDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] onBottomHexCoord:_hoveringDyadmino.tempBoardNode.myCell.hexCoord withOrientation:_hoveringDyadmino.orientation];
 
         NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:_tempChordSonoritiesFromMovedBoardDyadmino withInitialString:@"Built " andEndingString:@"."];
         

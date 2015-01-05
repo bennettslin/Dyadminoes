@@ -101,11 +101,6 @@
             toBottomHexCoord:(HexCoord)bottomHexCoord
              withOrientation:(DyadminoOrientation)orientation;
 
-//-(BOOL)addLegalChordsFormed:(NSSet *)chordsFormed
-// fromMovedBoardDataDyadmino:(DataDyadmino *)dataDyad
-//           onBottomHexCoord:(HexCoord)bottomHexCoord
-//            withOrientation:(DyadminoOrientation)orientation;
-
   // undo
 -(DataDyadmino *)undoLastPlayedDyadmino;
 
@@ -120,35 +115,6 @@
 
   //----------------------------------------------------------------------------
   //----------------------------------------------------------------------------
-
-#pragma mark - cell methods
-
-//-(BOOL)updateDataCellsForPlacedDyadminoID:(NSInteger)dyadminoID
-//                              orientation:(DyadminoOrientation)orientation
-//                     onBottomCellHexCoord:(HexCoord)bottomHexCoord;
-//
-//-(BOOL)updateDataCellsForRemovedDyadminoID:(NSInteger)dyadminoID
-//                               orientation:(DyadminoOrientation)orientation
-//                    fromBottomCellHexCoord:(HexCoord)bottomHexCoord;
-//
-//-(NSSet *)sonoritiesFromPlacingDyadminoID:(NSUInteger)dyadminoID
-//                         onBottomHexCoord:(HexCoord)bottomHexCoord
-//                          withOrientation:(DyadminoOrientation)orientation;
-
-#pragma mark - physical cell methods
-
-//-(PhysicalPlacementResult)validatePhysicallyPlacingDyadminoID:(NSUInteger)dyadminoID
-//                                              withOrientation:(DyadminoOrientation)orientation
-//                                             onBottomHexCoord:(HexCoord)bottomHexCoord;
-
-#pragma mark - chord methods
-
-//-(NSSet *)getNewChordsOrExtendingChordsFromTheseChords:(NSSet *)theseChords;
-
-  // this method excludes duplicates, and takes into account extending chords
-  // this method calculates player's score this turn when input with self.thisTurnChords
-  // it can also be used to calculate points in action sheet for moved board dyadmino
-//-(NSUInteger)pointsForLegalChords:(NSSet *)legalChords;
 
 #pragma mark - replay methods
 
@@ -166,6 +132,7 @@
 -(DataDyadmino *)dataDyadminoForIndex:(NSUInteger)index;
 -(UIColor *)colourForPlayer:(Player *)player forLabel:(BOOL)forLabel light:(BOOL)light;
 -(Player *)returnCurrentPlayer;
+-(DataDyadmino *)mostRecentDyadminoPlayed;
 
 #pragma mark - label methods
 

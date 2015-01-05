@@ -24,9 +24,7 @@
 
 @property (readwrite, nonatomic) BOOL isInTopBar;
 @property (readwrite, nonatomic) BOOL belongsInSwap;
-
 @property (readwrite, nonatomic) BOOL isRotating;
-
 
 @end
 
@@ -36,6 +34,8 @@
   PivotOnPC _pivotOnPC;
   BOOL _movedDueToChangeInAnchorPoint;
 }
+
+@synthesize name = _name;
 
 #pragma mark - init and layout methods
 
@@ -49,7 +49,6 @@
   if (self) {
     self.color = (SKColor *)kNeutralYellow; // for color blend factor
     self.zPosition = kZPositionRackRestingDyadmino;
-    self.name = [NSString stringWithFormat:@"dyadmino %lu-%lu", (unsigned long)pc1, (unsigned long)pc2];
     self.pc1 = pc1;
     self.pc2 = pc2;
     self.pcMode = pcMode;
@@ -898,6 +897,66 @@
     }
   }
   return self.myHexCoord;
+}
+
+-(NSString *)stringForPC:(NSUInteger)pc {
+  
+    // Unicode u266d is flat, u00b7 is small bullet, u266f is sharp
+  switch (pc) {
+    case 0:
+      return @"C";
+      break;
+    case 1:
+      return @"C\u266f\u00b7D\u266d";
+      break;
+    case 2:
+      return @"D";
+      break;
+    case 3:
+      return @"D\u266f\u00b7E\u266d";
+      break;
+    case 4:
+      return @"E";
+      break;
+    case 5:
+      return @"F";
+      break;
+    case 6:
+      return @"F\u266f\u00b7G\u266d";
+      break;
+    case 7:
+      return @"G";
+      break;
+    case 8:
+      return @"G\u266f\u00b7A\u266d";
+      break;
+    case 9:
+      return @"A";
+      break;
+    case 10:
+      return @"A\u266f\u00b7B\u266d";
+      break;
+    case 11:
+      return @"B";
+      break;
+    default:
+      return @"";
+      break;
+  }
+}
+
+#pragma mark - custom accessor methods
+
+-(NSString *)name {
+  if (!_name) {
+      // Unicode u2011 is unbreaking hyphen
+    _name = [NSString stringWithFormat:@"%@/%@", [self stringForPC:self.pc1], [self stringForPC:self.pc2]];
+  }
+  return _name;
+}
+
+-(void)setName:(NSString *)name {
+  _name = name;
 }
 
 #pragma mark - debugging methods
