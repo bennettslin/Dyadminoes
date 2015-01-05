@@ -580,8 +580,9 @@
   for (DataDyadmino *dataDyad in self.board) {
     dataDyad.myHexCoord = [dataDyad getHexCoordForTurn:lastTurnIndex];
     dataDyad.myOrientation = @([dataDyad getOrientationForTurn:lastTurnIndex]);
-    [self persistChangedPositionForBoardDataDyadmino:dataDyad];
-    [self updateDataCellsForPlacedDyadminoID:[dataDyad returnMyID] orientation:[dataDyad returnMyOrientation] onBottomCellHexCoord:dataDyad.myHexCoord];
+    [self updateDataCellsForPlacedDyadminoID:[dataDyad returnMyID]
+                                 orientation:[dataDyad returnMyOrientation]
+                        onBottomCellHexCoord:dataDyad.myHexCoord];
   }
 }
 
@@ -643,6 +644,7 @@
                                     orientation:[mostRecentlyPlayedDyadmino returnMyOrientation]
                          fromBottomCellHexCoord:mostRecentlyPlayedDyadmino.myHexCoord];
       [mostRecentlyPlayedDyadmino resetHexCoord];
+      [mostRecentlyPlayedDyadmino randomRackOrientation];
       return mostRecentlyPlayedDyadmino;
     }
   }

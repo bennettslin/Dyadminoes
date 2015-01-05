@@ -39,6 +39,7 @@
 
 -(void)initWithID:(NSUInteger)myID;
 -(void)resetHexCoord;
+-(void)randomRackOrientation;
 -(HexCoord)getHexCoordForTurn:(NSUInteger)turn;
 -(DyadminoOrientation)getOrientationForTurn:(NSUInteger)turn;
 

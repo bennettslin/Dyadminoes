@@ -317,17 +317,17 @@
     // called both when scene is loaded, and when new player is ready in PnP mode
   
   [_boardField updatePivotGuidesForNewPlayer];
-//    if (!forReset) {
-    if (![self populateRackArray]) {
-      NSLog(@"Rack array was not populated properly.");
-      abort();
-    }
-    
-    if (![self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:forReset]) {
-      NSLog(@"Rack field dyadminoes not refreshed properly.");
-      abort();
-    }
-//  }
+
+  if (![self populateRackArray]) {
+    NSLog(@"Rack array was not populated properly.");
+    abort();
+  }
+  
+  if (![self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:forReset]) {
+    NSLog(@"Rack field dyadminoes not refreshed properly.");
+    abort();
+  }
+
 
   [self animateRecentlyPlayedDyadminoes];
   
@@ -411,6 +411,7 @@
 #pragma mark - sound methods
 
 -(void)postSoundNotification:(NotificationName)whichNotification {
+  NSLog(@"sound notification for %i", whichNotification);
   NSNumber *whichNotificationObject = [NSNumber numberWithUnsignedInteger:whichNotification];
   [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound" object:self userInfo:@{@"sound": whichNotificationObject}];
 }
@@ -1749,8 +1750,11 @@
   SKAction *fadeOut = [SKAction fadeAlphaTo:0.f duration:0.01f];
   
   __weak typeof(self) weakSelf = self;
+  
   SKAction *completion = [SKAction runBlock:^{
+    [weakSelf updateOrderOfDataDyadsThisTurnToReflectRackOrder];
     [weakSelf.myMatch resetToStartOfTurn];
+    
     for (Dyadmino *dyadmino in self.boardDyadminoes) {
       DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
       

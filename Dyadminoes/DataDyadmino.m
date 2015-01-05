@@ -35,15 +35,19 @@
   self.placeStatus = @(kInPile);
   
     // set rack orientation randomly
-  int randNum = arc4random() % 2;
-  self.myOrientation = (randNum == 0) ?
-  @(kPC1atTwelveOClock) :
-  @(kPC1atSixOClock);
+  [self randomRackOrientation];
 }
 
 -(void)resetHexCoord {
   self.hexX = @(INT32_MAX);
   self.hexY = @(INT32_MAX);
+}
+
+-(void)randomRackOrientation {
+  int randNum = arc4random() % 2;
+  self.myOrientation = (randNum == 0) ?
+  @(kPC1atTwelveOClock) :
+  @(kPC1atSixOClock);
 }
 
 -(NSUInteger)getTurnAdded {
