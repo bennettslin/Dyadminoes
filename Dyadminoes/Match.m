@@ -157,10 +157,10 @@
   
   NSUInteger pc1, pc2;
   if (checkedPlacementIsCurrentPlacement) {
-    NSLog(@"checked placement is current placement");
+//    NSLog(@"checked placement is current placement");
     
   } else if (!checkedPlacementIsCurrentPlacement) {
-    NSLog(@"checked placement is not current placement");
+//    NSLog(@"checked placement is not current placement");
     
       // temporarily place dyadmino on new cells, and remove it from original one
     pc1 = [self pcForDyadminoIndex:dyadminoID isPC1:YES];
@@ -248,6 +248,8 @@
 }
 
 -(Player *)switchToNextPlayer {
+  
+  [self thisTurnChords];
   
   Player *currentPlayer = [self returnCurrentPlayer];
   NSUInteger index = [currentPlayer returnOrder];
@@ -511,27 +513,35 @@
                      onBottomHexCoord:(HexCoord)bottomHexCoord
                       withOrientation:(DyadminoOrientation)orientation {
   
+  NSLog(@"points for placing dyadmino.");
+  
   NSSet *checkedFormation = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID]
                                                  onBottomHexCoord:bottomHexCoord
                                                   withOrientation:orientation];
   
   NSSet *checkedLegalChords = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:checkedFormation];
-  return [self pointsForTheseChords:checkedLegalChords];
+  return [self pointsForCheckedChords:checkedLegalChords relativeToOriginalChords:[self thisTurnChords]];
 }
 
 -(NSUInteger)pointsForAllChordsThisTurn {
-  return [self pointsForTheseChords:[self thisTurnChords]];
+
+  NSLog(@"points for all chords");
+  
+  return [self pointsForCheckedChords:[self thisTurnChords] relativeToOriginalChords:self.preTurnChords];
 }
 
--(NSUInteger)pointsForTheseChords:(NSSet *)theseChords {
+-(NSUInteger)pointsForCheckedChords:(NSSet *)theseChords relativeToOriginalChords:(NSSet *)originalChords {
   
   NSUInteger points = 0;
 
-//  [self logLegalChordSonorities:self.preTurnChords withInitialString:@"preTurn chords"];
-//  [self logLegalChordSonorities:[self thisTurnChords] withInitialString:@"thisTurn chords"];
-
-  NSSet *justNewChords = [self checkLegalChords:theseChords thatare:kJustNewChords ofOriginalLegalChords:self.preTurnChords];
-  NSSet *justExtendedChords = [self checkLegalChords:theseChords thatare:kJustExtendedChords ofOriginalLegalChords:self.preTurnChords];
+  NSSet *justNewChords = [self checkLegalChords:theseChords thatare:kJustNewChords ofOriginalLegalChords:originalChords];
+  NSSet *justExtendedChords = [self checkLegalChords:theseChords thatare:kJustExtendedChords ofOriginalLegalChords:originalChords];
+  
+  [self logLegalChordSonorities:self.preTurnChords withInitialString:@"PreTurn chords"];
+  [self logLegalChordSonorities:[self thisTurnChords] withInitialString:@"ThisTurn chords"];
+  
+  [self logLegalChordSonorities:justNewChords withInitialString:@"New chords"];
+  [self logLegalChordSonorities:justExtendedChords withInitialString:@"Extended chords"];
   
   for (NSSet *newChord in justNewChords) {
     points += [self pointsForChordSonority:newChord extended:NO];
@@ -685,9 +695,8 @@
                               nil];
   
   [self addTurn:dictionary];
-  
-  NSArray *turns = self.turns;
-  self.replayTurn = turns.count;
+
+  self.replayTurn = [self.turns count];
   
       // player passes
 //  if (pointsThisTurn == 0) {
@@ -754,8 +763,10 @@
   
       // whether pass or not, game continues
   [self resetHoldingContainer];
-  
   self.lastPlayed = [NSDate date];
+  
+    // resets lazily loaded preTurn chords
+  self.preTurnChords = nil;
   [self switchToNextPlayer];
 }
 

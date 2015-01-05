@@ -331,7 +331,7 @@
 
 -(void)updatePlayerLabelsWithFinalTurn:(BOOL)finalTurn andAnimatedScore:(BOOL)animated {
   
-  NSLog(@"update player labels with final turn");
+  NSLog(@"update player labels with final turn %i", finalTurn);
   NSUInteger pointsForThisTurnChords = [self.myMatch pointsForAllChordsThisTurn];
   
   if (self.myMatch) {

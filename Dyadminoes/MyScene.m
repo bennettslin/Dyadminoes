@@ -1786,6 +1786,7 @@
   
     // no recent rack dyadmino on board
   if (!_recentRackDyadmino) {
+    
     [self.myMatch recordDyadminoesFromCurrentPlayerWithSwap:NO];
 
     if ([self.myMatch returnType] != kPnPGame) {
@@ -1953,10 +1954,6 @@
   
   if (_fieldActionInProgress) {
     _boardField.homePosition = _boardField.position;
-
-      // method was being returned here, which was preventing the board from correcting its bounds
-      // while the replay fields were being toggled. Doesn't seem like a problem to leave return out
-//    return;
   }
 
   CGFloat swapBuffer = self.swapContainer ? kRackHeight : 0.f; // the height of the swap field
@@ -2739,7 +2736,6 @@
     
       // board cells and data cells are always updated together
     [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:snapPoint andColour:colour];
-//    [self.myMatch updateDataCellsForPlacedDyadminoID:dyadmino.myID orientation:dyadmino.orientation onBottomCellHexCoord:snapPoint.myCell.hexCoord];
   }
 }
 

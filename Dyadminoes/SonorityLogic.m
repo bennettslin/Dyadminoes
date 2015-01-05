@@ -224,14 +224,15 @@
   
   for (NSSet *sonority1 in sonorities1) {
     
-    BOOL thereIsAnEqualSonority = NO;
+    BOOL thereIsAnEqualOrSubsetSonority = NO;
     for (NSSet *sonority2 in sonorities2) {
-      if ([self sonority:sonority1 is:kEqual ofSonority:sonority2]) {
-        thereIsAnEqualSonority = YES;
+      if ([self sonority:sonority1 is:kEqual ofSonority:sonority2] ||
+          [self sonority:sonority2 is:kSubset ofSonority:sonority1]) {
+        thereIsAnEqualOrSubsetSonority = YES;
       }
     }
     
-    if (!thereIsAnEqualSonority) {
+    if (!thereIsAnEqualOrSubsetSonority) {
       [returnedSonorities addObject:sonority1];
     }
   }
