@@ -3150,7 +3150,8 @@
       
     } else {
       dyadmino.myHexCoord = dyadmino.preReplayHexCoord;
-      dyadmino.orientation = dyadmino.preReplayOrientation;
+      
+        // orientation will be animated in sendDyadminoHome method called by updateBoardForReplay
       dyadmino.tempReturnOrientation = dyadmino.preReplayTempOrientation;
     }
   }
@@ -3206,8 +3207,8 @@
       if (inReplay) {
           // get position and orientation attrivutes
         dyadmino.myHexCoord = [dataDyad getHexCoordForTurn:self.myMatch.replayTurn];
-        dyadmino.orientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
-        dyadmino.tempReturnOrientation = dyadmino.orientation;
+        dyadmino.tempReturnOrientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
+        [dyadmino orientBySnapNode:nil animate:YES];
       }
       
         // position dyadmino
@@ -3242,10 +3243,10 @@
 
 -(void)animateRepositionCellAgnosticDyadmino:(Dyadmino *)dyadmino {
 
-    // between .4 and .6
-  CGFloat random = ((arc4random() % 100) / 100.f * 0.2) + 0.4f;
+    // between .7 and .9
+  CGFloat random = ((arc4random() % 100) / 100.f * 0.2) + 0.7f;
   
-  CGPoint reposition = [Cell positionCellAgnosticDyadminoGivenHexOrigin:_boardField.hexOrigin andHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.orientation andResize:_boardZoomedOut];
+  CGPoint reposition = [Cell positionCellAgnosticDyadminoGivenHexOrigin:_boardField.hexOrigin andHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.tempReturnOrientation andResize:_boardZoomedOut];
   SKAction *repositionAction = [SKAction moveTo:reposition duration:kConstantTime * random];
   SKAction *completeAction = [SKAction runBlock:^{
     dyadmino.zPosition = kZPositionBoardRestingDyadmino;
@@ -3262,27 +3263,36 @@
 -(void)animateScaleForReplayOfDyadmino:(Dyadmino *)dyadmino toShrink:(BOOL)shrink {
     // no animation if dyadmino is already at the desired scale
 
-    // between .4 and .6
-  CGFloat random = ((arc4random() % 100) / 100.f * 0.2) + 0.4f;
+    // between .7 and .9
+  CGFloat random = ((arc4random() % 100) / 100.f * 0.2) + 0.7f;
   
   if (shrink) {
     SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime * random];
+    shrinkAction.timingMode = SKActionTimingEaseIn;
+    SKAction *fadeOutAction = [SKAction fadeAlphaTo:0.f duration:kConstantTime * random];
+    fadeOutAction.timingMode = SKActionTimingEaseIn;
+    SKAction *shrinkFadeOutGroup = [SKAction group:@[shrinkAction, fadeOutAction]];
+    
     SKAction *hideAction = [SKAction runBlock:^{
       dyadmino.hidden = YES;
       dyadmino.zPosition = kZPositionBoardRestingDyadmino;
     }];
-    SKAction *sequence = [SKAction sequence:@[shrinkAction, hideAction]];
-    
+    SKAction *sequence = [SKAction sequence:@[shrinkFadeOutGroup, hideAction]];
     dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
     [dyadmino removeActionForKey:@"replayShrink"];
     [dyadmino runAction:sequence withKey:@"replayShrink"];
     
   } else {
-    SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.5f];
+    SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime * random];
+    growAction.timingMode = SKActionTimingEaseOut;
+    SKAction *fadeInAction = [SKAction fadeAlphaTo:1.f duration:kConstantTime * random];
+    fadeInAction.timingMode = SKActionTimingEaseOut;
+    SKAction *growFadeInGroup = [SKAction group:@[growAction, fadeInAction]];
+    
     SKAction *completeAction = [SKAction runBlock:^{
       dyadmino.zPosition = kZPositionBoardRestingDyadmino;
     }];
-    SKAction *sequence = [SKAction sequence:@[growAction, completeAction]];
+    SKAction *sequence = [SKAction sequence:@[growFadeInGroup, completeAction]];
     dyadmino.hidden = NO;
     dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
     [dyadmino removeActionForKey:@"replayGrow"];

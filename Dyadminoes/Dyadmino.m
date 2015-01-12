@@ -193,7 +193,10 @@
   NSInteger currentOrientation = self.orientation;
   DyadminoOrientation shouldBeOrientation;
   
-  switch (snapNode.snapPointType) {
+    // if no snap node, just establish arbirary board one
+  SnapPointType snapPointType = snapNode ? snapNode.snapPointType : kSnapPointBoardTwelveOClock;
+  
+  switch (snapPointType) {
     case kSnapPointRack:
       shouldBeOrientation = (currentOrientation <= 1 || currentOrientation >= 5) ? 0 : 3;
       break;
@@ -202,7 +205,7 @@
       break;
   }
   
-  NSLog(@"self.orientation now is %i, shouldbe %i, temp return %i", self.orientation, shouldBeOrientation, self.tempReturnOrientation);
+//  NSLog(@"self.orientation now is %i, shouldbe %i, temp return %i", self.orientation, shouldBeOrientation, self.tempReturnOrientation);
   
   if (animate) {
     if (self.orientation != shouldBeOrientation) {
@@ -218,7 +221,7 @@
   } else {
     self.orientation = shouldBeOrientation;
     [self selectAndPositionSpritesZRotation:0.f];
-    NSLog(@"orient by snap node");
+//    NSLog(@"orient by snap node");
   }
 }
 
