@@ -569,7 +569,7 @@
       // update cells
     [self updateCellsForPlacedDyadmino:dyadmino andColour:YES];
     dyadmino.position = dyadmino.homeNode.position;
-    [dyadmino orientBySnapNode:dyadmino.homeNode];
+    [dyadmino orientBySnapNode:dyadmino.homeNode animate:NO];
     [dyadmino selectAndPositionSpritesZRotation:0.f];
     if (!dyadmino.parent) {
       [_boardField addChild:dyadmino];
@@ -682,14 +682,14 @@
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location {
   
   if (_hoveringDyadmino) {
-    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+    [self sendDyadminoHome:_hoveringDyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
   }
   
     // kludge way to fix issue with pinch cancelling touched dyadmino that has not yet been assigned as hovering dyadmino
   if (_touchedDyadmino) {
     Dyadmino *dyadmino = _touchedDyadmino;
     _touchedDyadmino = nil;
-    [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+    [self sendDyadminoHome:dyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
   }
   
     // sceneVC sends Y upside down
@@ -948,11 +948,11 @@
     if (_recentRackDyadmino && _touchedDyadmino != _recentRackDyadmino) {
       
       [self changeColoursAroundDyadmino:_recentRackDyadmino withSign:-1];
-      [self sendDyadminoHome:_recentRackDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_recentRackDyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
       
         // or same thing with hovering dyadmino (it will only ever be one or the other)
     } else if (_hoveringDyadmino && _touchedDyadmino != _hoveringDyadmino) {
-      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_hoveringDyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
     }
     
       // buttons updated once
@@ -1166,24 +1166,10 @@
       // board dyadmino sends recent rack dyadmino home upon touch
       // rack dyadmino will do so upon move out of rack
       // (this needs to come before legal chords are checked, so that its placement on board is included)
-    (_hoveringDyadmino && [dyadmino isOnBoard]) ? [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES] : nil;
+    if (_hoveringDyadmino && [dyadmino isOnBoard]) {
+      [self sendDyadminoHome:_hoveringDyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
+    }
   }
-  
-    // if it belongs on the board, get the chords that it's a part of
-    // this is the only place where self.boardDyadminoBelongsInTheseLegalChords is established
-    // this particular formation does not care about recent rack dyadmino
-//  if ([dyadmino belongsOnBoard] && dyadmino != _hoveringDyadmino) {
-//    NSSet *formationOfSonorities = [self.myMatch sonoritiesFromPlacingDyadminoID:dyadmino.myID onBottomHexCoord:dyadmino.homeNode.myCell.hexCoord withOrientation:dyadmino.orientation];
-//    
-//    NSSet *legalChordSonoritiesFormed = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
-//    
-//    if (!legalChordSonoritiesFormed) {
-//      NSLog(@"Board dyadmino should form at least one legal chord.");
-//      abort();
-//    } else {
-//      self.legalChordsForHoveringBoardDyadmino = legalChordSonoritiesFormed;
-//    }
-//  }
   
   [dyadmino isOnBoard] ? [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino != _hoveringDyadmino && !dyadmino.isRotating)] : nil;
   
@@ -1256,7 +1242,7 @@
         [dyadmino animateFlip];
         
       } else {
-        [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES
+        [self sendDyadminoHome:dyadmino byPoppingInForUndo:NO andSounding:YES
             andUpdatingBoardBounds:(dyadmino == _recentRackDyadmino)];
           // just settles into rack or swap
         [self updateTopBarButtons];
@@ -1274,7 +1260,7 @@
           // moved colorBlendFactor reset here to dyadmino's goHomeToRack method
       }
       
-      [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:dyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
       
         // or if dyadmino is in rack but belongs on board (this seems to work)
     } else if ([dyadmino belongsOnBoard] && [dyadmino isInRack]) {
@@ -1282,7 +1268,7 @@
       [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
       dyadmino.position = [_boardField getOffsetFromPoint:dyadmino.position];
       [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:dyadmino.position];
-      [self sendDyadminoHome:dyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:dyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
       
         // otherwise, prepare it for hover
     } else {
@@ -1317,7 +1303,7 @@
   }
 }
 
--(void)sendDyadminoHome:(Dyadmino *)dyadmino fromUndo:(BOOL)undo byPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding andUpdatingBoardBounds:(BOOL)updateBoardBounds {
+-(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingInForUndo:(BOOL)popInForUndo andSounding:(BOOL)sounding andUpdatingBoardBounds:(BOOL)updateBoardBounds {
   
   if (dyadmino != _touchedDyadmino) {
     [self.myDelegate fadeChordMessage];
@@ -1326,14 +1312,14 @@
   dyadmino.canFlip = NO;
   
       // reposition if dyadmino is rack dyadmino
-  if (dyadmino.parent == _boardField && ([dyadmino belongsInRack] || undo)) {
+  if (dyadmino.parent == _boardField && ([dyadmino belongsInRack] || popInForUndo)) {
     CGPoint newPosition = [self addToThisPoint:dyadmino.position thisPoint:_boardField.position];
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
     dyadmino.position = newPosition;
   }
   
     // otherwise it's a hovering dyadmino
-  [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino == _recentRackDyadmino || undo)];
+  [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino == _recentRackDyadmino || popInForUndo)];
   
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
@@ -1345,17 +1331,13 @@
   [dyadmino endTouchThenHoverResize];
     // this makes nil tempBoardNode
   
-  if ([dyadmino belongsInRack] && !undo) {
+  if ([dyadmino belongsInRack]) {
     _uponTouchDyadminoNode = nil;
-    [dyadmino goHomeToRackByPoppingIn:poppingIn andSounding:sounding fromUndo:NO withResize:_boardZoomedOut];
-    
-  } else if (undo) {
-    _uponTouchDyadminoNode = nil;
-    [dyadmino goHomeToRackByPoppingIn:poppingIn andSounding:sounding fromUndo:YES withResize:_boardZoomedOut];
+    [dyadmino goHomeToRackByPoppingInForUndo:popInForUndo andSounding:sounding withResize:_boardZoomedOut];
     
   } else {
     dyadmino.tempBoardNode = dyadmino.homeNode;
-    [dyadmino goHomeToBoardByPoppingIn:poppingIn andSounding:sounding];
+    [dyadmino goHomeToBoardByPoppingIn:popInForUndo andSounding:sounding];
   }
 
     // make nil all pointers
@@ -1376,15 +1358,8 @@
       self.legalChordsForHoveringBoardDyadmino = nil;
     }
   }
-  
-    // this ensures that dyadmino is properly oriented and positioned before
-    // re-updating the cells of its original home node
+
   if ([dyadmino belongsOnBoard]) {
-    dyadmino.orientation = dyadmino.tempReturnOrientation;
-    
-      // TODO: not sure why colour was set to no before
-      // but I set it to yes and now it seems to be fine.
-      // keeping this comment here for now just to make absolute sure
     [self updateCellsForPlacedDyadmino:dyadmino andColour:YES];
   }
   
@@ -1395,7 +1370,7 @@
     // if there's a recent rack dyadmino, send home recentRack dyadmino
   if (_recentRackDyadmino) {
     [self changeColoursAroundDyadmino:_recentRackDyadmino withSign:-1];
-    [self sendDyadminoHome:_recentRackDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+    [self sendDyadminoHome:_recentRackDyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
   }
   
     // buttons updated once
@@ -1421,6 +1396,7 @@
   
   if (!pivotChanged) {
     [dyadmino zRotateToAngle:dyadminoAngle];
+    NSLog(@"zrotate called by handle pivot of guides");
   }
 }
 
@@ -1500,11 +1476,11 @@
       
         // else send dyadmino home
     } else if (_hoveringDyadmino) {
-      [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_hoveringDyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
 
         // recent rack dyadmino is sent home
     } else if (_recentRackDyadmino) {
-      [self sendDyadminoHome:_recentRackDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+      [self sendDyadminoHome:_recentRackDyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
     }
     
       /// reset button
@@ -1616,7 +1592,7 @@
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
       [dyadmino placeInBelongsInSwap:NO];
-      [dyadmino goHomeToRackByPoppingIn:NO andSounding:NO fromUndo:NO withResize:NO];
+      [dyadmino goHomeToRackByPoppingInForUndo:NO andSounding:NO withResize:NO];
     }
   }
 }
@@ -1752,7 +1728,6 @@
       // recalibrate undone dyadmino
     Dyadmino *undoneDyadmino = [self getDyadminoFromDataDyadmino:undoneDataDyadmino];
     undoneDyadmino.tempReturnOrientation = [undoneDataDyadmino returnMyOrientation];
-    undoneDyadmino.orientation = [undoneDataDyadmino returnMyOrientation];
     undoneDyadmino.homeNode = nil;
     
       // re-add dyadmino to player rack, remove from scene board, refresh chords
@@ -1762,7 +1737,7 @@
     [self recordChangedDataForRackDyadminoes:self.playerRackDyadminoes];
     
       // take care of views
-    [self sendDyadminoHome:undoneDyadmino fromUndo:YES byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES];
+    [self sendDyadminoHome:undoneDyadmino byPoppingInForUndo:YES andSounding:NO andUpdatingBoardBounds:YES];
   }
 }
 
@@ -2551,7 +2526,7 @@
     // technically, this will never actually get called
     // because replay button is not highlighted when dyadmino is hovering
   if (_hoveringDyadmino) {
-    [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+    [self sendDyadminoHome:_hoveringDyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
   }
   
     // cells will toggle faster than replayBars moves
@@ -3281,6 +3256,7 @@
   dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
   [dyadmino runAction:sequenceAction withKey:@"replayAction"];
   [dyadmino selectAndPositionSpritesZRotation:0.f];
+  NSLog(@"animate reposition cell agnostic dyadmino");
 }
 
 -(void)animateScaleForReplayOfDyadmino:(Dyadmino *)dyadmino toShrink:(BOOL)shrink {
@@ -3445,7 +3421,7 @@
         [self finishHoveringAfterCheckDyadmino:_hoveringDyadmino];
         
       } else if ([buttonText isEqualToString:@"Cancel"]) {
-        [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:NO andSounding:YES andUpdatingBoardBounds:YES];
+        [self sendDyadminoHome:_hoveringDyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
       }
       _tempChordSonoritiesFromMovedBoardDyadmino = nil;
       break;
@@ -3531,7 +3507,9 @@
 
 -(void)toggleDebugMode {
   
-  _hoveringDyadmino ? [self sendDyadminoHome:_hoveringDyadmino fromUndo:NO byPoppingIn:YES andSounding:NO andUpdatingBoardBounds:YES] : nil;
+  if (_hoveringDyadmino) {
+    [self sendDyadminoHome:_hoveringDyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
+  }
   
 //  for (Label *rackLabel in _topBar.playerRackLabels) {
 //    [_topBar node:rackLabel shouldBeEnabled:_debugMode];

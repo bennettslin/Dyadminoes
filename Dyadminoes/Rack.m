@@ -109,7 +109,7 @@
       dyadmino.position = CGPointMake(self.size.width + self.xIncrementInRack, shouldBePosition.y);
       dyadmino.zPosition = kZPositionRackRestingDyadmino;
       [self addChild:dyadmino];
-      [dyadmino orientBySnapNode:dyadmino.homeNode];
+      [dyadmino orientBySnapNode:dyadmino.homeNode animate:animation];
     }
     
     if (animation) {

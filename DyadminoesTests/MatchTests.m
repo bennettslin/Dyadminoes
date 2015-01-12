@@ -1288,7 +1288,7 @@
   }
 }
 
-#pragma mark - sonority collection tests
+#pragma mark - sonority tests
 
 -(void)testCollectionOfSonorities {
   
@@ -1311,6 +1311,10 @@
   
   
   XCTFail(@"Did not properly collect sonorities from placing dyadmino.");
+}
+
+-(void)testThatBrokenChordIsReturnedBeforeAnyOtherError {
+  XCTFail();
 }
 
 -(void)testStrandedDyadminoMethod {

@@ -91,14 +91,12 @@
                      andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite
                      andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite;
 
-//-(void)randomiseRackOrientation;
-
 -(void)resetForNewMatch;
 
 #pragma mark - orient, position, and size methods
 
 -(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle;
--(void)orientBySnapNode:(SnapPoint *)snapNode;
+-(void)orientBySnapNode:(SnapPoint *)snapNode animate:(BOOL)animate;
 -(CGPoint)getHomeNodePositionConsideringSwap;
 -(void)correctZRotationAfterHover;
 
@@ -111,14 +109,10 @@
 -(void)highlightBoardDyadminoWithColour:(UIColor *)colour;
 -(void)adjustHighlightGivenDyadminoOffsetPosition:(CGPoint)dyadminoOffsetPosition;
 
-#pragma mark - change view methods
-
-//-(void)goToTempBoardNodeBySounding:(BOOL)sounding;
-
 #pragma mark - animate placement methods
 
 -(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
--(void)goHomeToRackByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding fromUndo:(BOOL)undo withResize:(BOOL)resize;
+-(void)goHomeToRackByPoppingInForUndo:(BOOL)popInForUndo andSounding:(BOOL)sounding withResize:(BOOL)resize;
 -(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding;
 
 -(void)animateEaseIntoNodeAfterHover;
