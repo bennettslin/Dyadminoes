@@ -355,27 +355,13 @@
 }
 
 -(void)testSonorityIsSubsetOfSonorityMethod {
-    // see if method can be simplified with isEqual
   
     // test 50 times
     // test when sonorities have no notes in common
-  for (int i = 0; i < 50; i++){
+  for (int i = 0; i < 50; i++) {
   
     NSSet *set1 = [self randomSonority];
-    NSSet *set2;
-
-    while (!set2) {
-      NSSet *trialSet2 = [self randomSonority];
-      
-      BOOL noCommonNote = YES;
-      for (NSDictionary *note in trialSet2) {
-        if ([set1 containsObject:note]) {
-          noCommonNote = NO;
-        }
-      }
-      
-      set2 = noCommonNote ? trialSet2 : nil;
-    }
+    NSSet *set2 = [self randomSonorityThatIsNotSonority:set1];
   
     XCTAssertFalse([self.sonorityLogic sonority:set1 is:kSubset ofSonority:set2], @"Failed to see that sonorities have no notes in common.");
   }
@@ -384,26 +370,7 @@
   for (int i = 0; i < 50; i++) {
     
     NSSet *set1 = [self randomLegalChord];
-    NSSet *set2;
-    
-      // set1 is triad, add note
-    if (set1.count == 3) {
-      NSMutableSet *tempSet = [NSMutableSet setWithSet:set1];
-      
-      while (!set2 || set2.count < 4) {
-        NSUInteger pc = arc4random() % 12;
-        NSUInteger dyadmino = arc4random() % 10; // ten dyadminoes, to make it easier
-        NSDictionary *note = @{@"pc":@(pc), @"dyadmino": @(dyadmino)};
-        [tempSet addObject:note];
-        set2 = [NSSet setWithSet:tempSet];
-      }
-      
-        // set1 is seventh, subtract note
-    } else {
-      NSMutableSet *tempSet = [NSMutableSet setWithSet:set1];
-      [tempSet removeObject:[tempSet anyObject]];
-      set2 = [NSSet setWithSet:tempSet];
-    }
+    NSSet *set2 = [self randomSonorityThatIsSubsetOrSupersetOfRandomSonority:set1];
     
       // make set1 the smaller one no matter what
     if (set1.count > set2.count) {
@@ -414,6 +381,7 @@
 
     XCTAssertTrue([self.sonorityLogic sonority:set1 is:kSubset ofSonority:set2], @"Smaller sonority not recognised as subset of larger one.");
 
+      // additionally, test when an extra note is added to the smaller sonority
     NSMutableSet *tempSet1 = [NSMutableSet setWithSet:set1];
     while (set1.count < set2.count) {
     
@@ -427,8 +395,17 @@
       }
     }
     
-//    NSLog(@"set1 is %@, set2 is %@", set1, set2);
     XCTAssertFalse([self.sonorityLogic sonority:set1 is:kSubset ofSonority:set2], @"Failed to see that sonority is not subset despite some notes in common, because it also has extra notes not found in other sonority.");
+  }
+  
+    // test 50 times
+    // test when sonorities are equal
+  for (int i = 0; i < 50; i++){
+    
+    NSSet *set1 = [self randomSonority];
+    NSSet *set2 = [NSSet setWithSet:set1];
+    
+    XCTAssertTrue([self.sonorityLogic sonority:set1 is:kSubset ofSonority:set2], @"Failed to see that sonorities are equal.");
   }
 }
 
@@ -445,15 +422,536 @@
   }
 }
 
+-(void)testSonorityIsEqualToSonorityMethod {
+    // same methods as subset test
+  
+    // test 50 times
+    // test when sonorities have no notes in common
+  for (int i = 0; i < 50; i++) {
+    
+    NSSet *set1 = [self randomSonority];
+    NSSet *set2 = [self randomSonorityThatIsNotSonority:set1];
+    
+    XCTAssertFalse([self.sonorityLogic sonority:set1 is:kEqual ofSonority:set2], @"Failed to see that sonorities have no notes in common.");
+  }
+  
+    // test 50 times
+  for (int i = 0; i < 50; i++) {
+    
+    NSSet *set1 = [self randomLegalChord];
+    NSSet *set2 = [self randomSonorityThatIsSubsetOrSupersetOfRandomSonority:set1];
+    
+    XCTAssertFalse([self.sonorityLogic sonority:set1 is:kEqual ofSonority:set2], @"One sonority that is a subset of another should not be equal.");
+  }
+  
+    // test 50 times
+    // test when sonorities are equal
+  for (int i = 0; i < 50; i++){
+    
+    NSSet *set1 = [self randomSonority];
+    NSSet *set2 = [NSSet setWithSet:set1];
+    
+    XCTAssertTrue([self.sonorityLogic sonority:set1 is:kEqual ofSonority:set2], @"Failed to see that sonorities are equal.");
+  }
+}
+
+-(void)testSonoritiesIsSubsetOfSonoritiesMethod {
+
+    // test 1000 times
+  for (int i = 0; i < 1000; i++) {
+    
+    NSMutableSet *subsetSet = [NSMutableSet new];
+    NSMutableSet *supersetSet = [NSMutableSet new];
+    
+      // varies from 1 to 5
+    NSUInteger numberInSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberInSet; i++) {
+        // first add equal sonorities
+
+      BOOL addedSonority = NO;
+      while (!addedSonority) {
+        NSSet *randomSonority = [self randomSonority];
+        if (![self sonorities:subsetSet containsSonority:randomSonority] &&
+            ![self sonorities:supersetSet containsSonority:randomSonority]) {
+          
+          [subsetSet addObject:randomSonority];
+          [supersetSet addObject:randomSonority];
+          addedSonority = YES;
+        }
+      }
+    }
+    
+    XCTAssertTrue([self.sonorityLogic sonorities:subsetSet is:kSubset ofSonorities:supersetSet], @"Failed to see that if sets are equal, then one is also subset of another.");
+    
+      // varies from 1 to 5
+    NSUInteger randomNumberOfSubsets = (arc4random() % 5) + 1;
+    for (int i = 0; i < randomNumberOfSubsets; i++) {
+      // add at least one pair of subset and superset sonorities
+      
+      BOOL addedSonority = NO;
+      while (!addedSonority) {
+        NSSet *sonority = [self randomLegalChord];
+        NSSet *otherSonority = [self randomSonorityThatIsSubsetOrSupersetOfRandomSonority:sonority];
+        NSSet *smallerSonority = (sonority.count == 3) ? sonority : otherSonority;
+        NSSet *largerSonority = (sonority.count == 3) ? otherSonority : sonority;
+        
+        if (![self sonorities:subsetSet containsSonority:smallerSonority] &&
+            ![self sonorities:supersetSet containsSonority:largerSonority]) {
+          
+          [subsetSet addObject:smallerSonority];
+          [supersetSet addObject:largerSonority];
+          addedSonority = YES;
+        }
+      }
+    }
+    
+    XCTAssertTrue([self.sonorityLogic sonorities:subsetSet is:kSubset ofSonorities:supersetSet], @"Failed to see that one set of sonorities is a subset of another, with a sonority in the one being a subset of a sonority in the other, and the rest being equal, with equal counts.");
+
+    XCTAssertFalse([self.sonorityLogic sonorities:supersetSet is:kSubset ofSonorities:subsetSet], @"Failed to see that one set of sonorities is not a subset of another, with a sonority in the one being a superset of a sonority in the other, and the rest being equal, with equal counts.");
+    
+      // test adding extra sonority to superset
+    NSMutableSet *tempSupersetSet = [NSMutableSet setWithSet:supersetSet];
+    BOOL addedSonorityToSuperset = NO;
+    while (!addedSonorityToSuperset) {
+      NSSet *randomSonority = [self randomSonority];
+      if (![self sonorities:supersetSet containsSonority:randomSonority] &&
+          ![self sonorities:subsetSet containsSubsetOfSonority:randomSonority]) {
+
+        [tempSupersetSet addObject:randomSonority];
+        addedSonorityToSuperset = YES;
+      }
+    }
+    
+    XCTAssertTrue([self.sonorityLogic sonorities:subsetSet is:kSubset ofSonorities:tempSupersetSet], @"Failed to see that one set of sonorities is subset of another, with a sonority in the one being a subset of a sonority in the other, with the superset set having an extra sonority.");
+
+      // test adding extra sonority to subset
+    BOOL addedSonorityToSubset = NO;
+    while (!addedSonorityToSubset) {
+      NSSet *randomSonority = [self randomSonority];
+      if (![self sonorities:subsetSet containsSonority:randomSonority] &&
+          ![self sonorities:supersetSet containsSupersetOfSonority:randomSonority]) {
+        
+        [subsetSet addObject:randomSonority];
+        addedSonorityToSubset = YES;
+      }
+    }
+    
+    XCTAssertFalse([self.sonorityLogic sonorities:subsetSet is:kSubset ofSonorities:supersetSet], @"Failed to see that the subset set is not a subset of the superset set, once it has an extra sonority.");
+  }
+}
+
+-(void)testSonoritiesIsEqualToSonoritiesMethod {
+  
+    // test 1000 times
+  for (int i = 0; i < 1000; i++) {
+    
+    NSMutableSet *subsetSet = [NSMutableSet new];
+    NSMutableSet *supersetSet = [NSMutableSet new];
+    
+      // varies from 1 to 5
+    NSUInteger numberInSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberInSet; i++) {
+        // first add equal sonorities
+      
+      BOOL addedSonority = NO;
+      while (!addedSonority) {
+        NSSet *randomSonority = [self randomSonority];
+        if (![self sonorities:subsetSet containsSonority:randomSonority] &&
+            ![self sonorities:supersetSet containsSonority:randomSonority]) {
+          
+          [subsetSet addObject:randomSonority];
+          [supersetSet addObject:randomSonority];
+          addedSonority = YES;
+        }
+      }
+    }
+    
+    XCTAssertTrue([self.sonorityLogic sonorities:subsetSet is:kEqual ofSonorities:supersetSet], @"Failed to see that sets are equal.");
+    
+      // varies from 1 to 5
+    NSUInteger randomNumberOfSubsets = (arc4random() % 5) + 1;
+    for (int i = 0; i < randomNumberOfSubsets; i++) {
+        // add at least one pair of subset and superset sonorities
+      
+      BOOL addedSonority = NO;
+      while (!addedSonority) {
+        NSSet *sonority = [self randomLegalChord];
+        NSSet *otherSonority = [self randomSonorityThatIsSubsetOrSupersetOfRandomSonority:sonority];
+        NSSet *smallerSonority = (sonority.count == 3) ? sonority : otherSonority;
+        NSSet *largerSonority = (sonority.count == 3) ? otherSonority : sonority;
+        
+        if (![self sonorities:subsetSet containsSonority:smallerSonority] &&
+            ![self sonorities:supersetSet containsSonority:largerSonority]) {
+          
+          [subsetSet addObject:smallerSonority];
+          [supersetSet addObject:largerSonority];
+          addedSonority = YES;
+        }
+      }
+    }
+    
+    XCTAssertFalse([self.sonorityLogic sonorities:subsetSet is:kEqual ofSonorities:supersetSet], @"Failed to see that one set of sonorities is not equal to another, with a sonority in the one being a subset of a sonority in the other, and the rest being equal, with equal counts.");
+    
+    XCTAssertFalse([self.sonorityLogic sonorities:supersetSet is:kEqual ofSonorities:subsetSet], @"Failed to see that one set of sonorities is not equal to another, with a sonority in the one being a superset of a sonority in the other, and the rest being equal, with equal counts.");
+    
+      // test adding extra sonority to superset
+    NSMutableSet *tempSupersetSet = [NSMutableSet setWithSet:supersetSet];
+    BOOL addedSonorityToSuperset = NO;
+    while (!addedSonorityToSuperset) {
+      NSSet *randomSonority = [self randomSonority];
+      if (![self sonorities:supersetSet containsSonority:randomSonority] &&
+          ![self sonorities:subsetSet containsSubsetOfSonority:randomSonority]) {
+        
+        [tempSupersetSet addObject:randomSonority];
+        addedSonorityToSuperset = YES;
+      }
+    }
+    
+    XCTAssertFalse([self.sonorityLogic sonorities:subsetSet is:kEqual ofSonorities:tempSupersetSet], @"Failed to see that one set of sonorities is not equal to another, with a sonority in the one being a subset of a sonority in the other, with the superset set having an extra sonority.");
+    
+      // test adding extra sonority to subset
+    BOOL addedSonorityToSubset = NO;
+    while (!addedSonorityToSubset) {
+      NSSet *randomSonority = [self randomSonority];
+      if (![self sonorities:subsetSet containsSonority:randomSonority] &&
+          ![self sonorities:supersetSet containsSupersetOfSonority:randomSonority]) {
+        
+        [subsetSet addObject:randomSonority];
+        addedSonorityToSubset = YES;
+      }
+    }
+    
+    XCTAssertFalse([self.sonorityLogic sonorities:subsetSet is:kEqual ofSonorities:supersetSet], @"Failed to see that the subset set is not equal to the superset set, when it has an extra sonority.");
+  }
+}
+
+-(void)testLegalChordsThatExtendALegalChordInLegalChordsMethod {
+  
+    // test 1000 times
+  for (int i = 0; i < 1000; i++) {
+    
+    NSMutableSet *subsetSet = [NSMutableSet new];
+    NSMutableSet *supersetSet = [NSMutableSet new];
+    
+      // varies from 1 to 5
+      // equal sonorities in both sets
+    NSUInteger numberOfEqualInSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberOfEqualInSet; i++) {
+      
+      BOOL addedLegalChord = NO;
+      while (!addedLegalChord) {
+        NSSet *randomLegalChord = [self randomLegalChord];
+        if (![self sonorities:subsetSet containsSonority:randomLegalChord] &&
+            ![self sonorities:supersetSet containsSonority:randomLegalChord]) {
+          
+          [subsetSet addObject:randomLegalChord];
+          [supersetSet addObject:randomLegalChord];
+          addedLegalChord = YES;
+        }
+      }
+    }
+    
+      // varies from 1 to 5
+      // add at least one pair of subset and superset sonorities
+    NSMutableSet *expectedExtendingLegalChordsInSuperset = [NSMutableSet new];
+    
+    NSUInteger randomNumberOfSubsets = (arc4random() % 5) + 1;
+    for (int i = 0; i < randomNumberOfSubsets; i++) {
+      
+      BOOL addedLegalChord = NO;
+      while (!addedLegalChord) {
+        NSSet *legalChord = [self randomLegalChord];
+        NSSet *otherLegalChord = [self randomSonorityThatIsSubsetOrSupersetOfRandomSonority:legalChord];
+        NSSet *smallerLegalChord = (legalChord.count == 3) ? legalChord : otherLegalChord;
+        NSSet *largerLegalChord = (legalChord.count == 3) ? otherLegalChord : legalChord;
+        
+        if (![self sonorities:subsetSet containsSonority:smallerLegalChord] &&
+            ![self sonorities:subsetSet containsSubsetOfSonority:largerLegalChord] &&
+            ![self sonorities:supersetSet containsSupersetOfSonority:smallerLegalChord] &&
+            ![self sonorities:supersetSet containsSonority:largerLegalChord]) {
+          
+          [subsetSet addObject:smallerLegalChord];
+          [supersetSet addObject:largerLegalChord];
+          
+          [expectedExtendingLegalChordsInSuperset addObject:largerLegalChord];
+          addedLegalChord = YES;
+        }
+      }
+    }
+    
+    NSSet *returnedLegalChords = [self.sonorityLogic legalChords:supersetSet thatExtendALegalChordInLegalChords:subsetSet];
+    
+      // not sure why test breaks with large numbers such as 10,000
+//    if (![self.sonorityLogic sonorities:expectedExtendingLegalChordsInSuperset is:kEqual ofSonorities:returnedLegalChords]) {
+//      NSLog(@"superset set");
+//      [self logSonorities:supersetSet];
+//      NSLog(@"subset set");
+//      [self logSonorities:subsetSet];
+//      NSLog(@"expected set");
+//      [self logSonorities:expectedExtendingLegalChordsInSuperset];
+//      NSLog(@"returned set");
+//      [self logSonorities:returnedLegalChords];
+//    }
+    
+    XCTAssertTrue([self.sonorityLogic sonorities:expectedExtendingLegalChordsInSuperset is:kEqual ofSonorities:returnedLegalChords], @"Did not return all and only extending legal chords.");
+  }
+}
+
+-(void)testLegalChordsThatAreCompletelyNotFoundInLegalChordsMethod {
+  
+    // test 1000 times
+  for (int i = 0; i < 1000; i++) {
+    
+    NSMutableSet *subsetSet = [NSMutableSet new];
+    NSMutableSet *supersetSet = [NSMutableSet new];
+    
+      // varies from 1 to 5
+      // equal sonorities in both sets
+    NSUInteger numberOfEqualInSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberOfEqualInSet; i++) {
+      
+      BOOL addedLegalChord = NO;
+      while (!addedLegalChord) {
+        NSSet *randomLegalChord = [self randomLegalChord];
+        if (![self sonorities:subsetSet containsSonority:randomLegalChord] &&
+            ![self sonorities:supersetSet containsSonority:randomLegalChord]) {
+          
+          [subsetSet addObject:randomLegalChord];
+          [supersetSet addObject:randomLegalChord];
+          addedLegalChord = YES;
+        }
+      }
+    }
+    
+      // varies from 1 to 5
+      // random legal chords in subset set
+    NSMutableSet *expectedNewLegalChordsInSuperset = [NSMutableSet new];
+    
+    NSUInteger numberOfRandomInSupersetSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberOfRandomInSupersetSet; i++) {
+      
+      BOOL addedLegalChord = NO;
+      while (!addedLegalChord) {
+        NSSet *randomLegalChord = [self randomLegalChord];
+        if (![self sonorities:subsetSet containsSubsetOfSonority:randomLegalChord] &&
+            ![self sonorities:supersetSet containsSonority:randomLegalChord]) {
+          
+          [supersetSet addObject:randomLegalChord];
+          [expectedNewLegalChordsInSuperset addObject:randomLegalChord];
+          addedLegalChord = YES;
+        }
+      }
+    }
+    
+    NSSet *returnedLegalChords = [self.sonorityLogic legalChords:supersetSet thatAreCompletelyNotFoundInLegalChords:subsetSet];
+    XCTAssertTrue([self.sonorityLogic sonorities:expectedNewLegalChordsInSuperset is:kEqual ofSonorities:returnedLegalChords], @"Did not return all and only completely new legal chords.");
+  }
+}
+
+-(void)testLegalChordsThatAreEitherNewOrExtendingRelativeToLegalChordsMethod {
+  
+    // test 1000 times
+  for (int i = 0; i < 1000; i++) {
+    
+    NSMutableSet *subsetSet = [NSMutableSet new];
+    NSMutableSet *supersetSet = [NSMutableSet new];
+    
+      // varies from 1 to 5
+      // equal sonorities in both sets
+    NSUInteger numberOfEqualInSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberOfEqualInSet; i++) {
+      
+      BOOL addedLegalChord = NO;
+      while (!addedLegalChord) {
+        NSSet *randomLegalChord = [self randomLegalChord];
+        if (![self sonorities:subsetSet containsSonority:randomLegalChord] &&
+            ![self sonorities:supersetSet containsSonority:randomLegalChord]) {
+          
+          [subsetSet addObject:randomLegalChord];
+          [supersetSet addObject:randomLegalChord];
+          addedLegalChord = YES;
+        }
+      }
+    }
+    
+      // varies from 1 to 5
+      // random legal chords in subset set
+    NSMutableSet *expectedNewOrExtendingLegalChordsInSuperset = [NSMutableSet new];
+    
+    NSUInteger numberOfRandomInSupersetSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberOfRandomInSupersetSet; i++) {
+      
+      BOOL addedLegalChord = NO;
+      while (!addedLegalChord) {
+        NSSet *randomLegalChord = [self randomLegalChord];
+        if (![self sonorities:subsetSet containsSubsetOfSonority:randomLegalChord] &&
+            ![self sonorities:supersetSet containsSonority:randomLegalChord]) {
+          
+          [supersetSet addObject:randomLegalChord];
+          [expectedNewOrExtendingLegalChordsInSuperset addObject:randomLegalChord];
+          addedLegalChord = YES;
+        }
+      }
+    }
+    
+      // varies from 1 to 5
+      // add at least one pair of subset and superset sonorities
+    NSUInteger randomNumberOfSubsets = (arc4random() % 5) + 1;
+    for (int i = 0; i < randomNumberOfSubsets; i++) {
+      
+      BOOL addedLegalChord = NO;
+      while (!addedLegalChord) {
+        NSSet *legalChord = [self randomLegalChord];
+        NSSet *otherLegalChord = [self randomSonorityThatIsSubsetOrSupersetOfRandomSonority:legalChord];
+        NSSet *smallerLegalChord = (legalChord.count == 3) ? legalChord : otherLegalChord;
+        NSSet *largerLegalChord = (legalChord.count == 3) ? otherLegalChord : legalChord;
+        
+        if (![self sonorities:subsetSet containsSonority:smallerLegalChord] &&
+            ![self sonorities:subsetSet containsSubsetOfSonority:largerLegalChord] &&
+            ![self sonorities:supersetSet containsSupersetOfSonority:smallerLegalChord] &&
+            ![self sonorities:supersetSet containsSonority:largerLegalChord]) {
+          
+          [subsetSet addObject:smallerLegalChord];
+          [supersetSet addObject:largerLegalChord];
+          
+          [expectedNewOrExtendingLegalChordsInSuperset addObject:largerLegalChord];
+          addedLegalChord = YES;
+        }
+      }
+    }
+    
+    NSSet *returnedLegalChords = [self.sonorityLogic legalChords:supersetSet thatAreEitherNewOrExtendingRelativeToLegalChords:subsetSet];
+    XCTAssertTrue([self.sonorityLogic sonorities:expectedNewOrExtendingLegalChordsInSuperset is:kEqual ofSonorities:returnedLegalChords], @"Did not return all and only completely new or extending legal chords.");
+  }
+}
+
+-(void)testLegalChordSonoritiesFromFormationOfSonoritiesMethod {
+  
+    // test 1000 times
+  for (int i = 0; i < 1000; i++) {
+    NSMutableSet *tempFormationsSet = [NSMutableSet new];
+    NSMutableSet *expectedLegalChords = [NSMutableSet new];
+    NSUInteger numberInFormationsSet = (arc4random() % 5) + 1;
+    
+    for (int i = 0; i < numberInFormationsSet; i++) {
+      
+      BOOL illegalChordAdded = NO;
+      while (!illegalChordAdded) {
+        NSSet *randomIllegalChord = [self randomIllegalChord];
+        if (![self sonorities:tempFormationsSet containsSonority:randomIllegalChord]) {
+          [tempFormationsSet addObject:randomIllegalChord];
+          illegalChordAdded = YES;
+        }
+      }
+
+      BOOL legalChordAdded = NO;
+      while (!legalChordAdded) {
+        NSSet *randomLegalChord = [self randomLegalChord];
+        if (![self sonorities:tempFormationsSet containsSonority:randomLegalChord]) {
+          [tempFormationsSet addObject:randomLegalChord];
+          [expectedLegalChords addObject:randomLegalChord];
+          legalChordAdded = YES;
+        }
+      }
+    }
+
+    NSSet *formationsSet = [NSSet setWithSet:tempFormationsSet];
+    NSSet *returnedLegalChords = [self.sonorityLogic legalChordSonoritiesFromFormationOfSonorities:formationsSet];
+    
+    XCTAssertTrue([self.sonorityLogic sonorities:expectedLegalChords is:kEqual ofSonorities:returnedLegalChords], @"Failed to detech all and only legal chords in formation of sonorities.");
+    
+  }
+}
+
+-(void)testCheckIllegalPlacementFromFormationOfSnoritiesMethod {
+
+    // test 100 times
+  for (int i = 0; i < 100; i++) {
+    
+      // just legal chords
+    NSMutableSet *justLegalChordsSet = [NSMutableSet new];
+    NSUInteger numberInJustLegalChordsSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberInJustLegalChordsSet; i++) {
+      [justLegalChordsSet addObject:[self randomLegalChord]];
+    }
+    XCTAssertTrue([self.sonorityLogic checkIllegalPlacementFromFormationOfSonorities:justLegalChordsSet] == kNotIllegal, @"Should return not illegal.");
+
+      // plus excess notes
+    NSMutableSet *excessNotesSet = [NSMutableSet new];
+    NSUInteger numberInExcessNotesSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberInExcessNotesSet; i++) {
+      [excessNotesSet addObject:[self randomExcessSonority]];
+      [excessNotesSet addObject:[self randomLegalChord]];
+    }
+    XCTAssertTrue([self.sonorityLogic checkIllegalPlacementFromFormationOfSonorities:excessNotesSet] == kExcessNotes, @"Should return excess notes error.");
+    
+      // plus double PCs
+    NSMutableSet *doublesSet = [NSMutableSet new];
+    NSUInteger numberInDoublesSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberInDoublesSet; i++) {
+      [doublesSet addObject:[self randomSonorityWithDoublePCs]];
+      [doublesSet addObject:[self randomLegalChord]];
+    }
+    XCTAssertTrue([self.sonorityLogic checkIllegalPlacementFromFormationOfSonorities:doublesSet] == kDoublePCs, @"Should return double PCs error.");
+
+      // plus illegal sonorities
+    NSMutableSet *illegalsSet = [NSMutableSet new];
+    NSUInteger numberInIllegalsSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberInIllegalsSet; i++) {
+      [illegalsSet addObject:[self randomIllegalChord]];
+      [illegalsSet addObject:[self randomLegalChord]];
+    }
+    XCTAssertTrue([self.sonorityLogic checkIllegalPlacementFromFormationOfSonorities:illegalsSet] == kIllegalSonority, @"Should return illegal sonority error.");
+    
+      // excess plus doubles
+    NSMutableSet *excessPlusDoublesSet = [NSMutableSet new];
+    NSUInteger numberInExcessPlusDoublesSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberInExcessPlusDoublesSet; i++) {
+      [excessPlusDoublesSet addObject:[self randomExcessSonority]];
+      [excessPlusDoublesSet addObject:[self randomSonorityWithDoublePCs]];
+      [excessPlusDoublesSet addObject:[self randomLegalChord]];
+    }
+    XCTAssertTrue([self.sonorityLogic checkIllegalPlacementFromFormationOfSonorities:excessPlusDoublesSet] == kExcessNotes, @"Should return excess notes error, not double PCs error.");
+    
+      // excess plus illegals
+    NSMutableSet *excessPlusIllegalsSet = [NSMutableSet new];
+    NSUInteger numberInExcessPlusIllegalsSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberInExcessPlusIllegalsSet; i++) {
+      [excessPlusIllegalsSet addObject:[self randomExcessSonority]];
+      [excessPlusIllegalsSet addObject:[self randomIllegalChord]];
+      [excessPlusIllegalsSet addObject:[self randomLegalChord]];
+    }
+    XCTAssertTrue([self.sonorityLogic checkIllegalPlacementFromFormationOfSonorities:excessPlusIllegalsSet] == kExcessNotes, @"Should return excess notes error, not illegal sonority error.");
+    
+      // doubles plus illegals
+    NSMutableSet *doublesPlusIllegalsSet = [NSMutableSet new];
+    NSUInteger numberInDoublesPlusIllegalsSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberInDoublesPlusIllegalsSet; i++) {
+      [doublesPlusIllegalsSet addObject:[self randomSonorityWithDoublePCs]];
+      [doublesPlusIllegalsSet addObject:[self randomIllegalChord]];
+      [doublesPlusIllegalsSet addObject:[self randomLegalChord]];
+    }
+    XCTAssertTrue([self.sonorityLogic checkIllegalPlacementFromFormationOfSonorities:doublesPlusIllegalsSet] == kDoublePCs, @"Should return double PCs error, not illegal sonority error.");
+    
+      // the whole shebang
+    NSMutableSet *everythingSet = [NSMutableSet new];
+    NSUInteger numberInEverythingSet = (arc4random() % 5) + 1;
+    for (int i = 0; i < numberInEverythingSet; i++) {
+      [everythingSet addObject:[self randomExcessSonority]];
+      [everythingSet addObject:[self randomSonorityWithDoublePCs]];
+      [everythingSet addObject:[self randomIllegalChord]];
+      [everythingSet addObject:[self randomLegalChord]];
+    }
+    XCTAssertTrue([self.sonorityLogic checkIllegalPlacementFromFormationOfSonorities:everythingSet] == kExcessNotes, @"Should return excess notes error, since it is the most egregious violation.");
+  }
+}
+
 -(void)testChordForPersonalPurposes {
   NSSet *chordSonority = [NSSet setWithArray:@[@1, @4, @7]];
   Chord chord = [self.sonorityLogic testChordFromSonorityPlusCheckIncompleteSeventh:chordSonority];
   NSLog(@"chord type is %i", chord.chordType);
   XCTAssertTrue(chord.chordType == kChordDiminishedTriad, @"This chord should be diminished triad!");
 }
-
-  // FIXME: test supersets method
-  // FIXME: test legal chord sonorities from sonorities method
 
 #pragma mark - test helper methods
 
@@ -483,6 +981,53 @@
     [tempSonority addObject:note];
   }
   return [NSSet setWithSet:tempSonority];
+}
+
+-(NSSet *)randomSonorityThatIsNotSonority:(NSSet *)notSonority {
+  NSSet *returnSonority;
+  
+  while (!returnSonority) {
+    NSSet *trialSet2 = [self randomSonority];
+    
+    BOOL noCommonNote = YES;
+    for (NSDictionary *note in trialSet2) {
+      if ([notSonority containsObject:note]) {
+        noCommonNote = NO;
+      }
+    }
+    
+    returnSonority = noCommonNote ? trialSet2 : nil;
+  }
+  
+  return returnSonority;
+}
+
+-(NSSet *)randomSonorityThatIsSubsetOrSupersetOfRandomSonority:(NSSet *)originalSonority {
+    // this method was originally written for legal chords
+    // but it works with any sonorities of three and four
+  
+  NSSet *returnSonority;
+  
+    // if original sonority is triad, then add note
+  if (originalSonority.count == 3) {
+    NSMutableSet *tempSet = [NSMutableSet setWithSet:originalSonority];
+    
+    while (!returnSonority || returnSonority.count < 4) {
+      NSUInteger pc = arc4random() % 12;
+      NSUInteger dyadmino = arc4random() % 10; // ten dyadminoes, to make it easier
+      NSDictionary *note = @{@"pc":@(pc), @"dyadmino": @(dyadmino)};
+      [tempSet addObject:note];
+      returnSonority = [NSSet setWithSet:tempSet];
+    }
+    
+      // if original sonority is seventh, then subtract note
+  } else {
+    NSMutableSet *tempSet = [NSMutableSet setWithSet:originalSonority];
+    [tempSet removeObject:[tempSet anyObject]];
+    returnSonority = [NSSet setWithSet:tempSet];
+  }
+  
+  return returnSonority;
 }
 
 -(NSSet *)randomExcessSonority {
@@ -627,6 +1172,33 @@
     [mutableTransposedChord addObject:[NSNumber numberWithUnsignedInteger:pc]];
   }
   return [NSSet setWithSet:mutableTransposedChord];
+}
+
+-(BOOL)sonorities:(NSSet *)sonorities containsSonority:(NSSet *)sonority {
+  for (NSSet *setSonority in sonorities) {
+    if ([self.sonorityLogic sonority:setSonority is:kEqual ofSonority:sonority]) {
+      return YES;
+    }
+  }
+  return NO;
+}
+
+-(BOOL)sonorities:(NSSet *)sonorities containsSubsetOfSonority:(NSSet *)sonority {
+  for (NSSet *setSonority in sonorities) {
+    if ([self.sonorityLogic sonority:setSonority is:kSubset ofSonority:sonority]) {
+      return YES;
+    }
+  }
+  return NO;
+}
+
+-(BOOL)sonorities:(NSSet *)sonorities containsSupersetOfSonority:(NSSet *)sonority {
+  for (NSSet *setSonority in sonorities) {
+    if ([self.sonorityLogic sonority:sonority is:kSubset ofSonority:setSonority]) {
+      return YES;
+    }
+  }
+  return NO;
 }
 
 @end

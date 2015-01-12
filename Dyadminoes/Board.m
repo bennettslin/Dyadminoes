@@ -550,10 +550,6 @@
   cell.myDyadmino = nil;
   cell.myPC = -1;
   
-//  if ([self.occupiedCells containsObject:cell]) {
-//    [self.occupiedCells removeObject:cell];
-//  }
-  
     // testing purposes
   [cell updatePCLabel];
   

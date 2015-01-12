@@ -62,7 +62,8 @@
 -(void)initialPlayers:(NSSet *)players
              andRules:(GameRules)rules
              andSkill:(GameSkill)skill
-          withContext:(NSManagedObjectContext *)managedObjectContext;
+          withContext:(NSManagedObjectContext *)managedObjectContext
+              forTest:(BOOL)forTest;
 
   //----------------------------------------------------------------------------
   //----------------------------------------------------------------------------
@@ -160,8 +161,28 @@
 
   // for tests
 -(BOOL)testAddToHoldingContainer:(DataDyadmino *)dataDyad;
+-(DataDyadmino *)testUndoLastPlayedDyadmino;
+-(void)testRecordDyadminoesFromCurrentPlayerWithSwap:(BOOL)swap;
+-(BOOL)testUpdateDataCellsForPlacedDyadminoID:(NSInteger)dyadminoID
+                                  orientation:(DyadminoOrientation)orientation
+                         onBottomCellHexCoord:(HexCoord)bottomHexCoord;
+-(BOOL)testUpdateDataCellsForRemovedDyadminoID:(NSInteger)dyadminoID
+                                   orientation:(DyadminoOrientation)orientation
+                        fromBottomCellHexCoord:(HexCoord)bottomHexCoord;
 -(void)testPersistChangedPositionForBoardDataDyadmino:(DataDyadmino *)dataDyad;
--(NSUInteger)testPCForDyadminoIndex:(NSUInteger)index isPC1:(BOOL)isPC1;
+-(void)testEndGame;
+-(PhysicalPlacementResult)testValidatePhysicallyPlacingDyadminoID:(NSUInteger)dyadminoID
+                                                  withOrientation:(DyadminoOrientation)orientation
+                                                 onBottomHexCoord:(HexCoord)bottomHexCoord;
+-(NSSet *)testSonoritiesFromPlacingDyadminoID:(NSUInteger)dyadminoID
+                             onBottomHexCoord:(HexCoord)bottomHexCoord
+                              withOrientation:(DyadminoOrientation)orientation;
+-(NSSet *)testSurroundingCellsOfSurroundingCellsOfDyadminoBottomHexCoord:(HexCoord)bottomHexCoord
+                                                          andOrientation:(DyadminoOrientation)orientation;
+-(NSSet *)testSurroundingCellsOfDyadminoBottomHexCoord:(HexCoord)bottomHexCoord
+                                        andOrientation:(DyadminoOrientation)orientation;
+-(BOOL)testPlayDataDyadmino:(DataDyadmino *)placedDataDyad anywherePhysicallyLegalByDataDyadmino:(DataDyadmino *)nextToDataDyad;
+-(BOOL)testStrandedDyadminoesAfterRemovingDataDyadmino:(DataDyadmino *)dataDyadmino;
 
 @end
 
@@ -178,10 +199,6 @@
 @end
 
 @protocol MatchDelegate <NSObject>
-
-//-(NSAttributedString *)stringForSonorities:(NSSet *)sonorities
-//                         withInitialString:(NSString *)initialString
-//                           andEndingString:(NSString *)endingString;
 
 -(BOOL)isFirstAndOnlyDyadminoID:(NSUInteger)dyadminoID;
 -(void)handleSwitchToNextPlayer;

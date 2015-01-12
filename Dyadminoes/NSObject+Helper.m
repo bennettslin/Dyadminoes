@@ -96,6 +96,27 @@
   return [self hexCoordFromX:returnXHex andY:returnYHex];
 }
 
+#pragma mark - dyadmino stuff
+
+-(NSUInteger)pcForDyadminoIndex:(NSUInteger)index isPC1:(BOOL)isPC1 {
+  
+  NSUInteger addCounter = 11;
+  NSUInteger compareIndex = 0;
+  NSUInteger returnPC = 0;
+  
+  while (compareIndex <= index) {
+    returnPC++;
+    compareIndex += addCounter;
+    addCounter--;
+  }
+  
+  if (isPC1) {
+    return returnPC - 1;
+  } else {
+    return 12 - (compareIndex - index);
+  }
+}
+
 #pragma mark - dyadmino rack stuff
 
 -(Dyadmino *)dyadminoInSet:(NSSet *)set withRackOrder:(NSUInteger)rackOrder {
@@ -297,6 +318,19 @@
       return -1;
       break;
   }
+}
+
+-(void)logSonorities:(NSSet *)sonorities {
+  for (NSSet *sonority in sonorities) {
+    NSMutableString *sonorityString = [NSMutableString new];
+    for (NSDictionary *note in sonority) {
+      NSUInteger pc = [note[@"pc"] unsignedIntegerValue];
+      NSUInteger dyadmino = [note[@"dyadmino"] unsignedIntegerValue];
+      [sonorityString appendString:[NSString stringWithFormat:@"pc:%lu dyad:%lu, ", (unsigned long)pc, (unsigned long)dyadmino]];
+    }
+    NSLog(@"%@", sonorityString);
+  }
+  NSLog(@"");
 }
 
 @end

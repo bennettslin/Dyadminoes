@@ -20,9 +20,9 @@
 -(BOOL)sonority:(NSSet *)sonority1 is:(Condition)condition ofSonority:(NSSet *)sonority2;
 -(BOOL)sonorities:(NSSet *)sonorities1 is:(Condition)condition ofSonorities:(NSSet *)sonorities2;
 
--(NSSet *)sonorities:(NSSet *)sonorities1 thatExtendASonorityInSonorities:(NSSet *)sonorities2;
--(NSSet *)sonorities:(NSSet *)sonorities1 thatAreCompletelyNotFoundInSonorities:(NSSet *)sonorities2;
--(NSSet *)sonorities:(NSSet *)sonorities1 thatAreEitherNewOrExtendingRelativeToSonorities:(NSSet *)sonorities2;
+-(NSSet *)legalChords:(NSSet *)legalChords1 thatExtendALegalChordInLegalChords:(NSSet *)legalChords2;
+-(NSSet *)legalChords:(NSSet *)legalChords1 thatAreCompletelyNotFoundInLegalChords:(NSSet *)legalChords2;
+-(NSSet *)legalChords:(NSSet *)legalChords1 thatAreEitherNewOrExtendingRelativeToLegalChords:(NSSet *)legalChords2;
 
 #pragma mark - chord label methods
 

@@ -274,8 +274,6 @@
 
 -(void)setUnchangingPlayerLabelProperties {
   
-//  self.keySigLabel.text = [self.myMatch keySigString];
-  
   self.topBarPlayerLabelWidth = kIsIPhone ?
       self.view.bounds.size.width / 3 :
       ((self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2) - kTopBarTurnPileLabelsWidth - (kButtonWidth * 5) - (kTopBarPaddingBetweenStuff * 2)) * 0.75);
@@ -299,7 +297,16 @@
     
       // player labels----------------------------------------------------------
     playerLabel.frame = CGRectMake(kTopBarXEdgeBuffer, kTopBarYEdgeBuffer + (playerLabelHeight) * i, _topBarPlayerLabelWidth, playerLabelHeight);
-    playerLabel.text = player ? player.name : @"";
+    
+    if (player) {
+      NSMutableAttributedString *mutableString = [[NSMutableAttributedString alloc] initWithString:player.name];
+      [mutableString addAttributes:@{NSStrokeWidthAttributeName: [NSNumber numberWithFloat:-(playerLabelHeight / 30)],
+                                     NSStrokeColorAttributeName:kPianoBlack} range:NSMakeRange(0, mutableString.length)];
+      playerLabel.attributedText = mutableString;
+    } else {
+      playerLabel.text = @"";
+    }
+    
     playerLabel.font = [UIFont fontWithName:kFontModern size:playerLabelHeight];
     playerLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     playerLabel.adjustsFontSizeToFitWidth = YES;
@@ -348,15 +355,25 @@
           kResignedGray : [self.myMatch colourForPlayer:player forLabel:YES light:NO];
       
       NSString *scoreText;
-
       
       if (!player || ([player returnResigned] && [self.myMatch returnType] != kSelfGame)) {
         scoreText = @"";
       } else if (player == [self.myMatch returnCurrentPlayer] && pointsForThisTurnChords > 0) {
-        scoreText = [NSString stringWithFormat:@"%lu + %lu", (unsigned long)[player returnScore], (unsigned long)pointsForThisTurnChords];
+        scoreText = [NSString stringWithFormat:@" %lu +%lu", (unsigned long)[player returnScore], (unsigned long)pointsForThisTurnChords];
       } else {
-        scoreText = [NSString stringWithFormat:@"%lu", (unsigned long)[player returnScore]];
+        scoreText = [NSString stringWithFormat:@" %lu", (unsigned long)[player returnScore]];
       }
+      
+        // not DRY, repeats above
+        // if less than four players, divide in three; otherwise divide in four
+        // slightly larger than topBarHeight
+      CGFloat playerLabelHeight = (kIsIPhone || self.myMatch.players.count < 4) ?
+      (kTopBarHeight * 1.12 - (kTopBarYEdgeBuffer)) / 3 :
+      (kTopBarHeight * 1.12 - (kTopBarYEdgeBuffer)) / 4;
+      
+      NSMutableAttributedString *mutableString = [[NSMutableAttributedString alloc] initWithString:scoreText];
+      [mutableString addAttributes:@{NSStrokeWidthAttributeName: [NSNumber numberWithFloat:-(playerLabelHeight / 30)],
+                                     NSStrokeColorAttributeName:kPianoBlack} range:NSMakeRange(0, mutableString.length)];
       
       if ([self.myMatch returnGameHasEnded]) {
         scoreLabel.textColor = [player returnWon] ? kScoreWonGold : kScoreLostGray;
@@ -370,9 +387,9 @@
         
           // upon final turn, score is animated
         if (animated) {
-          scoreLabel.text = scoreText;
+          scoreLabel.attributedText = mutableString;
         } else {
-          scoreLabel.text = scoreText;
+          scoreLabel.attributedText = mutableString;
         }
         
       } else {
@@ -386,7 +403,6 @@
         
       } else {
         if (player == [self.myMatch returnCurrentPlayer]) {
-          self.labelView.backgroundColor = [kMainDarkerYellow colorWithAlphaComponent:0.8f];
           
           CGFloat labelWidthPadding = _topBarScoreLabelWidth / 4; // not the best way to set it, but oh well
           CGFloat labelWidth = kTopBarXEdgeBuffer + _widestPlayerLabelWidth + _topBarScoreLabelWidth + labelWidthPadding;
@@ -396,6 +412,9 @@
           
           self.labelView.layer.cornerRadius = self.labelView.frame.size.height / 2.f;
           self.labelView.clipsToBounds = YES;
+          self.labelView.layer.borderColor = kMainDarkerYellow.CGColor;
+          self.labelView.layer.borderWidth = self.labelView.frame.size.height * 0.05f;
+          [self addGradientToView:self.labelView WithColour:kMainEvenDarkerYellow andUpsideDown:NO];
           [self.playerLabelsField insertSubview:self.labelView atIndex:0];
         }
       }

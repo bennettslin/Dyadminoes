@@ -53,8 +53,8 @@
   NSUInteger myID = 0;
   
   for (int pc1 = 0; pc1 < 12; pc1++) {
-    for (int pc2 = 0; pc2 < 12; pc2++) {
-      if (pc1 != pc2 && pc1 < pc2) {
+    for (int pc2 = pc1 + 1; pc2 < 12; pc2++) {
+      if (pc1 < pc2) {
         
           //get pc textures
         Face *pc1LetterSprite = [Face spriteNodeWithTexture:[self textureForPC:pc1 inMode:kPCModeLetter]];

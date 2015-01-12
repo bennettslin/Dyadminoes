@@ -47,13 +47,6 @@
 @property (assign, nonatomic) DyadminoOrientation orientation;
 @property (assign, nonatomic) DyadminoOrientation tempReturnOrientation;
 
-  // replay
-  // these properties will be set before each replay; they can be ignored otherwise
-@property (assign, nonatomic) HexCoord preReplayHexCoord;
-@property (assign, nonatomic) DyadminoOrientation preReplayOrientation;
-@property (assign, nonatomic) DyadminoOrientation preReplayTempOrientation;
-//@property (assign, nonatomic) BOOL replayShrunk;
-
   // sprites
 @property (strong, nonatomic) NSArray *rotationFrameArray;
 
@@ -80,6 +73,11 @@
 @property (nonatomic) DyadminoOrientation prePivotDyadminoOrientation;
 @property (nonatomic) CGPoint initialPivotPosition;
 @property (nonatomic) CGPoint pivotAroundPoint;
+
+  // replay properties will be set before each replay; they can be ignored otherwise
+@property (assign, nonatomic) HexCoord preReplayHexCoord;
+@property (assign, nonatomic) DyadminoOrientation preReplayOrientation;
+@property (assign, nonatomic) DyadminoOrientation preReplayTempOrientation;
 
   //----------------------------------------------------------------------------
   //----------------------------------------------------------------------------
@@ -115,23 +113,36 @@
 
 #pragma mark - change view methods
 
--(void)goToTempBoardNodeBySounding:(BOOL)sounding;
--(void)goHomeToRackByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding fromUndo:(BOOL)undo withResize:(BOOL)resize;
--(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding;
--(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
+//-(void)goToTempBoardNodeBySounding:(BOOL)sounding;
 
 #pragma mark - pivot methods
 
 -(void)pivotBasedOnTouchLocation:(CGPoint)touchLocation andPivotOnPC:(PivotOnPC)pivotOnPC;
 
-#pragma mark - animation methods
+#pragma mark - animate placement methods
 
--(void)animateInRackOrReplayMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding;
--(void)animateFlip;
+-(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
+-(void)goHomeToRackByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding fromUndo:(BOOL)undo withResize:(BOOL)resize;
+-(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding;
+
 -(void)animateEaseIntoNodeAfterHover;
+
+  // called by rack
+-(void)animateInRackOrReplayMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding;
+
+#pragma mark - animate pop methods
+
+-(void)animatePopInWithCompletionBlock:(void(^)(void))completionBlock;
+
+#pragma mark - animate flip methods
+
+-(void)animateFlip;
+
+#pragma mark - unique animation methods
+
 -(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour;
--(void)animateFace:(SKSpriteNode *)face;
--(void)animateHover:(BOOL)animate;
+-(void)animateFaceForSound:(SKSpriteNode *)face;
+-(void)animateWiggleForHover:(BOOL)animate;
 
 #pragma mark - bool methods
 

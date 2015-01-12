@@ -12,6 +12,7 @@
 #import "Match+Helper.h"
 #import "Player.h"
 #import "DataDyadmino.h"
+#import "DataCell.h"
 
 @interface MatchTests : XCTestCase
 
@@ -152,7 +153,7 @@
       NSInteger currentPlayerIndex = [currentPlayer returnOrder];
       NSUInteger currentTurnCount = [(NSArray *)self.myMatch.turns count];
       
-      [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+      [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
       
       Player *nextPlayer = [self.myMatch returnCurrentPlayer];
       NSInteger nextPlayerIndex = [nextPlayer returnOrder];
@@ -330,9 +331,25 @@
   }
 }
 
--(void)testThatSwapFailsIfSwapContainerContainsDyadminoNotInRack {
+-(void)testThatSwapFailsIfSwapContainerContainsDyadminoNotInCurrentPlayerRack {
   
-  XCTFail(@"Tried to swap a dyadmino that was not in rack.");
+  [self setupGameForNumberOfPlayers:1];
+  self.swapContainer = [NSMutableSet new];
+  Player *currentPlayer = [self.myMatch returnCurrentPlayer];
+  
+    // random dyadmino in pile
+  NSNumber *swappedIndex;
+  while (!swappedIndex) {
+    NSNumber *randomIndex = @(arc4random() % kPileCount);
+    if (![currentPlayer.rackIndexes containsObject:swappedIndex]) {
+      swappedIndex = randomIndex;
+    }
+  }
+  
+  [self.swapContainer addObject:[self.myMatch dataDyadminoForIndex:[swappedIndex unsignedIntegerValue]]];
+  BOOL successfullySwapped = [self.myMatch passTurnBySwappingDyadminoes:self.swapContainer];
+  
+  XCTAssertFalse(successfullySwapped, @"Swap of dyadmino that was not in rack should not have succeeded.");
 }
 
 #pragma mark - resign tests
@@ -351,7 +368,7 @@
       
         // pass this many times, depending on order of player
       for (int k = 1; k < j; k++) {
-        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+        [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
       }
       
       Player *currentPlayer = [self.myMatch returnCurrentPlayer];
@@ -409,7 +426,7 @@
       
         // pass this many times, depending on order of player
       for (int k = 1; k < j; k++) {
-        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+        [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
       }
       
       Player *currentPlayer = [self.myMatch returnCurrentPlayer];
@@ -419,7 +436,7 @@
       
         // pass to player before in next round
       for (int k = 0; k < i - 1; k++) {
-        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+        [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
       }
       
       Player *afterPlayer = [self.myMatch returnCurrentPlayer];
@@ -456,14 +473,40 @@
     NSNumber *dataDyadIndex = dataDyadminoIndexes[i];
     XCTAssertEqualObjects([self.myMatch.holdingIndexContainer lastObject], dataDyadIndex, @"Data dyadmino index was not removed from holding container after last undo.");
     
-    [self.myMatch undoLastPlayedDyadmino];
+    [self.myMatch testUndoLastPlayedDyadmino];
     
-    XCTAssertTrue([self.myMatch.holdingIndexContainer count] == i, @"Holding container count is incorrect after undo.");
+    XCTAssertEqual([self.myMatch.holdingIndexContainer count], i, @"Holding container count is incorrect after undo.");
   }
 }
 
 -(void)testUndoNotPossibleWithStrandedDyadminoes {
-  XCTFail(@"Undo should not be possible if it leaves dyadminoes stranded.");
+  XCTFail(@"");
+
+//    // test 100 times
+//  for (int i = 0; i < 100; i++) {
+//    
+//    [self setupGameForNumberOfPlayers:1];
+//    Player *currentPlayer = [self.myMatch returnCurrentPlayer];
+//    DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[[currentPlayer.rackIndexes lastObject] unsignedIntegerValue]];
+//    
+//    NSUInteger randomX = (3 + (arc4random() % 10)) * ((arc4random() % 2) ? 1 : -1);
+//    NSUInteger randomY = (3 + (arc4random() % 10)) * ((arc4random() % 2) ? 1 : -1);
+//    DyadminoOrientation randomOrientation = arc4random() % 6;
+//    
+//    HexCoord bottomHexCoord = [self hexCoordFromX:randomX andY:randomY];
+//    dataDyad.myHexCoord = bottomHexCoord;
+//    dataDyad.myOrientation = @(randomOrientation);
+//    
+//    [self.myMatch playDataDyadmino:dataDyad onBottomHexCoord:bottomHexCoord withOrientation:randomOrientation];
+//    BOOL strandedDyadminoes = [self.myMatch testStrandedDyadminoesAfterRemovingDataDyadmino:dataDyad];
+//    BOOL undoSuccessful = [self.myMatch undoLastPlayedDyadmino];
+//    
+//    if (strandedDyadminoes) {
+//      XCTAssertFalse(undoSuccessful, @"Undo should not be possible if it leaves dyadminoes stranded.");
+//    } else {
+//      XCTAssertTrue(undoSuccessful, @"Undo should be possible if it leaves dyadminoes stranded.");
+//    }
+//  }
 }
 
 #pragma mark - turn tests
@@ -502,7 +545,7 @@
         NSArray *playedDataDyads = [NSArray arrayWithArray:tempPlayedDataDyads];
         
           // played!
-        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+        [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
         
         NSUInteger afterPileCount = self.myMatch.pile.count;
         NSUInteger afterDataDyadminoIndexesCount = [(NSArray *)player.rackIndexes count];
@@ -548,7 +591,7 @@
           [self.myMatch testAddToHoldingContainer:dataDyad];
         }
         
-        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+        [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
         
         NSUInteger rackCount = [(NSArray *)player.rackIndexes count];
         
@@ -590,7 +633,7 @@
     for (int j = 0; j < 2 * i; j++) {
       
       preTurnCount = [(NSArray *)self.myMatch.turns count];
-      [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+      [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
       postTurnCount = [(NSArray *)self.myMatch.turns count];
       
       XCTAssertTrue(preTurnCount == j, @"Turns start at 0.");
@@ -609,7 +652,7 @@
     for (int j = 0; j < 2 * i; j++) {
       
       NSUInteger expectedPlayerOrder = [[self.myMatch currentPlayerOrder] unsignedIntegerValue];
-      [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+      [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
       
       NSDictionary *turn = [(NSArray *)self.myMatch.turns lastObject];
       NSUInteger returnedPlayerOrder = [(NSNumber *)[turn objectForKey:@"player"] unsignedIntegerValue];
@@ -624,7 +667,7 @@
   for (int i = 1; i <= kMaxNumPlayers; i++) {
     [self setupGameForNumberOfPlayers:i];
     
-    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+    [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
     
     NSDictionary *turn = [(NSArray *)self.myMatch.turns lastObject];
     id indexContainer = [turn objectForKey:@"indexContainer"];
@@ -675,7 +718,7 @@
 
         // pass this many times, depending on order of player
       for (int k = 1; k < j; k++) {
-        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+        [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
       }
       
       Player *currentPlayer = [self.myMatch returnCurrentPlayer];
@@ -699,13 +742,13 @@
 
     // three passes in a row
   [self.myMatch testPersistChangedPositionForBoardDataDyadmino:firstDataDyad];
-  [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+  [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
   
   [self.myMatch testPersistChangedPositionForBoardDataDyadmino:firstDataDyad];
-  [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+  [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
 
   [self.myMatch testPersistChangedPositionForBoardDataDyadmino:firstDataDyad];
-  [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+  [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
   
     // should only have one turn change, which records its initial placement
   XCTAssertTrue([(NSArray *)firstDataDyad.turnChanges count] == 1, @"Extra turn change should not have been added.");
@@ -732,7 +775,7 @@
     firstDataDyad.myHexCoord = movedCoord;
     firstDataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
     [self.myMatch testPersistChangedPositionForBoardDataDyadmino:firstDataDyad];
-    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+    [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
     
     NSDictionary *turnChange = (NSDictionary *)[(NSArray *)firstDataDyad.turnChanges lastObject];
 
@@ -782,7 +825,7 @@
       firstDataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
     
       [self.myMatch testPersistChangedPositionForBoardDataDyadmino:firstDataDyad];
-      [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+      [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
     
         // if moved
       if (originalCoord.x != movedCoord.x || originalCoord.y != movedCoord.y || originalOrientation != movedOrientation) {
@@ -823,7 +866,7 @@
     dataDyad.myOrientation = [NSNumber numberWithUnsignedInteger:movedOrientation];
     
     [self.myMatch testAddToHoldingContainer:dataDyad];
-    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+    [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
     [self.myMatch testPersistChangedPositionForBoardDataDyadmino:dataDyad];
 
     NSDictionary *turnChange = (NSDictionary *)[(NSArray *)dataDyad.turnChanges lastObject];
@@ -900,7 +943,7 @@
 
 -(void)testPassEndsSelfGame {
   [self setupGameForNumberOfPlayers:1];
-  [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+  [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
   XCTAssertTrue(self.myMatch.gameHasEnded, @"Game does not end after pass in self game.");
 }
 
@@ -912,12 +955,12 @@
     
       // pass this many times, up until the last turn before game ends
     for (int j = 0; j < 2 * i - 1; j++) {
-      [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+      [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
     }
     XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with dyadminoes left in pile.");
     
       // now pass once, and game should end
-    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+    [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
     XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game should have ended with dyadminoes left in pile.");
   }
   
@@ -928,12 +971,12 @@
     
       // pass this many times, up until the last turn before game ends
     for (int j = 0; j < i - 1; j++) {
-      [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+      [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
     }
     XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with no dyadminoes left in pile.");
     
       // now pass once, and game should end
-    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+    [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
     XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game should have ended with no dyadminoes left in pile.");
   }
 }
@@ -951,13 +994,13 @@
       if ((i == 3 && j == 1) || (i == 4 && (j == 1 || j == 5))) {
         [self.myMatch resignPlayer:[self.myMatch returnCurrentPlayer]];
       } else {
-        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+        [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
       }
     }
     XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with dyadminoes left in pile.");
     
       // now pass once, and game should end
-    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+    [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
     XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game should have ended with dyadminoes left in pile.");
   }
   
@@ -973,13 +1016,13 @@
         [self.myMatch resignPlayer:[self.myMatch returnCurrentPlayer]];
         [self.myMatch removeFromPileNumberOfDataDyadminoes:kNumDyadminoesInRack]; // ensures that pile remains empty upon resign
       } else {
-        [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+        [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
       }
     }
     XCTAssertFalse([self.myMatch returnGameHasEnded], @"Game ended prematurely with no dyadminoes left in pile.");
     
       // now pass once, and game should end
-    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+    [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
     XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game should have ended with no dyadminoes left in pile.");
   }
 }
@@ -1027,7 +1070,7 @@
       [self.myMatch testAddToHoldingContainer:dataDyad];
     }
     
-    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+    [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
     NSUInteger rackCount = [(NSArray *)player.rackIndexes count];
     XCTAssertTrue(rackCount == 0, @"Rack should be empty because player played all dyadminoes.");
     XCTAssertTrue([self.myMatch returnGameHasEnded], @"Game did not end after play leaves empty pile and empty rack.");
@@ -1036,28 +1079,280 @@
 
 #pragma mark - cell tests
 
--(void)testUpdateCellsForPlacedDyadminoes {
-  XCTFail(@"Did not update cell for placed dyadmino.");
-}
-
--(void)testUpdateCellsForRemovedDyadminoes {
-  XCTFail(@"Did not update cell for removed dyadmino.");
-}
-
--(void)testRetrieveTopHexCoordForBottomHexCoord {
-  XCTFail(@"Did not retrieve top hex coord for bottom hex coord.");
+-(void)testUpdateCellsForPlacedAndRemovedDyadminoes {
+  
+    // test 100 times
+  for (int i = 0; i < 100; i++) {
+    
+    [self setupGameForNumberOfPlayers:1];
+    Player *currentPlayer = [self.myMatch returnCurrentPlayer];
+    DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[[currentPlayer.rackIndexes lastObject] unsignedIntegerValue]];
+    
+      // returns random number above 3 or below -3, so as not to conflict with board dyadmino
+    NSUInteger randomX = (3 + (arc4random() % 10)) * ((arc4random() % 2) ? 1 : -1);
+    NSUInteger randomY = (3 + (arc4random() % 10)) * ((arc4random() % 2) ? 1 : -1);
+    DyadminoOrientation randomOrientation = arc4random() % 6;
+    
+    HexCoord bottomHexCoord = [self hexCoordFromX:randomX andY:randomY];
+    HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:randomOrientation];
+    
+    [self.myMatch testUpdateDataCellsForPlacedDyadminoID:[dataDyad returnMyID]
+                                             orientation:randomOrientation
+                                    onBottomCellHexCoord:bottomHexCoord];
+    
+    HexCoord hexCoords[2] = {topHexCoord, bottomHexCoord};
+    for (int j = 0; j < 2; j++) {
+      HexCoord hexCoord = hexCoords[j];
+      BOOL cellUpdatedForPlacedHexCoord = NO;
+      BOOL isPC1 = (randomOrientation <= kPC1atTwoOClock || randomOrientation >= kPC1atTenOClock);
+      NSUInteger pc = [self pcForDyadminoIndex:[dataDyad returnMyID] isPC1:(j == 0 ? isPC1 : !isPC1)];
+      for (DataCell *occupiedCell in self.myMatch.occupiedCells) {
+        if (occupiedCell.myPC == pc &&
+            occupiedCell.myDyadminoID == [dataDyad returnMyID] &&
+            occupiedCell.hexX == hexCoord.x &&
+            occupiedCell.hexY == hexCoord.y) {
+          cellUpdatedForPlacedHexCoord = YES;
+        }
+      }
+      
+      XCTAssertTrue(cellUpdatedForPlacedHexCoord, @"Occupied cell was not updated for dyadmino placed on hex coord %li, %li.", (long)hexCoord.x, (long)hexCoord.y);
+    }
+    
+    [self.myMatch testUpdateDataCellsForRemovedDyadminoID:[dataDyad returnMyID]
+                                              orientation:randomOrientation
+                                   fromBottomCellHexCoord:bottomHexCoord];
+    
+    for (int j = 0; j < 2; j++) {
+      HexCoord hexCoord = hexCoords[j];
+      BOOL cellUpdatedForRemovedHexCoord = YES;
+      for (DataCell *occupiedCell in self.myMatch.occupiedCells) {
+        if (occupiedCell.hexX == hexCoord.x &&
+            occupiedCell.hexY == hexCoord.y) {
+          cellUpdatedForRemovedHexCoord = NO;
+        }
+      }
+      
+      XCTAssertTrue(cellUpdatedForRemovedHexCoord, @"Occupied cell was not updated for dyadmino removed from hex coord %li, %li.", (long)hexCoord.x, (long)hexCoord.y);
+    }
+    
+  }
 }
 
 #pragma mark - physical cell tests
 
--(void)testValidatePhysicallyPlacingDyadminoes {
-  XCTFail(@"Method did not return proper result for placement of dyadmino.");
+-(void)testSurroundingCellsMethodOnFirstDyadmino {
+  
+  [self setupGameForNumberOfPlayers:1];
+
+  HexCoord bottomHexCoord = [self hexCoordFromX:0 andY:0];
+  for (DyadminoOrientation orientation = kPC1atTwelveOClock; orientation <= kPC1atTenOClock; orientation++) {
+    
+    HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:orientation];
+    
+    NSSet *surroundingCells = [self.myMatch testSurroundingCellsOfDyadminoBottomHexCoord:bottomHexCoord
+                                                                          andOrientation:orientation];
+    
+    for (DataCell *cell in surroundingCells) {
+      
+        // for at least one cell, difference in x plus difference in y is 1 or less
+      BOOL neighbourOfTop = (abs((int)(cell.hexCoord.x - topHexCoord.x) + (int)(cell.hexCoord.y - topHexCoord.y)) <= 1);
+      BOOL neighbourOfBottom = (abs((int)(cell.hexCoord.x - bottomHexCoord.x) + (int)(cell.hexCoord.y - bottomHexCoord.y)) <= 1);
+      
+      XCTAssertTrue(neighbourOfTop || neighbourOfBottom, @"cell is not close neighbour of at least one dyadmino cell.");
+    }
+    
+    XCTAssertTrue(surroundingCells.count == 8, @"Number of surrounding cells returned was %lu, should be eight for single dyadmino.", (unsigned long)surroundingCells.count);
+  }
+}
+
+-(void)testSurroundingCellsOfSurroundingCellsMethodOnFirstDyadmino {
+  
+  [self setupGameForNumberOfPlayers:1];
+  
+  HexCoord bottomHexCoord = [self hexCoordFromX:0 andY:0];
+  for (DyadminoOrientation orientation = kPC1atTwelveOClock; orientation <= kPC1atTenOClock; orientation++) {
+    
+    HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:orientation];
+    
+    NSSet *surroundingCellsOfSurroundingCells = [self.myMatch testSurroundingCellsOfSurroundingCellsOfDyadminoBottomHexCoord:bottomHexCoord
+                                                                                            andOrientation:orientation];
+    
+    for (DataCell *cell in surroundingCellsOfSurroundingCells) {
+      
+        // for at least one cell, difference in x plus difference in y is 2 or less
+      BOOL neighbourOfTop = (abs((int)(cell.hexCoord.x - topHexCoord.x) + (int)(cell.hexCoord.y - topHexCoord.y)) <= 2);
+      BOOL neighbourOfBottom = (abs((int)(cell.hexCoord.x - bottomHexCoord.x) + (int)(cell.hexCoord.y - bottomHexCoord.y)) <= 2);
+      
+      XCTAssertTrue(neighbourOfTop || neighbourOfBottom, @"cell is not close neighbour of at least one dyadmino cell.");
+    }
+    
+    XCTAssertTrue(surroundingCellsOfSurroundingCells.count == 14, @"Number of surrounding cells of surrounding cells returned for single dyadmino should be fourteen.");
+  }
+}
+
+-(void)testValidateStackingOrNotOnFirstDyadmino {
+  
+  [self setupGameForNumberOfPlayers:1];
+  DataDyadmino *firstDataDyad = [self.myMatch dataDyadminoForIndex:[self.myMatch returnFirstDataDyadIndex]];
+  
+    // test with all possible orientations of first board dyadmino
+  for (DyadminoOrientation firstOrient = kPC1atTwelveOClock; firstOrient <= kPC1atTenOClock; firstOrient++) {
+    [self.myMatch moveBoardDataDyadmino:firstDataDyad toBottomHexCoord:firstDataDyad.myHexCoord withOrientation:firstOrient];
+    
+    HexCoord firstBottomHexCoord = firstDataDyad.myHexCoord;
+    HexCoord firstTopHexCoord = [self retrieveTopHexCoordForBottomHexCoord:firstDataDyad.myHexCoord andOrientation:[firstDataDyad returnMyOrientation]];
+    HexCoord firstHexCoords[2] = {firstTopHexCoord, firstBottomHexCoord};
+    
+    NSSet *surroundingCellsOfBoardDyadmino = [self.myMatch testSurroundingCellsOfDyadminoBottomHexCoord:firstDataDyad.myHexCoord andOrientation:[firstDataDyad returnMyOrientation]];
+    
+    Player *currentPlayer = [self.myMatch returnCurrentPlayer];
+    NSNumber *index = [currentPlayer.rackIndexes lastObject];
+    DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[index unsignedIntegerValue]];
+    
+    for (DataCell *surroundingCell in surroundingCellsOfBoardDyadmino) {
+      for (DyadminoOrientation orientation = kPC1atTwelveOClock; orientation <= kPC1atTenOClock; orientation++) {
+        BOOL returnedValidPhysicalPlacement = ([self.myMatch testValidatePhysicallyPlacingDyadminoID:[dataDyad returnMyID]
+                                                                                    withOrientation:orientation
+                                                                                   onBottomHexCoord:surroundingCell.hexCoord] == kNoError);
+        
+        BOOL expectedValidPhysicalPlacement = YES;
+        HexCoord bottomHexCoord = surroundingCell.hexCoord;
+        HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:orientation];
+        HexCoord hexCoords[2] = {topHexCoord, bottomHexCoord};
+        
+          // test both cells of played dyadmino
+        for (int i = 0; i < 2; i++) {
+          HexCoord hexCoord = hexCoords[i];
+          
+            // compare against both cells of first dyadmino
+          for (int j = 0; j < 2; j++) {
+            HexCoord firstHexCoord = firstHexCoords[j];
+            
+            if (hexCoord.x == firstHexCoord.x && hexCoord.y == firstHexCoord.y) {
+              expectedValidPhysicalPlacement = NO;
+            }
+          }
+        }
+        
+        XCTAssertEqual(returnedValidPhysicalPlacement, expectedValidPhysicalPlacement, @"Match failed to recognize whether played dyadmino was stacked on first dyadmino.");
+      }
+    }
+  }
+}
+
+-(void)testValidateLoneDyadminoWithFirstDyadmino {
+  
+    // same as stacked test, except compare against surrounding cells of surrounding cells
+  
+  [self setupGameForNumberOfPlayers:1];
+  DataDyadmino *firstDataDyad = [self.myMatch dataDyadminoForIndex:[self.myMatch returnFirstDataDyadIndex]];
+  
+    // test with all possible orientations of first board dyadmino
+  for (DyadminoOrientation firstOrient = kPC1atTwelveOClock; firstOrient <= kPC1atTenOClock; firstOrient++) {
+    [self.myMatch moveBoardDataDyadmino:firstDataDyad toBottomHexCoord:firstDataDyad.myHexCoord withOrientation:firstOrient];
+    
+    NSSet *surroundingCellsOfBoardDyadmino = [self.myMatch testSurroundingCellsOfDyadminoBottomHexCoord:firstDataDyad.myHexCoord andOrientation:[firstDataDyad returnMyOrientation]];
+    
+    NSSet *surroundingCellsOfSurroundingCells = [self.myMatch testSurroundingCellsOfSurroundingCellsOfDyadminoBottomHexCoord:firstDataDyad.myHexCoord andOrientation:[firstDataDyad returnMyOrientation]];
+    
+    Player *currentPlayer = [self.myMatch returnCurrentPlayer];
+    NSNumber *index = [currentPlayer.rackIndexes lastObject];
+    DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[index unsignedIntegerValue]];
+    
+    for (DataCell *surroundingCellOfSurroundingCell in surroundingCellsOfSurroundingCells) {
+      for (DyadminoOrientation orientation = kPC1atTwelveOClock; orientation <= kPC1atTenOClock; orientation++) {
+        BOOL returnedValidPhysicalPlacement = ([self.myMatch testValidatePhysicallyPlacingDyadminoID:[dataDyad returnMyID]
+                                                                                     withOrientation:orientation
+                                                                                    onBottomHexCoord:surroundingCellOfSurroundingCell.hexCoord] == kNoError);
+        
+        BOOL expectedValidPhysicalPlacement = NO;
+        HexCoord bottomHexCoord = surroundingCellOfSurroundingCell.hexCoord;
+        HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:orientation];
+        HexCoord hexCoords[2] = {topHexCoord, bottomHexCoord};
+        
+          // test both cells of played dyadmino
+        for (int i = 0; i < 2; i++) {
+          HexCoord hexCoord = hexCoords[i];
+          
+            // compare against all cells of surrounding cells
+          for (DataCell *dataCell in surroundingCellsOfBoardDyadmino) {
+            if (dataCell.hexX == hexCoord.x && dataCell.hexY == hexCoord.y) {
+              expectedValidPhysicalPlacement = YES;
+            }
+          }
+        }
+        
+        XCTAssertEqual(returnedValidPhysicalPlacement, expectedValidPhysicalPlacement, @"Match failed to recognize whether played dyadmino was a lone dyadmino.");
+      }
+    }
+  }
 }
 
 #pragma mark - sonority collection tests
 
 -(void)testCollectionOfSonorities {
+  
+    // test 100 times
+  for (int i = 0; i < 100; i++) {
+
+    [self setupGameForNumberOfPlayers:1];
+    DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[self.myMatch returnFirstDataDyadIndex]];
+    
+    NSMutableSet *tempAllSet = [NSMutableSet new];
+    
+    NSSet *formationOfSonorities = [self.myMatch testSonoritiesFromPlacingDyadminoID:[dataDyad returnMyID]
+                                                                    onBottomHexCoord:dataDyad.myHexCoord
+                                                                     withOrientation:[dataDyad returnMyOrientation]];
+    
+    
+    
+    
+  }
+  
+  
   XCTFail(@"Did not properly collect sonorities from placing dyadmino.");
+}
+
+-(void)testStrandedDyadminoMethod {
+  
+    // test 100 times
+  for (int i = 0; i < 100; i++) {
+
+    [self setupGameForNumberOfPlayers:1];
+    DataDyadmino *firstDataDyad = [self.myMatch dataDyadminoForIndex:[self.myMatch returnFirstDataDyadIndex]];
+    Player *currentPlayer = [self.myMatch returnCurrentPlayer];
+    DataDyadmino *dataDyad = [self.myMatch dataDyadminoForIndex:[[currentPlayer.rackIndexes lastObject] unsignedIntegerValue]];
+
+    NSSet *surroundingCellsOfBoardDyadmino = [self.myMatch testSurroundingCellsOfDyadminoBottomHexCoord:firstDataDyad.myHexCoord andOrientation:[firstDataDyad returnMyOrientation]];
+    
+//    BOOL played = NO;
+//    while (!played) {
+//      
+//      
+//      
+//    }
+    
+    NSUInteger randomX = (3 + (arc4random() % 10)) * ((arc4random() % 2) ? 1 : -1);
+    NSUInteger randomY = (3 + (arc4random() % 10)) * ((arc4random() % 2) ? 1 : -1);
+    DyadminoOrientation randomOrientation = arc4random() % 6;
+
+    HexCoord bottomHexCoord = [self hexCoordFromX:randomX andY:randomY];
+    dataDyad.myHexCoord = bottomHexCoord;
+    dataDyad.myOrientation = @(randomOrientation);
+
+    [self.myMatch playDataDyadmino:dataDyad onBottomHexCoord:bottomHexCoord withOrientation:randomOrientation];
+    BOOL strandedDyadminoes = [self.myMatch testStrandedDyadminoesAfterRemovingDataDyadmino:dataDyad];
+    BOOL undoSuccessful = [self.myMatch undoLastPlayedDyadmino];
+
+    if (strandedDyadminoes) {
+      XCTAssertFalse(undoSuccessful, @"Undo should not be possible if it leaves dyadminoes stranded.");
+    } else {
+      XCTAssertTrue(undoSuccessful, @"Undo should be possible if it leaves dyadminoes stranded.");
+    }
+  }
+  
+  
+  XCTFail(@"Match failed to detect a stranded dyadmino.");
 }
 
 #pragma mark - score tests
@@ -1073,6 +1368,13 @@
 #pragma mark - reset tests
 
 -(void)testResettingOfBoardDyadminoes {
+  
+    // test 1 to 4 players
+  for (int i = 1; i <= kMaxNumPlayers; i++) {
+    [self setupGameForNumberOfPlayers:i];
+
+  }
+  
   XCTFail(@"Board dyadminoes were not reset to pre-turn state.");
 }
 
@@ -1090,10 +1392,73 @@
 
 #pragma mark - win tests
 
-#pragma mark - helper tests
+-(void)testWhoWon {
+  
+    // test 1 to 4 players
+  for (int totalPlayers = 1; totalPlayers <= kMaxNumPlayers; totalPlayers++) {
 
--(void)testPCsForIndexMethod {
-  XCTFail(@"Did not properly return pcs for dyadmino index.");
+    for (int j = 0; j < 256; j++) { // all combinations of scores for four players
+
+      [self setupGameForNumberOfPlayers:totalPlayers];
+      NSUInteger maxScore = 0;
+      
+      for (int index = 0; index < totalPlayers; index++) {
+        Player *player = [self.myMatch playerForIndex:index];
+
+          // player scores vary from 0 to 3
+        
+        NSUInteger playerScore;
+        
+        switch (index) {
+          case 0:
+            playerScore = j / 64;
+            break;
+          case 1:
+            playerScore = (j / 16) % 4;
+            break;
+          case 2:
+            playerScore = (j / 4) % 4;
+            break;
+          case 3:
+            playerScore = j % 4;
+            break;
+        }
+        
+        player.score = @(playerScore);
+        
+        if (playerScore > maxScore) {
+          maxScore = playerScore;
+        }
+      }
+
+      [self.myMatch testEndGame];
+      
+      for (Player *player in self.myMatch.players) {
+        if ([player returnScore] > 0 && [player returnScore] == maxScore) {
+          XCTAssertTrue([player returnWon], @"Match does not correctly state that player won.");
+        } else {
+          XCTAssertFalse([player returnWon], @"Match does not correctly state that player lost.");
+        }
+      }
+    }
+  }
+}
+
+-(void)testResignedPlayerCannotWin {
+  
+  [self setupGameForNumberOfPlayers:4];
+  for (int i = 0; i < 4; i++) {
+    Player *player = [self.myMatch playerForIndex:i];
+    
+      // first player has highest score
+    player.score = @(4 - i);
+  }
+  
+  Player *firstPlayer = [self.myMatch playerForIndex:0];
+  [self.myMatch resignPlayer:firstPlayer];
+  [self.myMatch testEndGame];
+  
+  XCTAssertFalse([firstPlayer returnWon], @"Despite having highest score, first player cannot win because they resigned.");
 }
 
 #pragma mark - additional setup methods
@@ -1109,7 +1474,7 @@
   }
   NSSet *players = [NSSet setWithSet:tempSet];
   
-  [self.myMatch initialPlayers:players andRules:kGameRulesTonal andSkill:kBeginner withContext:self.myContext];
+  [self.myMatch initialPlayers:players andRules:kGameRulesTonal andSkill:kBeginner withContext:self.myContext forTest:NO];
   
   NSError *error = nil;
   if (![self.myContext save:&error]) {
@@ -1144,7 +1509,7 @@
       [self.myMatch testAddToHoldingContainer:dataDyad];
     }
 
-    [self.myMatch recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:NO];
+    [self.myMatch testRecordDyadminoesFromCurrentPlayerWithSwap:NO];
   }
 }
 
@@ -1160,8 +1525,8 @@
     for (int pc2 = 0; pc2 < 12; pc2++) {
       if (pc1 != pc2 && pc1 < pc2) {
         
-        NSUInteger returnPC1 = [self.myMatch testPCForDyadminoIndex:myID isPC1:YES];
-        NSUInteger returnPC2 = [self.myMatch testPCForDyadminoIndex:myID isPC1:NO];
+        NSUInteger returnPC1 = [self.myMatch pcForDyadminoIndex:myID isPC1:YES];
+        NSUInteger returnPC2 = [self.myMatch pcForDyadminoIndex:myID isPC1:NO];
         
         XCTAssertEqual(pc1, returnPC1, @"for dyadmino %lu, returned pc1 is %lu, expected pc1 is %i", (unsigned long)myID, (unsigned long)returnPC1, pc1);
         XCTAssertEqual(pc2, returnPC2, @"for dyadmino %lu, returned pc2 is %lu, expected pc2 is %i", (unsigned long)myID, (unsigned long)returnPC2, pc2);

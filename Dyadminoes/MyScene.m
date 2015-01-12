@@ -236,7 +236,7 @@
   _touchedDyadmino = nil;
   _recentRackDyadmino = nil;
   _recentRackDyadminoFormsLegalChord = NO;
-  [_hoveringDyadmino animateHover:NO];
+  [_hoveringDyadmino animateWiggleForHover:NO];
   _hoveringDyadmino = nil;
   self.legalChordsForHoveringBoardDyadmino = nil;
   _pivotInProgress = NO;
@@ -786,7 +786,7 @@
             
               // face may be sounded when zoomed
             [self soundDyadmino:resonatedDyadmino withFace:face];
-            [resonatedDyadmino animateFace:face];
+            [resonatedDyadmino animateFaceForSound:face];
             _soundedDyadminoFace = face;
           }
         }
@@ -890,7 +890,7 @@
           if (face !=_soundedDyadminoFace) {
 
             [self soundDyadmino:resonatedDyadmino withFace:face];
-            [resonatedDyadmino animateFace:face];
+            [resonatedDyadmino animateFaceForSound:face];
             _soundedDyadminoFace = face;
           }
         }
@@ -1149,7 +1149,7 @@
 -(void)beginTouchOrPivotOfDyadmino:(Dyadmino *)dyadmino {
   
   if (dyadmino == _hoveringDyadmino) {
-    [_hoveringDyadmino animateHover:NO];
+    [_hoveringDyadmino animateWiggleForHover:NO];
   }
   
     // record tempReturnOrientation only if it's settled and not hovering
@@ -1289,7 +1289,7 @@
   
   if (dyadmino != _touchedDyadmino) {
     _hoveringDyadmino = dyadmino;
-    [_hoveringDyadmino animateHover:YES];
+    [_hoveringDyadmino animateWiggleForHover:YES];
     
       // establish the closest board node, without snapping just yet
     dyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:dyadmino];
@@ -1360,7 +1360,7 @@
   if (dyadmino == _hoveringDyadmino) {
       // this ensures that pivot guide doesn't disappear if rack exchange
     [_boardField hideAllPivotGuides];
-    [_hoveringDyadmino animateHover:NO];
+    [_hoveringDyadmino animateWiggleForHover:NO];
     _hoveringDyadmino = nil;
     
       // don't reset self.boardDyadminoBelongsInTheseLegalChords just yet
@@ -1706,7 +1706,7 @@
       // empty pointers
     _recentRackDyadmino = nil;
     _recentRackDyadminoFormsLegalChord = NO;
-    [_hoveringDyadmino animateHover:NO];
+    [_hoveringDyadmino animateWiggleForHover:NO];
     _hoveringDyadmino = nil;
     self.legalChordsForHoveringBoardDyadmino = nil;
   }
@@ -2311,7 +2311,7 @@
   
   [_boardField hideAllPivotGuides];
   [dyadmino animateEaseIntoNodeAfterHover];
-  [_hoveringDyadmino animateHover:NO];
+  [_hoveringDyadmino animateWiggleForHover:NO];
   _hoveringDyadmino = nil;
   self.legalChordsForHoveringBoardDyadmino = nil;
   [self updateTopBarButtons];

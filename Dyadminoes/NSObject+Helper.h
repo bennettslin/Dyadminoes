@@ -208,6 +208,7 @@
 
 #define kMainLighterYellow [UIColor colorWithRed:0.95f green:0.95f blue:0.85f alpha:1.f]
 #define kMainDarkerYellow [UIColor colorWithRed:0.85f green:0.85f blue:0.75f alpha:1.f]
+#define kMainEvenDarkerYellow [UIColor colorWithRed:0.55f green:0.55f blue:0.45f alpha:1.f]
 #define kMainSelectedYellow [UIColor colorWithRed:.97f green:.97f blue:.9f alpha:1.f]
 
 #define kResignedGray [UIColor colorWithRed:0.8f green:0.77f blue:0.75f alpha:1.f]
@@ -531,6 +532,10 @@ typedef enum actionSheetTag {
 -(Chord)chordFromRoot:(NSInteger)root andChordType:(ChordType)chordType;
 -(HexCoord)retrieveTopHexCoordForBottomHexCoord:(HexCoord)bottomHexCoord andOrientation:(DyadminoOrientation)orientation;
 
+#pragma mark - dyadmino stuff
+
+-(NSUInteger)pcForDyadminoIndex:(NSUInteger)index isPC1:(BOOL)isPC1;
+
 #pragma mark - dyadmino rack stuff
 
 -(Dyadmino *)dyadminoInSet:(NSSet *)set withRackOrder:(NSUInteger)rackOrder;
@@ -547,5 +552,7 @@ typedef enum actionSheetTag {
 
 -(NSString *)stringForMusicSymbol:(MusicSymbol)symbol;
 -(MusicSymbol)musicSymbolForMatchType:(GameType)type;
+
+-(void)logSonorities:(NSSet *)sonorities;
 
 @end

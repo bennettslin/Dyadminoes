@@ -499,7 +499,7 @@
   }
   NSSet *players = [NSSet setWithSet:tempSet];
   
-  [newMatch initialPlayers:players andRules:kGameRulesTonal andSkill:kBeginner withContext:self.managedObjectContext];
+  [newMatch initialPlayers:players andRules:kGameRulesTonal andSkill:kBeginner withContext:self.managedObjectContext forTest:NO];
   
   NSError *error = nil;
   if (![self.managedObjectContext save:&error]) {

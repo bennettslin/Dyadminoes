@@ -15,6 +15,7 @@
 #define kActionMoveToPoint @"moveToPoint"
 #define kActionPopIntoBoard @"popIntoBoard"
 #define kActionPopIntoRack @"popIntoRack"
+#define kActionPopIn @"popIn"
 #define kActionFlip @"flip"
 #define kActionEaseIntoNode @"easeIntoNode"
 #define kActionSoundFace @"animateFace"
@@ -154,37 +155,31 @@
   switch (self.orientation) {
     case kPC1atTwelveOClock:
       self.texture = self.rotationFrameArray[0];
-//      [self resize];
       self.pc1Sprite.position = CGPointMake(0, yVertical);
       self.pc2Sprite.position = CGPointMake(0, -yVertical);
       break;
     case kPC1atTwoOClock:
       self.texture = self.rotationFrameArray[1];
-//      [self resize];
       self.pc1Sprite.position = CGPointMake(xSlant, ySlant);
       self.pc2Sprite.position = CGPointMake(-xSlant, -ySlant);
       break;
     case kPC1atFourOClock:
       self.texture = self.rotationFrameArray[2];
-//      [self resize];
       self.pc1Sprite.position = CGPointMake(xSlant, -ySlant);
       self.pc2Sprite.position = CGPointMake(-xSlant, ySlant);
       break;
     case kPC1atSixOClock:
       self.texture = self.rotationFrameArray[0];
-//      [self resize];
       self.pc1Sprite.position = CGPointMake(0, -yVertical);
       self.pc2Sprite.position = CGPointMake(0, yVertical);
       break;
     case kPC1atEightOClock:
       self.texture = self.rotationFrameArray[1];
-//      [self resize];
       self.pc1Sprite.position = CGPointMake(-xSlant, -ySlant);
       self.pc2Sprite.position = CGPointMake(xSlant, ySlant);
       break;
     case kPC1atTenOClock:
       self.texture = self.rotationFrameArray[2];
-//      [self resize];
       self.pc1Sprite.position = CGPointMake(-xSlant, ySlant);
       self.pc2Sprite.position = CGPointMake(xSlant, -ySlant);
       break;
@@ -212,9 +207,8 @@
 }
 
 -(CGPoint)getHomeNodePositionConsideringSwap {
-  return (self.belongsInSwap) ?
-      [self addToThisPoint:self.homeNode.position thisPoint:CGPointMake(0.f, self.homeNode.position.y + kRackHeight * 0.5)] :
-      self.homeNode.position;
+  CGFloat addedYValue = self.belongsInSwap ? (self.homeNode.position.y + kRackHeight * 0.5) : 0;
+  return [self addToThisPoint:self.homeNode.position thisPoint:CGPointMake(0.f, addedYValue)];
 }
 
 -(void)correctZRotationAfterHover {
@@ -265,55 +259,12 @@
   self.tempReturnOrientation = self.orientation;
 }
 
--(void)goHomeToRackByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding fromUndo:(BOOL)undo withResize:(BOOL)resize {
-    // move these into a completion block for animation
-  if (poppingIn) {
-    [self animatePopBackIntoRackNodeFromUndo:undo withResize:resize];
-  } else {
-    
-    if (resize) {
-      self.isZoomResized = NO;
-      [self resize];
-      [self selectAndPositionSprites];
-    }
-    
-    self.colorBlendFactor = 0.f;
-    [self orientBySnapNode:self.homeNode];
-    [self animateInRackOrReplayMoveToPoint:[self getHomeNodePositionConsideringSwap] andSounding:sounding];
-  }
-  self.tempBoardNode = nil;
-  [self changeHoveringStatus:kDyadminoFinishedHovering];
-}
-
-  // this should be combined into one method with goHomeToRack
--(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding {
-  if (poppingIn) {
-    [self animatePopBackIntoBoardNode];
-  } else {
-    [self orientBySnapNode:self.homeNode];
-    [self animateInRackOrReplayMoveToPoint:[self getHomeNodePositionConsideringSwap] andSounding:sounding];
-  }
-  [self changeHoveringStatus:kDyadminoFinishedHovering];
-}
-
--(void)goToTempBoardNodeBySounding:(BOOL)sounding { // called after replay, perhaps will be used elsewhere
-  SnapPoint *destinationNode = self.tempBoardNode ? self.tempBoardNode : self.homeNode;
-  [self orientBySnapNode:destinationNode];
-  [self animateInRackOrReplayMoveToPoint:destinationNode.position andSounding:sounding];
-}
-
--(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove {
-  
-  if (includingMove) {
-    [self removeActionForKey:kActionMoveToPoint];
-  }
-  
-  [self resetFaceScales];
-  [self removeActionForKey:kActionPopIntoRack];
-  [self removeActionForKey:kActionFlip];
-  [self removeActionForKey:kActionEaseIntoNode];
-  self.isRotating = NO;
-}
+//
+//-(void)goToTempBoardNodeBySounding:(BOOL)sounding { // called after replay, perhaps will be used elsewhere
+//  SnapPoint *destinationNode = self.tempBoardNode ? self.tempBoardNode : self.homeNode;
+//  [self orientBySnapNode:destinationNode];
+//  [self animateInRackOrReplayMoveToPoint:destinationNode.position andSounding:sounding];
+//}
 
 -(void)resetFaceScales {
   [self.pc1Sprite setScale:1.f];
@@ -537,95 +488,61 @@
 
 #pragma mark - animation methods
 
--(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour {
-  NSLog(@"animate dyadminoes recently played");
-  [self removeActionsAndEstablishNotRotatingIncludingMove:NO];
-  self.color = (SKColor *)colour;
-  
-  CGFloat colourBlendFactor = [colour isEqual:kPlayerOrange] ?
-      (kDyadminoAnimatedColorBlendFactor * 1.5) : kDyadminoAnimatedColorBlendFactor;
-  SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:colourBlendFactor * 1.333 duration:.5f];
-  SKAction *wait = [SKAction waitForDuration:1.f];
-  SKAction *highlightOut = [SKAction colorizeWithColorBlendFactor:0.f duration:0.5f];
-  SKAction *sequence = [SKAction sequence:@[highlightIn, wait, highlightOut]];
-  [self runAction:sequence withKey:kActionShowRecentlyPlayed];
-}
-
--(void)animateFace:(SKSpriteNode *)face {
-  if (face.parent == self) {
-    __weak typeof(self) weakSelf = self;
-    [face removeAnimationForKey:kActionSoundFace withCompletion:^{
-      [weakSelf resetFaceScales];
-    }];
-    
-    SKAction *scaleUp = [SKAction scaleTo:1.4f duration:0.05f];
-    SKAction *scaleOvershootDown = [SKAction scaleTo:0.75f duration:0.1f];
-    SKAction *scaleBounceBackUp = [SKAction scaleTo:1.f duration:0.025];
-    
-    SKAction *complete = [SKAction runBlock:^{
-      [weakSelf establishSizeOfSprite:face];
-    }];
-    SKAction *sequence = [SKAction sequence:@[scaleUp, scaleOvershootDown, scaleBounceBackUp, complete]];
-    
-    [face runAction:sequence withKey:kActionSoundFace];
-  }
-}
-
--(void)animateHover:(BOOL)animate {
-  if (animate) {
-    if (![self actionForKey:kActionHover]) {
-      
-        // experiment with different values for these two
-      const CGFloat degrees = 2.f;
-      const CGFloat timeDivisor = 4.f;
-      
-      SKAction *leftAction = [SKAction rotateToAngle:[self getRadiansFromDegree:degrees] duration:kAnimateHoverTime / timeDivisor];
-      SKAction *rightAction = [SKAction rotateToAngle:[self getRadiansFromDegree:-degrees] duration:kAnimateHoverTime / timeDivisor];
-      leftAction.timingMode = SKActionTimingEaseOut;
-      rightAction.timingMode = SKActionTimingEaseOut;
-      
-      SKAction *sequenceAction = [SKAction sequence:@[leftAction, rightAction]];
-      SKAction *repeatAction = [SKAction repeatActionForever:sequenceAction];
-      [self runAction:repeatAction withKey:kActionHover];
-    }
-  } else {
-    [self removeActionForKey:kActionHover];
-    [self resize];
-    [self selectAndPositionSprites];
-  }
-}
-
 #pragma mark - animate placement methods
 
--(void)animateInRackOrReplayMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding {
-//  NSLog(@"animate in rack or replay move to point.");
+-(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove {
   
-  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
-  SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime]; // was kConstantSpeed * distance
-  moveAction.timingMode = SKActionTimingEaseIn;
-  
-  __weak typeof(self) weakSelf = self;
-  if (sounding) {
-    SKAction *completeAction = [SKAction runBlock:^{
-      [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
-      [weakSelf setToHomeZPositionAndSyncOrientation];
-    }];
-    SKAction *sequence = [SKAction sequence:@[moveAction, completeAction]];
-    [self runAction:sequence withKey:kActionMoveToPoint];
-  } else {
-    [self runAction:moveAction withKey:kActionMoveToPoint];
+  if (includingMove) {
+    [self removeActionForKey:kActionMoveToPoint];
   }
+  
+  [self resetFaceScales];
+  [self removeActionForKey:kActionPopIntoRack];
+  [self removeActionForKey:kActionFlip];
+  [self removeActionForKey:kActionEaseIntoNode];
+  self.isRotating = NO;
+}
+
+-(void)goHomeToRackByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding fromUndo:(BOOL)undo withResize:(BOOL)resize {
+    // move these into a completion block for animation
+  if (poppingIn) {
+    [self animatePopBackIntoRackNodeFromUndo:undo withResize:resize];
+  } else {
+    
+    if (resize) {
+      self.isZoomResized = NO;
+      [self resize];
+      [self selectAndPositionSprites];
+    }
+    
+    self.colorBlendFactor = 0.f;
+    [self orientBySnapNode:self.homeNode];
+    [self animateInRackOrReplayMoveToPoint:[self getHomeNodePositionConsideringSwap] andSounding:sounding];
+  }
+  self.tempBoardNode = nil;
+  [self changeHoveringStatus:kDyadminoFinishedHovering];
+}
+
+  // this should be combined into one method with goHomeToRack
+-(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding {
+  if (poppingIn) {
+    [self animatePopBackIntoBoardNode];
+  } else {
+    [self orientBySnapNode:self.homeNode];
+    [self animateInRackOrReplayMoveToPoint:[self getHomeNodePositionConsideringSwap] andSounding:sounding];
+  }
+  [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
 -(void)animateEaseIntoNodeAfterHover {
-  NSLog(@"animate ease into node after hover");
   
     // animate to tempBoardNode if it's a rack dyadmino, otherwise to homeNode
   CGPoint settledPosition = ([self belongsInRack] && [self isOnBoard]) ?
-  settledPosition = self.tempBoardNode.position : [self getHomeNodePositionConsideringSwap];
+  self.tempBoardNode.position : [self getHomeNodePositionConsideringSwap];
   
   __weak typeof(self) weakSelf = self;
   void (^completion)(void) = ^void(void) {
+    
     [weakSelf endTouchThenHoverResize];
     [weakSelf setToHomeZPositionAndSyncOrientation];
     
@@ -640,10 +557,30 @@
   [self animateToPosition:settledPosition duration:kConstantTime withKey:kActionEaseIntoNode completion:completion];
 }
 
+-(void)animateInRackOrReplayMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding {
+  
+  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
+  SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime]; // was kConstantSpeed * distance
+  moveAction.timingMode = SKActionTimingEaseIn;
+  
+  __weak typeof(self) weakSelf = self;
+  if (sounding) {
+    SKAction *completeAction = [SKAction runBlock:^{
+      [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
+      [weakSelf setToHomeZPositionAndSyncOrientation];
+    }];
+    SKAction *sequence = [SKAction sequence:@[moveAction, completeAction]];
+    [self runAction:sequence withKey:kActionMoveToPoint];
+    
+  } else {
+    [self runAction:moveAction withKey:kActionMoveToPoint];
+  }
+}
+
 -(void)animateToPosition:(CGPoint)toPosition duration:(CGFloat)duration withKey:(NSString *)key completion:(void(^)(void))completion {
   
-  NSLog(@"animate to position");
   SKAction *moveAction = [SKAction moveTo:toPosition duration:duration];
+  moveAction.timingMode = SKActionTimingEaseOut;
   SKAction *completionAction = [SKAction runBlock:completion];
   SKAction *sequence = [SKAction sequence:@[moveAction, completionAction]];
   [self runAction:sequence withKey:key];
@@ -663,7 +600,8 @@
   [self animatePopIntoNodeWithKey:kActionPopIntoBoard andRackRefresh:NO andRepositionBlock:repositionBlock];
 }
 
--(void)animatePopBackIntoRackNodeFromUndo:(BOOL)undo withResize:(BOOL)resize {
+-(void)animatePopBackIntoRackNodeFromUndo:(BOOL)undo
+                               withResize:(BOOL)resize {
   
   __weak typeof(self) weakSelf = self;
   void (^repositionBlock)(void);
@@ -686,7 +624,10 @@
   [self animatePopIntoNodeWithKey:kActionPopIntoRack andRackRefresh:undo andRepositionBlock:repositionBlock];
 }
 
--(void)animatePopIntoNodeWithKey:(NSString *)key andRackRefresh:(BOOL)rackRefresh andRepositionBlock:(void(^)(void))repositionBlock {
+-(void)animatePopIntoNodeWithKey:(NSString *)key
+                  andRackRefresh:(BOOL)rackRefresh
+              andRepositionBlock:(void(^)(void))repositionBlock {
+  
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   [self.delegate postSoundNotification:kNotificationPopIntoNode];
   [self setToHomeZPositionAndSyncOrientation];
@@ -699,20 +640,36 @@
     [weakSelf.delegate refreshRackFieldAndDyadminoesFromUndo:YES withAnimation:YES];
   }];
   
-  SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
+  SKAction *popInCompletion = [SKAction runBlock:^{
+    [weakSelf animatePopInWithCompletionBlock:nil];
+  }];
   
     // no grow action with rack refresh, because dyadmino will enter after rack nodes are repositioned
-  SKAction *sequenceAction = rackRefresh ?
-  [SKAction sequence:@[shrinkAction, repositionAction, refreshAction]] :
-  [SKAction sequence:@[shrinkAction, repositionAction, growAction]];
+    // grow action will be called by rack
+  SKAction *sequenceAction;
+  if (rackRefresh) {
+    sequenceAction = [SKAction sequence:@[shrinkAction, repositionAction, refreshAction]];
+  } else {
+    sequenceAction = [SKAction sequence:@[shrinkAction, repositionAction, popInCompletion]];
+  }
+
   [self runAction:sequenceAction withKey:key];
   
+}
+
+-(void)animatePopInWithCompletionBlock:(void(^)(void))completionBlock {
+  SKAction *excessGrowAction = [SKAction scaleTo:kDyadminoHoverResizeFactor duration:kConstantTime * 0.7f];
+  excessGrowAction.timingMode = SKActionTimingEaseOut;
+  SKAction *settleBackAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.3f];
+  settleBackAction.timingMode = SKActionTimingEaseIn;
+  SKAction *completionAction = [SKAction runBlock:completionBlock];
+  SKAction *sequence = [SKAction sequence:@[excessGrowAction, settleBackAction, completionAction]];
+  [self runAction:sequence withKey:kActionPopIn];
 }
 
 #pragma mark - animate flip methods
 
 -(void)animateFlip {
-  
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   self.isRotating = YES;
   [self animateOneThirdFlipClockwise:YES times:3 withFullFlip:YES];
@@ -791,6 +748,65 @@
       // if already animating, just add to orientation.
   } else {
     self.orientation = (self.orientation + (clockwise ? 1 : 5)) % 6;
+  }
+}
+
+#pragma mark - unique animation methods
+
+-(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour {
+  [self removeActionsAndEstablishNotRotatingIncludingMove:NO];
+  self.color = (SKColor *)colour;
+  
+  CGFloat colourBlendFactor = [colour isEqual:kPlayerOrange] ?
+  (kDyadminoAnimatedColorBlendFactor * 1.5) : kDyadminoAnimatedColorBlendFactor;
+  SKAction *highlightIn = [SKAction colorizeWithColorBlendFactor:colourBlendFactor * 1.333 duration:.5f];
+  SKAction *wait = [SKAction waitForDuration:1.f];
+  SKAction *highlightOut = [SKAction colorizeWithColorBlendFactor:0.f duration:0.5f];
+  SKAction *sequence = [SKAction sequence:@[highlightIn, wait, highlightOut]];
+  [self runAction:sequence withKey:kActionShowRecentlyPlayed];
+}
+
+-(void)animateFaceForSound:(SKSpriteNode *)face {
+  if (face.parent == self) {
+    __weak typeof(self) weakSelf = self;
+    [face removeAnimationForKey:kActionSoundFace withCompletion:^{
+      [weakSelf resetFaceScales];
+    }];
+    
+    SKAction *scaleUp = [SKAction scaleTo:1.4f duration:0.05f];
+    SKAction *scaleOvershootDown = [SKAction scaleTo:0.75f duration:0.1f];
+    SKAction *scaleBounceBackUp = [SKAction scaleTo:1.f duration:0.025];
+    
+    SKAction *complete = [SKAction runBlock:^{
+      [weakSelf establishSizeOfSprite:face];
+    }];
+    SKAction *sequence = [SKAction sequence:@[scaleUp, scaleOvershootDown, scaleBounceBackUp, complete]];
+    
+    [face runAction:sequence withKey:kActionSoundFace];
+  }
+}
+
+-(void)animateWiggleForHover:(BOOL)animate {
+  if (animate) {
+    if (![self actionForKey:kActionHover]) {
+      
+        // experiment with different values for these two
+      const CGFloat degrees = 2.f;
+      const CGFloat timeDivisor = 4.f;
+      
+      SKAction *leftAction = [SKAction rotateToAngle:[self getRadiansFromDegree:degrees] duration:kAnimateHoverTime / timeDivisor];
+      SKAction *rightAction = [SKAction rotateToAngle:[self getRadiansFromDegree:-degrees] duration:kAnimateHoverTime / timeDivisor];
+      leftAction.timingMode = SKActionTimingEaseOut;
+      rightAction.timingMode = SKActionTimingEaseOut;
+      
+      SKAction *sequenceAction = [SKAction sequence:@[leftAction, rightAction]];
+      SKAction *repeatAction = [SKAction repeatActionForever:sequenceAction];
+      [self runAction:repeatAction withKey:kActionHover];
+    }
+  } else {
+    [self removeActionForKey:kActionHover];
+    [self resize];
+    [self selectAndPositionSprites];
   }
 }
 
@@ -900,53 +916,6 @@
   return self.myHexCoord;
 }
 
--(NSString *)stringForPC:(NSUInteger)pc {
-  
-    // Unicode u266d is flat, u00b7 is small bullet, u266f is sharp
-  
-  switch (pc) {
-    case 0:
-      return @"C";
-      break;
-    case 1:
-      return @"C\u266f\u00b7D\u266d";
-      break;
-    case 2:
-      return @"D";
-      break;
-    case 3:
-      return @"D\u266f\u00b7E\u266d";
-      break;
-    case 4:
-      return @"E";
-      break;
-    case 5:
-      return @"F";
-      break;
-    case 6:
-      return @"F\u266f\u00b7G\u266d";
-      break;
-    case 7:
-      return @"G";
-      break;
-    case 8:
-      return @"G\u266f\u00b7A\u266d";
-      break;
-    case 9:
-      return @"A";
-      break;
-    case 10:
-      return @"A\u266f\u00b7B\u266d";
-      break;
-    case 11:
-      return @"B";
-      break;
-    default:
-      return @"";
-      break;
-  }
-}
-
 #pragma mark - custom accessor methods
 
 -(PCMode)pcMode {
@@ -972,15 +941,65 @@
   _name = name;
 }
 
+#pragma mark - name helper methods
+
 -(NSString *)updateName {
 
     // Unicode u2011 is non-breaking hyphen, u2013 is N-dash, u2014 is M-dash
+    // u2022 is bullet
   switch (self.pcMode) {
     case kPCModeLetter:
       return [NSString stringWithFormat:@"%@\u2013%@", [self stringForPC:self.pc1], [self stringForPC:self.pc2]];
       break;
     case kPCModeNumber:
-      return [NSString stringWithFormat:@"%i\u2013%i", self.pc1, self.pc2];
+      return [NSString stringWithFormat:@"%lu\u2013%lu", (unsigned long)self.pc1, (unsigned long)self.pc2];
+      break;
+  }
+}
+
+-(NSString *)stringForPC:(NSUInteger)pc {
+  
+    // Unicode u266d is flat, u00b7 is small bullet, u266f is sharp
+  
+  switch (pc) {
+    case 0:
+      return @"C";
+      break;
+    case 1:
+      return @"C\u266f/D\u266d";
+      break;
+    case 2:
+      return @"D";
+      break;
+    case 3:
+      return @"D\u266f/E\u266d";
+      break;
+    case 4:
+      return @"E";
+      break;
+    case 5:
+      return @"F";
+      break;
+    case 6:
+      return @"F\u266f/G\u266d";
+      break;
+    case 7:
+      return @"G";
+      break;
+    case 8:
+      return @"G\u266f/A\u266d";
+      break;
+    case 9:
+      return @"A";
+      break;
+    case 10:
+      return @"A\u266f/B\u266d";
+      break;
+    case 11:
+      return @"B";
+      break;
+    default:
+      return @"";
       break;
   }
 }

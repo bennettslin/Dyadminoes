@@ -20,4 +20,6 @@
 -(BOOL)isOccupiedByDyadminoID:(NSInteger)dyadminoIndex;
 -(HexCoord)hexCoord;
 
+-(BOOL)isContainedRegardlessOfPCAndDyadminoInfoInSet:(NSSet *)set;
+
 @end

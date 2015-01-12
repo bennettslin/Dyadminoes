@@ -93,18 +93,15 @@
         // undone dyadmino is popped in
       if (undo && index == dyadminoesInArray.count - 1) {
         dyadmino.position = shouldBePosition;
-        SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime];
-        SKAction *completeAction = [SKAction runBlock:^{
+        
+        [dyadmino animatePopInWithCompletionBlock:^{
           [weakSelf.delegate allowUndoButton];
         }];
-        SKAction *sequenceAction = [SKAction sequence:@[growAction, completeAction]];
-        [dyadmino runAction:sequenceAction];
         return;
       }
         // dyadmino is *not* already on rack, so add offscreen first and then animate
     } else {
       
-
       completeAction = [SKAction runBlock:^{
         [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
       }];

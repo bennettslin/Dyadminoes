@@ -11,6 +11,6 @@
 @interface Match (Helper)
 
 -(void)removeFromPileNumberOfDataDyadminoes:(NSUInteger)numberToRemove;
--(void)recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:(BOOL)swap;
+//-(void)recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:(BOOL)swap;
 
 @end

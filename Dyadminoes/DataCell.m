@@ -38,4 +38,16 @@
   return [self hexCoordFromX:self.hexX andY:self.hexY];
 }
 
+-(BOOL)isContainedRegardlessOfPCAndDyadminoInfoInSet:(NSSet *)set {
+  for (id object in set) {
+    if ([object isKindOfClass:[DataCell class]]) {
+      DataCell *setCell = (DataCell *)object;
+      if (setCell.hexX == self.hexX && setCell.hexY == self.hexY) {
+        return YES;
+      }
+    }
+  }
+  return NO;
+}
+
 @end

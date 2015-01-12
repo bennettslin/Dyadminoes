@@ -19,19 +19,19 @@
   }
 }
 
--(void)recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:(BOOL)swap {
-  
-    // adds a mock score if there is a dyadmino in the holding container
-    // because recordDyadminoes method uses this score to determine if turn was pass or play
-  
-  if ([self.holdingIndexContainer count] != 0) {
-    NSMutableArray *tempArray = [NSMutableArray new];
-    NSDictionary *newDictionary = @{@"points":@1};
-    [tempArray addObject:newDictionary];
-  }
-  
-  [self recordDyadminoesFromCurrentPlayerWithSwap:swap];
-
-}
+//-(void)recordDyadminoesWithMockScoreFromCurrentPlayerWithSwap:(BOOL)swap {
+//  
+//    // adds a mock score if there is a dyadmino in the holding container
+//    // because recordDyadminoes method uses this score to determine if turn was pass or play
+//  
+//  if ([self.holdingIndexContainer count] != 0) {
+//    NSMutableArray *tempArray = [NSMutableArray new];
+//    NSDictionary *newDictionary = @{@"points":@1};
+//    [tempArray addObject:newDictionary];
+//  }
+//  
+//  [self recordDyadminoesFromCurrentPlayerWithSwap:swap];
+//
+//}
 
 @end

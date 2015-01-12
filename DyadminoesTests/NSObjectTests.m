@@ -136,4 +136,59 @@
   }
 }
 
+#pragma mark - cell helper methods
+
+-(void)testTopHexCellForBottomHexCellMethod {
+
+  const int radius = 5;
+  for (int x = -radius; x <= radius; x++ ) {
+    for (int y = -radius; y <= radius; y++) {
+      for (DyadminoOrientation orientation = kPC1atTwelveOClock; orientation <= kPC1atTenOClock; orientation++) {
+
+        HexCoord bottomHexCoord = [self.myObject hexCoordFromX:x andY:y];
+        HexCoord returnedTopHexCoord = [self.myObject retrieveTopHexCoordForBottomHexCoord:bottomHexCoord
+                                                                            andOrientation:orientation];
+        
+        HexCoord expectedTopHexCoord;
+        switch (orientation) {
+          case kPC1atTwelveOClock:
+          case kPC1atSixOClock:
+            expectedTopHexCoord = [self.myObject hexCoordFromX:x andY:y + 1];
+            break;
+          case kPC1atTwoOClock:
+          case kPC1atEightOClock:
+            expectedTopHexCoord = [self.myObject hexCoordFromX:x + 1 andY:y];
+            break;
+          case kPC1atFourOClock:
+          case kPC1atTenOClock:
+            expectedTopHexCoord = [self.myObject hexCoordFromX:x - 1 andY:y + 1];
+            break;
+        }
+        
+        BOOL returnedAsExpected = (returnedTopHexCoord.x == expectedTopHexCoord.x &&
+                                   returnedTopHexCoord.y == expectedTopHexCoord.y);        
+        XCTAssertTrue(returnedAsExpected, @"Did not return expected top hex coord for bottom hex coord.");
+      }
+    }
+  }
+}
+
+#pragma mark - dyadmino helper methods
+
+-(void)testPCsForIndexMethod {
+  
+  NSUInteger index = 0;
+  for (int pc1 = 0; pc1 < 12; pc1++) {
+    for (int pc2 = pc1 + 1; pc2 < 12; pc2++) {
+      if (pc1 < pc2) {
+        XCTAssertEqual(pc1, [self.myObject pcForDyadminoIndex:index isPC1:YES], @"Incorrect pc1 for dyadmino index %lu", (unsigned long)index);
+        XCTAssertEqual(pc2, [self.myObject pcForDyadminoIndex:index isPC1:NO], @"Incorrect pc2 for dyadmino index %lu", (unsigned long)index);
+        index++;
+      }
+    }
+  }
+  
+  XCTAssertEqual(index, kPileCount, @"Index was not equal to pile count.");
+}
+
 @end

@@ -200,123 +200,51 @@
   return NO;
 }
 
--(NSSet *)sonorities:(NSSet *)sonorities1 thatExtendASonorityInSonorities:(NSSet *)sonorities2 {
+-(NSSet *)legalChords:(NSSet *)legalChords1 thatExtendALegalChordInLegalChords:(NSSet *)legalChords2 {
   
-  NSMutableSet *returnedSonorities = [NSMutableSet new];
+  NSMutableSet *returnedLegalChords = [NSMutableSet new];
   
-  for (NSSet *sonority2 in sonorities2) {
-    for (NSSet *sonority1 in sonorities1) {
+  for (NSSet *legalChord2 in legalChords2) {
+    for (NSSet *legalChord1 in legalChords1) {
       
         // subset and not equal
-      if ([self sonority:sonority2 is:kSubset ofSonority:sonority1] &&
-          ![self sonority:sonority2 is:kEqual ofSonority:sonority1]) {
+      if ([self sonority:legalChord2 is:kSubset ofSonority:legalChord1] &&
+          ![self sonority:legalChord2 is:kEqual ofSonority:legalChord1]) {
         
-        [returnedSonorities addObject:sonority1];
+        [returnedLegalChords addObject:legalChord1];
       }
     }
   }
-  return [NSSet setWithSet:returnedSonorities];
+  return [NSSet setWithSet:returnedLegalChords];
 }
 
--(NSSet *)sonorities:(NSSet *)sonorities1 thatAreCompletelyNotFoundInSonorities:(NSSet *)sonorities2 {
+-(NSSet *)legalChords:(NSSet *)legalChords1 thatAreCompletelyNotFoundInLegalChords:(NSSet *)legalChords2 {
   
-  NSMutableSet *returnedSonorities = [NSMutableSet new];
+  NSMutableSet *returnedLegalChords = [NSMutableSet new];
   
-  for (NSSet *sonority1 in sonorities1) {
+  for (NSSet *legalChord1 in legalChords1) {
     
-    BOOL thereIsAnEqualOrSubsetSonority = NO;
-    for (NSSet *sonority2 in sonorities2) {
-      if ([self sonority:sonority1 is:kEqual ofSonority:sonority2] ||
-          [self sonority:sonority2 is:kSubset ofSonority:sonority1]) {
-        thereIsAnEqualOrSubsetSonority = YES;
+    BOOL thereIsAnEqualOrSubsetLegalChord = NO;
+    for (NSSet *legalChord2 in legalChords2) {
+      if ([self sonority:legalChord1 is:kEqual ofSonority:legalChord2] ||
+          [self sonority:legalChord2 is:kSubset ofSonority:legalChord1]) {
+        thereIsAnEqualOrSubsetLegalChord = YES;
       }
     }
     
-    if (!thereIsAnEqualOrSubsetSonority) {
-      [returnedSonorities addObject:sonority1];
+    if (!thereIsAnEqualOrSubsetLegalChord) {
+      [returnedLegalChords addObject:legalChord1];
     }
   }
-  return [NSSet setWithSet:returnedSonorities];
+  return [NSSet setWithSet:returnedLegalChords];
 }
 
--(NSSet *)sonorities:(NSSet *)sonorities1 thatAreEitherNewOrExtendingRelativeToSonorities:(NSSet *)sonorities2 {
-  NSSet *newSonorities = [self sonorities:sonorities1 thatAreCompletelyNotFoundInSonorities:sonorities2];
-  NSSet *extendingSonorities = [self sonorities:sonorities1 thatExtendASonorityInSonorities:sonorities2];
-  NSMutableSet *tempReturnedSet = [NSMutableSet setWithSet:newSonorities];
-  [tempReturnedSet addObjectsFromArray:extendingSonorities.allObjects];
+-(NSSet *)legalChords:(NSSet *)legalChords1 thatAreEitherNewOrExtendingRelativeToLegalChords:(NSSet *)legalChords2 {
+  NSSet *newLegalChords = [self legalChords:legalChords1 thatAreCompletelyNotFoundInLegalChords:legalChords2];
+  NSSet *extendingLegalChords = [self legalChords:legalChords1 thatExtendALegalChordInLegalChords:legalChords2];
+  NSMutableSet *tempReturnedSet = [NSMutableSet setWithSet:newLegalChords];
+  [tempReturnedSet addObjectsFromArray:extendingLegalChords.allObjects];
   return [NSSet setWithSet:tempReturnedSet];
-}
-
-//-(BOOL)setOfLegalChords:(NSSet *)setofLegalChords1 isSubsetOfSetOfLegalChords:(NSSet *)setOfLegalChords2 {
-//    // this method will break if the chords are not all legal
-//  
-//  BOOL returnValue = YES;
-//  for (NSSet *chord1 in setofLegalChords1) {
-//    
-//    BOOL sonority1IsAlsoInSet2 = NO;
-//    for (NSSet *chord2 in setOfLegalChords2) {
-//      if ([self sonority:chord1 is:kSubset ofSonority:chord2]) {
-//        sonority1IsAlsoInSet2 = YES;
-//      }
-//    }
-//    
-//    if (!sonority1IsAlsoInSet2) {
-//      returnValue = NO;
-//    }
-//  }
-//  
-//  return returnValue;
-//}
-
--(NSSet *)legalChords:(NSSet *)legalChords1 notFoundInAndNotSubsetsOfLegalChords:(NSSet *)legalChords2 {
-  
-  NSMutableSet *tempSet = [NSMutableSet new];
-  for (NSSet *chord1 in legalChords1) {
-    
-    BOOL thisChordInSet1IsFoundInOrASubsetOfAChordInSet2 = NO;
-    for (NSSet *chord2 in legalChords2) {
-      if ([self sonority:chord1 is:kSubset ofSonority:chord2]) {
-        thisChordInSet1IsFoundInOrASubsetOfAChordInSet2 = YES;
-      }
-    }
-    if (!thisChordInSet1IsFoundInOrASubsetOfAChordInSet2) {
-      [tempSet addObject:chord1];
-    }
-  }
-  
-  return [NSSet setWithSet:tempSet];
-}
-
--(NSSet *)sonoritiesInSonorities:(NSSet *)larger thatAreSupersetsOfSonoritiesInSonorities:(NSSet *)smaller inclusive:(BOOL)inclusive {
-  
-  NSMutableSet *tempSupersetsSonorities = [NSMutableSet new];
-  
-  for (NSSet *largerSetSonority in larger) {
-    
-    BOOL smallerFoundInLarger = NO;
-    for (NSSet *smallerSetSonority in smaller) {
-      if ([smallerSetSonority isSubsetOfSet:largerSetSonority]) {
-        
-          // this confirms that the sonorities are not equal, so add it to temp set
-        if (![largerSetSonority isSubsetOfSet:smallerSetSonority]) {
-          [tempSupersetsSonorities addObject:largerSetSonority];
-          
-            // sonorities are equal, check inclusive bool
-            // to decidedo whether to add it to temp set
-        } else if (!inclusive) {
-          smallerFoundInLarger = YES;
-        }
-      }
-    }
-    
-      // sonority is missing in smaller set, add it to temp set
-    if (!smallerFoundInLarger) {
-      [tempSupersetsSonorities addObject:largerSetSonority];
-    }
-  }
-  
-  return [NSSet setWithSet:tempSupersetsSonorities];
-  
 }
 
 #pragma mark - chord logic methods
