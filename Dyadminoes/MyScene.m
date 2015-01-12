@@ -120,6 +120,13 @@
   
     // test
   BOOL _debugMode;
+  
+    // pivot variables
+  CGFloat _orientationOffset;
+  CGFloat _originalDyadminoOrientation;
+  
+    // first time pivot values
+  CGFloat _touchPivotOffsetAngle;
 }
 
 #pragma mark - set up methods
@@ -468,7 +475,7 @@
         // not the best place to set tempReturnOrientation for dyadmino
       dyadmino.tempReturnOrientation = dyadmino.orientation;
       
-      [dyadmino selectAndPositionSprites];
+      [dyadmino selectAndPositionSpritesZRotation:0.f];
       [tempDyadminoArray addObject:dyadmino];
     }
   }
@@ -498,7 +505,7 @@
     
     if (![tempSet containsObject:dyadmino]) {
       
-      [dyadmino selectAndPositionSprites];
+      [dyadmino selectAndPositionSpritesZRotation:0.f];
       [tempSet addObject:dyadmino];
     }
   }
@@ -563,7 +570,7 @@
     [self updateCellsForPlacedDyadmino:dyadmino andColour:YES];
     dyadmino.position = dyadmino.homeNode.position;
     [dyadmino orientBySnapNode:dyadmino.homeNode];
-    [dyadmino selectAndPositionSprites];
+    [dyadmino selectAndPositionSpritesZRotation:0.f];
     if (!dyadmino.parent) {
       [_boardField addChild:dyadmino];
     }
@@ -976,7 +983,7 @@
   
     // if we're currently pivoting, just rotate and return
   if (_pivotInProgress) {
-    [self handlePivotOfDyadmino:_hoveringDyadmino];
+    [self handlePivotOfGuidesAndDyadmino:_hoveringDyadmino firstTime:NO];
     return;
   }
   
@@ -1398,12 +1405,23 @@
   }
 }
 
--(void)handlePivotOfDyadmino:(Dyadmino *)dyadmino {
+-(void)handlePivotOfGuidesAndDyadmino:(Dyadmino *)dyadmino firstTime:(BOOL)firstTime {
   
   CGPoint touchBoardOffset = [_boardField getOffsetFromPoint:_currentTouchLocation];
   
-  [_boardField pivotGuidesBasedOnTouchLocation:touchBoardOffset forDyadmino:dyadmino firstTime:NO];
-  [dyadmino pivotBasedOnTouchLocation:touchBoardOffset andPivotOnPC:_boardField.pivotOnPC];
+    // rotate pivot guides
+  CGFloat guideAngle = [self pivotAngleBasedOnTouchLocation:touchBoardOffset forDyadmino:dyadmino firstTime:firstTime];
+  [_boardField rotatePivotGuidesBasedOnPivotAroundPoint:dyadmino.pivotAroundPoint andTrueAngle:guideAngle];
+  
+    // rotate dyadmino
+  CGFloat dyadminoAngle = guideAngle - _orientationOffset + (dyadmino.orientation * 60) - (_originalDyadminoOrientation * 60);
+  BOOL pivotChanged = [dyadmino pivotBasedOnTouchLocation:touchBoardOffset
+                                        andZRotationAngle:dyadminoAngle
+                                             andPivotOnPC:_boardField.pivotOnPC];
+  
+  if (!pivotChanged) {
+    [dyadmino zRotateToAngle:dyadminoAngle];
+  }
 }
 
 -(Dyadmino *)assignTouchEndedPointerToDyadmino:(Dyadmino *)dyadmino {
@@ -1430,8 +1448,10 @@
   dyadmino.prePivotDyadminoOrientation = dyadmino.orientation;
   dyadmino.initialPivotPosition = dyadmino.position;
   [_boardField determinePivotOnPCForDyadmino:dyadmino];
+  
   [dyadmino determinePivotAroundPointBasedOnPivotOnPC:_boardField.pivotOnPC];
-  [_boardField pivotGuidesBasedOnTouchLocation:touchBoardOffset forDyadmino:dyadmino firstTime:YES];
+  
+  [self handlePivotOfGuidesAndDyadmino:dyadmino firstTime:YES];
 }
 
 #pragma mark - button methods
@@ -2140,7 +2160,6 @@
         PlacementResult placementResult = [self.myMatch checkPlacementOfDataDyadmino:dataDyad
                                                                     onBottomHexCoord:dyadmino.tempBoardNode.myCell.hexCoord
                                                                      withOrientation:dyadmino.orientation];
-        NSLog(@"Placement result is %i", placementResult);
         
   //----------------------------------------------------------------------------
   // illegal placement, either lone dyadmino or stacked dyadminoes
@@ -3010,6 +3029,54 @@
   return closestSnapPoint;
 }
 
+-(CGFloat)pivotAngleBasedOnTouchLocation:(CGPoint)touchLocation forDyadmino:(Dyadmino *)dyadmino firstTime:(BOOL)firstTime {
+  
+    // establish angles
+  CGFloat touchAngle = [self findAngleInDegreesFromThisPoint:touchLocation toThisPoint:dyadmino.pivotAroundPoint];
+  while (touchAngle < 0) {
+    touchAngle += 360.f;
+  }
+  
+  NSUInteger dyadOrient = 360 - dyadmino.orientation * 60;
+  
+  CGFloat touchAngleRelativeToDyadOrient = touchAngle + dyadmino.orientation * 60.f;
+  while (touchAngleRelativeToDyadOrient > 360) {
+    touchAngleRelativeToDyadOrient -= 360;
+  }
+  
+  if (firstTime) {
+    
+    _originalDyadminoOrientation = dyadmino.orientation;
+    
+    _orientationOffset = 0;
+    if (touchAngleRelativeToDyadOrient > (0 + 330) % 360 ||
+        touchAngleRelativeToDyadOrient <= (0 + 30) % 360) {
+      _orientationOffset = 0 + dyadOrient;
+      
+    } else if (touchAngleRelativeToDyadOrient > (0 + 30) % 360 &&
+               touchAngleRelativeToDyadOrient <= (0 + 150) % 360) {
+      _orientationOffset = 90 + dyadOrient;
+      
+    } else if (touchAngleRelativeToDyadOrient > (0 + 150) % 360 &&
+               touchAngleRelativeToDyadOrient <= (0 + 210) % 360) {
+      _orientationOffset = 180 + dyadOrient;
+      
+    } else if (touchAngleRelativeToDyadOrient > (0 + 210) % 360 &&
+               touchAngleRelativeToDyadOrient <= (0 + 330) % 360) {
+      _orientationOffset = 270 + dyadOrient;
+    }
+    
+    while (_orientationOffset > 360) {
+      _orientationOffset -= 360;
+    }
+    
+    _touchPivotOffsetAngle = touchAngle - _orientationOffset;
+  }
+  
+  CGFloat trueAngle = (touchAngle - _touchPivotOffsetAngle);
+  return trueAngle;
+}
+
 -(void)removeDyadmino:(Dyadmino *)dyadmino fromParentAndAddToNewParent:(SKSpriteNode *)newParent {
   if (dyadmino && newParent && dyadmino.parent != newParent) {
     [dyadmino removeFromParent];
@@ -3213,7 +3280,7 @@
   [dyadmino removeActionForKey:@"replayAction"];
   dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
   [dyadmino runAction:sequenceAction withKey:@"replayAction"];
-  [dyadmino selectAndPositionSprites];
+  [dyadmino selectAndPositionSpritesZRotation:0.f];
 }
 
 -(void)animateScaleForReplayOfDyadmino:(Dyadmino *)dyadmino toShrink:(BOOL)shrink {

@@ -45,11 +45,6 @@
   CGFloat _oldCellsBottom;
   CGFloat _oldCellsLeft;
   CGFloat _oldCellsRight;
-  
-    // first time pivot values
-  CGFloat _touchPivotOffsetAngle;
-  CGFloat _orientationOffset;
-  CGFloat _originalDyadminoOrientation;
 }
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size andCellTexture:(SKTexture *)cellTexture {
@@ -864,7 +859,6 @@
 
 -(void)animatePivotGuide:(SKNode *)pivotGuide toShow:(BOOL)toShow completion:(void(^)(void))completion {
   
-  NSLog(@"animate pivot guide called, to show %i", toShow);
   if (toShow && ![pivotGuide actionForKey:@"pivotGuideScaleUp"]) {
     [pivotGuide removeActionForKey:@"pivotGuideScaleDown"];
     [pivotGuide setScale:0.f];
@@ -948,64 +942,12 @@
   return self.pivotOnPC;
 }
 
--(void)pivotGuidesBasedOnTouchLocation:(CGPoint)touchLocation forDyadmino:(Dyadmino *)dyadmino firstTime:(BOOL)firstTime {
+-(void)rotatePivotGuidesBasedOnPivotAroundPoint:(CGPoint)pivotAroundPoint andTrueAngle:(CGFloat)trueAngle {
   
-    // establish angles
-  CGFloat touchAngle = [self findAngleInDegreesFromThisPoint:touchLocation toThisPoint:dyadmino.pivotAroundPoint];
-  while (touchAngle < 0) {
-    touchAngle += 360.f;
-  }
-  
-  NSUInteger dyadOrient = 360 - dyadmino.orientation * 60;
-
-  CGFloat touchAngleRelativeToDyadOrient = touchAngle + dyadmino.orientation * 60.f;
-  while (touchAngleRelativeToDyadOrient > 360) {
-    touchAngleRelativeToDyadOrient -= 360;
-  }
-  
-  if (firstTime) {
-    
-    _originalDyadminoOrientation = dyadmino.orientation;
-    
-      _orientationOffset = 0;
-    if (touchAngleRelativeToDyadOrient > (0 + 330) % 360 ||
-        touchAngleRelativeToDyadOrient <= (0 + 30) % 360) {
-      _orientationOffset = 0 + dyadOrient;
-      
-    } else if (touchAngleRelativeToDyadOrient > (0 + 30) % 360 &&
-               touchAngleRelativeToDyadOrient <= (0 + 150) % 360) {
-      _orientationOffset = 90 + dyadOrient;
-      
-    } else if (touchAngleRelativeToDyadOrient > (0 + 150) % 360 &&
-               touchAngleRelativeToDyadOrient <= (0 + 210) % 360) {
-      _orientationOffset = 180 + dyadOrient;
-      
-    } else if (touchAngleRelativeToDyadOrient > (0 + 210) % 360 &&
-               touchAngleRelativeToDyadOrient <= (0 + 330) % 360) {
-      _orientationOffset = 270 + dyadOrient;
-    }
-    
-    while (_orientationOffset > 360) {
-      _orientationOffset -= 360;
-    }
-
-    _touchPivotOffsetAngle = touchAngle - _orientationOffset;
-  }
-  
-  CGFloat trueAngle = (touchAngle - _touchPivotOffsetAngle);
-
-    //// pivot guide positions and rotations should be established in determinePivotOnPC methods
-    //// Here, they are adjusted. This should change, obviously
-  
-  self.pivotAroundGuide.position = dyadmino.pivotAroundPoint;
-  self.pivotRotateGuide.position = dyadmino.pivotAroundPoint;
+  self.pivotAroundGuide.position = pivotAroundPoint;
+  self.pivotRotateGuide.position = pivotAroundPoint;
   self.pivotAroundGuide.zRotation = [self getRadiansFromDegree:trueAngle];
   self.pivotRotateGuide.zRotation = [self getRadiansFromDegree:trueAngle];
-  
-  CGFloat angleForZRotation = trueAngle - _orientationOffset + dyadmino.orientation * 60 - _originalDyadminoOrientation * 60;
-  dyadmino.zRotation = [self getRadiansFromDegree:angleForZRotation];
-  dyadmino.pc1Sprite.zRotation = -[self getRadiansFromDegree:angleForZRotation];
-  dyadmino.pc2Sprite.zRotation = -[self getRadiansFromDegree:angleForZRotation];
 }
 
   // these might be used for replay mode

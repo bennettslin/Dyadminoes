@@ -97,7 +97,7 @@
 
 #pragma mark - orient, position, and size methods
 
--(void)selectAndPositionSprites;
+-(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle;
 -(void)orientBySnapNode:(SnapPoint *)snapNode;
 -(CGPoint)getHomeNodePositionConsideringSwap;
 -(void)correctZRotationAfterHover;
@@ -115,10 +115,6 @@
 
 //-(void)goToTempBoardNodeBySounding:(BOOL)sounding;
 
-#pragma mark - pivot methods
-
--(void)pivotBasedOnTouchLocation:(CGPoint)touchLocation andPivotOnPC:(PivotOnPC)pivotOnPC;
-
 #pragma mark - animate placement methods
 
 -(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
@@ -134,15 +130,20 @@
 
 -(void)animatePopInWithCompletionBlock:(void(^)(void))completionBlock;
 
-#pragma mark - animate flip methods
-
--(void)animateFlip;
-
 #pragma mark - unique animation methods
 
 -(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour;
 -(void)animateFaceForSound:(SKSpriteNode *)face;
 -(void)animateWiggleForHover:(BOOL)animate;
+
+#pragma mark - animate flip methods
+
+-(void)animateFlip;
+
+#pragma mark - pivot methods
+
+-(void)zRotateToAngle:(CGFloat)angle;
+-(BOOL)pivotBasedOnTouchLocation:(CGPoint)touchLocation andZRotationAngle:(CGFloat)angle andPivotOnPC:(PivotOnPC)pivotOnPC;
 
 #pragma mark - bool methods
 

@@ -220,7 +220,7 @@
     // change views
   for (Dyadmino *dyadmino in self.allDyadminoes) {
     dyadmino.pcMode = (dyadmino.pcMode == kPCModeLetter) ? kPCModeNumber : kPCModeLetter;
-    [dyadmino selectAndPositionSprites];
+    [dyadmino selectAndPositionSpritesZRotation:0.f];
   }
 }
 

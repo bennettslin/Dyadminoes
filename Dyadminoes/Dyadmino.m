@@ -64,7 +64,7 @@
     self.pc2NumberSprite = pc2NumberSprite;
     self.pc2NumberSprite.zPosition = kZPositionDyadminoFace;
     self.hoveringStatus = kDyadminoNoHoverStatus;
-    [self selectAndPositionSprites];
+    [self selectAndPositionSpritesZRotation:0.f];
   }
   return self;
 }
@@ -118,8 +118,10 @@
   [self establishSizeOfSprite:self.pc2Sprite];
 }
 
--(void)selectAndPositionSprites {
-  self.hidden = YES;
+-(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle {
+//  self.hidden = YES;
+  
+  [self zRotateToAngle:rotationAngle];
   
   if (self.pcMode == kPCModeLetter) {
     if (!self.pc1Sprite || self.pc1Sprite == self.pc1NumberSprite) {
@@ -141,10 +143,7 @@
     }
   }
   
-    // FIXME: this might be the key to keep dyadminoes from not flashing while pivoting
-  self.zRotation = 0.f;
-  self.pc1Sprite.zRotation = 0.f;
-  self.pc2Sprite.zRotation = 0.f;
+//  [self zRotateToAngle:rotationAngle];
   
   CGFloat hoverResizeFactor = self.isTouchThenHoverResized ? kDyadminoHoverResizeFactor : 1.f;
   CGFloat zoomResizeFactor = self.isZoomResized ? kZoomResizeFactor : 1.f;
@@ -185,7 +184,7 @@
       break;
   }
   [self resize];
-  self.hidden = NO;
+//  self.hidden = NO;
 }
 
 -(void)orientBySnapNode:(SnapPoint *)snapNode {
@@ -203,7 +202,7 @@
   }
   
   self.orientation = shouldBeOrientation;
-  [self selectAndPositionSprites];
+  [self selectAndPositionSpritesZRotation:0.f];
 }
 
 -(CGPoint)getHomeNodePositionConsideringSwap {
@@ -238,13 +237,13 @@
 -(void)startTouchThenHoverResize {
   self.isTouchThenHoverResized = YES;
   [self resize];
-  [self selectAndPositionSprites];
+  [self selectAndPositionSpritesZRotation:0.f];
 }
 
 -(void)endTouchThenHoverResize {
   self.isTouchThenHoverResized = NO;
   [self resize];
-  [self selectAndPositionSprites];
+  [self selectAndPositionSpritesZRotation:0.f];
 }
 
 -(void)changeHoveringStatus:(DyadminoHoveringStatus)hoveringStatus {
@@ -269,221 +268,6 @@
 -(void)resetFaceScales {
   [self.pc1Sprite setScale:1.f];
   [self.pc2Sprite setScale:1.f];
-}
-
-#pragma mark - pivot methods
-
--(CGPoint)determinePivotAroundPointBasedOnPivotOnPC:(PivotOnPC)pivotOnPC {
-  
-  _pivotOnPC = pivotOnPC;
-  
-    // if it's pivoting around center, then it's just the dyadmino position
-  if (_pivotOnPC == kPivotCentre) {
-    self.pivotAroundPoint = self.position;
-    
-      // otherwise it's one of the pc faces
-  } else {
-    CGPoint pivotOffset;
-    CGFloat yVertical = kDyadminoFaceRadius * kDyadminoHoverResizeFactor;
-    CGFloat xSlant = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * kDyadminoHoverResizeFactor;
-    CGFloat ySlant = kDyadminoFaceRadius * 0.5 * kDyadminoHoverResizeFactor;
-    
-      // if pc2, pivot orientation is offset
-    DyadminoOrientation pivotOrientation = self.prePivotDyadminoOrientation;
-    if (pivotOnPC == kPivotOnPC2) {
-      pivotOrientation = 3 + pivotOrientation;
-    }
-    pivotOrientation = pivotOrientation % 6;
-    
-    switch (pivotOrientation) {
-      case kPC1atTwelveOClock:
-        pivotOffset = CGPointMake(0.f, yVertical);
-        break;
-      case kPC1atTwoOClock:
-        pivotOffset = CGPointMake(xSlant, ySlant);
-        break;
-      case kPC1atFourOClock:
-        pivotOffset = CGPointMake(xSlant, -ySlant);
-        break;
-      case kPC1atSixOClock:
-        pivotOffset = CGPointMake(0, -yVertical);
-        break;
-      case kPC1atEightOClock:
-        pivotOffset = CGPointMake(-xSlant, -ySlant);
-        break;
-      case kPC1atTenOClock:
-        pivotOffset = CGPointMake(-xSlant, ySlant);
-        break;
-    }
-    self.pivotAroundPoint = [self addToThisPoint:self.position thisPoint:pivotOffset];
-  }
-  
-  [self determineNewAnchorPointDuringPivot:YES];
-  return self.pivotAroundPoint;
-}
-
--(void)pivotBasedOnTouchLocation:(CGPoint)touchLocation andPivotOnPC:(PivotOnPC)pivotOnPC {
-    // initial pivotOnPC is dyadmino position
-  
-  _pivotOnPC = pivotOnPC; // not sure why, but pivotOnPC needs to be set again here, even after being set in determinePivot
-  
-    // ensures that touch doesn't get too close to pivotAroundPoint
-  if ([self getDistanceFromThisPoint:touchLocation toThisPoint:self.pivotAroundPoint] < kMinDistanceForPivot) {
-    return;
-  }
-  
-    // establish angles
-  CGFloat touchAngle = [self findAngleInDegreesFromThisPoint:touchLocation toThisPoint:self.pivotAroundPoint];
-  CGFloat changeInAngle = [self getChangeFromThisAngle:touchAngle toThisAngle:self.initialPivotAngle];
-  
-    //// Figure out if all of this would be easier if we just made the pivotAroundPoint the temporary dyadmino position
-  for (NSUInteger i = 0; i < 12; i++) {
-    if (changeInAngle >= i + kAngleForSnapToPivot &&
-        changeInAngle < (i + 1) - kAngleForSnapToPivot) {
-      
-      uint newOrientation = (self.prePivotDyadminoOrientation + i) % 6;
-      
-        // if orientation hasn't changed, just return
-      if (self.orientation != newOrientation) {
-        
-          // sound dyadmino click
-        [self.delegate postSoundNotification:kNotificationPivotClick];
-        
-          // if it pivots on center, just go straight to positioning sprites
-        if (_pivotOnPC != kPivotCentre) {
-          
-          CGFloat xIncrement = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * kDyadminoHoverResizeFactor;
-          CGFloat yIncrement = kDyadminoFaceRadius * 0.5 * kDyadminoHoverResizeFactor;
-          
-            // pivot orientation starts out as the dyadmino orientation
-          DyadminoOrientation pivotOrientation = newOrientation;
-          
-            // if pc2, pivot orientation is offset
-          NSUInteger pivotOnPC2Offset = 0;
-          if (_pivotOnPC == kPivotOnPC2) {
-            pivotOrientation = 3 + pivotOrientation;
-            pivotOnPC2Offset = 3;
-          }
-          pivotOrientation = pivotOrientation % 6;
-          
-            // when orientation changes, dyadmino will be in new position
-          CGPoint newPosition = CGPointZero;
-          
-            //------------------------------------------------------------------
-          
-          switch ((self.prePivotDyadminoOrientation + pivotOnPC2Offset) % 6) {
-            case 0:
-              newPosition = self.initialPivotPosition;
-              break;
-            case 1:
-              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(xIncrement, -yIncrement)];
-              break;
-            case 2:
-              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(xIncrement, -yIncrement * 3)];
-              break;
-            case 3:
-              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(0, -yIncrement * 4)];
-              break;
-            case 4:
-              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(-xIncrement, -yIncrement * 3)];
-              break;
-            case 5:
-              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(-xIncrement, -yIncrement)];
-              break;
-          }
-          
-          switch (pivotOrientation) {
-            case 0:
-              self.position = newPosition;
-              break;
-            case 1:
-              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(-xIncrement, yIncrement)];
-              break;
-            case 2:
-              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(-xIncrement, yIncrement * 3)];
-              break;
-            case 3:
-              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(0, yIncrement * 4)];
-              break;
-            case 4:
-              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(xIncrement, yIncrement * 3)];
-              break;
-            case 5:
-              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(xIncrement, yIncrement)];
-              break;
-          }
-            //------------------------------------------------------------------
-        }
-
-        self.orientation = newOrientation;
-        [self selectAndPositionSprites];
-        [self determineNewAnchorPointDuringPivot:YES];
-      }
-    }
-  }
-}
-
--(void)determineNewAnchorPointDuringPivot:(BOOL)during {
-  
-  if (_pivotOnPC == kPivotCentre) {
-    self.anchorPoint = CGPointMake(0.5, 0.5);
-    return;
-  }
-  
-  CGPoint newAnchorPoint = CGPointZero;
-  CGPoint originalPosition = self.position;
-  CGPoint originalPC1Position = self.pc1Sprite.position;
-  CGPoint originalPC2Position = self.pc2Sprite.position;
-  
-  CGPoint positionOffset;
-  
-  switch (self.orientation) {
-    case kPC1atTwelveOClock:
-      newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0.5, 0.75) : CGPointMake(0.5, 0.25);
-      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0, kDyadminoFaceRadius) : CGPointMake(0, -kDyadminoFaceRadius);
-      break;
-    case kPC1atTwoOClock:
-      newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(5/7.f, 2/3.f) : CGPointMake(2/7.f, 1/3.f);
-      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0.75 * kDyadminoFaceWideRadius, 0.5 * kDyadminoFaceRadius) : CGPointMake(-0.75 * kDyadminoFaceWideRadius, -0.5 * kDyadminoFaceRadius);
-      break;
-    case kPC1atFourOClock:
-      newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(5/7.f, 1/3.f) : CGPointMake(2/7.f, 2/3.f);
-      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0.75 * kDyadminoFaceWideRadius, -0.5 * kDyadminoFaceRadius) : CGPointMake(-0.75 * kDyadminoFaceWideRadius, 0.5 * kDyadminoFaceRadius);
-      break;
-    case kPC1atSixOClock:
-      newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0.5, 0.25) : CGPointMake(0.5, 0.75);
-      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0, -kDyadminoFaceRadius) : CGPointMake(0, kDyadminoFaceRadius);
-      break;
-    case kPC1atEightOClock:
-      newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(2/7.f, 1/3.f) : CGPointMake(5/7.f, 2/3.f);
-      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(-0.75 * kDyadminoFaceWideRadius, -0.5 * kDyadminoFaceRadius) : CGPointMake(0.75 * kDyadminoFaceWideRadius, 0.5 * kDyadminoFaceRadius);
-      break;
-    case kPC1atTenOClock:
-      newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(2/7.f, 2/3.f) : CGPointMake(5/7.f, 1/3.f);
-      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(-0.75 * kDyadminoFaceWideRadius, 0.5 * kDyadminoFaceRadius) : CGPointMake(0.75 * kDyadminoFaceWideRadius, -0.5 * kDyadminoFaceRadius);
-      break;
-  }
-  
-  positionOffset = CGPointMake(positionOffset.x * kDyadminoHoverResizeFactor,
-                               positionOffset.y * kDyadminoHoverResizeFactor);
-  
-  if (during) {
-    NSLog(@"anchorPoint being set to %.2f, %.2f", newAnchorPoint.x, newAnchorPoint.y);
-    self.anchorPoint = newAnchorPoint;
-    _movedDueToChangeInAnchorPoint = YES;
-    self.position = [self addToThisPoint:originalPosition thisPoint:positionOffset];
-    self.pc1Sprite.position = [self subtractFromThisPoint:originalPC1Position thisPoint:positionOffset];
-    self.pc2Sprite.position = [self subtractFromThisPoint:originalPC2Position thisPoint:positionOffset];
-    
-  } else {
-    if (_movedDueToChangeInAnchorPoint) {
-      self.position = [self subtractFromThisPoint:originalPosition thisPoint:positionOffset];
-      self.pc1Sprite.position = [self addToThisPoint:originalPC1Position thisPoint:positionOffset];
-      self.pc2Sprite.position = [self addToThisPoint:originalPC2Position thisPoint:positionOffset];
-      _movedDueToChangeInAnchorPoint = NO;
-    }
-    self.anchorPoint = CGPointMake(0.5, 0.5);
-  }
 }
 
 #pragma mark - animation methods
@@ -512,7 +296,7 @@
     if (resize) {
       self.isZoomResized = NO;
       [self resize];
-      [self selectAndPositionSprites];
+      [self selectAndPositionSpritesZRotation:0.f];
     }
     
     self.colorBlendFactor = 0.f;
@@ -615,7 +399,7 @@
     if (resize) {
       weakSelf.isZoomResized = NO;
       [weakSelf resize];
-      [weakSelf selectAndPositionSprites];
+      [weakSelf selectAndPositionSpritesZRotation:0.f];
     }
     
     weakSelf.position = [weakSelf getHomeNodePositionConsideringSwap];
@@ -665,90 +449,6 @@
   SKAction *completionAction = [SKAction runBlock:completionBlock];
   SKAction *sequence = [SKAction sequence:@[excessGrowAction, settleBackAction, completionAction]];
   [self runAction:sequence withKey:kActionPopIn];
-}
-
-#pragma mark - animate flip methods
-
--(void)animateFlip {
-  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
-  self.isRotating = YES;
-  [self animateOneThirdFlipClockwise:YES times:3 withFullFlip:YES];
-}
-
--(void)animateCompletionOfFullFlip {
-  SKAction *finishAction;
-  
-  __weak typeof(self) weakSelf = self;
-  
-    // rotation
-  if ([self isInRack] || self.belongsInSwap) {
-    finishAction = [SKAction runBlock:^{
-      [weakSelf changeHoveringStatus:kDyadminoFinishedHovering];
-      [weakSelf setToHomeZPositionAndSyncOrientation];
-      [weakSelf endTouchThenHoverResize];
-      weakSelf.isRotating = NO;
-      [weakSelf.delegate postSoundNotification:kNotificationPivotClick];
-    }];
-      // just to ensure that dyadmino is back in its node position
-    self.position = [self getHomeNodePositionConsideringSwap];
-    
-  } else if ([self isOnBoard]) {
-    finishAction = [SKAction runBlock:^{
-      weakSelf.isRotating = NO;
-      [weakSelf changeHoveringStatus:kDyadminoContinuesHovering];
-      [weakSelf.delegate prepareForHoverThisDyadmino:weakSelf];
-      weakSelf.canFlip = NO;
-    }];
-  } else {
-    finishAction = [SKAction runBlock:^{
-        // to ensure that finishAction is not nil
-    }];
-  }
-  [self runAction:finishAction];
-}
-
--(void)animateOneThirdFlipClockwise:(BOOL)clockwise times:(NSUInteger)times withFullFlip:(BOOL)fullFlip {
-  if (!_isPivotAnimating) {
-    
-    CGFloat radians = [self getRadiansFromDegree:60] * (clockwise ? 1 : -1);
-    __block NSUInteger counter = times;
-    CGFloat duration = kConstantTime / 6.0; // 4.5;
-    
-    SKAction *turnDyadmino = [SKAction rotateByAngle:-radians duration:duration];
-    SKAction *turnFace = [SKAction rotateByAngle:radians duration:duration];
-    
-    __weak typeof(self) weakSelf = self;
-    SKAction *turnAction = [SKAction runBlock:^{
-      if (counter > 1) {
-        [weakSelf.pc1Sprite runAction:turnFace];
-        [weakSelf.pc2Sprite runAction:turnFace];
-      }
-      
-      [weakSelf runAction:turnDyadmino completion:^{
-        weakSelf.orientation = (weakSelf.orientation + (clockwise ? 1 : 5)) % 6;
-        [weakSelf selectAndPositionSprites];
-        counter--;
-        _isPivotAnimating = NO;
-        if (counter > 0) {
-          [weakSelf animateOneThirdFlipClockwise:clockwise times:counter withFullFlip:fullFlip];
-        } else {
-          if (fullFlip) {
-            [weakSelf animateCompletionOfFullFlip];
-          }
-        }
-      }];
-    }];
-    
-    _isPivotAnimating = YES;
-    [self runAction:turnAction];
-    
-      // reset anchorPoint after each and every time
-    self.anchorPoint = CGPointMake(0.5f, 0.5f);
-    
-      // if already animating, just add to orientation.
-  } else {
-    self.orientation = (self.orientation + (clockwise ? 1 : 5)) % 6;
-  }
 }
 
 #pragma mark - unique animation methods
@@ -806,7 +506,307 @@
   } else {
     [self removeActionForKey:kActionHover];
     [self resize];
-    [self selectAndPositionSprites];
+    [self selectAndPositionSpritesZRotation:0.f];
+  }
+}
+
+#pragma mark - animate flip methods
+
+-(void)animateFlip {
+  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
+  self.isRotating = YES;
+  [self animateOneThirdFlipClockwise:YES times:3 withFullFlip:YES];
+}
+
+-(void)completeAnimationOfFullFlip {
+  
+    // rotation
+  if ([self isInRack] || self.belongsInSwap) {
+    [self changeHoveringStatus:kDyadminoFinishedHovering];
+    [self setToHomeZPositionAndSyncOrientation];
+    [self endTouchThenHoverResize];
+    self.isRotating = NO;
+    [self.delegate postSoundNotification:kNotificationPivotClick];
+
+      // just to ensure that dyadmino is back in its node position
+    self.position = [self getHomeNodePositionConsideringSwap];
+    
+  } else if ([self isOnBoard]) {
+    self.isRotating = NO;
+    [self changeHoveringStatus:kDyadminoContinuesHovering];
+    [self.delegate prepareForHoverThisDyadmino:self];
+    self.canFlip = NO;
+  }
+}
+
+-(void)animateOneThirdFlipClockwise:(BOOL)clockwise times:(NSUInteger)times withFullFlip:(BOOL)fullFlip {
+  if (!_isPivotAnimating) {
+    
+    CGFloat radians = [self getRadiansFromDegree:60] * (clockwise ? 1 : -1);
+    __block NSUInteger counter = times;
+    CGFloat duration = kConstantTime / 6.0; // 4.5;
+    
+    SKAction *turnDyadmino = [SKAction rotateByAngle:-radians duration:duration];
+    SKAction *turnFace = [SKAction rotateByAngle:radians duration:duration];
+    
+    __weak typeof(self) weakSelf = self;
+    SKAction *turnAction = [SKAction runBlock:^{
+      if (counter > 1) {
+        [weakSelf.pc1Sprite runAction:turnFace];
+        [weakSelf.pc2Sprite runAction:turnFace];
+      }
+      
+      [weakSelf runAction:turnDyadmino completion:^{
+        weakSelf.orientation = (weakSelf.orientation + (clockwise ? 1 : 5)) % 6;
+        [weakSelf selectAndPositionSpritesZRotation:0.f];
+        counter--;
+        _isPivotAnimating = NO;
+        if (counter > 0) {
+          [weakSelf animateOneThirdFlipClockwise:clockwise times:counter withFullFlip:fullFlip];
+        } else {
+          if (fullFlip) {
+            [weakSelf completeAnimationOfFullFlip];
+          }
+        }
+      }];
+    }];
+    
+    _isPivotAnimating = YES;
+    [self runAction:turnAction];
+    
+      // reset anchorPoint after each and every time
+    self.anchorPoint = CGPointMake(0.5f, 0.5f);
+    
+      // if already animating, just add to orientation.
+  } else {
+    self.orientation = (self.orientation + (clockwise ? 1 : 5)) % 6;
+  }
+}
+
+#pragma mark - pivot methods
+
+-(CGPoint)determinePivotAroundPointBasedOnPivotOnPC:(PivotOnPC)pivotOnPC {
+  
+  _pivotOnPC = pivotOnPC;
+  
+    // if it's pivoting around center, then it's just the dyadmino position
+  if (_pivotOnPC == kPivotCentre) {
+    self.pivotAroundPoint = self.position;
+    
+      // otherwise it's one of the pc faces
+  } else {
+    CGPoint pivotOffset;
+    CGFloat yVertical = kDyadminoFaceRadius * kDyadminoHoverResizeFactor;
+    CGFloat xSlant = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * kDyadminoHoverResizeFactor;
+    CGFloat ySlant = kDyadminoFaceRadius * 0.5 * kDyadminoHoverResizeFactor;
+    
+      // if pc2, pivot orientation is offset
+    DyadminoOrientation pivotOrientation = self.prePivotDyadminoOrientation;
+    if (pivotOnPC == kPivotOnPC2) {
+      pivotOrientation = 3 + pivotOrientation;
+    }
+    pivotOrientation = pivotOrientation % 6;
+    
+    switch (pivotOrientation) {
+      case kPC1atTwelveOClock:
+        pivotOffset = CGPointMake(0.f, yVertical);
+        break;
+      case kPC1atTwoOClock:
+        pivotOffset = CGPointMake(xSlant, ySlant);
+        break;
+      case kPC1atFourOClock:
+        pivotOffset = CGPointMake(xSlant, -ySlant);
+        break;
+      case kPC1atSixOClock:
+        pivotOffset = CGPointMake(0, -yVertical);
+        break;
+      case kPC1atEightOClock:
+        pivotOffset = CGPointMake(-xSlant, -ySlant);
+        break;
+      case kPC1atTenOClock:
+        pivotOffset = CGPointMake(-xSlant, ySlant);
+        break;
+    }
+    self.pivotAroundPoint = [self addToThisPoint:self.position thisPoint:pivotOffset];
+  }
+  
+  [self determineNewAnchorPointDuringPivot:YES];
+  return self.pivotAroundPoint;
+}
+
+-(BOOL)pivotBasedOnTouchLocation:(CGPoint)touchLocation
+               andZRotationAngle:(CGFloat)dyadminoAngle
+                    andPivotOnPC:(PivotOnPC)pivotOnPC {
+    // initial pivotOnPC is dyadmino position
+  
+  _pivotOnPC = pivotOnPC; // not sure why, but pivotOnPC needs to be set again here, even after being set in determinePivot
+  
+    // ensures that touch doesn't get too close to pivotAroundPoint
+//  if ([self getDistanceFromThisPoint:touchLocation toThisPoint:self.pivotAroundPoint] < kMinDistanceForPivot) {
+//    return NO;
+//  }
+  
+    // establish angles
+  CGFloat touchAngle = [self findAngleInDegreesFromThisPoint:touchLocation toThisPoint:self.pivotAroundPoint];
+  CGFloat changeInAngle = [self getChangeFromThisAngle:touchAngle toThisAngle:self.initialPivotAngle];
+  
+    //// Figure out if all of this would be easier if we just made the pivotAroundPoint the temporary dyadmino position
+  for (NSUInteger i = 0; i < 12; i++) {
+    if (changeInAngle >= i + kAngleForSnapToPivot &&
+        changeInAngle < (i + 1) - kAngleForSnapToPivot) {
+      
+      uint newOrientation = (self.prePivotDyadminoOrientation + i) % 6;
+      
+        // if orientation hasn't changed, just return
+      if (self.orientation != newOrientation) {
+        NSLog(@"pivot based on touch location, orientation has changed.");
+        
+          // sound dyadmino click
+        [self.delegate postSoundNotification:kNotificationPivotClick];
+        
+          // if it pivots on center, just go straight to positioning sprites
+        if (_pivotOnPC != kPivotCentre) {
+          
+          CGFloat xIncrement = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * kDyadminoHoverResizeFactor;
+          CGFloat yIncrement = kDyadminoFaceRadius * 0.5 * kDyadminoHoverResizeFactor;
+          
+            // pivot orientation starts out as the dyadmino orientation
+          DyadminoOrientation pivotOrientation = newOrientation;
+          
+            // if pc2, pivot orientation is offset
+          NSUInteger pivotOnPC2Offset = 0;
+          if (_pivotOnPC == kPivotOnPC2) {
+            pivotOrientation = 3 + pivotOrientation;
+            pivotOnPC2Offset = 3;
+          }
+          pivotOrientation = pivotOrientation % 6;
+          
+            // when orientation changes, dyadmino will be in new position
+          CGPoint newPosition = CGPointZero;
+          
+            //------------------------------------------------------------------
+          
+          switch ((self.prePivotDyadminoOrientation + pivotOnPC2Offset) % 6) {
+            case 0:
+              newPosition = self.initialPivotPosition;
+              break;
+            case 1:
+              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(xIncrement, -yIncrement)];
+              break;
+            case 2:
+              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(xIncrement, -yIncrement * 3)];
+              break;
+            case 3:
+              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(0, -yIncrement * 4)];
+              break;
+            case 4:
+              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(-xIncrement, -yIncrement * 3)];
+              break;
+            case 5:
+              newPosition = [self addToThisPoint:self.initialPivotPosition thisPoint:CGPointMake(-xIncrement, -yIncrement)];
+              break;
+          }
+          
+          switch (pivotOrientation) {
+            case 0:
+              self.position = newPosition;
+              break;
+            case 1:
+              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(-xIncrement, yIncrement)];
+              break;
+            case 2:
+              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(-xIncrement, yIncrement * 3)];
+              break;
+            case 3:
+              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(0, yIncrement * 4)];
+              break;
+            case 4:
+              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(xIncrement, yIncrement * 3)];
+              break;
+            case 5:
+              self.position = [self addToThisPoint:newPosition thisPoint:CGPointMake(xIncrement, yIncrement)];
+              break;
+          }
+            //------------------------------------------------------------------
+        }
+        
+        CGFloat difference = ((newOrientation - self.orientation + 6) % 6) * 60;
+        self.orientation = newOrientation;
+        [self selectAndPositionSpritesZRotation:dyadminoAngle + difference];
+        [self determineNewAnchorPointDuringPivot:YES];
+        return YES;
+      }
+    }
+  }
+  return NO;
+}
+
+-(void)zRotateToAngle:(CGFloat)angleForZRotation {
+  self.zRotation = [self getRadiansFromDegree:angleForZRotation];
+  self.pc1Sprite.zRotation = -[self getRadiansFromDegree:angleForZRotation];
+  self.pc2Sprite.zRotation = -[self getRadiansFromDegree:angleForZRotation];
+}
+
+-(void)determineNewAnchorPointDuringPivot:(BOOL)during {
+  
+  if (_pivotOnPC == kPivotCentre) {
+    self.anchorPoint = CGPointMake(0.5, 0.5);
+    return;
+  }
+  
+  CGPoint newAnchorPoint = CGPointZero;
+  CGPoint originalPosition = self.position;
+  CGPoint originalPC1Position = self.pc1Sprite.position;
+  CGPoint originalPC2Position = self.pc2Sprite.position;
+  
+  CGPoint positionOffset;
+  
+  switch (self.orientation) {
+    case kPC1atTwelveOClock:
+      newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0.5, 0.75) : CGPointMake(0.5, 0.25);
+      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0, kDyadminoFaceRadius) : CGPointMake(0, -kDyadminoFaceRadius);
+      break;
+    case kPC1atTwoOClock:
+      newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(5/7.f, 2/3.f) : CGPointMake(2/7.f, 1/3.f);
+      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0.75 * kDyadminoFaceWideRadius, 0.5 * kDyadminoFaceRadius) : CGPointMake(-0.75 * kDyadminoFaceWideRadius, -0.5 * kDyadminoFaceRadius);
+      break;
+    case kPC1atFourOClock:
+      newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(5/7.f, 1/3.f) : CGPointMake(2/7.f, 2/3.f);
+      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0.75 * kDyadminoFaceWideRadius, -0.5 * kDyadminoFaceRadius) : CGPointMake(-0.75 * kDyadminoFaceWideRadius, 0.5 * kDyadminoFaceRadius);
+      break;
+    case kPC1atSixOClock:
+      newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0.5, 0.25) : CGPointMake(0.5, 0.75);
+      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(0, -kDyadminoFaceRadius) : CGPointMake(0, kDyadminoFaceRadius);
+      break;
+    case kPC1atEightOClock:
+      newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(2/7.f, 1/3.f) : CGPointMake(5/7.f, 2/3.f);
+      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(-0.75 * kDyadminoFaceWideRadius, -0.5 * kDyadminoFaceRadius) : CGPointMake(0.75 * kDyadminoFaceWideRadius, 0.5 * kDyadminoFaceRadius);
+      break;
+    case kPC1atTenOClock:
+      newAnchorPoint = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(2/7.f, 2/3.f) : CGPointMake(5/7.f, 1/3.f);
+      positionOffset = (_pivotOnPC == kPivotOnPC1) ? CGPointMake(-0.75 * kDyadminoFaceWideRadius, 0.5 * kDyadminoFaceRadius) : CGPointMake(0.75 * kDyadminoFaceWideRadius, -0.5 * kDyadminoFaceRadius);
+      break;
+  }
+  
+  positionOffset = CGPointMake(positionOffset.x * kDyadminoHoverResizeFactor,
+                               positionOffset.y * kDyadminoHoverResizeFactor);
+  
+  if (during) {
+    NSLog(@"anchorPoint being set to %.2f, %.2f", newAnchorPoint.x, newAnchorPoint.y);
+    self.anchorPoint = newAnchorPoint;
+    _movedDueToChangeInAnchorPoint = YES;
+    self.position = [self addToThisPoint:originalPosition thisPoint:positionOffset];
+    self.pc1Sprite.position = [self subtractFromThisPoint:originalPC1Position thisPoint:positionOffset];
+    self.pc2Sprite.position = [self subtractFromThisPoint:originalPC2Position thisPoint:positionOffset];
+    
+  } else {
+    if (_movedDueToChangeInAnchorPoint) {
+      self.position = [self subtractFromThisPoint:originalPosition thisPoint:positionOffset];
+      self.pc1Sprite.position = [self addToThisPoint:originalPC1Position thisPoint:positionOffset];
+      self.pc2Sprite.position = [self addToThisPoint:originalPC2Position thisPoint:positionOffset];
+      _movedDueToChangeInAnchorPoint = NO;
+    }
+    self.anchorPoint = CGPointMake(0.5, 0.5);
   }
 }
 
