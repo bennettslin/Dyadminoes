@@ -113,22 +113,54 @@
     button.titleLabel.font = [UIFont fontWithName:kFontModern size:(kIsIPhone ? 28 : 48)];
     button.tintColor = kMainButtonsColour;
   }
-  
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(startAnimatingBackground) name:UIApplicationDidBecomeActiveNotification object:nil];
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(determineNewGameButtonAnimation) name:UIApplicationDidBecomeActiveNotification object:nil];
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(backToParentViewAfterBecomingActive) name:UIApplicationDidBecomeActiveNotification object:nil];
-  
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removeLocalGameButtonAnimations) name:UIApplicationDidEnterBackgroundNotification object:nil];
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stopAnimatingBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
 
-  [self.localGameButton addTarget:self action:@selector(removeLocalGameButtonAnimations) forControlEvents:UIControlEventTouchDown];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
+
+  [self.localGameButton addTarget:self action:@selector(removeNewGameButtonAnimations) forControlEvents:UIControlEventTouchDown];
   [self.localGameButton addTarget:self action:@selector(determineNewGameButtonAnimation) forControlEvents:UIControlEventTouchUpInside | UIControlEventTouchUpOutside];
 }
 
--(void)viewWillAppear:(BOOL)animated {
-  [super viewWillAppear:animated];
-  self.cellsShouldBeEditable = YES;
+#pragma mark - application active and background methods
 
+-(void)didBecomeActive {
+  NSLog(@"did become active method called");
+  [self startAnimatingBackground];
+  [self resetView];
+}
+
+-(void)didEnterBackground {
+  NSLog(@"did enter background method called");
+  [self stopAnimatingBackground];
+  [self removeNewGameButtonAnimations];
+}
+
+-(void)startAnimatingBackground {
+  self.backgroundShouldBeStill = NO;
+  [self animateBackgroundViewFirstTime:YES];
+}
+
+-(void)stopAnimatingBackground {
+  self.backgroundShouldBeStill = YES;
+  [self.backgroundView.layer removeAllAnimations];
+}
+
+-(void)removeNewGameButtonAnimations {
+  [self.localGameButton.layer removeAllAnimations];
+}
+
+#pragma mark - view methods
+
+-(void)viewWillAppear:(BOOL)animated {
+  NSLog(@"view will appear method called");
+  [super viewWillAppear:animated];
+  
+  [self resetView];
+}
+
+-(void)resetView {
+  self.cellsShouldBeEditable = YES;
+  
   [self resetActivityIndicator];
   
   self.titleLogo.frame = CGRectMake(0, 0, self.screenWidth, kMainTopBarHeight);
@@ -174,16 +206,6 @@
 //      [weakSelf.tableView scrollToRowAtIndexPath:weakSelf.indexPathForMostRecentMatch atScrollPosition:UITableViewScrollPositionTop animated:YES];
 //    });
 //  }
-}
-
--(void)startAnimatingBackground {
-  self.backgroundShouldBeStill = NO;
-  [self animateBackgroundViewFirstTime:YES];
-}
-
--(void)stopAnimatingBackground {
-  self.backgroundShouldBeStill = YES;
-  [self.backgroundView.layer removeAllAnimations];
 }
 
 #pragma mark - Table view delegate and data source
@@ -259,11 +281,6 @@
 }
 
 #pragma mark - Navigation
-
--(void)backToParentViewAfterBecomingActive {
-  NSLog(@"back to parent view after becoming active");
-  [self backToParentViewWithAnimateRemoveVC:NO];
-}
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
 
@@ -373,7 +390,7 @@
 -(void)slideTopBarAndBottomBarOut:(BOOL)out {
   
   if (out) { // slide out
-    [self removeLocalGameButtonAnimations];
+    [self removeNewGameButtonAnimations];
   
     [self slideAnimateView:self.topBar toDestinationYPosition:-(kMainTopBarHeight + kTopBarPadding) durationConstant:kViewControllerSpeed];
     [self slideAnimateView:self.bottomBar toDestinationYPosition:self.screenHeight durationConstant:kViewControllerSpeed];
@@ -455,10 +472,6 @@
       } completion:nil];
     });
   }
-}
-
--(void)removeLocalGameButtonAnimations {
-  [self.localGameButton.layer removeAllAnimations];
 }
 
 -(IBAction)menuButtonPressedIn:(id)sender {
