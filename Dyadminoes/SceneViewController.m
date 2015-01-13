@@ -18,7 +18,7 @@
 #import "SettingsViewController.h"
 #import "GameEndedViewController.h"
 
-@interface SceneViewController () <SceneDelegate, UIGestureRecognizerDelegate, OptionsDelegate>
+@interface SceneViewController () <SceneDelegate, UIGestureRecognizerDelegate, OptionsDelegate, GameEndedDelegate>
 
 @property (strong, nonatomic) SKView *mySceneView;
 @property (strong, nonatomic) UIView *playerLabelsField;
@@ -129,6 +129,8 @@
   [self.myScene toggleRackGoOut:YES completion:nil];
   [self.myScene toggleTopBarGoOut:YES completion:nil];
   [self.myScene toggleFieldActionInProgress:YES];
+  
+  self.gameEndedVC.delegate = self;
   [self presentChildViewController:self.gameEndedVC];
 }
 
@@ -662,6 +664,10 @@
 -(NSString *)resignText {
   return [self.myMatch returnType] == kSelfGame ?
   @"End game" : @"Resign";
+}
+
+-(NSString *)endGameResultsText {
+  return [self.myMatch endGameResultsText];
 }
 
 #pragma mark - system methods

@@ -9,6 +9,14 @@
 #import <UIKit/UIKit.h>
 #import "ChildViewController.h"
 
+@protocol GameEndedDelegate <NSObject>
+
+-(NSString *)endGameResultsText;
+
+@end
+
 @interface GameEndedViewController : ChildViewController
+
+@property (weak, nonatomic) id<GameEndedDelegate> delegate;
 
 @end

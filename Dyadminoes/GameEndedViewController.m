@@ -10,6 +10,8 @@
 
 @interface GameEndedViewController ()
 
+@property (strong, nonatomic) UILabel *gameEndedLabel;
+
 @end
 
 @implementation GameEndedViewController
@@ -20,6 +22,17 @@
   self.view.backgroundColor = kEndedMatchCellDarkColour;
   self.startingQuadrant = kQuadrantCenter;
   
+  self.gameEndedLabel = [UILabel new];
+  self.gameEndedLabel.font = [UIFont fontWithName:kFontModern size:kChildVCButtonSize];
+  self.gameEndedLabel.textColor = [UIColor blackColor];
+  [self.gameEndedLabel sizeToFit];
+  [self.view addSubview:self.gameEndedLabel];
+}
+
+-(void)viewWillAppear:(BOOL)animated {
+  self.gameEndedLabel.frame = CGRectMake(0, 0, self.view.frame.size.width, kChildVCButtonSize);
+  self.gameEndedLabel.center = CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height / 2);
+  self.gameEndedLabel.text = [self.delegate endGameResultsText];
 }
 
 -(void)didReceiveMemoryWarning {

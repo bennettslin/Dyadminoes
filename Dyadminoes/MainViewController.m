@@ -124,13 +124,13 @@
 #pragma mark - application active and background methods
 
 -(void)didBecomeActive {
-  NSLog(@"did become active method called");
+//  NSLog(@"did become active method called");
   [self startAnimatingBackground];
   [self resetView];
 }
 
 -(void)didEnterBackground {
-  NSLog(@"did enter background method called");
+//  NSLog(@"did enter background method called");
   [self stopAnimatingBackground];
   [self removeNewGameButtonAnimations];
 }
@@ -152,7 +152,7 @@
 #pragma mark - view methods
 
 -(void)viewWillAppear:(BOOL)animated {
-  NSLog(@"view will appear method called");
+//  NSLog(@"view will appear method called");
   [super viewWillAppear:animated];
   
   [self resetView];
