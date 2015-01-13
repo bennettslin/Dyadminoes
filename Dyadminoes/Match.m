@@ -468,7 +468,12 @@
     returnedChords = [self checkLegalChords:checkedLegalChords thatare:kBothNewAndExtendedChords ofOriginalLegalChords:[self thisTurnChords]];
     
   } else if (condition == kNeitherNewNorExtendedChords) {
-    returnedChords = [self checkLegalChords:checkedLegalChords thatare:kNeitherNewNorExtendedChords ofOriginalLegalChords:[self thisTurnChords]];
+    
+      // check against legal chords already formed by dataDyad
+    NSSet *formationOfSonorities = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID] onBottomHexCoord:dataDyad.myHexCoord withOrientation:[dataDyad returnMyOrientation]];
+    NSSet *legalChordsFromFormation = [[SonorityLogic sharedLogic] legalChordSonoritiesFromFormationOfSonorities:formationOfSonorities];
+    
+    returnedChords = [self checkLegalChords:checkedLegalChords thatare:kNeitherNewNorExtendedChords ofOriginalLegalChords:legalChordsFromFormation];
   }
   
   return [[SonorityLogic sharedLogic] stringForSonorities:returnedChords

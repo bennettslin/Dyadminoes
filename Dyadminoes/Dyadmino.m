@@ -144,7 +144,6 @@
   }
 
   [self zRotateToAngle:rotationAngle];
-  NSLog(@"zrotate to angle called by select and position sprites, orientation is %i", self.orientation);
   
   CGFloat hoverResizeFactor = self.isTouchThenHoverResized ? kDyadminoHoverResizeFactor : 1.f;
   CGFloat zoomResizeFactor = self.isZoomResized ? kZoomResizeFactor : 1.f;
@@ -205,8 +204,6 @@
       break;
   }
   
-//  NSLog(@"self.orientation now is %i, shouldbe %i, temp return %i", self.orientation, shouldBeOrientation, self.tempReturnOrientation);
-  
   if (animate) {
     if (self.orientation != shouldBeOrientation) {
       CGFloat difference = ((shouldBeOrientation - self.orientation + 6) % 6);
@@ -221,7 +218,6 @@
   } else {
     self.orientation = shouldBeOrientation;
     [self selectAndPositionSpritesZRotation:0.f];
-//    NSLog(@"orient by snap node");
   }
 }
 
@@ -262,14 +258,12 @@
   self.isTouchThenHoverResized = YES;
   [self resize];
   [self selectAndPositionSpritesZRotation:0.f];
-  NSLog(@"start touch then hover resize");
 }
 
 -(void)endTouchThenHoverResize {
   self.isTouchThenHoverResized = NO;
   [self resize];
   [self selectAndPositionSpritesZRotation:0.f];
-  NSLog(@"end touch then hover resize");
 }
 
 -(void)changeHoveringStatus:(DyadminoHoveringStatus)hoveringStatus {
@@ -410,7 +404,6 @@
   __weak typeof(self) weakSelf = self;
   void (^repositionBlock)(void);
   
-  NSLog(@"resizing");
   repositionBlock = ^void(void) {
     weakSelf.color = (SKColor *)kNeutralYellow;
     [weakSelf unhighlightOutOfPlay];
@@ -527,7 +520,6 @@
     [self removeActionForKey:kActionHover];
     [self resize];
     [self selectAndPositionSpritesZRotation:0.f];
-    NSLog(@"wiggle for hover, self.orientation is %i", self.orientation);
   }
 }
 
@@ -561,7 +553,6 @@
 }
 
 -(void)animateOneThirdFlipClockwise:(BOOL)clockwise times:(NSUInteger)times withFullFlip:(BOOL)fullFlip {
-  NSLog(@"animateOneThirdFlip, orientation is %i", self.orientation);
   
   if (!_isPivotAnimating) {
     [self removeActionForKey:kActionRotate];
@@ -580,11 +571,8 @@
       }
       
       [weakSelf runAction:turnDyadmino completion:^{
-        NSLog(@"orientation is now %i", self.orientation);
         weakSelf.orientation = (weakSelf.orientation + (clockwise ? 1 : 5)) % 6;
-        NSLog(@"after setting, orientation is now %i", self.orientation);
         [weakSelf selectAndPositionSpritesZRotation:0.f];
-        NSLog(@"animate one third flip clockwise, orientation is %i", self.orientation);
         counter--;
         _isPivotAnimating = NO;
         if (counter > 0) {
@@ -606,7 +594,6 @@
       // if already animating, just add to orientation.
   } else {
     self.orientation = (self.orientation + (clockwise ? 1 : 5)) % 6;
-    NSLog(@"already animating, just add to orientation.");
   }
 }
 
@@ -686,7 +673,6 @@
       
         // if orientation hasn't changed, just return
       if (self.orientation != newOrientation) {
-        NSLog(@"pivot based on touch location, orientation has changed.");
         
           // sound dyadmino click
         [self.delegate postSoundNotification:kNotificationPivotClick];
@@ -760,7 +746,6 @@
         CGFloat difference = ((newOrientation - self.orientation + 6) % 6) * 60;
         self.orientation = newOrientation;
         [self selectAndPositionSpritesZRotation:dyadminoAngle + difference];
-        NSLog(@"pivot based on touch location");
         [self determineNewAnchorPointDuringPivot:YES];
         return YES;
       }
@@ -771,7 +756,6 @@
 
 -(void)zRotateToAngle:(CGFloat)angleForZRotation {
   
-  NSLog(@"zRotateToAngle, self.orientation is %i", self.orientation);
   self.zRotation = [self getRadiansFromDegree:angleForZRotation];
   self.pc1Sprite.zRotation = -[self getRadiansFromDegree:angleForZRotation];
   self.pc2Sprite.zRotation = -[self getRadiansFromDegree:angleForZRotation];
@@ -822,7 +806,6 @@
                                positionOffset.y * kDyadminoHoverResizeFactor);
   
   if (during) {
-    NSLog(@"anchorPoint being set to %.2f, %.2f", newAnchorPoint.x, newAnchorPoint.y);
     self.anchorPoint = newAnchorPoint;
     _movedDueToChangeInAnchorPoint = YES;
     self.position = [self addToThisPoint:originalPosition thisPoint:positionOffset];

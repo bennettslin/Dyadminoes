@@ -399,8 +399,8 @@
         // background colours depending on match results
       self.labelView.backgroundColourCanBeChanged = YES;
       if ([self.myMatch returnGameHasEnded]) {
-        self.labelView.backgroundColor = [UIColor clearColor];
-        
+//        self.labelView.backgroundColor = [UIColor clearColor];
+        self.labelView.hidden = YES;
       } else {
         if (player == [self.myMatch returnCurrentPlayer]) {
           

@@ -177,7 +177,6 @@
 }
 
 -(BOOL)loadAfterNewMatchRetrievedForReset:(BOOL)forReset {
-//  NSLog(@"load after new match retrieved");
   
   _topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
   
@@ -214,7 +213,6 @@
 }
 
 -(void)prepareForNewTurn {
-//  NSLog(@"prepare for new turn");
     // called both when scene is loaded, and when player finalises turn in PnP mode
   
   [self.mySoundEngine removeAllActions];
@@ -418,9 +416,9 @@
 #pragma mark - sound methods
 
 -(void)postSoundNotification:(NotificationName)whichNotification {
-  NSLog(@"sound notification for %i", whichNotification);
   NSNumber *whichNotificationObject = [NSNumber numberWithUnsignedInteger:whichNotification];
-  [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound" object:self userInfo:@{@"sound": whichNotificationObject}];
+  [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound"
+                                                      object:self userInfo:@{@"sound": whichNotificationObject}];
 }
 
 -(void)soundDyadmino:(Dyadmino *)dyadmino withFace:(Face *)face {
@@ -1254,10 +1252,6 @@
         // if it's a board dyadmino
       if ([dyadmino.homeNode isBoardNode]) {
         dyadmino.tempBoardNode = nil;
-        
-          // it's a rack dyadmino
-      } else {
-          // moved colorBlendFactor reset here to dyadmino's goHomeToRack method
       }
       
       [self sendDyadminoHome:dyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
@@ -1272,8 +1266,8 @@
       
         // otherwise, prepare it for hover
     } else {
-      [dyadmino correctZRotationAfterHover];
         // prepareForHover will get called in correctZRotation completion
+      [dyadmino correctZRotationAfterHover];
     }
   }
 }
@@ -1396,7 +1390,6 @@
   
   if (!pivotChanged) {
     [dyadmino zRotateToAngle:dyadminoAngle];
-    NSLog(@"zrotate called by handle pivot of guides");
   }
 }
 
@@ -1835,10 +1828,18 @@
 }
 
 -(void)handleEndGame {
-  [self updateTopBarLabelsFinalTurn:YES animated:YES];
-
+//  [self updateTopBarLabelsFinalTurn:YES animated:YES];
+  __weak typeof(self) weakSelf = self;
   void(^completion)(void) = ^void(void) {
-    [self.myDelegate presentFromSceneGameEndedVC];
+    [weakSelf.myDelegate presentFromSceneGameEndedVC];
+    
+      // call this again because animation delays completion
+    NSLog(@"top bar labels updated in handle end game completion.");
+    
+    [weakSelf updateTopBarLabelsFinalTurn:YES animated:NO];
+    [weakSelf updateTopBarButtons];
+    
+    [weakSelf doSomethingSpecial:@"dyadminoes have been swapped."];
   };
   
     // empty rack first, then present game ended VC
@@ -3274,7 +3275,6 @@
   dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
   [dyadmino runAction:sequenceAction withKey:@"replayAction"];
   [dyadmino selectAndPositionSpritesZRotation:0.f];
-  NSLog(@"animate reposition cell agnostic dyadmino");
 }
 
 -(void)animateScaleForReplayOfDyadmino:(Dyadmino *)dyadmino toShrink:(BOOL)shrink {
