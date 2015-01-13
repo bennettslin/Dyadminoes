@@ -1599,7 +1599,6 @@
 
 -(BOOL)finaliseSwap {
   
-  __weak typeof(self) weakSelf = self;
     // extra confirmation; this will have been checked when button was done button was first pressed
   if (self.swapContainer.count <= self.myMatch.pile.count) {
     
@@ -1608,50 +1607,33 @@
       [dyadmino belongsInSwap] ? [toPile addObject:dyadmino] : nil;
     }
     
-      // first take care of views
-    for (int i = 0; i < toPile.count; i++) {
-      Dyadmino *dyadmino = toPile[i];
-      [self removeFromPlayerRackDyadminoes:dyadmino];
+    __weak typeof(self) weakSelf = self;
+    
+    void(^lastDyadminoCompletion)(void) = ^void(void) {
+      [weakSelf updateOrderOfDataDyadsThisTurnToReflectRackOrder];
       
-      SKAction *waitAction = [SKAction waitForDuration:i * kWaitTimeForRackDyadminoPopulate];
+        // then swap in the logic
+      if (![weakSelf.myMatch passTurnBySwappingDyadminoes:self.swapContainer]) {
+        NSLog(@"Failed to swap dyadminoes.");
+        abort();
+      } else {
+        weakSelf.swapContainer = nil;
+        [weakSelf toggleSwapFieldWithAnimation:YES];
+      }
       
-      SKAction *soundAction = [SKAction runBlock:^{
-        [weakSelf postSoundNotification:kNotificationRackExchangeClick];
-      }];
-      SKAction *moveAction = [SKAction moveToX:0 - _rackField.xIncrementInRack duration:kConstantTime];
-      moveAction.timingMode = SKActionTimingEaseOut;
-      SKAction *completeAction = [SKAction runBlock:^{
-        
-        [dyadmino resetForNewMatch];
-        if (i == toPile.count - 1) {
-          
-          [weakSelf updateOrderOfDataDyadsThisTurnToReflectRackOrder];
-          
-            // then swap in the logic
-          if (![weakSelf.myMatch passTurnBySwappingDyadminoes:self.swapContainer]) {
-            NSLog(@"Failed to swap dyadminoes.");
-            abort();
-          } else {
-            weakSelf.swapContainer = nil;
-            [weakSelf toggleSwapFieldWithAnimation:YES];
-          }
-          
-          if ([weakSelf.myMatch returnType] != kPnPGame) {
-            [weakSelf populateRackArray];
-            [weakSelf refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
-          }
-          
-            // call this again because animation delays completion
-          [weakSelf updateTopBarLabelsFinalTurn:YES animated:NO];
-          [weakSelf updateTopBarButtons];
-          
-          [weakSelf doSomethingSpecial:@"dyadminoes have been swapped."];
-        }
-      }];
-      SKAction *sequence = [SKAction sequence:@[waitAction, soundAction, moveAction, completeAction]];
-      [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
-      [dyadmino runAction:sequence withKey:@"swapDyadmino"];
-    }
+      if ([weakSelf.myMatch returnType] != kPnPGame) {
+        [weakSelf populateRackArray];
+        [weakSelf refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:YES];
+      }
+      
+        // call this again because animation delays completion
+      [weakSelf updateTopBarLabelsFinalTurn:YES animated:NO];
+      [weakSelf updateTopBarButtons];
+      
+      [weakSelf doSomethingSpecial:@"dyadminoes have been swapped."];
+    };
+    
+    [self animateRackEmptyDyadminoes:toPile lastDyadminoCompletion:lastDyadminoCompletion];
     return YES;
   } else {
     
@@ -1659,6 +1641,39 @@
     [self updateTopBarLabelsFinalTurn:YES animated:NO];
     [self updateTopBarButtons];
     return NO;
+  }
+}
+
+-(void)animateRackEmptyDyadminoes:(NSArray *)dyadminoesToEmpty
+                       lastDyadminoCompletion:(void(^)(void))lastDyadminoCompletionBlock {
+  
+  __weak typeof(self) weakSelf = self;
+  
+    // first take care of views
+  for (int i = 0; i < dyadminoesToEmpty.count; i++) {
+    
+    Dyadmino *dyadmino = dyadminoesToEmpty[i];
+    [self removeFromPlayerRackDyadminoes:dyadmino];
+    
+    SKAction *waitAction = [SKAction waitForDuration:i * kWaitTimeForRackDyadminoPopulate];
+    SKAction *soundAction = [SKAction runBlock:^{
+      [weakSelf postSoundNotification:kNotificationRackExchangeClick];
+    }];
+    
+    SKAction *moveAction = [SKAction moveToX:0 - _rackField.xIncrementInRack duration:kConstantTime];
+    moveAction.timingMode = SKActionTimingEaseOut;
+    
+    SKAction *lastDyadminoCompletionAction = [SKAction runBlock:^{
+      [dyadmino resetForNewMatch];
+      
+      if (i == dyadminoesToEmpty.count - 1) {
+        lastDyadminoCompletionBlock();
+      }
+    }];
+    
+    SKAction *sequence = [SKAction sequence:@[waitAction, soundAction, moveAction, lastDyadminoCompletionAction]];
+    [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
+    [dyadmino runAction:sequence withKey:@"emptyDyadmino"];
   }
 }
 
@@ -1821,11 +1836,13 @@
 
 -(void)handleEndGame {
   [self updateTopBarLabelsFinalTurn:YES animated:YES];
+
+  void(^completion)(void) = ^void(void) {
+    [self.myDelegate presentFromSceneGameEndedVC];
+  };
   
-    // FIXME: remove rack dyadminoes here
-//  NSLog(@"rack dyadminoes should now be removed.");
-  
-  [self.myDelegate presentFromSceneGameEndedVC];
+    // empty rack first, then present game ended VC
+  [self animateRackEmptyDyadminoes:self.playerRackDyadminoes lastDyadminoCompletion:completion];
 }
 
 #pragma mark - realtime update methods
