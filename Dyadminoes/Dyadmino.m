@@ -99,8 +99,8 @@
 
 -(void)establishSizeOfSprite:(SKSpriteNode *)sprite {
   
-  CGFloat hoverResizeFactor = self.isTouchThenHoverResized ? kDyadminoHoverResizeFactor : 1.f;
-  CGFloat zoomResizeFactor = self.isZoomResized ? kZoomResizeFactor : 1.f;
+  CGFloat hoverRescaleFactor = self.isTouchThenHoverResized ? kDyadminoHoverResizeFactor : 1.f;
+  CGFloat zoomRescaleFactor = self.isZoomResized ? kZoomResizeFactor : 1.f;
 
     // size is different if not vertical orientation
   CGFloat orientationFactor = (self.orientation == kPC1atTwelveOClock || self.orientation == kPC1atSixOClock) ? 4.f : 3.f;
@@ -112,7 +112,11 @@
   CGFloat widthToHeightRatio = sprite.texture.size.width / sprite.texture.size.height;
   CGFloat xSize = widthToHeightRatio * ySize;
   
-  sprite.size = CGSizeMake(xSize * hoverResizeFactor * zoomResizeFactor, ySize * hoverResizeFactor * zoomResizeFactor);
+  sprite.size = CGSizeMake(xSize * hoverRescaleFactor * zoomRescaleFactor, ySize * hoverRescaleFactor * zoomRescaleFactor);
+//  sprite.size = CGSizeMake(xSize, ySize);
+//  if (sprite == self) {
+//    [sprite setScale:(hoverRescaleFactor * zoomRescaleFactor)];
+//  }
 }
 
 -(void)resize {

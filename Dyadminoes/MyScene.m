@@ -1159,14 +1159,13 @@
       tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:_zoomInBoardHomePositionDifference];
     }
     
-//    NSLog(@"dyadmino position %.1f, %.1f, adjusted new position %.1f, %.1f, _zoom difference is %.1f, %.1f, temp new position %.1f, %.1f", dyadmino.position.x, dyadmino.position.y, adjustedNewPosition.x, adjustedNewPosition.y, _zoomInDifference.x, _zoomInDifference.y, tempNewPosition.x, tempNewPosition.y);
-    
     dyadmino.position = tempNewPosition;
     
     [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
     dyadmino.isTouchThenHoverResized = NO;
     dyadmino.isZoomResized = _boardZoomedOut;
-    [self repositionCellAgnosticDyadmino:dyadmino animate:YES]; // this might just be all animated
+    
+    [self animate:YES repositionAndResize:YES cellAgnosticDyadmino:dyadmino];
   }
 }
 
@@ -3177,7 +3176,7 @@
     
       // hide player turn dyadminoes
     if ([holdingContainerAndRecentRackDyadminoes containsObject:dyadmino]) {
-      [self animateScaleForReplayOfDyadmino:dyadmino toShrink:YES];
+      [self animateShrinkForReplayOfDyadmino:dyadmino toShrink:YES];
       
     } else {
       dyadmino.preReplayHexCoord = dyadmino.myHexCoord;
@@ -3194,7 +3193,7 @@
     
       // show player turn dyadminoes
     if ([holdingContainerAndRecentRackDyadminoes containsObject:dyadmino]) {
-      [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO];
+      [self animateShrinkForReplayOfDyadmino:dyadmino toShrink:NO];
       
     } else {
       dyadmino.myHexCoord = dyadmino.preReplayHexCoord;
@@ -3242,11 +3241,11 @@
       // do not add to board
     if (conditionalToHideDyadmino) {
           // animate shrinkage
-      [self animateScaleForReplayOfDyadmino:dyadmino toShrink:YES];
+      [self animateShrinkForReplayOfDyadmino:dyadmino toShrink:YES];
       
     } else {
           // animate growage
-      [self animateScaleForReplayOfDyadmino:dyadmino toShrink:NO];
+      [self animateShrinkForReplayOfDyadmino:dyadmino toShrink:NO];
       
         // highlight dyadminoes played on this turn
       [turnDataDyadminoIndexes containsObject:dataDyad.myID] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:turnPlayer forLabel:YES light:NO]] : [dyadmino unhighlightOutOfPlay];
@@ -3261,7 +3260,8 @@
       
         // position dyadmino
       if (inReplay) {
-        [self repositionCellAgnosticDyadmino:dyadmino animate:YES];
+        
+        [self animate:YES repositionAndResize:NO cellAgnosticDyadmino:dyadmino];
         [dyadminoesOnBoardUpToThisPoint addObject:dyadmino];
       } else {
         [dyadmino goHomeToBoardByPoppingIn:NO andSounding:NO];
@@ -3289,7 +3289,7 @@
   return dyadminoesOnBoardUpToThisPoint;
 }
 
--(void)repositionCellAgnosticDyadmino:(Dyadmino *)dyadmino animate:(BOOL)animate {
+-(void)animate:(BOOL)animate repositionAndResize:(BOOL)resize cellAgnosticDyadmino:(Dyadmino *)dyadmino {
   
   CGPoint reposition = [Cell positionCellAgnosticDyadminoGivenHexOrigin:_boardField.hexOrigin
                                                             andHexCoord:dyadmino.myHexCoord
@@ -3297,14 +3297,42 @@
                                                               andResize:_boardZoomedOut];
   
   if (animate) {
-      // between .7 and .9
-    CGFloat random = ((arc4random() % 100) / 100.f * 0.2) + 0.7f;
     
-    SKAction *repositionAction = [SKAction moveTo:reposition duration:kConstantTime * random];
+    SKAction *repositionAndMaybeResizeAction;
+    
+      // between .6 and .99
+    CGFloat randomRepositionFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
+    
+    CGPoint positionDifference = [self subtractFromThisPoint:reposition thisPoint:dyadmino.position];
+    const CGFloat excessFactor = 1.1f;
+    
+    CGPoint excessPosition = CGPointMake(positionDifference.x * excessFactor, positionDifference.y * excessFactor);
+    CGPoint excessReposition = [self addToThisPoint:dyadmino.position thisPoint:excessPosition];
+    
+    SKAction *excessRepositionAction = [SKAction moveTo:excessReposition duration:kConstantTime * randomRepositionFactor * 0.7];
+    excessRepositionAction.timingMode = SKActionTimingEaseIn;
+    
+    SKAction *bounceBackAction = [SKAction moveTo:reposition duration:kConstantTime * randomRepositionFactor * 0.3f];
+    SKAction *repositionSequence = [SKAction sequence:@[excessRepositionAction, bounceBackAction]];
+    
+    if (resize) {
+        // between .6 and .99
+      CGFloat randomResizeFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
+      CGFloat scaleTo = dyadmino.isZoomResized ? kZoomResizeFactor : 1 / kZoomResizeFactor;
+      SKAction *resizeAction = [SKAction scaleTo:scaleTo duration:kConstantTime * randomResizeFactor];
+      resizeAction.timingMode = SKActionTimingEaseIn;
+      repositionAndMaybeResizeAction = [SKAction group:@[repositionSequence, resizeAction]];
+      
+    } else {
+      repositionAndMaybeResizeAction = repositionSequence;
+    }
+    
     SKAction *completeAction = [SKAction runBlock:^{
       dyadmino.zPosition = kZPositionBoardRestingDyadmino;
+      [dyadmino setScale:1.f];
+      [dyadmino selectAndPositionSpritesZRotation:0.f];
     }];
-    SKAction *sequenceAction = [SKAction sequence:@[repositionAction, completeAction]];
+    SKAction *sequenceAction = [SKAction sequence:@[repositionAndMaybeResizeAction, completeAction]];
     
     [dyadmino removeActionForKey:@"replayAction"];
     dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
@@ -3312,21 +3340,17 @@
     
   } else {
     dyadmino.position = reposition;
+    [dyadmino selectAndPositionSpritesZRotation:0.f];
   }
-  
-  [dyadmino selectAndPositionSpritesZRotation:0.f];
 }
 
--(void)animateScaleForReplayOfDyadmino:(Dyadmino *)dyadmino toShrink:(BOOL)shrink {
+-(void)animateShrinkForReplayOfDyadmino:(Dyadmino *)dyadmino toShrink:(BOOL)shrink {
     // no animation if dyadmino is already at the desired scale
 
-    // between .7 and .9
-  CGFloat random = ((arc4random() % 100) / 100.f * 0.2) + 0.7f;
-  
   if (shrink) {
-    SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime * random];
+    SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime * 0.99f];
     shrinkAction.timingMode = SKActionTimingEaseIn;
-    SKAction *fadeOutAction = [SKAction fadeAlphaTo:0.f duration:kConstantTime * random];
+    SKAction *fadeOutAction = [SKAction fadeAlphaTo:0.f duration:kConstantTime * 0.99f];
     fadeOutAction.timingMode = SKActionTimingEaseIn;
     SKAction *shrinkFadeOutGroup = [SKAction group:@[shrinkAction, fadeOutAction]];
     
@@ -3339,12 +3363,16 @@
     [dyadmino removeActionForKey:@"replayShrink"];
     [dyadmino runAction:sequence withKey:@"replayShrink"];
     
-  } else {
-    SKAction *growAction = [SKAction scaleTo:1.f duration:kConstantTime * random];
-    growAction.timingMode = SKActionTimingEaseOut;
-    SKAction *fadeInAction = [SKAction fadeAlphaTo:1.f duration:kConstantTime * random];
-    fadeInAction.timingMode = SKActionTimingEaseOut;
-    SKAction *growFadeInGroup = [SKAction group:@[growAction, fadeInAction]];
+  } else if (dyadmino.hidden) {
+    SKAction *excessGrowAction = [SKAction scaleTo:1.1f duration:kConstantTime * 0.69f];
+    excessGrowAction.timingMode = SKActionTimingEaseOut;
+    SKAction *bounceBackAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.29f];
+    bounceBackAction.timingMode = SKActionTimingEaseIn;
+    SKAction *growSequence = [SKAction sequence:@[excessGrowAction, bounceBackAction]];
+    
+    SKAction *fadeInAction = [SKAction fadeAlphaTo:1.f duration:kConstantTime * 0.99f];
+    fadeInAction.timingMode = SKActionTimingEaseIn;
+    SKAction *growFadeInGroup = [SKAction group:@[growSequence, fadeInAction]];
     
     SKAction *completeAction = [SKAction runBlock:^{
       dyadmino.zPosition = kZPositionBoardRestingDyadmino;
