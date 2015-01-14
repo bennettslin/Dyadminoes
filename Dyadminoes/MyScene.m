@@ -127,6 +127,8 @@
   
     // first time pivot values
   CGFloat _touchPivotOffsetAngle;
+  
+  CGPoint _zoomInBoardHomePositionDifference;
 }
 
 #pragma mark - set up methods
@@ -249,6 +251,7 @@
   _endTouchLocationToMeasureDoubleTap = CGPointMake(CGFLOAT_MAX, CGFLOAT_MAX);
   _undoButtonAllowed = YES;
   _tempChordSonoritiesFromMovedBoardDyadmino = nil;
+  _zoomInBoardHomePositionDifference = CGPointZero;
   
   if (_lockMode) {
     [self handleDoubleTapForLockModeWithSound:NO];
@@ -743,6 +746,7 @@
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
+//  NSLog(@"touch node is %@ of class %@", _touchNode.name, _touchNode.class);
 
     //--------------------------------------------------------------------------
     /// 3a. button pressed
@@ -819,7 +823,7 @@
     _previousTouchWasDyadmino = _currentTouchIsDyadmino;
     _currentTouchIsDyadmino = NO;
     
-    if (_touchNode == _boardField || (_touchNode.parent == _boardField && (![_touchNode isKindOfClass:[Dyadmino class]])) ||
+    if (_touchNode == _boardField || [_touchNode isKindOfClass:[MyScene class]] || (_touchNode.parent == _boardField && (![_touchNode isKindOfClass:[Dyadmino class]])) ||
         (_touchNode.parent.parent == _boardField && (![_touchNode.parent isKindOfClass:[Dyadmino class]]))) { // cell label, this one is necessary only for testing purposes
       
         // check if double tapped
@@ -1099,7 +1103,7 @@
     
     CGPoint oldBoardPosition = _boardField.position;
     
-    CGPoint adjustedNewPosition = [_boardField adjustToNewPositionFromBeganLocation:_beganTouchLocation toCurrentLocation:_currentTouchLocation withSwap:(BOOL)self.swapContainer];
+    CGPoint adjustedNewPosition = [_boardField adjustedNewPositionFromBeganLocation:_beganTouchLocation toCurrentLocation:_currentTouchLocation withSwap:(BOOL)self.swapContainer];
     
     if (_hoveringDyadminoStaysFixedToBoard) {
       _hoveringDyadmino.position = [self addToThisPoint:_hoveringDyadmino.position
@@ -1111,6 +1115,7 @@
 }
 
 -(void)toggleBoardZoomWithTapCentering:(BOOL)tapCentering andCenterLocation:(CGPoint)location {
+    // without tap centering, location is irrelevant
 
   [self postSoundNotification:kNotificationBoardZoom];
   
@@ -1119,28 +1124,49 @@
   
   if (_boardZoomedOut) {
     _boardField.postZoomPosition = _boardField.homePosition;
+    
   } else {
 
     if (tapCentering) {
       _boardField.postZoomPosition = location;
     }
     
-      // ensures that board position is consistent with where view thinks it is, so that there won't be a skip after user moves board
+      // ensures that board position is consistent with where view thinks it is,
+      // so that there won't be a skip after user moves board
     _boardField.homePosition = _boardField.postZoomPosition;
   }
+  
+  CGPoint zoomOutBoardHomePositionDifference = [self subtractFromThisPoint:_boardField.position thisPoint:_boardField.homePosition];
+  
+//  NSLog(@"board position is %.1f, %.1f, home position is %.1f, %.1f, postZoom is %.1f, %.1f, zoom out difference is %.1f, %.1f", _boardField.position.x, _boardField.position.y, _boardField.homePosition.x, _boardField.homePosition.y, _boardField.postZoomPosition.x, _boardField.postZoomPosition.y, zoomOutDifference.x, zoomOutDifference.y);
 
     // prep board for bounds and position
     // if in replay, only determine cells based on these dyadminoes
+  
   [_boardField determineOutermostCellsBasedOnDyadminoes:(_replayMode ? [self dyadminoesOnBoardThisReplayTurn] : [self allBoardDyadminoesPlusRecentRackDyadmino])];
   [_boardField determineBoardPositionBounds];
-  [_boardField repositionCellsForZoomWithSwap:(BOOL)self.swapContainer];
   
-    // resize dyadminoes
+  CGPoint adjustedNewPosition = [_boardField repositionCellsForZoomWithSwap:(BOOL)self.swapContainer];
+  
+    // reposition and resize dyadminoes
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
+    
+    CGPoint tempNewPosition = [self addToThisPoint:dyadmino.position thisPoint:adjustedNewPosition];
+    
+    if (_boardZoomedOut) {
+      tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:zoomOutBoardHomePositionDifference];
+    } else {
+      tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:_zoomInBoardHomePositionDifference];
+    }
+    
+//    NSLog(@"dyadmino position %.1f, %.1f, adjusted new position %.1f, %.1f, _zoom difference is %.1f, %.1f, temp new position %.1f, %.1f", dyadmino.position.x, dyadmino.position.y, adjustedNewPosition.x, adjustedNewPosition.y, _zoomInDifference.x, _zoomInDifference.y, tempNewPosition.x, tempNewPosition.y);
+    
+    dyadmino.position = tempNewPosition;
+    
     [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
     dyadmino.isTouchThenHoverResized = NO;
     dyadmino.isZoomResized = _boardZoomedOut;
-    [self animateRepositionCellAgnosticDyadmino:dyadmino];
+    [self repositionCellAgnosticDyadmino:dyadmino animate:YES]; // this might just be all animated
   }
 }
 
@@ -1933,6 +1959,8 @@
 
 -(void)correctBoardForPositionAfterZoom {
   
+  CGPoint tempBoardPosition = _boardField.position;
+  
   CGFloat zoomFactor = _boardZoomedOut ? kZoomResizeFactor : 1.f;
   CGFloat swapBuffer = self.swapContainer ? kRackHeight : 0.f; // the height of the swap field
   
@@ -1964,6 +1992,8 @@
     _boardField.position = CGPointMake(_boardField.position.x, _boardField.position.y - thisDistance);
     _boardField.homePosition = _boardField.position;
   }
+  
+  _zoomInBoardHomePositionDifference = [self subtractFromThisPoint:tempBoardPosition thisPoint:_boardField.homePosition];
 }
 
 -(void)updateForBoardBeingCorrectedWithinBounds {
@@ -3231,7 +3261,7 @@
       
         // position dyadmino
       if (inReplay) {
-        [self animateRepositionCellAgnosticDyadmino:dyadmino];
+        [self repositionCellAgnosticDyadmino:dyadmino animate:YES];
         [dyadminoesOnBoardUpToThisPoint addObject:dyadmino];
       } else {
         [dyadmino goHomeToBoardByPoppingIn:NO andSounding:NO];
@@ -3259,21 +3289,31 @@
   return dyadminoesOnBoardUpToThisPoint;
 }
 
--(void)animateRepositionCellAgnosticDyadmino:(Dyadmino *)dyadmino {
-
-    // between .7 and .9
-  CGFloat random = ((arc4random() % 100) / 100.f * 0.2) + 0.7f;
+-(void)repositionCellAgnosticDyadmino:(Dyadmino *)dyadmino animate:(BOOL)animate {
   
-  CGPoint reposition = [Cell positionCellAgnosticDyadminoGivenHexOrigin:_boardField.hexOrigin andHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.tempReturnOrientation andResize:_boardZoomedOut];
-  SKAction *repositionAction = [SKAction moveTo:reposition duration:kConstantTime * random];
-  SKAction *completeAction = [SKAction runBlock:^{
-    dyadmino.zPosition = kZPositionBoardRestingDyadmino;
-  }];
-  SKAction *sequenceAction = [SKAction sequence:@[repositionAction, completeAction]];
+  CGPoint reposition = [Cell positionCellAgnosticDyadminoGivenHexOrigin:_boardField.hexOrigin
+                                                            andHexCoord:dyadmino.myHexCoord
+                                                         andOrientation:dyadmino.tempReturnOrientation
+                                                              andResize:_boardZoomedOut];
   
-  [dyadmino removeActionForKey:@"replayAction"];
-  dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
-  [dyadmino runAction:sequenceAction withKey:@"replayAction"];
+  if (animate) {
+      // between .7 and .9
+    CGFloat random = ((arc4random() % 100) / 100.f * 0.2) + 0.7f;
+    
+    SKAction *repositionAction = [SKAction moveTo:reposition duration:kConstantTime * random];
+    SKAction *completeAction = [SKAction runBlock:^{
+      dyadmino.zPosition = kZPositionBoardRestingDyadmino;
+    }];
+    SKAction *sequenceAction = [SKAction sequence:@[repositionAction, completeAction]];
+    
+    [dyadmino removeActionForKey:@"replayAction"];
+    dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
+    [dyadmino runAction:sequenceAction withKey:@"replayAction"];
+    
+  } else {
+    dyadmino.position = reposition;
+  }
+  
   [dyadmino selectAndPositionSpritesZRotation:0.f];
 }
 

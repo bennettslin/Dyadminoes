@@ -1465,6 +1465,10 @@
   XCTAssertFalse([firstPlayer returnWon], @"Despite having highest score, first player cannot win because they resigned.");
 }
 
+-(void)testEndGameResultsText {
+  XCTFail();
+}
+
 #pragma mark - additional setup methods
 
 -(void)setupGameForNumberOfPlayers:(NSUInteger)numberOfPlayers {

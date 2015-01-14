@@ -67,7 +67,7 @@
 -(void)repositionBoardWithHomePosition:(CGPoint)homePosition
                              andOrigin:(CGPoint)origin;
 
--(CGPoint)adjustToNewPositionFromBeganLocation:(CGPoint)beganLocation
+-(CGPoint)adjustedNewPositionFromBeganLocation:(CGPoint)beganLocation
                              toCurrentLocation:(CGPoint)currentLocation
                                       withSwap:(BOOL)swap;
 
@@ -75,7 +75,7 @@
 
 #pragma mark - board position methods
 
--(void)centerBoardOnDyadminoesAverageCenterWithSwap:(BOOL)swap;
+-(CGPoint)centerBoardOnDyadminoesAverageCenterWithSwap:(BOOL)swap;
 
 #pragma mark - background image methods
 
@@ -86,7 +86,7 @@
 
 #pragma mark - zoom methods
 
--(void)repositionCellsForZoomWithSwap:(BOOL)swap;
+-(CGPoint)repositionCellsForZoomWithSwap:(BOOL)swap;
 //-(void)toggleBackgroundAlphaZeroed:(BOOL)zeroed animated:(BOOL)animated;
 
 #pragma mark - cell methods

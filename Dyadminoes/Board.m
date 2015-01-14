@@ -44,7 +44,7 @@
   CGFloat _oldCellsTop;
   CGFloat _oldCellsBottom;
   CGFloat _oldCellsLeft;
-  CGFloat _oldCellsRight;
+  CGFloat _oldCellsRight;  
 }
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size andCellTexture:(SKTexture *)cellTexture {
@@ -132,19 +132,25 @@
   self.position = self.homePosition;
 }
 
--(void)centerBoardOnDyadminoesAverageCenterWithSwap:(BOOL)swap {
+-(CGPoint)centerBoardOnDyadminoesAverageCenterWithSwap:(BOOL)swap {
   CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
   CGPoint newPoint = CGPointMake(self.origin.x + (self.hexOrigin.dx - _hexCurrent.dx) * kDyadminoFaceWideDiameter * factor,
                                  self.origin.y + (self.hexOrigin.dy - _hexCurrent.dy) * kDyadminoFaceDiameter * factor);
   
-  [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:newPoint withSwap:swap];
+  CGPoint adjustedNewPosition = [self adjustedNewPositionFromBeganLocation:self.homePosition
+                                                         toCurrentLocation:newPoint
+                                                                  withSwap:swap];
   self.homePosition = newPoint;
-  NSLog(@"board home positions is %.2f, %.2f", self.homePosition.x, self.homePosition.y);
+//  NSLog(@"board home positions is %.2f, %.2f", self.homePosition.x, self.homePosition.y);
+  return adjustedNewPosition;
 }
 
 #pragma mark - board span methods
 
--(CGPoint)adjustToNewPositionFromBeganLocation:(CGPoint)beganLocation toCurrentLocation:(CGPoint)currentLocation withSwap:(BOOL)swap {
+-(CGPoint)adjustedNewPositionFromBeganLocation:(CGPoint)beganLocation
+                             toCurrentLocation:(CGPoint)currentLocation
+                                      withSwap:(BOOL)swap {
+  
     // first get new board position, after applying touch offset
   CGPoint touchOffset = [self subtractFromThisPoint:beganLocation thisPoint:currentLocation];
   CGPoint newPosition = [self subtractFromThisPoint:self.homePosition thisPoint:touchOffset];
@@ -167,12 +173,15 @@
   }
   
   CGPoint adjustedNewPosition = CGPointMake(newX, newY);
+  
+  CGPoint difference = [self subtractFromThisPoint:self.position thisPoint:adjustedNewPosition];
+  
   self.position = adjustedNewPosition;
   
     // move home position to board position, after applying touch offset
   self.homePosition = [self addToThisPoint:adjustedNewPosition thisPoint:touchOffset];
   
-  return adjustedNewPosition;
+  return difference;
 }
 
 -(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes {
@@ -245,7 +254,7 @@
 
   CGVector returnVector = CGVectorMake(((CGFloat)(self.cellsRight - self.cellsLeft) / 2) + self.cellsLeft, ((CGFloat)(self.cellsTop - self.cellsBottom) / 2) + self.cellsBottom);
   
-  NSLog(@"returnVector is %.2f, %.2f", returnVector.dx, returnVector.dy);
+//  NSLog(@"returnVector is %.2f, %.2f", returnVector.dx, returnVector.dy);
   return returnVector;
 }
 
@@ -258,14 +267,16 @@
   self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange - self.hexOrigin.dy) * kDyadminoFaceDiameter * factor;
   self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange - self.hexOrigin.dx) * kDyadminoFaceAverageWideDiameter * factor;
 
-  NSLog(@"origin is %.2f, %.2f, hex origin is %.2f, %.2f", self.origin.x, self.origin.y, self.hexOrigin.dx, self.hexOrigin.dy);
-  NSLog(@"bounds is lowest y %.2f, lowest x %.2f, highest y %.2f, highest x %.2f", self.lowestYPos, self.lowestXPos, self.highestYPos, self.highestXPos);
+//  NSLog(@"origin is %.2f, %.2f, hex origin is %.2f, %.2f", self.origin.x, self.origin.y, self.hexOrigin.dx, self.hexOrigin.dy);
+//  NSLog(@"bounds is lowest y %.2f, lowest x %.2f, highest y %.2f, highest x %.2f", self.lowestYPos, self.lowestXPos, self.highestYPos, self.highestXPos);
 }
 
 #pragma mark - zoom methods
 
--(void)repositionCellsForZoomWithSwap:(BOOL)swap {
+-(CGPoint)repositionCellsForZoomWithSwap:(BOOL)swap {
 
+  CGPoint adjustedNewPosition = CGPointZero;
+  
   CGSize cellSize = [Cell establishCellSizeForResize:self.zoomedOut];
   for (Cell *cell in self.allCells) {
     [cell resizeCell:self.zoomedOut withHexOrigin:self.hexOrigin andSize:cellSize];
@@ -274,13 +285,16 @@
     // zoom out
   if (self.zoomedOut) {
 
-    [self centerBoardOnDyadminoesAverageCenterWithSwap:swap];
+    adjustedNewPosition = [self centerBoardOnDyadminoesAverageCenterWithSwap:swap];
 //    [self zoomOutBackgroundImage];
     
       // zoom back in
   } else {
     
-    [self adjustToNewPositionFromBeganLocation:self.homePosition toCurrentLocation:self.postZoomPosition withSwap:swap];
+    adjustedNewPosition = [self adjustedNewPositionFromBeganLocation:self.homePosition
+                                                   toCurrentLocation:self.postZoomPosition
+                                                            withSwap:swap];
+    
     if (_redoLayoutAfterZoom) {
       [self layoutBoardCellsAndSnapPointsOfDyadminoes:[self.delegate allBoardDyadminoesPlusRecentRackDyadmino]];
       _redoLayoutAfterZoom = NO;
@@ -290,6 +304,7 @@
 //    [self zoomInBackgroundImage];
   }
 
+  return adjustedNewPosition;
 //  self.backgroundNodeZoomedIn.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
 //  self.backgroundNodeZoomedOut.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
 }
