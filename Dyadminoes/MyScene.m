@@ -95,8 +95,6 @@
   
   BOOL _actionSheetShown;
   
-  NSSet *_tempChordSonoritiesFromMovedBoardDyadmino;
-  
   BOOL _zoomChangedCellsAlpha; // only used for pinch zoom
   
   SnapPoint *_uponTouchDyadminoNode;
@@ -252,7 +250,6 @@
   _actionSheetShown = NO;
   _endTouchLocationToMeasureDoubleTap = CGPointMake(CGFLOAT_MAX, CGFLOAT_MAX);
   _undoButtonAllowed = YES;
-  _tempChordSonoritiesFromMovedBoardDyadmino = nil;
   _zoomInBoardHomePositionDifference = CGPointZero;
   
   if (_lockMode) {
@@ -1808,53 +1805,31 @@
 }
 
 -(void)resetBoardFromPass:(BOOL)fromPass {
-  SKAction *fadeOut = [SKAction fadeAlphaTo:0.f duration:0.01f];
   
-  __weak typeof(self) weakSelf = self;
+  [self.myDelegate fadeChordMessage];
+    
+  [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
+    
+    // reset dataDyad info
+  [self.myMatch resetToStartOfTurn];
   
-  void(^resetAfterFadeOut)(void) = ^void(void) {
+  for (Dyadmino *dyadmino in self.boardDyadminoes) {
+    DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     
-    [weakSelf updateOrderOfDataDyadsThisTurnToReflectRackOrder];
-    
-      // reset dataDyad info
-    [weakSelf.myMatch resetToStartOfTurn];
-//    [weakSelf prepareForNewTurn];
-    
-    for (Dyadmino *dyadmino in self.boardDyadminoes) {
-      DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-      
-      dyadmino.myHexCoord = dataDyad.myHexCoord;
-//      dyadmino.orientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
-//      dyadmino.tempReturnOrientation = dyadmino.orientation;
-      dyadmino.tempReturnOrientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
-      dyadmino.homeNode = nil;
-      dyadmino.tempBoardNode = nil;
-    }
-    
-    [weakSelf populateBoardWithDyadminoesAnimated:YES];
-//    [weakSelf willMoveFromViewForReset:YES];
-    if (fromPass) {
-      [weakSelf finalisePlayerTurn];
-    }
-    
-    SKAction *fadeIn = [SKAction fadeAlphaTo:1.f duration:0.01f];
-    
-    void(^completeAfterFadeIn)(void) = ^void(void) {
-//      [weakSelf loadAfterNewMatchRetrievedForReset:YES];
-//      [weakSelf didMoveToViewForReset:YES];
-//      [weakSelf afterNewPlayerReadyForReset:YES];
-      [weakSelf updateTopBarButtons];
-      [weakSelf updateTopBarLabelsFinalTurn:NO animated:YES];
-    };
-    
-    SKAction *fadeInCompletion = [SKAction runBlock:completeAfterFadeIn];
-    SKAction *fadeInSequence = [SKAction sequence:@[fadeIn, fadeInCompletion]];
-    [_boardField runAction:fadeInSequence withKey:kResetFadeIn];
-  };
+    dyadmino.myHexCoord = dataDyad.myHexCoord;
+    dyadmino.tempReturnOrientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
+    dyadmino.homeNode = nil;
+    dyadmino.tempBoardNode = nil;
+  }
   
-  SKAction *resetAfterFadeOutAction = [SKAction runBlock:resetAfterFadeOut];
-  SKAction *sequence = [SKAction sequence:@[fadeOut, resetAfterFadeOutAction]];
-  [_boardField runAction:sequence withKey:kResetFadeOut];
+  [self populateBoardWithDyadminoesAnimated:YES];
+  
+  if (fromPass) {
+    [self finalisePlayerTurn];
+  }
+
+  [self updateTopBarButtons];
+  [self updateTopBarLabelsFinalTurn:NO animated:YES];
 }
 
 -(void)finalisePlayerTurn {
@@ -2470,7 +2445,9 @@
     
       // no pass option in self mode
     if ([self.myMatch returnType] == kSelfGame) {
+      
       [_topBar changePassPlayOrDone:kPlayButton];
+      
     } else {
       
       if (noBoardDyadminoesPlayedAndNoRecentRackDyadmino) {
@@ -3520,19 +3497,19 @@
       
     case kActionSheetNewLegalChord:
       if ([buttonText isEqualToString:@"Build"]) {
+        NSLog(@"_hovering dyadmino is %@", _hoveringDyadmino.name);
         
-        [self.myMatch moveBoardDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] toBottomHexCoord:_hoveringDyadmino.tempBoardNode.myCell.hexCoord withOrientation:_hoveringDyadmino.orientation];
-
-        NSAttributedString *chordsText = [[SonorityLogic sharedLogic] stringForSonorities:_tempChordSonoritiesFromMovedBoardDyadmino withInitialString:@"Built " andEndingString:@"."];
+        NSAttributedString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] onBottomHexCoord:_hoveringDyadmino.tempBoardNode.myCell.hexCoord withOrientation:_hoveringDyadmino.orientation withCondition:kBothNewAndExtendedChords withInitialString:@"Built " andEndingString:@"."];
         
         [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
         
+        [self.myMatch moveBoardDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] toBottomHexCoord:_hoveringDyadmino.tempBoardNode.myCell.hexCoord withOrientation:_hoveringDyadmino.orientation];
+
         [self finishHoveringAfterCheckDyadmino:_hoveringDyadmino];
         
       } else if ([buttonText isEqualToString:@"Cancel"]) {
         [self sendDyadminoHome:_hoveringDyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
       }
-      _tempChordSonoritiesFromMovedBoardDyadmino = nil;
       break;
       
     case kActionSheetResignPlayer:
