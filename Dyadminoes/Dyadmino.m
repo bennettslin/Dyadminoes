@@ -96,6 +96,14 @@
   [self removeAllActions];
 }
 
+#pragma mark - texture methods
+
+-(void)changeTexture:(TextureDyadmino)texture {
+  
+    // FIXME: change texture here
+  
+}
+
 #pragma mark - orient, position, and size methods
 
 -(void)establishSizeOfSprite:(SKSpriteNode *)sprite {

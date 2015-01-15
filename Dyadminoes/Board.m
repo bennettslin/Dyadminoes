@@ -119,6 +119,7 @@
   self.zoomedOut = NO;
 //  [self zoomInBackgroundImage];
   
+    // FIXME: this doesn't seem to be necessary
   [self removeAllActions];
 }
 
@@ -137,9 +138,9 @@
   CGPoint newPoint = CGPointMake(self.origin.x + (self.hexOrigin.dx - _hexCurrent.dx) * kDyadminoFaceWideDiameter * factor,
                                  self.origin.y + (self.hexOrigin.dy - _hexCurrent.dy) * kDyadminoFaceDiameter * factor);
   
-  CGPoint adjustedNewPosition = [self adjustedNewPositionFromBeganLocation:self.homePosition
-                                                         toCurrentLocation:newPoint
-                                                                  withSwap:swap];
+  CGPoint adjustedNewPosition = [self returnDifferenceFromAdjustedNewPositionFromBeganLocation:self.homePosition
+                                                                             toCurrentLocation:newPoint
+                                                                                      withSwap:swap];
   self.homePosition = newPoint;
 //  NSLog(@"board home positions is %.2f, %.2f", self.homePosition.x, self.homePosition.y);
   return adjustedNewPosition;
@@ -160,6 +161,41 @@
   
   CGFloat finalBuffer = swap ? kRackHeight : 0.f; // the height of the swap field
 
+  if (newPosition.y < self.lowestYPos) {
+    newY = self.lowestYPos;
+  } else if (newPosition.y > (self.highestYPos + finalBuffer)) {
+    newY = self.highestYPos + finalBuffer;
+  }
+  
+  if (newPosition.x < self.lowestXPos) {
+    newX = self.lowestXPos;
+  } else if (newPosition.x > self.highestXPos) {
+    newX = self.highestXPos;
+  }
+  
+  CGPoint adjustedNewPosition = CGPointMake(newX, newY);
+    
+  self.position = adjustedNewPosition;
+  
+    // move home position to board position, after applying touch offset
+  self.homePosition = [self addToThisPoint:adjustedNewPosition thisPoint:touchOffset];
+  
+  return adjustedNewPosition;
+}
+
+-(CGPoint)returnDifferenceFromAdjustedNewPositionFromBeganLocation:(CGPoint)beganLocation
+                                                 toCurrentLocation:(CGPoint)currentLocation
+                                                          withSwap:(BOOL)swap {
+  
+    // first get new board position, after applying touch offset
+  CGPoint touchOffset = [self subtractFromThisPoint:beganLocation thisPoint:currentLocation];
+  CGPoint newPosition = [self subtractFromThisPoint:self.homePosition thisPoint:touchOffset];
+  
+  CGFloat newX = newPosition.x;
+  CGFloat newY = newPosition.y;
+  
+  CGFloat finalBuffer = swap ? kRackHeight : 0.f; // the height of the swap field
+  
   if (newPosition.y < self.lowestYPos) {
     newY = self.lowestYPos;
   } else if (newPosition.y > (self.highestYPos + finalBuffer)) {
@@ -291,9 +327,9 @@
       // zoom back in
   } else {
     
-    adjustedNewPosition = [self adjustedNewPositionFromBeganLocation:self.homePosition
-                                                   toCurrentLocation:self.postZoomPosition
-                                                            withSwap:swap];
+    adjustedNewPosition = [self returnDifferenceFromAdjustedNewPositionFromBeganLocation:self.homePosition
+                                                                       toCurrentLocation:self.postZoomPosition
+                                                                                withSwap:swap];
     
     if (_redoLayoutAfterZoom) {
       [self layoutBoardCellsAndSnapPointsOfDyadminoes:[self.delegate allBoardDyadminoesPlusRecentRackDyadmino]];
@@ -324,7 +360,7 @@
 #pragma mark - cell methods
 
 -(BOOL)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
-
+  
     // regular hex origin is only set once per scene load, but zoom hex origin is set every time
   if (!_hexOriginSet) {
     self.hexOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];

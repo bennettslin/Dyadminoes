@@ -71,6 +71,11 @@
                              toCurrentLocation:(CGPoint)currentLocation
                                       withSwap:(BOOL)swap;
 
+  // FIXME: not DRY
+-(CGPoint)returnDifferenceFromAdjustedNewPositionFromBeganLocation:(CGPoint)beganLocation
+                                                 toCurrentLocation:(CGPoint)currentLocation
+                                                          withSwap:(BOOL)swap;
+
 -(void)resetForNewMatch;
 
 #pragma mark - board position methods

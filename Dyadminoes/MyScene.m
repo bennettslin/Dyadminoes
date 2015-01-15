@@ -21,7 +21,7 @@
 #import "ReplayBar.h"
 #import "Cell.h"
 #import "Button.h"
-#import "Label.h"
+//#import "Label.h"
 #import "Match.h"
 #import "DataDyadmino.h"
 #import "SoundEngine.h"
@@ -34,6 +34,8 @@
 #define kRackOut @"rackOut"
 #define kPnPBarIn @"pnpBarIn"
 #define kPnPBarOut @"pnpBarOut"
+#define kResetFadeOut @"resetFadeOut"
+#define kResetFadeIn @"resetFadeIn"
 
 @interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIActionSheetDelegate, UIAlertViewDelegate, MatchDelegate, ReturnToGamesButtonDelegate>
 
@@ -267,6 +269,8 @@
 }
 
 -(void)didMoveToViewForReset:(BOOL)forReset {
+  
+    // FIXME: this won't get called by resetBoard after all
 //  NSLog(@"did move to view");
   
     // ensures that match's board dyadminoes are reset
@@ -285,7 +289,7 @@
     abort();
   }
   
-  if (![self populateBoardWithDyadminoes]) {
+  if (![self populateBoardWithDyadminoesAnimated:forReset]) {
     NSLog(@"Dyadminoes were not placed on board properly.");
     abort();
   }
@@ -534,15 +538,22 @@
   [_boardField repositionBoardWithHomePosition:homePosition andOrigin:(CGPoint)homePosition];
 }
 
--(BOOL)populateBoardWithDyadminoes {
+-(BOOL)populateBoardWithDyadminoesAnimated:(BOOL)animated {
+    // ensures that if called after reset, touched dyadmino will hover
+//  _uponTouchDyadminoNode = nil;
+  
   for (Dyadmino *dyadmino in self.boardDyadminoes) {
     dyadmino.delegate = self;
     
       // this is for the first dyadmino, which doesn't have a boardNode
       // and also other dyadminoes when reloading
     if (!dyadmino.homeNode) {
+      NSLog(@"getting homeNode for dyadmino %@", dyadmino.name);
       NSMutableSet *snapPointsToSearch;
-      switch (dyadmino.orientation) {
+      
+        // if called from setup, temp return orientation is the same as dyadmino orientation
+        // if called from reset, it may be different
+      switch (dyadmino.tempReturnOrientation) {
         case kPC1atTwelveOClock:
         case kPC1atSixOClock:
           snapPointsToSearch = _boardField.snapPointsTwelveOClock;
@@ -556,22 +567,31 @@
           snapPointsToSearch = _boardField.snapPointsTenOClock;
           break;
       }
-      
+
       for (SnapPoint *snapPoint in snapPointsToSearch) {
         if ( snapPoint.myCell.hexCoord.x == dyadmino.myHexCoord.x && snapPoint.myCell.hexCoord.y == dyadmino.myHexCoord.y) {
           dyadmino.homeNode = snapPoint;
           dyadmino.tempBoardNode = dyadmino.homeNode;
         }
       }
+      
+      NSLog(@"dyadmino home node is %@", dyadmino.homeNode.name);
     }
     
       //------------------------------------------------------------------------
     
+    if (animated) {
+      [self animate:YES repositionAndResize:NO cellAgnosticDyadmino:dyadmino];
+    } else {
+      dyadmino.position = dyadmino.homeNode.position;
+      [dyadmino selectAndPositionSpritesZRotation:0.f];
+    }
+    
+    [dyadmino orientBySnapNode:dyadmino.homeNode animate:animated];
+    
       // update cells
     [self updateCellsForPlacedDyadmino:dyadmino andColour:YES];
-    dyadmino.position = dyadmino.homeNode.position;
-    [dyadmino orientBySnapNode:dyadmino.homeNode animate:NO];
-    [dyadmino selectAndPositionSpritesZRotation:0.f];
+    
     if (!dyadmino.parent) {
       [_boardField addChild:dyadmino];
     }
@@ -580,6 +600,9 @@
       return NO;
     }
   }
+  
+  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
+  
   return YES;
 }
 
@@ -715,16 +738,20 @@
     // UPDATE: double tap no longer zooms; instead, it toggles lock mode
     // board will center back to user's touch location once zoomed back in
   
-  _lockMode = _lockMode ? NO : YES;
+  _lockMode = !_lockMode;
   if (withSound) {
     [self postSoundNotification:kNotificationTogglePCs];
   }
   
-    // FIXME: this should change dyadmino texture
-  SceneEngine *sceneEngine = [SceneEngine sharedSceneEngine];
-  for (Dyadmino *dyadmino in sceneEngine.allDyadminoes) {
-    dyadmino.hidden = _lockMode;
-  }
+  _dyadminoesStationary = _lockMode;
+  [self toggleCellsAndDyadminoesAlphaAnimated:YES];
+  
+//    // FIXME: this should change dyadmino texture
+//  SceneEngine *sceneEngine = [SceneEngine sharedSceneEngine];
+//  for (Dyadmino *dyadmino in sceneEngine.allDyadminoes) {
+//    TextureDyadmino texture = _lockMode ? kTextureDyadminoLockedNoSo : kTextureDyadminoNoSo;
+//    [dyadmino changeTexture:texture];
+//  }
 }
 
 #pragma mark - touch methods
@@ -842,11 +869,15 @@
         // check to see if hovering dyadmino should be moved along with board or not
       if (_hoveringDyadmino) {
         [_boardField hideAllPivotGuides];
-        if ([self.myMatch checkPlacementOfDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] onBottomHexCoord:_hoveringDyadmino.tempBoardNode.myCell.hexCoord withOrientation:_hoveringDyadmino.orientation] == kNoChange) {
         
+        PlacementResult placementResult = [self.myMatch checkPlacementOfDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] onBottomHexCoord:_hoveringDyadmino.tempBoardNode.myCell.hexCoord withOrientation:_hoveringDyadmino.orientation];
+        
+        if (placementResult != kNoChange && placementResult != kAddsOrExtendsNewChords) {
+          NSLog(@"hovering dyadmino stays fixed to board");
           _hoveringDyadminoStaysFixedToBoard = YES;
           [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
         } else {
+          NSLog(@"hovering dyadmino does not stay fixed to board");
           _hoveringDyadminoStaysFixedToBoard = NO;
         }
       }
@@ -1068,6 +1099,7 @@
       
         // take care of hovering dyadmino
       if (_hoveringDyadminoStaysFixedToBoard) {
+        NSLog(@"hovering dyadmino stays fixed to board in end touch from touches");
         _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
         [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
       }
@@ -1103,9 +1135,12 @@
     
     CGPoint oldBoardPosition = _boardField.position;
     
-    CGPoint adjustedNewPosition = [_boardField adjustedNewPositionFromBeganLocation:_beganTouchLocation toCurrentLocation:_currentTouchLocation withSwap:(BOOL)self.swapContainer];
+    CGPoint adjustedNewPosition = [_boardField adjustedNewPositionFromBeganLocation:_beganTouchLocation
+                                                                  toCurrentLocation:_currentTouchLocation
+                                                                           withSwap:(BOOL)self.swapContainer];
     
     if (_hoveringDyadminoStaysFixedToBoard) {
+      NSLog(@"hovering dyadmino %@ stays fixed to board in move board", _hoveringDyadmino.name);
       _hoveringDyadmino.position = [self addToThisPoint:_hoveringDyadmino.position
                                               thisPoint:[self subtractFromThisPoint:oldBoardPosition
                                                                           thisPoint:adjustedNewPosition]];
@@ -1204,6 +1239,7 @@
   if ([_touchedDyadmino isOnBoard] && !_touchedDyadmino.isRotating) {
     
     _uponTouchDyadminoNode = dyadmino.tempBoardNode;
+    NSLog(@"upon touch dyadmino node is %@", _uponTouchDyadminoNode.name);
     _uponTouchDyadminoOrientation = dyadmino.orientation;
     
       // 1. it's not hovering, so make it hover
@@ -1771,41 +1807,54 @@
   }
 }
 
--(void)resetBoard {
+-(void)resetBoardFromPass:(BOOL)fromPass {
   SKAction *fadeOut = [SKAction fadeAlphaTo:0.f duration:0.01f];
   
   __weak typeof(self) weakSelf = self;
   
-  SKAction *completion = [SKAction runBlock:^{
+  void(^resetAfterFadeOut)(void) = ^void(void) {
+    
     [weakSelf updateOrderOfDataDyadsThisTurnToReflectRackOrder];
+    
+      // reset dataDyad info
     [weakSelf.myMatch resetToStartOfTurn];
+//    [weakSelf prepareForNewTurn];
     
     for (Dyadmino *dyadmino in self.boardDyadminoes) {
       DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
       
       dyadmino.myHexCoord = dataDyad.myHexCoord;
-      dyadmino.orientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
-      dyadmino.tempReturnOrientation = dyadmino.orientation;
+//      dyadmino.orientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
+//      dyadmino.tempReturnOrientation = dyadmino.orientation;
+      dyadmino.tempReturnOrientation = (DyadminoOrientation)[dataDyad.myOrientation unsignedIntegerValue];
       dyadmino.homeNode = nil;
       dyadmino.tempBoardNode = nil;
-      
-      [weakSelf willMoveFromViewForReset:YES];
-      
-      SKAction *fadeIn = [SKAction fadeAlphaTo:1.f duration:0.01f];
-      SKAction *fadeInCompletion = [SKAction runBlock:^{
-
-        [weakSelf loadAfterNewMatchRetrievedForReset:YES];
-        [weakSelf didMoveToViewForReset:YES];
-        [weakSelf afterNewPlayerReadyForReset:YES];
-      }];
-
-      SKAction *fadeInSequence = [SKAction sequence:@[fadeIn, fadeInCompletion]];
-      [_boardField runAction:fadeInSequence withKey:@"fadeInBoard"];
     }
-  }];
-
-  SKAction *sequence = [SKAction sequence:@[fadeOut, completion]];
-  [_boardField runAction:sequence withKey:@"fadeOutBoard"];
+    
+    [weakSelf populateBoardWithDyadminoesAnimated:YES];
+//    [weakSelf willMoveFromViewForReset:YES];
+    if (fromPass) {
+      [weakSelf finalisePlayerTurn];
+    }
+    
+    SKAction *fadeIn = [SKAction fadeAlphaTo:1.f duration:0.01f];
+    
+    void(^completeAfterFadeIn)(void) = ^void(void) {
+//      [weakSelf loadAfterNewMatchRetrievedForReset:YES];
+//      [weakSelf didMoveToViewForReset:YES];
+//      [weakSelf afterNewPlayerReadyForReset:YES];
+      [weakSelf updateTopBarButtons];
+      [weakSelf updateTopBarLabelsFinalTurn:NO animated:YES];
+    };
+    
+    SKAction *fadeInCompletion = [SKAction runBlock:completeAfterFadeIn];
+    SKAction *fadeInSequence = [SKAction sequence:@[fadeIn, fadeInCompletion]];
+    [_boardField runAction:fadeInSequence withKey:kResetFadeIn];
+  };
+  
+  SKAction *resetAfterFadeOutAction = [SKAction runBlock:resetAfterFadeOut];
+  SKAction *sequence = [SKAction sequence:@[fadeOut, resetAfterFadeOutAction]];
+  [_boardField runAction:sequence withKey:kResetFadeOut];
 }
 
 -(void)finalisePlayerTurn {
@@ -2044,6 +2093,7 @@
       _boardField.homePosition = _boardField.position;
       
       if (_hoveringDyadminoStaysFixedToBoard) {
+        NSLog(@"hovering dyadmino stays fixed to board in update for board being corrected");
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x - thisDistance, _hoveringDyadmino.position.y);
         [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:_hoveringDyadmino.position];
       }
@@ -2059,6 +2109,7 @@
       _boardField.homePosition = _boardField.position;
       
       if (_hoveringDyadminoStaysFixedToBoard) {
+        NSLog(@"hovering dyadmino stays fixed to board in update for board being corrected");
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x, _hoveringDyadmino.position.y - thisDistance);
         [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:_hoveringDyadmino.position];
       }
@@ -2074,6 +2125,7 @@
       _boardField.homePosition = _boardField.position;
       
       if (_hoveringDyadminoStaysFixedToBoard) {
+        NSLog(@"hovering dyadmino stays fixed to board in update for board being corrected");
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x + thisDistance, _hoveringDyadmino.position.y);
         [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:_hoveringDyadmino.position];
       }
@@ -2089,6 +2141,7 @@
       _boardField.homePosition = _boardField.position;
       
       if (_hoveringDyadminoStaysFixedToBoard) {
+        NSLog(@"hovering dyadmino stays fixed to board in update for board being corrected");
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x, _hoveringDyadmino.position.y + thisDistance);
         [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:_hoveringDyadmino.position];
       }
@@ -2167,6 +2220,8 @@
         // ease in right away if dyadmino was not moved from original spot
       if ((dyadmino.tempBoardNode == _uponTouchDyadminoNode &&
            dyadmino.orientation == _uponTouchDyadminoOrientation)) {
+        
+        NSLog(@"ease in right away, since dyadmino was not moved from original spot.");
         
           // however, ensure that buttons are updated if chords are changed after flip
         [self updateTopBarButtons];
@@ -2462,6 +2517,8 @@
 
 -(void)toggleCellsAndDyadminoesAlphaAnimated:(BOOL)animated {
     // also toggle alpha of board's zoomed in background node
+  
+    // check http://stackoverflow.com/questions/23007535/fade-between-two-different-sktextures-on-skspritenode
   
     // if dyadminoes already hollowed, just return
   if (_dyadminoesStationary == _dyadminoesHollowed) {
@@ -3429,8 +3486,9 @@
       
     case kActionSheetPass:
       if ([buttonText isEqualToString:@"Pass"]) {
-        [self resetBoard];
-        [self finalisePlayerTurn];
+        
+          // player turn will be finalised after reset board animation
+        [self resetBoardFromPass:YES];
       }
       break;
       
@@ -3456,7 +3514,7 @@
     case kActionSheetReset:
       _undoButtonAllowed = YES;
       if ([buttonText isEqualToString:@"Reset"]) {
-        [self resetBoard];
+        [self resetBoardFromPass:NO];
       }
       break;
       

@@ -613,7 +613,7 @@
   
   BOOL placedWithNoIssues = [self updateDataCellsForPlacedDyadminoID:[dataDyad returnMyID] orientation:orientation onBottomCellHexCoord:bottomHexCoord];
   
-  NSLog(@"removed with no issues %i, placed with no issues %i", removedWithNoissues, placedWithNoIssues);
+//  NSLog(@"removed with no issues %i, placed with no issues %i", removedWithNoissues, placedWithNoIssues);
   return (removedWithNoissues && placedWithNoIssues);
 }
 

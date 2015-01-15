@@ -94,6 +94,10 @@
 
 -(void)resetForNewMatch;
 
+#pragma mark - texture methods
+
+-(void)changeTexture:(TextureDyadmino)texture;
+
 #pragma mark - orient, position, and size methods
 
 -(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle;
