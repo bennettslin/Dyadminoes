@@ -60,6 +60,7 @@
   // bools and states
 @property (readonly, nonatomic) BOOL isInTopBar;
 @property (readonly, nonatomic) BOOL belongsInSwap;
+@property (assign, nonatomic) BOOL shrunkForReplay;
 
 @property (nonatomic) BOOL canFlip;
 @property (readonly, nonatomic) BOOL isRotating;
@@ -129,6 +130,7 @@
 -(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour;
 -(void)animateFaceForSound:(SKSpriteNode *)face;
 -(void)animateWiggleForHover:(BOOL)animate;
+-(void)animateShrinkForReplayToShrink:(BOOL)shrink;
 
 #pragma mark - animate flip methods
 

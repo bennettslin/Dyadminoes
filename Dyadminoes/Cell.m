@@ -119,7 +119,8 @@
   self.boardSnapPointTwoOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwoOClock];
   self.boardSnapPointTenOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTenOClock];
   
-  [self positionSnapPointsForResize:NO];
+  CGPoint passedInPosition = self.cellNode ? self.cellNode.position : self.cellNodePosition;
+  [self positionSnapPointsWithPosition:passedInPosition forResize:NO];
   
   self.boardSnapPointTwelveOClock.name = @"snap 12";
   self.boardSnapPointTwoOClock.name = @"snap 2";
@@ -129,24 +130,25 @@
   self.boardSnapPointTenOClock.myCell = self;
 }
 
--(void)positionSnapPointsForResize:(BOOL)resize {
+-(void)positionSnapPointsWithPosition:(CGPoint)cellPosition forResize:(BOOL)resize {
   CGFloat faceOffset = resize ? kDyadminoFaceRadius * kZoomResizeFactor : kDyadminoFaceRadius;
   
     // based on a 30-60-90 degree triangle
   CGFloat faceOffsetX = faceOffset * 0.5 * kSquareRootOfThree;
   CGFloat faceOffsetY = faceOffset * 0.5;
-  
-  CGPoint position = self.cellNode ? self.cellNode.position : self.cellNodePosition;
-  self.boardSnapPointTwelveOClock.position = [self addToThisPoint:position
+
+  self.boardSnapPointTwelveOClock.position = [self addToThisPoint:cellPosition
                                                         thisPoint:CGPointMake(0.f, faceOffset)];
-  self.boardSnapPointTwoOClock.position = [self addToThisPoint:position
+  self.boardSnapPointTwoOClock.position = [self addToThisPoint:cellPosition
                                                      thisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
-  self.boardSnapPointTenOClock.position = [self addToThisPoint:position
+  self.boardSnapPointTenOClock.position = [self addToThisPoint:cellPosition
                                                      thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
 }
 
 -(void)addSnapPointsToBoard {
-  [self positionSnapPointsForResize:NO];
+  
+  CGPoint passedInPosition = self.cellNode ? self.cellNode.position : self.cellNodePosition;
+  [self positionSnapPointsWithPosition:passedInPosition forResize:NO];
   
   if (![self.board.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
     [self.board.snapPointsTwelveOClock addObject:self.boardSnapPointTwelveOClock];
@@ -181,17 +183,46 @@
   self.cellNode.color = [SKColor colorWithRed:_red green:_green blue:_blue alpha:_alpha];
 }
 
--(void)resizeCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize {
+-(void)resizeAndRepositionCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize {
   
-  self.cellNode.size = cellSize;
-
+  __weak typeof(self) weakSelf = self;
+  CGFloat scaleTo = cellSize.height / self.cellNode.size.height;
+  
+    // between .6 and .99
+  CGFloat randomScaleFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
+  
+  SKAction *scaleAction = [SKAction scaleTo:scaleTo duration:kConstantTime * randomScaleFactor];
+  SKAction *completionAction = [SKAction runBlock:^{
+    [weakSelf.cellNode setScale:1.f];
+    weakSelf.cellNode.size = cellSize;
+  }];
+  SKAction *sequenceAction = [SKAction sequence:@[scaleAction, completionAction]];
+  [self.cellNode runAction:sequenceAction];
+  
+  CGPoint reposition;
+  
   if (resize) {
-    self.cellNode.position = [Cell establishCellPositionWithCellSize:cellSize andHexOrigin:hexOrigin andHexCoord:self.hexCoord forResize:resize];
+    reposition = [Cell establishCellPositionWithCellSize:cellSize
+                                                        andHexOrigin:hexOrigin
+                                                         andHexCoord:self.hexCoord
+                                                           forResize:resize];
   } else {
-    self.cellNode.position = self.cellNodePosition;
+    reposition = self.cellNodePosition;
   }
   
-  [self positionSnapPointsForResize:resize];
+    // between .6 and .99
+  CGFloat randomRepositionFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
+  
+  SKAction *moveAction = [SKAction moveTo:reposition duration:kConstantTime * randomRepositionFactor];
+  SKAction *moveCompletionAction = [SKAction runBlock:^{
+    weakSelf.cellNode.position = reposition;
+    
+    CGPoint passedInPosition = weakSelf.cellNode ? weakSelf.cellNode.position : weakSelf.cellNodePosition;
+    [weakSelf positionSnapPointsWithPosition:passedInPosition forResize:resize];
+    
+  }];
+  SKAction *moveSequenceAction = [SKAction sequence:@[moveAction, moveCompletionAction]];
+  [self.cellNode runAction:moveSequenceAction];
 }
 
 #pragma mark - cell size and position helper methods

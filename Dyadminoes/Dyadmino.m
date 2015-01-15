@@ -91,6 +91,7 @@
   self.hoveringStatus = kDyadminoNoHoverStatus;
   self.zRotationCorrectedAfterPivot = NO;
   self.hidden = NO;
+  self.shrunkForReplay = NO;
   [self removeFromParent];
   [self removeAllActions];
 }
@@ -524,6 +525,53 @@
     [self removeActionForKey:kActionHover];
     [self resize];
     [self selectAndPositionSpritesZRotation:0.f];
+  }
+}
+
+-(void)animateShrinkForReplayToShrink:(BOOL)shrink {
+    // no animation if dyadmino is already at the desired scale
+  
+  if (shrink && !self.shrunkForReplay) {
+    self.shrunkForReplay = YES;
+    SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime * 0.99f];
+    shrinkAction.timingMode = SKActionTimingEaseIn;
+    SKAction *fadeOutAction = [SKAction fadeAlphaTo:0.f duration:kConstantTime * 0.99f];
+    fadeOutAction.timingMode = SKActionTimingEaseIn;
+    SKAction *shrinkFadeOutGroup = [SKAction group:@[shrinkAction, fadeOutAction]];
+    
+    SKAction *hideAction = [SKAction runBlock:^{
+      self.hidden = YES;
+      [self setScale:1.f];
+      [self resize];
+      self.zPosition = kZPositionBoardRestingDyadmino;
+    }];
+    SKAction *sequence = [SKAction sequence:@[shrinkFadeOutGroup, hideAction]];
+    self.zPosition = kZPositionBoardReplayAnimatedDyadmino;
+      //    [dyadmino removeActionForKey:@"replayShrink"];
+    [self runAction:sequence withKey:@"replayShrink"];
+    
+  } else if (!shrink && self.shrunkForReplay) {
+    self.shrunkForReplay = NO;
+    self.hidden = NO;
+    SKAction *excessGrowAction = [SKAction scaleTo:1.1f duration:kConstantTime * 0.69f];
+    excessGrowAction.timingMode = SKActionTimingEaseOut;
+    SKAction *bounceBackAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.29f];
+    bounceBackAction.timingMode = SKActionTimingEaseIn;
+    SKAction *growSequence = [SKAction sequence:@[excessGrowAction, bounceBackAction]];
+    
+    SKAction *fadeInAction = [SKAction fadeAlphaTo:1.f duration:kConstantTime * 0.99f];
+    fadeInAction.timingMode = SKActionTimingEaseIn;
+    SKAction *growFadeInGroup = [SKAction group:@[growSequence, fadeInAction]];
+    
+    SKAction *completeAction = [SKAction runBlock:^{
+      self.zPosition = kZPositionBoardRestingDyadmino;
+      [self setScale:1.f];
+      [self resize];
+    }];
+    SKAction *sequence = [SKAction sequence:@[growFadeInGroup, completeAction]];
+    self.zPosition = kZPositionBoardReplayAnimatedDyadmino;
+      //    [dyadmino removeActionForKey:@"replayGrow"];
+    [self runAction:sequence withKey:@"replayGrow"];
   }
 }
 

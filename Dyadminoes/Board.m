@@ -279,7 +279,7 @@
   
   CGSize cellSize = [Cell establishCellSizeForResize:self.zoomedOut];
   for (Cell *cell in self.allCells) {
-    [cell resizeCell:self.zoomedOut withHexOrigin:self.hexOrigin andSize:cellSize];
+    [cell resizeAndRepositionCell:self.zoomedOut withHexOrigin:self.hexOrigin andSize:cellSize];
   }
   
     // zoom out
