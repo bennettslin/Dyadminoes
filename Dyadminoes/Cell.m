@@ -22,19 +22,21 @@
 
 -(void)setColouredByNeighbouringCells:(NSInteger)colouredByNeighbouringCells {
   _colouredByNeighbouringCells = colouredByNeighbouringCells;
-  self.cellNode.hidden = (colouredByNeighbouringCells <= 0) ? YES : NO;
+//  self.cellNode.hidden = (colouredByNeighbouringCells <= 0) ? YES : NO;
 }
 
 -(id)initWithTexture:(SKTexture *)texture
          andHexCoord:(HexCoord)hexCoord
         andHexOrigin:(CGVector)hexOrigin
-           andResize:(BOOL)resize {
+           andResize:(BOOL)resize
+         andDelegate:(id)delegate {
   
   self = [super init];
   if (self) {
     
     self.cellNodeTexture = texture;
     self.colouredByNeighbouringCells = 0;
+    self.delegate = delegate;
     
     [self resetForNewMatch];
     [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin forResize:resize];

@@ -160,12 +160,12 @@
        dataDyad.myHexCoord.y == bottomHexCoord.y &&
        [dataDyad returnMyOrientation] == orientation);
   
-  NSUInteger pc1, pc2;
+//  NSUInteger pc1, pc2;
   if (!checkedPlacementIsCurrentPlacement) {
     
       // temporarily place dyadmino on new cells, and remove it from original one
-    pc1 = [self pcForDyadminoIndex:dyadminoID isPC1:YES];
-    pc2 = [self pcForDyadminoIndex:dyadminoID isPC1:NO];
+//    pc1 = [self pcForDyadminoIndex:dyadminoID isPC1:YES];
+//    pc2 = [self pcForDyadminoIndex:dyadminoID isPC1:NO];
     [self updateDataCellsForRemovedDyadminoID:dyadminoID
                                   orientation:[dataDyad returnMyOrientation]
                        fromBottomCellHexCoord:dataDyad.myHexCoord];

@@ -41,6 +41,11 @@
 @property (strong, nonatomic) SKLabelNode *hexCoordLabel;
 @property (strong, nonatomic) SKLabelNode *pcLabel;
 
+@property (assign, nonatomic) CGFloat myRed;
+@property (assign, nonatomic) CGFloat myGreen;
+@property (assign, nonatomic) CGFloat myBlue;
+@property (assign, nonatomic) CGFloat myAlpha;
+
 @property (nonatomic) BOOL currentlyColouringNeighbouringCells;
 @property (nonatomic) NSInteger colouredByNeighbouringCells; // this is only used for fading cells during pinch zoom back in
 
@@ -48,7 +53,8 @@
 -(id)initWithTexture:(SKTexture *)texture
          andHexCoord:(HexCoord)hexCoord
         andHexOrigin:(CGVector)hexOrigin
-           andResize:(BOOL)resize;
+           andResize:(BOOL)resize
+         andDelegate:(id)delegate;
 
   // called to reuse dequeued cell
 -(void)reuseCellWithHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin forResize:(BOOL)resize;

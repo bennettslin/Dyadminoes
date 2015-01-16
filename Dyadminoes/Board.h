@@ -31,6 +31,7 @@
 
 @property (nonatomic) BOOL zoomedOut;
 @property (nonatomic) CGPoint postZoomPosition;
+@property (assign, nonatomic) CGPoint zoomInBoardHomePositionDifference;
 
 @property (nonatomic) CGFloat highestYPos;
 @property (nonatomic) CGFloat highestXPos;

@@ -127,7 +127,7 @@
     // first time pivot values
   CGFloat _touchPivotOffsetAngle;
   
-  CGPoint _zoomInBoardHomePositionDifference;
+//  CGPoint _zoomInBoardHomePositionDifference;
 }
 
 #pragma mark - set up methods
@@ -249,7 +249,6 @@
   _actionSheetShown = NO;
   _endTouchLocationToMeasureDoubleTap = CGPointMake(CGFLOAT_MAX, CGFLOAT_MAX);
   _undoButtonAllowed = YES;
-  _zoomInBoardHomePositionDifference = CGPointZero;
   
   if (_lockMode) {
     [self handleDoubleTapForLockModeWithSound:NO];
@@ -1172,7 +1171,7 @@
     if (_boardZoomedOut) {
       tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:zoomOutBoardHomePositionDifference];
     } else {
-      tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:_zoomInBoardHomePositionDifference];
+      tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:_boardField.zoomInBoardHomePositionDifference];
     }
     
     dyadmino.position = tempNewPosition;
@@ -2007,7 +2006,8 @@
     _boardField.homePosition = _boardField.position;
   }
   
-  _zoomInBoardHomePositionDifference = [self subtractFromThisPoint:tempBoardPosition thisPoint:_boardField.homePosition];
+  _boardField.zoomInBoardHomePositionDifference = [self subtractFromThisPoint:tempBoardPosition
+                                                                    thisPoint:_boardField.homePosition];
 }
 
 -(void)updateForBoardBeingCorrectedWithinBounds {
