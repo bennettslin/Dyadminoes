@@ -21,7 +21,6 @@
 		3F18924718CDB43300BEE276 /* Player.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F18924618CDB43300BEE276 /* Player.m */; };
 		3F193119198064C10034A5B9 /* StavesView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F193118198064C10034A5B9 /* StavesView.m */; };
 		3F1931201980C8240034A5B9 /* BachMassBackgroundCropped.png in Resources */ = {isa = PBXBuildFile; fileRef = 3F19311F1980C8240034A5B9 /* BachMassBackgroundCropped.png */; };
-		3F28A6D018DA86BA0092B9B2 /* Label.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F28A6CF18DA86BA0092B9B2 /* Label.m */; };
 		3F3116CE18CEFC5D0015CC2A /* Rack.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3116CD18CEFC5D0015CC2A /* Rack.m */; };
 		3F3715B6199B1C69000C569E /* SonorityLogicTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3715B5199B1C69000C569E /* SonorityLogicTests.m */; };
 		3F3ABBA8198F4CF600015033 /* UIImage+colouredImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F3ABBA7198F4CF600015033 /* UIImage+colouredImage.m */; };
@@ -125,8 +124,6 @@
 		3F193117198064C10034A5B9 /* StavesView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StavesView.h; sourceTree = "<group>"; };
 		3F193118198064C10034A5B9 /* StavesView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StavesView.m; sourceTree = "<group>"; };
 		3F19311F1980C8240034A5B9 /* BachMassBackgroundCropped.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BachMassBackgroundCropped.png; sourceTree = "<group>"; };
-		3F28A6CE18DA86BA0092B9B2 /* Label.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Label.h; sourceTree = "<group>"; };
-		3F28A6CF18DA86BA0092B9B2 /* Label.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Label.m; sourceTree = "<group>"; };
 		3F3116CC18CEFC5D0015CC2A /* Rack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rack.h; sourceTree = "<group>"; };
 		3F3116CD18CEFC5D0015CC2A /* Rack.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Rack.m; sourceTree = "<group>"; };
 		3F3715B5199B1C69000C569E /* SonorityLogicTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SonorityLogicTests.m; sourceTree = "<group>"; };
@@ -529,8 +526,6 @@
 				3F3116CD18CEFC5D0015CC2A /* Rack.m */,
 				3F55E1FB18D7A8520048E67E /* Button.h */,
 				3F55E1FC18D7A8520048E67E /* Button.m */,
-				3F28A6CE18DA86BA0092B9B2 /* Label.h */,
-				3F28A6CF18DA86BA0092B9B2 /* Label.m */,
 			);
 			name = "Scene Objects";
 			sourceTree = "<group>";
@@ -664,7 +659,6 @@
 				3FCCA71B18948AF200E0E4B5 /* Dyadmino.m in Sources */,
 				3F3C8FF11990D9EE0061B208 /* ReplayBar.m in Sources */,
 				3F8F045B18BFEF3300853C4C /* SnapPoint.m in Sources */,
-				3F28A6D018DA86BA0092B9B2 /* Label.m in Sources */,
 				3F88EDB719638FBF005CC9A4 /* LocalGameViewController.m in Sources */,
 				3F7BD7DB192B0A37009274DE /* MatchTableViewCell.m in Sources */,
 				3FBC6AD4194E1BBD00420CB8 /* SoundEngine.m in Sources */,

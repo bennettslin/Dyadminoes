@@ -21,7 +21,6 @@
 #import "ReplayBar.h"
 #import "Cell.h"
 #import "Button.h"
-//#import "Label.h"
 #import "Match.h"
 #import "DataDyadmino.h"
 #import "SoundEngine.h"
@@ -262,13 +261,6 @@
 }
 
 -(void)didMoveToView:(SKView *)view {
-  [self didMoveToViewForReset:NO];
-}
-
--(void)didMoveToViewForReset:(BOOL)forReset {
-  
-    // FIXME: this won't get called by resetBoard after all
-//  NSLog(@"did move to view");
   
     // ensures that match's board dyadminoes are reset
   [self.myMatch last];
@@ -281,12 +273,12 @@
     // this only needs the board dyadminoes to determine the board's cells ranges
     // this populates the board cells
   [self repositionBoardField];
-  if (![_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes]) {
+  if (![_boardField updateBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes]) {
     NSLog(@"Board cells and snap points not laid out properly.");
     abort();
   }
   
-  if (![self populateBoardWithDyadminoesAnimated:forReset]) {
+  if (![self populateBoardWithDyadminoesAnimated:NO]) {
     NSLog(@"Dyadminoes were not placed on board properly.");
     abort();
   }
@@ -312,19 +304,18 @@
   [self updateTopBarButtons];
   
     // cell alphas are visible by default, hide if PnP mode and not for reset
-  _dyadminoesStationary = ([self.myMatch returnType] == kPnPGame && ![self.myMatch returnGameHasEnded] && !forReset);
+  _dyadminoesStationary = ([self.myMatch returnType] == kPnPGame && ![self.myMatch returnGameHasEnded]);
   [self toggleCellsAndDyadminoesAlphaAnimated:NO];
   
     // don't call just yet if it's a PnP game, unless it's just for reset
-  if ([self.myMatch returnType] != kPnPGame || forReset) {
-    [self afterNewPlayerReadyForReset:forReset];
+  if ([self.myMatch returnType] != kPnPGame) {
+    [self afterNewPlayerReady];
   }
 }
 
--(void)afterNewPlayerReadyForReset:(BOOL)forReset {
-//  NSLog(@"after new player ready");
-    // called both when scene is loaded, and when new player is ready in PnP mode
+-(void)afterNewPlayerReady {
   
+    // called both when scene is loaded, and when new player is ready in PnP mode
   [_boardField updatePivotGuidesForNewPlayer];
 
   if (![self populateRackArray]) {
@@ -332,7 +323,7 @@
     abort();
   }
   
-  if (![self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:forReset]) {
+  if (![self refreshRackFieldAndDyadminoesFromUndo:NO withAnimation:NO]) {
     NSLog(@"Rack field dyadminoes not refreshed properly.");
     abort();
   }
@@ -502,7 +493,6 @@
     dyadmino.myHexCoord = dataDyad.myHexCoord;
     dyadmino.orientation = [dataDyad returnMyOrientation];
     dyadmino.myRackOrder = -1; // signifies it's not in rack
-      // not the best place to set tempReturnOrientation here either
     dyadmino.tempReturnOrientation = dyadmino.orientation;
     
     if (![tempSet containsObject:dyadmino]) {
@@ -536,8 +526,6 @@
 }
 
 -(BOOL)populateBoardWithDyadminoesAnimated:(BOOL)animated {
-    // ensures that if called after reset, touched dyadmino will hover
-//  _uponTouchDyadminoNode = nil;
   
   for (Dyadmino *dyadmino in self.boardDyadminoes) {
     dyadmino.delegate = self;
@@ -578,17 +566,15 @@
       //------------------------------------------------------------------------
     
     if (animated) {
-      [self animate:YES repositionAndResize:NO cellAgnosticDyadmino:dyadmino];
+      [self sendDyadminoHome:dyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:NO];
+      
     } else {
       dyadmino.position = dyadmino.homeNode.position;
       [dyadmino selectAndPositionSpritesZRotation:0.f];
+      [dyadmino orientBySnapNode:dyadmino.homeNode animate:animated];
+      [self updateCellsForPlacedDyadmino:dyadmino andColour:YES];
     }
-    
-    [dyadmino orientBySnapNode:dyadmino.homeNode animate:animated];
-    
-      // update cells
-    [self updateCellsForPlacedDyadmino:dyadmino andColour:YES];
-    
+
     if (!dyadmino.parent) {
       [_boardField addChild:dyadmino];
     }
@@ -598,7 +584,7 @@
     }
   }
   
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
+  [_boardField updateBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
   
   return YES;
 }
@@ -1134,7 +1120,8 @@
     
     CGPoint adjustedNewPosition = [_boardField adjustedNewPositionFromBeganLocation:_beganTouchLocation
                                                                   toCurrentLocation:_currentTouchLocation
-                                                                           withSwap:(BOOL)self.swapContainer];
+                                                                           withSwap:(BOOL)self.swapContainer
+                                                                   returnDifference:NO];
     
     if (_hoveringDyadminoStaysFixedToBoard) {
       NSLog(@"hovering dyadmino %@ stays fixed to board in move board", _hoveringDyadmino.name);
@@ -1372,9 +1359,8 @@
   
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
-  
   if (updateBoardBounds) {
-    [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
+    [_boardField updateBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
   }
   
   [dyadmino endTouchThenHoverResize];
@@ -1503,7 +1489,7 @@
     _pnpBarUp = NO;
     [self togglePnPBarSyncWithRack:YES animated:YES];
     [self toggleCellsAndDyadminoesAlphaAnimated:YES];
-    [self afterNewPlayerReadyForReset:NO];
+    [self afterNewPlayerReady];
   
       /// swap button
   } else if (button == _topBar.swapCancelOrUndoButton &&
@@ -1807,7 +1793,7 @@
 -(void)resetBoardFromPass:(BOOL)fromPass {
   
   [self.myDelegate fadeChordMessage];
-    
+  
   [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
     
     // reset dataDyad info
@@ -1821,8 +1807,16 @@
     dyadmino.homeNode = nil;
     dyadmino.tempBoardNode = nil;
   }
+
+  if (![_boardField updateBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes]) {
+    NSLog(@"Board cells and snap points not laid out properly.");
+    abort();
+  }
   
-  [self populateBoardWithDyadminoesAnimated:YES];
+  if (![self populateBoardWithDyadminoesAnimated:YES]) {
+    NSLog(@"Dyadminoes were not placed on board properly.");
+    abort();
+  }
   
   if (fromPass) {
     [self finalisePlayerTurn];
@@ -2375,7 +2369,7 @@
   
     // this is one of two places where board bounds are updated
     // the other is when rack dyadmino is sent home
-  [_boardField layoutBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
+  [_boardField updateBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
   
   [_boardField hideAllPivotGuides];
   [dyadmino animateEaseIntoNodeAfterHover];
@@ -2445,8 +2439,11 @@
     
       // no pass option in self mode
     if ([self.myMatch returnType] == kSelfGame) {
-      
-      [_topBar changePassPlayOrDone:kPlayButton];
+      if (noBoardDyadminoesPlayedAndNoRecentRackDyadmino) {
+        [_topBar changePassPlayOrDone:kPlayButton];
+      } else {
+        [_topBar changePassPlayOrDone:kDoneButton];
+      }
       
     } else {
       
@@ -2811,6 +2808,7 @@
     
       // board cells and data cells are always updated together
     [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:snapPoint andColour:colour];
+    [_boardField updateBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
   }
 }
 
@@ -2825,6 +2823,7 @@
     
       // board cells and data cells are always updated together
     [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:(dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode) andColour:colour];
+    [_boardField updateBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
   }
 }
 

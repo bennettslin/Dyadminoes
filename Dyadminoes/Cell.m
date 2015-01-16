@@ -8,7 +8,7 @@
 
 #import "Cell.h"
 #import "SnapPoint.h"
-#import "Board.h"
+//#import "Board.h"
 
 #define kPaddingBetweenCells (kIsIPhone ? 0.f : 0.f)
 
@@ -25,29 +25,36 @@
   self.cellNode.hidden = (colouredByNeighbouringCells <= 0) ? YES : NO;
 }
 
--(id)initWithBoard:(Board *)board andTexture:(SKTexture *)texture andHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize {
+-(id)initWithTexture:(SKTexture *)texture
+         andHexCoord:(HexCoord)hexCoord
+        andHexOrigin:(CGVector)hexOrigin
+           andResize:(BOOL)resize {
+  
   self = [super init];
   if (self) {
     
-    self.board = board;
     self.cellNodeTexture = texture;
     self.colouredByNeighbouringCells = 0;
     
     [self resetForNewMatch];
-    [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin andSize:cellSize];
+    [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin forResize:resize];
   }
   return self;
 }
 
--(void)reuseCellWithHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize {
+-(void)reuseCellWithHexCoord:(HexCoord)hexCoord
+                andHexOrigin:(CGVector)hexOrigin
+                   forResize:(BOOL)resize {
   
   self.colouredByNeighbouringCells = NO;
   self.currentlyColouringNeighbouringCells = NO;
   self.hexCoord = hexCoord;
   self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
   
+  CGSize cellSize = [Cell establishCellSizeForResize:resize];
+  
     // establish cell position
-  self.cellNodePosition = [Cell establishCellPositionWithCellSize:cellSize andHexOrigin:hexOrigin andHexCoord:self.hexCoord forResize:NO];
+  self.cellNodePosition = [Cell establishCellPositionWithCellSize:cellSize andHexOrigin:hexOrigin andHexCoord:self.hexCoord forResize:resize];
   
     // establish logic default
   self.myPC = -1;
@@ -145,31 +152,31 @@
                                                      thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
 }
 
--(void)addSnapPointsToBoard {
+-(void)addSnapPointsToBoardAndResize:(BOOL)resize {
   
   CGPoint passedInPosition = self.cellNode ? self.cellNode.position : self.cellNodePosition;
-  [self positionSnapPointsWithPosition:passedInPosition forResize:NO];
+  [self positionSnapPointsWithPosition:passedInPosition forResize:resize];
   
-  if (![self.board.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
-    [self.board.snapPointsTwelveOClock addObject:self.boardSnapPointTwelveOClock];
+  if (![self.delegate.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
+    [self.delegate.snapPointsTwelveOClock addObject:self.boardSnapPointTwelveOClock];
   }
-  if (![self.board.snapPointsTwoOClock containsObject:self.boardSnapPointTwoOClock]) {
-    [self.board.snapPointsTwoOClock addObject:self.boardSnapPointTwoOClock];
+  if (![self.delegate.snapPointsTwoOClock containsObject:self.boardSnapPointTwoOClock]) {
+    [self.delegate.snapPointsTwoOClock addObject:self.boardSnapPointTwoOClock];
   }
-  if (![self.board.snapPointsTenOClock containsObject:self.boardSnapPointTenOClock]) {
-    [self.board.snapPointsTenOClock addObject:self.boardSnapPointTenOClock];
+  if (![self.delegate.snapPointsTenOClock containsObject:self.boardSnapPointTenOClock]) {
+    [self.delegate.snapPointsTenOClock addObject:self.boardSnapPointTenOClock];
   }
 }
 
 -(void)removeSnapPointsFromBoard {
-  if ([self.board.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
-    [self.board.snapPointsTwelveOClock removeObject:self.boardSnapPointTwelveOClock];
+  if ([self.delegate.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
+    [self.delegate.snapPointsTwelveOClock removeObject:self.boardSnapPointTwelveOClock];
   }
-  if ([self.board.snapPointsTwoOClock containsObject:self.boardSnapPointTwoOClock]) {
-    [self.board.snapPointsTwoOClock removeObject:self.boardSnapPointTwoOClock];
+  if ([self.delegate.snapPointsTwoOClock containsObject:self.boardSnapPointTwoOClock]) {
+    [self.delegate.snapPointsTwoOClock removeObject:self.boardSnapPointTwoOClock];
   }
-  if ([self.board.snapPointsTenOClock containsObject:self.boardSnapPointTenOClock]) {
-    [self.board.snapPointsTenOClock removeObject:self.boardSnapPointTenOClock];
+  if ([self.delegate.snapPointsTenOClock containsObject:self.boardSnapPointTenOClock]) {
+    [self.delegate.snapPointsTenOClock removeObject:self.boardSnapPointTenOClock];
   }
 }
 
@@ -203,9 +210,9 @@
   
   if (resize) {
     reposition = [Cell establishCellPositionWithCellSize:cellSize
-                                                        andHexOrigin:hexOrigin
-                                                         andHexCoord:self.hexCoord
-                                                           forResize:resize];
+                                            andHexOrigin:hexOrigin
+                                             andHexCoord:self.hexCoord
+                                               forResize:resize];
   } else {
     reposition = self.cellNodePosition;
   }

@@ -8,7 +8,6 @@
 
 #import "TopBar.h"
 #import "Button.h"
-#import "Label.h"
 
 @implementation TopBar
 

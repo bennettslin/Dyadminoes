@@ -8,7 +8,6 @@
 
 #import "ReplayBar.h"
 #import "Button.h"
-#import "Label.h"
 
 #define kReplayLabelFontSize (kIsIPhone ? 28.f : 36.f)
 

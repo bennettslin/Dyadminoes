@@ -13,13 +13,15 @@
 #import "Face.h"
 
 #define kCellColourMultiplier .005f
-
 #define kBackgroundFullAlpha 0.5f
 
-@interface Board ()
+@interface Board () <BoardCellDelegate>
 
-//@property (strong, nonatomic) SKSpriteNode *backgroundNodeZoomedIn;
-//@property (strong, nonatomic) SKSpriteNode *backgroundNodeZoomedOut;
+  /// these are the limits in terms of number of cells
+@property (nonatomic) CGFloat cellsTop;
+@property (nonatomic) CGFloat cellsRight;
+@property (nonatomic) CGFloat cellsBottom;
+@property (nonatomic) CGFloat cellsLeft;
 
 @property (strong, nonatomic) NSMutableSet *dequeuedCells;
 @property (strong, nonatomic) SKTexture *cellTexture;
@@ -28,8 +30,6 @@
 @end
 
 @implementation Board {
-
-  CGSize _cellSize;
   
   CGFloat _cellsInVertRange;
   CGFloat _cellsInHorzRange;
@@ -39,7 +39,6 @@
   CGVector _hexCurrent;
   BOOL _cellsTopNeedsBuffer;
   BOOL _cellsBottomNeedsBuffer;
-  BOOL _redoLayoutAfterZoom;
   
   CGFloat _oldCellsTop;
   CGFloat _oldCellsBottom;
@@ -57,6 +56,7 @@
     self.cellTexture = cellTexture;
     self.anchorPoint = CGPointMake(0.5, 0.5);
     self.zPosition = kZPositionBoard;
+    self.zoomedOut = NO;
     
     self.userWantsPivotGuides = YES;
 
@@ -64,10 +64,7 @@
     self.snapPointsTwelveOClock = [NSMutableSet new];
     self.snapPointsTwoOClock = [NSMutableSet new];
     self.snapPointsTenOClock = [NSMutableSet new];
-//    self.occupiedCells = [NSMutableSet new];
     self.allCells = [NSMutableSet new];
-    
-    _cellSize = [Cell establishCellSizeForResize:NO];
     
       // create new cells from get-go
     self.dequeuedCells = [NSMutableSet new];
@@ -97,11 +94,11 @@
 
   NSUInteger times = kIsIPhone ? 125 : 250;
   for (int i = 0; i < times; i++) {
-    Cell *cell = [[Cell alloc] initWithBoard:self
-                                  andTexture:self.cellTexture
-                                 andHexCoord:[self hexCoordFromX:0 andY:0]
-                                andHexOrigin:self.hexOrigin
-                                     andSize:_cellSize];
+    Cell *cell = [[Cell alloc] initWithTexture:self.cellTexture
+                                   andHexCoord:[self hexCoordFromX:0 andY:0]
+                                  andHexOrigin:self.hexOrigin
+                                     andResize:self.zoomedOut];
+    cell.delegate = self;
     [self.dequeuedCells addObject:cell];
   }
 }
@@ -109,7 +106,6 @@
 -(void)resetForNewMatch {
   
   NSSet *tempAllCells = [NSSet setWithSet:self.allCells];
-//  [self.occupiedCells removeAllObjects];
   
   for (Cell *cell in tempAllCells) {
     [self ignoreCell:cell];
@@ -138,19 +134,20 @@
   CGPoint newPoint = CGPointMake(self.origin.x + (self.hexOrigin.dx - _hexCurrent.dx) * kDyadminoFaceWideDiameter * factor,
                                  self.origin.y + (self.hexOrigin.dy - _hexCurrent.dy) * kDyadminoFaceDiameter * factor);
   
-  CGPoint adjustedNewPosition = [self returnDifferenceFromAdjustedNewPositionFromBeganLocation:self.homePosition
-                                                                             toCurrentLocation:newPoint
-                                                                                      withSwap:swap];
+  CGPoint differenceInPosition = [self adjustedNewPositionFromBeganLocation:self.homePosition
+                                                          toCurrentLocation:newPoint
+                                                                   withSwap:swap
+                                                           returnDifference:YES];
   self.homePosition = newPoint;
-//  NSLog(@"board home positions is %.2f, %.2f", self.homePosition.x, self.homePosition.y);
-  return adjustedNewPosition;
+  return differenceInPosition;
 }
 
 #pragma mark - board span methods
 
 -(CGPoint)adjustedNewPositionFromBeganLocation:(CGPoint)beganLocation
                              toCurrentLocation:(CGPoint)currentLocation
-                                      withSwap:(BOOL)swap {
+                                      withSwap:(BOOL)swap
+                              returnDifference:(BOOL)returnDifference {
   
     // first get new board position, after applying touch offset
   CGPoint touchOffset = [self subtractFromThisPoint:beganLocation thisPoint:currentLocation];
@@ -173,51 +170,18 @@
     newX = self.highestXPos;
   }
   
-  CGPoint adjustedNewPosition = CGPointMake(newX, newY);
-    
-  self.position = adjustedNewPosition;
-  
-    // move home position to board position, after applying touch offset
-  self.homePosition = [self addToThisPoint:adjustedNewPosition thisPoint:touchOffset];
-  
-  return adjustedNewPosition;
-}
-
--(CGPoint)returnDifferenceFromAdjustedNewPositionFromBeganLocation:(CGPoint)beganLocation
-                                                 toCurrentLocation:(CGPoint)currentLocation
-                                                          withSwap:(BOOL)swap {
-  
-    // first get new board position, after applying touch offset
-  CGPoint touchOffset = [self subtractFromThisPoint:beganLocation thisPoint:currentLocation];
-  CGPoint newPosition = [self subtractFromThisPoint:self.homePosition thisPoint:touchOffset];
-  
-  CGFloat newX = newPosition.x;
-  CGFloat newY = newPosition.y;
-  
-  CGFloat finalBuffer = swap ? kRackHeight : 0.f; // the height of the swap field
-  
-  if (newPosition.y < self.lowestYPos) {
-    newY = self.lowestYPos;
-  } else if (newPosition.y > (self.highestYPos + finalBuffer)) {
-    newY = self.highestYPos + finalBuffer;
-  }
-  
-  if (newPosition.x < self.lowestXPos) {
-    newX = self.lowestXPos;
-  } else if (newPosition.x > self.highestXPos) {
-    newX = self.highestXPos;
-  }
-  
+    // requested by scene for board move
   CGPoint adjustedNewPosition = CGPointMake(newX, newY);
   
-  CGPoint difference = [self subtractFromThisPoint:self.position thisPoint:adjustedNewPosition];
+    // requested by board itself for zoom
+  CGPoint differenceInPosition = [self subtractFromThisPoint:self.position thisPoint:adjustedNewPosition];
   
   self.position = adjustedNewPosition;
   
     // move home position to board position, after applying touch offset
   self.homePosition = [self addToThisPoint:adjustedNewPosition thisPoint:touchOffset];
   
-  return difference;
+  return returnDifference ? differenceInPosition : adjustedNewPosition;
 }
 
 -(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes {
@@ -290,7 +254,6 @@
 
   CGVector returnVector = CGVectorMake(((CGFloat)(self.cellsRight - self.cellsLeft) / 2) + self.cellsLeft, ((CGFloat)(self.cellsTop - self.cellsBottom) / 2) + self.cellsBottom);
   
-//  NSLog(@"returnVector is %.2f, %.2f", returnVector.dx, returnVector.dy);
   return returnVector;
 }
 
@@ -302,64 +265,11 @@
   self.lowestXPos = self.origin.x - (self.cellsRight - _cellsInHorzRange - self.hexOrigin.dx) * kDyadminoFaceAverageWideDiameter * factor;
   self.highestYPos = self.origin.y - (self.cellsBottom + _cellsInVertRange - self.hexOrigin.dy) * kDyadminoFaceDiameter * factor;
   self.highestXPos = self.origin.x - (self.cellsLeft + _cellsInHorzRange - self.hexOrigin.dx) * kDyadminoFaceAverageWideDiameter * factor;
-
-//  NSLog(@"origin is %.2f, %.2f, hex origin is %.2f, %.2f", self.origin.x, self.origin.y, self.hexOrigin.dx, self.hexOrigin.dy);
-//  NSLog(@"bounds is lowest y %.2f, lowest x %.2f, highest y %.2f, highest x %.2f", self.lowestYPos, self.lowestXPos, self.highestYPos, self.highestXPos);
 }
-
-#pragma mark - zoom methods
-
--(CGPoint)repositionCellsForZoomWithSwap:(BOOL)swap {
-
-  CGPoint adjustedNewPosition = CGPointZero;
-  
-  CGSize cellSize = [Cell establishCellSizeForResize:self.zoomedOut];
-  for (Cell *cell in self.allCells) {
-    [cell resizeAndRepositionCell:self.zoomedOut withHexOrigin:self.hexOrigin andSize:cellSize];
-  }
-  
-    // zoom out
-  if (self.zoomedOut) {
-
-    adjustedNewPosition = [self centerBoardOnDyadminoesAverageCenterWithSwap:swap];
-//    [self zoomOutBackgroundImage];
-    
-      // zoom back in
-  } else {
-    
-    adjustedNewPosition = [self returnDifferenceFromAdjustedNewPositionFromBeganLocation:self.homePosition
-                                                                       toCurrentLocation:self.postZoomPosition
-                                                                                withSwap:swap];
-    
-    if (_redoLayoutAfterZoom) {
-      [self layoutBoardCellsAndSnapPointsOfDyadminoes:[self.delegate allBoardDyadminoesPlusRecentRackDyadmino]];
-      _redoLayoutAfterZoom = NO;
-    }
-    
-    [self.delegate correctBoardForPositionAfterZoom];
-//    [self zoomInBackgroundImage];
-  }
-
-  return adjustedNewPosition;
-//  self.backgroundNodeZoomedIn.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
-//  self.backgroundNodeZoomedOut.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
-}
-
-//-(void)toggleBackgroundAlphaZeroed:(BOOL)zeroed animated:(BOOL)animated {
-//  
-//  CGFloat desiredAlpha = zeroed ? 0.f : kBackgroundFullAlpha;
-//  SKAction *fadeAlpha = [SKAction fadeAlphaTo:desiredAlpha duration:kConstantTime * 0.9f]; // a little faster than field move
-//  
-//  if (animated) {
-//    [self.backgroundNodeZoomedIn runAction:fadeAlpha];
-//  } else {
-//    self.backgroundNodeZoomedIn.alpha = desiredAlpha;
-//  }
-//}
 
 #pragma mark - cell methods
 
--(BOOL)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
+-(BOOL)updateBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
   
     // regular hex origin is only set once per scene load, but zoom hex origin is set every time
   if (!_hexOriginSet) {
@@ -370,52 +280,96 @@
     _hexCurrent = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
   }
   
-    // covers all cells in old range plus new range
-  CGFloat maxCellsTop = _oldCellsTop > self.cellsTop ? _oldCellsTop : self.cellsTop;
-  CGFloat minCellsBottom = _oldCellsBottom < self.cellsBottom ? _oldCellsBottom : self.cellsBottom;
-  CGFloat maxCellsRight = _oldCellsRight > self.cellsRight ? _oldCellsRight : self.cellsRight;
-  CGFloat minCellsLeft = _oldCellsLeft < self.cellsLeft ? _oldCellsLeft : self.cellsLeft;
-  
-    // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
-    // use this to get the range to iterate over y, and to keep the board square
-  
   NSMutableSet *tempAddedCellSet = [NSMutableSet new];
+  NSMutableSet *tempRemovedCellSet = [NSMutableSet setWithSet:self.allCells];
 
-    // FIXME: (maybe) these extra + or - and 1 or 2 constants ensures that no empty slots show when dyadmino is moved or removed
-    // and board bounds are corrected as a result. Seems fine for now, but *might* want to fix later
-  for (NSInteger xHex = minCellsLeft - 2; xHex <= maxCellsRight + 2; xHex++) {
-    for (NSInteger yHex = minCellsBottom - 1 - maxCellsRight / 2.f; yHex <= maxCellsTop + 2 - minCellsLeft / 2.f; yHex++) {
+  for (Dyadmino *dyadmino in boardDyadminoes) {
+    
+    HexCoord hexCoord1 = [self hexCoordFromX:dyadmino.tempBoardNode.myCell.hexCoord.x
+                                        andY:dyadmino.tempBoardNode.myCell.hexCoord.y];
+    HexCoord hexCoord2 = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:dyadmino.tempBoardNode];
+    
+    HexCoord hexCoord[2] = {hexCoord1, hexCoord2};
+    
+    NSInteger kCellsAroundDyadmino = 5;
+    
+    for (int i = 0; i < 2; i++) {
+      NSInteger xHex = hexCoord[i].x;
+      NSInteger yHex = hexCoord[i].y;
       
-      if (xHex >= self.cellsLeft - 2 && xHex <= self.cellsRight + 2 &&
-          yHex <= self.cellsTop + 2 - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - 1 - (xHex / 2.f)) {
-
-          // this method gets called if dyadmino is cancelled or undone while board is zoomed out
-          // so this is a kludge way of ensuring that board doesn't add cells when this happens
-          // redoLayoutAfterZoom bool is set to yes to ensure that cells are properly laid out *after* zoom
-        if (!self.zoomedOut) {
-          Cell *addedCell = [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
-          [tempAddedCellSet addObject:addedCell];
+      for (int x = -kCellsAroundDyadmino; x <= kCellsAroundDyadmino; x++) {
+        for (int y = -kCellsAroundDyadmino; y <= kCellsAroundDyadmino; y++) {
+          
+          if (ABS(x + y) <= kCellsAroundDyadmino) {
+            NSInteger newX = xHex + x;
+            NSInteger newY = yHex + y;
+            Cell *addedCell = [self acknowledgeOrAddCellWithXHex:newX andYHex:newY];
+            [tempAddedCellSet addObject:addedCell];
+            [tempRemovedCellSet removeObject:addedCell];
+          }
         }
-        
-      } else {
-        [self ignoreCellWithXHex:xHex andYHex:yHex];
       }
     }
   }
   
-    // ensures there's no straggler cells
-  if (!self.zoomedOut) {
-    NSMutableSet *tempAllCellsSet = [NSMutableSet setWithSet:self.allCells];
-    for (Cell *cell in tempAllCellsSet) {
-      [tempAddedCellSet containsObject:cell] ? nil : [self ignoreCell:cell];
-    }
-  } else {
-    _redoLayoutAfterZoom = YES;
+  for (Cell *cell in tempRemovedCellSet) {
+    [self ignoreCell:cell];
   }
   
+  self.allCells = tempAddedCellSet;
   [self determineBoardPositionBounds];
   return YES;
 }
+
+//-(BOOL)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
+//  
+//    // regular hex origin is only set once per scene load, but zoom hex origin is set every time
+//  if (!_hexOriginSet) {
+//    self.hexOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
+//    _hexCurrent = self.hexOrigin;
+//    _hexOriginSet = YES;
+//  } else {
+//    _hexCurrent = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
+//  }
+//  
+//    // covers all cells in old range plus new range
+//  CGFloat maxCellsTop = _oldCellsTop > self.cellsTop ? _oldCellsTop : self.cellsTop;
+//  CGFloat minCellsBottom = _oldCellsBottom < self.cellsBottom ? _oldCellsBottom : self.cellsBottom;
+//  CGFloat maxCellsRight = _oldCellsRight > self.cellsRight ? _oldCellsRight : self.cellsRight;
+//  CGFloat minCellsLeft = _oldCellsLeft < self.cellsLeft ? _oldCellsLeft : self.cellsLeft;
+//  
+//    // formula is y <= cellsTop - (x / 2) and y >= cellsBottom - (x / 2)
+//    // use this to get the range to iterate over y, and to keep the board square
+//  
+//  NSMutableSet *tempAddedCellSet = [NSMutableSet new];
+//
+//    // FIXME: (maybe) these extra + or - and 1 or 2 constants ensures that no empty slots show when dyadmino is moved or removed
+//    // and board bounds are corrected as a result. Seems fine for now, but *might* want to fix later
+//  for (NSInteger xHex = minCellsLeft - 2; xHex <= maxCellsRight + 2; xHex++) {
+//    for (NSInteger yHex = minCellsBottom - 1 - maxCellsRight / 2.f; yHex <= maxCellsTop + 2 - minCellsLeft / 2.f; yHex++) {
+//      
+//      if (xHex >= self.cellsLeft - 2 && xHex <= self.cellsRight + 2 &&
+//          yHex <= self.cellsTop + 2 - ((xHex - 1) / 2.f) && yHex >= self.cellsBottom - 1 - (xHex / 2.f)) {
+//
+//        Cell *addedCell = [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
+//        [tempAddedCellSet addObject:addedCell];
+//        
+//      } else {
+//        [self ignoreCellWithXHex:xHex andYHex:yHex];
+//      }
+//    }
+//  }
+//  
+//    // ensures there's no straggler cells
+//  NSMutableSet *tempAllCellsSet = [NSMutableSet setWithSet:self.allCells];
+//  for (Cell *cell in tempAllCellsSet) {
+//    [tempAddedCellSet containsObject:cell] ? nil : [self ignoreCell:cell];
+//  }
+//  
+//  [self.allCells addObjectsFromArray:tempAddedCellSet.allObjects];
+//  [self determineBoardPositionBounds];
+//  return YES;
+//}
 
 -(Cell *)findCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
   for (Cell *cell in self.allCells) {
@@ -435,20 +389,20 @@
     Cell *poppedCell = [self popDequeuedCell];
     if (poppedCell) {
       cell = poppedCell;
-      [cell reuseCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex] andHexOrigin:self.hexOrigin andSize:_cellSize];
+      [cell reuseCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex] andHexOrigin:self.hexOrigin forResize:self.zoomedOut];
     } else {
-      cell = [[Cell alloc] initWithBoard:self
-                              andTexture:self.cellTexture
-                             andHexCoord:[self hexCoordFromX:xHex andY:yHex]
-                            andHexOrigin:self.hexOrigin
-                                 andSize:_cellSize];
+      cell = [[Cell alloc] initWithTexture:self.cellTexture
+                               andHexCoord:[self hexCoordFromX:xHex andY:yHex]
+                              andHexOrigin:self.hexOrigin
+                                 andResize:self.zoomedOut];
+      cell.delegate = self;
     }
     
     cell.cellNode.parent ? nil : [self addChild:cell.cellNode];
 
     if (![self.allCells containsObject:cell]) {
       [self.allCells addObject:cell];
-      [cell addSnapPointsToBoard];
+      [cell addSnapPointsToBoardAndResize:self.zoomedOut];
     }
   }
   return cell;
@@ -482,6 +436,40 @@
   return cell;
 }
 
+#pragma mark - zoom methods
+
+-(CGPoint)repositionCellsForZoomWithSwap:(BOOL)swap {
+  
+  CGPoint differenceInPosition = CGPointZero;
+  
+  CGSize cellSize = [Cell establishCellSizeForResize:self.zoomedOut];
+  for (Cell *cell in self.allCells) {
+    [cell resizeAndRepositionCell:self.zoomedOut withHexOrigin:self.hexOrigin andSize:cellSize];
+  }
+  
+    // zoom out
+  if (self.zoomedOut) {
+    
+    differenceInPosition = [self centerBoardOnDyadminoesAverageCenterWithSwap:swap];
+      //    [self zoomOutBackgroundImage];
+    
+      // zoom back in
+  } else {
+    
+    differenceInPosition = [self adjustedNewPositionFromBeganLocation:self.homePosition
+                                                    toCurrentLocation:self.postZoomPosition
+                                                             withSwap:swap
+                                                     returnDifference:YES];
+    
+    [self.delegate correctBoardForPositionAfterZoom];
+      //    [self zoomInBackgroundImage];
+  }
+  
+  return differenceInPosition;
+    //  self.backgroundNodeZoomedIn.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
+    //  self.backgroundNodeZoomedOut.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
+}
+
 #pragma mark - cell and data dyadmino methods
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour {
@@ -494,10 +482,10 @@
     HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
     Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
 
-    NSArray *cells = @[topCell, bottomCell];
+    NSArray *cells = topCell ? @[topCell, bottomCell] : @[bottomCell];
     NSInteger pcs[2] = {dyadmino.pc1, dyadmino.pc2};
     
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < cells.count; i++) {
       Cell *cell = cells[i];
       
         // only assign if cell doesn't have a dyadmino recorded
@@ -526,6 +514,34 @@
   }
 }
 
+-(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour {
+  
+    // don't call if it's a rack node
+  if ([snapPoint isBoardNode]) {
+    
+      // this gets the cells based on dyadmino orientation and board node
+    Cell *bottomCell = snapPoint.myCell;
+    HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
+    Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
+
+    NSArray *cells = topCell ? @[topCell, bottomCell] : @[bottomCell];
+    
+    for (int i = 0; i < cells.count; i++) {
+      Cell *cell = cells[i];
+      
+        // only remove if cell dyadmino is dyadmino
+      if (cell.myDyadmino == dyadmino) {
+       
+        if (colour) {
+          [self changeColoursAroundCell:cell withSign:-1];
+        }
+        
+        [self removeDyadminoDataFromCell:cell];
+      }
+    }
+  }
+}
+
 -(BOOL)mapOneCell:(Cell *)cell toOnePCForDyadmino:(Dyadmino *)dyadmino {
   
     // cell's new pc has just been assigned
@@ -538,7 +554,7 @@
     
       /// testing purposes
     [cell updatePCLabel];
-
+    
     return YES;
     
   } else if (cell.myPC == dyadmino.pc2) {
@@ -555,33 +571,6 @@
   }
   
   return NO;
-}
-
--(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour {
-    // don't call if it's a rack node
-  if ([snapPoint isBoardNode]) {
-    
-      // this gets the cells based on dyadmino orientation and board node
-    Cell *bottomCell = snapPoint.myCell;
-    HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
-    Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
-    
-    NSArray *cells = @[topCell, bottomCell];
-    
-    for (int i = 0; i < 2; i++) {
-      Cell *cell = cells[i];
-      
-        // only remove if cell dyadmino is dyadmino
-      if (cell.myDyadmino == dyadmino) {
-       
-        if (colour) {
-          [self changeColoursAroundCell:cell withSign:-1];
-        }
-        
-        [self removeDyadminoDataFromCell:cell];
-      }
-    }
-  }
 }
 
 -(BOOL)removeDyadminoDataFromCell:(Cell *)cell {
@@ -733,52 +722,39 @@
   Cell *cellToColour = [self getCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex]];
   
     // if cell doesn't currently exist, add it so that colours don't get screwed up when bounds change
-  if (!cellToColour) {
-    cellToColour = [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
-  }
-  
-  if (pc != -1) {
-    CGFloat colourFactor = factor * 0.3f; // was 0.38
-    
-    NSInteger redMult, greenMult, blueMult;
-    CGFloat redVal, greenVal, blueVal, alphaVal;
-
-      // returns the opposite colour. So for example, pc 0 returns red 0, green 4, blue 4
-    redMult = 6 - ABS(6 - pc);
-    redMult = redMult >= 4 ? 4 : redMult;
-    greenMult = 6 - ABS(6 - ((pc + 4) % 12));
-    greenMult = greenMult >= 4 ? 4 : greenMult;
-    blueMult = 6 - ABS(6 - ((pc + 8) % 12));
-    blueMult = blueMult >= 4 ? 4 : blueMult;
-
-    redVal = (sign * colourFactor * redMult * kCellColourMultiplier);
-    greenVal = (sign * colourFactor * greenMult * kCellColourMultiplier);
-    blueVal = (sign * colourFactor * blueMult * kCellColourMultiplier);
-    alphaVal = (sign * factor * 7 * kCellColourMultiplier);
-    
-    [cellToColour addColourWithRed:redVal green:greenVal blue:blueVal alpha:alphaVal];
-    if (sign) {
-      cellToColour.colouredByNeighbouringCells += 1;
-    } else {
-      cellToColour.colouredByNeighbouringCells -= 1;
+  if (cellToColour) {
+    if (pc != -1) {
+      CGFloat colourFactor = factor * 0.3f; // was 0.38
+      
+      NSInteger redMult, greenMult, blueMult;
+      CGFloat redVal, greenVal, blueVal, alphaVal;
+      
+        // returns the opposite colour. So for example, pc 0 returns red 0, green 4, blue 4
+      redMult = 6 - ABS(6 - pc);
+      redMult = redMult >= 4 ? 4 : redMult;
+      greenMult = 6 - ABS(6 - ((pc + 4) % 12));
+      greenMult = greenMult >= 4 ? 4 : greenMult;
+      blueMult = 6 - ABS(6 - ((pc + 8) % 12));
+      blueMult = blueMult >= 4 ? 4 : blueMult;
+      
+      redVal = (sign * colourFactor * redMult * kCellColourMultiplier);
+      greenVal = (sign * colourFactor * greenMult * kCellColourMultiplier);
+      blueVal = (sign * colourFactor * blueMult * kCellColourMultiplier);
+      alphaVal = (sign * factor * 7 * kCellColourMultiplier);
+      
+      [cellToColour addColourWithRed:redVal green:greenVal blue:blueVal alpha:alphaVal];
+      if (sign) {
+        cellToColour.colouredByNeighbouringCells += 1;
+      } else {
+        cellToColour.colouredByNeighbouringCells -= 1;
+      }
     }
+//    cellToColour = [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
+//    return;
   }
 }
 
 #pragma mark - pivot guide methods
-
-  // useful for testing purposes, not really needed otherwise
--(SKNode *)determineCurrentPivotGuide {
-  SKNode *pivotGuide;
-  if (self.prePivotGuide.parent == self) {
-    pivotGuide = self.prePivotGuide;
-  } else if (self.pivotRotateGuide.parent == self) {
-    pivotGuide = self.pivotRotateGuide;
-  } else if (self.pivotAroundGuide.parent == self) {
-    pivotGuide = self.pivotAroundGuide;
-  }
-  return pivotGuide;
-}
 
 -(SKNode *)createPivotGuideNamed:(NSString *)name {
   
@@ -966,7 +942,7 @@
   [self hidePivotGuide:self.pivotRotateGuide];
 }
 
-#pragma mark - pivot methods
+#pragma mark - pivot helper methods
 
 -(PivotOnPC)determinePivotOnPCForDyadmino:(Dyadmino *)dyadmino {
   
@@ -1000,90 +976,6 @@
   self.pivotAroundGuide.zRotation = [self getRadiansFromDegree:trueAngle];
   self.pivotRotateGuide.zRotation = [self getRadiansFromDegree:trueAngle];
 }
-
-  // these might be used for replay mode
-#pragma mark - background image methods
-
-//-(void)colourBackgroundForReplay {
-//  self.backgroundNodeZoomedIn.color = kGold;
-//  self.backgroundNodeZoomedOut.color = kGold;
-//}
-//
-//-(void)colourBackgroundForPnP {
-//  self.backgroundNodeZoomedIn.color = kSkyBlue;
-//  self.backgroundNodeZoomedOut.color = kSkyBlue;
-//}
-//
-//-(void)colourBackgroundForNormalPlay {
-//  self.backgroundNodeZoomedIn.color = kBackgroundBoardColour;
-//  self.backgroundNodeZoomedOut.color = kBackgroundBoardColour;
-//}
-//
-//-(void)showBackgroundNode:(SKSpriteNode *)backgroundNode {
-//  backgroundNode.hidden = NO;
-//  if (!backgroundNode.parent) {
-//    [self addChild:backgroundNode];
-//  }
-//}
-//
-//-(void)hideBackgroundNode:(SKSpriteNode *)backgroundNode {
-//  backgroundNode.hidden = YES;
-//  if (backgroundNode.parent) {
-//    [backgroundNode removeFromParent];
-//  }
-//}
-//
-//-(void)zoomInBackgroundImage {
-//  [self showBackgroundNode:self.backgroundNodeZoomedIn];
-//  [self hideBackgroundNode:self.backgroundNodeZoomedOut];
-//}
-//
-//-(void)zoomOutBackgroundImage {
-//  [self showBackgroundNode:self.backgroundNodeZoomedOut];
-//  [self hideBackgroundNode:self.backgroundNodeZoomedIn];
-//}
-//
-//-(void)initLoadBackgroundNodes {
-//  UIImage *backgroundImage = [UIImage imageNamed:@"BachMassBackgroundCropped"];
-//  CGImageRef backgroundCGImage = backgroundImage.CGImage;
-//  
-//  CGRect textureSizeZoomedIn = CGRectMake(self.position.x, self.position.y, backgroundImage.size.width, backgroundImage.size.height);
-//  UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
-//  CGContextRef contextZoomedIn = UIGraphicsGetCurrentContext();
-//    // Core Graphics coordinates are upside down from Sprite Kit's
-//  CGContextScaleCTM(contextZoomedIn, 1.0, -1.0);
-//  CGContextDrawTiledImage(contextZoomedIn, textureSizeZoomedIn, backgroundCGImage);
-//  UIImage *tiledBackgroundZoomedIn = UIGraphicsGetImageFromCurrentImageContext();
-//  UIGraphicsEndImageContext();
-//  
-//  SKTexture *backgroundTextureZoomedIn = [SKTexture textureWithCGImage:tiledBackgroundZoomedIn.CGImage];
-//  self.backgroundNodeZoomedIn = [[SKSpriteNode alloc] initWithTexture:backgroundTextureZoomedIn];
-//  self.backgroundNodeZoomedIn.color = kBackgroundBoardColour;
-//  self.backgroundNodeZoomedIn.colorBlendFactor = 0.5f;
-//  self.backgroundNodeZoomedIn.alpha = kBackgroundFullAlpha;
-//  self.backgroundNodeZoomedIn.texture = backgroundTextureZoomedIn;
-//  self.backgroundNodeZoomedIn.zPosition = kZPositionBackgroundNode;
-//  
-//  CGRect textureSizeZoomedOut = CGRectMake(self.position.x + self.size.width / 2, self.position.y - self.size.height / 2, backgroundImage.size.width, backgroundImage.size.height);
-//  UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
-//  CGContextRef contextZoomedOut = UIGraphicsGetCurrentContext();
-//    // Core Graphics coordinates are upside down from Sprite Kit's
-//  CGContextScaleCTM(contextZoomedOut, 0.5, -0.5);
-//  CGContextDrawTiledImage(contextZoomedOut, textureSizeZoomedOut, backgroundCGImage);
-//  UIImage *tiledBackgroundZoomedOut = UIGraphicsGetImageFromCurrentImageContext();
-//  UIGraphicsEndImageContext();
-//  
-//  SKTexture *backgroundTextureZoomedOut = [SKTexture textureWithCGImage:tiledBackgroundZoomedOut.CGImage];
-//  self.backgroundNodeZoomedOut = [[SKSpriteNode alloc] initWithTexture:backgroundTextureZoomedOut];
-//  self.backgroundNodeZoomedOut.color = kBackgroundBoardColour;
-//  self.backgroundNodeZoomedOut.colorBlendFactor = 0.5f;
-//  self.backgroundNodeZoomedOut.alpha = kBackgroundFullAlpha;
-//  self.backgroundNodeZoomedOut.texture = backgroundTextureZoomedOut;
-//  self.backgroundNodeZoomedOut.zPosition = kZPositionBackgroundNode;
-//  
-//    // zoom background node is always there
-//  [self zoomInBackgroundImage];
-//}
 
 #pragma mark - legality methods
 
@@ -1148,3 +1040,91 @@
 }
 
 @end
+
+/*
+ 
+ these might be used for replay mode
+ #pragma mark - background image methods
+ 
+ -(void)colourBackgroundForReplay {
+ self.backgroundNodeZoomedIn.color = kGold;
+ self.backgroundNodeZoomedOut.color = kGold;
+ }
+ 
+ -(void)colourBackgroundForPnP {
+ self.backgroundNodeZoomedIn.color = kSkyBlue;
+ self.backgroundNodeZoomedOut.color = kSkyBlue;
+ }
+ 
+ -(void)colourBackgroundForNormalPlay {
+ self.backgroundNodeZoomedIn.color = kBackgroundBoardColour;
+ self.backgroundNodeZoomedOut.color = kBackgroundBoardColour;
+ }
+ 
+ -(void)showBackgroundNode:(SKSpriteNode *)backgroundNode {
+ backgroundNode.hidden = NO;
+ if (!backgroundNode.parent) {
+ [self addChild:backgroundNode];
+ }
+ }
+ 
+ -(void)hideBackgroundNode:(SKSpriteNode *)backgroundNode {
+ backgroundNode.hidden = YES;
+ if (backgroundNode.parent) {
+ [backgroundNode removeFromParent];
+ }
+ }
+ 
+ -(void)zoomInBackgroundImage {
+ [self showBackgroundNode:self.backgroundNodeZoomedIn];
+ [self hideBackgroundNode:self.backgroundNodeZoomedOut];
+ }
+ 
+ -(void)zoomOutBackgroundImage {
+ [self showBackgroundNode:self.backgroundNodeZoomedOut];
+ [self hideBackgroundNode:self.backgroundNodeZoomedIn];
+ }
+ 
+ -(void)initLoadBackgroundNodes {
+ UIImage *backgroundImage = [UIImage imageNamed:@"BachMassBackgroundCropped"];
+ CGImageRef backgroundCGImage = backgroundImage.CGImage;
+ 
+ CGRect textureSizeZoomedIn = CGRectMake(self.position.x, self.position.y, backgroundImage.size.width, backgroundImage.size.height);
+ UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
+ CGContextRef contextZoomedIn = UIGraphicsGetCurrentContext();
+ // Core Graphics coordinates are upside down from Sprite Kit's
+ CGContextScaleCTM(contextZoomedIn, 1.0, -1.0);
+ CGContextDrawTiledImage(contextZoomedIn, textureSizeZoomedIn, backgroundCGImage);
+ UIImage *tiledBackgroundZoomedIn = UIGraphicsGetImageFromCurrentImageContext();
+ UIGraphicsEndImageContext();
+ 
+ SKTexture *backgroundTextureZoomedIn = [SKTexture textureWithCGImage:tiledBackgroundZoomedIn.CGImage];
+ self.backgroundNodeZoomedIn = [[SKSpriteNode alloc] initWithTexture:backgroundTextureZoomedIn];
+ self.backgroundNodeZoomedIn.color = kBackgroundBoardColour;
+ self.backgroundNodeZoomedIn.colorBlendFactor = 0.5f;
+ self.backgroundNodeZoomedIn.alpha = kBackgroundFullAlpha;
+ self.backgroundNodeZoomedIn.texture = backgroundTextureZoomedIn;
+ self.backgroundNodeZoomedIn.zPosition = kZPositionBackgroundNode;
+ 
+ CGRect textureSizeZoomedOut = CGRectMake(self.position.x + self.size.width / 2, self.position.y - self.size.height / 2, backgroundImage.size.width, backgroundImage.size.height);
+ UIGraphicsBeginImageContextWithOptions(self.size, YES, 2.f); // use WithOptions to set scale for retina display
+ CGContextRef contextZoomedOut = UIGraphicsGetCurrentContext();
+ // Core Graphics coordinates are upside down from Sprite Kit's
+ CGContextScaleCTM(contextZoomedOut, 0.5, -0.5);
+ CGContextDrawTiledImage(contextZoomedOut, textureSizeZoomedOut, backgroundCGImage);
+ UIImage *tiledBackgroundZoomedOut = UIGraphicsGetImageFromCurrentImageContext();
+ UIGraphicsEndImageContext();
+ 
+ SKTexture *backgroundTextureZoomedOut = [SKTexture textureWithCGImage:tiledBackgroundZoomedOut.CGImage];
+ self.backgroundNodeZoomedOut = [[SKSpriteNode alloc] initWithTexture:backgroundTextureZoomedOut];
+ self.backgroundNodeZoomedOut.color = kBackgroundBoardColour;
+ self.backgroundNodeZoomedOut.colorBlendFactor = 0.5f;
+ self.backgroundNodeZoomedOut.alpha = kBackgroundFullAlpha;
+ self.backgroundNodeZoomedOut.texture = backgroundTextureZoomedOut;
+ self.backgroundNodeZoomedOut.zPosition = kZPositionBackgroundNode;
+ 
+ // zoom background node is always there
+ [self zoomInBackgroundImage];
+ }
+ 
+ */

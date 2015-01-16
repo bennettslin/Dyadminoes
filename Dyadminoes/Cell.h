@@ -12,11 +12,20 @@
 @class Dyadmino;
 @class SnapPoint;
 
+@protocol BoardCellDelegate <NSObject>
+
+@property (strong, nonatomic) NSMutableSet *snapPointsTwelveOClock;
+@property (strong, nonatomic) NSMutableSet *snapPointsTwoOClock;
+@property (strong, nonatomic) NSMutableSet *snapPointsTenOClock;
+
+@end
+
 @interface Cell : NSObject
+
+@property (weak, nonatomic) id<BoardCellDelegate> delegate;
 
 @property (nonatomic) SKTexture *cellNodeTexture;
 @property (nonatomic) CGPoint cellNodePosition;
-//@property (nonatomic) CGSize cellNodeSize;
 
 @property (strong, nonatomic) NSString *name;
 
@@ -25,7 +34,6 @@
 @property (strong, nonatomic) SnapPoint *boardSnapPointTenOClock;
 
 @property (strong, nonatomic) SKSpriteNode *cellNode;
-@property (strong, nonatomic) Board *board;
 @property (nonatomic) HexCoord hexCoord;
 @property (strong, nonatomic) Dyadmino *myDyadmino;
 @property (nonatomic) NSInteger myPC; // signed integer because myPC is -1 if no PC
@@ -37,21 +45,20 @@
 @property (nonatomic) NSInteger colouredByNeighbouringCells; // this is only used for fading cells during pinch zoom back in
 
   // called to instantiate new cell
--(id)initWithBoard:(Board *)board
-        andTexture:(SKTexture *)texture
-       andHexCoord:(HexCoord)hexCoord
-      andHexOrigin:(CGVector)hexOrigin
-           andSize:(CGSize)cellSize;
+-(id)initWithTexture:(SKTexture *)texture
+         andHexCoord:(HexCoord)hexCoord
+        andHexOrigin:(CGVector)hexOrigin
+           andResize:(BOOL)resize;
 
   // called to reuse dequeued cell
--(void)reuseCellWithHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize;
+-(void)reuseCellWithHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin forResize:(BOOL)resize;
 
   // called before dismissing scene
 -(void)resetForNewMatch;
 
 #pragma mark - snap point methods
 
--(void)addSnapPointsToBoard;
+-(void)addSnapPointsToBoardAndResize:(BOOL)resize;
 -(void)removeSnapPointsFromBoard;
 
 #pragma mark - cell view helper methods

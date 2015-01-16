@@ -37,18 +37,11 @@
 @property (nonatomic) CGFloat lowestYPos;
 @property (nonatomic) CGFloat lowestXPos;
 
-  /// these are the limits in terms of number of cells
-@property (nonatomic) CGFloat cellsTop;
-@property (nonatomic) CGFloat cellsRight;
-@property (nonatomic) CGFloat cellsBottom;
-@property (nonatomic) CGFloat cellsLeft;
-
 @property (strong, nonatomic) NSMutableSet *snapPointsTwelveOClock;
 @property (strong, nonatomic) NSMutableSet *snapPointsTwoOClock;
 @property (strong, nonatomic) NSMutableSet *snapPointsTenOClock;
 
 @property (strong, nonatomic) NSMutableSet *allCells;
-//@property (strong, nonatomic) NSMutableSet *occupiedCells;
 
   // pivot properties
 
@@ -69,12 +62,8 @@
 
 -(CGPoint)adjustedNewPositionFromBeganLocation:(CGPoint)beganLocation
                              toCurrentLocation:(CGPoint)currentLocation
-                                      withSwap:(BOOL)swap;
-
-  // FIXME: not DRY
--(CGPoint)returnDifferenceFromAdjustedNewPositionFromBeganLocation:(CGPoint)beganLocation
-                                                 toCurrentLocation:(CGPoint)currentLocation
-                                                          withSwap:(BOOL)swap;
+                                      withSwap:(BOOL)swap
+                              returnDifference:(BOOL)returnDifference;
 
 -(void)resetForNewMatch;
 
@@ -92,11 +81,10 @@
 #pragma mark - zoom methods
 
 -(CGPoint)repositionCellsForZoomWithSwap:(BOOL)swap;
-//-(void)toggleBackgroundAlphaZeroed:(BOOL)zeroed animated:(BOOL)animated;
 
 #pragma mark - cell methods
 
--(BOOL)layoutBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes;
+-(BOOL)updateBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes;
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour;

@@ -8,7 +8,6 @@
 
 #import "Bar.h"
 #import "Button.h"
-#import "Label.h"
 
 @implementation Bar {
   NSUInteger _rotationFromDevice;
