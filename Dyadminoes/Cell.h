@@ -46,8 +46,8 @@
 @property (assign, nonatomic) CGFloat myBlue;
 @property (assign, nonatomic) CGFloat myAlpha;
 
-@property (nonatomic) BOOL currentlyColouringNeighbouringCells;
-@property (nonatomic) NSInteger colouredByNeighbouringCells; // this is only used for fading cells during pinch zoom back in
+//@property (nonatomic) BOOL currentlyColouringNeighbouringCells;
+//@property (nonatomic) NSInteger colouredByNeighbouringCells; // this is only used for fading cells during pinch zoom back in
 
   // called to instantiate new cell
 -(id)initWithTexture:(SKTexture *)texture
@@ -56,11 +56,10 @@
            andResize:(BOOL)resize
          andDelegate:(id)delegate;
 
-  // called to reuse dequeued cell
 -(void)reuseCellWithHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin forResize:(BOOL)resize;
-
-  // called before dismissing scene
--(void)resetForNewMatch;
+-(void)resetForReuse;
+-(void)addColourValueForPC:(NSUInteger)pc atDistance:(NSUInteger)distance;
+-(void)renderColour;
 
 #pragma mark - snap point methods
 

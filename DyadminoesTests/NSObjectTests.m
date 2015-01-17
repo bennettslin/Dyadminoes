@@ -136,6 +136,12 @@
   }
 }
 
+#pragma mark - hex coordinate methods
+
+-(void)testDistanceBasedOnHexXAndHexYMethod {
+  XCTFail();
+}
+
 #pragma mark - cell helper methods
 
 -(void)testTopHexCellForBottomHexCellMethod {

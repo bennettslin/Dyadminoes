@@ -11,6 +11,15 @@
 
 @implementation NSObject (Helper)
 
+#pragma mark - chord methods
+
+-(Chord)chordFromRoot:(NSInteger)root andChordType:(ChordType)chordType {
+  Chord newChord;
+  newChord.root = root;
+  newChord.chordType = chordType;
+  return newChord;
+}
+
 #pragma mark - math methods
 
 -(NSUInteger)randomIntegerUpTo:(NSUInteger)high {
@@ -56,18 +65,13 @@
   return (M_PI * degree) / 180;
 }
 
+#pragma mark - hex coordinate methods
+
 -(HexCoord)hexCoordFromX:(NSInteger)x andY:(NSInteger)y {
   HexCoord newHexCoord;
   newHexCoord.x = x;
   newHexCoord.y = y;
   return newHexCoord;
-}
-
--(Chord)chordFromRoot:(NSInteger)root andChordType:(ChordType)chordType {
-  Chord newChord;
-  newChord.root = root;
-  newChord.chordType = chordType;
-  return newChord;
 }
 
 -(HexCoord)retrieveTopHexCoordForBottomHexCoord:(HexCoord)bottomHexCoord
@@ -94,6 +98,19 @@
       break;
   }
   return [self hexCoordFromX:returnXHex andY:returnYHex];
+}
+
+-(NSUInteger)distanceGivenHexXDifference:(NSInteger)x andHexYDifference:(NSInteger)y {
+    // choose between the maximum of the absolute value of either x or y, and the absolute value of x + y
+
+  NSUInteger possibleValues[3] = {ABS(x), ABS(y), ABS(x + y)};
+  NSUInteger maxValue = 0;
+  for (int i = 0; i < 3; i++) {
+    if (possibleValues[i] > maxValue) {
+      maxValue = possibleValues[i];
+    }
+  }
+  return maxValue;
 }
 
 #pragma mark - dyadmino stuff

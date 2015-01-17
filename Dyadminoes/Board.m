@@ -69,9 +69,6 @@
       // create new cells from get-go
     self.dequeuedCells = [NSMutableSet new];
     [self instantiateDequeuedCells];
-    
-      // these values are necessary for board movement
-      // see determineBoardPositionBounds method for explanation
   }
   return self;
 }
@@ -110,7 +107,6 @@
   
   for (Cell *cell in tempAllCells) {
     [self ignoreCell:cell];
-    [cell resetForNewMatch];
   }
   
   self.zoomedOut = NO;
@@ -272,7 +268,7 @@
 
 #pragma mark - cell methods
 
--(BOOL)updateBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes {
+-(BOOL)layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes minusDyadmino:(Dyadmino *)minusDyadmino {
   
     // regular hex origin is only set once per scene load, but zoom hex origin is set every time
   if (!_hexOriginSet) {
@@ -286,19 +282,29 @@
   NSMutableSet *tempAddedCellSet = [NSMutableSet new];
   NSMutableSet *tempRemovedCellSet = [NSMutableSet setWithSet:self.allCells];
 
+    // reset all cells
+  for (Cell *cell in self.allCells) {
+    [cell resetForReuse];
+    [cell renderColour];
+  }
+  
   for (Dyadmino *dyadmino in boardDyadminoes) {
-    
-    HexCoord hexCoord1 = [self hexCoordFromX:dyadmino.tempBoardNode.myCell.hexCoord.x
+      
+    HexCoord bottomHexCoord = [self hexCoordFromX:dyadmino.tempBoardNode.myCell.hexCoord.x
                                         andY:dyadmino.tempBoardNode.myCell.hexCoord.y];
-    HexCoord hexCoord2 = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:dyadmino.tempBoardNode];
+    HexCoord topHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:dyadmino.tempBoardNode];
     
-    HexCoord hexCoord[2] = {hexCoord1, hexCoord2};
+    HexCoord hexCoord[2] = {bottomHexCoord, topHexCoord};
     
-    NSInteger kCellsAroundDyadmino = 5;
+    BOOL dyadminoRightSideUp = (dyadmino.orientation <= kPC1atTwoOClock || dyadmino.orientation >= kPC1atTenOClock);
+    NSUInteger topPC = dyadminoRightSideUp ? dyadmino.pc1 : dyadmino.pc2;
+    NSUInteger bottomPC = dyadminoRightSideUp ? dyadmino.pc2 : dyadmino.pc1;
+    NSUInteger pcs[2] = {bottomPC, topPC};
     
     for (int i = 0; i < 2; i++) {
       NSInteger xHex = hexCoord[i].x;
       NSInteger yHex = hexCoord[i].y;
+      NSUInteger pc = pcs[i];
       
       for (NSInteger x = -kCellsAroundDyadmino; x <= kCellsAroundDyadmino; x++) {
         for (NSInteger y = -kCellsAroundDyadmino; y <= kCellsAroundDyadmino; y++) {
@@ -309,14 +315,26 @@
             Cell *addedCell = [self acknowledgeOrAddCellWithXHex:newX andYHex:newY];
             [tempAddedCellSet addObject:addedCell];
             [tempRemovedCellSet removeObject:addedCell];
+
+            NSUInteger distance = [self distanceGivenHexXDifference:x andHexYDifference:y];
+            if (dyadmino != minusDyadmino) {
+              [addedCell addColourValueForPC:pc atDistance:distance];
+            }
           }
         }
       }
     }
   }
   
+  
+    // dequeue all removed cells
   for (Cell *cell in tempRemovedCellSet) {
     [self ignoreCell:cell];
+  }
+  
+    // colour all placed cells
+  for (Cell *cell in tempAddedCellSet) {
+    [cell renderColour];
   }
   
   self.allCells = tempAddedCellSet;
@@ -369,6 +387,7 @@
 -(void)ignoreCell:(Cell *)cell {
   if (cell) {
     
+    [cell resetForReuse];
     cell.cellNode ? [cell.cellNode removeFromParent] : nil;
     
     if ([self.allCells containsObject:cell]) {
@@ -441,17 +460,12 @@
 
 #pragma mark - cell and data dyadmino methods
 
--(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour {
+-(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint {
+  
     // this assumes dyadmino is properly oriented for this boardNode
   if ([snapPoint isBoardNode]) {
     
-      // this gets the cells based on dyadmino orientation and board node
-    Cell *bottomCell = snapPoint.myCell;
-    
-    HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
-    Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
-
-    NSArray *cells = topCell ? @[topCell, bottomCell] : @[bottomCell];
+    NSArray *cells = [self topAndBottomCellsArrayForDyadmino:dyadmino andBoardNode:snapPoint];
     NSInteger pcs[2] = {dyadmino.pc1, dyadmino.pc2};
     
     for (int i = 0; i < cells.count; i++) {
@@ -460,51 +474,28 @@
         // only assign if cell doesn't have a dyadmino recorded
       if (!cell.myDyadmino) {
         
-        // assign pc to cell based on dyadmino orientation
-        switch (dyadmino.orientation) {
-          case kPC1atTwelveOClock:
-          case kPC1atTwoOClock:
-          case kPC1atTenOClock:
-            cell.myPC = pcs[i];
-            break;
-          case kPC1atSixOClock:
-          case kPC1atEightOClock:
-          case kPC1atFourOClock:
-            cell.myPC = pcs[(i + 1) % 2];
-            break;
-        }
+        cell.myPC = (dyadmino.orientation <= kPC1atTwoOClock || dyadmino.orientation >= kPC1atTenOClock) ?
+            pcs[i] : pcs[(i + 1) % 2];
         
           // ensures there's only one cell for each dyadmino pc, and vice versa
         [self mapOneCell:cell toOnePCForDyadmino:dyadmino];
-        
-        colour ? [self changeColoursAroundCell:cell withSign:1] : nil;
       }
     }
   }
 }
 
--(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint andColour:(BOOL)colour {
+-(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint {
   
     // don't call if it's a rack node
   if ([snapPoint isBoardNode]) {
-    
-      // this gets the cells based on dyadmino orientation and board node
-    Cell *bottomCell = snapPoint.myCell;
-    HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
-    Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
 
-    NSArray *cells = topCell ? @[topCell, bottomCell] : @[bottomCell];
+    NSArray *cells = [self topAndBottomCellsArrayForDyadmino:dyadmino andBoardNode:snapPoint];
     
     for (int i = 0; i < cells.count; i++) {
       Cell *cell = cells[i];
       
         // only remove if cell dyadmino is dyadmino
       if (cell.myDyadmino == dyadmino) {
-       
-        if (colour) {
-          [self changeColoursAroundCell:cell withSign:-1];
-        }
-        
         [self removeDyadminoDataFromCell:cell];
       }
     }
@@ -604,123 +595,11 @@
   return nil;
 }
 
-#pragma mark - cell colour methods
-  // five places that call cell colour methods:
-  // add: scene's populateBoard, dyadmino's animatePopBackIntoBoardNode, animateEaseIntoNode
-  // remove: scene's beginTouchOfDyadmino (for touched board dyadmino) and touchesMoved (for removing rack dyadmino)
-
--(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign {
-  
-  SnapPoint *snapPoint = dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode;
-  
+-(NSArray *)topAndBottomCellsArrayForDyadmino:(Dyadmino *)dyadmino andBoardNode:(SnapPoint *)snapPoint {
   Cell *bottomCell = snapPoint.myCell;
   HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
   Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
-  NSArray *cells = @[topCell, bottomCell];
-  for (Cell *cell in cells) {
-    [self changeColoursAroundCell:cell withSign:sign];
-  }
-}
-
-  // cell knows pc
--(void)changeColoursAroundCell:(Cell *)cell withSign:(NSInteger)sign {
-  
-  if ((sign == -1 && cell.currentlyColouringNeighbouringCells) || (sign == 1 && !cell.currentlyColouringNeighbouringCells)) {
-    cell.currentlyColouringNeighbouringCells = cell.currentlyColouringNeighbouringCells == YES ? NO : YES;
-    
-    NSInteger xHex;
-    NSInteger yHex;
-    
-      // each iteration goes around the cell
-    
-    NSInteger range = 7; // was 8; when tweaking, also change colourFactor in colourCell method
-    
-      // start with self
-    [self colourCellWithXHex:cell.hexCoord.x andYHex:cell.hexCoord.y andFactor:range andSign:sign andPC:cell.myPC];
-    
-    for (int i = 1; i < range; i++) {
-      xHex = cell.hexCoord.x;
-      yHex = cell.hexCoord.y + i;
-      
-        // start with cell at 12 o'clock
-      [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign andPC:cell.myPC];
-      
-        // going from 12 to 2...
-      do {
-        yHex--;
-        xHex++;
-        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign andPC:cell.myPC];
-      } while (yHex > cell.hexCoord.y);
-      
-        // now 2 to 4...
-      do {
-        yHex--;
-        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign andPC:cell.myPC];
-      } while (yHex > cell.hexCoord.y - i);
-      
-        // now 4 to 6...
-      do {
-        xHex--;
-        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign andPC:cell.myPC];
-      } while (xHex > cell.hexCoord.x);
-      
-        // now 6 to 8...
-      do {
-        xHex--;
-        yHex++;
-        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign andPC:cell.myPC];
-      } while (yHex < cell.hexCoord.y);
-      
-        // now 8 to 10...
-      do {
-        yHex++;
-        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign andPC:cell.myPC];
-      } while (yHex < cell.hexCoord.y + i);
-      
-        // now 10 to 12, but stop *before* the very top cell
-      while (xHex < cell.hexCoord.x - 1) {
-        xHex++;
-        [self colourCellWithXHex:xHex andYHex:yHex andFactor:range - i andSign:sign andPC:cell.myPC];
-      };
-    }
-  }
-}
-
--(void)colourCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex andFactor:(NSInteger)factor andSign:(NSInteger)sign andPC:(NSInteger)pc {
-
-  Cell *cellToColour = [self getCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex]];
-  
-    // if cell doesn't currently exist, add it so that colours don't get screwed up when bounds change
-  if (cellToColour) {
-    if (pc != -1) {
-      CGFloat colourFactor = factor * 0.3f; // was 0.38
-      
-      NSInteger redMult, greenMult, blueMult;
-      CGFloat redVal, greenVal, blueVal, alphaVal;
-      
-        // returns the opposite colour. So for example, pc 0 returns red 0, green 4, blue 4
-      redMult = 6 - ABS(6 - pc);
-      redMult = redMult >= 4 ? 4 : redMult;
-      greenMult = 6 - ABS(6 - ((pc + 4) % 12));
-      greenMult = greenMult >= 4 ? 4 : greenMult;
-      blueMult = 6 - ABS(6 - ((pc + 8) % 12));
-      blueMult = blueMult >= 4 ? 4 : blueMult;
-      
-      redVal = (sign * colourFactor * redMult * kCellColourMultiplier);
-      greenVal = (sign * colourFactor * greenMult * kCellColourMultiplier);
-      blueVal = (sign * colourFactor * blueMult * kCellColourMultiplier);
-      alphaVal = (sign * factor * 7 * kCellColourMultiplier);
-      
-      [cellToColour addColourWithRed:redVal green:greenVal blue:blueVal alpha:alphaVal];
-      if (sign) {
-        cellToColour.colouredByNeighbouringCells += 1;
-      } else {
-        cellToColour.colouredByNeighbouringCells -= 1;
-      }
-    }
-//    cellToColour = [self acknowledgeOrAddCellWithXHex:xHex andYHex:yHex];
-//    return;
-  }
+  return topCell ? @[topCell, bottomCell] : @[bottomCell];
 }
 
 #pragma mark - pivot guide methods

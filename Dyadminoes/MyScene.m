@@ -272,7 +272,7 @@
     // this only needs the board dyadminoes to determine the board's cells ranges
     // this populates the board cells
   [self repositionBoardField];
-  if (![_boardField updateBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes]) {
+  if (![_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes minusDyadmino:nil]) {
     NSLog(@"Board cells and snap points not laid out properly.");
     abort();
   }
@@ -361,7 +361,7 @@
   for (SKNode *node in _boardField.children) {
     if ([node isKindOfClass:[Dyadmino class]]) {
       Dyadmino *dyadmino = (Dyadmino *)node;
-      [self updateCellsForRemovedDyadmino:dyadmino andColour:YES];
+      [self updateCellsForRemovedDyadmino:dyadmino];
       [dyadmino resetForNewMatch];
     }
   }
@@ -571,7 +571,7 @@
       dyadmino.position = dyadmino.homeNode.position;
       [dyadmino selectAndPositionSpritesZRotation:0.f];
       [dyadmino orientBySnapNode:dyadmino.homeNode animate:animated];
-      [self updateCellsForPlacedDyadmino:dyadmino andColour:YES];
+      [self updateCellsForPlacedDyadmino:dyadmino];
     }
 
     if (!dyadmino.parent) {
@@ -583,7 +583,7 @@
     }
   }
   
-  [_boardField updateBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
+  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino] minusDyadmino:nil];
   
   return YES;
 }
@@ -855,11 +855,9 @@
         PlacementResult placementResult = [self.myMatch checkPlacementOfDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] onBottomHexCoord:_hoveringDyadmino.tempBoardNode.myCell.hexCoord withOrientation:_hoveringDyadmino.orientation];
         
         if (placementResult != kNoChange && placementResult != kAddsOrExtendsNewChords) {
-          NSLog(@"hovering dyadmino stays fixed to board");
           _hoveringDyadminoStaysFixedToBoard = YES;
-          [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
+//          [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
         } else {
-          NSLog(@"hovering dyadmino does not stay fixed to board");
           _hoveringDyadminoStaysFixedToBoard = NO;
         }
       }
@@ -962,7 +960,6 @@
       // if rack dyadmino is moved to board, send home recentRack dyadmino
     if (_recentRackDyadmino && _touchedDyadmino != _recentRackDyadmino) {
       
-      [self changeColoursAroundDyadmino:_recentRackDyadmino withSign:-1];
       [self sendDyadminoHome:_recentRackDyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
       
         // or same thing with hovering dyadmino (it will only ever be one or the other)
@@ -1081,9 +1078,8 @@
       
         // take care of hovering dyadmino
       if (_hoveringDyadminoStaysFixedToBoard) {
-        NSLog(@"hovering dyadmino stays fixed to board in end touch from touches");
         _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
-        [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
+//        [self updateCellsForPlacedDyadmino:_hoveringDyadmino];
       }
       
       _boardField.homePosition = _boardField.position;
@@ -1123,7 +1119,7 @@
                                                                    returnDifference:NO];
     
     if (_hoveringDyadminoStaysFixedToBoard) {
-      NSLog(@"hovering dyadmino %@ stays fixed to board in move board", _hoveringDyadmino.name);
+//      NSLog(@"hovering dyadmino %@ stays fixed to board in move board", _hoveringDyadmino.name);
       _hoveringDyadmino.position = [self addToThisPoint:_hoveringDyadmino.position
                                               thisPoint:[self subtractFromThisPoint:oldBoardPosition
                                                                           thisPoint:adjustedNewPosition]];
@@ -1209,7 +1205,7 @@
     }
   }
   
-  [dyadmino isOnBoard] ? [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino != _hoveringDyadmino && !dyadmino.isRotating)] : nil;
+
   
   [dyadmino startTouchThenHoverResize];
   
@@ -1222,7 +1218,6 @@
   if ([_touchedDyadmino isOnBoard] && !_touchedDyadmino.isRotating) {
     
     _uponTouchDyadminoNode = dyadmino.tempBoardNode;
-    NSLog(@"upon touch dyadmino node is %@", _uponTouchDyadminoNode.name);
     _uponTouchDyadminoOrientation = dyadmino.orientation;
     
       // 1. it's not hovering, so make it hover
@@ -1245,6 +1240,7 @@
 
 -(void)getReadyToMoveCurrentDyadmino:(Dyadmino *)dyadmino {
   
+  [dyadmino isOnBoard] ? [self updateCellsForRemovedDyadmino:dyadmino] : nil;
 
   _touchOffsetVector = [dyadmino isInRack] ? [self subtractFromThisPoint:_beganTouchLocation thisPoint:dyadmino.position] :
       [self subtractFromThisPoint:_beganTouchLocation
@@ -1323,7 +1319,7 @@
     dyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:dyadmino];
 
       // update cells for placement
-    [self updateCellsForPlacedDyadmino:dyadmino andColour:NO];
+//    [self updateCellsForPlacedDyadmino:dyadmino];
     
       // start hovering
     [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
@@ -1354,12 +1350,12 @@
   }
   
     // otherwise it's a hovering dyadmino
-  [self updateCellsForRemovedDyadmino:dyadmino andColour:(dyadmino == _recentRackDyadmino || popInForUndo)];
+//  [self updateCellsForRemovedDyadmino:dyadmino];
   
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
   if (updateBoardBounds) {
-    [_boardField updateBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
+    [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino] minusDyadmino:nil];
   }
   
   [dyadmino endTouchThenHoverResize];
@@ -1394,7 +1390,7 @@
   }
 
   if ([dyadmino belongsOnBoard]) {
-    [self updateCellsForPlacedDyadmino:dyadmino andColour:YES];
+    [self updateCellsForPlacedDyadmino:dyadmino];
   }
   
   [self updateTopBarButtons];
@@ -1403,7 +1399,6 @@
 -(void)sendHomeRecentRackDyadminoFromBoardDyadminoMove {
     // if there's a recent rack dyadmino, send home recentRack dyadmino
   if (_recentRackDyadmino) {
-    [self changeColoursAroundDyadmino:_recentRackDyadmino withSign:-1];
     [self sendDyadminoHome:_recentRackDyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
   }
   
@@ -1807,7 +1802,7 @@
     dyadmino.tempBoardNode = nil;
   }
 
-  if (![_boardField updateBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes]) {
+  if (![_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes minusDyadmino:nil]) {
     NSLog(@"Board cells and snap points not laid out properly.");
     abort();
   }
@@ -1949,16 +1944,16 @@
       // only goes through one time
     if (_hoveringDyadminoBeingCorrected == 1) {
       [_boardField hideAllPivotGuides];
-      [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
+//      [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
       
       _hoveringDyadminoFinishedCorrecting = (_hoveringDyadminoBeingCorrected >= 1) ? 0 : _hoveringDyadminoFinishedCorrecting;
       
     } else if (_hoveringDyadminoFinishedCorrecting == 1) {
       
       if (_hoveringDyadminoFinishedCorrecting >= 1) {
-        [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
+//        [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
         _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
-        [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
+//        [self updateCellsForPlacedDyadmino:_hoveringDyadmino];
         
         if (!_canDoubleTapForDyadminoFlip && !_hoveringDyadmino.isRotating) {
           [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
@@ -2029,7 +2024,7 @@
     
     if (_hoveringDyadmino && _boardBeingCorrectedWithinBounds) {
       [_boardField hideAllPivotGuides];
-      [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
+//      [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
     }
     
     CGFloat thisDistance;
@@ -2062,7 +2057,6 @@
       _boardField.homePosition = _boardField.position;
       
       if (_hoveringDyadminoStaysFixedToBoard) {
-        NSLog(@"hovering dyadmino stays fixed to board in update for board being corrected");
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x - thisDistance, _hoveringDyadmino.position.y);
         [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:_hoveringDyadmino.position];
       }
@@ -2078,7 +2072,6 @@
       _boardField.homePosition = _boardField.position;
       
       if (_hoveringDyadminoStaysFixedToBoard) {
-        NSLog(@"hovering dyadmino stays fixed to board in update for board being corrected");
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x, _hoveringDyadmino.position.y - thisDistance);
         [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:_hoveringDyadmino.position];
       }
@@ -2094,7 +2087,6 @@
       _boardField.homePosition = _boardField.position;
       
       if (_hoveringDyadminoStaysFixedToBoard) {
-        NSLog(@"hovering dyadmino stays fixed to board in update for board being corrected");
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x + thisDistance, _hoveringDyadmino.position.y);
         [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:_hoveringDyadmino.position];
       }
@@ -2110,7 +2102,6 @@
       _boardField.homePosition = _boardField.position;
       
       if (_hoveringDyadminoStaysFixedToBoard) {
-        NSLog(@"hovering dyadmino stays fixed to board in update for board being corrected");
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x, _hoveringDyadmino.position.y + thisDistance);
         [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:_hoveringDyadmino.position];
       }
@@ -2126,9 +2117,9 @@
           _hoveringDyadmino && _hoveringDyadmino != _touchedDyadmino) {
         
         _boardJustShiftedNotCorrected = NO;
-        [self updateCellsForRemovedDyadmino:_hoveringDyadmino andColour:NO];
+//        [self updateCellsForRemovedDyadmino:_hoveringDyadmino];
         _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
-        [self updateCellsForPlacedDyadmino:_hoveringDyadmino andColour:NO];
+//        [self updateCellsForPlacedDyadmino:_hoveringDyadmino];
         
         if (_hoveringDyadminoBeingCorrected == 0) {
           if (!_canDoubleTapForDyadminoFlip && !_hoveringDyadmino.isRotating) {
@@ -2369,7 +2360,7 @@
   
     // this is one of two places where board bounds are updated
     // the other is when rack dyadmino is sent home
-  [_boardField updateBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
+  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino] minusDyadmino:nil];
   
   [_boardField hideAllPivotGuides];
   [dyadmino animateEaseIntoNodeAfterHover];
@@ -2798,7 +2789,7 @@
 
 #pragma mark - board helper methods
 
--(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour {
+-(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino {
   if (!dyadmino.isRotating) {
     
     SnapPoint *snapPoint = dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode;
@@ -2807,23 +2798,27 @@
     dyadmino.myHexCoord = snapPoint.myCell.hexCoord;
     
       // board cells and data cells are always updated together
-    [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:snapPoint andColour:colour];
-    [_boardField updateBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
+    [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:snapPoint];
+    
+    [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]
+                                             minusDyadmino:nil];
   }
 }
 
--(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour {
+-(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino {
   if (!dyadmino.isRotating) {
+    
     if (dyadmino.homeNode) {
-      
         // update hexCoord of board dyadmino
       SnapPoint *snapPoint = dyadmino.homeNode;
       dyadmino.myHexCoord = snapPoint.myCell.hexCoord;
     }
     
       // board cells and data cells are always updated together
-    [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:(dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode) andColour:colour];
-    [_boardField updateBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]];
+    [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:(dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode)];
+    
+    [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]
+                                             minusDyadmino:dyadmino];
   }
 }
 
@@ -3219,11 +3214,11 @@
 -(void)restoreDyadminoAttributesAfterReplay {
   
   NSSet *holdingContainerAndRecentRackDyadminoes = [self allTurnDyadminoesPlusRecentRackDyadmino];
+  
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
     
       // show player turn dyadminoes
     if ([holdingContainerAndRecentRackDyadminoes containsObject:dyadmino]) {
-//      [self animateShrinkForReplayOfDyadmino:dyadmino toShrink:NO];
       
     } else {
       dyadmino.myHexCoord = dyadmino.preReplayHexCoord;
@@ -3565,10 +3560,6 @@
   Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:[self.myMatch dataDyadminoForIndex:dyadminoID]];
   BOOL firstDyadmino = (self.boardDyadminoes.count == 1 && dyadmino == [self.boardDyadminoes anyObject] && !_recentRackDyadmino);
   return firstDyadmino;
-}
-
--(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign {
-  [_boardField changeColoursAroundDyadmino:dyadmino withSign:sign];
 }
 
 -(UIColor *)pivotColourForCurrentPlayerLight:(BOOL)light {

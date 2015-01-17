@@ -361,7 +361,6 @@
     weakSelf.initialPivotPosition = self.position;
     
     [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
-    [weakSelf.delegate changeColoursAroundDyadmino:weakSelf withSign:+1];
   };
 
   [self animateToPosition:settledPosition duration:kConstantTime withKey:kActionEaseIntoNode completion:completion];
@@ -406,7 +405,6 @@
   void (^repositionBlock)(void) = ^void(void) {
     [weakSelf orientBySnapNode:([weakSelf belongsInRack] ? weakSelf.tempBoardNode : weakSelf.homeNode) animate:YES];
     weakSelf.position = [weakSelf belongsInRack] ? weakSelf.tempBoardNode.position : weakSelf.homeNode.position;
-    [weakSelf.delegate changeColoursAroundDyadmino:weakSelf withSign:+1];
   };
   
   [self animatePopIntoNodeWithKey:kActionPopIntoBoard andRackRefresh:NO andRepositionBlock:repositionBlock];

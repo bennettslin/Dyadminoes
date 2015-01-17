@@ -37,7 +37,7 @@
 #define kLargeButtonSize CGSizeMake(kLargeButtonWidth, kLargeButtonWidth)
 
   // animation constants
-#define kConstantSpeed (kIsIPhone ? 0.002f : 0.0013333f)
+//#define kConstantSpeed (kIsIPhone ? 0.002f : 0.0013333f)
 #define kBounceDivisor 8.f
 
 //------------------------------------------------------------------------------
@@ -90,6 +90,8 @@
   // view constants
 #define kBoardCoverAlpha 0.4f
 #define kZoomResizeFactor 0.5f
+
+#define kCellsAroundDyadmino 5
 
   // scene view constants
 #define kSceneMessageLabelFontSize 30.f
@@ -517,7 +519,12 @@ typedef enum actionSheetTag {
 
 @interface NSObject (Helper)
 
-  // math stuff
+#pragma mark - chord methods
+
+-(Chord)chordFromRoot:(NSInteger)root andChordType:(ChordType)chordType;
+
+#pragma mark - math methods
+
 -(NSUInteger)randomIntegerUpTo:(NSUInteger)high;
 -(CGFloat)randomFloatUpTo:(CGFloat)high;
 -(CGFloat)getDistanceFromThisPoint:(CGPoint)point1 toThisPoint:(CGPoint)point2;
@@ -527,19 +534,20 @@ typedef enum actionSheetTag {
 -(CGFloat)getChangeFromThisAngle:(CGFloat)angle1 toThisAngle:(CGFloat)angle2;
 -(CGFloat)getRadiansFromDegree:(CGFloat)degree;
 
-  // struct stuff
--(HexCoord)hexCoordFromX:(NSInteger)x andY:(NSInteger)y;
--(Chord)chordFromRoot:(NSInteger)root andChordType:(ChordType)chordType;
--(HexCoord)retrieveTopHexCoordForBottomHexCoord:(HexCoord)bottomHexCoord andOrientation:(DyadminoOrientation)orientation;
 
-#pragma mark - dyadmino stuff
+#pragma mark - hex coordinate methods
+
+-(HexCoord)hexCoordFromX:(NSInteger)x andY:(NSInteger)y;
+-(HexCoord)retrieveTopHexCoordForBottomHexCoord:(HexCoord)bottomHexCoord andOrientation:(DyadminoOrientation)orientation;
+-(NSUInteger)distanceGivenHexXDifference:(NSInteger)x andHexYDifference:(NSInteger)y;
+
+#pragma mark - dyadmino methods
 
 -(NSUInteger)pcForDyadminoIndex:(NSUInteger)index isPC1:(BOOL)isPC1;
 
 #pragma mark - dyadmino rack stuff
 
 -(Dyadmino *)dyadminoInSet:(NSSet *)set withRackOrder:(NSUInteger)rackOrder;
-
 -(BOOL)validateUniqueRackOrdersInSet:(NSSet *)set;
 
   // date stuff

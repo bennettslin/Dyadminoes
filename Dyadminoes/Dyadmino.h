@@ -14,12 +14,9 @@
 
 @protocol DyadminoDelegate <NSObject>
 
--(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino andColour:(BOOL)colour;
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
 -(void)postSoundNotification:(NotificationName)whichNotification;
-
 -(BOOL)refreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation;
--(void)changeColoursAroundDyadmino:(Dyadmino *)dyadmino withSign:(NSInteger)sign;
 
 @end
 

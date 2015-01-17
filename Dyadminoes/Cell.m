@@ -17,13 +17,16 @@
 @end
 
 @implementation Cell {
+  
+  CGFloat _dominantPCArray[12];
+  
   CGFloat _red, _green, _blue, _alpha;
 }
 
--(void)setColouredByNeighbouringCells:(NSInteger)colouredByNeighbouringCells {
-  _colouredByNeighbouringCells = colouredByNeighbouringCells;
+//-(void)setColouredByNeighbouringCells:(NSInteger)colouredByNeighbouringCells {
+//  _colouredByNeighbouringCells = colouredByNeighbouringCells;
 //  self.cellNode.hidden = (colouredByNeighbouringCells <= 0) ? YES : NO;
-}
+//}
 
 -(id)initWithTexture:(SKTexture *)texture
          andHexCoord:(HexCoord)hexCoord
@@ -35,10 +38,9 @@
   if (self) {
     
     self.cellNodeTexture = texture;
-    self.colouredByNeighbouringCells = 0;
+//    self.colouredByNeighbouringCells = 0;
     self.delegate = delegate;
     
-    [self resetForNewMatch];
     [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin forResize:resize];
   }
   return self;
@@ -48,8 +50,11 @@
                 andHexOrigin:(CGVector)hexOrigin
                    forResize:(BOOL)resize {
   
-  self.colouredByNeighbouringCells = NO;
-  self.currentlyColouringNeighbouringCells = NO;
+//  self.colouredByNeighbouringCells = NO;
+//  self.currentlyColouringNeighbouringCells = NO;
+  
+  [self resetForReuse];
+  
   self.hexCoord = hexCoord;
   self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
   
@@ -59,7 +64,7 @@
   self.cellNodePosition = [Cell establishCellPositionWithCellSize:cellSize andHexOrigin:hexOrigin andHexCoord:self.hexCoord forResize:resize];
   
     // establish logic default
-  self.myPC = -1;
+//  self.myPC = -1;
   
     // create snap points
   [self createSnapPoints];
@@ -67,10 +72,11 @@
   self.cellNode ? [self initPositionCellNodeWithSize:cellSize] : [self instantiateCellNodeWithSize:cellSize];
 }
 
--(void)resetForNewMatch {
+-(void)resetForReuse {
+//  NSLog(@"reset cell %@ for new match", self.name);
   
-  self.currentlyColouringNeighbouringCells = NO;
-  self.colouredByNeighbouringCells = 0;
+//  self.currentlyColouringNeighbouringCells = NO;
+//  self.colouredByNeighbouringCells = 0;
   self.myDyadmino = nil;
   self.myPC = -1;
   
@@ -78,12 +84,89 @@
   _red = 0.2f;
   _green = 0.2f;
   _blue = 0.2f;
-  _alpha = 0.f;
+  _alpha = 0.2f;
+
+  memset(_dominantPCArray, 0, sizeof(_dominantPCArray));
   
   if (self.cellNode) {
-    self.cellNode.colorBlendFactor = 0.9f;
-    self.cellNode.color = [SKColor colorWithRed:0 green:0 blue:0 alpha:0];
-    [self addColourWithRed:_red green:_green blue:_blue alpha:_alpha];
+    [self renderColour];
+//    self.cellNode.colorBlendFactor = 0.9f;
+//    self.cellNode.color = [SKColor colorWithRed:_red green:_green blue:_blue alpha:_alpha];
+//    [self addColourWithRed:_red green:_green blue:_blue alpha:_alpha];
+  }
+}
+
+-(void)addColourValueForPC:(NSUInteger)pc atDistance:(NSUInteger)distance {
+
+  _dominantPCArray[pc] += (kCellsAroundDyadmino - distance + 1);
+  
+    // alpha is full when next to a dyadmino, and 0.2f at furthest distance
+  CGFloat tempAlpha = 0.2 * (kCellsAroundDyadmino - distance + 1);
+  if (tempAlpha > _alpha) {
+    _alpha = tempAlpha;
+  }
+}
+
+-(void)renderColour {
+  
+  NSInteger maxPC = 0;
+  for (int i = 0; i < 12; i++) {
+    if (_dominantPCArray[i] > 0 && _dominantPCArray[i] > _dominantPCArray[maxPC]) {
+      maxPC = i;
+    }
+  }
+  
+  if (_dominantPCArray[maxPC] == 0) {
+    maxPC = -1;
+  }
+  
+//  NSLog(@"max pc is %lu for cell %@", (unsigned long)maxPC, self.name);
+  SKColor *pureColour = [self colourForPC:maxPC];
+  SKColor *colourWithAlpha = [pureColour colorWithAlphaComponent:_alpha];
+  self.cellNode.color = colourWithAlpha;
+}
+
+-(UIColor *)colourForPC:(NSInteger)pc {
+  switch (pc) {
+    case 0:
+      return [UIColor colorWithRed:100/100.f green:0/100.f blue:0/100.f alpha:100/100.f];
+      break;
+    case 1:
+      return [UIColor colorWithRed:0/100.f green:70/100.f blue:55/100.f alpha:100/100.f];
+      break;
+    case 2:
+      return [UIColor colorWithRed:86/100.f green:0/100.f blue:88/100.f alpha:100/100.f];
+      break;
+    case 3:
+      return [UIColor colorWithRed:67/100.f green:91/100.f blue:0/100.f alpha:100/100.f];
+      break;
+    case 4:
+      return [UIColor colorWithRed:32/100.f green:25/100.f blue:100/100.f alpha:100/100.f];
+      break;
+    case 5:
+      return [UIColor colorWithRed:100/100.f green:53/100.f blue:10/100.f alpha:100/100.f];
+      break;
+    case 6:
+      return [UIColor colorWithRed:0/100.f green:65/100.f blue:82/100.f alpha:100/100.f];
+      break;
+    case 7:
+      return [UIColor colorWithRed:100/100.f green:0/100.f blue:51/100.f alpha:100/100.f];
+      break;
+    case 8:
+      return [UIColor colorWithRed:9/100.f green:61/100.f blue:0/100.f alpha:100/100.f];
+      break;
+    case 9:
+      return [UIColor colorWithRed:57/100.f green:17/100.f blue:95/100.f alpha:100/100.f];
+      break;
+    case 10:
+      return [UIColor colorWithRed:94/100.f green:86/100.f blue:0/100.f alpha:100/100.f];
+      break;
+    case 11:
+      return [UIColor colorWithRed:5/100.f green:40/100.f blue:94/100.f alpha:100/100.f];
+      break;
+    default:
+      return [UIColor darkGrayColor];
+      break;
   }
 }
 
@@ -101,7 +184,7 @@
   [self addColourWithRed:_red green:_green blue:_blue alpha:_alpha];
   self.cellNode.colorBlendFactor = .9f;
   self.cellNode.size = cellSize;
-  self.colouredByNeighbouringCells = NO;
+//  self.colouredByNeighbouringCells = NO;
   [self initPositionCellNodeWithSize:cellSize];
   
     //// for testing purposes
@@ -171,6 +254,7 @@
 }
 
 -(void)removeSnapPointsFromBoard {
+  
   if ([self.delegate.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
     [self.delegate.snapPointsTwelveOClock removeObject:self.boardSnapPointTwelveOClock];
   }
