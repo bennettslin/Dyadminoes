@@ -268,7 +268,8 @@
 
 #pragma mark - cell methods
 
--(BOOL)layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes minusDyadmino:(Dyadmino *)minusDyadmino {
+-(BOOL)layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes
+                                            minusDyadmino:(Dyadmino *)minusDyadmino {
   
     // regular hex origin is only set once per scene load, but zoom hex origin is set every time
   if (!_hexOriginSet) {

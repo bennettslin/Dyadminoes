@@ -14,7 +14,7 @@
 
 @protocol DyadminoDelegate <NSObject>
 
--(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino;
+-(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino withLayout:(BOOL)layout;
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
 -(void)postSoundNotification:(NotificationName)whichNotification;
 -(BOOL)refreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation;

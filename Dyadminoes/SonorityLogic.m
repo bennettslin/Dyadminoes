@@ -58,8 +58,7 @@
       mostEgregiousError = kIllegalSonority > mostEgregiousError ? kIllegalSonority : mostEgregiousError;
     }
   }
-  
-  NSLog(@"error is %i", mostEgregiousError);
+
   return mostEgregiousError;
 }
 

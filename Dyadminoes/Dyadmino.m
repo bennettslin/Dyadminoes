@@ -122,10 +122,6 @@
   CGFloat xSize = widthToHeightRatio * ySize;
   
   sprite.size = CGSizeMake(xSize * hoverRescaleFactor * zoomRescaleFactor, ySize * hoverRescaleFactor * zoomRescaleFactor);
-//  sprite.size = CGSizeMake(xSize, ySize);
-//  if (sprite == self) {
-//    [sprite setScale:(hoverRescaleFactor * zoomRescaleFactor)];
-//  }
 }
 
 -(void)resize {
@@ -296,8 +292,6 @@
   [self.pc2Sprite setScale:1.f];
 }
 
-#pragma mark - animation methods
-
 #pragma mark - animate placement methods
 
 -(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove {
@@ -363,14 +357,15 @@
     [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
     
     if ([self isOnBoard]) {
-      [weakSelf.delegate updateCellsForPlacedDyadmino:self];
+      [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
     }
   };
 
   [self animateToPosition:settledPosition duration:kConstantTime withKey:kActionEaseIntoNode completion:completion];
 }
 
--(void)animateInRackOrReplayMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding {
+-(void)animateInRackOrReplayMoveToPoint:(CGPoint)point
+                            andSounding:(BOOL)sounding {
   
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime]; // was kConstantSpeed * distance
@@ -384,7 +379,7 @@
       [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
       
       if ([self isOnBoard]) {
-        [weakSelf.delegate updateCellsForPlacedDyadmino:self];
+        [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
       }
       
     }];
@@ -396,7 +391,10 @@
   }
 }
 
--(void)animateToPosition:(CGPoint)toPosition duration:(CGFloat)duration withKey:(NSString *)key completion:(void(^)(void))completion {
+-(void)animateToPosition:(CGPoint)toPosition
+                duration:(CGFloat)duration
+                 withKey:(NSString *)key
+              completion:(void(^)(void))completion {
   
   SKAction *moveAction = [SKAction moveTo:toPosition duration:duration];
   moveAction.timingMode = SKActionTimingEaseOut;
@@ -415,6 +413,10 @@
   void (^repositionBlock)(void) = ^void(void) {
     [weakSelf orientBySnapNode:([weakSelf belongsInRack] ? weakSelf.tempBoardNode : weakSelf.homeNode) animate:YES];
     weakSelf.position = [weakSelf belongsInRack] ? weakSelf.tempBoardNode.position : weakSelf.homeNode.position;
+    
+    if ([self isOnBoard]) {
+      [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
+    }
   };
   
   [self animatePopIntoNodeWithKey:kActionPopIntoBoard andRackRefresh:NO andRepositionBlock:repositionBlock];
@@ -646,6 +648,11 @@
         if (counter > 0) {
           [weakSelf animateOneThirdFlipClockwise:clockwise times:counter withFullFlip:fullFlip];
         } else {
+          
+          if ([self isOnBoard]) {
+            [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
+          }
+          
           if (fullFlip) {
             [weakSelf completeAnimationOfFullFlip];
           }

@@ -12,6 +12,7 @@
 
 #define bSampleRate 44100.0
 #define kSoundFontPiano @"AJH_Piano"
+//#define kSoundFontPiano @"JR_elepiano"
 
 @synthesize samplerUnit = _samplerUnit;
 

@@ -74,6 +74,10 @@
 
 -(void)sinkInWithAnimation:(BOOL)animation {
   
+  if ([self actionForKey:@"buttonScale"]) {
+    return;
+  }
+  
   const CGFloat scaleTo = (1 / 1.1f);
     // FIXME: highlight button
   
@@ -86,7 +90,6 @@
   if (!_isSunkIn) {
     
     _isSunkIn = YES; // establish right away so method can't be called again
-    [self removeActionForKey:@"buttonScale"];
     SKAction *moveAction = [SKAction scaleTo:scaleTo duration:kConstantTime * 0.1];
     moveAction.timingMode = SKActionTimingEaseOut;
     [self runAction:moveAction withKey:@"buttonScale"];
@@ -94,6 +97,10 @@
 }
 
 -(void)liftWithAnimation:(BOOL)animation andCompletion:(void (^)(void))completion {
+  
+  if ([self actionForKey:@"buttonScale"]) {
+    return;
+  }
   
   self.colorBlendFactor = 0.f;
     // FIXME: unhighlight button
@@ -107,7 +114,7 @@
   if (_isEnabled && _isSunkIn) {
     [self enable:NO];
     _isSunkIn = NO; // establish right away so method can't be called again
-    [self removeActionForKey:@"buttonScale"];
+    
     SKAction *excessAction = [SKAction scaleTo:1.1f duration:kConstantTime * 0.275f];
     excessAction.timingMode = SKActionTimingEaseOut;
     SKAction *bounceBackAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.125f];
