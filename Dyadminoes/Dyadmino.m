@@ -361,6 +361,10 @@
     weakSelf.initialPivotPosition = self.position;
     
     [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
+    
+    if ([self isOnBoard]) {
+      [weakSelf.delegate updateCellsForPlacedDyadmino:self];
+    }
   };
 
   [self animateToPosition:settledPosition duration:kConstantTime withKey:kActionEaseIntoNode completion:completion];
@@ -375,8 +379,14 @@
   __weak typeof(self) weakSelf = self;
   if (sounding) {
     SKAction *completeAction = [SKAction runBlock:^{
-      [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
+      
       [weakSelf setToHomeZPositionAndSyncOrientation];
+      [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
+      
+      if ([self isOnBoard]) {
+        [weakSelf.delegate updateCellsForPlacedDyadmino:self];
+      }
+      
     }];
     SKAction *sequence = [SKAction sequence:@[moveAction, completeAction]];
     [self runAction:sequence withKey:kActionMoveToPoint];

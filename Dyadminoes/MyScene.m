@@ -525,6 +525,7 @@
 }
 
 -(BOOL)populateBoardWithDyadminoesAnimated:(BOOL)animated {
+  NSLog(@"populate board with dyadminoes");
   
   for (Dyadmino *dyadmino in self.boardDyadminoes) {
     dyadmino.delegate = self;
@@ -532,7 +533,7 @@
       // this is for the first dyadmino, which doesn't have a boardNode
       // and also other dyadminoes when reloading
     if (!dyadmino.homeNode) {
-      NSLog(@"getting homeNode for dyadmino %@", dyadmino.name);
+//      NSLog(@"getting homeNode for dyadmino %@", dyadmino.name);
       NSMutableSet *snapPointsToSearch;
       
         // if called from setup, temp return orientation is the same as dyadmino orientation
@@ -559,7 +560,7 @@
         }
       }
       
-      NSLog(@"dyadmino home node is %@", dyadmino.homeNode.name);
+//      NSLog(@"dyadmino home node is %@", dyadmino.homeNode.name);
     }
     
       //------------------------------------------------------------------------
@@ -1355,7 +1356,7 @@
     // this is one of two places where board bounds are updated
     // the other is when dyadmino is eased into board node
   if (updateBoardBounds) {
-    [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino] minusDyadmino:nil];
+//    [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino] minusDyadmino:nil];
   }
   
   [dyadmino endTouchThenHoverResize];
@@ -1389,9 +1390,9 @@
     }
   }
 
-  if ([dyadmino belongsOnBoard]) {
-    [self updateCellsForPlacedDyadmino:dyadmino];
-  }
+//  if ([dyadmino belongsOnBoard]) {
+//    [self updateCellsForPlacedDyadmino:dyadmino];
+//  }
   
   [self updateTopBarButtons];
 }
@@ -2360,7 +2361,7 @@
   
     // this is one of two places where board bounds are updated
     // the other is when rack dyadmino is sent home
-  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino] minusDyadmino:nil];
+//  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino] minusDyadmino:nil];
   
   [_boardField hideAllPivotGuides];
   [dyadmino animateEaseIntoNodeAfterHover];
@@ -2790,6 +2791,9 @@
 #pragma mark - board helper methods
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino {
+    // only called in populateBoardWithDyadminoes and sendDyadminoHome (in completion block after animation)
+  
+  NSLog(@"update cells for placed dyadmino");
   if (!dyadmino.isRotating) {
     
     SnapPoint *snapPoint = dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode;
@@ -2799,13 +2803,14 @@
     
       // board cells and data cells are always updated together
     [_boardField updateCellsForDyadmino:dyadmino placedOnBoardNode:snapPoint];
-    
     [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]
                                              minusDyadmino:nil];
   }
 }
 
 -(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino {
+    // only called in willMoveFromView and getReadyToMoveCurrentDyadmino
+  
   if (!dyadmino.isRotating) {
     
     if (dyadmino.homeNode) {
@@ -2816,7 +2821,6 @@
     
       // board cells and data cells are always updated together
     [_boardField updateCellsForDyadmino:dyadmino removedFromBoardNode:(dyadmino.tempBoardNode ? dyadmino.tempBoardNode : dyadmino.homeNode)];
-    
     [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]
                                              minusDyadmino:dyadmino];
   }
@@ -3586,10 +3590,6 @@
   if (_hoveringDyadmino) {
     [self sendDyadminoHome:_hoveringDyadmino byPoppingInForUndo:NO andSounding:YES andUpdatingBoardBounds:YES];
   }
-  
-//  for (Label *rackLabel in _topBar.playerRackLabels) {
-//    [_topBar node:rackLabel shouldBeEnabled:_debugMode];
-//  }
 
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
     dyadmino.hidden = _debugMode;
