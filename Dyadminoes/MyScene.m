@@ -1209,7 +1209,7 @@
   
     // if it's on the board and not already rotating, two possibilities
   if ([_touchedDyadmino isOnBoard] && !_touchedDyadmino.isRotating) {
-    
+
     _uponTouchDyadminoNode = dyadmino.tempBoardNode;
     _uponTouchDyadminoOrientation = dyadmino.orientation;
     

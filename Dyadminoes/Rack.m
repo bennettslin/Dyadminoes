@@ -115,7 +115,7 @@
     if (animation) {
       SKAction *waitAction = [SKAction waitForDuration:(undo ? 0 : index * kWaitTimeForRackDyadminoPopulate)];
       SKAction *moveAction = [SKAction runBlock:^{
-        [dyadmino animateInRackOrReplayMoveToPoint:shouldBePosition andCalledFromRack:YES];
+        [dyadmino animateMoveToPointCalledFromRack:shouldBePosition];
       }];
       SKAction *sequenceAction = [SKAction sequence:@[waitAction, moveAction, completeAction]];
       [dyadmino runAction:sequenceAction withKey:@"repositionDyadmino"];
@@ -168,8 +168,7 @@
           // take care of state change and animation of exchanged dyadmino, as long as it's not on the board
         if (!scootedDyadmino.tempBoardNode) {
           scootedDyadmino.zPosition = kZPositionRackMovedDyadmino;
-          [scootedDyadmino animateInRackOrReplayMoveToPoint:[scootedDyadmino getHomeNodePositionConsideringSwap]
-                                          andCalledFromRack:YES];
+          [scootedDyadmino animateMoveToPointCalledFromRack:[scootedDyadmino getHomeNodePositionConsideringSwap]];
           scootedDyadmino.zPosition = kZPositionRackRestingDyadmino;
           
             // sound it

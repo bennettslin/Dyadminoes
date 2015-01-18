@@ -113,17 +113,17 @@
 
 #pragma mark - animate placement methods
 
--(void)animateGoingHomeWithCompletion:(void(^)(void))completion;
-
 -(void)orientBySnapNode:(SnapPoint *)snapNode animate:(BOOL)animate;
 -(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
 -(void)goHomeToRackByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize;
-//-(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn;
+
 -(void)goHomeToBoard;
 -(void)animateEaseIntoNodeAfterHover;
+-(void)animateMoveToPointCalledFromRack:(CGPoint)point;
 
-  // called by rack
--(void)animateInRackOrReplayMoveToPoint:(CGPoint)point andCalledFromRack:(BOOL)calledFromRack;
+#pragma mark - animate flip methods
+
+-(void)animateFlip;
 
 #pragma mark - animate pop methods
 
@@ -135,10 +135,6 @@
 -(void)animateFaceForSound:(SKSpriteNode *)face;
 -(void)animateWiggleForHover:(BOOL)animate;
 -(void)animateShrinkForReplayToShrink:(BOOL)shrink;
-
-#pragma mark - animate flip methods
-
--(void)animateFlip;
 
 #pragma mark - pivot methods
 

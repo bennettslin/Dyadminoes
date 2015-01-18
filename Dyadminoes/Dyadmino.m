@@ -248,10 +248,12 @@
 
 #pragma mark - change view methods
 
--(void)setToHomeZPositionAndSyncOrientation {
+-(void)setToHomeZPosition {
   self.zPosition = (self.homeNode.snapPointType == kSnapPointRack) ?
       kZPositionRackRestingDyadmino : kZPositionBoardRestingDyadmino;
-  self.tempReturnOrientation = self.orientation;
+  
+    // FIXME: this doesn't seem to be necessary, but just make sure
+//  self.tempReturnOrientation = self.orientation;
 }
 
 -(void)resetFaceScales {
@@ -309,10 +311,6 @@
   self.isRotating = NO;
 }
 
--(void)animateGoingHomeWithCompletion:(void(^)(void))completion {
-  
-}
-
 -(void)goHomeToRackByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize {
 
   if (popInForUndo) {
@@ -327,7 +325,7 @@
     
     self.colorBlendFactor = 0.f;
     [self orientBySnapNode:self.homeNode animate:YES];
-    [self animateInRackOrReplayMoveToPoint:[self getHomeNodePositionConsideringSwap] andCalledFromRack:NO];
+    [self animateMoveToPoint:[self getHomeNodePositionConsideringSwap]];
   }
   self.tempBoardNode = nil;
   [self changeHoveringStatus:kDyadminoFinishedHovering];
@@ -335,8 +333,10 @@
 
   // this should be combined into one method with goHomeToRack
 -(void)goHomeToBoard {
+  NSLog(@"go home to board");
+  
   [self orientBySnapNode:self.homeNode animate:YES];
-  [self animateInRackOrReplayMoveToPoint:[self getHomeNodePositionConsideringSwap] andCalledFromRack:NO];
+  [self animateMoveToPoint:[self getHomeNodePositionConsideringSwap]];
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
@@ -350,7 +350,7 @@
   void (^completion)(void) = ^void(void) {
     
     [weakSelf endTouchThenHoverResize];
-    [weakSelf setToHomeZPositionAndSyncOrientation];
+    [weakSelf setToHomeZPosition];
     
     weakSelf.canFlip = NO;
     [weakSelf changeHoveringStatus:kDyadminoNoHoverStatus];
@@ -361,48 +361,149 @@
     if ([self isOnBoard]) {
       [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
     }
+    
+    NSLog(@"from animate ease into node, my homeNode is %@, tempNode is %@, tempReturn orientation %i, orientaiton %i", self.homeNode.name, self.tempBoardNode.name, self.tempReturnOrientation, self.orientation);
   };
 
-  [self animateToPosition:settledPosition duration:kConstantTime withKey:kActionEaseIntoNode completion:completion];
+  [self animateToPosition:settledPosition
+                 duration:kConstantTime
+               timingMode:SKActionTimingEaseOut
+                  withKey:kActionEaseIntoNode
+               completion:completion];
 }
 
--(void)animateInRackOrReplayMoveToPoint:(CGPoint)point
-                      andCalledFromRack:(BOOL)calledFromRack {
+-(void)animateMoveToPointCalledFromRack:(CGPoint)point {
+  [self animateNodelessMoveToPoint:point andCalledFromRack:YES];
+}
+
+-(void)animateMoveToPoint:(CGPoint)point {
+  [self animateNodelessMoveToPoint:point andCalledFromRack:NO];
+}
+
+-(void)animateNodelessMoveToPoint:(CGPoint)point
+                andCalledFromRack:(BOOL)calledFromRack {
   
-  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
-  SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime]; // was kConstantSpeed * distance
-  moveAction.timingMode = SKActionTimingEaseIn;
+    // if called from rack, does not include orientation
+    // otherwise it is called from self, and does include orientation animation
   
   __weak typeof(self) weakSelf = self;
+  void(^completion)(void);
+  
   if (!calledFromRack) {
-    SKAction *completeAction = [SKAction runBlock:^{
-      
-      [weakSelf setToHomeZPositionAndSyncOrientation];
+    
+    completion = ^void(void) {
+
       [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
+      [self setToHomeZPosition];
       
       if ([self isOnBoard]) {
         [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
       }
       
-    }];
-    SKAction *sequence = [SKAction sequence:@[moveAction, completeAction]];
-    [self runAction:sequence withKey:kActionMoveToPoint];
+      NSLog(@"from animate nodeless move to point, my homeNode is %@, tempNode is %@, tempReturn orientation %i, orientaiton %i", self.homeNode.name, self.tempBoardNode.name, self.tempReturnOrientation, self.orientation);
+    };
     
   } else {
-    [self runAction:moveAction withKey:kActionMoveToPoint];
+    completion = nil;
   }
+  
+  [self animateToPosition:point
+                 duration:kConstantTime
+               timingMode:SKActionTimingEaseIn
+                  withKey:kActionMoveToPoint
+               completion:completion];
 }
 
 -(void)animateToPosition:(CGPoint)toPosition
                 duration:(CGFloat)duration
+              timingMode:(SKActionTimingMode)timingMode
                  withKey:(NSString *)key
               completion:(void(^)(void))completion {
   
   SKAction *moveAction = [SKAction moveTo:toPosition duration:duration];
-  moveAction.timingMode = SKActionTimingEaseOut;
+  moveAction.timingMode = timingMode;
   SKAction *completionAction = [SKAction runBlock:completion];
   SKAction *sequence = [SKAction sequence:@[moveAction, completionAction]];
   [self runAction:sequence withKey:key];
+}
+
+#pragma mark - animate flip methods
+
+-(void)animateFlip {
+  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
+  self.isRotating = YES;
+  [self animateOneThirdFlipClockwise:YES times:3 withFullFlip:YES];
+}
+
+-(void)animateOneThirdFlipClockwise:(BOOL)clockwise times:(NSUInteger)times withFullFlip:(BOOL)fullFlip {
+  
+  if (!_isPivotAnimating) {
+    [self removeActionForKey:kActionRotate];
+    CGFloat radians = [self getRadiansFromDegree:60] * (clockwise ? 1 : -1);
+    __block NSUInteger counter = times;
+    CGFloat duration = fullFlip ? kConstantTime / 5.8f : kConstantTime / 2.9f; // was 4.5;
+    
+    SKAction *turnDyadmino = [SKAction rotateByAngle:-radians duration:duration];
+    SKAction *turnFace = [SKAction rotateByAngle:radians duration:duration];
+    
+    __weak typeof(self) weakSelf = self;
+    SKAction *turnAction = [SKAction runBlock:^{
+      if (counter > 1) {
+        [weakSelf.pc1Sprite runAction:turnFace];
+        [weakSelf.pc2Sprite runAction:turnFace];
+      }
+      
+      [weakSelf runAction:turnDyadmino completion:^{
+        weakSelf.orientation = (weakSelf.orientation + (clockwise ? 1 : 5)) % 6;
+        [weakSelf selectAndPositionSpritesZRotation:0.f];
+        counter--;
+        _isPivotAnimating = NO;
+        if (counter > 0) {
+          [weakSelf animateOneThirdFlipClockwise:clockwise times:counter withFullFlip:fullFlip];
+        } else {
+          
+          if ([self isOnBoard]) {
+            [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
+          }
+          
+          if (fullFlip) {
+            [weakSelf completionAfterAnimatingFullFlip];
+          }
+        }
+      }];
+    }];
+    
+    _isPivotAnimating = YES;
+    [self runAction:turnAction withKey:kActionRotate];
+    
+      // reset anchorPoint after each and every time
+    self.anchorPoint = CGPointMake(0.5f, 0.5f);
+    
+      // if already animating, just add to orientation.
+  } else {
+    self.orientation = (self.orientation + (clockwise ? 1 : 5)) % 6;
+  }
+}
+
+-(void)completionAfterAnimatingFullFlip {
+  
+    // rotation
+  if ([self isInRack] || self.belongsInSwap) {
+    [self changeHoveringStatus:kDyadminoFinishedHovering];
+    [self setToHomeZPosition];
+    [self endTouchThenHoverResize];
+    self.isRotating = NO;
+    [self.delegate postSoundNotification:kNotificationPivotClick];
+    
+      // just to ensure that dyadmino is back in its node position
+    self.position = [self getHomeNodePositionConsideringSwap];
+    
+  } else if ([self isOnBoard]) {
+    self.isRotating = NO;
+    [self changeHoveringStatus:kDyadminoContinuesHovering];
+    [self.delegate prepareForHoverThisDyadmino:self];
+    self.canFlip = NO;
+  }
 }
 
 #pragma mark - animate pop methods
@@ -417,7 +518,7 @@
   
   void (^repositionBetweenShrinkAndGrowBlock)(void) = ^void(void) {
     [weakSelf.delegate postSoundNotification:kNotificationPopIntoNode];
-    [weakSelf setToHomeZPositionAndSyncOrientation];
+    [weakSelf setToHomeZPosition];
     
     weakSelf.color = (SKColor *)kNeutralYellow;
     [weakSelf unhighlightOutOfPlay];
@@ -554,85 +655,6 @@
     SKAction *sequence = [SKAction sequence:@[growFadeInGroup, completeAction]];
     self.zPosition = kZPositionBoardReplayAnimatedDyadmino;
     [self runAction:sequence withKey:@"replayGrow"];
-  }
-}
-
-#pragma mark - animate flip methods
-
--(void)animateFlip {
-  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
-  self.isRotating = YES;
-  [self animateOneThirdFlipClockwise:YES times:3 withFullFlip:YES];
-}
-
--(void)completionAfterAnimatingFullFlip {
-  
-    // rotation
-  if ([self isInRack] || self.belongsInSwap) {
-    [self changeHoveringStatus:kDyadminoFinishedHovering];
-    [self setToHomeZPositionAndSyncOrientation];
-    [self endTouchThenHoverResize];
-    self.isRotating = NO;
-    [self.delegate postSoundNotification:kNotificationPivotClick];
-
-      // just to ensure that dyadmino is back in its node position
-    self.position = [self getHomeNodePositionConsideringSwap];
-    
-  } else if ([self isOnBoard]) {
-    self.isRotating = NO;
-    [self changeHoveringStatus:kDyadminoContinuesHovering];
-    [self.delegate prepareForHoverThisDyadmino:self];
-    self.canFlip = NO;
-  }
-}
-
--(void)animateOneThirdFlipClockwise:(BOOL)clockwise times:(NSUInteger)times withFullFlip:(BOOL)fullFlip {
-  
-  if (!_isPivotAnimating) {
-    [self removeActionForKey:kActionRotate];
-    CGFloat radians = [self getRadiansFromDegree:60] * (clockwise ? 1 : -1);
-    __block NSUInteger counter = times;
-    CGFloat duration = fullFlip ? kConstantTime / 6.f : kConstantTime / 3.f; // was 4.5;
-    
-    SKAction *turnDyadmino = [SKAction rotateByAngle:-radians duration:duration];
-    SKAction *turnFace = [SKAction rotateByAngle:radians duration:duration];
-    
-    __weak typeof(self) weakSelf = self;
-    SKAction *turnAction = [SKAction runBlock:^{
-      if (counter > 1) {
-        [weakSelf.pc1Sprite runAction:turnFace];
-        [weakSelf.pc2Sprite runAction:turnFace];
-      }
-      
-      [weakSelf runAction:turnDyadmino completion:^{
-        weakSelf.orientation = (weakSelf.orientation + (clockwise ? 1 : 5)) % 6;
-        [weakSelf selectAndPositionSpritesZRotation:0.f];
-        counter--;
-        _isPivotAnimating = NO;
-        if (counter > 0) {
-          [weakSelf animateOneThirdFlipClockwise:clockwise times:counter withFullFlip:fullFlip];
-        } else {
-          
-          if ([self isOnBoard]) {
-            [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
-          }
-          
-          if (fullFlip) {
-            [weakSelf completionAfterAnimatingFullFlip];
-          }
-        }
-      }];
-    }];
-    
-    _isPivotAnimating = YES;
-    [self runAction:turnAction withKey:kActionRotate];
-    
-      // reset anchorPoint after each and every time
-    self.anchorPoint = CGPointMake(0.5f, 0.5f);
-    
-      // if already animating, just add to orientation.
-  } else {
-    self.orientation = (self.orientation + (clockwise ? 1 : 5)) % 6;
   }
 }
 
