@@ -13,9 +13,10 @@
 #import "SKSpriteNode+Helper.h"
 
 #define kActionMoveToPoint @"moveToPoint"
-#define kActionPopIntoBoard @"popIntoBoard"
-#define kActionPopIntoRack @"popIntoRack"
-#define kActionPopIn @"popIn"
+//#define kActionPopIntoBoard @"popIntoBoard"
+//#define kActionPopIntoRack @"popIntoRack"
+#define kActionShrinkPopIn @"shrinkPopIn"
+#define kActionGrowPopIn @"growPopIn"
 #define kActionFlip @"flip"
 #define kActionRotate @"turn"
 #define kActionEaseIntoNode @"easeIntoNode"
@@ -196,40 +197,6 @@
   [self resize];
 }
 
--(void)orientBySnapNode:(SnapPoint *)snapNode animate:(BOOL)animate {
-  
-  NSInteger currentOrientation = self.orientation;
-  DyadminoOrientation shouldBeOrientation;
-  
-    // if no snap node, just establish arbirary board one
-  SnapPointType snapPointType = snapNode ? snapNode.snapPointType : kSnapPointBoardTwelveOClock;
-  
-  switch (snapPointType) {
-    case kSnapPointRack:
-      shouldBeOrientation = (currentOrientation <= 1 || currentOrientation >= 5) ? 0 : 3;
-      break;
-    default: // snapNode is on board
-      shouldBeOrientation = self.tempReturnOrientation;
-      break;
-  }
-  
-  if (animate) {
-    if (self.orientation != shouldBeOrientation) {
-      CGFloat difference = ((shouldBeOrientation - self.orientation + 6) % 6);
-
-      if (difference <= 3) {
-        [self animateOneThirdFlipClockwise:YES times:difference withFullFlip:NO];
-      } else {
-        [self animateOneThirdFlipClockwise:NO times:(6 - difference) withFullFlip:NO];
-      }
-    }
-
-  } else {
-    self.orientation = shouldBeOrientation;
-    [self selectAndPositionSpritesZRotation:0.f];
-  }
-}
-
 -(CGPoint)getHomeNodePositionConsideringSwap {
   CGFloat addedYValue = self.belongsInSwap ? (self.homeNode.position.y + kRackHeight * 0.5) : 0;
   return [self addToThisPoint:self.homeNode.position thisPoint:CGPointMake(0.f, addedYValue)];
@@ -294,6 +261,40 @@
 
 #pragma mark - animate placement methods
 
+-(void)orientBySnapNode:(SnapPoint *)snapNode animate:(BOOL)animate {
+  
+  NSInteger currentOrientation = self.orientation;
+  DyadminoOrientation shouldBeOrientation;
+  
+    // if no snap node, just establish arbirary board one
+  SnapPointType snapPointType = snapNode ? snapNode.snapPointType : kSnapPointBoardTwelveOClock;
+  
+  switch (snapPointType) {
+    case kSnapPointRack:
+      shouldBeOrientation = (currentOrientation <= 1 || currentOrientation >= 5) ? 0 : 3;
+      break;
+    default: // snapNode is on board
+      shouldBeOrientation = self.tempReturnOrientation;
+      break;
+  }
+  
+  if (animate) {
+    if (self.orientation != shouldBeOrientation) {
+      CGFloat difference = ((shouldBeOrientation - self.orientation + 6) % 6);
+      
+      if (difference <= 3) {
+        [self animateOneThirdFlipClockwise:YES times:difference withFullFlip:NO];
+      } else {
+        [self animateOneThirdFlipClockwise:NO times:(6 - difference) withFullFlip:NO];
+      }
+    }
+    
+  } else {
+    self.orientation = shouldBeOrientation;
+    [self selectAndPositionSpritesZRotation:0.f];
+  }
+}
+
 -(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove {
   
   if (includingMove) {
@@ -301,16 +302,21 @@
   }
   
   [self resetFaceScales];
-  [self removeActionForKey:kActionPopIntoRack];
+  [self removeActionForKey:kActionShrinkPopIn];
+  [self removeActionForKey:kActionGrowPopIn];
   [self removeActionForKey:kActionFlip];
   [self removeActionForKey:kActionEaseIntoNode];
   self.isRotating = NO;
 }
 
--(void)goHomeToRackByPoppingInForUndo:(BOOL)popInForUndo andSounding:(BOOL)sounding withResize:(BOOL)resize {
-    // move these into a completion block for animation
+-(void)animateGoingHomeWithCompletion:(void(^)(void))completion {
+  
+}
+
+-(void)goHomeToRackByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize {
+
   if (popInForUndo) {
-    [self animatePopBackIntoRackNodeWithResize:resize];
+    [self animateShrinkPopIntoNodeWithResize:resize];
   } else {
     
     if (resize) {
@@ -321,20 +327,16 @@
     
     self.colorBlendFactor = 0.f;
     [self orientBySnapNode:self.homeNode animate:YES];
-    [self animateInRackOrReplayMoveToPoint:[self getHomeNodePositionConsideringSwap] andSounding:sounding];
+    [self animateInRackOrReplayMoveToPoint:[self getHomeNodePositionConsideringSwap] andCalledFromRack:NO];
   }
   self.tempBoardNode = nil;
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
   // this should be combined into one method with goHomeToRack
--(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding {
-  if (poppingIn) {
-    [self animatePopBackIntoBoardNode];
-  } else {
-    [self orientBySnapNode:self.homeNode animate:YES];
-    [self animateInRackOrReplayMoveToPoint:[self getHomeNodePositionConsideringSwap] andSounding:sounding];
-  }
+-(void)goHomeToBoard {
+  [self orientBySnapNode:self.homeNode animate:YES];
+  [self animateInRackOrReplayMoveToPoint:[self getHomeNodePositionConsideringSwap] andCalledFromRack:NO];
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
@@ -365,14 +367,14 @@
 }
 
 -(void)animateInRackOrReplayMoveToPoint:(CGPoint)point
-                            andSounding:(BOOL)sounding {
+                      andCalledFromRack:(BOOL)calledFromRack {
   
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   SKAction *moveAction = [SKAction moveTo:point duration:kConstantTime]; // was kConstantSpeed * distance
   moveAction.timingMode = SKActionTimingEaseIn;
   
   __weak typeof(self) weakSelf = self;
-  if (sounding) {
+  if (!calledFromRack) {
     SKAction *completeAction = [SKAction runBlock:^{
       
       [weakSelf setToHomeZPositionAndSyncOrientation];
@@ -405,29 +407,18 @@
 
 #pragma mark - animate pop methods
 
--(void)animatePopBackIntoBoardNode {
-    // at the moment, this never gets called, because all returns to board are moved, not popped in
+-(void)animateShrinkPopIntoNodeWithResize:(BOOL)resize {
+  
+  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   
   __weak typeof(self) weakSelf = self;
   
-  void (^repositionBlock)(void) = ^void(void) {
-    [weakSelf orientBySnapNode:([weakSelf belongsInRack] ? weakSelf.tempBoardNode : weakSelf.homeNode) animate:YES];
-    weakSelf.position = [weakSelf belongsInRack] ? weakSelf.tempBoardNode.position : weakSelf.homeNode.position;
+  SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
+  
+  void (^repositionBetweenShrinkAndGrowBlock)(void) = ^void(void) {
+    [weakSelf.delegate postSoundNotification:kNotificationPopIntoNode];
+    [weakSelf setToHomeZPositionAndSyncOrientation];
     
-    if ([self isOnBoard]) {
-      [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
-    }
-  };
-  
-  [self animatePopIntoNodeWithKey:kActionPopIntoBoard andRackRefresh:NO andRepositionBlock:repositionBlock];
-}
-
--(void)animatePopBackIntoRackNodeWithResize:(BOOL)resize {
-  
-  __weak typeof(self) weakSelf = self;
-  void (^repositionBlock)(void);
-  
-  repositionBlock = ^void(void) {
     weakSelf.color = (SKColor *)kNeutralYellow;
     [weakSelf unhighlightOutOfPlay];
     [weakSelf orientBySnapNode:self.homeNode animate:NO];
@@ -437,54 +428,29 @@
       [weakSelf resize];
       [weakSelf selectAndPositionSpritesZRotation:0.f];
     }
-    
     weakSelf.position = [weakSelf getHomeNodePositionConsideringSwap];
   };
+  SKAction *repositionAction = [SKAction runBlock:repositionBetweenShrinkAndGrowBlock];
   
-  [self animatePopIntoNodeWithKey:kActionPopIntoRack andRackRefresh:YES andRepositionBlock:repositionBlock];
-}
-
--(void)animatePopIntoNodeWithKey:(NSString *)key
-                  andRackRefresh:(BOOL)rackRefresh
-              andRepositionBlock:(void(^)(void))repositionBlock {
-  
-  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
-  [self.delegate postSoundNotification:kNotificationPopIntoNode];
-  [self setToHomeZPositionAndSyncOrientation];
-  
-  SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime];
-  SKAction *repositionAction = [SKAction runBlock:repositionBlock];
-  
-  __weak typeof(self) weakSelf = self;
-  
-    // no grow action with rack refresh, because dyadmino will enter after rack nodes are repositioned
-    // grow action will be called by rack
-  SKAction *sequenceAction;
-  
-  if (rackRefresh) {
+    // dyadmino will enter as rack nodes are being repositioned
+    // so grow action will be called by rack
     SKAction *refreshAction = [SKAction runBlock:^{
       [weakSelf.delegate refreshRackFieldAndDyadminoesFromUndo:YES withAnimation:YES];
     }];
-    sequenceAction = [SKAction sequence:@[shrinkAction, refreshAction, repositionAction]];
-    
-  } else {
-    SKAction *popInCompletion = [SKAction runBlock:^{
-      [weakSelf animatePopInWithCompletionBlock:nil];
-    }];
-    sequenceAction = [SKAction sequence:@[shrinkAction, repositionAction, popInCompletion]];
-  }
+  
+    SKAction *sequenceAction = [SKAction sequence:@[shrinkAction, repositionAction, refreshAction]];
 
-  [self runAction:sequenceAction withKey:key];
+  [self runAction:sequenceAction withKey:kActionShrinkPopIn];
 }
 
--(void)animatePopInWithCompletionBlock:(void(^)(void))completionBlock {
+-(void)animateGrowPopInWithCompletionBlock:(void(^)(void))completionBlock {
   SKAction *excessGrowAction = [SKAction scaleTo:kDyadminoHoverResizeFactor duration:kConstantTime * 0.7f];
   excessGrowAction.timingMode = SKActionTimingEaseOut;
   SKAction *settleBackAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.3f];
   settleBackAction.timingMode = SKActionTimingEaseIn;
   SKAction *completionAction = [SKAction runBlock:completionBlock];
   SKAction *sequence = [SKAction sequence:@[excessGrowAction, settleBackAction, completionAction]];
-  [self runAction:sequence withKey:kActionPopIn];
+  [self runAction:sequence withKey:kActionGrowPopIn];
 }
 
 #pragma mark - unique animation methods
@@ -565,7 +531,6 @@
     }];
     SKAction *sequence = [SKAction sequence:@[shrinkFadeOutGroup, hideAction]];
     self.zPosition = kZPositionBoardReplayAnimatedDyadmino;
-      //    [dyadmino removeActionForKey:@"replayShrink"];
     [self runAction:sequence withKey:@"replayShrink"];
     
   } else if (!shrink && self.shrunkForReplay) {
@@ -588,7 +553,6 @@
     }];
     SKAction *sequence = [SKAction sequence:@[growFadeInGroup, completeAction]];
     self.zPosition = kZPositionBoardReplayAnimatedDyadmino;
-      //    [dyadmino removeActionForKey:@"replayGrow"];
     [self runAction:sequence withKey:@"replayGrow"];
   }
 }
@@ -601,7 +565,7 @@
   [self animateOneThirdFlipClockwise:YES times:3 withFullFlip:YES];
 }
 
--(void)completeAnimationOfFullFlip {
+-(void)completionAfterAnimatingFullFlip {
   
     // rotation
   if ([self isInRack] || self.belongsInSwap) {
@@ -654,7 +618,7 @@
           }
           
           if (fullFlip) {
-            [weakSelf completeAnimationOfFullFlip];
+            [weakSelf completionAfterAnimatingFullFlip];
           }
         }
       }];
@@ -729,11 +693,6 @@
     // initial pivotOnPC is dyadmino position
   
   _pivotOnPC = pivotOnPC; // not sure why, but pivotOnPC needs to be set again here, even after being set in determinePivot
-  
-    // ensures that touch doesn't get too close to pivotAroundPoint
-//  if ([self getDistanceFromThisPoint:touchLocation toThisPoint:self.pivotAroundPoint] < kMinDistanceForPivot) {
-//    return NO;
-//  }
   
     // establish angles
   CGFloat touchAngle = [self findAngleInDegreesFromThisPoint:touchLocation toThisPoint:self.pivotAroundPoint];

@@ -99,7 +99,6 @@
 #pragma mark - orient, position, and size methods
 
 -(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle;
--(void)orientBySnapNode:(SnapPoint *)snapNode animate:(BOOL)animate;
 -(CGPoint)getHomeNodePositionConsideringSwap;
 -(void)correctZRotationAfterHover;
 
@@ -114,18 +113,21 @@
 
 #pragma mark - animate placement methods
 
--(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
--(void)goHomeToRackByPoppingInForUndo:(BOOL)popInForUndo andSounding:(BOOL)sounding withResize:(BOOL)resize;
--(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn andSounding:(BOOL)sounding;
+-(void)animateGoingHomeWithCompletion:(void(^)(void))completion;
 
+-(void)orientBySnapNode:(SnapPoint *)snapNode animate:(BOOL)animate;
+-(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
+-(void)goHomeToRackByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize;
+//-(void)goHomeToBoardByPoppingIn:(BOOL)poppingIn;
+-(void)goHomeToBoard;
 -(void)animateEaseIntoNodeAfterHover;
 
   // called by rack
--(void)animateInRackOrReplayMoveToPoint:(CGPoint)point andSounding:(BOOL)sounding;
+-(void)animateInRackOrReplayMoveToPoint:(CGPoint)point andCalledFromRack:(BOOL)calledFromRack;
 
 #pragma mark - animate pop methods
 
--(void)animatePopInWithCompletionBlock:(void(^)(void))completionBlock;
+-(void)animateGrowPopInWithCompletionBlock:(void(^)(void))completionBlock;
 
 #pragma mark - unique animation methods
 

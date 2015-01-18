@@ -74,7 +74,7 @@
 
 -(void)sinkInWithAnimation:(BOOL)animation {
   
-  if ([self actionForKey:@"buttonScale"]) {
+  if ([self actionForKey:@"buttonSink"] || [self actionForKey:@"buttonLift"]) {
     return;
   }
   
@@ -92,13 +92,13 @@
     _isSunkIn = YES; // establish right away so method can't be called again
     SKAction *moveAction = [SKAction scaleTo:scaleTo duration:kConstantTime * 0.1];
     moveAction.timingMode = SKActionTimingEaseOut;
-    [self runAction:moveAction withKey:@"buttonScale"];
+    [self runAction:moveAction withKey:@"buttonSink"];
   }
 }
 
 -(void)liftWithAnimation:(BOOL)animation andCompletion:(void (^)(void))completion {
   
-  if ([self actionForKey:@"buttonScale"]) {
+  if ([self actionForKey:@"buttonLift"] || [self actionForKey:@"buttonSink"]) {
     return;
   }
   
@@ -124,7 +124,7 @@
     }];
     SKAction *completionAction = [SKAction runBlock:completion];
     SKAction *sequence = [SKAction sequence:@[excessAction, bounceBackAction, enableAction, completionAction]];
-    [self runAction:sequence withKey:@"buttonScale"];
+    [self runAction:sequence withKey:@"buttonLift"];
   }
 }
 

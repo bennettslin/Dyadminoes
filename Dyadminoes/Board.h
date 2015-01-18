@@ -85,7 +85,9 @@
 
 #pragma mark - cell methods
 
--(BOOL)layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes minusDyadmino:(Dyadmino *)minusDyadmino;
+-(BOOL)layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes
+                                            minusDyadmino:(Dyadmino *)minusDyadmino
+                                             updateBounds:(BOOL)updateBounds;
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint;
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint;

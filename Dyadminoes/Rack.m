@@ -94,7 +94,7 @@
       if (undo && index == dyadminoesInArray.count - 1) {
         dyadmino.position = shouldBePosition;
         
-        [dyadmino animatePopInWithCompletionBlock:^{
+        [dyadmino animateGrowPopInWithCompletionBlock:^{
           [weakSelf.delegate allowUndoButton];
         }];
         return;
@@ -115,7 +115,7 @@
     if (animation) {
       SKAction *waitAction = [SKAction waitForDuration:(undo ? 0 : index * kWaitTimeForRackDyadminoPopulate)];
       SKAction *moveAction = [SKAction runBlock:^{
-        [dyadmino animateInRackOrReplayMoveToPoint:shouldBePosition andSounding:NO];
+        [dyadmino animateInRackOrReplayMoveToPoint:shouldBePosition andCalledFromRack:YES];
       }];
       SKAction *sequenceAction = [SKAction sequence:@[waitAction, moveAction, completeAction]];
       [dyadmino runAction:sequenceAction withKey:@"repositionDyadmino"];
@@ -126,8 +126,8 @@
 }
 
 -(NSArray *)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
-                            withDyadminoes:(NSArray *)dyadminoesInArray
-                        andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode {
+                                 withDyadminoes:(NSArray *)dyadminoesInArray
+                             andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode {
   
     // touchedDyadmino is in the rack, eligible for exchange
   if ([touchedDyadmino isInRack] || touchedDyadmino.belongsInSwap) {
@@ -168,7 +168,8 @@
           // take care of state change and animation of exchanged dyadmino, as long as it's not on the board
         if (!scootedDyadmino.tempBoardNode) {
           scootedDyadmino.zPosition = kZPositionRackMovedDyadmino;
-          [scootedDyadmino animateInRackOrReplayMoveToPoint:[scootedDyadmino getHomeNodePositionConsideringSwap] andSounding:NO];
+          [scootedDyadmino animateInRackOrReplayMoveToPoint:[scootedDyadmino getHomeNodePositionConsideringSwap]
+                                          andCalledFromRack:YES];
           scootedDyadmino.zPosition = kZPositionRackRestingDyadmino;
           
             // sound it

@@ -269,15 +269,23 @@
 #pragma mark - cell methods
 
 -(BOOL)layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes
-                                            minusDyadmino:(Dyadmino *)minusDyadmino {
+                                            minusDyadmino:(Dyadmino *)minusDyadmino updateBounds:(BOOL)updateBounds {
+  NSSet *finalBoardDyadminoes;
+  if (minusDyadmino) {
+    NSMutableSet *tempFinalBoardDyadminoes = [NSMutableSet setWithSet:boardDyadminoes];
+    [tempFinalBoardDyadminoes removeObject:minusDyadmino];
+    finalBoardDyadminoes = [NSSet setWithSet:tempFinalBoardDyadminoes];
+  } else {
+    finalBoardDyadminoes = boardDyadminoes;
+  }
   
     // regular hex origin is only set once per scene load, but zoom hex origin is set every time
   if (!_hexOriginSet) {
-    self.hexOrigin = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
+    self.hexOrigin = [self determineOutermostCellsBasedOnDyadminoes:finalBoardDyadminoes];
     _hexCurrent = self.hexOrigin;
     _hexOriginSet = YES;
   } else {
-    _hexCurrent = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
+    _hexCurrent = [self determineOutermostCellsBasedOnDyadminoes:finalBoardDyadminoes];
   }
   
   NSMutableSet *tempAddedCellSet = [NSMutableSet new];
@@ -289,7 +297,7 @@
     [cell renderColour];
   }
   
-  for (Dyadmino *dyadmino in boardDyadminoes) {
+  for (Dyadmino *dyadmino in finalBoardDyadminoes) {
       
     HexCoord bottomHexCoord = [self hexCoordFromX:dyadmino.tempBoardNode.myCell.hexCoord.x
                                         andY:dyadmino.tempBoardNode.myCell.hexCoord.y];
@@ -339,7 +347,12 @@
   }
   
   self.allCells = tempAddedCellSet;
-  [self determineBoardPositionBounds];
+  
+    // bounds is not updated with removal by touch, only with removal by cancel
+  if (updateBounds) {
+    [self determineOutermostCellsBasedOnDyadminoes:finalBoardDyadminoes];
+    [self determineBoardPositionBounds];
+  }
   return YES;
 }
 
