@@ -20,7 +20,7 @@
 
 @end
 
-@interface Cell : NSObject
+@interface Cell : SKSpriteNode
 
 @property (weak, nonatomic) id<BoardCellDelegate> delegate;
 

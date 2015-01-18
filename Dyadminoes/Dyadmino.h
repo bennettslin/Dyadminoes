@@ -121,6 +121,9 @@
 -(void)animateEaseIntoNodeAfterHover;
 -(void)animateMoveToPointCalledFromRack:(CGPoint)point;
 
+  // called by scene during replay
+-(void)animateCellAgnosticRepositionAndResize:(BOOL)resize boardZoomedOut:(BOOL)boardZoomedOut givenHexOrigin:(CGVector)hexOrigin;
+
 #pragma mark - animate flip methods
 
 -(void)animateFlip;

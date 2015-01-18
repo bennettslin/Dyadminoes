@@ -684,6 +684,7 @@
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location {
   
   if (_hoveringDyadmino) {
+    NSLog(@"move hovering dyadmino home from pinch gesture");
     [self moveDyadminoHome:_hoveringDyadmino];
   }
   
@@ -691,6 +692,7 @@
   if (_touchedDyadmino) {
     Dyadmino *dyadmino = _touchedDyadmino;
     _touchedDyadmino = nil;
+    NSLog(@"move touched dyadmino home from pinch gesture");
     [self moveDyadminoHome:dyadmino];
   }
   
@@ -1171,7 +1173,7 @@
     dyadmino.isTouchThenHoverResized = NO;
     dyadmino.isZoomResized = _boardZoomedOut;
     
-    [self animate:YES repositionAndResize:YES cellAgnosticDyadmino:dyadmino];
+    [dyadmino animateCellAgnosticRepositionAndResize:YES boardZoomedOut:_boardZoomedOut givenHexOrigin:_boardField.hexOrigin];
   }
 }
 
@@ -1211,7 +1213,8 @@
   if ([_touchedDyadmino isOnBoard] && !_touchedDyadmino.isRotating) {
 
     _uponTouchDyadminoNode = dyadmino.tempBoardNode;
-    _uponTouchDyadminoOrientation = dyadmino.orientation;
+//    _uponTouchDyadminoOrientation = dyadmino.orientation;
+    _uponTouchDyadminoOrientation = dyadmino.tempReturnOrientation;
     
       // 1. it's not hovering, so make it hover
     if (!_touchedDyadmino.canFlip) {
@@ -3277,7 +3280,7 @@
         // position dyadmino
       if (inReplay) {
         
-        [self animate:YES repositionAndResize:NO cellAgnosticDyadmino:dyadmino];
+        [dyadmino animateCellAgnosticRepositionAndResize:NO boardZoomedOut:_boardZoomedOut givenHexOrigin:_boardField.hexOrigin];
         [dyadminoesOnBoardUpToThisPoint addObject:dyadmino];
       } else {
         [dyadmino goHomeToBoard];
@@ -3303,61 +3306,6 @@
     }
   }
   return dyadminoesOnBoardUpToThisPoint;
-}
-
--(void)animate:(BOOL)animate repositionAndResize:(BOOL)resize cellAgnosticDyadmino:(Dyadmino *)dyadmino {
-
-  CGPoint reposition = [Cell positionCellAgnosticDyadminoGivenHexOrigin:_boardField.hexOrigin
-                                                            andHexCoord:dyadmino.myHexCoord
-                                                         andOrientation:dyadmino.tempReturnOrientation
-                                                              andResize:_boardZoomedOut];
-  
-  if (animate) {
-    
-    SKAction *repositionAndMaybeResizeAction;
-    
-      // between .6 and .99
-    CGFloat randomRepositionFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
-    
-    CGPoint positionDifference = [self subtractFromThisPoint:reposition thisPoint:dyadmino.position];
-    const CGFloat excessFactor = 1.1f;
-    
-    CGPoint excessPosition = CGPointMake(positionDifference.x * excessFactor, positionDifference.y * excessFactor);
-    CGPoint excessReposition = [self addToThisPoint:dyadmino.position thisPoint:excessPosition];
-    
-    SKAction *excessRepositionAction = [SKAction moveTo:excessReposition duration:kConstantTime * randomRepositionFactor * 0.7];
-    excessRepositionAction.timingMode = SKActionTimingEaseIn;
-    
-    SKAction *bounceBackAction = [SKAction moveTo:reposition duration:kConstantTime * randomRepositionFactor * 0.3f];
-    SKAction *repositionSequence = [SKAction sequence:@[excessRepositionAction, bounceBackAction]];
-    
-    if (resize) {
-        // between .6 and .99
-      CGFloat randomResizeFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
-      CGFloat scaleTo = dyadmino.isZoomResized ? kZoomResizeFactor : 1 / kZoomResizeFactor;
-      SKAction *resizeAction = [SKAction scaleTo:scaleTo duration:kConstantTime * randomResizeFactor];
-      resizeAction.timingMode = SKActionTimingEaseIn;
-      repositionAndMaybeResizeAction = [SKAction group:@[repositionSequence, resizeAction]];
-      
-    } else {
-      repositionAndMaybeResizeAction = repositionSequence;
-    }
-    
-    SKAction *completeAction = [SKAction runBlock:^{
-      dyadmino.zPosition = kZPositionBoardRestingDyadmino;
-      [dyadmino setScale:1.f];
-      [dyadmino selectAndPositionSpritesZRotation:0.f];
-    }];
-    SKAction *sequenceAction = [SKAction sequence:@[repositionAndMaybeResizeAction, completeAction]];
-    
-//    [dyadmino removeActionForKey:@"replayAction"];
-    dyadmino.zPosition = kZPositionBoardReplayAnimatedDyadmino;
-    [dyadmino runAction:sequenceAction withKey:@"replayAction"];
-    
-  } else {
-    dyadmino.position = reposition;
-    [dyadmino selectAndPositionSpritesZRotation:0.f];
-  }
 }
 
 #pragma mark - action sheet methods

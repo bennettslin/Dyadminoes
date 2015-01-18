@@ -29,8 +29,6 @@
 @property (readwrite, nonatomic) BOOL belongsInSwap;
 @property (readwrite, nonatomic) BOOL isRotating;
 
-//@property (readwrite, nonatomic) DyadminoOrientation orientation;
-
 @end
 
 @implementation Dyadmino {
@@ -425,6 +423,54 @@
   SKAction *completionAction = [SKAction runBlock:completion];
   SKAction *sequence = [SKAction sequence:@[moveAction, completionAction]];
   [self runAction:sequence withKey:key];
+}
+
+-(void)animateCellAgnosticRepositionAndResize:(BOOL)resize boardZoomedOut:(BOOL)boardZoomedOut givenHexOrigin:(CGVector)hexOrigin {
+  
+  CGPoint reposition = [Cell positionCellAgnosticDyadminoGivenHexOrigin:hexOrigin
+                                                            andHexCoord:self.myHexCoord
+                                                         andOrientation:self.tempReturnOrientation
+                                                              andResize:boardZoomedOut];
+    
+  SKAction *repositionAndMaybeResizeAction;
+  
+    // between .6 and .99
+  CGFloat randomRepositionFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
+  
+  CGPoint positionDifference = [self subtractFromThisPoint:reposition thisPoint:self.position];
+  const CGFloat excessFactor = 1.1f;
+  
+  CGPoint excessPosition = CGPointMake(positionDifference.x * excessFactor, positionDifference.y * excessFactor);
+  CGPoint excessReposition = [self addToThisPoint:self.position thisPoint:excessPosition];
+  
+  SKAction *excessRepositionAction = [SKAction moveTo:excessReposition duration:kConstantTime * randomRepositionFactor * 0.7];
+  excessRepositionAction.timingMode = SKActionTimingEaseIn;
+  
+  SKAction *bounceBackAction = [SKAction moveTo:reposition duration:kConstantTime * randomRepositionFactor * 0.3f];
+  SKAction *repositionSequence = [SKAction sequence:@[excessRepositionAction, bounceBackAction]];
+  
+  if (resize) {
+      // between .6 and .99
+    CGFloat randomResizeFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
+    CGFloat scaleTo = self.isZoomResized ? kZoomResizeFactor : 1 / kZoomResizeFactor;
+    SKAction *resizeAction = [SKAction scaleTo:scaleTo duration:kConstantTime * randomResizeFactor];
+    resizeAction.timingMode = SKActionTimingEaseIn;
+    repositionAndMaybeResizeAction = [SKAction group:@[repositionSequence, resizeAction]];
+    
+  } else {
+    repositionAndMaybeResizeAction = repositionSequence;
+  }
+  
+  SKAction *completeAction = [SKAction runBlock:^{
+    self.zPosition = kZPositionBoardRestingDyadmino;
+    [self setScale:1.f];
+    [self selectAndPositionSpritesZRotation:0.f];
+  }];
+  SKAction *sequenceAction = [SKAction sequence:@[repositionAndMaybeResizeAction, completeAction]];
+  
+    //    [dyadmino removeActionForKey:@"replayAction"];
+  self.zPosition = kZPositionBoardReplayAnimatedDyadmino;
+  [self runAction:sequenceAction withKey:@"replayAction"];
 }
 
 #pragma mark - animate flip methods

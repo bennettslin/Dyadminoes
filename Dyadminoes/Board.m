@@ -269,7 +269,11 @@
 #pragma mark - cell methods
 
 -(BOOL)layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes
-                                            minusDyadmino:(Dyadmino *)minusDyadmino updateBounds:(BOOL)updateBounds {
+                                            minusDyadmino:(Dyadmino *)minusDyadmino
+                                             updateBounds:(BOOL)updateBounds {
+  
+  NSLog(@"layout and colour board cells");
+  
   NSSet *finalBoardDyadminoes;
   if (minusDyadmino) {
     NSMutableSet *tempFinalBoardDyadminoes = [NSMutableSet setWithSet:boardDyadminoes];
