@@ -13,8 +13,6 @@
 #import "SKSpriteNode+Helper.h"
 
 #define kActionMoveToPoint @"moveToPoint"
-//#define kActionPopIntoBoard @"popIntoBoard"
-//#define kActionPopIntoRack @"popIntoRack"
 #define kActionShrinkPopIn @"shrinkPopIn"
 #define kActionGrowPopIn @"growPopIn"
 #define kActionFlip @"flip"
@@ -79,8 +77,6 @@
   self.colorBlendFactor = 0.f;
   self.cellForPC1 = nil;
   self.cellForPC2 = nil;
-//  self.homeNode = nil;
-//  self.tempBoardNode = nil;
   self.isInTopBar = NO;
   self.belongsInSwap = NO;
   self.canFlip = NO;
@@ -248,13 +244,8 @@
 #pragma mark - change view methods
 
 -(void)setToHomeZPosition {
-//  self.zPosition = (self.homeNode.snapPointType == kSnapPointRack) ?
-//      kZPositionRackRestingDyadmino : kZPositionBoardRestingDyadmino;
   self.zPosition = [self belongsInRack] ?
       kZPositionRackRestingDyadmino : kZPositionBoardRestingDyadmino;
-  
-    // FIXME: this doesn't seem to be necessary, but just make sure
-//  self.tempReturnOrientation = self.orientation;
 }
 
 -(void)resetFaceScales {
@@ -324,7 +315,6 @@
     [self orientWithAnimation:YES];
     [self animateMoveToPoint:[self addIfSwapToHomePosition:rackPosition]];
   }
-//  self.tempBoardNode = nil;
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
@@ -340,20 +330,8 @@
 -(void)animateEaseIntoNodeAfterHover {
   NSLog(@"animate ease into node after hover");
   
-    // animate to tempBoardNode if it's a rack dyadmino, otherwise to homeNode
-//  CGPoint settledPosition = ([self belongsInRack] && [self isOnBoard]) ?
-//      self.tempBoardNode.position : self.homeNode.position;
-  
   CGPoint settledPosition = [self.delegate tempPositionForDyadmino:self];
 
-//  CGPoint settledPosition;
-//  if ([self belongsInRack] && [self isOnBoard]) {
-//    settledPosition = [self.delegate tempPositionForDyadmino:self];
-//  } else {
-//    settledPosition = [self.delegate homePositionForDyadmino:self];
-//  }
-
-  
   __weak typeof(self) weakSelf = self;
   void (^completion)(void) = ^void(void) {
     
@@ -369,8 +347,6 @@
     if ([self isOnBoard]) {
       [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
     }
-    
-//    NSLog(@"from animate ease into node, my homeNode is %@, tempNode is %@, tempReturn orientation %i, orientaiton %i", self.homeNode.name, self.tempBoardNode.name, self.tempReturnOrientation, self.orientation);
   };
 
   [self animateToPosition:settledPosition
@@ -409,8 +385,6 @@
       if ([self isOnBoard]) {
         [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
       }
-      
-//      NSLog(@"from animate nodeless move to point, my homeNode is %@, tempNode is %@, tempReturn orientation %i, orientaiton %i", self.homeNode.name, self.tempBoardNode.name, self.tempReturnOrientation, self.orientation);
     };
     
   } else {
@@ -552,9 +526,6 @@
     [self endTouchThenHoverResize];
     self.isRotating = NO;
     [self.delegate postSoundNotification:kNotificationPivotClick];
-    
-      // just to ensure that dyadmino is back in its node position
-//    self.position = self.homeNode.position;
     
   } else if ([self isOnBoard]) {
     self.isRotating = NO;
@@ -940,17 +911,11 @@
 #pragma mark - query methods
 
 -(BOOL)belongsInRack {
-//  return [self.delegate dyadminoBelongsInRack:self];
   return (self.rackIndex != -1);
-//  return (self.homeNode.snapPointType == kSnapPointRack);
 }
 
 -(BOOL)belongsOnBoard {
-//  return [self.delegate dyadminoBelongsOnBoard:self];
   return (self.rackIndex == -1);
-//  return (self.homeNode.snapPointType == kSnapPointBoardTwelveOClock ||
-//          self.homeNode.snapPointType == kSnapPointBoardTwoOClock ||
-//          self.homeNode.snapPointType == kSnapPointBoardTenOClock);
 }
 
 -(BOOL)isInRack {

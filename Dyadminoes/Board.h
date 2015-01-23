@@ -8,7 +8,6 @@
 
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
-//@class SnapPoint;
 @class Cell;
 
 @protocol BoardDelegate <NSObject>
@@ -38,14 +37,9 @@
 @property (nonatomic) CGFloat lowestYPos;
 @property (nonatomic) CGFloat lowestXPos;
 
-//@property (strong, nonatomic) NSMutableSet *snapPointsTwelveOClock;
-//@property (strong, nonatomic) NSMutableSet *snapPointsTwoOClock;
-//@property (strong, nonatomic) NSMutableSet *snapPointsTenOClock;
-
 @property (strong, nonatomic) NSMutableSet *allCells;
 
   // pivot properties
-
 @property (nonatomic) PivotOnPC pivotOnPC;
 @property (strong, nonatomic) SKNode *prePivotGuide;
 @property (strong, nonatomic) SKNode *pivotRotateGuide;

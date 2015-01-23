@@ -9,7 +9,6 @@
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
 @class Dyadmino;
-//@class SnapPoint;
 @class Board;
 
 @protocol FieldNodeDelegate <NSObject>
@@ -24,7 +23,6 @@
 @interface Rack : SKSpriteNode
 
 @property (nonatomic) CGFloat xIncrementInRack;
-//@property (strong, nonatomic) NSMutableArray *rackNodes;
 @property (weak, nonatomic) id <FieldNodeDelegate> delegate;
 
   //----------------------------------------------------------------------------
@@ -33,8 +31,6 @@
 #pragma mark - init and layout methods
 
 -(id)initWithColour:(SKColor *)colour andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition;
-
-//-(void)layoutOrRefreshNodesWithCount:(NSUInteger)countNumber;
 
 #pragma mark - reposition methods
 
@@ -47,7 +43,7 @@
 
 #pragma mark - helper methods
 
--(CGPoint)getNodePositionAtIndex:(NSUInteger)nodeIndex withCountNumber:(NSUInteger)countNumber;
+-(CGPoint)getRackPositionAtIndex:(NSUInteger)nodeIndex withCountNumber:(NSUInteger)countNumber;
 
 @end
 

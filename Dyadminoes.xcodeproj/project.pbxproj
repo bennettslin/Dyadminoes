@@ -59,7 +59,6 @@
 		3F87AAE0188DEE4C008C4A0D /* SceneEngineTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F87AADF188DEE4C008C4A0D /* SceneEngineTests.m */; };
 		3F88EDB719638FBF005CC9A4 /* LocalGameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F88EDB619638FBF005CC9A4 /* LocalGameViewController.m */; };
 		3F8F045818BFB1B300853C4C /* NSObject+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F8F045718BFB1B300853C4C /* NSObject+Helper.m */; };
-		3F8F045B18BFEF3300853C4C /* SnapPoint.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F8F045A18BFEF3300853C4C /* SnapPoint.m */; };
 		3F908C3F19973B0800650C36 /* Face.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F908C3E19973B0800650C36 /* Face.m */; };
 		3F9923091895ECCA00FC9392 /* SonorityLogic.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F9923081895ECCA00FC9392 /* SonorityLogic.m */; };
 		3FB49E301A4D6B19007F2A1E /* SKSpriteNode+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FB49E2F1A4D6B19007F2A1E /* SKSpriteNode+Helper.m */; };
@@ -184,8 +183,6 @@
 		3F88EDB619638FBF005CC9A4 /* LocalGameViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocalGameViewController.m; sourceTree = "<group>"; };
 		3F8F045618BFB1B300853C4C /* NSObject+Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+Helper.h"; sourceTree = "<group>"; };
 		3F8F045718BFB1B300853C4C /* NSObject+Helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+Helper.m"; sourceTree = "<group>"; };
-		3F8F045918BFEF3300853C4C /* SnapPoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SnapPoint.h; sourceTree = "<group>"; };
-		3F8F045A18BFEF3300853C4C /* SnapPoint.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SnapPoint.m; sourceTree = "<group>"; };
 		3F908C3D19973B0800650C36 /* Face.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Face.h; sourceTree = "<group>"; };
 		3F908C3E19973B0800650C36 /* Face.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Face.m; sourceTree = "<group>"; };
 		3F9923071895ECCA00FC9392 /* SonorityLogic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SonorityLogic.h; sourceTree = "<group>"; };
@@ -522,8 +519,6 @@
 				3FDD7FD818D4C89B0029DB7D /* Board.m */,
 				3FD06E2118D6544F00E2FF04 /* Cell.h */,
 				3FD06E2218D6544F00E2FF04 /* Cell.m */,
-				3F8F045918BFEF3300853C4C /* SnapPoint.h */,
-				3F8F045A18BFEF3300853C4C /* SnapPoint.m */,
 				3F3116CC18CEFC5D0015CC2A /* Rack.h */,
 				3F3116CD18CEFC5D0015CC2A /* Rack.m */,
 				3F55E1FB18D7A8520048E67E /* Button.h */,
@@ -660,7 +655,6 @@
 				3FECDE0D19355B2F00D774AB /* RankViewController.m in Sources */,
 				3FCCA71B18948AF200E0E4B5 /* Dyadmino.m in Sources */,
 				3F3C8FF11990D9EE0061B208 /* ReplayBar.m in Sources */,
-				3F8F045B18BFEF3300853C4C /* SnapPoint.m in Sources */,
 				3F88EDB719638FBF005CC9A4 /* LocalGameViewController.m in Sources */,
 				3F7BD7DB192B0A37009274DE /* MatchTableViewCell.m in Sources */,
 				3FBC6AD4194E1BBD00420CB8 /* SoundEngine.m in Sources */,

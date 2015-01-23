@@ -7,8 +7,6 @@
 //
 
 #import "Cell.h"
-//#import "SnapPoint.h"
-//#import "Board.h"
 
 #define kPaddingBetweenCells (kIsIPhone ? 0.f : 0.f)
 
@@ -33,7 +31,6 @@
   if (self) {
     
     self.cellNodeTexture = texture;
-//    self.delegate = delegate;
     
     [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin forResize:resize];
   }
@@ -51,9 +48,6 @@
   
     // establish cell position
   self.cellNodePosition = [Cell cellPositionWithHexOrigin:hexOrigin andHexCoord:self.hexCoord forResize:resize];
-  
-    // create snap points
-//  [self createSnapPoints];
   
   CGSize cellSize = [Cell cellSizeForResize:resize];
   self.cellNode ? [self initPositionCellNodeWithSize:cellSize] : [self instantiateCellNodeWithSize:cellSize];
@@ -158,7 +152,6 @@
   self.cellNode.name = @"cellNode";
   self.cellNode.texture = self.cellNodeTexture;
   self.cellNode.zPosition = kZPositionBoardCell;
-//  [self addColourWithRed:_red green:_green blue:_blue alpha:_alpha];
   self.cellNode.colorBlendFactor = .9f;
   self.cellNode.size = cellSize;
   [self initPositionCellNodeWithSize:cellSize];
@@ -179,85 +172,7 @@
   [self updatePCLabel];
 }
 
-#pragma mark - snap points methods
-
-//-(void)createSnapPoints {
-//  
-//  if (!self.boardSnapPointTwelveOClock) {
-//    self.boardSnapPointTwelveOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwelveOClock];
-//    self.boardSnapPointTwelveOClock.name = @"snap 12";
-//    self.boardSnapPointTwelveOClock.myCell = self;
-//  }
-//  
-//  if (!self.boardSnapPointTwoOClock) {
-//    self.boardSnapPointTwoOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwoOClock];
-//    self.boardSnapPointTwoOClock.name = @"snap 2";
-//    self.boardSnapPointTwoOClock.myCell = self;
-//  }
-//
-//  if (!self.boardSnapPointTenOClock) {
-//    self.boardSnapPointTenOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTenOClock];
-//    self.boardSnapPointTenOClock.name = @"snap 10";
-//    self.boardSnapPointTenOClock.myCell = self;
-//  }
-//  
-//  CGPoint passedInPosition = self.cellNode ? self.cellNode.position : self.cellNodePosition;
-//  [self positionSnapPointsWithPosition:passedInPosition forResize:NO];
-//}
-
-//-(void)positionSnapPointsWithPosition:(CGPoint)cellPosition forResize:(BOOL)resize {
-//  CGFloat faceOffset = resize ? kDyadminoFaceRadius * kZoomResizeFactor : kDyadminoFaceRadius;
-//  
-//    // based on a 30-60-90 degree triangle
-//  CGFloat faceOffsetX = faceOffset * 0.5 * kSquareRootOfThree;
-//  CGFloat faceOffsetY = faceOffset * 0.5;
-//
-//  self.boardSnapPointTwelveOClock.position = [self addToThisPoint:cellPosition
-//                                                        thisPoint:CGPointMake(0.f, faceOffset)];
-//  self.boardSnapPointTwoOClock.position = [self addToThisPoint:cellPosition
-//                                                     thisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
-//  self.boardSnapPointTenOClock.position = [self addToThisPoint:cellPosition
-//                                                     thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
-//}
-
-//-(void)addSnapPointsToBoardAndResize:(BOOL)resize {
-//  
-//  CGPoint passedInPosition = self.cellNode ? self.cellNode.position : self.cellNodePosition;
-//  [self positionSnapPointsWithPosition:passedInPosition forResize:resize];
-//  
-//  if (![self.delegate.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
-//    [self.delegate.snapPointsTwelveOClock addObject:self.boardSnapPointTwelveOClock];
-//  }
-//  if (![self.delegate.snapPointsTwoOClock containsObject:self.boardSnapPointTwoOClock]) {
-//    [self.delegate.snapPointsTwoOClock addObject:self.boardSnapPointTwoOClock];
-//  }
-//  if (![self.delegate.snapPointsTenOClock containsObject:self.boardSnapPointTenOClock]) {
-//    [self.delegate.snapPointsTenOClock addObject:self.boardSnapPointTenOClock];
-//  }
-//}
-//
-//-(void)removeSnapPointsFromBoard {
-//  
-//  if ([self.delegate.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
-//    [self.delegate.snapPointsTwelveOClock removeObject:self.boardSnapPointTwelveOClock];
-//  }
-//  if ([self.delegate.snapPointsTwoOClock containsObject:self.boardSnapPointTwoOClock]) {
-//    [self.delegate.snapPointsTwoOClock removeObject:self.boardSnapPointTwoOClock];
-//  }
-//  if ([self.delegate.snapPointsTenOClock containsObject:self.boardSnapPointTenOClock]) {
-//    [self.delegate.snapPointsTenOClock removeObject:self.boardSnapPointTenOClock];
-//  }
-//}
-
 #pragma mark - cell view helper methods
-
-//-(void)addColourWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha {
-//  _red += red;
-//  _green += green;
-//  _blue += blue;
-//  _alpha += alpha;
-//  self.cellNode.color = [SKColor colorWithRed:_red green:_green blue:_blue alpha:_alpha];
-//}
 
 -(void)animateResizeAndRepositionOfCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize {
   
@@ -291,10 +206,7 @@
   SKAction *moveAction = [SKAction moveTo:reposition duration:kConstantTime * randomRepositionFactor];
   SKAction *moveCompletionAction = [SKAction runBlock:^{
     weakSelf.cellNode.position = reposition;
-    
-//    CGPoint passedInPosition = weakSelf.cellNode ? weakSelf.cellNode.position : weakSelf.cellNodePosition;
-//    [weakSelf positionSnapPointsWithPosition:passedInPosition forResize:resize];
-    
+
   }];
   SKAction *moveSequenceAction = [SKAction sequence:@[moveAction, moveCompletionAction]];
   [self.cellNode runAction:moveSequenceAction];
@@ -356,39 +268,6 @@
       break;
   }
 }
-
-//+(CGPoint)positionCellAgnosticDyadminoGivenHexOrigin:(CGVector)hexOrigin andHexCoord:(HexCoord)hexCoord andOrientation:(DyadminoOrientation)orientation andResize:(BOOL)resize {
-//  
-//    // get hypothetical cellPosition
-//  CGPoint cellPosition = [Cell cellPositionWithHexOrigin:hexOrigin andHexCoord:hexCoord forResize:resize];
-//  
-//    // next get hypothetical cell's snap point
-//  CGFloat faceOffset = resize ? kDyadminoFaceRadius * kZoomResizeFactor : kDyadminoFaceRadius;
-//  
-//    // based on a 30-60-90 degree triangle
-//  CGFloat faceOffsetX = faceOffset * 0.5 * kSquareRootOfThree;
-//  CGFloat faceOffsetY = faceOffset * 0.5;
-//  
-//  CGPoint celllessDyadminoPosition;
-//  
-//  switch (orientation) {
-//    case kPC1atTwelveOClock:
-//    case kPC1atSixOClock:
-//      celllessDyadminoPosition = [self addToThisPoint:cellPosition thisPoint:CGPointMake(0.f, faceOffset)];
-//      break;
-//    case kPC1atTwoOClock:
-//    case kPC1atEightOClock:
-//      celllessDyadminoPosition = [self addToThisPoint:cellPosition thisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
-//      break;
-//    case kPC1atFourOClock:
-//    case kPC1atTenOClock:
-//      celllessDyadminoPosition = [self addToThisPoint:cellPosition thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
-//      break;
-//    default:
-//      break;
-//  }
-//  return celllessDyadminoPosition;
-//}
 
 #pragma mark - testing methods
 

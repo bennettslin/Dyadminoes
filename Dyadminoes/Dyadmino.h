@@ -9,7 +9,6 @@
 #import <Foundation/Foundation.h>
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
-//#import "SnapPoint.h"
 @class Cell;
 @class Face;
 
@@ -19,10 +18,6 @@
 -(CGPoint)homePositionForDyadmino:(Dyadmino *)dyadmino;
 -(CGPoint)tempPositionForDyadmino:(Dyadmino *)dyadmino;
 -(CGPoint)rackPositionForDyadmino:(Dyadmino *)dyadmino;
-
-  // these must be delegate methods, because dyadmino does not know match data
-//-(BOOL)dyadminoBelongsInRack:(Dyadmino *)dyadmino;
-//-(BOOL)dyadminoBelongsOnBoard:(Dyadmino *)dyadmino;
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino withLayout:(BOOL)layout;
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
@@ -45,15 +40,10 @@
 @property (strong, nonatomic) Cell *cellForPC1;
 @property (strong, nonatomic) Cell *cellForPC2;
 
-  // nodes and touches
+  // preserved positions
 @property (assign, nonatomic) HexCoord homeHexCoord; // replaces homeNode
 @property (assign, nonatomic) HexCoord tempHexCoord; // replaces tempBoardNode
 @property (assign, nonatomic) NSInteger rackIndex; // replaces homeNode for rack
-
-//@property (strong, nonatomic) SnapPoint *homeNode;
-//@property (strong, nonatomic) SnapPoint *tempBoardNode;
-
-//@property (assign, nonatomic) NSInteger myRackOrder;
 
   // orientations
 @property (assign, nonatomic) DyadminoOrientation orientation;
@@ -113,7 +103,6 @@
 #pragma mark - orient, position, and size methods
 
 -(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle;
-//-(CGPoint)getHomeNodePositionConsideringSwap;
 
   // called by rack
 -(CGPoint)addIfSwapToHomePosition:(CGPoint)homePosition;
@@ -132,7 +121,6 @@
 
 -(void)orientWithAnimation:(BOOL)animate;
 -(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
-//-(void)goHomeToRackPosition:(CGPoint)rackHomePosition byPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize;
 -(void)goHomeToRackPositionByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize;
 -(void)goHomeToBoard;
 -(void)animateEaseIntoNodeAfterHover;

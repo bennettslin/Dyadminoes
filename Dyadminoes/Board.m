@@ -62,10 +62,6 @@
     
     self.userWantsPivotGuides = YES;
 
-      // instantiate node and cell arrays to be searched
-//    self.snapPointsTwelveOClock = [NSMutableSet new];
-//    self.snapPointsTwoOClock = [NSMutableSet new];
-//    self.snapPointsTenOClock = [NSMutableSet new];
     self.allCells = [NSMutableSet new];
     
       // create new cells from get-go
@@ -297,6 +293,7 @@
     _hexCurrent = [self determineOutermostCellsBasedOnDyadminoes:finalBoardDyadminoes];
   }
   
+  /*
   NSMutableSet *tempAddedCellSet = [NSMutableSet new];
   NSMutableSet *tempRemovedCellSet = [NSMutableSet setWithSet:self.allCells];
 
@@ -308,9 +305,6 @@
   
   for (Dyadmino *dyadmino in finalBoardDyadminoes) {
 
-//    HexCoord bottomHexCoord = [self hexCoordFromX:dyadmino.tempBoardNode.myCell.hexCoord.x
-//                                        andY:dyadmino.tempBoardNode.myCell.hexCoord.y];
-//    HexCoord topHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:dyadmino.tempBoardNode];
     HexCoord bottomHexCoord = [self hexCoordFromX:dyadmino.tempHexCoord.x andY:dyadmino.tempHexCoord.y];
     HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadmino.orientation];
     
@@ -346,7 +340,6 @@
     }
   }
   
-  
     // dequeue all removed cells
   for (Cell *cell in tempRemovedCellSet) {
     [self ignoreCell:cell];
@@ -358,6 +351,7 @@
   }
   
   self.allCells = tempAddedCellSet;
+   */
   
     // bounds is not updated with removal by touch, only with removal by cancel
   if (updateBounds) {
@@ -398,7 +392,6 @@
 
     if (![self.allCells containsObject:cell]) {
       [self.allCells addObject:cell];
-//      [cell addSnapPointsToBoardAndResize:self.zoomedOut];
     }
   }
   return cell;
@@ -416,7 +409,6 @@
     
     if ([self.allCells containsObject:cell]) {
       [self.allCells removeObject:cell];
-//      [cell removeSnapPointsFromBoard];
     }
     [self pushDequeuedCell:cell];
   }
@@ -672,8 +664,6 @@
   
   NSArray *cellsArray = [NSArray arrayWithArray:tempCellsArray];
   return cellsArray;
-  
-//  return topCell ? @[topCell, bottomCell] : @[bottomCell];
 }
 
 #pragma mark - pivot guide methods
