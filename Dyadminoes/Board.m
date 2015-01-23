@@ -7,7 +7,6 @@
 //
 
 #import "Board.h"
-#import "SnapPoint.h"
 #import "Cell.h"
 #import "Dyadmino.h"
 #import "Face.h"
@@ -196,10 +195,10 @@
   
   for (Dyadmino *dyadmino in boardDyadminoes) {
 
-    HexCoord hexCoord1 = [self hexCoordFromX:dyadmino.myHexCoord.x andY:dyadmino.myHexCoord.y];
-    HexCoord hexCoord2 = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:nil];
-  
-    HexCoord hexCoord[2] = {hexCoord1, hexCoord2};
+    HexCoord bottomHexCoord = [self hexCoordFromX:dyadmino.tempHexCoord.x andY:dyadmino.tempHexCoord.y];
+    HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadmino.orientation];
+    
+    HexCoord hexCoord[2] = {bottomHexCoord, topHexCoord};
     
     for (int i = 0; i < 2; i++) {
       NSInteger xHex = hexCoord[i].x;
@@ -308,10 +307,12 @@
   }
   
   for (Dyadmino *dyadmino in finalBoardDyadminoes) {
-      
-    HexCoord bottomHexCoord = [self hexCoordFromX:dyadmino.tempBoardNode.myCell.hexCoord.x
-                                        andY:dyadmino.tempBoardNode.myCell.hexCoord.y];
-    HexCoord topHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:dyadmino.tempBoardNode];
+
+//    HexCoord bottomHexCoord = [self hexCoordFromX:dyadmino.tempBoardNode.myCell.hexCoord.x
+//                                        andY:dyadmino.tempBoardNode.myCell.hexCoord.y];
+//    HexCoord topHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:dyadmino.tempBoardNode];
+    HexCoord bottomHexCoord = [self hexCoordFromX:dyadmino.tempHexCoord.x andY:dyadmino.tempHexCoord.y];
+    HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadmino.orientation];
     
     HexCoord hexCoord[2] = {bottomHexCoord, topHexCoord};
     
@@ -411,7 +412,6 @@
 -(void)ignoreCell:(Cell *)cell {
   if (cell) {
     
-//    [cell resetForReuse];
     cell.cellNode ? [cell.cellNode removeFromParent] : nil;
     
     if ([self.allCells containsObject:cell]) {
@@ -473,8 +473,6 @@
                                            givenHexOrigin:self.hexOrigin];
     
     degrees = [self findAngleInDegreesFromThisPoint:homeSnapPosition toThisPoint:dyadminoPosition];
-    
-//    NSLog(@"home: %li, %li, degrees: %.2f, Distance: %.2f", (long)homeHexCoord.x, (long)homeHexCoord.y, degrees, fabsf([self getDistanceFromThisPoint:homeSnapPosition toThisPoint:dyadminoPosition]));
   }
   
   HexCoord hexCoordsToCheck[7] = {homeHexCoord,
@@ -558,44 +556,39 @@
 
 #pragma mark - cell and data dyadmino methods
 
--(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint {
+-(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBottomHexCoord:(HexCoord)bottomHexCoord {
   
     // this assumes dyadmino is properly oriented for this boardNode
-  if ([snapPoint isBoardNode]) {
+  NSArray *cells = [self topAndBottomCellsArrayForDyadmino:dyadmino
+                                         andBottomHexCoord:bottomHexCoord];
+  NSInteger pcs[2] = {dyadmino.pc1, dyadmino.pc2};
+  
+  for (int i = 0; i < cells.count; i++) {
+    Cell *cell = cells[i];
     
-    NSArray *cells = [self topAndBottomCellsArrayForDyadmino:dyadmino andBoardNode:snapPoint];
-    NSInteger pcs[2] = {dyadmino.pc1, dyadmino.pc2};
-    
-    for (int i = 0; i < cells.count; i++) {
-      Cell *cell = cells[i];
+      // only assign if cell doesn't have a dyadmino recorded
+    if (!cell.myDyadmino) {
       
-        // only assign if cell doesn't have a dyadmino recorded
-      if (!cell.myDyadmino) {
-        
-        cell.myPC = (dyadmino.orientation <= kPC1atTwoOClock || dyadmino.orientation >= kPC1atTenOClock) ?
-            pcs[i] : pcs[(i + 1) % 2];
-        
-          // ensures there's only one cell for each dyadmino pc, and vice versa
-        [self mapOneCell:cell toOnePCForDyadmino:dyadmino];
-      }
+      cell.myPC = (dyadmino.orientation <= kPC1atTwoOClock || dyadmino.orientation >= kPC1atTenOClock) ?
+          pcs[i] : pcs[(i + 1) % 2];
+      
+        // ensures there's only one cell for each dyadmino pc, and vice versa
+      [self mapOneCell:cell toOnePCForDyadmino:dyadmino];
     }
   }
 }
 
--(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint {
-  
-    // don't call if it's a rack node
-  if ([snapPoint isBoardNode]) {
+-(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBottomHexCoord:(HexCoord)bottomHexCoord {
 
-    NSArray *cells = [self topAndBottomCellsArrayForDyadmino:dyadmino andBoardNode:snapPoint];
+  NSArray *cells = [self topAndBottomCellsArrayForDyadmino:dyadmino
+                                         andBottomHexCoord:bottomHexCoord];
+  
+  for (int i = 0; i < cells.count; i++) {
+    Cell *cell = cells[i];
     
-    for (int i = 0; i < cells.count; i++) {
-      Cell *cell = cells[i];
-      
-        // only remove if cell dyadmino is dyadmino
-      if (cell.myDyadmino == dyadmino) {
-        [self removeDyadminoDataFromCell:cell];
-      }
+      // only remove if cell dyadmino is dyadmino
+    if (cell.myDyadmino == dyadmino) {
+      [self removeDyadminoDataFromCell:cell];
     }
   }
 }
@@ -649,39 +642,6 @@
   return YES;
 }
 
--(HexCoord)getHexCoordOfOtherCellGivenDyadmino:(Dyadmino *)dyadmino andBoardNode:(SnapPoint *)snapPoint {
-  
-    // method needs board node
-    // there are situations where it cannot get hexCoord from dyadmino alone
-  
-  NSInteger xHex;
-  NSInteger yHex;
-  if (snapPoint) {
-    xHex = snapPoint.myCell.hexCoord.x;
-    yHex = snapPoint.myCell.hexCoord.y;
-  } else {
-    xHex = dyadmino.myHexCoord.x;
-    yHex = dyadmino.myHexCoord.y;
-  }
-  
-  switch (dyadmino.orientation) {
-    case kPC1atTwelveOClock:
-    case kPC1atSixOClock:
-      yHex++;
-      break;
-    case kPC1atTwoOClock:
-    case kPC1atEightOClock:
-      xHex++;
-      break;
-    case kPC1atFourOClock:
-    case kPC1atTenOClock:
-      xHex--;
-      yHex++;
-      break;
-  }
-  return [self hexCoordFromX:xHex andY:yHex];
-}
-
 -(Cell *)getCellWithHexCoord:(HexCoord)hexCoord {
   for (Cell *cell in self.allCells) {
     if ([cell isKindOfClass:[Cell class]]) {
@@ -693,11 +653,27 @@
   return nil;
 }
 
--(NSArray *)topAndBottomCellsArrayForDyadmino:(Dyadmino *)dyadmino andBoardNode:(SnapPoint *)snapPoint {
-  Cell *bottomCell = snapPoint.myCell;
-  HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
-  Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
-  return topCell ? @[topCell, bottomCell] : @[bottomCell];
+-(NSArray *)topAndBottomCellsArrayForDyadmino:(Dyadmino *)dyadmino
+                            andBottomHexCoord:(HexCoord)bottomHexCoord {
+
+  HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadmino.orientation];
+  
+  Cell *topCell = [self getCellWithHexCoord:topHexCoord];
+  Cell *bottomCell = [self getCellWithHexCoord:bottomHexCoord];
+  
+  NSMutableArray *tempCellsArray = [NSMutableArray new];
+  if (topCell) {
+    [tempCellsArray addObject:topCell];
+  }
+  
+  if (bottomCell) {
+    [tempCellsArray addObject:bottomCell];
+  }
+  
+  NSArray *cellsArray = [NSArray arrayWithArray:tempCellsArray];
+  return cellsArray;
+  
+//  return topCell ? @[topCell, bottomCell] : @[bottomCell];
 }
 
 #pragma mark - pivot guide methods
@@ -921,57 +897,6 @@
   self.pivotRotateGuide.position = pivotAroundPoint;
   self.pivotAroundGuide.zRotation = [self getRadiansFromDegree:trueAngle];
   self.pivotRotateGuide.zRotation = [self getRadiansFromDegree:trueAngle];
-}
-
-#pragma mark - legality methods
-
--(PhysicalPlacementResult)validatePhysicallyPlacingDyadmino:(Dyadmino *)dyadmino onBoardNode:(SnapPoint *)snapPoint {
-    // if it's the first dyadmino, placement anywhere is fine
-  
-    // this gets the cells based on dyadmino orientation and board node
-  Cell *bottomCell = snapPoint.myCell;
-  HexCoord topCellHexCoord = [self getHexCoordOfOtherCellGivenDyadmino:dyadmino andBoardNode:snapPoint];
-  Cell *topCell = [self getCellWithHexCoord:topCellHexCoord];
-  
-    // if either cell has a dyadmino, then it's not legal
-  if ((topCell.myDyadmino && topCell.myDyadmino != dyadmino) ||
-      (bottomCell.myDyadmino && bottomCell.myDyadmino != dyadmino)) {
-    return kErrorStackedDyadminoes;
-  }
-  
-    //--------------------------------------------------------------------------
-  
-    // now this checks if either cell has a neighbour cell occupied by another dyadmino
-  NSArray *cells = @[topCell, bottomCell];
-  for (Cell *dyadminoCell in cells) {
-    if ([self cell:dyadminoCell hasNeighbourCellNotOccupiedByDyadmino:dyadmino]) {
-      return kNoError;
-    };
-  }
-  
-    // if lone dyadmino, no error only if it's the first dyadmino
-  return [self.delegate isFirstDyadmino:dyadmino] ? kNoError : kErrorLoneDyadmino;
-}
-
--(BOOL)cell:(Cell *)dyadminoCell hasNeighbourCellNotOccupiedByDyadmino:(Dyadmino *)dyadmino {
-  NSInteger xHex = dyadminoCell.hexCoord.x;
-  NSInteger yHex = dyadminoCell.hexCoord.y;
-    // this includes cell and its eight surrounding cells (thinking in terms of square grid)
-  for (NSInteger i = xHex - 1; i <= xHex + 1; i++) {
-    for (NSInteger j = yHex - 1; j <= yHex + 1; j++) {
-        // this excludes cell itself and the two far cells
-      if (!(i == xHex && j == yHex) &&
-          !(i == xHex - 1 && j == yHex - 1) &&
-          !(i == xHex + 1 && j == yHex + 1)) {
-        
-        Cell *neighbourCell = [self getCellWithHexCoord:[self hexCoordFromX:i andY:j]];
-        if (neighbourCell.myDyadmino && neighbourCell.myDyadmino != dyadmino) {
-          return YES;
-        }
-      }
-    }
-  }
-  return NO;
 }
 
 #pragma mark - distance helper methods

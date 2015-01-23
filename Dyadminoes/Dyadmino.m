@@ -261,21 +261,15 @@
 
 #pragma mark - animate placement methods
 
--(void)orientBySnapNode:(SnapPoint *)snapNode animate:(BOOL)animate {
+-(void)orientWithAnimation:(BOOL)animate {
   
   NSInteger currentOrientation = self.orientation;
   DyadminoOrientation shouldBeOrientation;
   
-    // if no snap node, just establish arbirary board one
-  SnapPointType snapPointType = snapNode ? snapNode.snapPointType : kSnapPointBoardTwelveOClock;
-  
-  switch (snapPointType) {
-    case kSnapPointRack:
-      shouldBeOrientation = (currentOrientation <= 1 || currentOrientation >= 5) ? 0 : 3;
-      break;
-    default: // snapNode is on board
-      shouldBeOrientation = self.tempReturnOrientation;
-      break;
+  if ([self belongsInRack]) {
+    shouldBeOrientation = (currentOrientation <= 1 || currentOrientation >= 5) ? 0 : 3;
+  } else if ([self belongsOnBoard]) {
+    shouldBeOrientation = self.tempReturnOrientation;
   }
   
   if (animate) {
@@ -322,7 +316,7 @@
     }
     
     self.colorBlendFactor = 0.f;
-    [self orientBySnapNode:self.homeNode animate:YES];
+    [self orientWithAnimation:YES];
     [self animateMoveToPoint:[self getHomeNodePositionConsideringSwap]];
   }
   self.tempBoardNode = nil;
@@ -333,12 +327,13 @@
 -(void)goHomeToBoard {
   NSLog(@"go home to board");
   
-  [self orientBySnapNode:self.homeNode animate:YES];
-  [self animateMoveToPoint:[self getHomeNodePositionConsideringSwap]];
+  [self orientWithAnimation:YES];
+  [self animateMoveToPoint:self.homeNode.position];
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
 -(void)animateEaseIntoNodeAfterHover {
+  NSLog(@"animate ease into node after hover");
   
     // animate to tempBoardNode if it's a rack dyadmino, otherwise to homeNode
   CGPoint settledPosition = ([self belongsInRack] && [self isOnBoard]) ?
@@ -380,6 +375,8 @@
 
 -(void)animateNodelessMoveToPoint:(CGPoint)point
                 andCalledFromRack:(BOOL)calledFromRack {
+  
+  NSLog(@"animate nodeless move to point");
   
     // if called from rack, does not include orientation
     // otherwise it is called from self, and does include orientation animation
@@ -427,15 +424,10 @@
 
 -(void)animateCellAgnosticRepositionAndResize:(BOOL)resize boardZoomedOut:(BOOL)boardZoomedOut givenHexOrigin:(CGVector)hexOrigin {
   
-  CGPoint reposition = [Cell snapPointPositionForHexCoord:self.myHexCoord
+  CGPoint reposition = [Cell snapPointPositionForHexCoord:self.tempHexCoord
                                               orientation:self.tempReturnOrientation
                                                 andResize:boardZoomedOut
                                            givenHexOrigin:hexOrigin];
-  
-//  CGPoint reposition = [Cell positionCellAgnosticDyadminoGivenHexOrigin:hexOrigin
-//                                                            andHexCoord:self.myHexCoord
-//                                                         andOrientation:self.tempReturnOrientation
-//                                                              andResize:boardZoomedOut];
   
   SKAction *repositionAndMaybeResizeAction;
   
@@ -573,7 +565,7 @@
     
     weakSelf.color = (SKColor *)kNeutralYellow;
     [weakSelf unhighlightOutOfPlay];
-    [weakSelf orientBySnapNode:self.homeNode animate:NO];
+    [weakSelf orientWithAnimation:NO];
     
     if (resize) {
       weakSelf.isZoomResized = NO;
@@ -1014,26 +1006,26 @@
   if (face.parent == self) {
     switch (self.orientation) {
       case kPC1atTwelveOClock:
-        return faceIsPC1 ? [self hexCoordFromX:self.myHexCoord.x andY:self.myHexCoord.y + 1] : self.myHexCoord;
+        return faceIsPC1 ? [self hexCoordFromX:self.tempHexCoord.x andY:self.tempHexCoord.y + 1] : self.tempHexCoord;
         break;
       case kPC1atTwoOClock:
-        return faceIsPC1 ? [self hexCoordFromX:self.myHexCoord.x + 1 andY:self.myHexCoord.y] : self.myHexCoord;
+        return faceIsPC1 ? [self hexCoordFromX:self.tempHexCoord.x + 1 andY:self.tempHexCoord.y] : self.tempHexCoord;
         break;
       case kPC1atFourOClock:
-        return faceIsPC1 ? self.myHexCoord : [self hexCoordFromX:self.myHexCoord.x - 1 andY:self.myHexCoord.y + 1];
+        return faceIsPC1 ? self.tempHexCoord : [self hexCoordFromX:self.tempHexCoord.x - 1 andY:self.tempHexCoord.y + 1];
         break;
       case kPC1atSixOClock:
-        return faceIsPC1 ? self.myHexCoord : [self hexCoordFromX:self.myHexCoord.x andY:self.myHexCoord.y + 1];
+        return faceIsPC1 ? self.tempHexCoord : [self hexCoordFromX:self.tempHexCoord.x andY:self.tempHexCoord.y + 1];
         break;
       case kPC1atEightOClock:
-        return faceIsPC1 ? self.myHexCoord : [self hexCoordFromX:self.myHexCoord.x + 1 andY:self.myHexCoord.y];
+        return faceIsPC1 ? self.tempHexCoord : [self hexCoordFromX:self.tempHexCoord.x + 1 andY:self.tempHexCoord.y];
         break;
       case kPC1atTenOClock:
-        return faceIsPC1 ? [self hexCoordFromX:self.myHexCoord.x - 1 andY:self.myHexCoord.y + 1] : self.myHexCoord;
+        return faceIsPC1 ? [self hexCoordFromX:self.tempHexCoord.x - 1 andY:self.tempHexCoord.y + 1] : self.tempHexCoord;
         break;
     }
   }
-  return self.myHexCoord;
+  return self.tempHexCoord;
 }
 
 #pragma mark - custom accessor methods

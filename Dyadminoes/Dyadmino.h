@@ -36,9 +36,14 @@
 @property (strong, nonatomic) Cell *cellForPC2;
 
   // nodes and touches
+
+@property (assign, nonatomic) HexCoord homeHexCoord; // replaces homeNode
+@property (assign, nonatomic) HexCoord tempHexCoord; // replaces tempBoardNode
+@property (assign, nonatomic) NSInteger rackIndex; // replaces homeNode for rack
+
 @property (strong, nonatomic) SnapPoint *homeNode;
 @property (strong, nonatomic) SnapPoint *tempBoardNode;
-@property (assign, nonatomic) HexCoord myHexCoord;
+
 @property (assign, nonatomic) NSInteger myRackOrder;
 
   // orientations
@@ -113,7 +118,7 @@
 
 #pragma mark - animate placement methods
 
--(void)orientBySnapNode:(SnapPoint *)snapNode animate:(BOOL)animate;
+-(void)orientWithAnimation:(BOOL)animate;
 -(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
 -(void)goHomeToRackByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize;
 

@@ -44,6 +44,10 @@
                                  withDyadminoes:(NSArray *)dyadminoesInArray
                             andClosestRackIndex:(NSUInteger)closestRackIndex;
 
+#pragma mark - helper methods
+
+-(CGPoint)getNodePositionAtIndex:(NSUInteger)nodeIndex withCountNumber:(NSUInteger)countNumber;
+
 @end
 
 

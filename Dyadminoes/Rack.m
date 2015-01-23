@@ -109,7 +109,7 @@
       dyadmino.position = CGPointMake(self.size.width + self.xIncrementInRack, shouldBePosition.y);
       dyadmino.zPosition = kZPositionRackRestingDyadmino;
       [self addChild:dyadmino];
-      [dyadmino orientBySnapNode:dyadmino.homeNode animate:animation];
+      [dyadmino orientWithAnimation:animation];
     }
     
     if (animation) {
@@ -140,7 +140,7 @@
     }
   }
   
-  NSLog(@"closest rack index is %i", minDistanceIndex);
+//  NSLog(@"closest rack index is %i", minDistanceIndex);
   return minDistanceIndex;
 }
 
