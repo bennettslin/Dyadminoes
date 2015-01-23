@@ -17,6 +17,9 @@
 
 @interface Board () <BoardCellDelegate>
 
+@property (readwrite, nonatomic) CGPoint origin;
+@property (readwrite, nonatomic) CGVector hexOrigin;
+
   /// these are the limits in terms of number of cells
 @property (nonatomic) CGFloat cellsTop;
 @property (nonatomic) CGFloat cellsRight;
@@ -286,6 +289,9 @@
     // regular hex origin is only set once per scene load, but zoom hex origin is set every time
   if (!_hexOriginSet) {
     self.hexOrigin = [self determineOutermostCellsBasedOnDyadminoes:finalBoardDyadminoes];
+    NSLog(@"hex origin is %.2f, %.2f", self.hexOrigin.dx, self.hexOrigin.dy);
+    NSLog(@"self origin is %.2f, %.2f", self.origin.x, self.origin.y);
+    
     _hexCurrent = self.hexOrigin;
     _hexOriginSet = YES;
   } else {
@@ -405,7 +411,7 @@
 -(void)ignoreCell:(Cell *)cell {
   if (cell) {
     
-    [cell resetForReuse];
+//    [cell resetForReuse];
     cell.cellNode ? [cell.cellNode removeFromParent] : nil;
     
     if ([self.allCells containsObject:cell]) {
@@ -426,7 +432,81 @@
   return cell;
 }
 
-#pragma mark - zoom methods
+#pragma mark - cell position query methods
+
+-(HexCoord)findClosestHexCoordForDyadminoPosition:(CGPoint)dyadminoPosition
+                                   andOrientation:(DyadminoOrientation)orientation {
+
+    // find closest hex coord for hex origin, and get the snap point for that orientation
+  HexCoord homeHexCoord = [self hexCoordFromX:(NSInteger)self.hexOrigin.dx andY:(NSInteger)self.hexOrigin.dy];
+  
+  CGPoint homeSnapPosition = [Cell snapPointPositionForHexCoord:homeHexCoord
+                                                    orientation:orientation
+                                                      andResize:self.zoomedOut
+                                                 givenHexOrigin:self.hexOrigin];
+  CGFloat degrees = [self findAngleInDegreesFromThisPoint:homeSnapPosition toThisPoint:dyadminoPosition];
+  
+  while (fabsf([self getDistanceFromThisPoint:homeSnapPosition toThisPoint:dyadminoPosition]) > kDyadminoFaceDiameter) {
+    
+    if (degrees >= 0 && degrees <= 60) {
+      homeHexCoord = [self hexCoordFromX:homeHexCoord.x - 1 andY:homeHexCoord.y];
+      
+    } else if (degrees > 60 && degrees <= 120) {
+      homeHexCoord = [self hexCoordFromX:homeHexCoord.x andY:homeHexCoord.y - 1];
+      
+    } else if (degrees > 120 && degrees <= 180) {
+      homeHexCoord = [self hexCoordFromX:homeHexCoord.x + 1 andY:homeHexCoord.y - 1];
+      
+    } else if (degrees > 180 && degrees <= 240) {
+      homeHexCoord = [self hexCoordFromX:homeHexCoord.x + 1 andY:homeHexCoord.y];
+      
+    } else if (degrees > 240 && degrees <= 300) {
+      homeHexCoord = [self hexCoordFromX:homeHexCoord.x andY:homeHexCoord.y + 1];
+      
+    } else if (degrees > 300 && degrees <= 360) {
+      homeHexCoord = [self hexCoordFromX:homeHexCoord.x - 1 andY:homeHexCoord.y + 1];
+    }
+
+    homeSnapPosition = [Cell snapPointPositionForHexCoord:homeHexCoord
+                                              orientation:orientation
+                                                andResize:self.zoomedOut
+                                           givenHexOrigin:self.hexOrigin];
+    
+    degrees = [self findAngleInDegreesFromThisPoint:homeSnapPosition toThisPoint:dyadminoPosition];
+    
+//    NSLog(@"home: %li, %li, degrees: %.2f, Distance: %.2f", (long)homeHexCoord.x, (long)homeHexCoord.y, degrees, fabsf([self getDistanceFromThisPoint:homeSnapPosition toThisPoint:dyadminoPosition]));
+  }
+  
+  HexCoord hexCoordsToCheck[7] = {homeHexCoord,
+                                  [self hexCoordFromX:homeHexCoord.x - 1 andY:homeHexCoord.y],
+                                  [self hexCoordFromX:homeHexCoord.x andY:homeHexCoord.y - 1],
+                                  [self hexCoordFromX:homeHexCoord.x + 1 andY:homeHexCoord.y - 1],
+                                  [self hexCoordFromX:homeHexCoord.x + 1 andY:homeHexCoord.y],
+                                  [self hexCoordFromX:homeHexCoord.x andY:homeHexCoord.y + 1],
+                                  [self hexCoordFromX:homeHexCoord.x - 1 andY:homeHexCoord.y + 1]};
+  
+  NSUInteger minDistanceIndex;
+  CGFloat minDistance = CGFLOAT_MAX;
+  for (int i = 0; i < 7; i++) {
+    HexCoord hexCoordToCheck = hexCoordsToCheck[i];
+    CGPoint snapPointToCheck = [Cell snapPointPositionForHexCoord:hexCoordToCheck
+                                                      orientation:orientation
+                                                        andResize:self.zoomedOut
+                                                   givenHexOrigin:self.hexOrigin];
+    CGFloat thisDistance = fabsf([self getDistanceFromThisPoint:snapPointToCheck toThisPoint:dyadminoPosition]);
+    
+    if (thisDistance < minDistance) {
+      minDistance = thisDistance;
+      minDistanceIndex = i;
+    }
+  }
+  
+  HexCoord returnHexCoord = hexCoordsToCheck[minDistanceIndex];
+  NSLog(@"closest hex coord is %i, %i", returnHexCoord.x, returnHexCoord.y);
+  return returnHexCoord;
+}
+
+#pragma mark - cell zoom methods
 
 -(CGPoint)repositionCellsForZoomWithSwap:(BOOL)swap {
   
@@ -452,7 +532,7 @@
       //    [self zoomInBackgroundImage];
   }
   
-  CGSize cellSize = [Cell establishCellSizeForResize:self.zoomedOut];
+  CGSize cellSize = [Cell cellSizeForResize:self.zoomedOut];
   for (Cell *cell in self.allCells) {
     
     CGPoint tempNewPosition = [self addToThisPoint:cell.cellNode.position thisPoint:differenceInPosition];
@@ -468,7 +548,7 @@
     
     
     
-    [cell resizeAndRepositionCell:self.zoomedOut withHexOrigin:self.hexOrigin andSize:cellSize];
+    [cell animateResizeAndRepositionOfCell:self.zoomedOut withHexOrigin:self.hexOrigin andSize:cellSize];
   }
   
   return differenceInPosition;

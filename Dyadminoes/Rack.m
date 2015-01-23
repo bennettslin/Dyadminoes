@@ -125,6 +125,26 @@
   }
 }
 
+-(NSUInteger)findClosestRackIndexForDyadminoPosition:(CGPoint)dyadminoPosition withCount:(NSUInteger)countNumber {
+  
+  NSUInteger minDistanceIndex;
+  CGFloat minDistance = CGFLOAT_MAX;
+  
+  for (int i = 0; i < countNumber; i++) {
+    CGPoint nodePositionToCheck = [self getNodePositionAtIndex:i withCountNumber:countNumber];
+    CGFloat thisDistance = fabsf([self getDistanceFromThisPoint:nodePositionToCheck toThisPoint:dyadminoPosition]);
+    
+    if (thisDistance < minDistance) {
+      minDistance = thisDistance;
+      minDistanceIndex = i;
+    }
+  }
+  
+  NSLog(@"closest rack index is %i", minDistanceIndex);
+  return minDistanceIndex;
+}
+
+
 -(NSArray *)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
                                  withDyadminoes:(NSArray *)dyadminoesInArray
                              andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode {

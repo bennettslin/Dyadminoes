@@ -23,11 +23,6 @@
   CGFloat _red, _green, _blue, _alpha;
 }
 
-//-(void)setColouredByNeighbouringCells:(NSInteger)colouredByNeighbouringCells {
-//  _colouredByNeighbouringCells = colouredByNeighbouringCells;
-//  self.cellNode.hidden = (colouredByNeighbouringCells <= 0) ? YES : NO;
-//}
-
 -(id)initWithTexture:(SKTexture *)texture
          andHexCoord:(HexCoord)hexCoord
         andHexOrigin:(CGVector)hexOrigin
@@ -38,7 +33,6 @@
   if (self) {
     
     self.cellNodeTexture = texture;
-//    self.colouredByNeighbouringCells = 0;
     self.delegate = delegate;
     
     [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin forResize:resize];
@@ -50,33 +44,23 @@
                 andHexOrigin:(CGVector)hexOrigin
                    forResize:(BOOL)resize {
   
-//  self.colouredByNeighbouringCells = NO;
-//  self.currentlyColouringNeighbouringCells = NO;
-  
   [self resetForReuse];
   
   self.hexCoord = hexCoord;
   self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
   
-  CGSize cellSize = [Cell establishCellSizeForResize:resize];
-  
     // establish cell position
-  self.cellNodePosition = [Cell establishCellPositionWithCellSize:cellSize andHexOrigin:hexOrigin andHexCoord:self.hexCoord forResize:resize];
-  
-    // establish logic default
-//  self.myPC = -1;
+  self.cellNodePosition = [Cell cellPositionWithHexOrigin:hexOrigin andHexCoord:self.hexCoord forResize:resize];
   
     // create snap points
   [self createSnapPoints];
   
+  CGSize cellSize = [Cell cellSizeForResize:resize];
   self.cellNode ? [self initPositionCellNodeWithSize:cellSize] : [self instantiateCellNodeWithSize:cellSize];
 }
 
 -(void)resetForReuse {
-//  NSLog(@"reset cell %@ for new match", self.name);
-  
-//  self.currentlyColouringNeighbouringCells = NO;
-//  self.colouredByNeighbouringCells = 0;
+
   self.myDyadmino = nil;
   self.myPC = -1;
   
@@ -90,9 +74,6 @@
   
   if (self.cellNode) {
     [self renderColour];
-//    self.cellNode.colorBlendFactor = 0.9f;
-//    self.cellNode.color = [SKColor colorWithRed:_red green:_green blue:_blue alpha:_alpha];
-//    [self addColourWithRed:_red green:_green blue:_blue alpha:_alpha];
   }
 }
 
@@ -120,7 +101,6 @@
     maxPC = -1;
   }
   
-//  NSLog(@"max pc is %lu for cell %@", (unsigned long)maxPC, self.name);
   SKColor *pureColour = [self colourForPC:maxPC];
   SKColor *colourWithAlpha = [pureColour colorWithAlphaComponent:_alpha];
   self.cellNode.color = colourWithAlpha;
@@ -174,17 +154,13 @@
 
 -(void)instantiateCellNodeWithSize:(CGSize)cellSize {
   
-    // cellNode properties
-    // comment out this block to not instantiate cellNode (about one second faster)
-    ///*
   self.cellNode = [[SKSpriteNode alloc] init];
   self.cellNode.name = @"cellNode";
   self.cellNode.texture = self.cellNodeTexture;
   self.cellNode.zPosition = kZPositionBoardCell;
-  [self addColourWithRed:_red green:_green blue:_blue alpha:_alpha];
+//  [self addColourWithRed:_red green:_green blue:_blue alpha:_alpha];
   self.cellNode.colorBlendFactor = .9f;
   self.cellNode.size = cellSize;
-//  self.colouredByNeighbouringCells = NO;
   [self initPositionCellNodeWithSize:cellSize];
   
     //// for testing purposes
@@ -194,7 +170,6 @@
     [self createPCLabel];
     [self updatePCLabel];
   }
-    // */
 }
 
 -(void)initPositionCellNodeWithSize:(CGSize)cellSize {
@@ -207,19 +182,27 @@
 #pragma mark - snap points methods
 
 -(void)createSnapPoints {
-  self.boardSnapPointTwelveOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwelveOClock];
-  self.boardSnapPointTwoOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwoOClock];
-  self.boardSnapPointTenOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTenOClock];
+  
+  if (!self.boardSnapPointTwelveOClock) {
+    self.boardSnapPointTwelveOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwelveOClock];
+    self.boardSnapPointTwelveOClock.name = @"snap 12";
+    self.boardSnapPointTwelveOClock.myCell = self;
+  }
+  
+  if (!self.boardSnapPointTwoOClock) {
+    self.boardSnapPointTwoOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwoOClock];
+    self.boardSnapPointTwoOClock.name = @"snap 2";
+    self.boardSnapPointTwoOClock.myCell = self;
+  }
+
+  if (!self.boardSnapPointTenOClock) {
+    self.boardSnapPointTenOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTenOClock];
+    self.boardSnapPointTenOClock.name = @"snap 10";
+    self.boardSnapPointTenOClock.myCell = self;
+  }
   
   CGPoint passedInPosition = self.cellNode ? self.cellNode.position : self.cellNodePosition;
   [self positionSnapPointsWithPosition:passedInPosition forResize:NO];
-  
-  self.boardSnapPointTwelveOClock.name = @"snap 12";
-  self.boardSnapPointTwoOClock.name = @"snap 2";
-  self.boardSnapPointTenOClock.name = @"snap 10";
-  self.boardSnapPointTwelveOClock.myCell = self;
-  self.boardSnapPointTwoOClock.myCell = self;
-  self.boardSnapPointTenOClock.myCell = self;
 }
 
 -(void)positionSnapPointsWithPosition:(CGPoint)cellPosition forResize:(BOOL)resize {
@@ -268,15 +251,15 @@
 
 #pragma mark - cell view helper methods
 
--(void)addColourWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha {
-  _red += red;
-  _green += green;
-  _blue += blue;
-  _alpha += alpha;
-  self.cellNode.color = [SKColor colorWithRed:_red green:_green blue:_blue alpha:_alpha];
-}
+//-(void)addColourWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha {
+//  _red += red;
+//  _green += green;
+//  _blue += blue;
+//  _alpha += alpha;
+//  self.cellNode.color = [SKColor colorWithRed:_red green:_green blue:_blue alpha:_alpha];
+//}
 
--(void)resizeAndRepositionCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize {
+-(void)animateResizeAndRepositionOfCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize {
   
   __weak typeof(self) weakSelf = self;
   CGFloat scaleTo = cellSize.height / self.cellNode.size.height;
@@ -295,10 +278,9 @@
   CGPoint reposition;
   
   if (resize) {
-    reposition = [Cell establishCellPositionWithCellSize:cellSize
-                                            andHexOrigin:hexOrigin
-                                             andHexCoord:self.hexCoord
-                                               forResize:resize];
+    reposition = [Cell cellPositionWithHexOrigin:hexOrigin
+                                              andHexCoord:self.hexCoord
+                                                forResize:resize];
   } else {
     reposition = self.cellNodePosition;
   }
@@ -320,7 +302,7 @@
 
 #pragma mark - cell size and position helper methods
 
-+(CGSize)establishCellSizeForResize:(BOOL)resize {
++(CGSize)cellSizeForResize:(BOOL)resize {
   
   CGFloat factor = resize ? kZoomResizeFactor : 1.f;
   CGFloat ySize = (kDyadminoFaceRadius * 2 - kPaddingBetweenCells) * factor;
@@ -329,60 +311,89 @@
   return CGSizeMake(xSize, ySize);
 }
 
-+(CGPoint)establishCellPositionWithCellSize:(CGSize)cellSize andHexOrigin:(CGVector)hexOrigin andHexCoord:(HexCoord)hexCoord forResize:(BOOL)resize {
++(CGPoint)cellPositionWithHexOrigin:(CGVector)hexOrigin andHexCoord:(HexCoord)hexCoord forResize:(BOOL)resize {
   
     // to make node between two faces the center
   CGFloat factor = resize ? kZoomResizeFactor : 1.f;
   CGFloat yOffset = kDyadminoFaceRadius * factor;
   CGFloat padding = kPaddingBetweenCells * factor;
   
-  CGFloat cellWidth = cellSize.width;
-  CGFloat cellHeight = cellSize.height;
+  CGSize thisCellSize = [Cell cellSizeForResize:resize];
+  
+  CGFloat cellWidth = thisCellSize.width;
+  CGFloat cellHeight = thisCellSize.height;
   CGFloat newX = (hexCoord.x - hexOrigin.dx) * (0.75 * cellWidth + padding);
   CGFloat newY = (hexCoord.y - hexOrigin.dy + hexCoord.x * 0.5) * (cellHeight + padding) - yOffset;
   
   return CGPointMake(newX, newY);
 }
 
-+(CGPoint)positionCellAgnosticDyadminoGivenHexOrigin:(CGVector)hexOrigin andHexCoord:(HexCoord)hexCoord andOrientation:(DyadminoOrientation)orientation andResize:(BOOL)resize {
++(CGPoint)snapPointPositionForHexCoord:(HexCoord)hexCoord
+                           orientation:(DyadminoOrientation)orientation
+                             andResize:(BOOL)resize
+                        givenHexOrigin:(CGVector)hexOrigin {
   
-    // get hypothetical cellPosition
-  CGSize cellSize = [Cell establishCellSizeForResize:resize];
-  CGPoint cellPosition = [Cell establishCellPositionWithCellSize:cellSize andHexOrigin:hexOrigin andHexCoord:hexCoord forResize:resize];
-  
-    // next get hypothetical cell's snap point
+  CGPoint cellNodePosition = [Cell cellPositionWithHexOrigin:hexOrigin andHexCoord:hexCoord forResize:resize];
   CGFloat faceOffset = resize ? kDyadminoFaceRadius * kZoomResizeFactor : kDyadminoFaceRadius;
   
     // based on a 30-60-90 degree triangle
   CGFloat faceOffsetX = faceOffset * 0.5 * kSquareRootOfThree;
   CGFloat faceOffsetY = faceOffset * 0.5;
   
-  CGPoint celllessDyadminoPosition;
-  
   switch (orientation) {
-    case kPC1atTwelveOClock:
-    case kPC1atSixOClock:
-      celllessDyadminoPosition = [self addToThisPoint:cellPosition thisPoint:CGPointMake(0.f, faceOffset)];
-      break;
     case kPC1atTwoOClock:
     case kPC1atEightOClock:
-      celllessDyadminoPosition = [self addToThisPoint:cellPosition thisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
+      return [self addToThisPoint:cellNodePosition thisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
       break;
     case kPC1atFourOClock:
     case kPC1atTenOClock:
-      celllessDyadminoPosition = [self addToThisPoint:cellPosition thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
+      return [self addToThisPoint:cellNodePosition thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
       break;
+    case kPC1atTwelveOClock:
+    case kPC1atSixOClock:
     default:
+      return [self addToThisPoint:cellNodePosition thisPoint:CGPointMake(0.f, faceOffset)];
       break;
   }
-  return celllessDyadminoPosition;
 }
+
+//+(CGPoint)positionCellAgnosticDyadminoGivenHexOrigin:(CGVector)hexOrigin andHexCoord:(HexCoord)hexCoord andOrientation:(DyadminoOrientation)orientation andResize:(BOOL)resize {
+//  
+//    // get hypothetical cellPosition
+//  CGPoint cellPosition = [Cell cellPositionWithHexOrigin:hexOrigin andHexCoord:hexCoord forResize:resize];
+//  
+//    // next get hypothetical cell's snap point
+//  CGFloat faceOffset = resize ? kDyadminoFaceRadius * kZoomResizeFactor : kDyadminoFaceRadius;
+//  
+//    // based on a 30-60-90 degree triangle
+//  CGFloat faceOffsetX = faceOffset * 0.5 * kSquareRootOfThree;
+//  CGFloat faceOffsetY = faceOffset * 0.5;
+//  
+//  CGPoint celllessDyadminoPosition;
+//  
+//  switch (orientation) {
+//    case kPC1atTwelveOClock:
+//    case kPC1atSixOClock:
+//      celllessDyadminoPosition = [self addToThisPoint:cellPosition thisPoint:CGPointMake(0.f, faceOffset)];
+//      break;
+//    case kPC1atTwoOClock:
+//    case kPC1atEightOClock:
+//      celllessDyadminoPosition = [self addToThisPoint:cellPosition thisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
+//      break;
+//    case kPC1atFourOClock:
+//    case kPC1atTenOClock:
+//      celllessDyadminoPosition = [self addToThisPoint:cellPosition thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
+//      break;
+//    default:
+//      break;
+//  }
+//  return celllessDyadminoPosition;
+//}
 
 #pragma mark - testing methods
 
 -(void)createHexCoordLabel {
   self.hexCoordLabel = [[SKLabelNode alloc] init];
-
   self.hexCoordLabel.fontSize = 12.f;
   self.hexCoordLabel.alpha = 1.f;
   self.hexCoordLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;

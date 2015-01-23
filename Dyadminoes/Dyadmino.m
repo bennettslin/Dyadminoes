@@ -427,11 +427,16 @@
 
 -(void)animateCellAgnosticRepositionAndResize:(BOOL)resize boardZoomedOut:(BOOL)boardZoomedOut givenHexOrigin:(CGVector)hexOrigin {
   
-  CGPoint reposition = [Cell positionCellAgnosticDyadminoGivenHexOrigin:hexOrigin
-                                                            andHexCoord:self.myHexCoord
-                                                         andOrientation:self.tempReturnOrientation
-                                                              andResize:boardZoomedOut];
-    
+  CGPoint reposition = [Cell snapPointPositionForHexCoord:self.myHexCoord
+                                              orientation:self.tempReturnOrientation
+                                                andResize:boardZoomedOut
+                                           givenHexOrigin:hexOrigin];
+  
+//  CGPoint reposition = [Cell positionCellAgnosticDyadminoGivenHexOrigin:hexOrigin
+//                                                            andHexCoord:self.myHexCoord
+//                                                         andOrientation:self.tempReturnOrientation
+//                                                              andResize:boardZoomedOut];
+  
   SKAction *repositionAndMaybeResizeAction;
   
     // between .6 and .99

@@ -423,16 +423,17 @@
     } else {
       pc = -1;
     }
-    
+
     HexCoord hexCoord;
     BOOL dyadminoRightsideUp = dyadmino.orientation <= kPC1atTwoOClock || dyadmino.orientation >= kPC1atTenOClock;
+    
     if (pc == dyadmino.pc1) {
       hexCoord = dyadminoRightsideUp ?
-      [self.myMatch retrieveTopHexCoordForBottomHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.orientation] : dyadmino.myHexCoord;
+      [self retrieveTopHexCoordForBottomHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.orientation] : dyadmino.myHexCoord;
       
     } else {
       hexCoord = dyadminoRightsideUp ?
-      dyadmino.myHexCoord : [self.myMatch retrieveTopHexCoordForBottomHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.orientation];
+      dyadmino.myHexCoord : [self retrieveTopHexCoordForBottomHexCoord:dyadmino.myHexCoord andOrientation:dyadmino.orientation];
     }
 
     [self.mySoundEngine handleMusicNote:pc withHexCoord:hexCoord];
@@ -3013,6 +3014,13 @@
 }
 
 -(SnapPoint *)findSnapPointClosestToDyadmino:(Dyadmino *)dyadmino {
+  
+  if ([dyadmino isOnBoard]) {
+    [_boardField findClosestHexCoordForDyadminoPosition:dyadmino.position andOrientation:dyadmino.orientation];
+  } else if ([dyadmino isInRack]) {
+    [_rackField findClosestRackIndexForDyadminoPosition:dyadmino.position withCount:self.playerRackDyadminoes.count];
+  }
+  
   id arrayOrSetToSearch;
   
   if ([self isFirstDyadmino:dyadmino]) {
@@ -3051,6 +3059,8 @@
   CGFloat shortestDistance = self.frame.size.height;
   
   for (SnapPoint *snapPoint in arrayOrSetToSearch) {
+//    NSLog(@"dyadmino position is %.2f, %.2f, snapPoint position is %.2f, %.2f", dyadmino.position.x, dyadmino.position.y, snapPoint.position.x, snapPoint.position.y);
+    
       CGFloat thisDistance = [self getDistanceFromThisPoint:dyadmino.position
                                                 toThisPoint:snapPoint.position];
       if (thisDistance < shortestDistance) {

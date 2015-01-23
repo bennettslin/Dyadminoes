@@ -29,6 +29,7 @@
 
 @property (strong, nonatomic) NSString *name;
 
+  // FIXME: to delete, cell does not need to know this
 @property (strong, nonatomic) SnapPoint *boardSnapPointTwelveOClock;
 @property (strong, nonatomic) SnapPoint *boardSnapPointTwoOClock;
 @property (strong, nonatomic) SnapPoint *boardSnapPointTenOClock;
@@ -68,11 +69,16 @@
 
 #pragma mark - cell view helper methods
 
-+(CGSize)establishCellSizeForResize:(BOOL)resize;
-+(CGPoint)positionCellAgnosticDyadminoGivenHexOrigin:(CGVector)hexOrigin andHexCoord:(HexCoord)hexCoord andOrientation:(DyadminoOrientation)orientation andResize:(BOOL)resize;
++(CGSize)cellSizeForResize:(BOOL)resize;
++(CGPoint)snapPointPositionForHexCoord:(HexCoord)hexCoord
+                           orientation:(DyadminoOrientation)orientation
+                             andResize:(BOOL)resize
+                        givenHexOrigin:(CGVector)hexOrigin;
 
--(void)resizeAndRepositionCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize;
--(void)addColourWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha;
+//+(CGPoint)positionCellAgnosticDyadminoGivenHexOrigin:(CGVector)hexOrigin andHexCoord:(HexCoord)hexCoord andOrientation:(DyadminoOrientation)orientation andResize:(BOOL)resize;
+
+-(void)animateResizeAndRepositionOfCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize;
+//-(void)addColourWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha;
 
 #pragma mark - testing methods
 

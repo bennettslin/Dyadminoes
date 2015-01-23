@@ -26,8 +26,8 @@
 @property (weak, nonatomic) id<BoardDelegate> delegate;
 
 @property (nonatomic) CGPoint homePosition;
-@property (nonatomic) CGPoint origin;
-@property (nonatomic) CGVector hexOrigin;
+@property (readonly, nonatomic) CGPoint origin;
+@property (readonly, nonatomic) CGVector hexOrigin;
 
 @property (nonatomic) BOOL zoomedOut;
 @property (nonatomic) CGPoint postZoomPosition;
@@ -79,9 +79,10 @@
 //-(void)colourBackgroundForPnP;
 //-(void)colourBackgroundForNormalPlay;
 
-#pragma mark - zoom methods
+#pragma mark - board span methods
 
--(CGPoint)repositionCellsForZoomWithSwap:(BOOL)swap;
+-(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes; // called by scene's toggle board zoom method only
+-(void)determineBoardPositionBounds;
 
 #pragma mark - cell methods
 
@@ -91,6 +92,15 @@
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint;
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint;
+
+#pragma mark - cell position query methods
+
+-(HexCoord)findClosestHexCoordForDyadminoPosition:(CGPoint)dyadminoPosition
+                                   andOrientation:(DyadminoOrientation)orientation;
+
+#pragma mark - cell zoom methods
+
+-(CGPoint)repositionCellsForZoomWithSwap:(BOOL)swap;
 
 #pragma mark - pivot guide methods
 
@@ -104,11 +114,6 @@
 
 -(PivotOnPC)determinePivotOnPCForDyadmino:(Dyadmino *)dyadmino;
 -(void)rotatePivotGuidesBasedOnPivotAroundPoint:(CGPoint)pivotAroundPoint andTrueAngle:(CGFloat)trueAngle;
-
-#pragma mark - board span methods
-
--(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes; // called by scene's toggle board zoom method only
--(void)determineBoardPositionBounds;
 
 #pragma mark - distance helper methods
 
