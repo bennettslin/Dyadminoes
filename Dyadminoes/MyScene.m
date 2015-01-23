@@ -2307,6 +2307,7 @@
       // this method also gets called if a recently played dyadmino
       // has been moved, but data will not be submitted until the turn is officially done.
     dyadmino.homeHexCoord = dyadmino.tempHexCoord;
+    dyadmino.homeOrientation = dyadmino.orientation;
   }
   
   [_boardField hideAllPivotGuides];
