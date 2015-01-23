@@ -9,11 +9,12 @@
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
 @class Dyadmino;
-@class SnapPoint;
+//@class SnapPoint;
 @class Board;
 
 @protocol FieldNodeDelegate <NSObject>
 
+-(CGPoint)rackPositionForDyadmino:(Dyadmino *)dyadmino;
 -(void)recordChangedDataForRackDyadminoes:(NSArray *)rackArray;
 -(void)postSoundNotification:(NotificationName)whichNotification;
 -(void)allowUndoButton;
@@ -23,7 +24,7 @@
 @interface Rack : SKSpriteNode
 
 @property (nonatomic) CGFloat xIncrementInRack;
-@property (strong, nonatomic) NSMutableArray *rackNodes;
+//@property (strong, nonatomic) NSMutableArray *rackNodes;
 @property (weak, nonatomic) id <FieldNodeDelegate> delegate;
 
   //----------------------------------------------------------------------------
@@ -33,7 +34,7 @@
 
 -(id)initWithColour:(SKColor *)colour andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition;
 
--(void)layoutOrRefreshNodesWithCount:(NSUInteger)countNumber;
+//-(void)layoutOrRefreshNodesWithCount:(NSUInteger)countNumber;
 
 #pragma mark - reposition methods
 

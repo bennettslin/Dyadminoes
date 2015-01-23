@@ -10,19 +10,19 @@
 #import "NSObject+Helper.h"
 @class Board;
 @class Dyadmino;
-@class SnapPoint;
+//@class SnapPoint;
 
-@protocol BoardCellDelegate <NSObject>
+//@protocol BoardCellDelegate <NSObject>
 
-@property (strong, nonatomic) NSMutableSet *snapPointsTwelveOClock;
-@property (strong, nonatomic) NSMutableSet *snapPointsTwoOClock;
-@property (strong, nonatomic) NSMutableSet *snapPointsTenOClock;
+//@property (strong, nonatomic) NSMutableSet *snapPointsTwelveOClock;
+//@property (strong, nonatomic) NSMutableSet *snapPointsTwoOClock;
+//@property (strong, nonatomic) NSMutableSet *snapPointsTenOClock;
 
-@end
+//@end
 
 @interface Cell : SKSpriteNode
 
-@property (weak, nonatomic) id<BoardCellDelegate> delegate;
+//@property (weak, nonatomic) id<BoardCellDelegate> delegate;
 
 @property (nonatomic) SKTexture *cellNodeTexture;
 @property (nonatomic) CGPoint cellNodePosition;
@@ -30,9 +30,9 @@
 @property (strong, nonatomic) NSString *name;
 
   // FIXME: to delete, cell does not need to know this
-@property (strong, nonatomic) SnapPoint *boardSnapPointTwelveOClock;
-@property (strong, nonatomic) SnapPoint *boardSnapPointTwoOClock;
-@property (strong, nonatomic) SnapPoint *boardSnapPointTenOClock;
+//@property (strong, nonatomic) SnapPoint *boardSnapPointTwelveOClock;
+//@property (strong, nonatomic) SnapPoint *boardSnapPointTwoOClock;
+//@property (strong, nonatomic) SnapPoint *boardSnapPointTenOClock;
 
 @property (strong, nonatomic) SKSpriteNode *cellNode;
 @property (nonatomic) HexCoord hexCoord;
@@ -64,16 +64,16 @@
 
 #pragma mark - snap point methods
 
--(void)addSnapPointsToBoardAndResize:(BOOL)resize;
--(void)removeSnapPointsFromBoard;
+//-(void)addSnapPointsToBoardAndResize:(BOOL)resize;
+//-(void)removeSnapPointsFromBoard;
 
 #pragma mark - cell view helper methods
 
 +(CGSize)cellSizeForResize:(BOOL)resize;
-+(CGPoint)snapPointPositionForHexCoord:(HexCoord)hexCoord
-                           orientation:(DyadminoOrientation)orientation
-                             andResize:(BOOL)resize
-                        givenHexOrigin:(CGVector)hexOrigin;
++(CGPoint)snapPositionForHexCoord:(HexCoord)hexCoord
+                      orientation:(DyadminoOrientation)orientation
+                        andResize:(BOOL)resize
+                   givenHexOrigin:(CGVector)hexOrigin;
 
 //+(CGPoint)positionCellAgnosticDyadminoGivenHexOrigin:(CGVector)hexOrigin andHexCoord:(HexCoord)hexCoord andOrientation:(DyadminoOrientation)orientation andResize:(BOOL)resize;
 

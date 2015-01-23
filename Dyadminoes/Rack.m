@@ -21,7 +21,7 @@
 -(id)initWithColour:(SKColor *)colour andSize:(CGSize)size andAnchorPoint:(CGPoint)anchorPoint andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition {
   self = [super init];
   if (self) {
-    self.rackNodes = [NSMutableArray new];
+//    self.rackNodes = [NSMutableArray new];
     self.color = colour;
     self.size = size;
     self.anchorPoint = anchorPoint;
@@ -32,33 +32,33 @@
 }
 
 -(void)layoutOrRefreshNodesWithCount:(NSUInteger)countNumber {
-    // this only gets called when initially laying out, or after turn
-  
-    // initial layout of rack nodes...
-  if (self.rackNodes.count == 0) {
-    for (NSUInteger index = 0; index < countNumber; index++) {
-      [self addRackNodeAtIndex:index withCountNumber:countNumber];
-    }
-    //--------------------------------------------------------------------------
-    
-      // or else refreshing dyadminoes
-  } else {
-    
-      // ensure rackNode count matches dyadminoesInRack count
-    while (self.rackNodes.count != countNumber) {
-      if (self.rackNodes.count > countNumber) {
-        [self.rackNodes removeObject:[self.rackNodes lastObject]];
-      } else if (self.rackNodes.count < countNumber) {
-        [self addRackNodeAtIndex:self.rackNodes.count withCountNumber:countNumber];
-      }
-    }
-    
-      // then reposition the rackNodes
-    for (SnapPoint *rackNode in self.rackNodes) {
-      NSUInteger index = [self.rackNodes indexOfObject:rackNode];
-      rackNode.position = [self getNodePositionAtIndex:index withCountNumber:countNumber];
-    }
-  }
+//    // this only gets called when initially laying out, or after turn
+//  
+//    // initial layout of rack nodes...
+//  if (self.rackNodes.count == 0) {
+//    for (NSUInteger index = 0; index < countNumber; index++) {
+//      [self addRackNodeAtIndex:index withCountNumber:countNumber];
+//    }
+//    //--------------------------------------------------------------------------
+//    
+//      // or else refreshing dyadminoes
+//  } else {
+//    
+//      // ensure rackNode count matches dyadminoesInRack count
+//    while (self.rackNodes.count != countNumber) {
+//      if (self.rackNodes.count > countNumber) {
+//        [self.rackNodes removeObject:[self.rackNodes lastObject]];
+//      } else if (self.rackNodes.count < countNumber) {
+//        [self addRackNodeAtIndex:self.rackNodes.count withCountNumber:countNumber];
+//      }
+//    }
+//    
+//      // then reposition the rackNodes
+//    for (SnapPoint *rackNode in self.rackNodes) {
+//      NSUInteger index = [self.rackNodes indexOfObject:rackNode];
+//      rackNode.position = [self getNodePositionAtIndex:index withCountNumber:countNumber];
+//    }
+//  }
 }
 
 #pragma mark - reposition methods
@@ -74,12 +74,13 @@
     Dyadmino *dyadmino = [dyadminoesInArray objectAtIndex:index];
 
     // this has to be reset after turn
-    dyadmino.homeNode = self.rackNodes[index];
-    dyadmino.tempBoardNode = nil;
+//    dyadmino.homeNode = self.rackNodes[index];
+    dyadmino.rackIndex = index;
+//    dyadmino.tempBoardNode = nil;
 
     //--------------------------------------------------------------------------
   
-    CGPoint shouldBePosition = [dyadmino getHomeNodePositionConsideringSwap];
+    CGPoint shouldBePosition = [dyadmino addIfSwapToHomePosition:[self.delegate rackPositionForDyadmino:dyadmino]];
     
     SKAction *completeAction;
     
@@ -153,7 +154,7 @@
   if ([touchedDyadmino isInRack] || touchedDyadmino.belongsInSwap) {
     
       // touchedDyadmino is closer to another dyadmino's rackNode
-    if (closestRackIndex != touchedDyadmino.myRackOrder) {
+    if (closestRackIndex != touchedDyadmino.rackIndex) {
       
         // assign pointers
       NSUInteger newRackNodeIndex = closestRackIndex;
@@ -172,7 +173,7 @@
       Dyadmino *scootedDyadmino = [dyadminoesInArray objectAtIndex:newRackNodeIndex];
 
         // displaces intermediary dyadminoes one by one until scooted dyadmino is in right node
-      while (scootedDyadmino.homeNode != touchedDyadmino.homeNode) {
+      while (scootedDyadmino.rackIndex != touchedDyadmino.rackIndex) {
         
         NSUInteger scootedIndex = [dyadminoesInArray indexOfObject:scootedDyadmino];
         NSUInteger displacedIndex = (scootedIndex + iterator) % 6;
@@ -180,27 +181,28 @@
         Dyadmino *displacedDyadmino = [dyadminoesInArray objectAtIndex:displacedIndex];
         
           // dyadminoes exchange rack nodes, and vice versa
-        scootedDyadmino.homeNode = displacedDyadmino.homeNode;
+//        scootedDyadmino.homeNode = displacedDyadmino.homeNode;
         
-        displacedDyadmino.myRackOrder = newRackNodeIndex;
-        scootedDyadmino.myRackOrder = displacedIndex;
+        displacedDyadmino.rackIndex = newRackNodeIndex;
+        scootedDyadmino.rackIndex = displacedIndex;
         
           // take care of state change and animation of exchanged dyadmino, as long as it's not on the board
-        if (!scootedDyadmino.tempBoardNode) {
+        if (![scootedDyadmino isOnBoard]) {
           scootedDyadmino.zPosition = kZPositionRackMovedDyadmino;
-          [scootedDyadmino animateMoveToPointCalledFromRack:[scootedDyadmino getHomeNodePositionConsideringSwap]];
+          [scootedDyadmino animateMoveToPointCalledFromRack:[scootedDyadmino addIfSwapToHomePosition:[self.delegate rackPositionForDyadmino:scootedDyadmino]]];
           scootedDyadmino.zPosition = kZPositionRackRestingDyadmino;
           
             // sound it
           [self.delegate postSoundNotification:kNotificationRackExchangeClick];
         }
           // make the displacedDyadmino the new scootedDyadmino
-        displacedDyadmino.homeNode = scootedDyadmino.homeNode;
+//        displacedDyadmino.homeNode = scootedDyadmino.homeNode;
         scootedDyadmino = displacedDyadmino;
       }
       
         // everything scooted, now do it for the touched dyadmino
-      touchedDyadmino.homeNode = self.rackNodes[closestRackIndex];
+//      touchedDyadmino.homeNode = self.rackNodes[closestRackIndex];
+      touchedDyadmino.rackIndex = closestRackIndex;
       
       NSMutableArray *tempArray = [NSMutableArray arrayWithArray:dyadminoesInArray];
       [tempArray removeObject:touchedDyadmino];
@@ -209,21 +211,21 @@
         // delegate method makes it easier to call only if there was indeed a rack exchange
       NSArray *immutableArray = [NSArray arrayWithArray:tempArray];
       [self.delegate recordChangedDataForRackDyadminoes:immutableArray];
-      
+
       return immutableArray;
     }
   }
   return dyadminoesInArray;
 }
 
--(void)addRackNodeAtIndex:(NSUInteger)nodeIndex withCountNumber:(NSUInteger)countNumber {
-  
-  SnapPoint *rackNode = [[SnapPoint alloc] initWithSnapPointType:_snapNodeType];
-  rackNode.position = [self getNodePositionAtIndex:nodeIndex withCountNumber:countNumber];
-  
-  rackNode.name = [NSString stringWithFormat:@"%@ node %lu", self.name, (unsigned long)nodeIndex];
-  [self.rackNodes addObject:rackNode];
-}
+//-(void)addRackNodeAtIndex:(NSUInteger)nodeIndex withCountNumber:(NSUInteger)countNumber {
+//  
+//  SnapPoint *rackNode = [[SnapPoint alloc] initWithSnapPointType:_snapNodeType];
+//  rackNode.position = [self getNodePositionAtIndex:nodeIndex withCountNumber:countNumber];
+//  
+//  rackNode.name = [NSString stringWithFormat:@"%@ node %lu", self.name, (unsigned long)nodeIndex];
+//  [self.rackNodes addObject:rackNode];
+//}
 
 #pragma mark - helper methods
 

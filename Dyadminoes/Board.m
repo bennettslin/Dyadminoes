@@ -14,7 +14,7 @@
 #define kCellColourMultiplier .005f
 #define kBackgroundFullAlpha 0.5f
 
-@interface Board () <BoardCellDelegate>
+@interface Board ()
 
 @property (readwrite, nonatomic) CGPoint origin;
 @property (readwrite, nonatomic) CGVector hexOrigin;
@@ -63,9 +63,9 @@
     self.userWantsPivotGuides = YES;
 
       // instantiate node and cell arrays to be searched
-    self.snapPointsTwelveOClock = [NSMutableSet new];
-    self.snapPointsTwoOClock = [NSMutableSet new];
-    self.snapPointsTenOClock = [NSMutableSet new];
+//    self.snapPointsTwelveOClock = [NSMutableSet new];
+//    self.snapPointsTwoOClock = [NSMutableSet new];
+//    self.snapPointsTenOClock = [NSMutableSet new];
     self.allCells = [NSMutableSet new];
     
       // create new cells from get-go
@@ -398,7 +398,7 @@
 
     if (![self.allCells containsObject:cell]) {
       [self.allCells addObject:cell];
-      [cell addSnapPointsToBoardAndResize:self.zoomedOut];
+//      [cell addSnapPointsToBoardAndResize:self.zoomedOut];
     }
   }
   return cell;
@@ -416,7 +416,7 @@
     
     if ([self.allCells containsObject:cell]) {
       [self.allCells removeObject:cell];
-      [cell removeSnapPointsFromBoard];
+//      [cell removeSnapPointsFromBoard];
     }
     [self pushDequeuedCell:cell];
   }
@@ -440,7 +440,7 @@
     // find closest hex coord for hex origin, and get the snap point for that orientation
   HexCoord homeHexCoord = [self hexCoordFromX:(NSInteger)self.hexOrigin.dx andY:(NSInteger)self.hexOrigin.dy];
   
-  CGPoint homeSnapPosition = [Cell snapPointPositionForHexCoord:homeHexCoord
+  CGPoint homeSnapPosition = [Cell snapPositionForHexCoord:homeHexCoord
                                                     orientation:orientation
                                                       andResize:self.zoomedOut
                                                  givenHexOrigin:self.hexOrigin];
@@ -467,7 +467,7 @@
       homeHexCoord = [self hexCoordFromX:homeHexCoord.x - 1 andY:homeHexCoord.y + 1];
     }
 
-    homeSnapPosition = [Cell snapPointPositionForHexCoord:homeHexCoord
+    homeSnapPosition = [Cell snapPositionForHexCoord:homeHexCoord
                                               orientation:orientation
                                                 andResize:self.zoomedOut
                                            givenHexOrigin:self.hexOrigin];
@@ -487,7 +487,7 @@
   CGFloat minDistance = CGFLOAT_MAX;
   for (int i = 0; i < 7; i++) {
     HexCoord hexCoordToCheck = hexCoordsToCheck[i];
-    CGPoint snapPointToCheck = [Cell snapPointPositionForHexCoord:hexCoordToCheck
+    CGPoint snapPointToCheck = [Cell snapPositionForHexCoord:hexCoordToCheck
                                                       orientation:orientation
                                                         andResize:self.zoomedOut
                                                    givenHexOrigin:self.hexOrigin];

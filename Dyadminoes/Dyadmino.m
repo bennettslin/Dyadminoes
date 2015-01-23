@@ -79,8 +79,8 @@
   self.colorBlendFactor = 0.f;
   self.cellForPC1 = nil;
   self.cellForPC2 = nil;
-  self.homeNode = nil;
-  self.tempBoardNode = nil;
+//  self.homeNode = nil;
+//  self.tempBoardNode = nil;
   self.isInTopBar = NO;
   self.belongsInSwap = NO;
   self.canFlip = NO;
@@ -195,9 +195,10 @@
   [self resize];
 }
 
--(CGPoint)getHomeNodePositionConsideringSwap {
-  CGFloat addedYValue = self.belongsInSwap ? (self.homeNode.position.y + kRackHeight * 0.5) : 0;
-  return [self addToThisPoint:self.homeNode.position thisPoint:CGPointMake(0.f, addedYValue)];
+-(CGPoint)addIfSwapToHomePosition:(CGPoint)homePosition {
+
+  CGFloat addedYValue = self.belongsInSwap ? (homePosition.y + kRackHeight * 0.5) : 0;
+  return [self addToThisPoint:homePosition thisPoint:CGPointMake(0.f, addedYValue)];
 }
 
 -(void)correctZRotationAfterHover {
@@ -247,7 +248,9 @@
 #pragma mark - change view methods
 
 -(void)setToHomeZPosition {
-  self.zPosition = (self.homeNode.snapPointType == kSnapPointRack) ?
+//  self.zPosition = (self.homeNode.snapPointType == kSnapPointRack) ?
+//      kZPositionRackRestingDyadmino : kZPositionBoardRestingDyadmino;
+  self.zPosition = [self belongsInRack] ?
       kZPositionRackRestingDyadmino : kZPositionBoardRestingDyadmino;
   
     // FIXME: this doesn't seem to be necessary, but just make sure
@@ -303,8 +306,10 @@
   self.isRotating = NO;
 }
 
--(void)goHomeToRackByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize {
+-(void)goHomeToRackPositionByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize {
 
+  CGPoint rackPosition = [self.delegate rackPositionForDyadmino:self];
+  
   if (popInForUndo) {
     [self animateShrinkPopIntoNodeWithResize:resize];
   } else {
@@ -317,9 +322,9 @@
     
     self.colorBlendFactor = 0.f;
     [self orientWithAnimation:YES];
-    [self animateMoveToPoint:[self getHomeNodePositionConsideringSwap]];
+    [self animateMoveToPoint:[self addIfSwapToHomePosition:rackPosition]];
   }
-  self.tempBoardNode = nil;
+//  self.tempBoardNode = nil;
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
@@ -328,7 +333,7 @@
   NSLog(@"go home to board");
   
   [self orientWithAnimation:YES];
-  [self animateMoveToPoint:self.homeNode.position];
+  [self animateMoveToPoint:[self.delegate homePositionForDyadmino:self]];
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
@@ -336,8 +341,18 @@
   NSLog(@"animate ease into node after hover");
   
     // animate to tempBoardNode if it's a rack dyadmino, otherwise to homeNode
-  CGPoint settledPosition = ([self belongsInRack] && [self isOnBoard]) ?
-  self.tempBoardNode.position : [self getHomeNodePositionConsideringSwap];
+//  CGPoint settledPosition = ([self belongsInRack] && [self isOnBoard]) ?
+//      self.tempBoardNode.position : self.homeNode.position;
+  
+  CGPoint settledPosition = [self.delegate tempPositionForDyadmino:self];
+
+//  CGPoint settledPosition;
+//  if ([self belongsInRack] && [self isOnBoard]) {
+//    settledPosition = [self.delegate tempPositionForDyadmino:self];
+//  } else {
+//    settledPosition = [self.delegate homePositionForDyadmino:self];
+//  }
+
   
   __weak typeof(self) weakSelf = self;
   void (^completion)(void) = ^void(void) {
@@ -355,7 +370,7 @@
       [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
     }
     
-    NSLog(@"from animate ease into node, my homeNode is %@, tempNode is %@, tempReturn orientation %i, orientaiton %i", self.homeNode.name, self.tempBoardNode.name, self.tempReturnOrientation, self.orientation);
+//    NSLog(@"from animate ease into node, my homeNode is %@, tempNode is %@, tempReturn orientation %i, orientaiton %i", self.homeNode.name, self.tempBoardNode.name, self.tempReturnOrientation, self.orientation);
   };
 
   [self animateToPosition:settledPosition
@@ -395,7 +410,7 @@
         [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
       }
       
-      NSLog(@"from animate nodeless move to point, my homeNode is %@, tempNode is %@, tempReturn orientation %i, orientaiton %i", self.homeNode.name, self.tempBoardNode.name, self.tempReturnOrientation, self.orientation);
+//      NSLog(@"from animate nodeless move to point, my homeNode is %@, tempNode is %@, tempReturn orientation %i, orientaiton %i", self.homeNode.name, self.tempBoardNode.name, self.tempReturnOrientation, self.orientation);
     };
     
   } else {
@@ -424,7 +439,7 @@
 
 -(void)animateCellAgnosticRepositionAndResize:(BOOL)resize boardZoomedOut:(BOOL)boardZoomedOut givenHexOrigin:(CGVector)hexOrigin {
   
-  CGPoint reposition = [Cell snapPointPositionForHexCoord:self.tempHexCoord
+  CGPoint reposition = [Cell snapPositionForHexCoord:self.tempHexCoord
                                               orientation:self.tempReturnOrientation
                                                 andResize:boardZoomedOut
                                            givenHexOrigin:hexOrigin];
@@ -539,7 +554,7 @@
     [self.delegate postSoundNotification:kNotificationPivotClick];
     
       // just to ensure that dyadmino is back in its node position
-    self.position = [self getHomeNodePositionConsideringSwap];
+//    self.position = self.homeNode.position;
     
   } else if ([self isOnBoard]) {
     self.isRotating = NO;
@@ -572,7 +587,7 @@
       [weakSelf resize];
       [weakSelf selectAndPositionSpritesZRotation:0.f];
     }
-    weakSelf.position = [weakSelf getHomeNodePositionConsideringSwap];
+    weakSelf.position = [weakSelf.delegate rackPositionForDyadmino:self];
   };
   SKAction *repositionAction = [SKAction runBlock:repositionBetweenShrinkAndGrowBlock];
   
@@ -925,13 +940,17 @@
 #pragma mark - query methods
 
 -(BOOL)belongsInRack {
-  return (self.homeNode.snapPointType == kSnapPointRack);
+//  return [self.delegate dyadminoBelongsInRack:self];
+  return (self.rackIndex != -1);
+//  return (self.homeNode.snapPointType == kSnapPointRack);
 }
 
 -(BOOL)belongsOnBoard {
-  return (self.homeNode.snapPointType == kSnapPointBoardTwelveOClock ||
-          self.homeNode.snapPointType == kSnapPointBoardTwoOClock ||
-          self.homeNode.snapPointType == kSnapPointBoardTenOClock);
+//  return [self.delegate dyadminoBelongsOnBoard:self];
+  return (self.rackIndex == -1);
+//  return (self.homeNode.snapPointType == kSnapPointBoardTwelveOClock ||
+//          self.homeNode.snapPointType == kSnapPointBoardTwoOClock ||
+//          self.homeNode.snapPointType == kSnapPointBoardTenOClock);
 }
 
 -(BOOL)isInRack {

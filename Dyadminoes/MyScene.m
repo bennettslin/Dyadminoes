@@ -462,7 +462,7 @@
       Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
       
       dyadmino.orientation = [dataDyad returnMyOrientation];
-      dyadmino.myRackOrder = [dataDyad returnMyRackOrder];
+      dyadmino.rackIndex = [dataDyad returnMyRackOrder];
         // not the best place to set tempReturnOrientation for dyadmino
       dyadmino.tempReturnOrientation = dyadmino.orientation;
       
@@ -471,9 +471,10 @@
     }
   }
   
+    [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
+  
     // make sure dyadminoes are sorted
-  NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"myRackOrder" ascending:YES];
-  [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
+  NSSortDescriptor *sortByRackOrder = [[NSSortDescriptor alloc] initWithKey:@"rackIndex" ascending:YES];
   self.playerRackDyadminoes = [tempDyadminoArray sortedArrayUsingDescriptors:@[sortByRackOrder]];
   return (self.playerRackDyadminoes.count == [(NSArray *)_myPlayer.rackIndexes count] - [(NSArray *)self.myMatch.holdingIndexContainer count]);
 }
@@ -491,9 +492,9 @@
     
     dyadmino.homeHexCoord = dataDyad.myHexCoord;
     dyadmino.tempHexCoord = dyadmino.homeHexCoord;
+    dyadmino.rackIndex = -1; // signifies it's not in rack
     
     dyadmino.orientation = [dataDyad returnMyOrientation];
-    dyadmino.myRackOrder = -1; // signifies it's not in rack
     dyadmino.tempReturnOrientation = dyadmino.orientation;
     
     if (![tempSet containsObject:dyadmino]) {
@@ -534,32 +535,32 @@
       // this is for the first dyadmino, which doesn't have a boardNode
       // and also other dyadminoes when reloading
 //    if (!dyadmino.homeNode) {
-      NSMutableSet *snapPointsToSearch;
-      
+//      NSMutableSet *snapPointsToSearch;
+    
         // if called from setup, temp return orientation is the same as dyadmino orientation
         // if called from reset, it may be different
-      switch (dyadmino.tempReturnOrientation) {
-        case kPC1atTwelveOClock:
-        case kPC1atSixOClock:
-          snapPointsToSearch = _boardField.snapPointsTwelveOClock;
-          break;
-        case kPC1atTwoOClock:
-        case kPC1atEightOClock:
-          snapPointsToSearch = _boardField.snapPointsTwoOClock;
-          break;
-        case kPC1atFourOClock:
-        case kPC1atTenOClock:
-          snapPointsToSearch = _boardField.snapPointsTenOClock;
-          break;
-      }
+//      switch (dyadmino.tempReturnOrientation) {
+//        case kPC1atTwelveOClock:
+//        case kPC1atSixOClock:
+//          snapPointsToSearch = _boardField.snapPointsTwelveOClock;
+//          break;
+//        case kPC1atTwoOClock:
+//        case kPC1atEightOClock:
+//          snapPointsToSearch = _boardField.snapPointsTwoOClock;
+//          break;
+//        case kPC1atFourOClock:
+//        case kPC1atTenOClock:
+//          snapPointsToSearch = _boardField.snapPointsTenOClock;
+//          break;
+//      }
 
-      for (SnapPoint *snapPoint in snapPointsToSearch) {
-        if ( snapPoint.myCell.hexCoord.x == dyadmino.tempHexCoord.x && snapPoint.myCell.hexCoord.y == dyadmino.tempHexCoord.y) {
-
-          dyadmino.homeNode = snapPoint;
-          dyadmino.tempBoardNode = dyadmino.homeNode;
-        }
-      }
+//      for (SnapPoint *snapPoint in snapPointsToSearch) {
+//        if ( snapPoint.myCell.hexCoord.x == dyadmino.tempHexCoord.x && snapPoint.myCell.hexCoord.y == dyadmino.tempHexCoord.y) {
+//
+//          dyadmino.homeNode = snapPoint;
+//          dyadmino.tempBoardNode = dyadmino.homeNode;
+//        }
+//      }
     
       //------------------------------------------------------------------------
     
@@ -567,13 +568,8 @@
       [self moveDyadminoHome:dyadmino];
       
     } else {
-      dyadmino.position = [Cell snapPointPositionForHexCoord:dyadmino.homeHexCoord
-                                                 orientation:dyadmino.tempReturnOrientation
-                                                   andResize:_boardZoomedOut
-                                              givenHexOrigin:_boardField.hexOrigin];
-      
+      dyadmino.position = [self homePositionForDyadmino:dyadmino];
       [dyadmino selectAndPositionSpritesZRotation:0.f];
-      
       [dyadmino orientWithAnimation:animated];
       
         // layout is called once afterwards
@@ -675,7 +671,7 @@
     // match is still in play
   if (![self.myMatch returnGameHasEnded]) {
 
-    [_rackField layoutOrRefreshNodesWithCount:self.playerRackDyadminoes.count];
+//    [_rackField layoutOrRefreshNodesWithCount:self.playerRackDyadminoes.count];
     [_rackField repositionDyadminoes:self.playerRackDyadminoes fromUndo:undo withAnimation:animation];
     
     for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
@@ -683,7 +679,7 @@
     }
 
   } else {
-    [_rackField layoutOrRefreshNodesWithCount:self.playerRackDyadminoes.count];
+//    [_rackField layoutOrRefreshNodesWithCount:self.playerRackDyadminoes.count];
     [_rackField repositionDyadminoes:self.playerRackDyadminoes fromUndo:undo withAnimation:animation];
   }
   
@@ -1091,8 +1087,8 @@
       
         // take care of hovering dyadmino
       if (_hoveringDyadminoStaysFixedToBoard) {
-        _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
-        
+//        _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
+  
         _hoveringDyadmino.tempHexCoord = [self closestHexCoordForDyadmino:_hoveringDyadmino];
       }
       
@@ -1229,7 +1225,7 @@
     // if it's on the board and not already rotating, two possibilities
   if ([_touchedDyadmino isOnBoard] && !_touchedDyadmino.isRotating) {
 
-    _uponTouchDyadminoNode = dyadmino.tempBoardNode;
+//    _uponTouchDyadminoNode = dyadmino.tempBoardNode;
     _uponTouchDyadminoHexCoord = dyadmino.tempHexCoord;
 //    _uponTouchDyadminoOrientation = dyadmino.orientation;
     _uponTouchDyadminoOrientation = dyadmino.tempReturnOrientation;
@@ -1304,7 +1300,7 @@
       
         // if it's a board dyadmino
       if ([dyadmino belongsOnBoard]) {
-        dyadmino.tempBoardNode = nil;
+//        dyadmino.tempBoardNode = nil;
         dyadmino.tempHexCoord = dyadmino.homeHexCoord;
       }
       
@@ -1312,7 +1308,7 @@
       
         // or if dyadmino is in rack but belongs on board (this seems to work)
     } else if ([dyadmino belongsOnBoard] && [dyadmino isInRack]) {
-      dyadmino.tempBoardNode = nil;
+//      dyadmino.tempBoardNode = nil;
       dyadmino.tempHexCoord = dyadmino.homeHexCoord;
       [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
       dyadmino.position = [_boardField getOffsetFromPoint:dyadmino.position];
@@ -1334,7 +1330,7 @@
     [_hoveringDyadmino animateWiggleForHover:YES];
     
       // establish the closest board node, without snapping just yet
-    dyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:dyadmino];
+//    dyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:dyadmino];
     
     dyadmino.tempHexCoord = [self closestHexCoordForDyadmino:dyadmino];
     
@@ -1372,11 +1368,12 @@
     // animate going home
   if ([dyadmino belongsInRack]) {
     
-    [dyadmino goHomeToRackByPoppingInForUndo:popInForUndo withResize:_boardZoomedOut];
+    [dyadmino goHomeToRackPositionByPoppingInForUndo:popInForUndo withResize:_boardZoomedOut];
     
   } else {
+    
     dyadmino.tempHexCoord = dyadmino.homeHexCoord;
-    dyadmino.tempBoardNode = dyadmino.homeNode;
+//    dyadmino.tempBoardNode = dyadmino.homeNode;
     
     [dyadmino goHomeToBoard];
   }
@@ -1633,7 +1630,7 @@
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
       [dyadmino placeInBelongsInSwap:NO];
-      [dyadmino goHomeToRackByPoppingInForUndo:NO withResize:NO];
+      [dyadmino goHomeToRackPositionByPoppingInForUndo:NO withResize:NO];
     }
   }
 }
@@ -1760,8 +1757,9 @@
     [self addToSceneBoardDyadminoes:dyadmino];
     
       // do cleanup, dyadmino's home node is now the board node
-    dyadmino.homeNode = dyadmino.tempBoardNode;
+//    dyadmino.homeNode = dyadmino.tempBoardNode;
     dyadmino.homeHexCoord = dyadmino.tempHexCoord;
+    dyadmino.rackIndex = -1;
     
     [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer forLabel:YES light:NO]];
     
@@ -1794,7 +1792,7 @@
       // recalibrate undone dyadmino
     Dyadmino *undoneDyadmino = [self getDyadminoFromDataDyadmino:undoneDataDyadmino];
     undoneDyadmino.tempReturnOrientation = [undoneDataDyadmino returnMyOrientation];
-    undoneDyadmino.homeNode = nil;
+//    undoneDyadmino.homeNode = nil;
     
       // re-add dyadmino to player rack, remove from scene board, refresh chords
     [self reAddToPlayerRackDyadminoes:undoneDyadmino];
@@ -1823,8 +1821,8 @@
     dyadmino.homeHexCoord = dataDyad.myHexCoord;
     dyadmino.tempHexCoord = dyadmino.homeHexCoord;
     
-    dyadmino.homeNode = nil;
-    dyadmino.tempBoardNode = nil;
+//    dyadmino.homeNode = nil;
+//    dyadmino.tempBoardNode = nil;
   }
 
   if (![_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes minusDyadmino:nil updateBounds:NO]) {
@@ -1975,7 +1973,7 @@
     } else if (_hoveringDyadminoFinishedCorrecting == 1) {
       
       if (_hoveringDyadminoFinishedCorrecting >= 1) {
-        _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
+//        _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
         _hoveringDyadmino.tempHexCoord = [self closestHexCoordForDyadmino:_hoveringDyadmino];
         
         if (!_canDoubleTapForDyadminoFlip && !_hoveringDyadmino.isRotating) {
@@ -2139,7 +2137,7 @@
           _hoveringDyadmino && _hoveringDyadmino != _touchedDyadmino) {
         
         _boardJustShiftedNotCorrected = NO;
-        _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
+//        _hoveringDyadmino.tempBoardNode = [self findSnapPointClosestToDyadmino:_hoveringDyadmino];
         _hoveringDyadmino.tempHexCoord = [self closestHexCoordForDyadmino:_hoveringDyadmino];
         
         if (_hoveringDyadminoBeingCorrected == 0) {
@@ -2204,10 +2202,9 @@
 
       // ease in right away if dyadmino was not moved from original spot, or if it's a rack dyadmino
     
-    if (([dyadmino belongsOnBoard] &&
-         dyadmino.tempHexCoord.x == _uponTouchDyadminoHexCoord.x &&
-         dyadmino.tempHexCoord.y == _uponTouchDyadminoHexCoord.y &&
-         dyadmino.orientation == _uponTouchDyadminoOrientation)) {
+    if (dyadmino.tempHexCoord.x == _uponTouchDyadminoHexCoord.x &&
+        dyadmino.tempHexCoord.y == _uponTouchDyadminoHexCoord.y &&
+        dyadmino.orientation == _uponTouchDyadminoOrientation) {
     
 //      if ((dyadmino.tempBoardNode == _uponTouchDyadminoNode &&
 //           dyadmino.orientation == _uponTouchDyadminoOrientation)) {
@@ -2419,7 +2416,7 @@
       // this method will record a dyadmino that's already in the match's board
       // this method also gets called if a recently played dyadmino
       // has been moved, but data will not be submitted until the turn is officially done.
-    dyadmino.homeNode = dyadmino.tempBoardNode;
+//    dyadmino.homeNode = dyadmino.tempBoardNode;
     dyadmino.homeHexCoord = dyadmino.tempHexCoord;
   }
   
@@ -3085,11 +3082,10 @@
 -(CGFloat)distanceFromCurrentToHomePositionForDyadmino:(Dyadmino *)dyadmino {
   CGPoint homePosition;
   
-  if ([dyadmino isOnBoard]) {
-    homePosition = [Cell snapPointPositionForHexCoord:dyadmino.homeHexCoord orientation:dyadmino.tempReturnOrientation andResize:_boardZoomedOut givenHexOrigin:_boardField.hexOrigin];
-    
-  } else if ([dyadmino isInRack]) {
-    homePosition = [_rackField getNodePositionAtIndex:dyadmino.rackIndex withCountNumber:self.playerRackDyadminoes.count];
+  if ([dyadmino belongsInRack]) {
+    homePosition = [self rackPositionForDyadmino:dyadmino];
+  } else {
+    homePosition = [self homePositionForDyadmino:dyadmino];
   }
   
   return [self getDistanceFromThisPoint:homePosition toThisPoint:dyadmino.position];
@@ -3103,64 +3099,64 @@
   return [_rackField findClosestRackIndexForDyadminoPosition:dyadmino.position withCount:self.playerRackDyadminoes.count];
 }
 
--(SnapPoint *)findSnapPointClosestToDyadmino:(Dyadmino *)dyadmino {
-  
-  if ([dyadmino isOnBoard]) {
-    [_boardField findClosestHexCoordForDyadminoPosition:dyadmino.position andOrientation:dyadmino.orientation];
-  } else if ([dyadmino isInRack]) {
-    [_rackField findClosestRackIndexForDyadminoPosition:dyadmino.position withCount:self.playerRackDyadminoes.count];
-  }
-  
-  id arrayOrSetToSearch;
-  
-  if ([self isFirstDyadmino:dyadmino]) {
-    Cell *homeCell = dyadmino.tempBoardNode.myCell;
-    switch (dyadmino.orientation) {
-      case kPC1atTwelveOClock:
-      case kPC1atSixOClock:
-        return homeCell.boardSnapPointTwelveOClock;
-        break;
-      case kPC1atTwoOClock:
-      case kPC1atEightOClock:
-        return homeCell.boardSnapPointTwoOClock;
-        break;
-      case kPC1atFourOClock:
-      case kPC1atTenOClock:
-        return homeCell.boardSnapPointTenOClock;
-        break;
-    }
-  }
-  
-  if (!self.swapContainer && [dyadmino isOnBoard]) {
-    if (dyadmino.orientation == kPC1atTwelveOClock || dyadmino.orientation == kPC1atSixOClock) {
-      arrayOrSetToSearch = _boardField.snapPointsTwelveOClock;
-    } else if (dyadmino.orientation == kPC1atTwoOClock || dyadmino.orientation == kPC1atEightOClock) {
-      arrayOrSetToSearch = _boardField.snapPointsTwoOClock;
-    } else if (dyadmino.orientation == kPC1atFourOClock || dyadmino.orientation == kPC1atTenOClock) {
-      arrayOrSetToSearch = _boardField.snapPointsTenOClock;
-    }
-    
-  } else if ([dyadmino isInRack] || dyadmino.belongsInSwap) {
-    arrayOrSetToSearch = _rackField.rackNodes;
-  }
-  
-    // get the closest snapPoint
-  SnapPoint *closestSnapPoint;
-  CGFloat shortestDistance = self.frame.size.height;
-  
-  for (SnapPoint *snapPoint in arrayOrSetToSearch) {
-//    NSLog(@"dyadmino position is %.2f, %.2f, snapPoint position is %.2f, %.2f", dyadmino.position.x, dyadmino.position.y, snapPoint.position.x, snapPoint.position.y);
-    
-      CGFloat thisDistance = [self getDistanceFromThisPoint:dyadmino.position
-                                                toThisPoint:snapPoint.position];
-      if (thisDistance < shortestDistance) {
-        shortestDistance = thisDistance;
-        closestSnapPoint = snapPoint;
-      }
-    }
-  
-  return closestSnapPoint;
-}
+//-(SnapPoint *)findSnapPointClosestToDyadmino:(Dyadmino *)dyadmino {
+//  
+//  if ([dyadmino isOnBoard]) {
+//    [_boardField findClosestHexCoordForDyadminoPosition:dyadmino.position andOrientation:dyadmino.orientation];
+//  } else if ([dyadmino isInRack]) {
+//    [_rackField findClosestRackIndexForDyadminoPosition:dyadmino.position withCount:self.playerRackDyadminoes.count];
+//  }
+//
+//  id arrayOrSetToSearch;
+//  
+//  if ([self isFirstDyadmino:dyadmino]) {
+//    Cell *homeCell = dyadmino.tempBoardNode.myCell;
+//    switch (dyadmino.orientation) {
+//      case kPC1atTwelveOClock:
+//      case kPC1atSixOClock:
+//        return homeCell.boardSnapPointTwelveOClock;
+//        break;
+//      case kPC1atTwoOClock:
+//      case kPC1atEightOClock:
+//        return homeCell.boardSnapPointTwoOClock;
+//        break;
+//      case kPC1atFourOClock:
+//      case kPC1atTenOClock:
+//        return homeCell.boardSnapPointTenOClock;
+//        break;
+//    }
+//  }
+//  
+//  if (!self.swapContainer && [dyadmino isOnBoard]) {
+//    if (dyadmino.orientation == kPC1atTwelveOClock || dyadmino.orientation == kPC1atSixOClock) {
+//      arrayOrSetToSearch = _boardField.snapPointsTwelveOClock;
+//    } else if (dyadmino.orientation == kPC1atTwoOClock || dyadmino.orientation == kPC1atEightOClock) {
+//      arrayOrSetToSearch = _boardField.snapPointsTwoOClock;
+//    } else if (dyadmino.orientation == kPC1atFourOClock || dyadmino.orientation == kPC1atTenOClock) {
+//      arrayOrSetToSearch = _boardField.snapPointsTenOClock;
+//    }
+//    
+//  } else if ([dyadmino isInRack] || dyadmino.belongsInSwap) {
+//    arrayOrSetToSearch = _rackField.rackNodes;
+//  }
+//  
+//    // get the closest snapPoint
+//  SnapPoint *closestSnapPoint;
+//  CGFloat shortestDistance = self.frame.size.height;
+//  
+//  for (SnapPoint *snapPoint in arrayOrSetToSearch) {
+////    NSLog(@"dyadmino position is %.2f, %.2f, snapPoint position is %.2f, %.2f", dyadmino.position.x, dyadmino.position.y, snapPoint.position.x, snapPoint.position.y);
+//    
+//      CGFloat thisDistance = [self getDistanceFromThisPoint:dyadmino.position
+//                                                toThisPoint:snapPoint.position];
+//      if (thisDistance < shortestDistance) {
+//        shortestDistance = thisDistance;
+//        closestSnapPoint = snapPoint;
+//      }
+//    }
+//  
+//  return closestSnapPoint;
+//}
 
 -(CGFloat)pivotAngleBasedOnTouchLocation:(CGPoint)touchLocation forDyadmino:(Dyadmino *)dyadmino firstTime:(BOOL)firstTime {
   
@@ -3247,6 +3243,26 @@
 -(void)popDyadminoHome:(Dyadmino *)dyadmino {
   [self sendDyadminoHome:dyadmino byPoppingInForUndo:YES];
 }
+
+-(CGPoint)homePositionForDyadmino:(Dyadmino *)dyadmino {
+  return [Cell snapPositionForHexCoord:dyadmino.homeHexCoord orientation:dyadmino.tempReturnOrientation andResize:_boardZoomedOut givenHexOrigin:_boardField.hexOrigin];
+}
+
+-(CGPoint)tempPositionForDyadmino:(Dyadmino *)dyadmino {
+  return [Cell snapPositionForHexCoord:dyadmino.tempHexCoord orientation:dyadmino.orientation andResize:_boardZoomedOut givenHexOrigin:_boardField.hexOrigin];
+}
+
+-(CGPoint)rackPositionForDyadmino:(Dyadmino *)dyadmino {
+  return [_rackField getNodePositionAtIndex:dyadmino.rackIndex withCountNumber:self.playerRackDyadminoes.count];
+}
+
+//-(BOOL)dyadminoBelongsInRack:(Dyadmino *)dyadmino {
+//  return [self.playerRackDyadminoes containsObject:dyadmino];
+//}
+//
+//-(BOOL)dyadminoBelongsOnBoard:(Dyadmino *)dyadmino {
+//  return [self.boardDyadminoes containsObject:dyadmino];
+//}
 
 #pragma mark - replay and turn methods
 
@@ -3585,9 +3601,11 @@
   for (int i = 0; i < rackArray.count; i++) {
     if ([rackArray[i] isKindOfClass:[Dyadmino class]]) {
       Dyadmino *dyadmino = (Dyadmino *)rackArray[i];
+      dyadmino.rackIndex = i;
+      NSLog(@"dyadmino %@ has index %i", dyadmino.name, dyadmino.rackIndex);
       DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
       dataDyad.myOrientation = @(dyadmino.orientation);
-      dataDyad.myRackOrder = [NSNumber numberWithInteger:dyadmino.myRackOrder];
+      dataDyad.myRackOrder = [NSNumber numberWithInteger:dyadmino.rackIndex];
     }
   }
 }

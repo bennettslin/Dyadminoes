@@ -9,10 +9,20 @@
 #import <Foundation/Foundation.h>
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
-#import "SnapPoint.h"
+//#import "SnapPoint.h"
+@class Cell;
 @class Face;
 
 @protocol DyadminoDelegate <NSObject>
+
+  // these must be delegate methods, because dyadmino does not know board's hex origin
+-(CGPoint)homePositionForDyadmino:(Dyadmino *)dyadmino;
+-(CGPoint)tempPositionForDyadmino:(Dyadmino *)dyadmino;
+-(CGPoint)rackPositionForDyadmino:(Dyadmino *)dyadmino;
+
+  // these must be delegate methods, because dyadmino does not know match data
+//-(BOOL)dyadminoBelongsInRack:(Dyadmino *)dyadmino;
+//-(BOOL)dyadminoBelongsOnBoard:(Dyadmino *)dyadmino;
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino withLayout:(BOOL)layout;
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
@@ -36,15 +46,14 @@
 @property (strong, nonatomic) Cell *cellForPC2;
 
   // nodes and touches
-
 @property (assign, nonatomic) HexCoord homeHexCoord; // replaces homeNode
 @property (assign, nonatomic) HexCoord tempHexCoord; // replaces tempBoardNode
 @property (assign, nonatomic) NSInteger rackIndex; // replaces homeNode for rack
 
-@property (strong, nonatomic) SnapPoint *homeNode;
-@property (strong, nonatomic) SnapPoint *tempBoardNode;
+//@property (strong, nonatomic) SnapPoint *homeNode;
+//@property (strong, nonatomic) SnapPoint *tempBoardNode;
 
-@property (assign, nonatomic) NSInteger myRackOrder;
+//@property (assign, nonatomic) NSInteger myRackOrder;
 
   // orientations
 @property (assign, nonatomic) DyadminoOrientation orientation;
@@ -104,7 +113,10 @@
 #pragma mark - orient, position, and size methods
 
 -(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle;
--(CGPoint)getHomeNodePositionConsideringSwap;
+//-(CGPoint)getHomeNodePositionConsideringSwap;
+
+  // called by rack
+-(CGPoint)addIfSwapToHomePosition:(CGPoint)homePosition;
 -(void)correctZRotationAfterHover;
 
 #pragma mark - change status methods
@@ -120,8 +132,8 @@
 
 -(void)orientWithAnimation:(BOOL)animate;
 -(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
--(void)goHomeToRackByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize;
-
+//-(void)goHomeToRackPosition:(CGPoint)rackHomePosition byPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize;
+-(void)goHomeToRackPositionByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize;
 -(void)goHomeToBoard;
 -(void)animateEaseIntoNodeAfterHover;
 -(void)animateMoveToPointCalledFromRack:(CGPoint)point;

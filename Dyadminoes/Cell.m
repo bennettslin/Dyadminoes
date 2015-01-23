@@ -7,7 +7,7 @@
 //
 
 #import "Cell.h"
-#import "SnapPoint.h"
+//#import "SnapPoint.h"
 //#import "Board.h"
 
 #define kPaddingBetweenCells (kIsIPhone ? 0.f : 0.f)
@@ -33,7 +33,7 @@
   if (self) {
     
     self.cellNodeTexture = texture;
-    self.delegate = delegate;
+//    self.delegate = delegate;
     
     [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin forResize:resize];
   }
@@ -53,7 +53,7 @@
   self.cellNodePosition = [Cell cellPositionWithHexOrigin:hexOrigin andHexCoord:self.hexCoord forResize:resize];
   
     // create snap points
-  [self createSnapPoints];
+//  [self createSnapPoints];
   
   CGSize cellSize = [Cell cellSizeForResize:resize];
   self.cellNode ? [self initPositionCellNodeWithSize:cellSize] : [self instantiateCellNodeWithSize:cellSize];
@@ -181,73 +181,73 @@
 
 #pragma mark - snap points methods
 
--(void)createSnapPoints {
-  
-  if (!self.boardSnapPointTwelveOClock) {
-    self.boardSnapPointTwelveOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwelveOClock];
-    self.boardSnapPointTwelveOClock.name = @"snap 12";
-    self.boardSnapPointTwelveOClock.myCell = self;
-  }
-  
-  if (!self.boardSnapPointTwoOClock) {
-    self.boardSnapPointTwoOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwoOClock];
-    self.boardSnapPointTwoOClock.name = @"snap 2";
-    self.boardSnapPointTwoOClock.myCell = self;
-  }
+//-(void)createSnapPoints {
+//  
+//  if (!self.boardSnapPointTwelveOClock) {
+//    self.boardSnapPointTwelveOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwelveOClock];
+//    self.boardSnapPointTwelveOClock.name = @"snap 12";
+//    self.boardSnapPointTwelveOClock.myCell = self;
+//  }
+//  
+//  if (!self.boardSnapPointTwoOClock) {
+//    self.boardSnapPointTwoOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTwoOClock];
+//    self.boardSnapPointTwoOClock.name = @"snap 2";
+//    self.boardSnapPointTwoOClock.myCell = self;
+//  }
+//
+//  if (!self.boardSnapPointTenOClock) {
+//    self.boardSnapPointTenOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTenOClock];
+//    self.boardSnapPointTenOClock.name = @"snap 10";
+//    self.boardSnapPointTenOClock.myCell = self;
+//  }
+//  
+//  CGPoint passedInPosition = self.cellNode ? self.cellNode.position : self.cellNodePosition;
+//  [self positionSnapPointsWithPosition:passedInPosition forResize:NO];
+//}
 
-  if (!self.boardSnapPointTenOClock) {
-    self.boardSnapPointTenOClock = [[SnapPoint alloc] initWithSnapPointType:kSnapPointBoardTenOClock];
-    self.boardSnapPointTenOClock.name = @"snap 10";
-    self.boardSnapPointTenOClock.myCell = self;
-  }
-  
-  CGPoint passedInPosition = self.cellNode ? self.cellNode.position : self.cellNodePosition;
-  [self positionSnapPointsWithPosition:passedInPosition forResize:NO];
-}
+//-(void)positionSnapPointsWithPosition:(CGPoint)cellPosition forResize:(BOOL)resize {
+//  CGFloat faceOffset = resize ? kDyadminoFaceRadius * kZoomResizeFactor : kDyadminoFaceRadius;
+//  
+//    // based on a 30-60-90 degree triangle
+//  CGFloat faceOffsetX = faceOffset * 0.5 * kSquareRootOfThree;
+//  CGFloat faceOffsetY = faceOffset * 0.5;
+//
+//  self.boardSnapPointTwelveOClock.position = [self addToThisPoint:cellPosition
+//                                                        thisPoint:CGPointMake(0.f, faceOffset)];
+//  self.boardSnapPointTwoOClock.position = [self addToThisPoint:cellPosition
+//                                                     thisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
+//  self.boardSnapPointTenOClock.position = [self addToThisPoint:cellPosition
+//                                                     thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
+//}
 
--(void)positionSnapPointsWithPosition:(CGPoint)cellPosition forResize:(BOOL)resize {
-  CGFloat faceOffset = resize ? kDyadminoFaceRadius * kZoomResizeFactor : kDyadminoFaceRadius;
-  
-    // based on a 30-60-90 degree triangle
-  CGFloat faceOffsetX = faceOffset * 0.5 * kSquareRootOfThree;
-  CGFloat faceOffsetY = faceOffset * 0.5;
-
-  self.boardSnapPointTwelveOClock.position = [self addToThisPoint:cellPosition
-                                                        thisPoint:CGPointMake(0.f, faceOffset)];
-  self.boardSnapPointTwoOClock.position = [self addToThisPoint:cellPosition
-                                                     thisPoint:CGPointMake(faceOffsetX, faceOffsetY)];
-  self.boardSnapPointTenOClock.position = [self addToThisPoint:cellPosition
-                                                     thisPoint:CGPointMake(-faceOffsetX, faceOffsetY)];
-}
-
--(void)addSnapPointsToBoardAndResize:(BOOL)resize {
-  
-  CGPoint passedInPosition = self.cellNode ? self.cellNode.position : self.cellNodePosition;
-  [self positionSnapPointsWithPosition:passedInPosition forResize:resize];
-  
-  if (![self.delegate.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
-    [self.delegate.snapPointsTwelveOClock addObject:self.boardSnapPointTwelveOClock];
-  }
-  if (![self.delegate.snapPointsTwoOClock containsObject:self.boardSnapPointTwoOClock]) {
-    [self.delegate.snapPointsTwoOClock addObject:self.boardSnapPointTwoOClock];
-  }
-  if (![self.delegate.snapPointsTenOClock containsObject:self.boardSnapPointTenOClock]) {
-    [self.delegate.snapPointsTenOClock addObject:self.boardSnapPointTenOClock];
-  }
-}
-
--(void)removeSnapPointsFromBoard {
-  
-  if ([self.delegate.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
-    [self.delegate.snapPointsTwelveOClock removeObject:self.boardSnapPointTwelveOClock];
-  }
-  if ([self.delegate.snapPointsTwoOClock containsObject:self.boardSnapPointTwoOClock]) {
-    [self.delegate.snapPointsTwoOClock removeObject:self.boardSnapPointTwoOClock];
-  }
-  if ([self.delegate.snapPointsTenOClock containsObject:self.boardSnapPointTenOClock]) {
-    [self.delegate.snapPointsTenOClock removeObject:self.boardSnapPointTenOClock];
-  }
-}
+//-(void)addSnapPointsToBoardAndResize:(BOOL)resize {
+//  
+//  CGPoint passedInPosition = self.cellNode ? self.cellNode.position : self.cellNodePosition;
+//  [self positionSnapPointsWithPosition:passedInPosition forResize:resize];
+//  
+//  if (![self.delegate.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
+//    [self.delegate.snapPointsTwelveOClock addObject:self.boardSnapPointTwelveOClock];
+//  }
+//  if (![self.delegate.snapPointsTwoOClock containsObject:self.boardSnapPointTwoOClock]) {
+//    [self.delegate.snapPointsTwoOClock addObject:self.boardSnapPointTwoOClock];
+//  }
+//  if (![self.delegate.snapPointsTenOClock containsObject:self.boardSnapPointTenOClock]) {
+//    [self.delegate.snapPointsTenOClock addObject:self.boardSnapPointTenOClock];
+//  }
+//}
+//
+//-(void)removeSnapPointsFromBoard {
+//  
+//  if ([self.delegate.snapPointsTwelveOClock containsObject:self.boardSnapPointTwelveOClock]) {
+//    [self.delegate.snapPointsTwelveOClock removeObject:self.boardSnapPointTwelveOClock];
+//  }
+//  if ([self.delegate.snapPointsTwoOClock containsObject:self.boardSnapPointTwoOClock]) {
+//    [self.delegate.snapPointsTwoOClock removeObject:self.boardSnapPointTwoOClock];
+//  }
+//  if ([self.delegate.snapPointsTenOClock containsObject:self.boardSnapPointTenOClock]) {
+//    [self.delegate.snapPointsTenOClock removeObject:self.boardSnapPointTenOClock];
+//  }
+//}
 
 #pragma mark - cell view helper methods
 
@@ -292,8 +292,8 @@
   SKAction *moveCompletionAction = [SKAction runBlock:^{
     weakSelf.cellNode.position = reposition;
     
-    CGPoint passedInPosition = weakSelf.cellNode ? weakSelf.cellNode.position : weakSelf.cellNodePosition;
-    [weakSelf positionSnapPointsWithPosition:passedInPosition forResize:resize];
+//    CGPoint passedInPosition = weakSelf.cellNode ? weakSelf.cellNode.position : weakSelf.cellNodePosition;
+//    [weakSelf positionSnapPointsWithPosition:passedInPosition forResize:resize];
     
   }];
   SKAction *moveSequenceAction = [SKAction sequence:@[moveAction, moveCompletionAction]];
@@ -328,10 +328,10 @@
   return CGPointMake(newX, newY);
 }
 
-+(CGPoint)snapPointPositionForHexCoord:(HexCoord)hexCoord
-                           orientation:(DyadminoOrientation)orientation
-                             andResize:(BOOL)resize
-                        givenHexOrigin:(CGVector)hexOrigin {
++(CGPoint)snapPositionForHexCoord:(HexCoord)hexCoord
+                      orientation:(DyadminoOrientation)orientation
+                        andResize:(BOOL)resize
+                   givenHexOrigin:(CGVector)hexOrigin {
   
   CGPoint cellNodePosition = [Cell cellPositionWithHexOrigin:hexOrigin andHexCoord:hexCoord forResize:resize];
   CGFloat faceOffset = resize ? kDyadminoFaceRadius * kZoomResizeFactor : kDyadminoFaceRadius;

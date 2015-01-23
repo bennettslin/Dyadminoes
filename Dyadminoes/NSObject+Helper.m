@@ -139,7 +139,7 @@
 -(Dyadmino *)dyadminoInSet:(NSSet *)set withRackOrder:(NSUInteger)rackOrder {
   Dyadmino *returnedDyadmino;
   for (Dyadmino *dyadmino in set) {
-    if (dyadmino.myRackOrder == rackOrder) {
+    if (dyadmino.rackIndex == rackOrder) {
       returnedDyadmino = dyadmino;
     }
   }
@@ -150,10 +150,10 @@
   NSMutableSet *tempSet = [NSMutableSet new];
   
   for (Dyadmino *dyadmino in set) {
-    if (dyadmino.myRackOrder >= set.count) {
+    if (dyadmino.rackIndex >= set.count) {
       return NO;
     } else {
-      [tempSet addObject:@(dyadmino.myRackOrder)];
+      [tempSet addObject:@(dyadmino.rackIndex)];
     }
   }
   return (tempSet.count == set.count);
