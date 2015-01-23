@@ -26,6 +26,7 @@
 @property (readwrite, nonatomic) BOOL isInTopBar;
 @property (readwrite, nonatomic) BOOL belongsInSwap;
 @property (readwrite, nonatomic) BOOL isRotating;
+@property (readwrite, nonatomic) DyadminoHome home;
 
 @end
 
@@ -38,6 +39,7 @@
 
 @synthesize name = _name;
 @synthesize pcMode = _pcMode;
+@synthesize home = _home;
 
 #pragma mark - init and layout methods
 
@@ -200,7 +202,7 @@
 -(void)correctZRotationAfterHover {
   
   __weak typeof(self) weakSelf = self;
-  void (^completionBlock)(void) = ^void(void) {
+  void(^completionBlock)(void) = ^void(void) {
     [weakSelf determineNewAnchorPointDuringPivot:NO];
     weakSelf.zRotationCorrectedAfterPivot = YES;
     [weakSelf.delegate prepareForHoverThisDyadmino:self];
@@ -244,7 +246,7 @@
 #pragma mark - change view methods
 
 -(void)setToHomeZPosition {
-  self.zPosition = [self belongsInRack] ?
+  self.zPosition = (self.home == kRack) ?
       kZPositionRackRestingDyadmino : kZPositionBoardRestingDyadmino;
 }
 
@@ -253,51 +255,9 @@
   [self.pc2Sprite setScale:1.f];
 }
 
-#pragma mark - animate placement methods
+#pragma mark - animate detailed placement methods
 
--(void)orientWithAnimation:(BOOL)animate {
-  
-  NSInteger currentOrientation = self.orientation;
-  DyadminoOrientation shouldBeOrientation;
-  
-  if ([self belongsInRack]) {
-    shouldBeOrientation = (currentOrientation <= 1 || currentOrientation >= 5) ? 0 : 3;
-  } else if ([self belongsOnBoard]) {
-    shouldBeOrientation = self.tempReturnOrientation;
-  }
-  
-  if (animate) {
-    if (self.orientation != shouldBeOrientation) {
-      CGFloat difference = ((shouldBeOrientation - self.orientation + 6) % 6);
-      
-      if (difference <= 3) {
-        [self animateOneThirdFlipClockwise:YES times:difference withFullFlip:NO];
-      } else {
-        [self animateOneThirdFlipClockwise:NO times:(6 - difference) withFullFlip:NO];
-      }
-    }
-    
-  } else {
-    self.orientation = shouldBeOrientation;
-    [self selectAndPositionSpritesZRotation:0.f];
-  }
-}
-
--(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove {
-  
-  if (includingMove) {
-    [self removeActionForKey:kActionMoveToPoint];
-  }
-  
-  [self resetFaceScales];
-  [self removeActionForKey:kActionShrinkPopIn];
-  [self removeActionForKey:kActionGrowPopIn];
-  [self removeActionForKey:kActionFlip];
-  [self removeActionForKey:kActionEaseIntoNode];
-  self.isRotating = NO;
-}
-
--(void)goHomeToRackPositionByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize {
+-(void)returnToRackByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize {
 
   CGPoint rackPosition = [self.delegate rackPositionForDyadmino:self];
   
@@ -318,19 +278,32 @@
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
-  // this should be combined into one method with goHomeToRack
--(void)goHomeToBoard {
-  NSLog(@"go home to board");
+-(void)returnHomeToBoard {
   
   [self orientWithAnimation:YES];
   [self animateMoveToPoint:[self.delegate homePositionForDyadmino:self]];
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
+-(void)goToTempPositionWithRescale:(BOOL)rescale {
+  
+  self.zPosition = kZPositionBoardReplayAnimatedDyadmino;
+  CGPoint reposition = [self.delegate tempPositionForDyadmino:self withHomeOrientation:YES];
+  
+  __weak typeof(self) weakSelf = self;
+  void(^completion)(void) = ^void(void) {
+    weakSelf.zPosition = kZPositionBoardRestingDyadmino;
+    [weakSelf setScale:1.f];
+    [weakSelf selectAndPositionSpritesZRotation:0.f];
+  };
+  
+  [self animateExcessivelyToPosition:reposition withRescale:rescale duration:kConstantTime withKey:@"replayAction" completion:completion];
+}
+
 -(void)animateEaseIntoNodeAfterHover {
   NSLog(@"animate ease into node after hover");
   
-  CGPoint settledPosition = [self.delegate tempPositionForDyadmino:self];
+  CGPoint settledPosition = [self.delegate tempPositionForDyadmino:self withHomeOrientation:NO];
 
   __weak typeof(self) weakSelf = self;
   void (^completion)(void) = ^void(void) {
@@ -349,39 +322,34 @@
     }
   };
 
-  [self animateToPosition:settledPosition
-                 duration:kConstantTime
-               timingMode:SKActionTimingEaseOut
-                  withKey:kActionEaseIntoNode
-               completion:completion];
+  [self animateEasilyToPosition:settledPosition
+                       duration:kConstantTime
+                     timingMode:SKActionTimingEaseOut
+                        withKey:kActionEaseIntoNode
+                     completion:completion];
 }
 
+#pragma mark - animate basic placement methods
+
 -(void)animateMoveToPointCalledFromRack:(CGPoint)point {
-  [self animateNodelessMoveToPoint:point andCalledFromRack:YES];
+  [self animateMoveToPoint:point andCalledFromRack:YES];
 }
 
 -(void)animateMoveToPoint:(CGPoint)point {
-  [self animateNodelessMoveToPoint:point andCalledFromRack:NO];
+  [self animateMoveToPoint:point andCalledFromRack:NO];
 }
 
--(void)animateNodelessMoveToPoint:(CGPoint)point
-                andCalledFromRack:(BOOL)calledFromRack {
-  
-  NSLog(@"animate nodeless move to point");
+-(void)animateMoveToPoint:(CGPoint)point andCalledFromRack:(BOOL)calledFromRack {
   
     // if called from rack, does not include orientation
     // otherwise it is called from self, and does include orientation animation
-  
   __weak typeof(self) weakSelf = self;
-  void(^completion)(void);
   
+  void(^completion)(void);
   if (!calledFromRack) {
-    
     completion = ^void(void) {
-
       [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
       [self setToHomeZPosition];
-      
       if ([self isOnBoard]) {
         [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
       }
@@ -391,18 +359,14 @@
     completion = nil;
   }
   
-  [self animateToPosition:point
-                 duration:kConstantTime
-               timingMode:SKActionTimingEaseIn
-                  withKey:kActionMoveToPoint
-               completion:completion];
+  [self animateExcessivelyToPosition:point withRescale:NO duration:kConstantTime withKey:kActionMoveToPoint completion:completion];
 }
 
--(void)animateToPosition:(CGPoint)toPosition
-                duration:(CGFloat)duration
-              timingMode:(SKActionTimingMode)timingMode
-                 withKey:(NSString *)key
-              completion:(void(^)(void))completion {
+-(void)animateEasilyToPosition:(CGPoint)toPosition
+                      duration:(CGFloat)duration
+                    timingMode:(SKActionTimingMode)timingMode
+                       withKey:(NSString *)key
+                    completion:(void(^)(void))completion {
   
   SKAction *moveAction = [SKAction moveTo:toPosition duration:duration];
   moveAction.timingMode = timingMode;
@@ -411,12 +375,11 @@
   [self runAction:sequence withKey:key];
 }
 
--(void)animateCellAgnosticRepositionAndResize:(BOOL)resize boardZoomedOut:(BOOL)boardZoomedOut givenHexOrigin:(CGVector)hexOrigin {
-  
-  CGPoint reposition = [Cell snapPositionForHexCoord:self.tempHexCoord
-                                              orientation:self.tempReturnOrientation
-                                                andResize:boardZoomedOut
-                                           givenHexOrigin:hexOrigin];
+-(void)animateExcessivelyToPosition:(CGPoint)reposition
+                        withRescale:(BOOL)rescale
+                           duration:(CGFloat)duration
+                            withKey:(NSString *)key
+                         completion:(void(^)(void))completion {
   
   SKAction *repositionAndMaybeResizeAction;
   
@@ -429,17 +392,17 @@
   CGPoint excessPosition = CGPointMake(positionDifference.x * excessFactor, positionDifference.y * excessFactor);
   CGPoint excessReposition = [self addToThisPoint:self.position thisPoint:excessPosition];
   
-  SKAction *excessRepositionAction = [SKAction moveTo:excessReposition duration:kConstantTime * randomRepositionFactor * 0.7];
+  SKAction *excessRepositionAction = [SKAction moveTo:excessReposition duration:duration * randomRepositionFactor * 0.7];
   excessRepositionAction.timingMode = SKActionTimingEaseIn;
   
-  SKAction *bounceBackAction = [SKAction moveTo:reposition duration:kConstantTime * randomRepositionFactor * 0.3f];
+  SKAction *bounceBackAction = [SKAction moveTo:reposition duration:duration * randomRepositionFactor * 0.3f];
   SKAction *repositionSequence = [SKAction sequence:@[excessRepositionAction, bounceBackAction]];
   
-  if (resize) {
+  if (rescale) {
       // between .6 and .99
     CGFloat randomResizeFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
     CGFloat scaleTo = self.isZoomResized ? kZoomResizeFactor : 1 / kZoomResizeFactor;
-    SKAction *resizeAction = [SKAction scaleTo:scaleTo duration:kConstantTime * randomResizeFactor];
+    SKAction *resizeAction = [SKAction scaleTo:scaleTo duration:duration * randomResizeFactor];
     resizeAction.timingMode = SKActionTimingEaseIn;
     repositionAndMaybeResizeAction = [SKAction group:@[repositionSequence, resizeAction]];
     
@@ -447,19 +410,41 @@
     repositionAndMaybeResizeAction = repositionSequence;
   }
   
-  SKAction *completeAction = [SKAction runBlock:^{
-    self.zPosition = kZPositionBoardRestingDyadmino;
-    [self setScale:1.f];
-    [self selectAndPositionSpritesZRotation:0.f];
-  }];
+  SKAction *completeAction = [SKAction runBlock:completion];
   SKAction *sequenceAction = [SKAction sequence:@[repositionAndMaybeResizeAction, completeAction]];
   
-    //    [dyadmino removeActionForKey:@"replayAction"];
-  self.zPosition = kZPositionBoardReplayAnimatedDyadmino;
-  [self runAction:sequenceAction withKey:@"replayAction"];
+  [self runAction:sequenceAction withKey:key];
 }
 
-#pragma mark - animate flip methods
+#pragma mark - animate rotation methods
+
+-(void)orientWithAnimation:(BOOL)animate {
+  
+  NSInteger currentOrientation = self.orientation;
+  DyadminoOrientation shouldBeOrientation;
+  
+  if (self.home == kRack) {
+    shouldBeOrientation = (currentOrientation <= 1 || currentOrientation >= 5) ? 0 : 3;
+  } else {
+    shouldBeOrientation = self.homeOrientation;
+  }
+  
+  if (animate) {
+    if (self.orientation != shouldBeOrientation) {
+      CGFloat difference = ((shouldBeOrientation - self.orientation + 6) % 6);
+      
+      if (difference <= 3) {
+        [self animateOneThirdFlipClockwise:YES times:difference withFullFlip:NO];
+      } else {
+        [self animateOneThirdFlipClockwise:NO times:(6 - difference) withFullFlip:NO];
+      }
+    }
+    
+  } else {
+    self.orientation = shouldBeOrientation;
+    [self selectAndPositionSpritesZRotation:0.f];
+  }
+}
 
 -(void)animateFlip {
   [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
@@ -687,6 +672,22 @@
   }
 }
 
+#pragma mark - animation helper methods
+
+-(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove {
+  
+  if (includingMove) {
+    [self removeActionForKey:kActionMoveToPoint];
+  }
+  
+  [self resetFaceScales];
+  [self removeActionForKey:kActionShrinkPopIn];
+  [self removeActionForKey:kActionGrowPopIn];
+  [self removeActionForKey:kActionFlip];
+  [self removeActionForKey:kActionEaseIntoNode];
+  self.isRotating = NO;
+}
+
 #pragma mark - pivot methods
 
 -(CGPoint)determinePivotAroundPointBasedOnPivotOnPC:(PivotOnPC)pivotOnPC {
@@ -910,14 +911,6 @@
 
 #pragma mark - query methods
 
--(BOOL)belongsInRack {
-  return (self.rackIndex != -1);
-}
-
--(BOOL)belongsOnBoard {
-  return (self.rackIndex == -1);
-}
-
 -(BOOL)isInRack {
   return [self.parent.name isEqualToString:@"rack"];
 }
@@ -1035,6 +1028,14 @@
 
 -(void)setName:(NSString *)name {
   _name = name;
+}
+
+-(DyadminoHome)home {
+  return (self.rackIndex == -1) ? kBoard : kRack;
+}
+
+-(void)setHome:(DyadminoHome)home {
+  _home = home;
 }
 
 #pragma mark - name helper methods

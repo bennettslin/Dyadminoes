@@ -293,7 +293,7 @@
     _hexCurrent = [self determineOutermostCellsBasedOnDyadminoes:finalBoardDyadminoes];
   }
   
-  /*
+  
   NSMutableSet *tempAddedCellSet = [NSMutableSet new];
   NSMutableSet *tempRemovedCellSet = [NSMutableSet setWithSet:self.allCells];
 
@@ -351,7 +351,7 @@
   }
   
   self.allCells = tempAddedCellSet;
-   */
+  
   
     // bounds is not updated with removal by touch, only with removal by cancel
   if (updateBounds) {

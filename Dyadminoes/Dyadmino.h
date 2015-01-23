@@ -16,7 +16,7 @@
 
   // these must be delegate methods, because dyadmino does not know board's hex origin
 -(CGPoint)homePositionForDyadmino:(Dyadmino *)dyadmino;
--(CGPoint)tempPositionForDyadmino:(Dyadmino *)dyadmino;
+-(CGPoint)tempPositionForDyadmino:(Dyadmino *)dyadmino withHomeOrientation:(BOOL)homeOrientation;
 -(CGPoint)rackPositionForDyadmino:(Dyadmino *)dyadmino;
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino withLayout:(BOOL)layout;
@@ -45,9 +45,12 @@
 @property (assign, nonatomic) HexCoord tempHexCoord; // replaces tempBoardNode
 @property (assign, nonatomic) NSInteger rackIndex; // replaces homeNode for rack
 
+  // home
+@property (readonly, nonatomic) DyadminoHome home;
+
   // orientations
 @property (assign, nonatomic) DyadminoOrientation orientation;
-@property (assign, nonatomic) DyadminoOrientation tempReturnOrientation;
+@property (assign, nonatomic) DyadminoOrientation homeOrientation;
 
   // sprites
 @property (strong, nonatomic) NSArray *rotationFrameArray;
@@ -117,20 +120,22 @@
 -(void)highlightBoardDyadminoWithColour:(UIColor *)colour;
 -(void)adjustHighlightGivenDyadminoOffsetPosition:(CGPoint)dyadminoOffsetPosition;
 
-#pragma mark - animate placement methods
+#pragma mark - animate detailed placement methods
 
--(void)orientWithAnimation:(BOOL)animate;
--(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
--(void)goHomeToRackPositionByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize;
--(void)goHomeToBoard;
+-(void)returnToRackByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize;
+-(void)returnHomeToBoard;
+
+  // called by scene during replay and toggle board zoom
+-(void)goToTempPositionWithRescale:(BOOL)rescale;
+
+#pragma mark - animate basic placement methods
+
 -(void)animateEaseIntoNodeAfterHover;
 -(void)animateMoveToPointCalledFromRack:(CGPoint)point;
 
-  // called by scene during replay
--(void)animateCellAgnosticRepositionAndResize:(BOOL)resize boardZoomedOut:(BOOL)boardZoomedOut givenHexOrigin:(CGVector)hexOrigin;
+#pragma mark - animate rotation methods
 
-#pragma mark - animate flip methods
-
+-(void)orientWithAnimation:(BOOL)animate;
 -(void)animateFlip;
 
 #pragma mark - animate pop methods
@@ -144,6 +149,10 @@
 -(void)animateWiggleForHover:(BOOL)animate;
 -(void)animateShrinkForReplayToShrink:(BOOL)shrink;
 
+#pragma mark - animation helper methods
+
+-(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
+
 #pragma mark - pivot methods
 
 -(void)zRotateToAngle:(CGFloat)angle;
@@ -151,8 +160,6 @@
 
 #pragma mark - bool methods
 
--(BOOL)belongsInRack;
--(BOOL)belongsOnBoard;
 -(BOOL)isInRack;
 -(BOOL)isOnBoard;
 -(BOOL)isHovering;

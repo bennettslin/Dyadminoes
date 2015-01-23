@@ -461,7 +461,7 @@
       dyadmino.orientation = [dataDyad returnMyOrientation];
       dyadmino.rackIndex = [dataDyad returnMyRackOrder];
         // not the best place to set tempReturnOrientation for dyadmino
-      dyadmino.tempReturnOrientation = dyadmino.orientation;
+      dyadmino.homeOrientation = dyadmino.orientation;
       
       [dyadmino selectAndPositionSpritesZRotation:0.f];
       [tempDyadminoArray addObject:dyadmino];
@@ -492,7 +492,7 @@
     dyadmino.rackIndex = -1; // signifies it's not in rack
     
     dyadmino.orientation = [dataDyad returnMyOrientation];
-    dyadmino.tempReturnOrientation = dyadmino.orientation;
+    dyadmino.homeOrientation = dyadmino.orientation;
     
     if (![tempSet containsObject:dyadmino]) {
       
@@ -925,7 +925,7 @@
   }
   
     // touched dyadmino is now on board
-  if ([_touchedDyadmino belongsInRack] && [_touchedDyadmino isOnBoard]) {
+  if (_touchedDyadmino.home == kRack && [_touchedDyadmino isOnBoard]) {
     
       // automatically zoom back in if rack dyadmino moved to board
     _boardZoomedOut ? [self toggleBoardZoomWithTapCentering:NO andCenterLocation:CGPointZero] : nil;
@@ -949,7 +949,7 @@
   
     // not DRY, but repeats the above, only with touched dyadmino that belongs on board
     // recent rack must be sent home, otherwise chords get messed up
-  if ([_touchedDyadmino belongsOnBoard] && [_touchedDyadmino isOnBoard]) {
+  if (_touchedDyadmino.home == kBoard && [_touchedDyadmino isOnBoard]) {
     [self sendHomeRecentRackDyadminoFromBoardDyadminoMove];
   }
   
@@ -958,7 +958,7 @@
   
     //  this is the only place that sets dyadmino highlight to YES
     //  dyadmino highlight is reset when sent home or finalised
-  if ([_touchedDyadmino belongsInRack] && !self.swapContainer && !_pivotInProgress) {
+  if (_touchedDyadmino.home == kRack && !self.swapContainer && !_pivotInProgress) {
       CGPoint dyadminoOffsetPosition = [self addToThisPoint:_currentTouchLocation thisPoint:_touchOffsetVector];
       [_touchedDyadmino adjustHighlightGivenDyadminoOffsetPosition:dyadminoOffsetPosition];
   }
@@ -990,7 +990,7 @@
   /// 3c. dyadmino is just being exchanged in rack
   
     // if it's a rack dyadmino, then while movement is within rack, rearrange dyadminoes
-  if (([_touchedDyadmino belongsInRack] && [_touchedDyadmino isInRack]) ||
+  if ((_touchedDyadmino.home == kRack && [_touchedDyadmino isInRack]) ||
       _touchedDyadmino.belongsInSwap) {
 
     NSUInteger closestRackIndex = [self closestRackIndexForDyadmino:_touchedDyadmino];
@@ -1149,7 +1149,7 @@
     dyadmino.isTouchThenHoverResized = NO;
     dyadmino.isZoomResized = _boardZoomedOut;
     
-    [dyadmino animateCellAgnosticRepositionAndResize:YES boardZoomedOut:_boardZoomedOut givenHexOrigin:_boardField.hexOrigin];
+    [dyadmino goToTempPositionWithRescale:YES];
   }
 }
 
@@ -1168,7 +1168,7 @@
   
     // record tempReturnOrientation only if it's settled and not hovering
   if (dyadmino != _hoveringDyadmino) {
-    dyadmino.tempReturnOrientation = dyadmino.orientation;
+    dyadmino.homeOrientation = dyadmino.orientation;
     
       // board dyadmino sends recent rack dyadmino home upon touch
       // rack dyadmino will do so upon move out of rack
@@ -1189,7 +1189,7 @@
   if ([_touchedDyadmino isOnBoard] && !_touchedDyadmino.isRotating) {
 
     _uponTouchDyadminoHexCoord = dyadmino.tempHexCoord;
-    _uponTouchDyadminoOrientation = dyadmino.tempReturnOrientation;
+    _uponTouchDyadminoOrientation = dyadmino.homeOrientation;
     
       // 1. it's not hovering, so make it hover
     if (!_touchedDyadmino.canFlip) {
@@ -1243,7 +1243,7 @@
   if (!dyadmino.isRotating) {
     
       // if dyadmino belongs in rack (or swap) and *isn't* on board...
-    if (([dyadmino belongsInRack] || [dyadmino belongsInSwap]) && ![dyadmino isOnBoard]) {
+    if ((dyadmino.home == kRack || [dyadmino belongsInSwap]) && ![dyadmino isOnBoard]) {
       
         // ...flip if possible, or send it home
       if (dyadmino.canFlip) {
@@ -1260,14 +1260,14 @@
     } else if (dyadmino.isInTopBar) {;
       
         // if it's a board dyadmino
-      if ([dyadmino belongsOnBoard]) {
+      if (dyadmino.home == kBoard) {
         dyadmino.tempHexCoord = dyadmino.homeHexCoord;
       }
       
       [self moveDyadminoHome:dyadmino];
       
         // or if dyadmino is in rack but belongs on board (this seems to work)
-    } else if ([dyadmino belongsOnBoard] && [dyadmino isInRack]) {
+    } else if (dyadmino.home == kBoard && [dyadmino isInRack]) {
       dyadmino.tempHexCoord = dyadmino.homeHexCoord;
       [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
       dyadmino.position = [_boardField getOffsetFromPoint:dyadmino.position];
@@ -1292,7 +1292,6 @@
     
       // start hovering
     [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
-    
     [self checkWhetherToEaseOrKeepHovering:dyadmino];
     
     if (dyadmino.isHovering || dyadmino.continuesToHover) {
@@ -1315,21 +1314,20 @@
   }
   
       // recalibrate coordinates if dyadmino is sent home to rack from board
-  if (dyadmino.parent == _boardField && ([dyadmino belongsInRack] || popInForUndo)) {
+  if (dyadmino.parent == _boardField && (dyadmino.home == kRack || popInForUndo)) {
     CGPoint newPosition = [self addToThisPoint:dyadmino.position thisPoint:_boardField.position];
     [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
     dyadmino.position = newPosition;
   }
   
     // animate going home
-  if ([dyadmino belongsInRack]) {
-    
-    [dyadmino goHomeToRackPositionByPoppingInForUndo:popInForUndo withResize:_boardZoomedOut];
+  if (dyadmino.home == kRack) {
+    [dyadmino returnToRackByPoppingInForUndo:popInForUndo withResize:_boardZoomedOut];
     
   } else {
     
     dyadmino.tempHexCoord = dyadmino.homeHexCoord;
-    [dyadmino goHomeToBoard];
+    [dyadmino returnHomeToBoard];
   }
 
     // reset properties
@@ -1393,7 +1391,7 @@
 
 -(Dyadmino *)assignTouchEndedPointerToDyadmino:(Dyadmino *)dyadmino {
     // rack dyadmino only needs pointer if it's still on board
-  if ([dyadmino belongsInRack] && [dyadmino isOnBoard]) {
+  if (dyadmino.home == kRack && [dyadmino isOnBoard]) {
     _recentRackDyadmino = dyadmino;
   }
   
@@ -1583,7 +1581,7 @@
   for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
     if (dyadmino.belongsInSwap) {
       [dyadmino placeInBelongsInSwap:NO];
-      [dyadmino goHomeToRackPositionByPoppingInForUndo:NO withResize:NO];
+      [dyadmino returnToRackByPoppingInForUndo:NO withResize:NO];
     }
   }
 }
@@ -1674,7 +1672,7 @@
   Dyadmino *dyadmino = _recentRackDyadmino;
   
     // establish that dyadmino is indeed a rack dyadmino placed on the board
-  if ([dyadmino belongsInRack] && [dyadmino isOnBoard]) {
+  if (dyadmino.home == kRack && [dyadmino isOnBoard]) {
     
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     
@@ -1734,7 +1732,7 @@
     
       // recalibrate undone dyadmino
     Dyadmino *undoneDyadmino = [self getDyadminoFromDataDyadmino:undoneDataDyadmino];
-    undoneDyadmino.tempReturnOrientation = [undoneDataDyadmino returnMyOrientation];
+    undoneDyadmino.homeOrientation = [undoneDataDyadmino returnMyOrientation];
     
       // re-add dyadmino to player rack, remove from scene board, refresh chords
     [self reAddToPlayerRackDyadminoes:undoneDyadmino];
@@ -1758,7 +1756,7 @@
   for (Dyadmino *dyadmino in self.boardDyadminoes) {
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     
-    dyadmino.tempReturnOrientation = (DyadminoOrientation)[dataDyad returnMyOrientation];
+    dyadmino.homeOrientation = (DyadminoOrientation)[dataDyad returnMyOrientation];
     
     dyadmino.homeHexCoord = dataDyad.myHexCoord;
     dyadmino.tempHexCoord = dyadmino.homeHexCoord;
@@ -2184,13 +2182,13 @@
         }
         
           // if board dyadmino, keep hovering
-        if ([dyadmino belongsOnBoard]) {
+        if (dyadmino.home == kBoard) {
           [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
              // ensure that buttons are updated if chords are changed after flip
           [self updateTopBarButtons];
           
             // if rack dyadmino, allow to ease into node but do nothing else
-        } else if ([dyadmino belongsInRack]) {
+        } else if (dyadmino.home == kRack) {
           [self finishHoveringAfterCheckDyadmino:dyadmino];
         }
         
@@ -2224,7 +2222,7 @@
           // it's a preTurn dyadmino
           // show action sheet with potential points from newly built chord
           // updates will be made from after action sheet button is clicked
-        if ([dyadmino belongsOnBoard] && [self.myMatch.board containsObject:dataDyad]) {
+        if (dyadmino.home == kBoard && [self.myMatch.board containsObject:dataDyad]) {
 
           NSUInteger pointsForPlacement = [self.myMatch pointsForPlacingDyadmino:dataDyad
                                                                 onBottomHexCoord:dyadmino.tempHexCoord
@@ -2245,7 +2243,7 @@
           
             // thisTurn dyadmino
             // just keep the new chord
-        } else if ([dyadmino belongsOnBoard] && [self.myMatch.holdingIndexContainer containsObject:dataDyad.myID]) {
+        } else if (dyadmino.home == kBoard && [self.myMatch.holdingIndexContainer containsObject:dataDyad.myID]) {
           NSAttributedString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
                                                                          onBottomHexCoord:dyadmino.tempHexCoord
                                                                           withOrientation:dyadmino.orientation
@@ -2275,7 +2273,7 @@
     //------------------------------------------------------------------------
       } else if (placementResult == kNoChange) {
           // if preTurn or thisTurn dyadmino, obviously this works fine
-        if ([dyadmino belongsOnBoard]) {
+        if (dyadmino.home == kBoard) {
           [self.myDelegate fadeChordMessage];
           
             // however, recent rack dyadmino must form new chord
@@ -2294,7 +2292,7 @@
   NSLog(@"finish hovering after check dyadmino");
   
   [dyadmino changeHoveringStatus:kDyadminoFinishedHovering];
-  if ([dyadmino belongsOnBoard]) {
+  if (dyadmino.home == kBoard) {
     
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     
@@ -2973,7 +2971,7 @@
 -(CGFloat)distanceFromCurrentToHomePositionForDyadmino:(Dyadmino *)dyadmino {
   CGPoint homePosition;
   
-  if ([dyadmino belongsInRack]) {
+  if (dyadmino.home == kRack) {
     homePosition = [self rackPositionForDyadmino:dyadmino];
   } else {
     homePosition = [self homePositionForDyadmino:dyadmino];
@@ -3077,24 +3075,18 @@
 }
 
 -(CGPoint)homePositionForDyadmino:(Dyadmino *)dyadmino {
-  return [Cell snapPositionForHexCoord:dyadmino.homeHexCoord orientation:dyadmino.tempReturnOrientation andResize:_boardZoomedOut givenHexOrigin:_boardField.hexOrigin];
+  return [Cell snapPositionForHexCoord:dyadmino.homeHexCoord orientation:dyadmino.homeOrientation andResize:_boardZoomedOut givenHexOrigin:_boardField.hexOrigin];
 }
 
--(CGPoint)tempPositionForDyadmino:(Dyadmino *)dyadmino {
-  return [Cell snapPositionForHexCoord:dyadmino.tempHexCoord orientation:dyadmino.orientation andResize:_boardZoomedOut givenHexOrigin:_boardField.hexOrigin];
+-(CGPoint)tempPositionForDyadmino:(Dyadmino *)dyadmino withHomeOrientation:(BOOL)homeOrientation {
+  
+  DyadminoOrientation orientation = homeOrientation ? dyadmino.homeOrientation : dyadmino.orientation;
+  return [Cell snapPositionForHexCoord:dyadmino.tempHexCoord orientation:orientation andResize:_boardZoomedOut givenHexOrigin:_boardField.hexOrigin];
 }
 
 -(CGPoint)rackPositionForDyadmino:(Dyadmino *)dyadmino {
   return [_rackField getRackPositionAtIndex:dyadmino.rackIndex withCountNumber:self.playerRackDyadminoes.count];
 }
-
-//-(BOOL)dyadminoBelongsInRack:(Dyadmino *)dyadmino {
-//  return [self.playerRackDyadminoes containsObject:dyadmino];
-//}
-//
-//-(BOOL)dyadminoBelongsOnBoard:(Dyadmino *)dyadmino {
-//  return [self.boardDyadminoes containsObject:dyadmino];
-//}
 
 #pragma mark - replay and turn methods
 
@@ -3147,7 +3139,7 @@
     } else {
       dyadmino.preReplayHexCoord = dyadmino.tempHexCoord;
       dyadmino.preReplayOrientation = dyadmino.orientation;
-      dyadmino.preReplayTempOrientation = dyadmino.tempReturnOrientation;
+      dyadmino.preReplayTempOrientation = dyadmino.homeOrientation;
     }
   }
 }
@@ -3161,11 +3153,14 @@
       // show player turn dyadminoes
     if ([holdingContainerAndRecentRackDyadminoes containsObject:dyadmino]) {
       
+        // this effectively only updates recent rack dyadmino
+      [dyadmino animateShrinkForReplayToShrink:NO];
+      
     } else {
       dyadmino.tempHexCoord = dyadmino.preReplayHexCoord;
       
         // orientation will be animated in sendDyadminoHome method called by updateBoardForReplay
-      dyadmino.tempReturnOrientation = dyadmino.preReplayTempOrientation;
+      dyadmino.homeOrientation = dyadmino.preReplayTempOrientation;
     }
   }
 }
@@ -3206,6 +3201,7 @@
     
       // do not add to board
     if (conditionalToHideDyadmino) {
+      
           // animate shrinkage
       [dyadmino animateShrinkForReplayToShrink:YES];
       
@@ -3221,17 +3217,17 @@
           // get position and orientation attrivutes
         dyadmino.tempHexCoord = [dataDyad getHexCoordForTurn:self.myMatch.replayTurn];
 
-        dyadmino.tempReturnOrientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
+        dyadmino.homeOrientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
         [dyadmino orientWithAnimation:YES];
       }
       
         // position dyadmino
       if (inReplay) {
         
-        [dyadmino animateCellAgnosticRepositionAndResize:NO boardZoomedOut:_boardZoomedOut givenHexOrigin:_boardField.hexOrigin];
+        [dyadmino goToTempPositionWithRescale:NO];
         [dyadminoesOnBoardUpToThisPoint addObject:dyadmino];
       } else {
-        [dyadmino goHomeToBoard];
+        [dyadmino returnHomeToBoard];
       }
     }
   }
@@ -3521,7 +3517,7 @@
   NSLog(@"Dyadminoes are: %@", [[self.playerRackDyadminoes valueForKey:@"name"] componentsJoinedByString:@", "]);
   NSLog(@"holdingCon is:  %@", [[self.myMatch.holdingIndexContainer valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
   NSLog(@"swapContainer:  %@", [[self.swapContainer.allObjects valueForKey:@"stringValue"] componentsJoinedByString:@", "]);
-  NSLog(@"rackDyad order: %@", [[self.playerRackDyadminoes valueForKey:@"myRackOrder"] componentsJoinedByString:@", "]);
+  NSLog(@"rackDyad order: %@", [[self.playerRackDyadminoes valueForKey:@"rackIndex"] componentsJoinedByString:@", "]);
   NSLog(@"board is:       %@", self.boardDyadminoes);
   NSLog(@"match board is  %@", self.myMatch.board);
   NSLog(@"rack is:        %@", self.playerRackDyadminoes);

@@ -91,7 +91,7 @@
 #define kBoardCoverAlpha 0.4f
 #define kZoomResizeFactor 0.5f
 
-#define kCellsAroundDyadmino 5
+#define kCellsAroundDyadmino 3
 
   // scene view constants
 #define kSceneMessageLabelFontSize 30.f
@@ -516,6 +516,11 @@ typedef enum actionSheetTag {
   kActionSheetResignPlayer,
   kActionSheetTurnDone
 } ActionSheetTag;
+
+typedef enum dyadminoHome {
+  kBoard,
+  kRack
+} DyadminoHome;
 
 @interface NSObject (Helper)
 
