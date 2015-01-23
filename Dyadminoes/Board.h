@@ -12,7 +12,7 @@
 
 @protocol BoardDelegate <NSObject>
 
--(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino;
+//-(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino;
 -(UIColor *)pivotColourForCurrentPlayerLight:(BOOL)light;
 
 -(void)correctBoardForPositionAfterZoom;

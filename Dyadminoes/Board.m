@@ -326,7 +326,7 @@
           if (ABS(x + y) <= kCellsAroundDyadmino) {
             NSInteger newX = xHex + x;
             NSInteger newY = yHex + y;
-            Cell *addedCell = [self acknowledgeOrAddCellWithXHex:newX andYHex:newY];
+            Cell *addedCell = [self acknowledgeOrAddCellWithHexCoord:[self hexCoordFromX:newX andY:newY]];
             [tempAddedCellSet addObject:addedCell];
             [tempRemovedCellSet removeObject:addedCell];
 
@@ -361,28 +361,39 @@
   return YES;
 }
 
--(Cell *)findCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
+//-(Cell *)findCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
+//  for (Cell *cell in self.allCells) {
+//    if (cell.hexCoord.x == xHex && cell.hexCoord.y == yHex) {
+//      return cell;
+//    }
+//  }
+//  return nil;
+//}
+
+-(Cell *)getCellWithHexCoord:(HexCoord)hexCoord {
   for (Cell *cell in self.allCells) {
-    if (cell.hexCoord.x == xHex && cell.hexCoord.y == yHex) {
-      return cell;
+    if ([cell isKindOfClass:[Cell class]]) {
+      if (cell.hexCoord.x == hexCoord.x && cell.hexCoord.y == hexCoord.y) {
+        return cell;
+      }
     }
   }
   return nil;
 }
 
--(Cell *)acknowledgeOrAddCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
+-(Cell *)acknowledgeOrAddCellWithHexCoord:(HexCoord)hexCoord {
     // first check to see if cell already exists
-  Cell *cell = [self findCellWithXHex:xHex andYHex:yHex];
+  Cell *cell = [self getCellWithHexCoord:hexCoord];
   
     // if cell does not exist, create and add it
   if (!cell) {
     Cell *poppedCell = [self popDequeuedCell];
     if (poppedCell) {
       cell = poppedCell;
-      [cell reuseCellWithHexCoord:[self hexCoordFromX:xHex andY:yHex] andHexOrigin:self.hexOrigin forResize:self.zoomedOut];
+      [cell reuseCellWithHexCoord:hexCoord andHexOrigin:self.hexOrigin forResize:self.zoomedOut];
     } else {
       cell = [[Cell alloc] initWithTexture:self.cellTexture
-                               andHexCoord:[self hexCoordFromX:xHex andY:yHex]
+                               andHexCoord:hexCoord
                               andHexOrigin:self.hexOrigin
                                  andResize:self.zoomedOut
                                andDelegate:self];
@@ -397,8 +408,8 @@
   return cell;
 }
 
--(void)ignoreCellWithXHex:(NSInteger)xHex andYHex:(NSInteger)yHex {
-  Cell *cell = [self findCellWithXHex:xHex andYHex:yHex];
+-(void)ignoreCellWithHexCoord:(HexCoord)hexCoord {
+  Cell *cell = [self getCellWithHexCoord:hexCoord];
   [self ignoreCell:cell];
 }
 
@@ -550,19 +561,24 @@
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBottomHexCoord:(HexCoord)bottomHexCoord {
   
+  NSLog(@"update cells for dyadmino method");
     // this assumes dyadmino is properly oriented for this boardNode
   NSArray *cells = [self topAndBottomCellsArrayForDyadmino:dyadmino
                                          andBottomHexCoord:bottomHexCoord];
+  
   NSInteger pcs[2] = {dyadmino.pc1, dyadmino.pc2};
   
   for (int i = 0; i < cells.count; i++) {
     Cell *cell = cells[i];
     
+    NSLog(@"cell's dyadmino is %@", cell.myDyadmino.name);
       // only assign if cell doesn't have a dyadmino recorded
     if (!cell.myDyadmino) {
       
       cell.myPC = (dyadmino.orientation <= kPC1atTwoOClock || dyadmino.orientation >= kPC1atTenOClock) ?
           pcs[i] : pcs[(i + 1) % 2];
+      
+      NSLog(@"cell pc is %i", cell.myPC);
       
         // ensures there's only one cell for each dyadmino pc, and vice versa
       [self mapOneCell:cell toOnePCForDyadmino:dyadmino];
@@ -634,24 +650,13 @@
   return YES;
 }
 
--(Cell *)getCellWithHexCoord:(HexCoord)hexCoord {
-  for (Cell *cell in self.allCells) {
-    if ([cell isKindOfClass:[Cell class]]) {
-      if (cell.hexCoord.x == hexCoord.x && cell.hexCoord.y == hexCoord.y) {
-        return cell;
-      }
-    }
-  }
-  return nil;
-}
-
 -(NSArray *)topAndBottomCellsArrayForDyadmino:(Dyadmino *)dyadmino
                             andBottomHexCoord:(HexCoord)bottomHexCoord {
 
   HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadmino.orientation];
   
-  Cell *topCell = [self getCellWithHexCoord:topHexCoord];
-  Cell *bottomCell = [self getCellWithHexCoord:bottomHexCoord];
+  Cell *topCell = [self acknowledgeOrAddCellWithHexCoord:topHexCoord];
+  Cell *bottomCell = [self acknowledgeOrAddCellWithHexCoord:bottomHexCoord];
   
   NSMutableArray *tempCellsArray = [NSMutableArray new];
   if (topCell) {

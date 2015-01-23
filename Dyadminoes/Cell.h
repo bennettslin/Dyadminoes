@@ -11,7 +11,7 @@
 @class Board;
 @class Dyadmino;
 
-@interface Cell : SKSpriteNode
+@interface Cell : NSObject
 
 @property (nonatomic) SKTexture *cellNodeTexture;
 @property (nonatomic) CGPoint cellNodePosition;
@@ -19,8 +19,8 @@
 @property (strong, nonatomic) NSString *name;
 
 @property (strong, nonatomic) SKSpriteNode *cellNode;
-@property (nonatomic) HexCoord hexCoord;
 @property (strong, nonatomic) Dyadmino *myDyadmino;
+@property (nonatomic) HexCoord hexCoord;
 @property (nonatomic) NSInteger myPC; // signed integer because myPC is -1 if no PC
 
 @property (strong, nonatomic) SKLabelNode *hexCoordLabel;

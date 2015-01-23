@@ -318,6 +318,7 @@
     [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
     
     if ([self isOnBoard]) {
+      NSLog(@"update cells for placed dyadmino in animate ease");
       [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
     }
   };

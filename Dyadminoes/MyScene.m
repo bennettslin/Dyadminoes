@@ -3436,12 +3436,12 @@
 }
 
   // called by board
--(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino {
-  BOOL firstDyadmino = (self.boardDyadminoes.count == 1 && dyadmino == [self.boardDyadminoes anyObject] && !_recentRackDyadmino);
-  return firstDyadmino;
-}
+//-(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino {
+//  BOOL firstDyadmino = (self.boardDyadminoes.count == 1 && dyadmino == [self.boardDyadminoes anyObject] && !_recentRackDyadmino);
+//  return firstDyadmino;
+//}
 
-  // called by rack
+  // called by match
 -(BOOL)isFirstAndOnlyDyadminoID:(NSUInteger)dyadminoID {
   Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:[self.myMatch dataDyadminoForIndex:dyadminoID]];
   BOOL firstDyadmino = (self.boardDyadminoes.count == 1 && dyadmino == [self.boardDyadminoes anyObject] && !_recentRackDyadmino);
