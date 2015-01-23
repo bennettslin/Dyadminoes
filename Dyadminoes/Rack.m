@@ -147,16 +147,16 @@
 
 -(NSArray *)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
                                  withDyadminoes:(NSArray *)dyadminoesInArray
-                             andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode {
+                            andClosestRackIndex:(NSUInteger)closestRackIndex {
   
     // touchedDyadmino is in the rack, eligible for exchange
   if ([touchedDyadmino isInRack] || touchedDyadmino.belongsInSwap) {
     
       // touchedDyadmino is closer to another dyadmino's rackNode
-    if (touchedDyadminoNewRackNode != touchedDyadmino.homeNode) {
+    if (closestRackIndex != touchedDyadmino.myRackOrder) {
       
         // assign pointers
-      NSUInteger newRackNodeIndex = [self.rackNodes indexOfObject:touchedDyadminoNewRackNode];
+      NSUInteger newRackNodeIndex = closestRackIndex;
       NSUInteger touchedDyadminoIndex = [dyadminoesInArray indexOfObject:touchedDyadmino];
       NSUInteger iterator;
       
@@ -200,7 +200,7 @@
       }
       
         // everything scooted, now do it for the touched dyadmino
-      touchedDyadmino.homeNode = touchedDyadminoNewRackNode;
+      touchedDyadmino.homeNode = self.rackNodes[closestRackIndex];
       
       NSMutableArray *tempArray = [NSMutableArray arrayWithArray:dyadminoesInArray];
       [tempArray removeObject:touchedDyadmino];
@@ -241,3 +241,79 @@
 }
 
 @end
+
+/*
+ 
+ -(NSArray *)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
+ withDyadminoes:(NSArray *)dyadminoesInArray
+ andClosestRackIndex:(NSUInteger)closestRackIndex
+ andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode {
+ 
+ // touchedDyadmino is in the rack, eligible for exchange
+ if ([touchedDyadmino isInRack] || touchedDyadmino.belongsInSwap) {
+ 
+ // touchedDyadmino is closer to another dyadmino's rackNode
+ if (touchedDyadminoNewRackNode != touchedDyadmino.homeNode) {
+ 
+ // assign pointers
+ NSUInteger newRackNodeIndex = [self.rackNodes indexOfObject:touchedDyadminoNewRackNode];
+ NSUInteger touchedDyadminoIndex = [dyadminoesInArray indexOfObject:touchedDyadmino];
+ NSUInteger iterator;
+ 
+ // decide which direction to scoot dyadminoes
+ if (touchedDyadminoIndex > newRackNodeIndex) {
+ iterator = 1; // scoot right
+ } else if (touchedDyadminoIndex < newRackNodeIndex) {
+ iterator = -1; // scoot left
+ } else {
+ iterator = 0;
+ }
+ 
+ Dyadmino *scootedDyadmino = [dyadminoesInArray objectAtIndex:newRackNodeIndex];
+ 
+ // displaces intermediary dyadminoes one by one until scooted dyadmino is in right node
+ while (scootedDyadmino.homeNode != touchedDyadmino.homeNode) {
+ 
+ NSUInteger scootedIndex = [dyadminoesInArray indexOfObject:scootedDyadmino];
+ NSUInteger displacedIndex = (scootedIndex + iterator) % 6;
+ 
+ Dyadmino *displacedDyadmino = [dyadminoesInArray objectAtIndex:displacedIndex];
+ 
+ // dyadminoes exchange rack nodes, and vice versa
+ scootedDyadmino.homeNode = displacedDyadmino.homeNode;
+ 
+ displacedDyadmino.myRackOrder = newRackNodeIndex;
+ scootedDyadmino.myRackOrder = displacedIndex;
+ 
+ // take care of state change and animation of exchanged dyadmino, as long as it's not on the board
+ if (!scootedDyadmino.tempBoardNode) {
+ scootedDyadmino.zPosition = kZPositionRackMovedDyadmino;
+ [scootedDyadmino animateMoveToPointCalledFromRack:[scootedDyadmino getHomeNodePositionConsideringSwap]];
+ scootedDyadmino.zPosition = kZPositionRackRestingDyadmino;
+ 
+ // sound it
+ [self.delegate postSoundNotification:kNotificationRackExchangeClick];
+ }
+ // make the displacedDyadmino the new scootedDyadmino
+ displacedDyadmino.homeNode = scootedDyadmino.homeNode;
+ scootedDyadmino = displacedDyadmino;
+ }
+ 
+ // everything scooted, now do it for the touched dyadmino
+ touchedDyadmino.homeNode = touchedDyadminoNewRackNode;
+ 
+ NSMutableArray *tempArray = [NSMutableArray arrayWithArray:dyadminoesInArray];
+ [tempArray removeObject:touchedDyadmino];
+ [tempArray insertObject:touchedDyadmino atIndex:newRackNodeIndex];
+ 
+ // delegate method makes it easier to call only if there was indeed a rack exchange
+ NSArray *immutableArray = [NSArray arrayWithArray:tempArray];
+ [self.delegate recordChangedDataForRackDyadminoes:immutableArray];
+ 
+ return immutableArray;
+ }
+ }
+ return dyadminoesInArray;
+ }
+ 
+ */

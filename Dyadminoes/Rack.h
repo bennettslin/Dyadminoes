@@ -42,7 +42,7 @@
 
 -(NSArray *)handleRackExchangeOfTouchedDyadmino:(Dyadmino *)touchedDyadmino
                                  withDyadminoes:(NSArray *)dyadminoesInArray
-                             andClosestRackNode:(SnapPoint *)touchedDyadminoNewRackNode;
+                            andClosestRackIndex:(NSUInteger)closestRackIndex;
 
 @end
 

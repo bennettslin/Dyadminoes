@@ -1018,12 +1018,12 @@
     // if it's a rack dyadmino, then while movement is within rack, rearrange dyadminoes
   if (([_touchedDyadmino belongsInRack] && [_touchedDyadmino isInRack]) ||
       _touchedDyadmino.belongsInSwap) {
-    
-    SnapPoint *rackNode = [self findSnapPointClosestToDyadmino:_touchedDyadmino];
+
+    NSUInteger closestRackIndex = [self closestRackIndexForDyadmino:_touchedDyadmino];
     
     self.playerRackDyadminoes = [_rackField handleRackExchangeOfTouchedDyadmino:_touchedDyadmino
-                                     withDyadminoes:self.playerRackDyadminoes
-                                 andClosestRackNode:rackNode];
+                                                                 withDyadminoes:self.playerRackDyadminoes
+                                                            andClosestRackIndex:closestRackIndex];
   }
 }
 
@@ -1286,7 +1286,7 @@
     } else if (dyadmino.isInTopBar) {;
       
         // if it's a board dyadmino
-      if ([dyadmino.homeNode isBoardNode]) {
+      if ([dyadmino belongsOnBoard]) {
         dyadmino.tempBoardNode = nil;
       }
       
@@ -3011,6 +3011,14 @@
   }
     // otherwise, dyadmino is not close enough
   return nil;
+}
+
+-(HexCoord)closestHexCoordForDyadmino:(Dyadmino *)dyadmino {
+  return [_boardField findClosestHexCoordForDyadminoPosition:dyadmino.position andOrientation:dyadmino.orientation];
+}
+
+-(NSUInteger)closestRackIndexForDyadmino:(Dyadmino *)dyadmino {
+  return [_rackField findClosestRackIndexForDyadminoPosition:dyadmino.position withCount:self.playerRackDyadminoes.count];
 }
 
 -(SnapPoint *)findSnapPointClosestToDyadmino:(Dyadmino *)dyadmino {
