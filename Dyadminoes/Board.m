@@ -283,10 +283,10 @@
   self.cellsBottom = cellsBottommost - extraYCells - 1.f;
   self.cellsLeft = cellsLeftmost - extraXCells;
   
-  self.cellsTopInteger = cellsTopmostInteger;
-  self.cellsRightInteger = cellsRightmostInteger;
-  self.cellsBottomInteger = cellsBottommostInteger - 1;
-  self.cellsLeftInteger = cellsLeftmostInteger;
+  self.cellsTopInteger = cellsTopmostInteger + kCellsAroundDyadmino;
+  self.cellsRightInteger = cellsRightmostInteger + kCellsAroundDyadmino;
+  self.cellsBottomInteger = cellsBottommostInteger - kCellsAroundDyadmino;
+  self.cellsLeftInteger = cellsLeftmostInteger - kCellsAroundDyadmino;
   
     // obviously, this is the only place that column of rows of all cells is recalibrated
     // since this is the only place where its bounds are set
@@ -487,8 +487,13 @@
 }
 
 -(void)performBlockOnAllCells:(void(^)(Cell *))block {
-  for (NSMutableArray *array in self.columnOfRowsOfAllCells) {
-    for (id object in array) {
+  
+  for (int j = self.cellsBottomInteger; j <= self.cellsTopInteger; j++) {
+    NSMutableArray *tempRowArray = self.columnOfRowsOfAllCells[j];
+    
+    for (int i = self.cellsLeftInteger; i <= self.cellsRightInteger; i++) {
+      id object = tempRowArray[i];
+      
       if ([object isKindOfClass:Cell.class]) {
         Cell *cell = (Cell *)object;
         block(cell);
@@ -1043,14 +1048,25 @@
 -(Cell *)cellWithHexCoord:(HexCoord)hexCoord {
   NSInteger xIndex = hexCoord.x - self.cellsLeftInteger;
   NSInteger yIndex = hexCoord.y - self.cellsBottomInteger;
-  NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex];
-  return (rowArray[xIndex] != [NSNull null]) ? rowArray[xIndex] : nil;
+  
+  if (yIndex < self.columnOfRowsOfAllCells.count) {
+    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex];
+    
+    if (xIndex < rowArray.count) {
+      id object = rowArray[xIndex];
+      if ([object isKindOfClass:Cell.class]) {
+        return object;
+      }
+    }
+  }
+  
+  return nil;
 }
 
 -(BOOL)addCellToColumnOfRowsOfCells:(Cell *)cell {
-  
   NSInteger xIndex = cell.hexCoord.x - self.cellsLeftInteger;
   NSInteger yIndex = cell.hexCoord.y - self.cellsBottomInteger;
+  
   NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex];
   
   if (rowArray[xIndex] == [NSNull null]) {
