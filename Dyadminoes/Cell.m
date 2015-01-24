@@ -17,21 +17,18 @@
 @implementation Cell {
   
   CGFloat _dominantPCArray[12];
-  
   CGFloat _red, _green, _blue, _alpha;
 }
 
 -(id)initWithTexture:(SKTexture *)texture
          andHexCoord:(HexCoord)hexCoord
         andHexOrigin:(CGVector)hexOrigin
-           andResize:(BOOL)resize
-         andDelegate:(id)delegate {
+           andResize:(BOOL)resize {
   
   self = [super init];
   if (self) {
     
     self.cellNodeTexture = texture;
-    
     [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin forResize:resize];
   }
   return self;
@@ -46,11 +43,13 @@
   self.hexCoord = hexCoord;
   self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
   
-    // establish cell position
-  self.cellNodePosition = [Cell cellPositionWithHexOrigin:hexOrigin andHexCoord:self.hexCoord forResize:resize];
-  
+    // establish cell position in normal size
+  CGPoint position = [Cell cellPositionWithHexOrigin:hexOrigin andHexCoord:self.hexCoord forResize:resize];
   CGSize cellSize = [Cell cellSizeForResize:resize];
-  self.cellNode ? [self initPositionCellNodeWithSize:cellSize] : [self instantiateCellNodeWithSize:cellSize];
+  
+  self.cellNode ?
+      [self initCellNodeWithPosition:position andSize:cellSize] :
+      [self instantiateCellNodeWithPosition:position andSize:cellSize];
 }
 
 -(void)resetForReuse {
@@ -146,7 +145,7 @@
 
 #pragma mark - cell node methods
 
--(void)instantiateCellNodeWithSize:(CGSize)cellSize {
+-(void)instantiateCellNodeWithPosition:(CGPoint)position andSize:(CGSize)cellSize {
   
   self.cellNode = [[SKSpriteNode alloc] init];
   self.cellNode.name = @"cellNode";
@@ -154,7 +153,7 @@
   self.cellNode.zPosition = kZPositionBoardCell;
   self.cellNode.colorBlendFactor = .9f;
   self.cellNode.size = cellSize;
-  [self initPositionCellNodeWithSize:cellSize];
+  [self initCellNodeWithPosition:position andSize:cellSize];
   
     //// for testing purposes
   if (self.cellNode) {
@@ -165,8 +164,8 @@
   }
 }
 
--(void)initPositionCellNodeWithSize:(CGSize)cellSize {
-  self.cellNode.position = self.cellNodePosition;
+-(void)initCellNodeWithPosition:(CGPoint)position andSize:(CGSize)cellSize {
+  self.cellNode.position = position;
   self.cellNode.size = cellSize;
   [self updateHexCoordLabel];
   [self updatePCLabel];
@@ -190,15 +189,9 @@
   SKAction *sequenceAction = [SKAction sequence:@[scaleAction, completionAction]];
   [self.cellNode runAction:sequenceAction];
   
-  CGPoint reposition;
-  
-  if (resize) {
-    reposition = [Cell cellPositionWithHexOrigin:hexOrigin
-                                              andHexCoord:self.hexCoord
-                                                forResize:resize];
-  } else {
-    reposition = self.cellNodePosition;
-  }
+  CGPoint reposition = [Cell cellPositionWithHexOrigin:hexOrigin
+                                     andHexCoord:self.hexCoord
+                                       forResize:resize];
   
     // between .6 and .99
   CGFloat randomRepositionFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
@@ -206,7 +199,6 @@
   SKAction *moveAction = [SKAction moveTo:reposition duration:kConstantTime * randomRepositionFactor];
   SKAction *moveCompletionAction = [SKAction runBlock:^{
     weakSelf.cellNode.position = reposition;
-
   }];
   SKAction *moveSequenceAction = [SKAction sequence:@[moveAction, moveCompletionAction]];
   [self.cellNode runAction:moveSequenceAction];
@@ -278,7 +270,7 @@
   self.hexCoordLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;
   self.hexCoordLabel.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
   self.hexCoordLabel.position = CGPointMake(0, 5.f);
-  self.hexCoordLabel.hidden = YES;
+//  self.hexCoordLabel.hidden = YES;
   [self.cellNode addChild:self.hexCoordLabel];
 }
 
@@ -303,7 +295,7 @@
   self.pcLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter;
   self.pcLabel.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
   self.pcLabel.position = CGPointMake(0, -9.f);
-  self.pcLabel.hidden = YES;
+//  self.pcLabel.hidden = YES;
   [self.cellNode addChild:self.pcLabel];
 }
 

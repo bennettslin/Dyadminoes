@@ -743,8 +743,8 @@
 -(BOOL)pivotBasedOnTouchLocation:(CGPoint)touchLocation
                andZRotationAngle:(CGFloat)dyadminoAngle
                     andPivotOnPC:(PivotOnPC)pivotOnPC {
-    // initial pivotOnPC is dyadmino position
   
+    // initial pivotOnPC is dyadmino position
   _pivotOnPC = pivotOnPC; // not sure why, but pivotOnPC needs to be set again here, even after being set in determinePivot
   
     // establish angles

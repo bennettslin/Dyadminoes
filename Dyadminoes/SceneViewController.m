@@ -92,6 +92,9 @@
   if (!self.mySceneView.scene) {
     NSLog(@"Scene was not properly presented.");
     abort();
+  } else {
+//    [self.myScene toggleRackGoOut:NO completion:nil];
+//    [self.myScene toggleTopBarGoOut:NO completion:nil];
   }
 }
 
@@ -155,8 +158,8 @@
   
   if (!self.vcIsAnimating && self.childVC && self.overlayEnabled) {
     if (animateRemoveVC) {
-      [self.myScene toggleRackGoOut:NO completion:nil];
-      [self.myScene toggleTopBarGoOut:NO completion:nil];
+//      [self.myScene toggleRackGoOut:NO completion:nil];
+//      [self.myScene toggleTopBarGoOut:NO completion:nil];
     }
   }
   

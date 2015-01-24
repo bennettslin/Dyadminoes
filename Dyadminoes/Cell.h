@@ -14,8 +14,6 @@
 @interface Cell : NSObject
 
 @property (nonatomic) SKTexture *cellNodeTexture;
-@property (nonatomic) CGPoint cellNodePosition;
-
 @property (strong, nonatomic) NSString *name;
 
 @property (strong, nonatomic) SKSpriteNode *cellNode;
@@ -35,8 +33,7 @@
 -(id)initWithTexture:(SKTexture *)texture
          andHexCoord:(HexCoord)hexCoord
         andHexOrigin:(CGVector)hexOrigin
-           andResize:(BOOL)resize
-         andDelegate:(id)delegate;
+           andResize:(BOOL)resize;
 
 -(void)reuseCellWithHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin forResize:(BOOL)resize;
 -(void)resetForReuse;

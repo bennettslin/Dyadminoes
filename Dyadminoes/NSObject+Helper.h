@@ -37,7 +37,6 @@
 #define kLargeButtonSize CGSizeMake(kLargeButtonWidth, kLargeButtonWidth)
 
   // animation constants
-//#define kConstantSpeed (kIsIPhone ? 0.002f : 0.0013333f)
 #define kBounceDivisor 8.f
 
 //------------------------------------------------------------------------------
@@ -115,7 +114,7 @@
 #define kHighPinchScale (kIsIPhone ? 1.3f : 1.15f)
 
   // animation constants
-#define kConstantTime 0.175f // was 0.15f
+#define kConstantTime 0.18f // was 0.15f
 #define kAnimateHoverTime 0.775f
 #define kDoubleTapTime 0.225f
 #define kWaitTimeForRackDyadminoPopulate 0.05f

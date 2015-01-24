@@ -177,6 +177,8 @@
 -(BOOL)loadAfterNewMatchRetrievedForReset:(BOOL)forReset {
   
   _topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
+//  _topBar.position = CGPointMake(0, self.frame.size.height);
+//  [self toggleTopBarGoOut:NO completion:nil];
   
    // it should not happen that previous match was left
    // while pnpBar was still moving, but just in case
@@ -3215,9 +3217,9 @@
       
         // if leaving replay, properties have already been reset
       if (inReplay) {
+        
           // get position and orientation attrivutes
         dyadmino.tempHexCoord = [dataDyad getHexCoordForTurn:self.myMatch.replayTurn];
-
         dyadmino.homeOrientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
         [dyadmino orientWithAnimation:YES];
       }
@@ -3227,6 +3229,7 @@
         
         [dyadmino goToTempPositionWithRescale:NO];
         [dyadminoesOnBoardUpToThisPoint addObject:dyadmino];
+        
       } else {
         [dyadmino returnHomeToBoard];
       }
@@ -3504,13 +3507,13 @@
   
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
-  [self logRackDyadminoes];
-  
-  NSLog(@"match's occupied cells is %@", self.myMatch.occupiedCells);
-
-  for (DataCell *dataCell in self.myMatch.occupiedCells) {
-    NSLog(@"cell with pc: %lu, dyadmino: %lu, hex: %li, %li", (unsigned long)dataCell.myPC, (unsigned long)dataCell.myDyadminoID, (long)dataCell.hexCoord.x, (long)dataCell.hexCoord.y);
-  }
+//  [self logRackDyadminoes];
+//
+//  NSLog(@"match's occupied cells is %@", self.myMatch.occupiedCells);
+//
+//  for (DataCell *dataCell in self.myMatch.occupiedCells) {
+//    NSLog(@"cell with pc: %lu, dyadmino: %lu, hex: %li, %li", (unsigned long)dataCell.myPC, (unsigned long)dataCell.myDyadminoID, (long)dataCell.hexCoord.x, (long)dataCell.hexCoord.y);
+//  }
 }
 
 -(void)logRackDyadminoes {
