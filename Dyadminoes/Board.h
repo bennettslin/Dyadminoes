@@ -98,6 +98,7 @@
 #pragma mark - cell zoom methods
 
 -(CGPoint)repositionCellsForZoomWithSwap:(BOOL)swap;
+-(void)changeAllCellsToAlpha:(CGFloat)desiredAlpha animated:(BOOL)animated;
 
 #pragma mark - pivot guide methods
 

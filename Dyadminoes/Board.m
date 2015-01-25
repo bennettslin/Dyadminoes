@@ -384,6 +384,7 @@
             Cell *addedCell = [self acknowledgeOrAddCellWithHexCoord:[self hexCoordFromX:newX andY:newY]];
             [tempAddedCellSet addObject:addedCell];
             [tempRemovedCellSet removeObject:addedCell];
+//            NSLog(@"added cell is %@", addedCell);
 
             NSUInteger distance = [self distanceGivenHexXDifference:x andHexYDifference:y];
             if (dyadmino != minusDyadmino) {
@@ -416,7 +417,7 @@
   return YES;
 }
 
--(Cell *)getCellWithHexCoord:(HexCoord)hexCoord {
+-(Cell *)cellWithHexCoord:(HexCoord)hexCoord {
   for (Cell *cell in self.allCells) {
     if ([cell isKindOfClass:[Cell class]]) {
       if (cell.hexCoord.x == hexCoord.x && cell.hexCoord.y == hexCoord.y) {
@@ -429,7 +430,7 @@
 
 -(Cell *)acknowledgeOrAddCellWithHexCoord:(HexCoord)hexCoord {
     // first check to see if cell already exists
-  Cell *cell = [self getCellWithHexCoord:hexCoord];
+  Cell *cell = [self cellWithHexCoord:hexCoord];
   
     // if cell does not exist, create and add it
   if (!cell) {
@@ -449,14 +450,14 @@
     if (![self.allCells containsObject:cell]) {
       [self.allCells addObject:cell];
     }
-    
 //    [self addCellToColumnOfRowsOfCells:cell];
+    
   }
   return cell;
 }
 
 -(void)ignoreCellWithHexCoord:(HexCoord)hexCoord {
-  Cell *cell = [self getCellWithHexCoord:hexCoord];
+  Cell *cell = [self cellWithHexCoord:hexCoord];
   [self ignoreCell:cell];
 }
 
@@ -468,8 +469,8 @@
     if ([self.allCells containsObject:cell]) {
       [self.allCells removeObject:cell];
     }
-    
 //    [self removeCellFromColumnOfRowsOfCells:cell];
+    
     [self pushDequeuedCell:cell];
   }
 }
@@ -484,22 +485,6 @@
   
   [self performBlockOnAllCells:block];
   self.columnOfRowsOfAllCells = nil;
-}
-
--(void)performBlockOnAllCells:(void(^)(Cell *))block {
-  
-  for (int j = self.cellsBottomInteger; j <= self.cellsTopInteger; j++) {
-    NSMutableArray *tempRowArray = self.columnOfRowsOfAllCells[j];
-    
-    for (int i = self.cellsLeftInteger; i <= self.cellsRightInteger; i++) {
-      id object = tempRowArray[i];
-      
-      if ([object isKindOfClass:Cell.class]) {
-        Cell *cell = (Cell *)object;
-        block(cell);
-      }
-    }
-  }
 }
 
 -(void)pushDequeuedCell:(Cell *)cell {
@@ -572,6 +557,22 @@
   return differenceInPosition;
     //  self.backgroundNodeZoomedIn.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
     //  self.backgroundNodeZoomedOut.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
+}
+
+-(void)changeAllCellsToAlpha:(CGFloat)desiredAlpha animated:(BOOL)animated {
+  
+  /*
+  void(^block)(Cell *) = ^void(Cell *cell) {
+    if (animated) {
+      SKAction *changeAlphaAction = [SKAction fadeAlphaTo:desiredAlpha duration:kConstantTime];
+      [cell.cellNode runAction:changeAlphaAction withKey:@"fadeCellAlpha"];
+    } else {
+      [cell.cellNode setAlpha:desiredAlpha];
+    }
+  };
+
+  [self performBlockOnAllCells:block];
+  */
 }
 
 #pragma mark - cell and data dyadmino methods
@@ -1030,7 +1031,7 @@
     for (int i = self.cellsLeftInteger; i <= self.cellsRightInteger; i++) {
       
         // add cell if there is a cell, otherwise add null
-      Cell *addedCell = [self getCellWithHexCoord:[self hexCoordFromX:i andY:j]];
+      Cell *addedCell = [self cellWithHexCoord:[self hexCoordFromX:i andY:j]];
       [tempRowArray addObject:(addedCell ? addedCell : [NSNull null])];
     }
     
@@ -1045,54 +1046,83 @@
   (arbitraryRow.count == self.cellsRightInteger - self.cellsLeftInteger + 1);
 }
 
--(Cell *)cellWithHexCoord:(HexCoord)hexCoord {
-  NSInteger xIndex = hexCoord.x - self.cellsLeftInteger;
-  NSInteger yIndex = hexCoord.y - self.cellsBottomInteger;
-  
-  if (yIndex < self.columnOfRowsOfAllCells.count) {
-    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex];
-    
-    if (xIndex < rowArray.count) {
-      id object = rowArray[xIndex];
-      if ([object isKindOfClass:Cell.class]) {
-        return object;
-      }
-    }
-  }
-  
-  return nil;
-}
+//-(Cell *)cellWithHexCoord:(HexCoord)hexCoord {
+//  NSInteger xIndex = hexCoord.x - self.cellsLeftInteger;
+//  NSInteger yIndex = hexCoord.y - self.cellsBottomInteger;
+//  
+//  if (yIndex < self.columnOfRowsOfAllCells.count) {
+//    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex];
+//    
+//    if (xIndex < rowArray.count) {
+//      id object = rowArray[xIndex];
+//      if ([object isKindOfClass:Cell.class]) {
+//        return object;
+//      }
+//    }
+//  }
+//  
+//  return nil;
+//}
 
 -(BOOL)addCellToColumnOfRowsOfCells:(Cell *)cell {
+  
   NSInteger xIndex = cell.hexCoord.x - self.cellsLeftInteger;
   NSInteger yIndex = cell.hexCoord.y - self.cellsBottomInteger;
   
-  NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex];
-  
-  if (rowArray[xIndex] == [NSNull null]) {
-    [rowArray replaceObjectAtIndex:xIndex withObject:cell];
-    return YES;
+//  if (yIndex < self.columnOfRowsOfAllCells.count) {
+    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex];
     
-      // do not add if column of rows already contains cell
-  } else {
-    return NO;
-  }
+//    if (xIndex < rowArray.count) {
+  
+        // only add if cell is not already contained
+      if (rowArray[xIndex] == [NSNull null]) {
+        [rowArray replaceObjectAtIndex:xIndex withObject:cell];
+        return YES;
+      }
+//    }
+//  }
+  return NO;
 }
 
 -(BOOL)removeCellFromColumnOfRowsOfCells:(Cell *)cell {
   
   NSInteger xIndex = cell.hexCoord.x - self.cellsLeftInteger;
   NSInteger yIndex = cell.hexCoord.y - self.cellsBottomInteger;
-  NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex];
-  
-  if (rowArray[xIndex] == cell) {
-    [rowArray replaceObjectAtIndex:xIndex withObject:[NSNull null]];
-    return YES;
+
+//  if (yIndex < self.columnOfRowsOfAllCells.count) {
+    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex];
     
-      // do not remove if column of rows does not contain cell
-  } else {
-    return NO;
-  }
+//    if (xIndex < rowArray.count) {
+  
+        // only add if cell is already contained
+      if (rowArray[xIndex] == cell) {
+        [rowArray replaceObjectAtIndex:xIndex withObject:[NSNull null]];
+        return YES;
+      }
+//    }
+//  }
+  return NO;
+}
+
+-(void)performBlockOnAllCells:(void(^)(Cell *))block {
+  
+  for (int j = 0; j < self.columnOfRowsOfAllCells.count; j++) {
+//    if (j < self.columnOfRowsOfAllCells.count) {
+      NSMutableArray *tempRowArray = self.columnOfRowsOfAllCells[j];
+      
+      for (int i = 0; i < tempRowArray.count; i++) {
+//        if (i < tempRowArray.count) {
+          id object = tempRowArray[i];
+          
+          if ([object isKindOfClass:Cell.class]) {
+            Cell *cell = (Cell *)object;
+            NSLog(@"block performed on cell %@", cell.name);
+            block(cell);
+          }
+        }
+      }
+//    }
+//  }
 }
 
 @end

@@ -2440,11 +2440,8 @@
     return;
   }
   
-  CGFloat desiredCellAlpha = _dyadminoesStationary ? 0.f : 1.f;
-  SKAction *fadeCellAlpha = [SKAction fadeAlphaTo:desiredCellAlpha duration:kConstantTime];
-  for (Cell *cell in _boardField.allCells) {
-    animated ? [cell.cellNode runAction:fadeCellAlpha withKey:@"fadeCellAlpha"] : [cell.cellNode setAlpha:desiredCellAlpha];
-  }
+  CGFloat desiredCellAlpha = _dyadminoesStationary ? 0.f : 1.f;  
+  [_boardField changeAllCellsToAlpha:desiredCellAlpha animated:animated];
   
   CGFloat desiredDyadminoAlpha = _dyadminoesStationary ? 0.5f : 1.f;
   SKAction *fadeDyadminoAlpha = [SKAction fadeAlphaTo:desiredDyadminoAlpha duration:kConstantTime]; // a little faster than field move
@@ -3480,12 +3477,12 @@
     dyadmino.hidden = _debugMode;
   }
   
-  for (Cell *cell in _boardField.allCells) {
-    if ([cell isKindOfClass:[Cell class]]) {
-      cell.hexCoordLabel.hidden = !_debugMode;
-      cell.pcLabel.hidden = !_debugMode;
-    }
-  }
+//  for (Cell *cell in _boardField.allCells) {
+//    if ([cell isKindOfClass:[Cell class]]) {
+//      cell.hexCoordLabel.hidden = !_debugMode;
+//      cell.pcLabel.hidden = !_debugMode;
+//    }
+//  }
   
 //  for (int i = 0; i < kMaxNumPlayers; i++) {
 //    Player *player = (i <= self.myMatch.players.count - 1) ? [self.myMatch playerForIndex:i] : nil;
