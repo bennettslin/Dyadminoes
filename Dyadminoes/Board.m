@@ -76,7 +76,7 @@
     
     self.userWantsPivotGuides = YES;
 
-    self.allCells = [NSMutableSet new];
+//    self.allCells = [NSMutableSet new];
       // not necessary to instantiate column of rows of cells, as it's recreated each time it's recalibrated
     
       // create new cells from get-go
@@ -115,12 +115,12 @@
 
 -(void)resetForNewMatch {
   
-  NSSet *tempAllCells = [NSSet setWithSet:self.allCells];
-  for (Cell *cell in tempAllCells) {
-    [self ignoreCell:cell];
-  }
+//  NSSet *tempAllCells = [NSSet setWithSet:self.allCells];
+//  for (Cell *cell in tempAllCells) {
+//    [self ignoreCell:cell];
+//  }
   
-//  [self ignoreAllCells];
+  [self ignoreAllCells];
   
   self.columnOfRowsOfAllCells = nil;
 
@@ -343,20 +343,20 @@
   NSLog(@"hex current is %.2f, %.2f", _hexCurrentOrigin.dx, _hexCurrentOrigin.dy);
   
   
-  NSMutableSet *tempAddedCellSet = [NSMutableSet new];
-  NSMutableSet *tempRemovedCellSet = [NSMutableSet setWithSet:self.allCells];
-
-    // reset all cells
-  for (Cell *cell in self.allCells) {
-    [cell resetForReuse];
-    [cell renderColour];
-  }
-  
-//  void(^block)(Cell *) = ^void(Cell *cell) {
+//  NSMutableSet *tempAddedCellSet = [NSMutableSet new];
+//  NSMutableSet *tempRemovedCellSet = [NSMutableSet setWithSet:self.allCells];
+//
+//    // reset all cells
+//  for (Cell *cell in self.allCells) {
 //    [cell resetForReuse];
 //    [cell renderColour];
-//  };
-//  [self performBlockOnAllCells:block];
+//  }
+  
+  void(^block)(Cell *) = ^void(Cell *cell) {
+    [cell resetForReuse];
+    [cell renderColour];
+  };
+  [self performBlockOnAllCells:block];
   
   for (Dyadmino *dyadmino in finalBoardDyadminoes) {
 
@@ -382,8 +382,8 @@
             NSInteger newX = xHex + x;
             NSInteger newY = yHex + y;
             Cell *addedCell = [self acknowledgeOrAddCellWithHexCoord:[self hexCoordFromX:newX andY:newY]];
-            [tempAddedCellSet addObject:addedCell];
-            [tempRemovedCellSet removeObject:addedCell];
+//            [tempAddedCellSet addObject:addedCell];
+//            [tempRemovedCellSet removeObject:addedCell];
 //            NSLog(@"added cell is %@", addedCell);
 
             NSUInteger distance = [self distanceGivenHexXDifference:x andHexYDifference:y];
@@ -396,17 +396,17 @@
     }
   }
   
-    // dequeue all removed cells
-  for (Cell *cell in tempRemovedCellSet) {
-    [self ignoreCell:cell];
-  }
+//    // dequeue all removed cells
+//  for (Cell *cell in tempRemovedCellSet) {
+//    [self ignoreCell:cell];
+//  }
+//  
+//    // colour all placed cells
+//  for (Cell *cell in tempAddedCellSet) {
+//    [cell renderColour];
+//  }
   
-    // colour all placed cells
-  for (Cell *cell in tempAddedCellSet) {
-    [cell renderColour];
-  }
-  
-  self.allCells = tempAddedCellSet;
+//  self.allCells = tempAddedCellSet;
   
   
     // bounds is not updated with removal by touch, only with removal by cancel
@@ -417,16 +417,16 @@
   return YES;
 }
 
--(Cell *)cellWithHexCoord:(HexCoord)hexCoord {
-  for (Cell *cell in self.allCells) {
-    if ([cell isKindOfClass:[Cell class]]) {
-      if (cell.hexCoord.x == hexCoord.x && cell.hexCoord.y == hexCoord.y) {
-        return cell;
-      }
-    }
-  }
-  return nil;
-}
+//-(Cell *)cellWithHexCoord:(HexCoord)hexCoord {
+//  for (Cell *cell in self.allCells) {
+//    if ([cell isKindOfClass:[Cell class]]) {
+//      if (cell.hexCoord.x == hexCoord.x && cell.hexCoord.y == hexCoord.y) {
+//        return cell;
+//      }
+//    }
+//  }
+//  return nil;
+//}
 
 -(Cell *)acknowledgeOrAddCellWithHexCoord:(HexCoord)hexCoord {
     // first check to see if cell already exists
@@ -447,10 +447,10 @@
     
     cell.cellNode.parent ? nil : [self addChild:cell.cellNode];
 
-    if (![self.allCells containsObject:cell]) {
-      [self.allCells addObject:cell];
-    }
-//    [self addCellToColumnOfRowsOfCells:cell];
+//    if (![self.allCells containsObject:cell]) {
+//      [self.allCells addObject:cell];
+//    }
+    [self addCellToColumnOfRowsOfCells:cell];
     
   }
   return cell;
@@ -466,10 +466,10 @@
     
     cell.cellNode ? [cell.cellNode removeFromParent] : nil;
     
-    if ([self.allCells containsObject:cell]) {
-      [self.allCells removeObject:cell];
-    }
-//    [self removeCellFromColumnOfRowsOfCells:cell];
+//    if ([self.allCells containsObject:cell]) {
+//      [self.allCells removeObject:cell];
+//    }
+    [self removeCellFromColumnOfRowsOfCells:cell];
     
     [self pushDequeuedCell:cell];
   }
@@ -525,34 +525,34 @@
   
   CGSize cellSize = [Cell cellSizeForResize:self.zoomedOut];
   
-  for (Cell *cell in self.allCells) {
-    
-    CGPoint tempNewPosition = [self addToThisPoint:cell.cellNode.position thisPoint:differenceInPosition];
-    
-    if (self.zoomedOut) {
-      tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:zoomOutBoardHomePositionDifference];
-    } else {
-      tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:self.zoomInBoardHomePositionDifference];
-    }
-    
-    cell.cellNode.position = tempNewPosition;
-    [cell animateResizeAndRepositionOfCell:self.zoomedOut withHexOrigin:self.hexOrigin andSize:cellSize];
-  }
-  
-//  __weak typeof(self) weakSelf = self;
-//  void(^block)(Cell *) = ^void(Cell *cell) {
-//    CGPoint tempNewPosition = [weakSelf addToThisPoint:cell.cellNode.position thisPoint:differenceInPosition];
+//  for (Cell *cell in self.allCells) {
 //    
-//    if (weakSelf.zoomedOut) {
+//    CGPoint tempNewPosition = [self addToThisPoint:cell.cellNode.position thisPoint:differenceInPosition];
+//    
+//    if (self.zoomedOut) {
 //      tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:zoomOutBoardHomePositionDifference];
 //    } else {
-//      tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:weakSelf.zoomInBoardHomePositionDifference];
+//      tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:self.zoomInBoardHomePositionDifference];
 //    }
 //    
 //    cell.cellNode.position = tempNewPosition;
-//    [cell animateResizeAndRepositionOfCell:weakSelf.zoomedOut withHexOrigin:weakSelf.hexOrigin andSize:cellSize];
-//  };
-//  [self performBlockOnAllCells:block];
+//    [cell animateResizeAndRepositionOfCell:self.zoomedOut withHexOrigin:self.hexOrigin andSize:cellSize];
+//  }
+  
+  __weak typeof(self) weakSelf = self;
+  void(^block)(Cell *) = ^void(Cell *cell) {
+    CGPoint tempNewPosition = [weakSelf addToThisPoint:cell.cellNode.position thisPoint:differenceInPosition];
+    
+    if (weakSelf.zoomedOut) {
+      tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:zoomOutBoardHomePositionDifference];
+    } else {
+      tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:weakSelf.zoomInBoardHomePositionDifference];
+    }
+    
+    cell.cellNode.position = tempNewPosition;
+    [cell animateResizeAndRepositionOfCell:weakSelf.zoomedOut withHexOrigin:weakSelf.hexOrigin andSize:cellSize];
+  };
+  [self performBlockOnAllCells:block];
   
   return differenceInPosition;
     //  self.backgroundNodeZoomedIn.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
@@ -561,7 +561,6 @@
 
 -(void)changeAllCellsToAlpha:(CGFloat)desiredAlpha animated:(BOOL)animated {
   
-  /*
   void(^block)(Cell *) = ^void(Cell *cell) {
     if (animated) {
       SKAction *changeAlphaAction = [SKAction fadeAlphaTo:desiredAlpha duration:kConstantTime];
@@ -572,7 +571,6 @@
   };
 
   [self performBlockOnAllCells:block];
-  */
 }
 
 #pragma mark - cell and data dyadmino methods
@@ -1046,23 +1044,23 @@
   (arbitraryRow.count == self.cellsRightInteger - self.cellsLeftInteger + 1);
 }
 
-//-(Cell *)cellWithHexCoord:(HexCoord)hexCoord {
-//  NSInteger xIndex = hexCoord.x - self.cellsLeftInteger;
-//  NSInteger yIndex = hexCoord.y - self.cellsBottomInteger;
-//  
-//  if (yIndex < self.columnOfRowsOfAllCells.count) {
-//    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex];
-//    
-//    if (xIndex < rowArray.count) {
-//      id object = rowArray[xIndex];
-//      if ([object isKindOfClass:Cell.class]) {
-//        return object;
-//      }
-//    }
-//  }
-//  
-//  return nil;
-//}
+-(Cell *)cellWithHexCoord:(HexCoord)hexCoord {
+  NSInteger xIndex = hexCoord.x - self.cellsLeftInteger;
+  NSInteger yIndex = hexCoord.y - self.cellsBottomInteger;
+  
+  if (yIndex < self.columnOfRowsOfAllCells.count) {
+    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex];
+    
+    if (xIndex < rowArray.count) {
+      id object = rowArray[xIndex];
+      if ([object isKindOfClass:Cell.class]) {
+        return object;
+      }
+    }
+  }
+  
+  return nil;
+}
 
 -(BOOL)addCellToColumnOfRowsOfCells:(Cell *)cell {
   
@@ -1116,7 +1114,7 @@
           
           if ([object isKindOfClass:Cell.class]) {
             Cell *cell = (Cell *)object;
-            NSLog(@"block performed on cell %@", cell.name);
+//            NSLog(@"block performed on cell %@", cell.name);
             block(cell);
           }
         }
