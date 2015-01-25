@@ -123,7 +123,7 @@
 #pragma mark - animate detailed placement methods
 
 -(void)returnToRackByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize;
--(void)returnHomeToBoard;
+-(void)returnHomeToBoardWithLayout:(BOOL)layout;
 
   // called by scene during replay and toggle board zoom
 -(void)goToTempPositionWithRescale:(BOOL)rescale;

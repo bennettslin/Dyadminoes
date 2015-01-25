@@ -205,7 +205,7 @@
       NSInteger xHex = hexCoord[i].x;
       NSInteger yHex = hexCoord[i].y;
       
-      NSLog(@"hex is %i, %i for dyadmino %@", xHex, yHex, dyadmino.name);
+//      NSLog(@"hex is %i, %i for dyadmino %@", xHex, yHex, dyadmino.name);
       
         // check x span - this one is easy enough
       if (xHex > cellsRightmost) {
@@ -390,15 +390,16 @@
   Cell *cell = [self cellWithHexCoord:hexCoord];
   
   
-  if (hexCoord.x == -6 && hexCoord.y == 8) {
-    NSLog(@"hexcoord -6, 8 recognised");
-    NSLog(@"%@ parent is %@", cell.name, cell.cellNode.parent);
-  }
+//  if (hexCoord.x == -6 && hexCoord.y == 8) {
+//    NSLog(@"hexcoord -6, 8 recognised");
+//    NSLog(@"%@ parent is %@", cell.name, cell.cellNode.parent);
+//  }
   
     // if not, get one from queue
   if (!cell) {
     cell = [self popDequeuedCellWithHexCoord:hexCoord];
     [self addCellToColumnOfRowsOfCells:cell];
+    [self fadeOut:NO cell:cell completion:nil];
   }
   
   return cell;
@@ -407,14 +408,31 @@
 -(void)ignoreCell:(Cell *)cell {
   if (cell) {
     
-    if (cell.hexCoord.x == -6 && cell.hexCoord.y == 8) {
-      NSLog(@"hexcoord -6, 8 ignored");
-    }
+//    if (cell.hexCoord.x == -6 && cell.hexCoord.y == 8) {
+//      NSLog(@"hexcoord -6, 8 ignored");
+//    }
 
     [self removeCellFromColumnOfRowsOfCells:cell];
-    [cell resetForReuse];
-    [self pushDequeuedCell:cell];
+    
+    __weak typeof(self) weakSelf = self;
+    void(^completion)(void) = ^void(void) {
+      [cell resetForReuse];
+      [weakSelf pushDequeuedCell:cell];
+    };
+    
+    [self fadeOut:YES cell:cell completion:completion];
   }
+}
+
+-(void)fadeOut:(BOOL)fadeOut cell:(Cell *)cell completion:(void(^)(void))completion {
+  CGFloat fadeAlpha = fadeOut ? 0.f : 1.f;
+  
+  SKAction *fadeAction = [SKAction fadeAlphaTo:fadeAlpha duration:kConstantTime];
+  SKAction *shrinkAction = [SKAction scaleTo:fadeAlpha duration:kConstantTime];
+  SKAction *fadeShrinkGroup = [SKAction group:@[fadeAction, shrinkAction]];
+  SKAction *completionAction = [SKAction runBlock:completion];
+  SKAction *sequenceAction = [SKAction sequence:@[fadeShrinkGroup, completionAction]];
+  [cell.cellNode runAction:sequenceAction];
 }
 
 -(void)ignoreAllCells {
@@ -1087,7 +1105,7 @@
   }
   
   HexCoord returnHexCoord = hexCoordsToCheck[minDistanceIndex];
-  NSLog(@"closest hex coord is %i, %i", returnHexCoord.x, returnHexCoord.y);
+  NSLog(@"closest hex coord is %li, %li", (long)returnHexCoord.x, (long)returnHexCoord.y);
   return returnHexCoord;
 }
 

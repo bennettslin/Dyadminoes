@@ -273,15 +273,15 @@
     
     self.colorBlendFactor = 0.f;
     [self orientWithAnimation:YES];
-    [self animateMoveToPoint:[self addIfSwapToHomePosition:rackPosition]];
+    [self animateMoveToPoint:[self addIfSwapToHomePosition:rackPosition] withLayout:NO];
   }
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
--(void)returnHomeToBoard {
+-(void)returnHomeToBoardWithLayout:(BOOL)layout {
   
   [self orientWithAnimation:YES];
-  [self animateMoveToPoint:[self.delegate homePositionForDyadmino:self]];
+  [self animateMoveToPoint:[self.delegate homePositionForDyadmino:self] withLayout:layout];
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
@@ -297,7 +297,7 @@
     [weakSelf selectAndPositionSpritesZRotation:0.f];
   };
   
-  [self animateExcessivelyToPosition:reposition withRescale:rescale duration:kConstantTime withKey:@"replayAction" completion:completion];
+  [self animateExcessivelyToPosition:reposition withRescale:rescale duration:kConstantTime withKey:@"replayAction" middleBlock:nil completion:completion];
 }
 
 -(void)animateEaseIntoNodeAfterHover {
@@ -333,14 +333,14 @@
 #pragma mark - animate basic placement methods
 
 -(void)animateMoveToPointCalledFromRack:(CGPoint)point {
-  [self animateMoveToPoint:point andCalledFromRack:YES];
+  [self animateMoveToPoint:point withLayout:NO andCalledFromRack:YES];
 }
 
--(void)animateMoveToPoint:(CGPoint)point {
-  [self animateMoveToPoint:point andCalledFromRack:NO];
+-(void)animateMoveToPoint:(CGPoint)point withLayout:(BOOL)layout {
+  [self animateMoveToPoint:point withLayout:layout andCalledFromRack:NO];
 }
 
--(void)animateMoveToPoint:(CGPoint)point andCalledFromRack:(BOOL)calledFromRack {
+-(void)animateMoveToPoint:(CGPoint)point withLayout:(BOOL)layout andCalledFromRack:(BOOL)calledFromRack {
   
     // if called from rack, does not include orientation
     // otherwise it is called from self, and does include orientation animation
@@ -349,11 +349,10 @@
   void(^completion)(void);
   if (!calledFromRack) {
     completion = ^void(void) {
-      [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
       [self setToHomeZPosition];
       if ([self isOnBoard]) {
         NSLog(@"update cells for placed dyadmino in animate move to point");
-        [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
+        [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:layout];
       }
     };
     
@@ -361,7 +360,14 @@
     completion = nil;
   }
   
-  [self animateExcessivelyToPosition:point withRescale:NO duration:kConstantTime withKey:kActionMoveToPoint completion:completion];
+  void(^middleBlock)(void) = ^void(void) {
+      // will not sound if laying out
+    if (weakSelf.home == kRack || layout) {
+      [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
+    }
+  };
+  
+  [self animateExcessivelyToPosition:point withRescale:NO duration:kConstantTime withKey:kActionMoveToPoint middleBlock:middleBlock completion:completion];
 }
 
 -(void)animateEasilyToPosition:(CGPoint)toPosition
@@ -381,6 +387,7 @@
                         withRescale:(BOOL)rescale
                            duration:(CGFloat)duration
                             withKey:(NSString *)key
+                        middleBlock:(void(^)(void))middleBlock
                          completion:(void(^)(void))completion {
   
   SKAction *repositionAndMaybeResizeAction;
@@ -397,8 +404,10 @@
   SKAction *excessRepositionAction = [SKAction moveTo:excessReposition duration:duration * randomRepositionFactor * 0.7];
   excessRepositionAction.timingMode = SKActionTimingEaseIn;
   
+  SKAction *middleBlockAction = [SKAction runBlock:middleBlock];
+  
   SKAction *bounceBackAction = [SKAction moveTo:reposition duration:duration * randomRepositionFactor * 0.3f];
-  SKAction *repositionSequence = [SKAction sequence:@[excessRepositionAction, bounceBackAction]];
+  SKAction *repositionSequence = [SKAction sequence:@[excessRepositionAction, middleBlockAction, bounceBackAction]];
   
   if (rescale) {
       // between .6 and .99

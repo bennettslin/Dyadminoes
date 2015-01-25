@@ -1334,7 +1334,7 @@
   } else {
     
     dyadmino.tempHexCoord = dyadmino.homeHexCoord;
-    [dyadmino returnHomeToBoard];
+    [dyadmino returnHomeToBoardWithLayout:YES];
   }
 
     // reset properties
@@ -2445,14 +2445,16 @@
     return;
   }
   
-//  CGFloat desiredCellAlpha = _dyadminoesStationary ? 0.f : 1.f;  
-//  [_boardField changeAllCellsToAlpha:desiredCellAlpha animated:animated];
+  /*
+  CGFloat desiredCellAlpha = _dyadminoesStationary ? 0.f : 1.f;  
+  [_boardField changeAllCellsToAlpha:desiredCellAlpha animated:animated];
   
   CGFloat desiredDyadminoAlpha = _dyadminoesStationary ? 0.5f : 1.f;
   SKAction *fadeDyadminoAlpha = [SKAction fadeAlphaTo:desiredDyadminoAlpha duration:kConstantTime]; // a little faster than field move
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
     animated ? [dyadmino runAction:fadeDyadminoAlpha withKey:@"fadeDyadminoAlpha"] : [dyadmino setAlpha:desiredDyadminoAlpha];
   }
+   */
   
     // confirm that dyadminoes reflect whether they should be stationary
   _dyadminoesHollowed = _dyadminoesStationary;
@@ -2976,13 +2978,8 @@
 }
 
 -(CGFloat)distanceFromCurrentToHomePositionForDyadmino:(Dyadmino *)dyadmino {
-  CGPoint homePosition;
-  
-  if (dyadmino.home == kRack) {
-    homePosition = [self rackPositionForDyadmino:dyadmino];
-  } else {
-    homePosition = [self homePositionForDyadmino:dyadmino];
-  }
+  CGPoint homePosition = (dyadmino.home == kRack) ?
+      [self rackPositionForDyadmino:dyadmino] : [self homePositionForDyadmino:dyadmino];
   
   return [self getDistanceFromThisPoint:homePosition toThisPoint:dyadmino.position];
 }
@@ -3235,7 +3232,7 @@
         [dyadmino goToTempPositionWithRescale:NO];
         
       } else {
-        [dyadmino returnHomeToBoard];
+        [dyadmino returnHomeToBoardWithLayout:NO];
       }
     }
   }
