@@ -271,10 +271,13 @@
     // this only needs the board dyadminoes to determine the board's cells ranges
     // this populates the board cells
   [self repositionBoardField];
-  if (![_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes minusDyadmino:nil updateBounds:NO]) {
-    NSLog(@"Board cells and snap points not laid out properly.");
-    abort();
-  }
+  
+//  if (![_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes minusDyadmino:nil updateBounds:NO]) {
+//    NSLog(@"Board cells and snap points not laid out properly.");
+//    abort();
+//  }
+  
+  [_boardField establishHexOriginForCenteringBoardBasedOnBoardDyadminoes:self.boardDyadminoes];
   
   if (![self populateBoardWithDyadminoesAnimated:NO]) {
     NSLog(@"Dyadminoes were not placed on board properly.");
@@ -523,7 +526,7 @@
   
   CGFloat yPosition = self.frame.size.height - kTopBarHeight + kRackHeight;
   CGPoint homePosition = CGPointMake(self.frame.size.width * 0.5, yPosition * 0.5);
-  [_boardField repositionBoardWithHomePosition:homePosition andOrigin:(CGPoint)homePosition];
+  [_boardField repositionBoardWithHomePosition:homePosition andOrigin:homePosition];
 }
 
 -(BOOL)populateBoardWithDyadminoesAnimated:(BOOL)animated {
@@ -1129,6 +1132,8 @@
 
     // prep board for bounds and position
     // if in replay, only determine cells based on these dyadminoes
+  
+  NSLog(@"determine outermost called from toggle board zoom");
   [_boardField determineOutermostCellsBasedOnDyadminoes:(_replayMode ? [self dyadminoesOnBoardThisReplayTurn] : [self allBoardDyadminoesPlusRecentRackDyadmino])];
   [_boardField determineBoardPositionBounds];
   
@@ -1213,7 +1218,7 @@
 
 -(void)getReadyToMoveCurrentDyadmino:(Dyadmino *)dyadmino {
   
-  if ([dyadmino isOnBoard]) {
+  if ([dyadmino isOnBoard] && dyadmino != _hoveringDyadmino) {
     [self updateCellsForRemovedDyadmino:dyadmino withLayout:YES updateBounds:NO];
   }
 
@@ -2440,8 +2445,8 @@
     return;
   }
   
-  CGFloat desiredCellAlpha = _dyadminoesStationary ? 0.f : 1.f;  
-  [_boardField changeAllCellsToAlpha:desiredCellAlpha animated:animated];
+//  CGFloat desiredCellAlpha = _dyadminoesStationary ? 0.f : 1.f;  
+//  [_boardField changeAllCellsToAlpha:desiredCellAlpha animated:animated];
   
   CGFloat desiredDyadminoAlpha = _dyadminoesStationary ? 0.5f : 1.f;
   SKAction *fadeDyadminoAlpha = [SKAction fadeAlphaTo:desiredDyadminoAlpha duration:kConstantTime]; // a little faster than field move
@@ -2744,6 +2749,7 @@
     [_boardField updateCellsForDyadmino:dyadmino placedOnBottomHexCoord:dyadmino.tempHexCoord];
     
     if (layout) {
+      NSLog(@"layout and colour board cells called in update for placed");
       [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]
                                                         minusDyadmino:nil updateBounds:YES];
     }
@@ -2758,6 +2764,7 @@
     [_boardField updateCellsForDyadmino:dyadmino removedFromBottomHexCoord:dyadmino.tempHexCoord];
     
     if (layout) {
+      NSLog(@"layout and colour board cells called in update for removed");
       [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]
                                                         minusDyadmino:dyadmino updateBounds:updateBounds];
     }
@@ -3174,7 +3181,7 @@
 
 -(void)updateBoardForReplayInReplay:(BOOL)inReplay start:(BOOL)start {
   
-  NSMutableSet *dyadminoesOnBoardUpToThisPoint = inReplay ? [NSMutableSet new] :
+  NSMutableSet *dyadminoesOnBoardUpToThisPoint = inReplay ? [self dyadminoesOnBoardThisReplayTurn] :
       [NSMutableSet setWithSet:[self allBoardDyadminoesPlusRecentRackDyadmino]];
   
     // match already knows the turn number
@@ -3219,13 +3226,13 @@
         dyadmino.tempHexCoord = [dataDyad getHexCoordForTurn:self.myMatch.replayTurn];
         dyadmino.homeOrientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
         [dyadmino orientWithAnimation:YES];
+        
+//        [dyadminoesOnBoardUpToThisPoint addObject:dyadmino];
       }
       
         // position dyadmino
       if (inReplay) {
-        
         [dyadmino goToTempPositionWithRescale:NO];
-        [dyadminoesOnBoardUpToThisPoint addObject:dyadmino];
         
       } else {
         [dyadmino returnHomeToBoard];
@@ -3233,8 +3240,8 @@
     }
   }
 
-  [_boardField determineOutermostCellsBasedOnDyadminoes:dyadminoesOnBoardUpToThisPoint];
-  [_boardField determineBoardPositionBounds];
+  NSLog(@"layout called from update board for replay");
+  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoardUpToThisPoint minusDyadmino:nil updateBounds:YES];
 }
 
 -(NSMutableSet *)dyadminoesOnBoardThisReplayTurn {
@@ -3434,12 +3441,6 @@
     }
   }
 }
-
-  // called by board
-//-(BOOL)isFirstDyadmino:(Dyadmino *)dyadmino {
-//  BOOL firstDyadmino = (self.boardDyadminoes.count == 1 && dyadmino == [self.boardDyadminoes anyObject] && !_recentRackDyadmino);
-//  return firstDyadmino;
-//}
 
   // called by match
 -(BOOL)isFirstAndOnlyDyadminoID:(NSUInteger)dyadminoID {

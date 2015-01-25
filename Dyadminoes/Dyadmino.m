@@ -352,6 +352,7 @@
       [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
       [self setToHomeZPosition];
       if ([self isOnBoard]) {
+        NSLog(@"update cells for placed dyadmino in animate move to point");
         [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
       }
     };
@@ -481,7 +482,7 @@
         } else {
           
           if ([self isOnBoard]) {
-            [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
+            [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:NO];
           }
           
           if (fullFlip) {

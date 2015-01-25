@@ -49,6 +49,7 @@
 @property (assign, nonatomic) NSInteger cellsBottomInteger;
 @property (assign, nonatomic) NSInteger cellsLeftInteger;
 @property (readwrite, nonatomic) NSMutableArray *columnOfRowsOfAllCells;
+//@property (strong, nonatomic) NSMutableSet *placeholderContainerForCellsToBeIgnored;
 
 @property (strong, nonatomic) NSMutableSet *dequeuedCells;
 @property (strong, nonatomic) SKTexture *cellTexture;
@@ -59,7 +60,7 @@
 @implementation Board {
 
   BOOL _hexOriginSet;
-  CGVector _hexCurrentOrigin;
+  CGVector _hexCurrentOriginForCenteringBoard;
 }
 
 -(id)initWithColor:(UIColor *)color andSize:(CGSize)size andCellTexture:(SKTexture *)cellTexture {
@@ -76,11 +77,7 @@
     
     self.userWantsPivotGuides = YES;
 
-//    self.allCells = [NSMutableSet new];
-      // not necessary to instantiate column of rows of cells, as it's recreated each time it's recalibrated
-    
       // create new cells from get-go
-    self.dequeuedCells = [NSMutableSet new];
     [self instantiateDequeuedCells];
   }
   return self;
@@ -100,29 +97,12 @@
   self.pivotAroundGuide.name = @"pivotAroundGuide";
 }
 
--(void)instantiateDequeuedCells {
-
-  NSUInteger times = 182; // number of initial cells with one dyadmino on board
-  for (int i = 0; i < times; i++) {
-    Cell *cell = [[Cell alloc] initWithTexture:self.cellTexture
-                                   andHexCoord:[self hexCoordFromX:NSIntegerMax andY:NSIntegerMax]
-                                  andHexOrigin:self.hexOrigin
-                                     andResize:self.zoomedOut];
-    
-    [self.dequeuedCells addObject:cell];
-  }
-}
-
 -(void)resetForNewMatch {
-  
-//  NSSet *tempAllCells = [NSSet setWithSet:self.allCells];
-//  for (Cell *cell in tempAllCells) {
-//    [self ignoreCell:cell];
-//  }
-  
+
   [self ignoreAllCells];
   
   self.columnOfRowsOfAllCells = nil;
+//  self.placeholderContainerForCellsToBeIgnored = nil;
 
   self.zoomedOut = NO;
   self.zoomInBoardHomePositionDifference = CGPointZero;
@@ -147,8 +127,8 @@
 
 -(CGPoint)centerBoardOnDyadminoesAverageCenterWithSwap:(BOOL)swap {
   CGFloat factor = self.zoomedOut ? kZoomResizeFactor : 1.f;
-  CGPoint newPoint = CGPointMake(self.origin.x + (self.hexOrigin.dx - _hexCurrentOrigin.dx) * kDyadminoFaceWideDiameter * factor,
-                                 self.origin.y + (self.hexOrigin.dy - _hexCurrentOrigin.dy) * kDyadminoFaceDiameter * factor);
+  CGPoint newPoint = CGPointMake(self.origin.x + (self.hexOrigin.dx - _hexCurrentOriginForCenteringBoard.dx) * kDyadminoFaceWideDiameter * factor,
+                                 self.origin.y + (self.hexOrigin.dy - _hexCurrentOriginForCenteringBoard.dy) * kDyadminoFaceDiameter * factor);
   
   CGPoint differenceInPosition = [self adjustedNewPositionFromBeganLocation:self.homePosition
                                                           toCurrentLocation:newPoint
@@ -204,20 +184,20 @@
     // called directly by scene for replay and zoom
   
     // floats to allow for in-between values for y-coordinates
-  CGFloat cellsTopmost = CGFLOAT_MIN;
-  CGFloat cellsRightmost = CGFLOAT_MIN;
+  CGFloat cellsTopmost = -CGFLOAT_MAX;
+  CGFloat cellsRightmost = -CGFLOAT_MAX;
   CGFloat cellsBottommost = CGFLOAT_MAX;
   CGFloat cellsLeftmost = CGFLOAT_MAX;
   
-  NSInteger cellsTopmostInteger = NSIntegerMin;
-  NSInteger cellsRightmostInteger = NSIntegerMin;
+  NSInteger cellsTopmostInteger = -NSIntegerMax;
+  NSInteger cellsRightmostInteger = -NSIntegerMax;
   NSInteger cellsBottommostInteger = NSIntegerMax;
   NSInteger cellsLeftmostInteger = NSIntegerMax;
   
   for (Dyadmino *dyadmino in boardDyadminoes) {
 
     HexCoord bottomHexCoord = [self hexCoordFromX:dyadmino.tempHexCoord.x andY:dyadmino.tempHexCoord.y];
-    HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadmino.orientation];
+    HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadmino.homeOrientation];
     
     HexCoord hexCoord[2] = {bottomHexCoord, topHexCoord};
     
@@ -225,13 +205,15 @@
       NSInteger xHex = hexCoord[i].x;
       NSInteger yHex = hexCoord[i].y;
       
+      NSLog(@"hex is %i, %i for dyadmino %@", xHex, yHex, dyadmino.name);
+      
         // check x span - this one is easy enough
       if (xHex > cellsRightmost) {
-        cellsRightmost = xHex;
+        cellsRightmost = (CGFloat)xHex;
       }
       
       if (xHex < cellsLeftmost) {
-        cellsLeftmost = xHex;
+        cellsLeftmost = (CGFloat)xHex;
       }
       
       CGFloat trialTopmost = ((CGFloat)xHex + (2 * yHex)) / 2.f;
@@ -283,6 +265,9 @@
   self.cellsBottom = cellsBottommost - extraYCells - 1.f;
   self.cellsLeft = cellsLeftmost - extraXCells;
   
+//  NSLog(@"add all current called from determine outermost");
+//  [self addAllCurrentCellsToPlaceholderContainer];
+  
   self.cellsTopInteger = cellsTopmostInteger + kCellsAroundDyadmino;
   self.cellsRightInteger = cellsRightmostInteger + kCellsAroundDyadmino;
   self.cellsBottomInteger = cellsBottommostInteger - kCellsAroundDyadmino;
@@ -292,13 +277,13 @@
     // since this is the only place where its bounds are set
   [self recalibrateColumnOfRowsOfAllCells];
   
-  NSLog(@"bounds is top %.1f, right %.1f, bottom %.1f, left %.1f", self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
-  NSLog(@"raw bounds floats is top %.1f, right %.1f, bottom %.1f, left %.1f", cellsTopmost, cellsRightmost, cellsBottommost, cellsLeftmost);
-  NSLog(@"raw bounds integers is top %i, right %i, bottom %i, left %i", (NSInteger)cellsTopmost, (NSInteger)cellsRightmost, (NSInteger)cellsBottommost, (NSInteger)cellsLeftmost);
-  NSLog(@"cell bounds integers is top %i, right %i, bottom %i, left %i", self.cellsTopInteger, self.cellsRightInteger, self.cellsBottomInteger, self.cellsLeftInteger);
+//  NSLog(@"bounds is top %.1f, right %.1f, bottom %.1f, left %.1f", self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
+//  NSLog(@"raw bounds floats is top %.1f, right %.1f, bottom %.1f, left %.1f", cellsTopmost, cellsRightmost, cellsBottommost, cellsLeftmost);
+//  NSLog(@"raw bounds integers is top %i, right %i, bottom %i, left %i", (NSInteger)cellsTopmost, (NSInteger)cellsRightmost, (NSInteger)cellsBottommost, (NSInteger)cellsLeftmost);
+  NSLog(@"determine outermost, cell bounds integers is top %i, right %i, bottom %i, left %i", self.cellsTopInteger, self.cellsRightInteger, self.cellsBottomInteger, self.cellsLeftInteger);
   
-  CGVector returnVector = CGVectorMake(((CGFloat)(self.cellsRight - self.cellsLeft) / 2) + self.cellsLeft,
-                                       ((CGFloat)(self.cellsTop - self.cellsBottom) / 2) + self.cellsBottom);
+  CGVector returnVector = CGVectorMake(((CGFloat)(self.cellsRight - self.cellsLeft) / 2.f) + self.cellsLeft,
+                                       ((CGFloat)(self.cellsTop - self.cellsBottom) / 2.f) + self.cellsBottom);
   
   return returnVector;
 }
@@ -318,50 +303,40 @@
 
 #pragma mark - cell methods
 
+-(void)establishHexOriginForCenteringBoardBasedOnBoardDyadminoes:(NSSet *)boardDyadminoes {
+    // regular hex origin is only set once per scene load, but zoom hex origin is set every time
+  
+//  NSLog(@"establish hex origin based on board dyadminoes %@", boardDyadminoes);
+  
+  CGVector hexVector = [self determineOutermostCellsBasedOnDyadminoes:boardDyadminoes];
+  
+  if (!_hexOriginSet) {
+    self.hexOrigin = hexVector;
+    _hexCurrentOriginForCenteringBoard = self.hexOrigin;
+    _hexOriginSet = YES;
+    
+  } else {
+    _hexCurrentOriginForCenteringBoard = hexVector;
+  }
+  
+//  NSLog(@"hex origin is %.2f, %.2f", hexVector.dx, hexVector.dy);
+}
+
 -(BOOL)layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes
                                             minusDyadmino:(Dyadmino *)minusDyadmino
                                              updateBounds:(BOOL)updateBounds {
   
-//  NSLog(@"layout and colour board cells");
-  
-//  NSMutableArray *tempArray = [self arrayOfCellsFromBoardDyadminoes:boardDyadminoes
-//                                                      minusDyadmino:minusDyadmino];
-//  NSLog(@"temp array is\n%@", tempArray);
-//  
-
   NSSet *finalBoardDyadminoes = [self boardDyadminoes:boardDyadminoes minusDyadmino:minusDyadmino];
   
-    // regular hex origin is only set once per scene load, but zoom hex origin is set every time
-  if (!_hexOriginSet) {
-    self.hexOrigin = [self determineOutermostCellsBasedOnDyadminoes:finalBoardDyadminoes];
-    _hexCurrentOrigin = self.hexOrigin;
-    _hexOriginSet = YES;
-  } else {
-    _hexCurrentOrigin = [self determineOutermostCellsBasedOnDyadminoes:finalBoardDyadminoes];
-  }
+  [self establishHexOriginForCenteringBoardBasedOnBoardDyadminoes:finalBoardDyadminoes];
   
-  NSLog(@"hex current is %.2f, %.2f", _hexCurrentOrigin.dx, _hexCurrentOrigin.dy);
-  
-  
-//  NSMutableSet *tempAddedCellSet = [NSMutableSet new];
-//  NSMutableSet *tempRemovedCellSet = [NSMutableSet setWithSet:self.allCells];
-//
-//    // reset all cells
-//  for (Cell *cell in self.allCells) {
-//    [cell resetForReuse];
-//    [cell renderColour];
-//  }
-  
-  void(^block)(Cell *) = ^void(Cell *cell) {
-    [cell resetForReuse];
-    [cell renderColour];
-  };
-  [self performBlockOnAllCells:block];
+  NSLog(@"add all current called from layout");
+  NSMutableSet *tempIgnoredCellsSet = [self placeholderContainerForIgnoredCells];
   
   for (Dyadmino *dyadmino in finalBoardDyadminoes) {
 
     HexCoord bottomHexCoord = [self hexCoordFromX:dyadmino.tempHexCoord.x andY:dyadmino.tempHexCoord.y];
-    HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadmino.orientation];
+    HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadmino.homeOrientation];
     
     HexCoord hexCoord[2] = {bottomHexCoord, topHexCoord};
     
@@ -381,119 +356,273 @@
           if (ABS(x + y) <= kCellsAroundDyadmino) {
             NSInteger newX = xHex + x;
             NSInteger newY = yHex + y;
-            Cell *addedCell = [self acknowledgeOrAddCellWithHexCoord:[self hexCoordFromX:newX andY:newY]];
-//            [tempAddedCellSet addObject:addedCell];
-//            [tempRemovedCellSet removeObject:addedCell];
-//            NSLog(@"added cell is %@", addedCell);
+            Cell *addedCell = [self recogniseCellWithHexCoord:[self hexCoordFromX:newX andY:newY]];
 
             NSUInteger distance = [self distanceGivenHexXDifference:x andHexYDifference:y];
-            if (dyadmino != minusDyadmino) {
-              [addedCell addColourValueForPC:pc atDistance:distance];
-            }
+            [addedCell addColourValueForPC:pc atDistance:distance];
+            [tempIgnoredCellsSet removeObject:addedCell];
           }
         }
       }
     }
   }
   
-//    // dequeue all removed cells
-//  for (Cell *cell in tempRemovedCellSet) {
-//    [self ignoreCell:cell];
-//  }
-//  
-//    // colour all placed cells
-//  for (Cell *cell in tempAddedCellSet) {
-//    [cell renderColour];
-//  }
+  NSLog(@"cells still in placeholder ignored in layout");
+  for (Cell *cell in tempIgnoredCellsSet) {
+    [self ignoreCell:cell];
+  }
   
-//  self.allCells = tempAddedCellSet;
-  
-  
+  void(^block)(Cell *) = ^void(Cell *cell) {
+    [cell renderColour];
+  };
+  [self performBlockOnAllCells:block];
+ 
     // bounds is not updated with removal by touch, only with removal by cancel
   if (updateBounds) {
-    [self determineOutermostCellsBasedOnDyadminoes:finalBoardDyadminoes];
     [self determineBoardPositionBounds];
   }
   return YES;
 }
 
-//-(Cell *)cellWithHexCoord:(HexCoord)hexCoord {
-//  for (Cell *cell in self.allCells) {
-//    if ([cell isKindOfClass:[Cell class]]) {
-//      if (cell.hexCoord.x == hexCoord.x && cell.hexCoord.y == hexCoord.y) {
-//        return cell;
-//      }
-//    }
-//  }
-//  return nil;
-//}
-
--(Cell *)acknowledgeOrAddCellWithHexCoord:(HexCoord)hexCoord {
+-(Cell *)recogniseCellWithHexCoord:(HexCoord)hexCoord {
+  
     // first check to see if cell already exists
   Cell *cell = [self cellWithHexCoord:hexCoord];
   
-    // if cell does not exist, create and add it
-  if (!cell) {
-    Cell *poppedCell = [self popDequeuedCell];
-    if (poppedCell) {
-      cell = poppedCell;
-      [cell reuseCellWithHexCoord:hexCoord andHexOrigin:self.hexOrigin forResize:self.zoomedOut];
-    } else {
-      cell = [[Cell alloc] initWithTexture:self.cellTexture
-                               andHexCoord:hexCoord
-                              andHexOrigin:self.hexOrigin
-                                 andResize:self.zoomedOut];
-    }
-    
-    cell.cellNode.parent ? nil : [self addChild:cell.cellNode];
-
-//    if (![self.allCells containsObject:cell]) {
-//      [self.allCells addObject:cell];
-//    }
-    [self addCellToColumnOfRowsOfCells:cell];
-    
+  
+  if (hexCoord.x == -6 && hexCoord.y == 8) {
+    NSLog(@"hexcoord -6, 8 recognised");
+    NSLog(@"%@ parent is %@", cell.name, cell.cellNode.parent);
   }
+  
+    // if not, get one from queue
+  if (!cell) {
+    cell = [self popDequeuedCellWithHexCoord:hexCoord];
+    [self addCellToColumnOfRowsOfCells:cell];
+  }
+  
   return cell;
-}
-
--(void)ignoreCellWithHexCoord:(HexCoord)hexCoord {
-  Cell *cell = [self cellWithHexCoord:hexCoord];
-  [self ignoreCell:cell];
 }
 
 -(void)ignoreCell:(Cell *)cell {
   if (cell) {
     
-    cell.cellNode ? [cell.cellNode removeFromParent] : nil;
-    
-//    if ([self.allCells containsObject:cell]) {
-//      [self.allCells removeObject:cell];
-//    }
+    if (cell.hexCoord.x == -6 && cell.hexCoord.y == 8) {
+      NSLog(@"hexcoord -6, 8 ignored");
+    }
+
     [self removeCellFromColumnOfRowsOfCells:cell];
-    
+    [cell resetForReuse];
     [self pushDequeuedCell:cell];
   }
 }
 
 -(void)ignoreAllCells {
+  
     // block to ignore each cell
   __weak typeof(self) weakSelf = self;
   void(^block)(Cell *) = ^void(Cell *cell) {
-    cell.cellNode ? [cell.cellNode removeFromParent] : nil;
-    [weakSelf pushDequeuedCell:cell];
+    [weakSelf ignoreCell:cell];
   };
   
   [self performBlockOnAllCells:block];
   self.columnOfRowsOfAllCells = nil;
 }
 
--(void)pushDequeuedCell:(Cell *)cell {
-  [self.dequeuedCells containsObject:cell] ? nil : [self.dequeuedCells addObject:cell];
+#pragma mark - column of rows of all cells methods
+
+-(BOOL)recalibrateColumnOfRowsOfAllCells {
+  
+  NSLog(@"recalibrate column of rows of all cells");
+  
+    // remove cells that are not found in new array
+  NSMutableSet *tempIgnoredCellsSet = [self placeholderContainerForIgnoredCells];
+  
+  NSMutableArray *tempColumnArray = [NSMutableArray new];
+  for (NSInteger j = self.cellsBottomInteger - 2; j <= self.cellsTopInteger; j++) {
+    
+      // first value is x origin
+    if (j == self.cellsBottomInteger - 2) {
+      [tempColumnArray addObject:@(self.cellsLeftInteger)];
+      
+        // second value is y origin
+    } else if (j == self.cellsBottomInteger - 1) {
+      [tempColumnArray addObject:@(self.cellsBottomInteger)];
+      
+        // now add the rows
+    } else {
+      NSMutableArray *tempRowArray = [NSMutableArray new];
+      for (NSInteger i = self.cellsLeftInteger; i <= self.cellsRightInteger; i++) {
+        
+          // add cell if there is a cell, otherwise add null
+        Cell *addedCell = [self cellWithHexCoord:[self hexCoordFromX:i andY:j]];
+        
+        if (addedCell) {
+          [tempRowArray addObject:addedCell];
+          [tempIgnoredCellsSet removeObject:addedCell];
+          
+        } else {
+          [tempRowArray addObject:[NSNull null]];
+        }
+      }
+      
+      [tempColumnArray addObject:tempRowArray];
+    }
+  }
+  
+  NSLog(@"cells still in placeholder ignored in recalibrate");
+  for (Cell *cell in tempIgnoredCellsSet) {
+    [self ignoreCell:cell];
+  }
+  
+  self.columnOfRowsOfAllCells = tempColumnArray;
+  
+    // check that array of arrays has right count
+  NSArray *arbitraryRow = [self.columnOfRowsOfAllCells lastObject];
+  return (self.columnOfRowsOfAllCells.count == self.cellsTopInteger - self.cellsBottomInteger + 1 + 2) &&
+  (arbitraryRow.count == self.cellsRightInteger - self.cellsLeftInteger + 1);
 }
 
--(Cell *)popDequeuedCell {
+-(Cell *)cellWithHexCoord:(HexCoord)hexCoord {
+  NSInteger xIndex = hexCoord.x - [self.columnOfRowsOfAllCells[0] unsignedIntegerValue];
+  NSInteger yIndex = hexCoord.y - [self.columnOfRowsOfAllCells[1] unsignedIntegerValue];
+  
+  if (yIndex < self.columnOfRowsOfAllCells.count - 2) {
+    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex + 2];
+    
+    if (xIndex < rowArray.count) {
+      id object = rowArray[xIndex];
+      if ([object isKindOfClass:Cell.class]) {
+        return object;
+      }
+    }
+  }
+  
+  return nil;
+}
+
+-(BOOL)addCellToColumnOfRowsOfCells:(Cell *)cell {
+  
+  NSInteger xIndex = cell.hexCoord.x - [self.columnOfRowsOfAllCells[0] unsignedIntegerValue];
+  NSInteger yIndex = cell.hexCoord.y - [self.columnOfRowsOfAllCells[1] unsignedIntegerValue];
+  
+  if (yIndex >= 0 && yIndex < self.columnOfRowsOfAllCells.count - 2) {
+    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex + 2];
+    
+    if (xIndex >= 0 && xIndex < rowArray.count) {
+  
+        // only add if cell is not already contained
+      if (rowArray[xIndex] == [NSNull null]) {
+        [rowArray replaceObjectAtIndex:xIndex withObject:cell];
+        return YES;
+      }
+    }
+  }
+  return NO;
+}
+
+-(BOOL)removeCellFromColumnOfRowsOfCells:(Cell *)cell {
+
+  NSInteger xIndex = cell.hexCoord.x - [self.columnOfRowsOfAllCells[0] unsignedIntegerValue];
+  NSInteger yIndex = cell.hexCoord.y - [self.columnOfRowsOfAllCells[1] unsignedIntegerValue];
+  
+  if (yIndex >= 0 && yIndex < self.columnOfRowsOfAllCells.count - 2) {
+    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex + 2];
+    if (xIndex >= 0 && xIndex < rowArray.count) {
+      
+        // only add if cell is already contained
+      if (rowArray[xIndex] == cell) {
+        [rowArray replaceObjectAtIndex:xIndex withObject:[NSNull null]];
+        return YES;
+      }
+    }
+  }
+  return NO;
+}
+
+-(void)performBlockOnAllCells:(void(^)(Cell *))block {
+  
+  for (int j = 0; j < self.columnOfRowsOfAllCells.count - 2; j++) {
+    NSMutableArray *tempRowArray = self.columnOfRowsOfAllCells[j + 2];
+    
+    for (int i = 0; i < tempRowArray.count; i++) {
+      id object = tempRowArray[i];
+      
+      if ([object isKindOfClass:Cell.class]) {
+        Cell *cell = (Cell *)object;
+        block(cell);
+      }
+    }
+  }
+}
+
+-(NSMutableSet *)placeholderContainerForIgnoredCells {
+  
+  if (self.columnOfRowsOfAllCells) {
+    NSMutableSet *tempIgnoredCellsSet = [NSMutableSet new];
+    
+    for (int j = 0; j < self.columnOfRowsOfAllCells.count - 2; j++) {
+      NSMutableArray *tempRowArray = self.columnOfRowsOfAllCells[j + 2];
+      
+      for (int i = 0; i < tempRowArray.count; i++) {
+        id object = tempRowArray[i];
+        
+        if ([object isKindOfClass:Cell.class]) {
+          Cell *cell = (Cell *)object;
+          [tempIgnoredCellsSet addObject:cell];
+        }
+      }
+    }
+    
+    return tempIgnoredCellsSet;
+    }
+  return nil;
+}
+
+#pragma mark - dequeued cell methods
+
+-(void)instantiateDequeuedCells {
+  
+  self.dequeuedCells = [NSMutableSet new];
+  NSUInteger times = 182; // number of initial cells with one dyadmino on board
+  for (int i = 0; i < times; i++) {
+    Cell *cell = [[Cell alloc] initWithTexture:self.cellTexture
+                                   andHexCoord:[self hexCoordFromX:NSIntegerMax andY:NSIntegerMax]
+                                  andHexOrigin:self.hexOrigin
+                                     andResize:self.zoomedOut];
+    
+    [self.dequeuedCells addObject:cell];
+  }
+}
+
+-(void)pushDequeuedCell:(Cell *)cell {
+  cell.cellNode.parent ? [cell.cellNode removeFromParent] : nil;
+  [self.dequeuedCells containsObject:cell] ? nil : [self.dequeuedCells addObject:cell];
+  
+//  NSLog(@"from pushing cell %@, dequeued cells count is %i", cell.name, self.dequeuedCells.count);
+
+}
+
+-(Cell *)popDequeuedCellWithHexCoord:(HexCoord)hexCoord {
+  
   Cell *cell = [self.dequeuedCells anyObject];
-  [cell isKindOfClass:Cell.class] ? [self.dequeuedCells removeObject:cell] : nil;
+  
+    // there is a cell to dequeue
+  if (cell) {
+    [self.dequeuedCells removeObject:cell];
+    [cell reuseCellWithHexCoord:hexCoord andHexOrigin:self.hexOrigin forResize:self.zoomedOut];
+    
+      // no cell to dequeue, so instantiate new one
+  } else {
+    cell = [[Cell alloc] initWithTexture:self.cellTexture
+                             andHexCoord:hexCoord
+                            andHexOrigin:self.hexOrigin
+                               andResize:self.zoomedOut];
+  }
+  
+//  NSLog(@"from popping %@, dequeued cells count is %i", cell.name, self.dequeuedCells.count);
+  
+  cell.cellNode.parent ? nil : [self addChild:cell.cellNode];
   return cell;
 }
 
@@ -502,18 +631,15 @@
 -(CGPoint)repositionCellsForZoomWithSwap:(BOOL)swap {
   
   CGPoint differenceInPosition = CGPointZero;
-  
   CGPoint zoomOutBoardHomePositionDifference = [self subtractFromThisPoint:self.position thisPoint:self.homePosition];
   
     // zoom out
   if (self.zoomedOut) {
-    
     differenceInPosition = [self centerBoardOnDyadminoesAverageCenterWithSwap:swap];
       //    [self zoomOutBackgroundImage];
     
       // zoom back in
   } else {
-    
     differenceInPosition = [self adjustedNewPositionFromBeganLocation:self.homePosition
                                                     toCurrentLocation:self.postZoomPosition
                                                              withSwap:swap
@@ -523,22 +649,8 @@
       //    [self zoomInBackgroundImage];
   }
   
+    // animate all cells
   CGSize cellSize = [Cell cellSizeForResize:self.zoomedOut];
-  
-//  for (Cell *cell in self.allCells) {
-//    
-//    CGPoint tempNewPosition = [self addToThisPoint:cell.cellNode.position thisPoint:differenceInPosition];
-//    
-//    if (self.zoomedOut) {
-//      tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:zoomOutBoardHomePositionDifference];
-//    } else {
-//      tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:self.zoomInBoardHomePositionDifference];
-//    }
-//    
-//    cell.cellNode.position = tempNewPosition;
-//    [cell animateResizeAndRepositionOfCell:self.zoomedOut withHexOrigin:self.hexOrigin andSize:cellSize];
-//  }
-  
   __weak typeof(self) weakSelf = self;
   void(^block)(Cell *) = ^void(Cell *cell) {
     CGPoint tempNewPosition = [weakSelf addToThisPoint:cell.cellNode.position thisPoint:differenceInPosition];
@@ -665,11 +777,11 @@
 -(NSArray *)topAndBottomCellsArrayForDyadmino:(Dyadmino *)dyadmino
                             andBottomHexCoord:(HexCoord)bottomHexCoord {
 
-  HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadmino.orientation];
+  HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadmino.homeOrientation];
   
     // this will definitely get the cells
-  Cell *topCell = [self acknowledgeOrAddCellWithHexCoord:topHexCoord];
-  Cell *bottomCell = [self acknowledgeOrAddCellWithHexCoord:bottomHexCoord];
+  Cell *topCell = [self recogniseCellWithHexCoord:topHexCoord];
+  Cell *bottomCell = [self recogniseCellWithHexCoord:bottomHexCoord];
   
   NSMutableArray *tempCellsArray = [NSMutableArray new];
   if (topCell) {
@@ -1016,111 +1128,6 @@
   }
   
   return finalBoardDyadminoes;
-}
-
-#pragma mark - column of rows of all cells methods
-
--(BOOL)recalibrateColumnOfRowsOfAllCells {
-  
-  NSMutableArray *tempColumnArray = [NSMutableArray new];
-  for (int j = self.cellsBottomInteger; j <= self.cellsTopInteger; j++) {
-    
-    NSMutableArray *tempRowArray = [NSMutableArray new];
-    for (int i = self.cellsLeftInteger; i <= self.cellsRightInteger; i++) {
-      
-        // add cell if there is a cell, otherwise add null
-      Cell *addedCell = [self cellWithHexCoord:[self hexCoordFromX:i andY:j]];
-      [tempRowArray addObject:(addedCell ? addedCell : [NSNull null])];
-    }
-    
-    [tempColumnArray addObject:tempRowArray];
-  }
-  
-  self.columnOfRowsOfAllCells = tempColumnArray;
-  
-    // check that array of arrays has right count
-  NSArray *arbitraryRow = [self.columnOfRowsOfAllCells lastObject];
-  return (self.columnOfRowsOfAllCells.count == self.cellsTopInteger - self.cellsBottomInteger + 1) &&
-  (arbitraryRow.count == self.cellsRightInteger - self.cellsLeftInteger + 1);
-}
-
--(Cell *)cellWithHexCoord:(HexCoord)hexCoord {
-  NSInteger xIndex = hexCoord.x - self.cellsLeftInteger;
-  NSInteger yIndex = hexCoord.y - self.cellsBottomInteger;
-  
-  if (yIndex < self.columnOfRowsOfAllCells.count) {
-    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex];
-    
-    if (xIndex < rowArray.count) {
-      id object = rowArray[xIndex];
-      if ([object isKindOfClass:Cell.class]) {
-        return object;
-      }
-    }
-  }
-  
-  return nil;
-}
-
--(BOOL)addCellToColumnOfRowsOfCells:(Cell *)cell {
-  
-  NSInteger xIndex = cell.hexCoord.x - self.cellsLeftInteger;
-  NSInteger yIndex = cell.hexCoord.y - self.cellsBottomInteger;
-  
-//  if (yIndex < self.columnOfRowsOfAllCells.count) {
-    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex];
-    
-//    if (xIndex < rowArray.count) {
-  
-        // only add if cell is not already contained
-      if (rowArray[xIndex] == [NSNull null]) {
-        [rowArray replaceObjectAtIndex:xIndex withObject:cell];
-        return YES;
-      }
-//    }
-//  }
-  return NO;
-}
-
--(BOOL)removeCellFromColumnOfRowsOfCells:(Cell *)cell {
-  
-  NSInteger xIndex = cell.hexCoord.x - self.cellsLeftInteger;
-  NSInteger yIndex = cell.hexCoord.y - self.cellsBottomInteger;
-
-//  if (yIndex < self.columnOfRowsOfAllCells.count) {
-    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex];
-    
-//    if (xIndex < rowArray.count) {
-  
-        // only add if cell is already contained
-      if (rowArray[xIndex] == cell) {
-        [rowArray replaceObjectAtIndex:xIndex withObject:[NSNull null]];
-        return YES;
-      }
-//    }
-//  }
-  return NO;
-}
-
--(void)performBlockOnAllCells:(void(^)(Cell *))block {
-  
-  for (int j = 0; j < self.columnOfRowsOfAllCells.count; j++) {
-//    if (j < self.columnOfRowsOfAllCells.count) {
-      NSMutableArray *tempRowArray = self.columnOfRowsOfAllCells[j];
-      
-      for (int i = 0; i < tempRowArray.count; i++) {
-//        if (i < tempRowArray.count) {
-          id object = tempRowArray[i];
-          
-          if ([object isKindOfClass:Cell.class]) {
-            Cell *cell = (Cell *)object;
-//            NSLog(@"block performed on cell %@", cell.name);
-            block(cell);
-          }
-        }
-      }
-//    }
-//  }
 }
 
 @end

@@ -56,6 +56,8 @@
 
   self.myDyadmino = nil;
   self.myPC = -1;
+  self.hexCoord = [self hexCoordFromX:NSIntegerMax andY:NSIntegerMax];
+  self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
   
     // reset colour
   _red = 0.2f;
@@ -75,7 +77,7 @@
   _dominantPCArray[pc] += (kCellsAroundDyadmino - distance + 1);
   
     // alpha is full when next to a dyadmino, and 0.2f at furthest distance
-  CGFloat tempAlpha = 0.2 * (kCellsAroundDyadmino - distance + 1);
+  CGFloat tempAlpha = (1.f / kCellsAroundDyadmino) * (kCellsAroundDyadmino - distance + 1);
   if (tempAlpha > _alpha) {
     _alpha = tempAlpha;
   }
