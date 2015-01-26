@@ -111,6 +111,7 @@
   
     // FIXME: this doesn't seem to be necessary
   [self removeAllActions];
+  [self removeAllChildren];
 }
 
 #pragma mark - board position methods
@@ -333,6 +334,11 @@
   NSLog(@"add all current called from layout");
   NSMutableSet *tempIgnoredCellsSet = [self placeholderContainerForIgnoredCells];
   
+  void(^resetBlock)(Cell *) = ^void(Cell *cell) {
+    [cell resetColour];
+  };
+  [self performBlockOnAllCells:resetBlock];
+  
   for (Dyadmino *dyadmino in finalBoardDyadminoes) {
 
     HexCoord bottomHexCoord = [self hexCoordFromX:dyadmino.tempHexCoord.x andY:dyadmino.tempHexCoord.y];
@@ -372,10 +378,10 @@
     [self ignoreCell:cell];
   }
   
-  void(^block)(Cell *) = ^void(Cell *cell) {
+  void(^renderBlock)(Cell *) = ^void(Cell *cell) {
     [cell renderColour];
   };
-  [self performBlockOnAllCells:block];
+  [self performBlockOnAllCells:renderBlock];
  
     // bounds is not updated with removal by touch, only with removal by cancel
   if (updateBounds) {
@@ -413,10 +419,10 @@
 //    }
 
     [self removeCellFromColumnOfRowsOfCells:cell];
+    [cell resetForReuse];
     
     __weak typeof(self) weakSelf = self;
     void(^completion)(void) = ^void(void) {
-      [cell resetForReuse];
       [weakSelf pushDequeuedCell:cell];
     };
     
@@ -432,7 +438,9 @@
   SKAction *fadeShrinkGroup = [SKAction group:@[fadeAction, shrinkAction]];
   SKAction *completionAction = [SKAction runBlock:completion];
   SKAction *sequenceAction = [SKAction sequence:@[fadeShrinkGroup, completionAction]];
-  [cell.cellNode runAction:sequenceAction];
+//  [cell.cellNode runAction:sequenceAction];
+  [cell runAction:sequenceAction];
+
 }
 
 -(void)ignoreAllCells {
@@ -502,16 +510,19 @@
 }
 
 -(Cell *)cellWithHexCoord:(HexCoord)hexCoord {
-  NSInteger xIndex = hexCoord.x - [self.columnOfRowsOfAllCells[0] unsignedIntegerValue];
-  NSInteger yIndex = hexCoord.y - [self.columnOfRowsOfAllCells[1] unsignedIntegerValue];
   
-  if (yIndex < self.columnOfRowsOfAllCells.count - 2) {
-    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex + 2];
+  if (self.columnOfRowsOfAllCells.count > 2) {
+    NSInteger xIndex = hexCoord.x - [self.columnOfRowsOfAllCells[0] unsignedIntegerValue];
+    NSInteger yIndex = hexCoord.y - [self.columnOfRowsOfAllCells[1] unsignedIntegerValue];
     
-    if (xIndex < rowArray.count) {
-      id object = rowArray[xIndex];
-      if ([object isKindOfClass:Cell.class]) {
-        return object;
+    if (yIndex < self.columnOfRowsOfAllCells.count - 2) {
+      NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex + 2];
+      
+      if (xIndex < rowArray.count) {
+        id object = rowArray[xIndex];
+        if ([object isKindOfClass:Cell.class]) {
+          return object;
+        }
       }
     }
   }
@@ -521,18 +532,21 @@
 
 -(BOOL)addCellToColumnOfRowsOfCells:(Cell *)cell {
   
-  NSInteger xIndex = cell.hexCoord.x - [self.columnOfRowsOfAllCells[0] unsignedIntegerValue];
-  NSInteger yIndex = cell.hexCoord.y - [self.columnOfRowsOfAllCells[1] unsignedIntegerValue];
-  
-  if (yIndex >= 0 && yIndex < self.columnOfRowsOfAllCells.count - 2) {
-    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex + 2];
+  if (self.columnOfRowsOfAllCells.count > 2) {
+
+    NSInteger xIndex = cell.hexCoord.x - [self.columnOfRowsOfAllCells[0] unsignedIntegerValue];
+    NSInteger yIndex = cell.hexCoord.y - [self.columnOfRowsOfAllCells[1] unsignedIntegerValue];
     
-    if (xIndex >= 0 && xIndex < rowArray.count) {
-  
-        // only add if cell is not already contained
-      if (rowArray[xIndex] == [NSNull null]) {
-        [rowArray replaceObjectAtIndex:xIndex withObject:cell];
-        return YES;
+    if (yIndex >= 0 && yIndex < self.columnOfRowsOfAllCells.count - 2) {
+      NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex + 2];
+      
+      if (xIndex >= 0 && xIndex < rowArray.count) {
+    
+          // only add if cell is not already contained
+        if (rowArray[xIndex] == [NSNull null]) {
+          [rowArray replaceObjectAtIndex:xIndex withObject:cell];
+          return YES;
+        }
       }
     }
   }
@@ -541,17 +555,21 @@
 
 -(BOOL)removeCellFromColumnOfRowsOfCells:(Cell *)cell {
 
-  NSInteger xIndex = cell.hexCoord.x - [self.columnOfRowsOfAllCells[0] unsignedIntegerValue];
-  NSInteger yIndex = cell.hexCoord.y - [self.columnOfRowsOfAllCells[1] unsignedIntegerValue];
-  
-  if (yIndex >= 0 && yIndex < self.columnOfRowsOfAllCells.count - 2) {
-    NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex + 2];
-    if (xIndex >= 0 && xIndex < rowArray.count) {
-      
-        // only add if cell is already contained
-      if (rowArray[xIndex] == cell) {
-        [rowArray replaceObjectAtIndex:xIndex withObject:[NSNull null]];
-        return YES;
+  if (self.columnOfRowsOfAllCells.count > 2) {
+
+    NSInteger xIndex = cell.hexCoord.x - [self.columnOfRowsOfAllCells[0] unsignedIntegerValue];
+    NSInteger yIndex = cell.hexCoord.y - [self.columnOfRowsOfAllCells[1] unsignedIntegerValue];
+    
+    if (yIndex >= 0 && yIndex < self.columnOfRowsOfAllCells.count - 2) {
+      NSMutableArray *rowArray = self.columnOfRowsOfAllCells[yIndex + 2];
+      if (xIndex >= 0 && xIndex < rowArray.count) {
+        
+          // only add if cell is already contained
+        
+        if ([rowArray[xIndex] isKindOfClass:Cell.class]) {
+          [rowArray replaceObjectAtIndex:xIndex withObject:[NSNull null]];
+          return YES;
+        }
       }
     }
   }
@@ -560,15 +578,17 @@
 
 -(void)performBlockOnAllCells:(void(^)(Cell *))block {
   
-  for (int j = 0; j < self.columnOfRowsOfAllCells.count - 2; j++) {
-    NSMutableArray *tempRowArray = self.columnOfRowsOfAllCells[j + 2];
-    
-    for (int i = 0; i < tempRowArray.count; i++) {
-      id object = tempRowArray[i];
+  if (self.columnOfRowsOfAllCells.count > 2) {
+    for (int j = 0; j < self.columnOfRowsOfAllCells.count - 2; j++) {
+      NSMutableArray *tempRowArray = self.columnOfRowsOfAllCells[j + 2];
       
-      if ([object isKindOfClass:Cell.class]) {
-        Cell *cell = (Cell *)object;
-        block(cell);
+      for (int i = 0; i < tempRowArray.count; i++) {
+        id object = tempRowArray[i];
+        
+        if ([object isKindOfClass:Cell.class]) {
+          Cell *cell = (Cell *)object;
+          block(cell);
+        }
       }
     }
   }
@@ -576,9 +596,16 @@
 
 -(NSMutableSet *)placeholderContainerForIgnoredCells {
   
-  if (self.columnOfRowsOfAllCells) {
-    NSMutableSet *tempIgnoredCellsSet = [NSMutableSet new];
-    
+  NSMutableSet *tempIgnoredCellsSet = [NSMutableSet new];
+  for (id child in self.children) {
+    if ([child isKindOfClass:Cell.class]) {
+      Cell *cell = (Cell *)child;
+      [tempIgnoredCellsSet addObject:cell];
+    }
+  }
+  NSLog(@"temp children count is %i", tempIgnoredCellsSet.count);
+  
+  if (self.columnOfRowsOfAllCells.count > 2) {
     for (int j = 0; j < self.columnOfRowsOfAllCells.count - 2; j++) {
       NSMutableArray *tempRowArray = self.columnOfRowsOfAllCells[j + 2];
       
@@ -592,8 +619,10 @@
       }
     }
     
+    NSLog(@"added to temp array, count is %i", tempIgnoredCellsSet.count);
     return tempIgnoredCellsSet;
-    }
+  }
+  
   return nil;
 }
 
@@ -614,7 +643,8 @@
 }
 
 -(void)pushDequeuedCell:(Cell *)cell {
-  cell.cellNode.parent ? [cell.cellNode removeFromParent] : nil;
+  cell.parent ? [cell removeFromParent] : nil;
+//  cell.cellNode.parent ? [cell.cellNode removeFromParent] : nil;
   [self.dequeuedCells containsObject:cell] ? nil : [self.dequeuedCells addObject:cell];
   
 //  NSLog(@"from pushing cell %@, dequeued cells count is %i", cell.name, self.dequeuedCells.count);
@@ -639,8 +669,8 @@
   }
   
 //  NSLog(@"from popping %@, dequeued cells count is %i", cell.name, self.dequeuedCells.count);
-  
-  cell.cellNode.parent ? nil : [self addChild:cell.cellNode];
+  cell.parent ? nil : [self addChild:cell];
+//  cell.cellNode.parent ? nil : [self addChild:cell.cellNode];
   return cell;
 }
 
@@ -671,7 +701,8 @@
   CGSize cellSize = [Cell cellSizeForResize:self.zoomedOut];
   __weak typeof(self) weakSelf = self;
   void(^block)(Cell *) = ^void(Cell *cell) {
-    CGPoint tempNewPosition = [weakSelf addToThisPoint:cell.cellNode.position thisPoint:differenceInPosition];
+    CGPoint tempNewPosition = [weakSelf addToThisPoint:cell.position thisPoint:differenceInPosition];
+//    CGPoint tempNewPosition = [weakSelf addToThisPoint:cell.cellNode.position thisPoint:differenceInPosition];
     
     if (weakSelf.zoomedOut) {
       tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:zoomOutBoardHomePositionDifference];
@@ -679,7 +710,9 @@
       tempNewPosition = [self addToThisPoint:tempNewPosition thisPoint:weakSelf.zoomInBoardHomePositionDifference];
     }
     
-    cell.cellNode.position = tempNewPosition;
+    cell.position = tempNewPosition;
+//    cell.cellNode.position = tempNewPosition;
+
     [cell animateResizeAndRepositionOfCell:weakSelf.zoomedOut withHexOrigin:weakSelf.hexOrigin andSize:cellSize];
   };
   [self performBlockOnAllCells:block];
@@ -694,9 +727,12 @@
   void(^block)(Cell *) = ^void(Cell *cell) {
     if (animated) {
       SKAction *changeAlphaAction = [SKAction fadeAlphaTo:desiredAlpha duration:kConstantTime];
-      [cell.cellNode runAction:changeAlphaAction withKey:@"fadeCellAlpha"];
+      [cell runAction:changeAlphaAction withKey:@"fadeCellAlpha"];
+//      [cell.cellNode runAction:changeAlphaAction withKey:@"fadeCellAlpha"];
+
     } else {
-      [cell.cellNode setAlpha:desiredAlpha];
+      [cell setMyAlpha:desiredAlpha];
+//      [cell.cellNode setAlpha:desiredAlpha];
     }
   };
 

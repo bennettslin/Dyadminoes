@@ -11,12 +11,12 @@
 @class Board;
 @class Dyadmino;
 
-@interface Cell : NSObject
+@interface Cell : SKSpriteNode
 
 @property (nonatomic) SKTexture *cellNodeTexture;
 @property (strong, nonatomic) NSString *name;
 
-@property (strong, nonatomic) SKSpriteNode *cellNode;
+//@property (strong, nonatomic) SKSpriteNode *cellNode;
 @property (strong, nonatomic) Dyadmino *myDyadmino;
 @property (nonatomic) HexCoord hexCoord;
 @property (nonatomic) NSInteger myPC; // signed integer because myPC is -1 if no PC
@@ -38,6 +38,7 @@
 -(void)reuseCellWithHexCoord:(HexCoord)hexCoord andHexOrigin:(CGVector)hexOrigin forResize:(BOOL)resize;
 -(void)resetForReuse;
 -(void)addColourValueForPC:(NSUInteger)pc atDistance:(NSUInteger)distance;
+-(void)resetColour;
 -(void)renderColour;
 
 #pragma mark - cell view helper methods

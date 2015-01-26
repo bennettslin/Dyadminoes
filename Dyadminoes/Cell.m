@@ -17,7 +17,7 @@
 @implementation Cell {
   
   CGFloat _dominantPCArray[12];
-  CGFloat _red, _green, _blue, _alpha;
+  CGFloat _myRed, _myGreen, _myBlue, _myAlpha;
 }
 
 -(id)initWithTexture:(SKTexture *)texture
@@ -29,6 +29,16 @@
   if (self) {
     
     self.cellNodeTexture = texture;
+    self.texture = self.cellNodeTexture;
+    
+    self.zPosition = kZPositionBoardCell;
+    self.colorBlendFactor = .9f;
+    
+    [self createHexCoordLabel];
+    [self updateHexCoordLabel];
+    [self createPCLabel];
+    [self updatePCLabel];
+
     [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin forResize:resize];
   }
   return self;
@@ -44,12 +54,10 @@
   self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
   
     // establish cell position in normal size
-  CGPoint position = [Cell cellPositionWithHexOrigin:hexOrigin andHexCoord:self.hexCoord forResize:resize];
-  CGSize cellSize = [Cell cellSizeForResize:resize];
-  
-  self.cellNode ?
-      [self initCellNodeWithPosition:position andSize:cellSize] :
-      [self instantiateCellNodeWithPosition:position andSize:cellSize];
+  self.position = [Cell cellPositionWithHexOrigin:hexOrigin andHexCoord:self.hexCoord forResize:resize];
+  self.size = [Cell cellSizeForResize:resize];
+  [self updateHexCoordLabel];
+  [self updatePCLabel];
 }
 
 -(void)resetForReuse {
@@ -59,17 +67,23 @@
   self.hexCoord = [self hexCoordFromX:NSIntegerMax andY:NSIntegerMax];
   self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
   
-    // reset colour
-  _red = 0.2f;
-  _green = 0.2f;
-  _blue = 0.2f;
-  _alpha = 0.2f;
-
-  memset(_dominantPCArray, 0, sizeof(_dominantPCArray));
+  [self resetColour];
   
-  if (self.cellNode) {
+  if (self) {
     [self renderColour];
+    [self updateHexCoordLabel];
+    [self updatePCLabel];
   }
+}
+
+-(void)resetColour {
+
+  _myRed = 0.2f;
+  _myGreen = 0.2f;
+  _myBlue = 0.2f;
+  _myAlpha = 0.2f;
+  
+  memset(_dominantPCArray, 0, sizeof(_dominantPCArray));
 }
 
 -(void)addColourValueForPC:(NSUInteger)pc atDistance:(NSUInteger)distance {
@@ -78,8 +92,8 @@
   
     // alpha is full when next to a dyadmino, and 0.2f at furthest distance
   CGFloat tempAlpha = (1.f / kCellsAroundDyadmino) * (kCellsAroundDyadmino - distance + 1);
-  if (tempAlpha > _alpha) {
-    _alpha = tempAlpha;
+  if (tempAlpha > _myAlpha) {
+    _myAlpha = tempAlpha;
   }
 }
 
@@ -97,8 +111,8 @@
   }
   
   SKColor *pureColour = [self colourForPC:maxPC];
-  SKColor *colourWithAlpha = [pureColour colorWithAlphaComponent:_alpha];
-  self.cellNode.color = colourWithAlpha;
+  SKColor *colourWithAlpha = (SKColor *)[pureColour colorWithAlphaComponent:_myAlpha];
+  self.color = colourWithAlpha;
 }
 
 -(UIColor *)colourForPC:(NSInteger)pc {
@@ -145,51 +159,23 @@
   }
 }
 
-#pragma mark - cell node methods
-
--(void)instantiateCellNodeWithPosition:(CGPoint)position andSize:(CGSize)cellSize {
-  
-  self.cellNode = [[SKSpriteNode alloc] init];
-  self.cellNode.name = @"cellNode";
-  self.cellNode.texture = self.cellNodeTexture;
-  self.cellNode.zPosition = kZPositionBoardCell;
-  self.cellNode.colorBlendFactor = .9f;
-  self.cellNode.size = cellSize;
-  [self initCellNodeWithPosition:position andSize:cellSize];
-  
-    //// for testing purposes
-  if (self.cellNode) {
-    [self createHexCoordLabel];
-    [self updateHexCoordLabel];
-    [self createPCLabel];
-    [self updatePCLabel];
-  }
-}
-
--(void)initCellNodeWithPosition:(CGPoint)position andSize:(CGSize)cellSize {
-  self.cellNode.position = position;
-  self.cellNode.size = cellSize;
-  [self updateHexCoordLabel];
-  [self updatePCLabel];
-}
-
 #pragma mark - cell view helper methods
 
 -(void)animateResizeAndRepositionOfCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize {
   
   __weak typeof(self) weakSelf = self;
-  CGFloat scaleTo = cellSize.height / self.cellNode.size.height;
+  CGFloat scaleTo = cellSize.height / self.size.height;
   
     // between .6 and .99
   CGFloat randomScaleFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
   
   SKAction *scaleAction = [SKAction scaleTo:scaleTo duration:kConstantTime * randomScaleFactor];
   SKAction *completionAction = [SKAction runBlock:^{
-    [weakSelf.cellNode setScale:1.f];
-    weakSelf.cellNode.size = cellSize;
+    [weakSelf setScale:1.f];
+    weakSelf.size = cellSize;
   }];
   SKAction *sequenceAction = [SKAction sequence:@[scaleAction, completionAction]];
-  [self.cellNode runAction:sequenceAction];
+  [self runAction:sequenceAction];
   
   CGPoint reposition = [Cell cellPositionWithHexOrigin:hexOrigin
                                      andHexCoord:self.hexCoord
@@ -200,10 +186,10 @@
   
   SKAction *moveAction = [SKAction moveTo:reposition duration:kConstantTime * randomRepositionFactor];
   SKAction *moveCompletionAction = [SKAction runBlock:^{
-    weakSelf.cellNode.position = reposition;
+    weakSelf.position = reposition;
   }];
   SKAction *moveSequenceAction = [SKAction sequence:@[moveAction, moveCompletionAction]];
-  [self.cellNode runAction:moveSequenceAction];
+  [self runAction:moveSequenceAction];
 }
 
 #pragma mark - cell size and position helper methods
@@ -273,7 +259,7 @@
   self.hexCoordLabel.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
   self.hexCoordLabel.position = CGPointMake(0, 5.f);
 //  self.hexCoordLabel.hidden = YES;
-  [self.cellNode addChild:self.hexCoordLabel];
+  [self addChild:self.hexCoordLabel];
 }
 
 -(void)updateHexCoordLabel {
@@ -298,7 +284,7 @@
   self.pcLabel.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter;
   self.pcLabel.position = CGPointMake(0, -9.f);
 //  self.pcLabel.hidden = YES;
-  [self.cellNode addChild:self.pcLabel];
+  [self addChild:self.pcLabel];
 }
 
 -(void)updatePCLabel {
