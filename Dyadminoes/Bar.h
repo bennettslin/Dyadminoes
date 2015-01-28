@@ -9,16 +9,21 @@
 #import <SpriteKit/SpriteKit.h>
 #import "SKSpriteNode+Helper.h"
 #import "NSObject+Helper.h"
-@class Button;
+#import "Button.h"
+//@class Button;
 @class Label;
 
 @protocol BarDelegate <NSObject>
 
+-(void)postSoundNotification:(NotificationName)whichNotification;
+-(void)handleButtonPressed:(Button *)button;
+
+-(void)goBackToMainViewController;
 -(BOOL)noActionsInProgress;
 
 @end
 
-@interface Bar : SKSpriteNode
+@interface Bar : SKSpriteNode <ButtonDelegate>
 
 @property (strong, nonatomic) NSSet *allButtons; // necessary for device orientation only
 @property (strong, nonatomic) NSDictionary *allLabels;

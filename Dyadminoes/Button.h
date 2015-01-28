@@ -9,11 +9,11 @@
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
 
-@protocol ReturnToGamesButtonDelegate;
+@protocol ButtonDelegate;
 
 @interface Button : SKSpriteNode
 
-@property (weak, nonatomic) id<ReturnToGamesButtonDelegate> delegate;
+@property (weak, nonatomic) id<ButtonDelegate> delegate;
 
 -(id)initWithName:(NSString *)name
          andColor:(UIColor *)color
@@ -32,8 +32,12 @@
 
 @end
 
-@protocol ReturnToGamesButtonDelegate <NSObject>
+@protocol ButtonDelegate <NSObject>
 
+-(void)postSoundNotification:(NotificationName)whichNotification;
+-(void)handleButtonPressed:(Button *)button;
+
+  // return to games
 -(void)goBackToMainViewController;
 
 @end

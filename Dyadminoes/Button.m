@@ -18,6 +18,7 @@
           andSize:(CGSize)size andPosition:(CGPoint)position andZPosition:(CGFloat)zPosition {
   self = [super init];
   if (self) {
+    self.userInteractionEnabled = YES;
     self.name = name;
     self.color = color;
     self.size = size;
@@ -73,11 +74,7 @@
 }
 
 -(void)sinkInWithAnimation:(BOOL)animation {
-  
-//  if ([self actionForKey:@"buttonSink"] || [self actionForKey:@"buttonLift"]) {
-//    return;
-//  }
-  
+
   const CGFloat scaleTo = (1 / 1.1f);
     // FIXME: highlight button
   
@@ -88,27 +85,15 @@
   }
   
   if (!_isSunkIn && _isEnabled) {
-//    [self enable:NO];
+    [self.delegate postSoundNotification:kNotificationButtonSunkIn];
     _isSunkIn = YES; // establish right away so method can't be called again
-    SKAction *moveAction = [SKAction scaleTo:scaleTo duration:kConstantTime * 0.1];
+    SKAction *moveAction = [SKAction scaleTo:scaleTo duration:kConstantTime * 0.075];
     moveAction.timingMode = SKActionTimingEaseOut;
-//    __weak typeof(self) weakSelf = self;
-//    SKAction *enableAction = [SKAction runBlock:^{
-//      [weakSelf enable:YES];
-//    }];
-//    SKAction *sequence = [SKAction sequence:@[moveAction, enableAction]];
     [self runAction:moveAction withKey:@"buttonSink"];
   }
 }
 
 -(void)liftWithAnimation:(BOOL)animation andCompletion:(void (^)(void))completion {
-  
-//  if ([self actionForKey:@"buttonLift"] || [self actionForKey:@"buttonSink"]) {
-//    return;
-//  }
-  
-//  self.colorBlendFactor = 0.f;
-    // FIXME: unhighlight button
   
   if (!animation) {
     _isSunkIn = NO;
@@ -117,20 +102,11 @@
   }
   
   if (_isEnabled && _isSunkIn) {
-//    [self enable:NO];
+    [self.delegate postSoundNotification:kNotificationButtonLifted];
     _isSunkIn = NO; // establish right away so method can't be called again
-    
-//    SKAction *excessAction = [SKAction scaleTo:1.1f duration:kConstantTime * 0.5 * 0.275f];
-//    excessAction.timingMode = SKActionTimingEaseOut;
-//    SKAction *bounceBackAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.5 * 0.125f];
-//    __weak typeof(self) weakSelf = self;
-    SKAction *liftAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.1];
-//    __weak typeof(self) weakSelf = self;
-    SKAction *enableAction = [SKAction runBlock:^{
-//      [weakSelf enable:YES];
-    }];
+    SKAction *liftAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.075];
     SKAction *completionAction = [SKAction runBlock:completion];
-    SKAction *sequence = [SKAction sequence:@[liftAction, enableAction, completionAction]];
+    SKAction *sequence = [SKAction sequence:@[liftAction, completionAction]];
     [self runAction:sequence withKey:@"buttonLift"];
   }
 }
@@ -186,6 +162,59 @@
     [self glowOn:isEnabled];
   }
   _isEnabled = isEnabled;
+}
+
+-(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+  if ([self isEnabled]) {
+    BOOL frameContainsPoint = [self frameContainsTouchFromTouches:touches];
+    if (frameContainsPoint && !_isSunkIn) {
+      [self sinkInWithAnimation:YES];
+    }
+  }
+}
+
+-(void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+  if ([self isEnabled]) {
+    BOOL frameContainsPoint = [self frameContainsTouchFromTouches:touches];
+    if (frameContainsPoint && !_isSunkIn) {
+      [self sinkInWithAnimation:YES];
+    } else if (!frameContainsPoint && _isSunkIn) {
+      [self liftWithAnimation:YES andCompletion:nil];
+    }
+  }
+}
+
+-(void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
+  [self touchesEnded:touches withEvent:event];
+}
+
+-(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+  if ([self isEnabled]) {
+
+    void(^completion)(void);
+
+    BOOL frameContainsPoint = [self frameContainsTouchFromTouches:touches];
+      
+    if (frameContainsPoint) {
+      __weak typeof(self) weakSelf = self;
+      completion = ^void(void) {
+        [weakSelf.delegate handleButtonPressed:weakSelf];
+      };
+    } else {
+      completion = nil;
+    }
+    
+    [self liftWithAnimation:YES andCompletion:completion];
+  }
+}
+
+#pragma mark - helper methods
+
+-(BOOL)frameContainsTouchFromTouches:(NSSet *)touches {
+  UITouch *touch = [touches anyObject];
+  CGPoint location = [touch locationInNode:self.parent];
+  BOOL frameContainsPoint = CGRectContainsPoint(self.frame, location);
+  return frameContainsPoint;
 }
 
 @end

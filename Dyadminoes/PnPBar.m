@@ -20,6 +20,8 @@
                                            andSize:kLargeButtonSize
                                        andPosition:CGPointMake(self.frame.size.width - (kLargeButtonWidth * 0.5) - kPnPXEdgeBuffer, kRackHeight / 2)
                                       andZPosition:kZPositionTopBarButton];
+  
+  self.returnOrStartButton.delegate = self;
   [tempSet addObject:self.returnOrStartButton];
   self.allButtons = [NSSet setWithSet:tempSet];
   

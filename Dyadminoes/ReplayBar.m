@@ -25,6 +25,7 @@
   
   for (int i = 0; i < 5; i++) {
     Button *button = [[Button alloc] initWithName:nameArray[i] andColor:colourArray[i] andSize:kLargeButtonSize andPosition:CGPointMake(leftOffset + xCoord[i], kRackHeight / 2) andZPosition:kZPositionTopBarButton];
+    button.delegate = self;
     [self addChild:button];
     [tempButtons addObject:button];
   }

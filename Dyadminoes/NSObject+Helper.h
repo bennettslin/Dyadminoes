@@ -114,7 +114,7 @@
 #define kHighPinchScale (kIsIPhone ? 1.3f : 1.15f)
 
   // animation constants
-#define kConstantTime 1.f // was 0.2f // was 0.15f
+#define kConstantTime 0.2f // was 0.2f // was 0.15f
 #define kAnimateHoverTime 0.775f
 #define kDoubleTapTime 0.225f
 #define kWaitTimeForRackDyadminoPopulate 0.05f

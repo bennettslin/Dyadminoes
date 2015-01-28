@@ -484,10 +484,9 @@
     
     __weak typeof(self) weakSelf = self;
     SKAction *turnAction = [SKAction runBlock:^{
-//      if (counter > 1) {
-        [weakSelf.pc1Sprite runAction:turnFace];
-        [weakSelf.pc2Sprite runAction:turnFace];
-//      }
+      
+      [weakSelf.pc1Sprite runAction:turnFace];
+      [weakSelf.pc2Sprite runAction:turnFace];
       
       [weakSelf runAction:turnDyadmino completion:^{
         weakSelf.orientation = (weakSelf.orientation + (clockwise ? 1 : 5)) % 6;
@@ -499,7 +498,7 @@
         } else {
           
           if ([self isOnBoard]) {
-            [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:NO];
+            [weakSelf.delegate updateCellsForPlacedDyadmino:weakSelf withLayout:NO];
           }
           
           if (fullFlip) {

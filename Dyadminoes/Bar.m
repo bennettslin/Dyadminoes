@@ -9,6 +9,10 @@
 #import "Bar.h"
 #import "Button.h"
 
+@interface Bar ()
+
+@end
+
 @implementation Bar {
   NSUInteger _rotationFromDevice;
 }
@@ -43,6 +47,20 @@
     SKAction *alphaAction = [SKAction fadeAlphaTo:fadeAlpha duration:0.f];
     [node runAction:alphaAction];
   }
+}
+
+#pragma mark - delegate methods
+
+-(void)handleButtonPressed:(Button *)button {
+  [self.delegate handleButtonPressed:button];
+}
+
+-(void)goBackToMainViewController {
+  [self.delegate goBackToMainViewController];
+}
+
+-(void)postSoundNotification:(NotificationName)whichNotification {
+  [self.delegate postSoundNotification:whichNotification];
 }
 
 /*

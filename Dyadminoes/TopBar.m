@@ -30,6 +30,7 @@
         self.frame.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth -
         (kTopBarPaddingBetweenStuff / 2) - kButtonWidth * (4.5 - i);
     Button *button = [[Button alloc] initWithName:nameArray[i] andColor:colourArray[i] andSize:kButtonSize andPosition:CGPointMake(xPosition, yPosition) andZPosition:kZPositionTopBarButton];
+    button.delegate = self;
     [self addChild:button];
     [tempArray addObject:button];
   }

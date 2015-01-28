@@ -35,7 +35,7 @@
 #define kResetFadeOut @"resetFadeOut"
 #define kResetFadeIn @"resetFadeIn"
 
-@interface MyScene () <BarDelegate, FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIActionSheetDelegate, UIAlertViewDelegate, MatchDelegate, ReturnToGamesButtonDelegate>
+@interface MyScene () <BarDelegate, FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIActionSheetDelegate, UIAlertViewDelegate, MatchDelegate>
 
   // the dyadminoes that the player sees
 @property (strong, nonatomic) NSArray *playerRackDyadminoes;
@@ -592,10 +592,11 @@
                            andPosition:CGPointMake(0, self.frame.size.height - kTopBarHeight)
                           andZPosition:kZPositionTopBar];
   _topBar.name = @"topBar";
+  _topBar.delegate = self;
   [_topBar populateWithTopBarButtons];
   [self addChild:_topBar];
   
-  _topBar.returnOrStartButton.delegate = self;
+//  _topBar.returnOrStartButton.delegate = self;
   
   return (_topBar.parent == self);
 }
@@ -620,6 +621,7 @@
   
   _replayBottom = [[ReplayBar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, -kRackHeight) andZPosition:kZPositionReplayBottom];
   _replayBottom.name = @"replayBottom";
+  _replayBottom.delegate = self;
   [self addChild:_replayBottom];
 
   [_replayBottom populateWithBottomReplayButtons];
@@ -725,10 +727,7 @@
 
   _currentTouch ? [self endTouchFromTouches:nil] : nil;
   _currentTouch = [touches anyObject];
-  
-//  if (![self dyadminoMoveCompletionCounterIsZero]) {
-//    return;
-//  }
+
   if (_fieldActionInProgress) {
     return;
   }
@@ -1054,10 +1053,10 @@
         }
 
         if (button == _buttonPressed) {
-          __weak typeof(self) weakSelf = self;
-          [button liftWithAnimation:YES andCompletion:^{
-            [weakSelf handleButtonPressed:button];
-          }];
+//          __weak typeof(self) weakSelf = self;
+//          [button liftWithAnimation:YES andCompletion:^{
+//            [weakSelf handleButtonPressed:button];
+//          }];
         }
         return;
       }
