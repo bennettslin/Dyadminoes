@@ -105,7 +105,7 @@
   BOOL _recentRackDyadminoFormsLegalChord;
   BOOL _undoButtonAllowed; // ensures that player can't quickly undo too many at once, which screws up the animation
   
-  Button *_buttonPressed;
+//  Button *_buttonPressed;
   SKNode *_touchNode;
   SKSpriteNode *_soundedDyadminoFace;
 
@@ -223,7 +223,7 @@
   _boardDyadminoMovedShowResetButton = NO;
   _zoomChangedCellsAlpha = NO;
   _rackExchangeInProgress = NO;
-  [self buttonPressedMakeNil];
+//  [self buttonPressedMakeNil];
 //  [_buttonPressed liftWithAnimation:NO andCompletion:nil];
 //  _buttonPressed = nil;
   _hoveringDyadminoBeingCorrected = 0;
@@ -751,21 +751,21 @@
 //  }
   
     // if it's a button, take care of it when touch ended
-  if ([_touchNode isKindOfClass:[Button class]] || [_touchNode.parent isKindOfClass:[Button class]]) {
-    Button *touchedButton = [_touchNode isKindOfClass:[Button class]] ? (Button *)_touchNode : (Button *)_touchNode.parent;
-    
-    if ([touchedButton isEnabled]) {
-      [self postSoundNotification:kNotificationButtonSunkIn];
-      
-      if (_buttonPressed) {
-        [self buttonPressedMakeNil];
-      }
-      
-      _buttonPressed = touchedButton;
-      [_buttonPressed sinkInWithAnimation:YES];
-      return;
-    }
-  }
+//  if ([_touchNode isKindOfClass:[Button class]] || [_touchNode.parent isKindOfClass:[Button class]]) {
+//    Button *touchedButton = [_touchNode isKindOfClass:[Button class]] ? (Button *)_touchNode : (Button *)_touchNode.parent;
+//    
+//    if ([touchedButton isEnabled]) {
+//      [self postSoundNotification:kNotificationButtonSunkIn];
+//      
+//      if (_buttonPressed) {
+//        [self buttonPressedMakeNil];
+//      }
+//      
+//      _buttonPressed = touchedButton;
+//      [_buttonPressed sinkInWithAnimation:YES];
+//      return;
+//    }
+//  }
   
     //--------------------------------------------------------------------------
     /// 3b. dyadmino touched
@@ -859,18 +859,18 @@
   }
   
     // if the touch started on a button, do nothing and return
-  if (_buttonPressed) {
-    SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
-    
-      // although these methods are called, button will check itself
-      // to determine whether animations are actually needed
-    if (node == _buttonPressed || node.parent == _buttonPressed) {
-      [_buttonPressed sinkInWithAnimation:YES];
-    } else {
-      [_buttonPressed liftWithAnimation:YES andCompletion:nil];
-    }
-    return;
-  }
+//  if (_buttonPressed) {
+//    SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
+//    
+//      // although these methods are called, button will check itself
+//      // to determine whether animations are actually needed
+//    if (node == _buttonPressed || node.parent == _buttonPressed) {
+//      [_buttonPressed sinkInWithAnimation:YES];
+//    } else {
+//      [_buttonPressed liftWithAnimation:YES andCompletion:nil];
+//    }
+//    return;
+//  }
   
     // register no touches moved while field is being toggled
 //  if (![self dyadminoMoveCompletionCounterIsZero]) {
@@ -1028,13 +1028,13 @@
   _endTouchLocationToMeasureDoubleTap = [self findTouchLocationFromTouches:touches];
   
   if (thisTouch != _currentTouch) {
-    [self buttonPressedMakeNil]; // remarkably, it seems both these calls are needed
+//    [self buttonPressedMakeNil]; // remarkably, it seems both these calls are needed
     return;
   }
 
   _currentTouch = nil;
   [self endTouchFromTouches:touches];
-  [self buttonPressedMakeNil];
+//  [self buttonPressedMakeNil];
 }
 
 -(void)endTouchFromTouches:(NSSet *)touches {
@@ -1043,24 +1043,24 @@
       //--------------------------------------------------------------------------
       /// 2a and b. handle button press and board moved
 
-    SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
+//    SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
     
-    if (!_touchedDyadmino) { // ensures dyadmino was not placed over button
-      if ([node isKindOfClass:[Button class]] || [node.parent isKindOfClass:[Button class]]) {
-        Button *button = [node isKindOfClass:[Button class]] ? (Button *)node : (Button *)node.parent;
-        if ([button isEnabled]) {
-          [self postSoundNotification:kNotificationButtonLifted];
-        }
-
-        if (button == _buttonPressed) {
-//          __weak typeof(self) weakSelf = self;
-//          [button liftWithAnimation:YES andCompletion:^{
-//            [weakSelf handleButtonPressed:button];
-//          }];
-        }
-        return;
-      }
-    }
+//    if (!_touchedDyadmino) { // ensures dyadmino was not placed over button
+//      if ([node isKindOfClass:[Button class]] || [node.parent isKindOfClass:[Button class]]) {
+//        Button *button = [node isKindOfClass:[Button class]] ? (Button *)node : (Button *)node.parent;
+//        if ([button isEnabled]) {
+//          [self postSoundNotification:kNotificationButtonLifted];
+//        }
+//
+//        if (button == _buttonPressed) {
+////          __weak typeof(self) weakSelf = self;
+////          [button liftWithAnimation:YES andCompletion:^{
+////            [weakSelf handleButtonPressed:button];
+////          }];
+//        }
+//        return;
+//      }
+//    }
 
       // board no longer being moved
     if (_boardToBeMovedOrBeingMoved) {
@@ -1593,10 +1593,10 @@
   [self updateTopBarButtons];
 }
 
--(void)buttonPressedMakeNil {
-  [_buttonPressed liftWithAnimation:NO andCompletion:nil];
-  _buttonPressed = nil;
-}
+//-(void)buttonPressedMakeNil {
+//  [_buttonPressed liftWithAnimation:NO andCompletion:nil];
+//  _buttonPressed = nil;
+//}
 
 #pragma mark - match interaction methods
 

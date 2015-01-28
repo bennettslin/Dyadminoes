@@ -650,7 +650,7 @@
   
   if (shrink && !self.shrunkForReplay) {
     self.shrunkForReplay = YES;
-    SKAction *shrinkAction = [SKAction scaleTo:0.f duration:kConstantTime * 0.99f];
+    SKAction *shrinkAction = [SKAction scaleTo:0.5f duration:kConstantTime * 0.99f];
     shrinkAction.timingMode = SKActionTimingEaseIn;
     SKAction *fadeOutAction = [SKAction fadeAlphaTo:0.f duration:kConstantTime * 0.99f];
     fadeOutAction.timingMode = SKActionTimingEaseIn;
@@ -669,6 +669,8 @@
   } else if (!shrink && self.shrunkForReplay) {
     self.shrunkForReplay = NO;
     self.hidden = NO;
+    [self setScale:0.5f];
+    self.alpha = 0.f;
     SKAction *excessGrowAction = [SKAction scaleTo:1.1f duration:kConstantTime * 0.69f];
     excessGrowAction.timingMode = SKActionTimingEaseOut;
     SKAction *bounceBackAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.29f];

@@ -538,7 +538,6 @@ typedef enum dyadminoHome {
 -(CGFloat)getChangeFromThisAngle:(CGFloat)angle1 toThisAngle:(CGFloat)angle2;
 -(CGFloat)getRadiansFromDegree:(CGFloat)degree;
 
-
 #pragma mark - hex coordinate methods
 
 -(HexCoord)hexCoordFromX:(NSInteger)x andY:(NSInteger)y;
