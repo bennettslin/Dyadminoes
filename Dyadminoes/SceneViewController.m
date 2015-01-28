@@ -120,18 +120,29 @@
 #pragma mark - navigation methods
 
 -(void)presentFromSceneOptionsVC {
-  [self.myScene toggleRackGoOut:YES completion:nil];
-  [self.myScene toggleTopBarGoOut:YES completion:nil];
+  
   [self.myScene toggleFieldActionInProgress:YES];
+  __weak typeof(self) weakSelf = self;
+  void(^completion)(void) = ^void(void) {
+    [weakSelf.myScene toggleFieldActionInProgress:NO];
+  };
+  
+  [self.myScene toggleRackGoOut:YES completion:completion];
+  [self.myScene toggleTopBarGoOut:YES completion:nil];
   
   [self presentChildViewController:self.optionsVC];
 }
 
 -(void)presentFromSceneGameEndedVC {
-  NSLog(@"present from scene game ended vc.");
-  [self.myScene toggleRackGoOut:YES completion:nil];
-  [self.myScene toggleTopBarGoOut:YES completion:nil];
+  
   [self.myScene toggleFieldActionInProgress:YES];
+  __weak typeof(self) weakSelf = self;
+  void(^completion)(void) = ^void(void) {
+    [weakSelf.myScene toggleFieldActionInProgress:NO];
+  };
+  
+  [self.myScene toggleRackGoOut:YES completion:completion];
+  [self.myScene toggleTopBarGoOut:YES completion:nil];
   
   self.gameEndedVC.delegate = self;
   [self presentChildViewController:self.gameEndedVC];
@@ -158,8 +169,15 @@
   
   if (!self.vcIsAnimating && self.childVC && self.overlayEnabled) {
     if (animateRemoveVC) {
-//      [self.myScene toggleRackGoOut:NO completion:nil];
-//      [self.myScene toggleTopBarGoOut:NO completion:nil];
+      
+      [self.myScene toggleFieldActionInProgress:YES];
+      __weak typeof(self) weakSelf = self;
+      void(^completion)(void) = ^void(void) {
+        [weakSelf.myScene toggleFieldActionInProgress:NO];
+      };
+      
+      [self.myScene toggleRackGoOut:NO completion:completion];
+      [self.myScene toggleTopBarGoOut:NO completion:nil];
     }
   }
   
@@ -167,7 +185,6 @@
     [self handleUserDefaults];
   }
   
-  [self.myScene toggleFieldActionInProgress:NO];
   [super backToParentViewWithAnimateRemoveVC:animateRemoveVC];
 }
 

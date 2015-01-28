@@ -74,9 +74,9 @@
 
 -(void)sinkInWithAnimation:(BOOL)animation {
   
-  if ([self actionForKey:@"buttonSink"] || [self actionForKey:@"buttonLift"]) {
-    return;
-  }
+//  if ([self actionForKey:@"buttonSink"] || [self actionForKey:@"buttonLift"]) {
+//    return;
+//  }
   
   const CGFloat scaleTo = (1 / 1.1f);
     // FIXME: highlight button
@@ -87,22 +87,27 @@
     return;
   }
   
-  if (!_isSunkIn) {
-    
+  if (!_isSunkIn && _isEnabled) {
+//    [self enable:NO];
     _isSunkIn = YES; // establish right away so method can't be called again
     SKAction *moveAction = [SKAction scaleTo:scaleTo duration:kConstantTime * 0.1];
     moveAction.timingMode = SKActionTimingEaseOut;
+//    __weak typeof(self) weakSelf = self;
+//    SKAction *enableAction = [SKAction runBlock:^{
+//      [weakSelf enable:YES];
+//    }];
+//    SKAction *sequence = [SKAction sequence:@[moveAction, enableAction]];
     [self runAction:moveAction withKey:@"buttonSink"];
   }
 }
 
 -(void)liftWithAnimation:(BOOL)animation andCompletion:(void (^)(void))completion {
   
-  if ([self actionForKey:@"buttonLift"] || [self actionForKey:@"buttonSink"]) {
-    return;
-  }
+//  if ([self actionForKey:@"buttonLift"] || [self actionForKey:@"buttonSink"]) {
+//    return;
+//  }
   
-  self.colorBlendFactor = 0.f;
+//  self.colorBlendFactor = 0.f;
     // FIXME: unhighlight button
   
   if (!animation) {
@@ -112,18 +117,20 @@
   }
   
   if (_isEnabled && _isSunkIn) {
-    [self enable:NO];
+//    [self enable:NO];
     _isSunkIn = NO; // establish right away so method can't be called again
     
-    SKAction *excessAction = [SKAction scaleTo:1.1f duration:kConstantTime * 0.275f];
-    excessAction.timingMode = SKActionTimingEaseOut;
-    SKAction *bounceBackAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.125f];
-    __weak typeof(self) weakSelf = self;
+//    SKAction *excessAction = [SKAction scaleTo:1.1f duration:kConstantTime * 0.5 * 0.275f];
+//    excessAction.timingMode = SKActionTimingEaseOut;
+//    SKAction *bounceBackAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.5 * 0.125f];
+//    __weak typeof(self) weakSelf = self;
+    SKAction *liftAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.1];
+//    __weak typeof(self) weakSelf = self;
     SKAction *enableAction = [SKAction runBlock:^{
-      [weakSelf enable:YES];
+//      [weakSelf enable:YES];
     }];
     SKAction *completionAction = [SKAction runBlock:completion];
-    SKAction *sequence = [SKAction sequence:@[excessAction, bounceBackAction, enableAction, completionAction]];
+    SKAction *sequence = [SKAction sequence:@[liftAction, enableAction, completionAction]];
     [self runAction:sequence withKey:@"buttonLift"];
   }
 }

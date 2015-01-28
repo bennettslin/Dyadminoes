@@ -35,7 +35,7 @@
 #define kResetFadeOut @"resetFadeOut"
 #define kResetFadeIn @"resetFadeIn"
 
-@interface MyScene () <FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIActionSheetDelegate, UIAlertViewDelegate, MatchDelegate, ReturnToGamesButtonDelegate>
+@interface MyScene () <BarDelegate, FieldNodeDelegate, DyadminoDelegate, BoardDelegate, UIActionSheetDelegate, UIAlertViewDelegate, MatchDelegate, ReturnToGamesButtonDelegate>
 
   // the dyadminoes that the player sees
 @property (strong, nonatomic) NSArray *playerRackDyadminoes;
@@ -125,6 +125,8 @@
   
     // first time pivot values
   CGFloat _touchPivotOffsetAngle;
+  
+  NSUInteger _dyadminoMoveCompletionCounter;
 }
 
 #pragma mark - set up methods
@@ -217,11 +219,13 @@
   
   [self.mySoundEngine removeAllActions];
   
+  _dyadminoMoveCompletionCounter = 0;
   _boardDyadminoMovedShowResetButton = NO;
   _zoomChangedCellsAlpha = NO;
   _rackExchangeInProgress = NO;
-  [_buttonPressed liftWithAnimation:NO andCompletion:nil];
-  _buttonPressed = nil;
+  [self buttonPressedMakeNil];
+//  [_buttonPressed liftWithAnimation:NO andCompletion:nil];
+//  _buttonPressed = nil;
   _hoveringDyadminoBeingCorrected = 0;
   _hoveringDyadminoFinishedCorrecting = 1;
   _buttonsUpdatedThisTouch = NO;
@@ -600,6 +604,7 @@
   
   _pnpBar = [[PnPBar alloc] initWithColor:kFieldPurple andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointZero andZPosition:kZPositionReplayBottom];
   _pnpBar.name = @"pnpBar";
+  _pnpBar.delegate = self;
   [self addChild:_pnpBar];
   
   [_pnpBar populateWithPnPButtonsAndLabel];
@@ -721,6 +726,9 @@
   _currentTouch ? [self endTouchFromTouches:nil] : nil;
   _currentTouch = [touches anyObject];
   
+//  if (![self dyadminoMoveCompletionCounterIsZero]) {
+//    return;
+//  }
   if (_fieldActionInProgress) {
     return;
   }
@@ -747,7 +755,7 @@
   if ([_touchNode isKindOfClass:[Button class]] || [_touchNode.parent isKindOfClass:[Button class]]) {
     Button *touchedButton = [_touchNode isKindOfClass:[Button class]] ? (Button *)_touchNode : (Button *)_touchNode.parent;
     
-    if ([touchedButton isEnabled] && !_fieldActionInProgress) {
+    if ([touchedButton isEnabled]) {
       [self postSoundNotification:kNotificationButtonSunkIn];
       
       if (_buttonPressed) {
@@ -866,6 +874,9 @@
   }
   
     // register no touches moved while field is being toggled
+//  if (![self dyadminoMoveCompletionCounterIsZero]) {
+//    return;
+//  }
   if (_fieldActionInProgress) {
     return;
   }
@@ -1007,6 +1018,8 @@
 }
 
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+  
+  NSLog(@"touches ended");
     /// 1. first check whether to even register the touch ended
   
     // kludge way of ensuring that buttonPressed is cancelled upon multiple touches
@@ -1108,6 +1121,10 @@
 
 -(void)toggleBoardZoomWithTapCentering:(BOOL)tapCentering andCenterLocation:(CGPoint)location {
     // without tap centering, location is irrelevant
+  
+  if (![self noActionsInProgress]) {
+    return;
+  }
 
   [self postSoundNotification:kNotificationBoardZoom];
   
@@ -1155,10 +1172,11 @@
     [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
     dyadmino.isTouchThenHoverResized = NO;
     dyadmino.isZoomResized = _boardZoomedOut;
-    
     [dyadmino goToTempPositionWithRescale:YES];
   }
 }
+
+
 
 -(void)handleUserWantsPivotGuides {
   [_boardField handleUserWantsPivotGuides];
@@ -1541,12 +1559,12 @@
     if (_replayMode) {
       [self storeDyadminoAttributesBeforeReplay];
       [self.myMatch startReplay];
-      [self updateViewForReplayInReplay:YES start:YES];
+      [self updateViewForReplayInReplay:YES];
       
     } else {
       [self.myMatch leaveReplay];
       [self restoreDyadminoAttributesAfterReplay];
-      [self updateViewForReplayInReplay:NO start:NO];
+      [self updateViewForReplayInReplay:NO];
       
         // animate last play, or game results if game ended unless player's turn is already over
       if (_myPlayer == [self.myMatch returnCurrentPlayer]) {
@@ -1558,16 +1576,16 @@
       // replay buttons
   } else if (button == _replayBottom.firstTurnButton) {
     [self.myMatch first];
-    [self updateViewForReplayInReplay:YES start:NO];
+    [self updateViewForReplayInReplay:YES];
   } else if (button == _replayBottom.previousTurnButton) {
     [self.myMatch previous];
-    [self updateViewForReplayInReplay:YES start:NO];
+    [self updateViewForReplayInReplay:YES];
   } else if (button == _replayBottom.nextTurnButton) {
     [self.myMatch next];
-    [self updateViewForReplayInReplay:YES start:NO];
+    [self updateViewForReplayInReplay:YES];
   } else if (button == _replayBottom.lastTurnButton) {
     [self.myMatch last];
-    [self updateViewForReplayInReplay:YES start:NO];
+    [self updateViewForReplayInReplay:YES];
   } else {
     return;
   }
@@ -2358,12 +2376,13 @@
       // if player has points from moving a board dyadmino, that counts as well
   
   BOOL noBoardDyadminoesPlayedAndNoRecentRackDyadmino = ([self.myMatch pointsForAllChordsThisTurn] == 0) && !_recentRackDyadmino;
+  BOOL noActionsInProgress = [self noActionsInProgress];
   
-  [_topBar node:_topBar.returnOrStartButton shouldBeEnabled:!self.swapContainer && !thereIsATouchedOrHoveringDyadmino];
-  [_topBar node:_topBar.replayButton shouldBeEnabled:(gameHasEndedForPlayer || !currentPlayerHasTurn || (currentPlayerHasTurn && !self.swapContainer)) && (turns.count > 0) && !_pnpBarUp];
-  [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:(!gameHasEndedForPlayer && currentPlayerHasTurn) && !_pnpBarUp && _undoButtonAllowed];
-  [_topBar node:_topBar.passPlayOrDoneButton shouldBeEnabled:((!gameHasEndedForPlayer && currentPlayerHasTurn) && (!thereIsATouchedOrHoveringDyadmino) && !_pnpBarUp && ((self.swapContainer && swapContainerNotEmpty) || !self.swapContainer) && (self.swapContainer || (!noBoardDyadminoesPlayedAndNoRecentRackDyadmino || (noBoardDyadminoesPlayedAndNoRecentRackDyadmino && [self.myMatch returnType] != kSelfGame))) && (!_recentRackDyadmino || (_recentRackDyadmino && _recentRackDyadminoFormsLegalChord)))];
-  [_topBar node:_topBar.optionsButton shouldBeEnabled:(!gameHasEndedForPlayer && (!currentPlayerHasTurn || (currentPlayerHasTurn && !self.swapContainer))) && !_pnpBarUp];
+  [_topBar node:_topBar.returnOrStartButton shouldBeEnabled:noActionsInProgress && !self.swapContainer && !thereIsATouchedOrHoveringDyadmino];
+  [_topBar node:_topBar.replayButton shouldBeEnabled:noActionsInProgress && (gameHasEndedForPlayer || !currentPlayerHasTurn || (currentPlayerHasTurn && !self.swapContainer)) && (turns.count > 0) && !_pnpBarUp];
+  [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:noActionsInProgress && (!gameHasEndedForPlayer && currentPlayerHasTurn) && !_pnpBarUp && _undoButtonAllowed];
+  [_topBar node:_topBar.passPlayOrDoneButton shouldBeEnabled:noActionsInProgress && ((!gameHasEndedForPlayer && currentPlayerHasTurn) && (!thereIsATouchedOrHoveringDyadmino) && !_pnpBarUp && ((self.swapContainer && swapContainerNotEmpty) || !self.swapContainer) && (self.swapContainer || (!noBoardDyadminoesPlayedAndNoRecentRackDyadmino || (noBoardDyadminoesPlayedAndNoRecentRackDyadmino && [self.myMatch returnType] != kSelfGame))) && (!_recentRackDyadmino || (_recentRackDyadmino && _recentRackDyadminoFormsLegalChord)))];
+  [_topBar node:_topBar.optionsButton shouldBeEnabled:noActionsInProgress && (!gameHasEndedForPlayer && (!currentPlayerHasTurn || (currentPlayerHasTurn && !self.swapContainer))) && !_pnpBarUp];
   
     // FIXME: can be refactored further
   if (self.swapContainer) {
@@ -2372,7 +2391,7 @@
 
   } else if (thereIsATouchedOrHoveringDyadmino) {
     [_topBar changeSwapCancelOrUndo:kCancelButton];
-    [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:YES];
+    [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:noActionsInProgress];
     [_topBar node:_topBar.replayButton shouldBeEnabled:NO];
     
       // no dyadminoes played, and no recent rack dyadmino
@@ -2418,11 +2437,15 @@
   BOOL zeroTurns = turns.count <= 1;
   BOOL firstTurn = (self.myMatch.replayTurn == 1);
   BOOL lastTurn = (self.myMatch.replayTurn == turns.count);
+  BOOL noActionsInProgress = [self noActionsInProgress];
   
-  [_replayBottom node:_replayBottom.firstTurnButton shouldBeEnabled:!zeroTurns && !firstTurn];
-  [_replayBottom node:_replayBottom.previousTurnButton shouldBeEnabled:!zeroTurns && !firstTurn];
-  [_replayBottom node:_replayBottom.nextTurnButton shouldBeEnabled:!zeroTurns && !lastTurn];
-  [_replayBottom node:_replayBottom.lastTurnButton shouldBeEnabled:!zeroTurns && !lastTurn];
+  NSLog(@"in update replay buttons, no actions in progress is %i", noActionsInProgress);
+  
+  [_replayBottom node:_replayBottom.firstTurnButton shouldBeEnabled:noActionsInProgress && !zeroTurns && !firstTurn];
+  [_replayBottom node:_replayBottom.previousTurnButton shouldBeEnabled:noActionsInProgress && !zeroTurns && !firstTurn];
+  [_replayBottom node:_replayBottom.nextTurnButton shouldBeEnabled:noActionsInProgress && !zeroTurns && !lastTurn];
+  [_replayBottom node:_replayBottom.lastTurnButton shouldBeEnabled:noActionsInProgress && !zeroTurns && !lastTurn];
+  [_replayBottom node:_replayBottom.returnOrStartButton shouldBeEnabled:noActionsInProgress];
 }
 
 -(NSString *)updatePnPLabelForNewPlayer {
@@ -2483,7 +2506,7 @@
     // cells will toggle faster than pnpBar moves
   [self postSoundNotification:kNotificationToggleBarOrField];
   
-  _fieldActionInProgress = YES;
+  [self toggleFieldActionInProgress:YES];
   if (_pnpBarUp) {
     
     [self.myDelegate barOrRackLabel:kPnPWaitingLabel show:YES toFade:NO withText:[self updatePnPLabelForNewPlayer] andColour:[self.myMatch colourForPlayer:[self.myMatch returnCurrentPlayer] forLabel:YES light:NO]];
@@ -2492,7 +2515,7 @@
     CGFloat yPosition = CGPointZero.y;
 
     void (^pnpCompletion)(void) = ^void(void) {
-      _fieldActionInProgress = NO;
+      [self toggleFieldActionInProgress:NO];
       _rackField.hidden = YES;
       [weakSelf prepareRackForNextPlayer];
       [weakSelf prepareForNewTurn];
@@ -2521,7 +2544,7 @@
       _rackField.hidden = NO;
       
       void (^completion)(void) = ^void(void) {
-        _fieldActionInProgress = NO;
+        [self toggleFieldActionInProgress:NO];
       };
 
       pnpCompletion = ^void(void) {
@@ -2531,7 +2554,7 @@
 
     } else {
       pnpCompletion = ^void(void) {
-        _fieldActionInProgress = NO;
+        [self toggleFieldActionInProgress:NO];
         _pnpBar.hidden = YES;
       };
     }
@@ -2554,7 +2577,7 @@
   [self toggleCellsAndDyadminoesAlphaAnimated:YES];
   [self postSoundNotification:kNotificationToggleBarOrField];
   
-  _fieldActionInProgress = YES;
+  [self toggleFieldActionInProgress:YES];
   
   if (_replayMode) {
       // scene views
@@ -2565,7 +2588,7 @@
     
     CGFloat topYPosition = self.frame.size.height - kTopBarHeight;
     void (^replayCompletion)(void) = ^void(void) {
-      _fieldActionInProgress = NO;
+      [self toggleFieldActionInProgress:NO];
       _topBar.hidden = YES;
       _rackField.hidden = YES;
     };
@@ -2597,7 +2620,7 @@
     void (^topReplayCompletion)(void) = ^void(void) {
       _replayTop.hidden = YES;
       void (^completion)(void) = ^void(void) {
-        _fieldActionInProgress = NO;
+        [self toggleFieldActionInProgress:NO];
       };
       [weakSelf toggleTopBarGoOut:NO completion:completion];
     };
@@ -2612,7 +2635,7 @@
       _replayBottom.hidden = YES;
       
       void (^completion)(void) = ^void(void) {
-        _fieldActionInProgress = NO;
+        [self toggleFieldActionInProgress:NO];
       };
       [weakSelf toggleRackGoOut:NO completion:completion];
     };
@@ -2636,13 +2659,13 @@
   [self postSoundNotification:kNotificationToggleBarOrField];
   
   if (!self.swapContainer) {
-    _fieldActionInProgress = YES;
+    [self toggleFieldActionInProgress:YES];
     
       // swap field action
     
     CGFloat desiredX = -self.frame.size.width;
     void (^swapCompletion)(void) = ^void(void) {
-      _fieldActionInProgress = NO;
+      [self toggleFieldActionInProgress:NO];
       _swapField.hidden = YES;
     };
     
@@ -2656,14 +2679,14 @@
     [_boardField runAction:moveBoardAction withKey:@"boardMoveFromSwap"];
 
   } else {
-    _fieldActionInProgress = YES;
+    [self toggleFieldActionInProgress:YES];
     _swapField.hidden = NO;
     _swapField.position = CGPointMake(self.frame.size.width, kRackHeight);
     
       // swap field action
     
     void (^swapCompletion)(void) = ^void(void) {
-      _fieldActionInProgress = NO;
+      [self toggleFieldActionInProgress:NO];
     };
     
     [_swapField toggleToXPosition:0 goOut:NO completion:swapCompletion withKey:@"toggleSwap"];
@@ -3169,14 +3192,14 @@
   }
 }
 
--(void)updateViewForReplayInReplay:(BOOL)inReplay start:(BOOL)start {
+-(void)updateViewForReplayInReplay:(BOOL)inReplay {
 
-  [self updateBoardForReplayInReplay:inReplay start:start];
+  [self updateBoardForReplayInReplay:inReplay];
   [self showTurnInfoOrGameResultsForReplay:inReplay];
   inReplay ? [self updateReplayButtons] : nil;
 }
 
--(void)updateBoardForReplayInReplay:(BOOL)inReplay start:(BOOL)start {
+-(void)updateBoardForReplayInReplay:(BOOL)inReplay {
   
   NSMutableSet *dyadminoesOnBoardUpToThisPoint = inReplay ? [self dyadminoesOnBoardThisReplayTurn] :
       [NSMutableSet setWithSet:[self allBoardDyadminoesPlusRecentRackDyadmino]];
@@ -3219,7 +3242,7 @@
         // if leaving replay, properties have already been reset
       if (inReplay) {
         
-          // get position and orientation attrivutes
+          // get position and orientation attributes
         dyadmino.tempHexCoord = [dataDyad getHexCoordForTurn:self.myMatch.replayTurn];
         dyadmino.homeOrientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
         [dyadmino orientWithAnimation:YES];
@@ -3461,6 +3484,46 @@
 
 -(void)toggleFieldActionInProgress:(BOOL)actionInProgress {
   _fieldActionInProgress = actionInProgress;
+  [self updateTopBarButtons];
+  if (_replayMode) {
+    [self updateReplayButtons];
+  }
+}
+
+#pragma mark - increment and decrement methods for completing dyadmino animation to temp board cell
+
+-(void)incrementByOne {
+  
+  _dyadminoMoveCompletionCounter++;
+//  NSLog(@"counter is %i", _dyadminoMoveCompletionCounter);
+  
+  if (_dyadminoMoveCompletionCounter == 1) {
+    [self updateTopBarButtons];
+    if (_replayMode) {
+      [self updateReplayButtons];
+    }
+    NSLog(@"Here goes!");
+  }
+}
+
+-(void)decrementByOne {
+  if (_dyadminoMoveCompletionCounter > 0) {
+    _dyadminoMoveCompletionCounter--;
+  }
+  
+//  NSLog(@"counter is %i", _dyadminoMoveCompletionCounter);
+  
+  if (_dyadminoMoveCompletionCounter == 0) {
+    [self updateTopBarButtons];
+    if (_replayMode) {
+      [self updateReplayButtons];
+    }
+    NSLog(@"Yay!");
+  }
+}
+
+-(BOOL)noActionsInProgress {
+  return _dyadminoMoveCompletionCounter == 0 && !_fieldActionInProgress;
 }
 
 #pragma mark - debugging methods

@@ -37,7 +37,7 @@
 @property (nonatomic) CGFloat lowestYPos;
 @property (nonatomic) CGFloat lowestXPos;
 
-//@property (strong, nonatomic) NSMutableSet *allCells;
+@property (strong, nonatomic) NSMutableSet *allCells;
 @property (readonly, nonatomic) NSMutableArray *columnOfRowsOfAllCells;
 
   // pivot properties

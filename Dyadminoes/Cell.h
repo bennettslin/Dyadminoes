@@ -13,13 +13,13 @@
 
 @interface Cell : SKSpriteNode
 
-@property (nonatomic) SKTexture *cellNodeTexture;
+@property (strong, nonatomic) SKTexture *cellNodeTexture;
 @property (strong, nonatomic) NSString *name;
 
 //@property (strong, nonatomic) SKSpriteNode *cellNode;
 @property (strong, nonatomic) Dyadmino *myDyadmino;
-@property (nonatomic) HexCoord hexCoord;
-@property (nonatomic) NSInteger myPC; // signed integer because myPC is -1 if no PC
+@property (assign, nonatomic) HexCoord hexCoord;
+@property (assign, nonatomic) NSInteger myPC; // signed integer because myPC is -1 if no PC
 
 @property (strong, nonatomic) SKLabelNode *hexCoordLabel;
 @property (strong, nonatomic) SKLabelNode *pcLabel;

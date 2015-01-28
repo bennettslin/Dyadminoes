@@ -49,7 +49,6 @@
 @property (assign, nonatomic) NSInteger cellsBottomInteger;
 @property (assign, nonatomic) NSInteger cellsLeftInteger;
 @property (readwrite, nonatomic) NSMutableArray *columnOfRowsOfAllCells;
-//@property (strong, nonatomic) NSMutableSet *placeholderContainerForCellsToBeIgnored;
 
 @property (strong, nonatomic) NSMutableSet *dequeuedCells;
 @property (strong, nonatomic) SKTexture *cellTexture;
@@ -102,7 +101,6 @@
   [self ignoreAllCells];
   
   self.columnOfRowsOfAllCells = nil;
-//  self.placeholderContainerForCellsToBeIgnored = nil;
 
   self.zoomedOut = NO;
   self.zoomInBoardHomePositionDifference = CGPointZero;
@@ -265,9 +263,6 @@
   self.cellsRight = cellsRightmost + extraXCells;
   self.cellsBottom = cellsBottommost - extraYCells - 1.f;
   self.cellsLeft = cellsLeftmost - extraXCells;
-  
-//  NSLog(@"add all current called from determine outermost");
-//  [self addAllCurrentCellsToPlaceholderContainer];
   
   self.cellsTopInteger = cellsTopmostInteger + kCellsAroundDyadmino;
   self.cellsRightInteger = cellsRightmostInteger + kCellsAroundDyadmino;
@@ -595,40 +590,47 @@
 }
 
 -(NSMutableSet *)placeholderContainerForIgnoredCells {
-  
-  NSMutableSet *tempIgnoredCellsSet = [NSMutableSet new];
-  for (id child in self.children) {
-    if ([child isKindOfClass:Cell.class]) {
-      Cell *cell = (Cell *)child;
-      [tempIgnoredCellsSet addObject:cell];
-    }
-  }
+
+  NSMutableSet *tempIgnoredCellsSet = [NSMutableSet setWithSet:self.allCells];
   NSLog(@"temp children count is %i", tempIgnoredCellsSet.count);
+  return tempIgnoredCellsSet;
   
-  if (self.columnOfRowsOfAllCells.count > 2) {
-    for (int j = 0; j < self.columnOfRowsOfAllCells.count - 2; j++) {
-      NSMutableArray *tempRowArray = self.columnOfRowsOfAllCells[j + 2];
-      
-      for (int i = 0; i < tempRowArray.count; i++) {
-        id object = tempRowArray[i];
-        
-        if ([object isKindOfClass:Cell.class]) {
-          Cell *cell = (Cell *)object;
-          [tempIgnoredCellsSet addObject:cell];
-        }
-      }
-    }
-    
-    NSLog(@"added to temp array, count is %i", tempIgnoredCellsSet.count);
-    return tempIgnoredCellsSet;
-  }
+//  NSMutableSet *tempIgnoredCellsSet = [NSMutableSet new];
+//  for (id child in self.children) {
+//    if ([child isKindOfClass:Cell.class]) {
+//      Cell *cell = (Cell *)child;
+//      [tempIgnoredCellsSet addObject:cell];
+//    }
+//  }
   
-  return nil;
+//  if (self.columnOfRowsOfAllCells.count > 2) {
+//    for (int j = 0; j < self.columnOfRowsOfAllCells.count - 2; j++) {
+//      NSMutableArray *tempRowArray = self.columnOfRowsOfAllCells[j + 2];
+//      
+//      for (int i = 0; i < tempRowArray.count; i++) {
+//        id object = tempRowArray[i];
+//        
+//        if ([object isKindOfClass:Cell.class]) {
+//          Cell *cell = (Cell *)object;
+//          [tempIgnoredCellsSet addObject:cell];
+//        }
+//      }
+//    }
+//    
+//    NSLog(@"added to temp array, count is %i", tempIgnoredCellsSet.count);
+//    return tempIgnoredCellsSet;
+//  }
+//  
+//  return nil;
 }
 
 #pragma mark - dequeued cell methods
 
 -(void)instantiateDequeuedCells {
+  
+  if (!self.allCells) {
+    self.allCells = [NSMutableSet new];
+  }
   
   self.dequeuedCells = [NSMutableSet new];
   NSUInteger times = 182; // number of initial cells with one dyadmino on board
@@ -639,6 +641,7 @@
                                      andResize:self.zoomedOut];
     
     [self.dequeuedCells addObject:cell];
+    [self.allCells addObject:cell];
   }
 }
 
@@ -662,10 +665,17 @@
     
       // no cell to dequeue, so instantiate new one
   } else {
+    
+    if (!self.allCells) {
+      self.allCells = [NSMutableSet new];
+    }
+    
     cell = [[Cell alloc] initWithTexture:self.cellTexture
                              andHexCoord:hexCoord
                             andHexOrigin:self.hexOrigin
                                andResize:self.zoomedOut];
+    
+    [self.allCells addObject:cell];
   }
   
 //  NSLog(@"from popping %@, dequeued cells count is %i", cell.name, self.dequeuedCells.count);

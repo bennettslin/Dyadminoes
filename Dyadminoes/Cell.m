@@ -263,7 +263,14 @@
 }
 
 -(void)updateHexCoordLabel {
-  NSString *boardXYString = [NSString stringWithFormat:@"%li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
+  
+  NSString *boardXYString;
+  if (self.hexCoord.x == NSIntegerMax && self.hexCoord.y == NSIntegerMax) {
+    boardXYString = @"";
+  } else {
+    boardXYString = [NSString stringWithFormat:@"%li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
+  }
+  
   self.hexCoordLabel.name = boardXYString;
   self.hexCoordLabel.text = boardXYString;
   

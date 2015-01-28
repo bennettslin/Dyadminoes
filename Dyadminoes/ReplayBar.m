@@ -36,7 +36,7 @@
   self.lastTurnButton = tempButtons[3];
   self.returnOrStartButton = tempButtons[4];
 
-  [self node:self.returnOrStartButton shouldBeEnabled:YES];
+  [self node:self.returnOrStartButton shouldBeEnabled:[self.delegate noActionsInProgress]];
 }
 
 @end

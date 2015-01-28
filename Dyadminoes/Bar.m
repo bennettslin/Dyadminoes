@@ -39,7 +39,9 @@
       [button enable:enabled];
     }
     
-    node.alpha = enabled ? 1.f : 0.2f;
+    CGFloat fadeAlpha = enabled ? 1.f : 0.2f;
+    SKAction *alphaAction = [SKAction fadeAlphaTo:fadeAlpha duration:0.f];
+    [node runAction:alphaAction];
   }
 }
 

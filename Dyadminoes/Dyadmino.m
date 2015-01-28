@@ -279,7 +279,7 @@
 }
 
 -(void)returnHomeToBoardWithLayout:(BOOL)layout {
-  
+  [self.delegate incrementByOne];
   [self orientWithAnimation:YES];
   [self animateMoveToPoint:[self.delegate homePositionForDyadmino:self] withLayout:layout];
   [self changeHoveringStatus:kDyadminoFinishedHovering];
@@ -287,6 +287,7 @@
 
 -(void)goToTempPositionWithRescale:(BOOL)rescale {
   
+  [self.delegate incrementByOne];
   self.zPosition = kZPositionBoardReplayAnimatedDyadmino;
   CGPoint reposition = [self.delegate tempPositionForDyadmino:self withHomeOrientation:YES];
   
@@ -295,6 +296,7 @@
     weakSelf.zPosition = kZPositionBoardRestingDyadmino;
     [weakSelf setScale:1.f];
     [weakSelf selectAndPositionSpritesZRotation:0.f];
+    [weakSelf.delegate decrementByOne];
   };
   
   [self animateExcessivelyToPosition:reposition withRescale:rescale duration:kConstantTime withKey:@"replayAction" middleBlock:nil completion:completion];
@@ -353,6 +355,7 @@
       if ([self isOnBoard]) {
         NSLog(@"update cells for placed dyadmino in animate move to point");
         [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:layout];
+        [weakSelf.delegate decrementByOne];
       }
     };
     
@@ -360,14 +363,19 @@
     completion = nil;
   }
   
-  void(^middleBlock)(void) = ^void(void) {
-      // will not sound if laying out
-    if (weakSelf.home == kRack || layout) {
-      [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
-    }
-  };
-  
-  [self animateExcessivelyToPosition:point withRescale:NO duration:kConstantTime withKey:kActionMoveToPoint middleBlock:middleBlock completion:completion];
+  if (calledFromRack) {
+    [self animateEasilyToPosition:point duration:kConstantTime timingMode:SKActionTimingEaseOut withKey:kActionMoveToPoint completion:completion];
+  } else {
+    
+    void(^middleBlock)(void) = ^void(void) {
+        // will not sound if laying out
+      if (weakSelf.home == kRack || layout) {
+        [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
+      }
+    };
+    
+    [self animateExcessivelyToPosition:point withRescale:NO duration:kConstantTime withKey:kActionMoveToPoint middleBlock:middleBlock completion:completion];
+  }
 }
 
 -(void)animateEasilyToPosition:(CGPoint)toPosition
@@ -476,10 +484,10 @@
     
     __weak typeof(self) weakSelf = self;
     SKAction *turnAction = [SKAction runBlock:^{
-      if (counter > 1) {
+//      if (counter > 1) {
         [weakSelf.pc1Sprite runAction:turnFace];
         [weakSelf.pc2Sprite runAction:turnFace];
-      }
+//      }
       
       [weakSelf runAction:turnDyadmino completion:^{
         weakSelf.orientation = (weakSelf.orientation + (clockwise ? 1 : 5)) % 6;

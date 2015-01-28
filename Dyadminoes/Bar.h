@@ -12,10 +12,17 @@
 @class Button;
 @class Label;
 
+@protocol BarDelegate <NSObject>
+
+-(BOOL)noActionsInProgress;
+
+@end
+
 @interface Bar : SKSpriteNode
 
 @property (strong, nonatomic) NSSet *allButtons; // necessary for device orientation only
 @property (strong, nonatomic) NSDictionary *allLabels;
+@property (weak, nonatomic) id<BarDelegate> delegate;
 
 @property (strong, nonatomic) Button *returnOrStartButton;
 

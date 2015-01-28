@@ -24,7 +24,7 @@
   self.allButtons = [NSSet setWithSet:tempSet];
   
   [self addChild:self.returnOrStartButton];
-  [self node:self.returnOrStartButton shouldBeEnabled:YES];
+  [self node:self.returnOrStartButton shouldBeEnabled:[self.delegate noActionsInProgress]];
 }
 
 @end
