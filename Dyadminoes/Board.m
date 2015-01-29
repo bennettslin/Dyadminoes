@@ -983,6 +983,8 @@
 
 -(void)updatePositionsOfPivotGuidesForDyadminoPosition:(CGPoint)dyadminoPosition {
   
+  NSLog(@"update positions of pivot guides");
+  
   if (!self.prePivotGuide.hidden) {
     self.prePivotGuide.position = dyadminoPosition;
   }

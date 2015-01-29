@@ -998,10 +998,12 @@
   _touchedDyadmino.position =
     [self getOffsetForTouchPoint:_currentTouchLocation forDyadmino:_touchedDyadmino];
   
-    // move the pivot guide, taking into consideration whether dyadmino is child of board or rack
-  CGPoint pivotGuidePosition = [_hoveringDyadmino isOnBoard] ? _hoveringDyadmino.position :
-      [self subtractFromThisPoint:_hoveringDyadmino.position thisPoint:_boardField.position];
-  [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:pivotGuidePosition];
+  if (_touchedDyadmino == _hoveringDyadmino) {
+      // move the pivot guide, taking into consideration whether dyadmino is child of board or rack
+    CGPoint pivotGuidePosition = [_hoveringDyadmino isOnBoard] ? _hoveringDyadmino.position :
+        [self subtractFromThisPoint:_hoveringDyadmino.position thisPoint:_boardField.position];
+    [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:pivotGuidePosition];
+  }
   
   //--------------------------------------------------------------------------
   /// 3c. dyadmino is just being exchanged in rack
