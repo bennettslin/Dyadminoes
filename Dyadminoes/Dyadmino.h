@@ -19,12 +19,12 @@
 -(CGPoint)tempPositionForDyadmino:(Dyadmino *)dyadmino withHomeOrientation:(BOOL)homeOrientation;
 -(CGPoint)rackPositionForDyadmino:(Dyadmino *)dyadmino;
 
--(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino withLayout:(BOOL)layout;
+-(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino;
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
 -(void)postSoundNotification:(NotificationName)whichNotification;
 -(BOOL)refreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation;
--(void)incrementByOne;
--(void)decrementByOne;
+//-(void)incrementDyadminoesInFluxWithLayoutFirst:(BOOL)layoutFirst minusDyadmino:(Dyadmino *)minusDyadmino;
+-(void)decrementDyadminoesInFluxWithLayoutLast:(BOOL)layoutLast;
 
 @end
 
@@ -128,7 +128,7 @@
 -(void)returnHomeToBoardWithLayout:(BOOL)layout;
 
   // called by scene during replay and toggle board zoom
--(void)goToTempPositionWithRescale:(BOOL)rescale;
+-(void)goToTempPositionWithLayout:(BOOL)layout andRescale:(BOOL)rescale andOrient:(BOOL)orient;
 
 #pragma mark - animate basic placement methods
 

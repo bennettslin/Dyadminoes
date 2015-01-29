@@ -262,6 +262,7 @@
   CGPoint rackPosition = [self.delegate rackPositionForDyadmino:self];
   
   if (popInForUndo) {
+    [self.delegate decrementDyadminoesInFluxWithLayoutLast:NO];
     [self animateShrinkPopIntoNodeWithResize:resize];
   } else {
     
@@ -279,15 +280,21 @@
 }
 
 -(void)returnHomeToBoardWithLayout:(BOOL)layout {
-  [self.delegate incrementByOne];
+//  [self.delegate incrementByOne];
   [self orientWithAnimation:YES];
   [self animateMoveToPoint:[self.delegate homePositionForDyadmino:self] withLayout:layout];
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
--(void)goToTempPositionWithRescale:(BOOL)rescale {
+-(void)goToTempPositionWithLayout:(BOOL)layout andRescale:(BOOL)rescale andOrient:(BOOL)orient {
+    // this is only called by replay and zoom
   
-  [self.delegate incrementByOne];
+    // replay has orient, zoom does not
+  if (orient) {
+    [self orientWithAnimation:YES];
+  }
+  
+//  [self.delegate incrementByOne];
   self.zPosition = kZPositionBoardReplayAnimatedDyadmino;
   CGPoint reposition = [self.delegate tempPositionForDyadmino:self withHomeOrientation:YES];
   
@@ -296,7 +303,11 @@
     weakSelf.zPosition = kZPositionBoardRestingDyadmino;
     [weakSelf setScale:1.f];
     [weakSelf selectAndPositionSpritesZRotation:0.f];
-    [weakSelf.delegate decrementByOne];
+    
+      // in other words, if in replay, but not zoom
+    if (orient) {
+      [weakSelf.delegate decrementDyadminoesInFluxWithLayoutLast:layout];
+    }
   };
   
   [self animateExcessivelyToPosition:reposition withRescale:rescale duration:kConstantTime withKey:@"replayAction" middleBlock:nil completion:completion];
@@ -321,7 +332,8 @@
     
     if ([self isOnBoard]) {
       NSLog(@"update cells for placed dyadmino in animate ease");
-      [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:YES];
+      [weakSelf.delegate updateCellsForPlacedDyadmino:self];
+      [weakSelf.delegate decrementDyadminoesInFluxWithLayoutLast:YES];
     }
   };
 
@@ -354,8 +366,8 @@
       [self setToHomeZPosition];
       if ([self isOnBoard]) {
         NSLog(@"update cells for placed dyadmino in animate move to point");
-        [weakSelf.delegate updateCellsForPlacedDyadmino:self withLayout:layout];
-        [weakSelf.delegate decrementByOne];
+        [weakSelf.delegate updateCellsForPlacedDyadmino:self]; // was layout
+        [weakSelf.delegate decrementDyadminoesInFluxWithLayoutLast:layout];
       }
     };
     
@@ -498,7 +510,7 @@
         } else {
           
           if ([self isOnBoard]) {
-            [weakSelf.delegate updateCellsForPlacedDyadmino:weakSelf withLayout:NO];
+            [weakSelf.delegate updateCellsForPlacedDyadmino:weakSelf];
           }
           
           if (fullFlip) {

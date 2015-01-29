@@ -276,7 +276,7 @@
 //  NSLog(@"bounds is top %.1f, right %.1f, bottom %.1f, left %.1f", self.cellsTop, self.cellsRight, self.cellsBottom, self.cellsLeft);
 //  NSLog(@"raw bounds floats is top %.1f, right %.1f, bottom %.1f, left %.1f", cellsTopmost, cellsRightmost, cellsBottommost, cellsLeftmost);
 //  NSLog(@"raw bounds integers is top %i, right %i, bottom %i, left %i", (NSInteger)cellsTopmost, (NSInteger)cellsRightmost, (NSInteger)cellsBottommost, (NSInteger)cellsLeftmost);
-  NSLog(@"determine outermost, cell bounds integers is top %i, right %i, bottom %i, left %i", self.cellsTopInteger, self.cellsRightInteger, self.cellsBottomInteger, self.cellsLeftInteger);
+//  NSLog(@"determine outermost, cell bounds integers is top %i, right %i, bottom %i, left %i", self.cellsTopInteger, self.cellsRightInteger, self.cellsBottomInteger, self.cellsLeftInteger);
   
   CGVector returnVector = CGVectorMake(((CGFloat)(self.cellsRight - self.cellsLeft) / 2.f) + self.cellsLeft,
                                        ((CGFloat)(self.cellsTop - self.cellsBottom) / 2.f) + self.cellsBottom);
@@ -368,7 +368,7 @@
     }
   }
   
-  NSLog(@"cells still in placeholder ignored in layout");
+//  NSLog(@"cells still in placeholder ignored in layout");
   for (Cell *cell in tempIgnoredCellsSet) {
     [self ignoreCell:cell];
   }
@@ -454,7 +454,7 @@
 
 -(BOOL)recalibrateColumnOfRowsOfAllCells {
   
-  NSLog(@"recalibrate column of rows of all cells");
+//  NSLog(@"recalibrate column of rows of all cells");
   
     // remove cells that are not found in new array
   NSMutableSet *tempIgnoredCellsSet = [self placeholderContainerForIgnoredCells];
@@ -491,7 +491,7 @@
     }
   }
   
-  NSLog(@"cells still in placeholder ignored in recalibrate");
+//  NSLog(@"cells still in placeholder ignored in recalibrate");
   for (Cell *cell in tempIgnoredCellsSet) {
     [self ignoreCell:cell];
   }
@@ -591,37 +591,38 @@
 
 -(NSMutableSet *)placeholderContainerForIgnoredCells {
 
-  NSMutableSet *tempIgnoredCellsSet = [NSMutableSet setWithSet:self.allCells];
-  NSLog(@"temp children count is %i", tempIgnoredCellsSet.count);
-  return tempIgnoredCellsSet;
+//  NSLog(@"all cells count is %i", self.allCells.count);
+//  NSMutableSet *tempIgnoredCellsSet = [NSMutableSet setWithSet:self.allCells];
+//  NSLog(@"temp children count is %i", tempIgnoredCellsSet.count);
+//  return tempIgnoredCellsSet;
   
-//  NSMutableSet *tempIgnoredCellsSet = [NSMutableSet new];
-//  for (id child in self.children) {
-//    if ([child isKindOfClass:Cell.class]) {
-//      Cell *cell = (Cell *)child;
-//      [tempIgnoredCellsSet addObject:cell];
-//    }
-//  }
+  NSMutableSet *tempIgnoredCellsSet = [NSMutableSet new];
+  for (id child in self.children) {
+    if ([child isKindOfClass:Cell.class]) {
+      Cell *cell = (Cell *)child;
+      [tempIgnoredCellsSet addObject:cell];
+    }
+  }
   
-//  if (self.columnOfRowsOfAllCells.count > 2) {
-//    for (int j = 0; j < self.columnOfRowsOfAllCells.count - 2; j++) {
-//      NSMutableArray *tempRowArray = self.columnOfRowsOfAllCells[j + 2];
-//      
-//      for (int i = 0; i < tempRowArray.count; i++) {
-//        id object = tempRowArray[i];
-//        
-//        if ([object isKindOfClass:Cell.class]) {
-//          Cell *cell = (Cell *)object;
-//          [tempIgnoredCellsSet addObject:cell];
-//        }
-//      }
-//    }
-//    
+  if (self.columnOfRowsOfAllCells.count > 2) {
+    for (int j = 0; j < self.columnOfRowsOfAllCells.count - 2; j++) {
+      NSMutableArray *tempRowArray = self.columnOfRowsOfAllCells[j + 2];
+      
+      for (int i = 0; i < tempRowArray.count; i++) {
+        id object = tempRowArray[i];
+        
+        if ([object isKindOfClass:Cell.class]) {
+          Cell *cell = (Cell *)object;
+          [tempIgnoredCellsSet addObject:cell];
+        }
+      }
+    }
+    
 //    NSLog(@"added to temp array, count is %i", tempIgnoredCellsSet.count);
-//    return tempIgnoredCellsSet;
-//  }
-//  
-//  return nil;
+    return tempIgnoredCellsSet;
+  }
+  
+  return nil;
 }
 
 #pragma mark - dequeued cell methods
@@ -643,6 +644,9 @@
     [self.dequeuedCells addObject:cell];
     [self.allCells addObject:cell];
   }
+  
+//  NSLog(@"all cells count is %i", self.allCells.count);
+
 }
 
 -(void)pushDequeuedCell:(Cell *)cell {
@@ -681,6 +685,9 @@
 //  NSLog(@"from popping %@, dequeued cells count is %i", cell.name, self.dequeuedCells.count);
   cell.parent ? nil : [self addChild:cell];
 //  cell.cellNode.parent ? nil : [self addChild:cell.cellNode];
+  
+//  NSLog(@"all cells count is %i", self.allCells.count);
+
   return cell;
 }
 
@@ -752,6 +759,7 @@
 #pragma mark - cell and data dyadmino methods
 
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBottomHexCoord:(HexCoord)bottomHexCoord {
+//  NSLog(@"update cells for dyadmino %@ placed on hexCoord %i, %i", dyadmino.name, bottomHexCoord.x, bottomHexCoord.y);
   
     // this assumes dyadmino is properly oriented for this boardNode
   NSArray *cells = [self topAndBottomCellsArrayForDyadmino:dyadmino
@@ -760,16 +768,20 @@
   NSInteger pcs[2] = {dyadmino.pc1, dyadmino.pc2};
   
   for (int i = 0; i < cells.count; i++) {
-    Cell *cell = cells[i];
     
-      // only assign if cell doesn't have a dyadmino recorded
-    if (!cell.myDyadmino) {
+    id object = cells[i];
+    if ([object isKindOfClass:Cell.class]) {
+      Cell *cell = (Cell *)object;
       
-      cell.myPC = (dyadmino.orientation <= kPC1atTwoOClock || dyadmino.orientation >= kPC1atTenOClock) ?
-          pcs[i] : pcs[(i + 1) % 2];
-      
-        // ensures there's only one cell for each dyadmino pc, and vice versa
-      [self mapOneCell:cell toOnePCForDyadmino:dyadmino];
+        // only assign if cell doesn't have a dyadmino recorded
+      if (!cell.myDyadmino) {
+        
+        cell.myPC = (dyadmino.orientation <= kPC1atTwoOClock || dyadmino.orientation >= kPC1atTenOClock) ?
+        pcs[i] : pcs[(i + 1) % 2];
+        
+          // ensures there's only one cell for each dyadmino pc, and vice versa
+        [self mapOneCell:cell toOnePCForDyadmino:dyadmino];
+      }
     }
   }
 }
@@ -780,11 +792,14 @@
                                          andBottomHexCoord:bottomHexCoord];
   
   for (int i = 0; i < cells.count; i++) {
-    Cell *cell = cells[i];
-    
-      // only remove if cell dyadmino is dyadmino
-    if (cell.myDyadmino == dyadmino) {
-      [self removeDyadminoDataFromCell:cell];
+    id object = cells[i];
+    if ([object isKindOfClass:Cell.class]) {
+      Cell *cell = (Cell *)object;
+      
+        // only remove if cell dyadmino is dyadmino
+      if (cell.myDyadmino == dyadmino) {
+        [self removeDyadminoDataFromCell:cell];
+      }
     }
   }
 }
@@ -844,16 +859,22 @@
   HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadmino.homeOrientation];
   
     // this will definitely get the cells
-  Cell *topCell = [self recogniseCellWithHexCoord:topHexCoord];
-  Cell *bottomCell = [self recogniseCellWithHexCoord:bottomHexCoord];
+  Cell *topCell = [self cellWithHexCoord:topHexCoord];
+  Cell *bottomCell = [self cellWithHexCoord:bottomHexCoord];
+  
+//  NSLog(@"top and bottom cells for dyadmino %@ placed on hexCoord %i, %i", dyadmino.name, bottomHexCoord.x, bottomHexCoord.y);
   
   NSMutableArray *tempCellsArray = [NSMutableArray new];
   if (topCell) {
     [tempCellsArray addObject:topCell];
+  } else {
+    [tempCellsArray addObject:[NSNull null]];
   }
   
   if (bottomCell) {
     [tempCellsArray addObject:bottomCell];
+  } else {
+    [tempCellsArray addObject:[NSNull null]];
   }
   
   NSArray *cellsArray = [NSArray arrayWithArray:tempCellsArray];
@@ -1151,7 +1172,7 @@
   }
   
   HexCoord returnHexCoord = hexCoordsToCheck[minDistanceIndex];
-  NSLog(@"closest hex coord is %li, %li", (long)returnHexCoord.x, (long)returnHexCoord.y);
+//  NSLog(@"closest hex coord is %li, %li", (long)returnHexCoord.x, (long)returnHexCoord.y);
   return returnHexCoord;
 }
 

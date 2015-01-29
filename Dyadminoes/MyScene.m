@@ -103,7 +103,7 @@
   Dyadmino *_recentRackDyadmino;
   Dyadmino *_hoveringDyadmino;
   BOOL _recentRackDyadminoFormsLegalChord;
-  BOOL _undoButtonAllowed; // ensures that player can't quickly undo too many at once, which screws up the animation
+//  BOOL _undoButtonAllowed; // ensures that player can't quickly undo too many at once, which screws up the animation
   
 //  Button *_buttonPressed;
   SKNode *_touchNode;
@@ -126,7 +126,7 @@
     // first time pivot values
   CGFloat _touchPivotOffsetAngle;
   
-  NSUInteger _dyadminoMoveCompletionCounter;
+  NSUInteger _dyadminoFluxCounter;
 }
 
 #pragma mark - set up methods
@@ -219,7 +219,6 @@
   
   [self.mySoundEngine removeAllActions];
   
-  _dyadminoMoveCompletionCounter = 0;
   _boardDyadminoMovedShowResetButton = NO;
   _zoomChangedCellsAlpha = NO;
   _rackExchangeInProgress = NO;
@@ -251,7 +250,8 @@
   _pivotInProgress = NO;
   _actionSheetShown = NO;
   _endTouchLocationToMeasureDoubleTap = CGPointMake(CGFLOAT_MAX, CGFLOAT_MAX);
-  _undoButtonAllowed = YES;
+//  _undoButtonAllowed = YES;
+  _dyadminoFluxCounter = 0;
   
   if (_lockMode) {
     [self handleDoubleTapForLockModeWithSound:NO];
@@ -366,7 +366,7 @@
   for (SKNode *node in _boardField.children) {
     if ([node isKindOfClass:[Dyadmino class]]) {
       Dyadmino *dyadmino = (Dyadmino *)node;
-      [self updateCellsForRemovedDyadmino:dyadmino withLayout:NO updateBounds:NO];
+      [self updateCellsForRemovedDyadmino:dyadmino];
       [dyadmino resetForNewMatch];
     }
   }
@@ -549,7 +549,7 @@
       [dyadmino orientWithAnimation:animated];
       
         // layout is called once afterwards
-      [self updateCellsForPlacedDyadmino:dyadmino withLayout:NO];
+      [self updateCellsForPlacedDyadmino:dyadmino];
     }
 
     if (!dyadmino.parent) {
@@ -561,8 +561,10 @@
     }
   }
   
-    // layout is necessary again to dequeue cells
-  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino] minusDyadmino:nil updateBounds:YES];
+  if (!animated) {
+      // layout is necessary again to dequeue cells
+    [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino] minusDyadmino:nil updateBounds:YES];
+  }
   
   return YES;
 }
@@ -1018,7 +1020,7 @@
 
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
   
-  NSLog(@"touches ended");
+//  NSLog(@"touches ended");
     /// 1. first check whether to even register the touch ended
   
     // kludge way of ensuring that buttonPressed is cancelled upon multiple touches
@@ -1149,7 +1151,7 @@
     // prep board for bounds and position
     // if in replay, only determine cells based on these dyadminoes
   
-  NSLog(@"determine outermost called from toggle board zoom");
+//  NSLog(@"determine outermost called from toggle board zoom");
   [_boardField determineOutermostCellsBasedOnDyadminoes:(_replayMode ? [self dyadminoesOnBoardThisReplayTurn] : [self allBoardDyadminoesPlusRecentRackDyadmino])];
   [_boardField determineBoardPositionBounds];
   
@@ -1171,7 +1173,7 @@
     [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
     dyadmino.isTouchThenHoverResized = NO;
     dyadmino.isZoomResized = _boardZoomedOut;
-    [dyadmino goToTempPositionWithRescale:YES];
+    [dyadmino goToTempPositionWithLayout:NO andRescale:YES andOrient:NO];
   }
 }
 
@@ -1228,7 +1230,6 @@
       if (_touchedDyadmino != _recentRackDyadmino) {
         [self sendHomeRecentRackDyadminoFromBoardDyadminoMove];
       }
-      
     }
   }
 }
@@ -1236,7 +1237,8 @@
 -(void)getReadyToMoveCurrentDyadmino:(Dyadmino *)dyadmino {
   
   if ([dyadmino isOnBoard] && dyadmino != _hoveringDyadmino) {
-    [self updateCellsForRemovedDyadmino:dyadmino withLayout:YES updateBounds:NO];
+    [self incrementDyadminoesInFluxWithLayoutFirst:YES minusDyadmino:dyadmino];
+    [self updateCellsForRemovedDyadmino:dyadmino];
   }
 
   _touchOffsetVector = [dyadmino isInRack] ? [self subtractFromThisPoint:_beganTouchLocation thisPoint:dyadmino.position] :
@@ -1293,9 +1295,9 @@
         // or if dyadmino is in rack but belongs on board (this seems to work)
     } else if (dyadmino.home == kBoard && [dyadmino isInRack]) {
       dyadmino.tempHexCoord = dyadmino.homeHexCoord;
-      [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
+      [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField withLayout:NO];
       dyadmino.position = [_boardField getOffsetFromPoint:dyadmino.position];
-      [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:dyadmino.position];
+//      [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:dyadmino.position];
       [self moveDyadminoHome:dyadmino];
       
         // otherwise, prepare it for hover
@@ -1329,9 +1331,16 @@
 -(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingInForUndo:(BOOL)popInForUndo {
     // only called by moveDyadminoHome and popDyadminoHome
   
+  NSLog(@"send dyadmino home");
+  
   if ([dyadmino isOnBoard]) {
-    [self updateCellsForRemovedDyadmino:dyadmino withLayout:YES updateBounds:YES];
+    [self updateCellsForRemovedDyadmino:dyadmino];
   }
+  
+//  if (dyadmino.home == kRack && dyadmino != _hoveringDyadmino) {
+//    NSLog(@"increment from send home");
+//    [self incrementDyadminoesInFluxWithLayoutFirst:YES minusDyadmino:dyadmino];
+//  }
   
   if (dyadmino != _touchedDyadmino) {
     [self.myDelegate fadeChordMessage];
@@ -1340,7 +1349,9 @@
       // recalibrate coordinates if dyadmino is sent home to rack from board
   if (dyadmino.parent == _boardField && (dyadmino.home == kRack || popInForUndo)) {
     CGPoint newPosition = [self addToThisPoint:dyadmino.position thisPoint:_boardField.position];
-    [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
+    
+    BOOL withLayout = dyadmino != _hoveringDyadmino;
+    [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField withLayout:withLayout];
     dyadmino.position = newPosition;
   }
   
@@ -1752,7 +1763,7 @@
     [self presentActionSheet:kActionSheetStrandedCannotUndo withPoints:0];
     
   } else {
-    _undoButtonAllowed = NO;
+//    _undoButtonAllowed = NO;
     
       // recalibrate undone dyadmino
     Dyadmino *undoneDyadmino = [self getDyadminoFromDataDyadmino:undoneDataDyadmino];
@@ -1765,6 +1776,7 @@
     [self recordChangedDataForRackDyadminoes:self.playerRackDyadminoes];
     
       // take care of views
+    [self incrementDyadminoesInFluxWithLayoutFirst:YES minusDyadmino:undoneDyadmino];
     [self popDyadminoHome:undoneDyadmino];
   }
 }
@@ -1786,10 +1798,10 @@
     dyadmino.tempHexCoord = dyadmino.homeHexCoord;
   }
 
-  if (![_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes minusDyadmino:nil updateBounds:NO]) {
-    NSLog(@"Board cells and snap points not laid out properly.");
-    abort();
-  }
+//  if (![_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes minusDyadmino:nil updateBounds:NO]) {
+//    NSLog(@"Board cells and snap points not laid out properly.");
+//    abort();
+//  }
   
   if (![self populateBoardWithDyadminoesAnimated:YES]) {
     NSLog(@"Dyadminoes were not placed on board properly.");
@@ -2373,13 +2385,12 @@
   BOOL noRackDyadminoesPlayedAndNoRecentRackDyadmino = holdingIndexContainer.count == 0 && !_recentRackDyadmino;
   
       // if player has points from moving a board dyadmino, that counts as well
-  
   BOOL noBoardDyadminoesPlayedAndNoRecentRackDyadmino = ([self.myMatch pointsForAllChordsThisTurn] == 0) && !_recentRackDyadmino;
   BOOL noActionsInProgress = [self noActionsInProgress];
   
   [_topBar node:_topBar.returnOrStartButton shouldBeEnabled:noActionsInProgress && !self.swapContainer && !thereIsATouchedOrHoveringDyadmino];
   [_topBar node:_topBar.replayButton shouldBeEnabled:noActionsInProgress && (gameHasEndedForPlayer || !currentPlayerHasTurn || (currentPlayerHasTurn && !self.swapContainer)) && (turns.count > 0) && !_pnpBarUp];
-  [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:noActionsInProgress && (!gameHasEndedForPlayer && currentPlayerHasTurn) && !_pnpBarUp && _undoButtonAllowed];
+  [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:!_fieldActionInProgress && (!gameHasEndedForPlayer && currentPlayerHasTurn) && !_pnpBarUp];
   [_topBar node:_topBar.passPlayOrDoneButton shouldBeEnabled:noActionsInProgress && ((!gameHasEndedForPlayer && currentPlayerHasTurn) && (!thereIsATouchedOrHoveringDyadmino) && !_pnpBarUp && ((self.swapContainer && swapContainerNotEmpty) || !self.swapContainer) && (self.swapContainer || (!noBoardDyadminoesPlayedAndNoRecentRackDyadmino || (noBoardDyadminoesPlayedAndNoRecentRackDyadmino && [self.myMatch returnType] != kSelfGame))) && (!_recentRackDyadmino || (_recentRackDyadmino && _recentRackDyadminoFormsLegalChord)))];
   [_topBar node:_topBar.optionsButton shouldBeEnabled:noActionsInProgress && (!gameHasEndedForPlayer && (!currentPlayerHasTurn || (currentPlayerHasTurn && !self.swapContainer))) && !_pnpBarUp];
   
@@ -2390,7 +2401,7 @@
 
   } else if (thereIsATouchedOrHoveringDyadmino) {
     [_topBar changeSwapCancelOrUndo:kCancelButton];
-    [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:noActionsInProgress];
+    [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:!_fieldActionInProgress];
     [_topBar node:_topBar.replayButton shouldBeEnabled:NO];
     
       // no dyadminoes played, and no recent rack dyadmino
@@ -2765,34 +2776,16 @@
 
 #pragma mark - board helper methods
 
--(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino withLayout:(BOOL)layout {
+-(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino {
     // only called in populateBoardWithDyadminoes and sendDyadminoHome (in completion block after animation)
-  
-  if (!dyadmino.isRotating) {
-    
-    [_boardField updateCellsForDyadmino:dyadmino placedOnBottomHexCoord:dyadmino.tempHexCoord];
-    
-    if (layout) {
-      NSLog(@"layout and colour board cells called in update for placed");
-      [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]
-                                                        minusDyadmino:nil updateBounds:YES];
-    }
-  }
+
+  [_boardField updateCellsForDyadmino:dyadmino placedOnBottomHexCoord:dyadmino.tempHexCoord];
 }
 
--(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino withLayout:(BOOL)layout updateBounds:(BOOL)updateBounds {
+-(void)updateCellsForRemovedDyadmino:(Dyadmino *)dyadmino {
     // only called in willMoveFromView and getReadyToMoveCurrentDyadmino and sendDyadminoHome
-  
-  if (!dyadmino.isRotating) {
-        
-    [_boardField updateCellsForDyadmino:dyadmino removedFromBottomHexCoord:dyadmino.tempHexCoord];
-    
-    if (layout) {
-      NSLog(@"layout and colour board cells called in update for removed");
-      [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino]
-                                                        minusDyadmino:dyadmino updateBounds:updateBounds];
-    }
-  }
+
+  [_boardField updateCellsForDyadmino:dyadmino removedFromBottomHexCoord:dyadmino.tempHexCoord];
 }
 
 -(NSSet *)allBoardDyadminoesPlusRecentRackDyadmino {
@@ -2882,7 +2875,7 @@
   
   if (_pivotInProgress || (!self.swapContainer && _currentTouchLocation.y - _touchOffsetVector.y >= kRackHeight &&
       _currentTouchLocation.y - _touchOffsetVector.y < self.frame.size.height - kTopBarHeight)) {
-    [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField];
+    [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField withLayout:NO];
     [dyadmino placeInTopBar:NO];
     
       // it's in swap
@@ -2894,7 +2887,7 @@
 
     // if in rack field, doesn't matter if it's in swap
   } else if (_currentTouchLocation.y - _touchOffsetVector.y <= kRackHeight) {
-    [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField];
+    [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_rackField withLayout:NO];
     [dyadmino placeInBelongsInSwap:NO];
     [self removeDataDyadminoFromSwapContainerForDyadmino:dyadmino];
     [dyadmino placeInTopBar:NO];
@@ -3062,10 +3055,16 @@
   return trueAngle;
 }
 
--(void)removeDyadmino:(Dyadmino *)dyadmino fromParentAndAddToNewParent:(SKSpriteNode *)newParent {
+-(void)removeDyadmino:(Dyadmino *)dyadmino fromParentAndAddToNewParent:(SKSpriteNode *)newParent withLayout:(BOOL)layout {
   if (dyadmino && newParent && dyadmino.parent != newParent) {
     [dyadmino removeFromParent];
     [newParent addChild:dyadmino];
+    
+    if (newParent == _boardField) {
+      [self incrementDyadminoesInFluxWithLayoutFirst:NO minusDyadmino:nil];
+    } else if (newParent == _rackField) {
+      [self decrementDyadminoesInFluxWithLayoutLast:layout];
+    }
   }
 }
 
@@ -3199,14 +3198,12 @@
 }
 
 -(void)updateBoardForReplayInReplay:(BOOL)inReplay {
-  
-  NSMutableSet *dyadminoesOnBoardUpToThisPoint = inReplay ? [self dyadminoesOnBoardThisReplayTurn] :
-      [NSMutableSet setWithSet:[self allBoardDyadminoesPlusRecentRackDyadmino]];
-  
+
     // match already knows the turn number
     // get player and dyadminoes for this turn
   Player *turnPlayer;
   NSArray *turnDataDyadminoIndexes;
+  
   if (inReplay) {
     NSUInteger playerOrder = [[self.myMatch.turns[self.myMatch.replayTurn - 1] objectForKey:kTurnPlayer] unsignedIntegerValue];
     turnPlayer = [self.myMatch playerForIndex:playerOrder];
@@ -3244,23 +3241,22 @@
           // get position and orientation attributes
         dyadmino.tempHexCoord = [dataDyad getHexCoordForTurn:self.myMatch.replayTurn];
         dyadmino.homeOrientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
-        [dyadmino orientWithAnimation:YES];
-        
-//        [dyadminoesOnBoardUpToThisPoint addObject:dyadmino];
       }
       
         // position dyadmino
+      [self incrementDyadminoesInFluxWithLayoutFirst:NO minusDyadmino:nil];
+      
       if (inReplay) {
-        [dyadmino goToTempPositionWithRescale:NO];
+        [dyadmino goToTempPositionWithLayout:YES andRescale:NO andOrient:YES];
         
       } else {
-        [dyadmino returnHomeToBoardWithLayout:NO];
+        [dyadmino returnHomeToBoardWithLayout:YES];
       }
     }
   }
 
   NSLog(@"layout called from update board for replay");
-  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoardUpToThisPoint minusDyadmino:nil updateBounds:YES];
+//  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoardUpToThisPoint minusDyadmino:nil updateBounds:YES];
 }
 
 -(NSMutableSet *)dyadminoesOnBoardThisReplayTurn {
@@ -3393,7 +3389,7 @@
 
     case kActionSheetStrandedCannotUndo:
     case kActionSheetReset:
-      _undoButtonAllowed = YES;
+//      _undoButtonAllowed = YES;
       if ([buttonText isEqualToString:@"Reset"]) {
         [self resetBoardFromPass:NO];
       }
@@ -3473,7 +3469,7 @@
 }
 
 -(void)allowUndoButton {
-  _undoButtonAllowed = YES;
+//  _undoButtonAllowed = YES;
   [self updateTopBarButtons];
 }
 
@@ -3491,38 +3487,62 @@
 
 #pragma mark - increment and decrement methods for completing dyadmino animation to temp board cell
 
--(void)incrementByOne {
+-(void)incrementDyadminoesInFluxWithLayoutFirst:(BOOL)layoutFirst minusDyadmino:(Dyadmino *)minusDyadmino {
+    // with layout first called only in getReadyToMove (placed board dyadmino only) and undoLastPlayedDyadmino
   
-  _dyadminoMoveCompletionCounter++;
-//  NSLog(@"counter is %i", _dyadminoMoveCompletionCounter);
+    // without layout first called only in removeDyadmino:FromParent and updateBoardForReplay
   
-  if (_dyadminoMoveCompletionCounter == 1) {
+  _dyadminoFluxCounter++;
+  NSLog(@"increment counter is %i", _dyadminoFluxCounter);
+  
+  if (_dyadminoFluxCounter == 1) {
+    
+    NSLog(@"First increment!");
+    
     [self updateTopBarButtons];
     if (_replayMode) {
       [self updateReplayButtons];
     }
-    NSLog(@"Here goes!");
+    
+    if (layoutFirst) {
+      NSLog(@"Layout in first increment");
+      NSSet *dyadminoes = _replayMode ? [self dyadminoesOnBoardThisReplayTurn] : [self allBoardDyadminoesPlusRecentRackDyadmino];
+      [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:dyadminoes minusDyadmino:minusDyadmino updateBounds:YES];
+    }
   }
 }
 
--(void)decrementByOne {
-  if (_dyadminoMoveCompletionCounter > 0) {
-    _dyadminoMoveCompletionCounter--;
+-(void)decrementDyadminoesInFluxWithLayoutLast:(BOOL)layoutLast {
+    // with layout last called by completion in dyadmino for replay, ease into board node, and return home to board
+  
+    // without layout last called only in removeDyadmino:FromParent
+    // and by completion in dyadmino in returnToRack (for undo only)
+  
+  if (_dyadminoFluxCounter > 0) {
+    _dyadminoFluxCounter--;
   }
+  NSLog(@"decrement counter is %i", _dyadminoFluxCounter);
   
-//  NSLog(@"counter is %i", _dyadminoMoveCompletionCounter);
-  
-  if (_dyadminoMoveCompletionCounter == 0) {
+    // allows for layout when touched rack dyadmino sends home hovering board dyadmino
+  if (_dyadminoFluxCounter == 0 || (_dyadminoFluxCounter == 1 && _touchedDyadmino)) {
+    
+    NSLog(@"Last decrement!");
+    
     [self updateTopBarButtons];
     if (_replayMode) {
       [self updateReplayButtons];
     }
-    NSLog(@"Yay!");
+    
+    if (layoutLast) {
+      NSLog(@"Layout in last decrement");
+      NSSet *dyadminoes = _replayMode ? [self dyadminoesOnBoardThisReplayTurn] : [self allBoardDyadminoesPlusRecentRackDyadmino];
+      [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:dyadminoes minusDyadmino:nil updateBounds:YES];
+    }
   }
 }
 
 -(BOOL)noActionsInProgress {
-  return _dyadminoMoveCompletionCounter == 0 && !_fieldActionInProgress;
+  return _dyadminoFluxCounter == 0 && !_fieldActionInProgress;
 }
 
 #pragma mark - debugging methods
