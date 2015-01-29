@@ -23,7 +23,6 @@
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
 -(void)postSoundNotification:(NotificationName)whichNotification;
 -(BOOL)refreshRackFieldAndDyadminoesFromUndo:(BOOL)undo withAnimation:(BOOL)animation;
-//-(void)incrementDyadminoesInFluxWithLayoutFirst:(BOOL)layoutFirst minusDyadmino:(Dyadmino *)minusDyadmino;
 -(void)decrementDyadminoesInFluxWithLayoutLast:(BOOL)layoutLast;
 
 @end

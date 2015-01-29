@@ -59,10 +59,7 @@
         // undone dyadmino is popped in
       if (undo && index == dyadminoesInArray.count - 1) {
         dyadmino.position = shouldBePosition;
-        
-        [dyadmino animateGrowPopInWithCompletionBlock:^{
-          [weakSelf.delegate allowUndoButton];
-        }];
+        [dyadmino animateGrowPopInWithCompletionBlock:nil];
         return;
       }
         // dyadmino is *not* already on rack, so add offscreen first and then animate

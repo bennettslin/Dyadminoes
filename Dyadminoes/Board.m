@@ -336,8 +336,13 @@
   
   for (Dyadmino *dyadmino in finalBoardDyadminoes) {
 
+    NSLog(@"layout for dyadmino %@ based on orientation %i", dyadmino.name, dyadmino.homeOrientation);
     HexCoord bottomHexCoord = [self hexCoordFromX:dyadmino.tempHexCoord.x andY:dyadmino.tempHexCoord.y];
-    HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:dyadmino.homeOrientation];
+    
+      // was homeOrientation before
+    
+    DyadminoOrientation orientation = dyadmino.home == kRack ? dyadmino.orientation : dyadmino.homeOrientation;
+    HexCoord topHexCoord = [self retrieveTopHexCoordForBottomHexCoord:bottomHexCoord andOrientation:orientation];
     
     HexCoord hexCoord[2] = {bottomHexCoord, topHexCoord};
     
@@ -414,10 +419,10 @@
 //    }
 
     [self removeCellFromColumnOfRowsOfCells:cell];
-    [cell resetForReuse];
     
     __weak typeof(self) weakSelf = self;
     void(^completion)(void) = ^void(void) {
+      [cell resetForReuse];
       [weakSelf pushDequeuedCell:cell];
     };
     
@@ -428,13 +433,14 @@
 -(void)fadeOut:(BOOL)fadeOut cell:(Cell *)cell completion:(void(^)(void))completion {
   CGFloat fadeAlpha = fadeOut ? 0.f : 1.f;
   
+  [cell removeActionForKey:@"cellFade"];
   SKAction *fadeAction = [SKAction fadeAlphaTo:fadeAlpha duration:kConstantTime];
   SKAction *shrinkAction = [SKAction scaleTo:fadeAlpha duration:kConstantTime];
   SKAction *fadeShrinkGroup = [SKAction group:@[fadeAction, shrinkAction]];
   SKAction *completionAction = [SKAction runBlock:completion];
   SKAction *sequenceAction = [SKAction sequence:@[fadeShrinkGroup, completionAction]];
 //  [cell.cellNode runAction:sequenceAction];
-  [cell runAction:sequenceAction];
+  [cell runAction:sequenceAction withKey:@"cellFade"];
 
 }
 

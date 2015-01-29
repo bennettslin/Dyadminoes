@@ -10,7 +10,6 @@
 #import "SKSpriteNode+Helper.h"
 #import "NSObject+Helper.h"
 #import "Button.h"
-//@class Button;
 @class Label;
 
 @protocol BarDelegate <NSObject>

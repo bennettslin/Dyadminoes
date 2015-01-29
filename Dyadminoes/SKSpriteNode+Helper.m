@@ -15,8 +15,7 @@
 
 -(void)removeAnimationForKey:(NSString *)key withCompletion:(void(^)(void))completion {
   [super removeActionForKey:key];
-  SKAction *completionAction = [SKAction runBlock:completion];
-  [self runAction:completionAction];
+  completion();
 }
 
 -(void)toggleToYPosition:(CGFloat)toYPosition goOut:(BOOL)goOut completion:(void(^)(void))completion withKey:(NSString *)key {

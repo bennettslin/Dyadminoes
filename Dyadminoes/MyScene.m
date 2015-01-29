@@ -103,9 +103,7 @@
   Dyadmino *_recentRackDyadmino;
   Dyadmino *_hoveringDyadmino;
   BOOL _recentRackDyadminoFormsLegalChord;
-//  BOOL _undoButtonAllowed; // ensures that player can't quickly undo too many at once, which screws up the animation
   
-//  Button *_buttonPressed;
   SKNode *_touchNode;
   SKSpriteNode *_soundedDyadminoFace;
 
@@ -222,9 +220,6 @@
   _boardDyadminoMovedShowResetButton = NO;
   _zoomChangedCellsAlpha = NO;
   _rackExchangeInProgress = NO;
-//  [self buttonPressedMakeNil];
-//  [_buttonPressed liftWithAnimation:NO andCompletion:nil];
-//  _buttonPressed = nil;
   _hoveringDyadminoBeingCorrected = 0;
   _hoveringDyadminoFinishedCorrecting = 1;
   _buttonsUpdatedThisTouch = NO;
@@ -250,7 +245,6 @@
   _pivotInProgress = NO;
   _actionSheetShown = NO;
   _endTouchLocationToMeasureDoubleTap = CGPointMake(CGFLOAT_MAX, CGFLOAT_MAX);
-//  _undoButtonAllowed = YES;
   _dyadminoFluxCounter = 0;
   
   if (_lockMode) {
@@ -275,11 +269,6 @@
     // this only needs the board dyadminoes to determine the board's cells ranges
     // this populates the board cells
   [self repositionBoardField];
-  
-//  if (![_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes minusDyadmino:nil updateBounds:NO]) {
-//    NSLog(@"Board cells and snap points not laid out properly.");
-//    abort();
-//  }
   
   [_boardField establishHexOriginForCenteringBoardBasedOnBoardDyadminoes:self.boardDyadminoes];
   
@@ -597,9 +586,7 @@
   _topBar.delegate = self;
   [_topBar populateWithTopBarButtons];
   [self addChild:_topBar];
-  
-//  _topBar.returnOrStartButton.delegate = self;
-  
+
   return (_topBar.parent == self);
 }
 
@@ -616,6 +603,7 @@
 }
 
 -(BOOL)layoutReplayBars {
+  
     // initial position is beyond screen
   _replayTop = [[ReplayBar alloc] initWithColor:kReplayTopColour andSize:CGSizeMake(self.frame.size.width, kTopBarHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, self.frame.size.height) andZPosition:kZPositionReplayTop];
   _replayTop.name = @"replayTop";
@@ -636,6 +624,7 @@
 }
 
 -(BOOL)layoutRackField {
+  
   _rackField = [[Rack alloc] initWithColour:kSolidBlue
                                     andSize:CGSizeMake(self.frame.size.width, kRackHeight)
                              andAnchorPoint:CGPointZero
@@ -652,7 +641,6 @@
     // match is still in play
   if (![self.myMatch returnGameHasEnded]) {
 
-//    [_rackField layoutOrRefreshNodesWithCount:self.playerRackDyadminoes.count];
     [_rackField repositionDyadminoes:self.playerRackDyadminoes fromUndo:undo withAnimation:animation];
     
     for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
@@ -660,7 +648,6 @@
     }
 
   } else {
-//    [_rackField layoutOrRefreshNodesWithCount:self.playerRackDyadminoes.count];
     [_rackField repositionDyadminoes:self.playerRackDyadminoes fromUndo:undo withAnimation:animation];
   }
   
@@ -742,32 +729,6 @@
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
 //  NSLog(@"touch node is %@ of class %@", _touchNode.name, _touchNode.class);
-
-    //--------------------------------------------------------------------------
-    /// 3a. button pressed
-  
-    // cancels button pressed if there's any other touch
-//  if (_buttonPressed) {
-//    [self buttonPressedMakeNil];
-//    return;
-//  }
-  
-    // if it's a button, take care of it when touch ended
-//  if ([_touchNode isKindOfClass:[Button class]] || [_touchNode.parent isKindOfClass:[Button class]]) {
-//    Button *touchedButton = [_touchNode isKindOfClass:[Button class]] ? (Button *)_touchNode : (Button *)_touchNode.parent;
-//    
-//    if ([touchedButton isEnabled]) {
-//      [self postSoundNotification:kNotificationButtonSunkIn];
-//      
-//      if (_buttonPressed) {
-//        [self buttonPressedMakeNil];
-//      }
-//      
-//      _buttonPressed = touchedButton;
-//      [_buttonPressed sinkInWithAnimation:YES];
-//      return;
-//    }
-//  }
   
     //--------------------------------------------------------------------------
     /// 3b. dyadmino touched
@@ -859,25 +820,7 @@
   if (thisTouch != _currentTouch) {
     return;
   }
-  
-    // if the touch started on a button, do nothing and return
-//  if (_buttonPressed) {
-//    SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
-//    
-//      // although these methods are called, button will check itself
-//      // to determine whether animations are actually needed
-//    if (node == _buttonPressed || node.parent == _buttonPressed) {
-//      [_buttonPressed sinkInWithAnimation:YES];
-//    } else {
-//      [_buttonPressed liftWithAnimation:YES andCompletion:nil];
-//    }
-//    return;
-//  }
-  
-    // register no touches moved while field is being toggled
-//  if (![self dyadminoMoveCompletionCounterIsZero]) {
-//    return;
-//  }
+
   if (_fieldActionInProgress) {
     return;
   }
@@ -1022,7 +965,6 @@
 
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
   
-//  NSLog(@"touches ended");
     /// 1. first check whether to even register the touch ended
   
     // kludge way of ensuring that buttonPressed is cancelled upon multiple touches
@@ -1032,39 +974,16 @@
   _endTouchLocationToMeasureDoubleTap = [self findTouchLocationFromTouches:touches];
   
   if (thisTouch != _currentTouch) {
-//    [self buttonPressedMakeNil]; // remarkably, it seems both these calls are needed
     return;
   }
 
   _currentTouch = nil;
   [self endTouchFromTouches:touches];
-//  [self buttonPressedMakeNil];
 }
 
 -(void)endTouchFromTouches:(NSSet *)touches {
   
   if (!_fieldActionInProgress) {
-      //--------------------------------------------------------------------------
-      /// 2a and b. handle button press and board moved
-
-//    SKNode *node = [self nodeAtPoint:[self findTouchLocationFromTouches:touches]];
-    
-//    if (!_touchedDyadmino) { // ensures dyadmino was not placed over button
-//      if ([node isKindOfClass:[Button class]] || [node.parent isKindOfClass:[Button class]]) {
-//        Button *button = [node isKindOfClass:[Button class]] ? (Button *)node : (Button *)node.parent;
-//        if ([button isEnabled]) {
-//          [self postSoundNotification:kNotificationButtonLifted];
-//        }
-//
-//        if (button == _buttonPressed) {
-////          __weak typeof(self) weakSelf = self;
-////          [button liftWithAnimation:YES andCompletion:^{
-////            [weakSelf handleButtonPressed:button];
-////          }];
-//        }
-//        return;
-//      }
-//    }
 
       // board no longer being moved
     if (_boardToBeMovedOrBeingMoved) {
@@ -1113,7 +1032,6 @@
                                                                    returnDifference:NO];
     
     if (_hoveringDyadminoStaysFixedToBoard) {
-//      NSLog(@"hovering dyadmino %@ stays fixed to board in move board", _hoveringDyadmino.name);
       _hoveringDyadmino.position = [self addToThisPoint:_hoveringDyadmino.position
                                               thisPoint:[self subtractFromThisPoint:oldBoardPosition
                                                                           thisPoint:adjustedNewPosition]];
@@ -1153,7 +1071,6 @@
     // prep board for bounds and position
     // if in replay, only determine cells based on these dyadminoes
   
-//  NSLog(@"determine outermost called from toggle board zoom");
   [_boardField determineOutermostCellsBasedOnDyadminoes:(_replayMode ? [self dyadminoesOnBoardThisReplayTurn] : [self allBoardDyadminoesPlusRecentRackDyadmino])];
   [_boardField determineBoardPositionBounds];
   
@@ -1175,6 +1092,7 @@
     [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
     dyadmino.isTouchThenHoverResized = NO;
     dyadmino.isZoomResized = _boardZoomedOut;
+    [self incrementDyadminoesInFluxWithLayoutFirst:NO minusDyadmino:nil];
     [dyadmino goToTempPositionWithLayout:NO andRescale:YES andOrient:NO];
   }
 }
@@ -1333,16 +1251,9 @@
 -(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingInForUndo:(BOOL)popInForUndo {
     // only called by moveDyadminoHome and popDyadminoHome
   
-  NSLog(@"send dyadmino home");
-  
   if ([dyadmino isOnBoard]) {
     [self updateCellsForRemovedDyadmino:dyadmino];
   }
-  
-//  if (dyadmino.home == kRack && dyadmino != _hoveringDyadmino) {
-//    NSLog(@"increment from send home");
-//    [self incrementDyadminoesInFluxWithLayoutFirst:YES minusDyadmino:dyadmino];
-//  }
   
   if (dyadmino != _touchedDyadmino) {
     [self.myDelegate fadeChordMessage];
@@ -1606,11 +1517,6 @@
   [self updateTopBarButtons];
 }
 
-//-(void)buttonPressedMakeNil {
-//  [_buttonPressed liftWithAnimation:NO andCompletion:nil];
-//  _buttonPressed = nil;
-//}
-
 #pragma mark - match interaction methods
 
 -(void)cancelSwappedDyadminoes {
@@ -1765,7 +1671,6 @@
     [self presentActionSheet:kActionSheetStrandedCannotUndo withPoints:0];
     
   } else {
-//    _undoButtonAllowed = NO;
     
       // recalibrate undone dyadmino
     Dyadmino *undoneDyadmino = [self getDyadminoFromDataDyadmino:undoneDataDyadmino];
@@ -1799,11 +1704,6 @@
     dyadmino.homeHexCoord = dataDyad.myHexCoord;
     dyadmino.tempHexCoord = dyadmino.homeHexCoord;
   }
-
-//  if (![_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.boardDyadminoes minusDyadmino:nil updateBounds:NO]) {
-//    NSLog(@"Board cells and snap points not laid out properly.");
-//    abort();
-//  }
   
   if (![self populateBoardWithDyadminoesAnimated:YES]) {
     NSLog(@"Dyadminoes were not placed on board properly.");
@@ -1860,7 +1760,6 @@
 }
 
 -(void)handleEndGame {
-//  [self updateTopBarLabelsFinalTurn:YES animated:YES];
   __weak typeof(self) weakSelf = self;
   void(^completion)(void) = ^void(void) {
     [weakSelf.myDelegate presentFromSceneGameEndedVC];
@@ -2396,7 +2295,6 @@
   [_topBar node:_topBar.passPlayOrDoneButton shouldBeEnabled:noActionsInProgress && ((!gameHasEndedForPlayer && currentPlayerHasTurn) && (!thereIsATouchedOrHoveringDyadmino) && !_pnpBarUp && ((self.swapContainer && swapContainerNotEmpty) || !self.swapContainer) && (self.swapContainer || (!noBoardDyadminoesPlayedAndNoRecentRackDyadmino || (noBoardDyadminoesPlayedAndNoRecentRackDyadmino && [self.myMatch returnType] != kSelfGame))) && (!_recentRackDyadmino || (_recentRackDyadmino && _recentRackDyadminoFormsLegalChord)))];
   [_topBar node:_topBar.optionsButton shouldBeEnabled:noActionsInProgress && (!gameHasEndedForPlayer && (!currentPlayerHasTurn || (currentPlayerHasTurn && !self.swapContainer))) && !_pnpBarUp];
   
-    // FIXME: can be refactored further
   if (self.swapContainer) {
     [_topBar changeSwapCancelOrUndo:kCancelButton];
     [_topBar changePassPlayOrDone:kDoneButton];
@@ -3257,7 +3155,7 @@
     }
   }
 
-  NSLog(@"layout called from update board for replay");
+//  NSLog(@"layout called from update board for replay");
 //  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoardUpToThisPoint minusDyadmino:nil updateBounds:YES];
 }
 
@@ -3391,7 +3289,6 @@
 
     case kActionSheetStrandedCannotUndo:
     case kActionSheetReset:
-//      _undoButtonAllowed = YES;
       if ([buttonText isEqualToString:@"Reset"]) {
         [self resetBoardFromPass:NO];
       }
@@ -3470,11 +3367,6 @@
   return [self.myMatch colourForPlayer:_myPlayer forLabel:NO light:light];
 }
 
--(void)allowUndoButton {
-//  _undoButtonAllowed = YES;
-  [self updateTopBarButtons];
-}
-
 -(BOOL)actionSheetShown {
   return _actionSheetShown;
 }
@@ -3492,7 +3384,7 @@
 -(void)incrementDyadminoesInFluxWithLayoutFirst:(BOOL)layoutFirst minusDyadmino:(Dyadmino *)minusDyadmino {
     // with layout first called only in getReadyToMove (placed board dyadmino only) and undoLastPlayedDyadmino
   
-    // without layout first called only in removeDyadmino:FromParent and updateBoardForReplay
+    // without layout first called only in removeDyadmino:FromParent, updateBoardForReplay, and toggleBoardZoom
   
   _dyadminoFluxCounter++;
   NSLog(@"increment counter is %i", _dyadminoFluxCounter);
@@ -3517,7 +3409,7 @@
 -(void)decrementDyadminoesInFluxWithLayoutLast:(BOOL)layoutLast {
     // with layout last called by completion in dyadmino for replay, ease into board node, and return home to board
   
-    // without layout last called only in removeDyadmino:FromParent
+    // without layout last called only in removeDyadmino:FromParent (or with, if cancelled board dyadmino)
     // and by completion in dyadmino in returnToRack (for undo only)
   
   if (_dyadminoFluxCounter > 0) {
@@ -3558,41 +3450,9 @@
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
     dyadmino.hidden = _debugMode;
   }
-  
-//  for (Cell *cell in _boardField.allCells) {
-//    if ([cell isKindOfClass:[Cell class]]) {
-//      cell.hexCoordLabel.hidden = !_debugMode;
-//      cell.pcLabel.hidden = !_debugMode;
-//    }
-//  }
-  
-//  for (int i = 0; i < kMaxNumPlayers; i++) {
-//    Player *player = (i <= self.myMatch.players.count - 1) ? [self.myMatch playerForIndex:i] : nil;
-//    Label *rackLabel = _topBar.playerRackLabels[i];
-//    [_topBar updateLabel:_topBar.playerRackLabels[i] withText:[[player.dataDyadminoIndexesThisTurn valueForKey:@"stringValue"] componentsJoinedByString:@", "] andColour:nil];
-//    player ? nil : [_topBar node:rackLabel shouldBeEnabled:NO];
-//  }
-  
-//  NSString *pileText = [NSString stringWithFormat:@"in pile: %@", [[self.myMatch.pile valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-//  NSMutableArray *tempBoard = [NSMutableArray arrayWithArray:[self.myMatch.board allObjects]];
-//  NSString *boardText = [NSString stringWithFormat:@"on board: %@", [[tempBoard valueForKey:kDyadminoIDKey] componentsJoinedByString:@", "]];
-//  NSString *holdingContainerText = [NSString stringWithFormat:@"in holding container: %@", [[self.myMatch.holdingIndexContainer valueForKey:@"stringValue"] componentsJoinedByString:@", "]];
-//  NSString *swapContainerText = [NSString stringWithFormat:@"in swap container: %@", [[[self.myMatch.swapIndexContainer allObjects] valueForKey:@"stringValue"] componentsJoinedByString:@", "]];
-  
-//  [_topBar updateLabel:_topBar.pileDyadminoesLabel withText:pileText andColour:nil];
-//  [_topBar updateLabel:_topBar.boardDyadminoesLabel withText:boardText andColour:nil];
-//  [_topBar updateLabel:_topBar.holdingContainerLabel withText:holdingContainerText andColour:nil];
-//  [_topBar updateLabel:_topBar.swapContainerLabel withText:swapContainerText andColour:nil];
-  
+
   [self updateTopBarLabelsFinalTurn:NO animated:NO];
   [self updateTopBarButtons];
-//  [self logRackDyadminoes];
-//
-//  NSLog(@"match's occupied cells is %@", self.myMatch.occupiedCells);
-//
-//  for (DataCell *dataCell in self.myMatch.occupiedCells) {
-//    NSLog(@"cell with pc: %lu, dyadmino: %lu, hex: %li, %li", (unsigned long)dataCell.myPC, (unsigned long)dataCell.myDyadminoID, (long)dataCell.hexCoord.x, (long)dataCell.hexCoord.y);
-//  }
 }
 
 -(void)logRackDyadminoes {

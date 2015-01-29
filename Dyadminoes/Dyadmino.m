@@ -128,7 +128,7 @@
 }
 
 -(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle {
-  
+  NSLog(@"select and position sprites for %@", self.name);
   if (self.pcMode == kPCModeLetter) {
     if (!self.pc1Sprite || self.pc1Sprite == self.pc1NumberSprite) {
       _alreadyAddedChildren = YES;
@@ -280,7 +280,6 @@
 }
 
 -(void)returnHomeToBoardWithLayout:(BOOL)layout {
-//  [self.delegate incrementByOne];
   [self orientWithAnimation:YES];
   [self animateMoveToPoint:[self.delegate homePositionForDyadmino:self] withLayout:layout];
   [self changeHoveringStatus:kDyadminoFinishedHovering];
@@ -294,7 +293,6 @@
     [self orientWithAnimation:YES];
   }
   
-//  [self.delegate incrementByOne];
   self.zPosition = kZPositionBoardReplayAnimatedDyadmino;
   CGPoint reposition = [self.delegate tempPositionForDyadmino:self withHomeOrientation:YES];
   
@@ -303,11 +301,7 @@
     weakSelf.zPosition = kZPositionBoardRestingDyadmino;
     [weakSelf setScale:1.f];
     [weakSelf selectAndPositionSpritesZRotation:0.f];
-    
-      // in other words, if in replay, but not zoom
-    if (orient) {
-      [weakSelf.delegate decrementDyadminoesInFluxWithLayoutLast:layout];
-    }
+    [weakSelf.delegate decrementDyadminoesInFluxWithLayoutLast:layout];
   };
   
   [self animateExcessivelyToPosition:reposition withRescale:rescale duration:kConstantTime withKey:@"replayAction" middleBlock:nil completion:completion];
@@ -366,7 +360,7 @@
       [self setToHomeZPosition];
       if ([self isOnBoard]) {
         NSLog(@"update cells for placed dyadmino in animate move to point");
-        [weakSelf.delegate updateCellsForPlacedDyadmino:self]; // was layout
+        [weakSelf.delegate updateCellsForPlacedDyadmino:self];
         [weakSelf.delegate decrementDyadminoesInFluxWithLayoutLast:layout];
       }
     };
@@ -450,6 +444,7 @@
 #pragma mark - animate rotation methods
 
 -(void)orientWithAnimation:(BOOL)animate {
+  NSLog(@"%@ orient with animate %i", self.name, animate);
   
   NSInteger currentOrientation = self.orientation;
   DyadminoOrientation shouldBeOrientation;
@@ -484,12 +479,11 @@
 }
 
 -(void)animateOneThirdFlipClockwise:(BOOL)clockwise times:(NSUInteger)times withFullFlip:(BOOL)fullFlip {
-  
+
   if (!_isPivotAnimating) {
-    [self removeActionForKey:kActionRotate];
     CGFloat radians = [self getRadiansFromDegree:60] * (clockwise ? 1 : -1);
     __block NSUInteger counter = times;
-    CGFloat duration = fullFlip ? kConstantTime / 5.8f : kConstantTime / 2.9f; // was 4.5;
+    CGFloat duration = fullFlip ? kConstantTime / 4.5f : kConstantTime / 4.5f; // was 4.5;
     
     SKAction *turnDyadmino = [SKAction rotateByAngle:-radians duration:duration];
     SKAction *turnFace = [SKAction rotateByAngle:radians duration:duration];
@@ -508,11 +502,7 @@
         if (counter > 0) {
           [weakSelf animateOneThirdFlipClockwise:clockwise times:counter withFullFlip:fullFlip];
         } else {
-          
-          if ([self isOnBoard]) {
-            [weakSelf.delegate updateCellsForPlacedDyadmino:weakSelf];
-          }
-          
+
           if (fullFlip) {
             [weakSelf completionAfterAnimatingFullFlip];
           }
@@ -706,6 +696,18 @@
 
 #pragma mark - animation helper methods
 
+-(void)removeMoveAction {
+  
+}
+
+-(void)removeScaleAction {
+  
+}
+
+-(void)removeRotateAction {
+  
+}
+
 -(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove {
   
   if (includingMove) {
@@ -715,7 +717,7 @@
   [self resetFaceScales];
   [self removeActionForKey:kActionShrinkPopIn];
   [self removeActionForKey:kActionGrowPopIn];
-  [self removeActionForKey:kActionFlip];
+//  [self removeActionForKey:kActionFlip];
   [self removeActionForKey:kActionEaseIntoNode];
   self.isRotating = NO;
 }
