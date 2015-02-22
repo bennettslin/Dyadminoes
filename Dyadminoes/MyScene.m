@@ -659,7 +659,7 @@
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location {
   
   if (_hoveringDyadmino) {
-    NSLog(@"move hovering dyadmino home from pinch gesture");
+//    NSLog(@"move hovering dyadmino home from pinch gesture");
     [self moveDyadminoHome:_hoveringDyadmino];
   }
   
@@ -667,7 +667,7 @@
   if (_touchedDyadmino) {
     Dyadmino *dyadmino = _touchedDyadmino;
     _touchedDyadmino = nil;
-    NSLog(@"move touched dyadmino home from pinch gesture");
+//    NSLog(@"move touched dyadmino home from pinch gesture");
     [self moveDyadminoHome:dyadmino];
   }
   
@@ -1643,6 +1643,7 @@
     
       // do cleanup, dyadmino's home node is now the board node
     dyadmino.homeHexCoord = dyadmino.tempHexCoord;
+    dyadmino.homeOrientation = dyadmino.orientation;
     dyadmino.rackIndex = -1;
     
     [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer forLabel:YES light:NO]];
@@ -2339,7 +2340,7 @@
   BOOL lastTurn = (self.myMatch.replayTurn == turns.count);
   BOOL noActionsInProgress = [self noActionsInProgress];
   
-  NSLog(@"in update replay buttons, no actions in progress is %i", noActionsInProgress);
+//  NSLog(@"in update replay buttons, no actions in progress is %i", noActionsInProgress);
   
   [_replayBottom node:_replayBottom.firstTurnButton shouldBeEnabled:noActionsInProgress && !zeroTurns && !firstTurn];
   [_replayBottom node:_replayBottom.previousTurnButton shouldBeEnabled:noActionsInProgress && !zeroTurns && !firstTurn];
@@ -3140,6 +3141,10 @@
       } else {
         [dyadmino returnHomeToBoardWithLayout:YES];
       }
+      
+      if (dyadmino.myID == 19) {
+        NSLog(@"%@ orientation is %i, home orientation is %i", dyadmino.name, dyadmino.orientation, dyadmino.homeOrientation);
+      }
     }
   }
 
@@ -3374,11 +3379,11 @@
     // without layout first called only in removeDyadmino:FromParent, updateBoardForReplay, and toggleBoardZoom
   
   _dyadminoFluxCounter++;
-  NSLog(@"increment counter is %i", _dyadminoFluxCounter);
+//  NSLog(@"increment counter is %i", _dyadminoFluxCounter);
   
   if (_dyadminoFluxCounter == 1) {
     
-    NSLog(@"First increment!");
+//    NSLog(@"First increment!");
     
     [self updateTopBarButtons];
     if (_replayMode) {
@@ -3386,7 +3391,7 @@
     }
     
     if (layoutFirst) {
-      NSLog(@"Layout in first increment");
+//      NSLog(@"Layout in first increment");
       NSSet *dyadminoes = _replayMode ? [self dyadminoesOnBoardThisReplayTurn] : [self allBoardDyadminoesPlusRecentRackDyadmino];
       [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:dyadminoes minusDyadmino:minusDyadmino updateBounds:YES];
     }
@@ -3401,12 +3406,12 @@
   if (_dyadminoFluxCounter > 0) {
     _dyadminoFluxCounter--;
   }
-  NSLog(@"decrement counter is %i", _dyadminoFluxCounter);
+//  NSLog(@"decrement counter is %i", _dyadminoFluxCounter);
   
     // allows for layout when touched rack dyadmino sends home hovering board dyadmino
   if (_dyadminoFluxCounter == 0 || (_dyadminoFluxCounter == 1 && _touchedDyadmino)) {
     
-    NSLog(@"Last decrement!");
+//    NSLog(@"Last decrement!");
     
     [self updateTopBarButtons];
     if (_replayMode) {
@@ -3414,7 +3419,7 @@
     }
     
     if (layoutLast) {
-      NSLog(@"Layout in last decrement");
+//      NSLog(@"Layout in last decrement");
       NSSet *dyadminoes = _replayMode ? [self dyadminoesOnBoardThisReplayTurn] : [self allBoardDyadminoesPlusRecentRackDyadmino];
       [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:dyadminoes minusDyadmino:nil updateBounds:YES];
     }

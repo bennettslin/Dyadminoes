@@ -135,7 +135,7 @@
 }
 
 -(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle resize:(BOOL)resize {
-  NSLog(@"select and position sprites for %@, rotation angle %.2f", self.name, rotationAngle);
+//  NSLog(@"select and position sprites for %@, rotation angle %.2f", self.name, rotationAngle);
   if (self.pcMode == kPCModeLetter) {
     if (!self.pc1Sprite || self.pc1Sprite == self.pc1NumberSprite) {
 //      _alreadyAddedChildren = YES;
@@ -337,7 +337,7 @@
     [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
     
     if ([self isOnBoard]) {
-      NSLog(@"update cells for placed dyadmino in animate ease");
+//      NSLog(@"update cells for placed dyadmino in animate ease");
       [weakSelf.delegate updateCellsForPlacedDyadmino:self];
       [weakSelf.delegate decrementDyadminoesInFluxWithLayoutLast:YES];
     }
@@ -370,7 +370,7 @@
     completion = ^void(void) {
       [self setToHomeZPosition];
       if ([self isOnBoard]) {
-        NSLog(@"update cells for placed dyadmino in animate move to point");
+//        NSLog(@"update cells for placed dyadmino in animate move to point");
         [weakSelf.delegate updateCellsForPlacedDyadmino:self];
         [weakSelf.delegate decrementDyadminoesInFluxWithLayoutLast:layout];
       }
@@ -435,7 +435,6 @@
   
   if (rescale) {
       // between .6 and .99
-    NSLog(@"rescale in animate excessively");
     CGFloat randomResizeFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
     CGFloat scaleAction = self.isZoomResized ? kZoomResizeFactor : 1 / kZoomResizeFactor;
     SKAction *resizeAction = [SKAction scaleTo:scaleAction duration:duration * randomResizeFactor];
@@ -509,7 +508,6 @@
         [weakSelf.pc1Sprite removeActionForKey:kActionRotateFace];
         [weakSelf.pc2Sprite removeActionForKey:kActionRotateFace];
         weakSelf.orientation = (weakSelf.orientation + (clockwise ? 1 : 5)) % 6;
-        NSLog(@"select and position sprites called from animate flip");
         [weakSelf selectAndPositionSpritesZRotation:0.f resize:YES];
         counter--;
         _isPivotAnimating = NO;

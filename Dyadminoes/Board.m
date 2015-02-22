@@ -326,7 +326,7 @@
   
   [self establishHexOriginForCenteringBoardBasedOnBoardDyadminoes:finalBoardDyadminoes];
   
-  NSLog(@"add all current called from layout");
+//  NSLog(@"add all current called from layout");
   NSMutableSet *tempIgnoredCellsSet = [self placeholderContainerForIgnoredCells];
   
   void(^resetBlock)(Cell *) = ^void(Cell *cell) {
@@ -988,9 +988,7 @@
 }
 
 -(void)updatePositionsOfPivotGuidesForDyadminoPosition:(CGPoint)dyadminoPosition {
-  
-  NSLog(@"update positions of pivot guides");
-  
+    
   if (!self.prePivotGuide.hidden) {
     self.prePivotGuide.position = dyadminoPosition;
   }
