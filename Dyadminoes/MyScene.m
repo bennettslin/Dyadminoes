@@ -1955,6 +1955,10 @@
         [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:_hoveringDyadmino.position];
       }
       
+      if (_touchedDyadmino) {
+        _touchedDyadmino.position = CGPointMake(_touchedDyadmino.position.x - thisDistance, _touchedDyadmino.position.y);
+      }
+      
     } else {
       alreadyCorrect++;
     }
@@ -1968,6 +1972,10 @@
       if (_hoveringDyadminoStaysFixedToBoard) {
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x, _hoveringDyadmino.position.y - thisDistance);
         [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:_hoveringDyadmino.position];
+      }
+      
+      if (_touchedDyadmino) {
+        _touchedDyadmino.position = CGPointMake(_touchedDyadmino.position.x, _touchedDyadmino.position.y - thisDistance);
       }
       
     } else {
@@ -1985,6 +1993,10 @@
         [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:_hoveringDyadmino.position];
       }
       
+      if (_touchedDyadmino) {
+        _touchedDyadmino.position = CGPointMake(_touchedDyadmino.position.x + thisDistance, _touchedDyadmino.position.y);
+      }
+      
     } else {
       alreadyCorrect++;
     }
@@ -1998,6 +2010,10 @@
       if (_hoveringDyadminoStaysFixedToBoard) {
         _hoveringDyadmino.position = CGPointMake(_hoveringDyadmino.position.x, _hoveringDyadmino.position.y + thisDistance);
         [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:_hoveringDyadmino.position];
+      }
+      
+      if (_touchedDyadmino) {
+        _touchedDyadmino.position = CGPointMake(_touchedDyadmino.position.x, _touchedDyadmino.position.y + thisDistance);
       }
       
     } else {
@@ -3140,10 +3156,6 @@
         
       } else {
         [dyadmino returnHomeToBoardWithLayout:YES];
-      }
-      
-      if (dyadmino.myID == 19) {
-        NSLog(@"%@ orientation is %i, home orientation is %i", dyadmino.name, dyadmino.orientation, dyadmino.homeOrientation);
       }
     }
   }
