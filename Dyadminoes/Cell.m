@@ -169,7 +169,8 @@
     // between .6 and .99
   CGFloat randomScaleFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
   
-  SKAction *scaleAction = [SKAction scaleTo:scaleTo duration:kConstantTime * randomScaleFactor];
+    // 0.75f because zoom animation should be a little quicker than usual
+  SKAction *scaleAction = [SKAction scaleTo:scaleTo duration:kConstantTime * 0.75f * randomScaleFactor];
   SKAction *completionAction = [SKAction runBlock:^{
     [weakSelf setScale:1.f];
     weakSelf.size = cellSize;

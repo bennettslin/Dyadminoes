@@ -336,7 +336,7 @@
   
   for (Dyadmino *dyadmino in finalBoardDyadminoes) {
 
-    NSLog(@"layout for dyadmino %@ based on orientation %i", dyadmino.name, dyadmino.homeOrientation);
+//    NSLog(@"layout for dyadmino %@ based on orientation %i", dyadmino.name, dyadmino.homeOrientation);
     HexCoord bottomHexCoord = [self hexCoordFromX:dyadmino.tempHexCoord.x andY:dyadmino.tempHexCoord.y];
     
       // was homeOrientation before

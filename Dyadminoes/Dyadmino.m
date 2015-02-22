@@ -12,13 +12,20 @@
 #import "Face.h"
 #import "SKSpriteNode+Helper.h"
 
-#define kActionMoveToPoint @"moveToPoint"
-#define kActionShrinkPopIn @"shrinkPopIn"
-#define kActionGrowPopIn @"growPopIn"
-#define kActionFlip @"flip"
-#define kActionRotate @"turn"
-#define kActionEaseIntoNode @"easeIntoNode"
-#define kActionSoundFace @"animateFace"
+//#define kActionMoveToPoint @"moveToPoint"
+//#define kActionShrinkPopIn @"shrinkPopIn"
+//#define kActionGrowPopIn @"growPopIn"
+//#define kActionFlip @"flip"
+
+#define kActionMove @"move"
+#define kActionRotate @"rotate"
+#define kActionRotateFace @"rotateFace"
+#define kActionScale @"scale"
+#define kActionFade @"fade"
+#define kActionSound @"sound"
+
+//#define kActionEaseIntoNode @"easeIntoNode"
+//#define kActionSoundFace @"animateFace"
 #define kActionHover @"hover"
 
 @interface Dyadmino ()
@@ -31,7 +38,7 @@
 @end
 
 @implementation Dyadmino {
-  BOOL _alreadyAddedChildren;
+//  BOOL _alreadyAddedChildren;
   BOOL _isPivotAnimating;
   PivotOnPC _pivotOnPC;
   BOOL _movedDueToChangeInAnchorPoint;
@@ -66,7 +73,7 @@
     self.pc2NumberSprite = pc2NumberSprite;
     self.pc2NumberSprite.zPosition = kZPositionDyadminoFace;
     self.hoveringStatus = kDyadminoNoHoverStatus;
-    [self selectAndPositionSpritesZRotation:0.f];
+    [self selectAndPositionSpritesZRotation:0.f resize:YES];
   }
   return self;
 }
@@ -127,11 +134,11 @@
   [self establishSizeOfSprite:self.pc2Sprite];
 }
 
--(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle {
-  NSLog(@"select and position sprites for %@", self.name);
+-(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle resize:(BOOL)resize {
+  NSLog(@"select and position sprites for %@, rotation angle %.2f", self.name, rotationAngle);
   if (self.pcMode == kPCModeLetter) {
     if (!self.pc1Sprite || self.pc1Sprite == self.pc1NumberSprite) {
-      _alreadyAddedChildren = YES;
+//      _alreadyAddedChildren = YES;
       [self removeAllChildren];
       self.pc1Sprite = self.pc1LetterSprite;
       self.pc2Sprite = self.pc2LetterSprite;
@@ -140,7 +147,7 @@
     }
   } else if (self.pcMode == kPCModeNumber) {
     if (!self.pc1Sprite || self.pc1Sprite == self.pc1LetterSprite) {
-      _alreadyAddedChildren = YES;
+//      _alreadyAddedChildren = YES;
       [self removeAllChildren];
       self.pc1Sprite = self.pc1NumberSprite;
       self.pc2Sprite = self.pc2NumberSprite;
@@ -190,7 +197,10 @@
       break;
   }
   
-  [self resize];
+    // FIXME: resize bool is actually unnecessary, they all say yes
+  if (resize) {
+    [self resize];
+  }
 }
 
 -(CGPoint)addIfSwapToHomePosition:(CGPoint)homePosition {
@@ -209,7 +219,7 @@
   };
   
   if (self.zRotation != 0.f) {
-    
+    NSLog(@"correct z rotation after hover");
     [self removeActionForKey:@"correctZRotation"];
     SKAction *zRotationAction = [SKAction rotateToAngle:0.f duration:kConstantTime / 4.f shortestUnitArc:YES];
     SKAction *zCompletion = [SKAction runBlock:completionBlock];
@@ -230,13 +240,13 @@
 -(void)startTouchThenHoverResize {
   self.isTouchThenHoverResized = YES;
   [self resize];
-  [self selectAndPositionSpritesZRotation:0.f];
+  [self selectAndPositionSpritesZRotation:0.f resize:YES];
 }
 
 -(void)endTouchThenHoverResize {
   self.isTouchThenHoverResized = NO;
   [self resize];
-  [self selectAndPositionSpritesZRotation:0.f];
+  [self selectAndPositionSpritesZRotation:0.f resize:YES];
 }
 
 -(void)changeHoveringStatus:(DyadminoHoveringStatus)hoveringStatus {
@@ -269,7 +279,7 @@
     if (resize) {
       self.isZoomResized = NO;
       [self resize];
-      [self selectAndPositionSpritesZRotation:0.f];
+      [self selectAndPositionSpritesZRotation:0.f resize:YES];
     }
     
     self.colorBlendFactor = 0.f;
@@ -300,11 +310,13 @@
   void(^completion)(void) = ^void(void) {
     weakSelf.zPosition = kZPositionBoardRestingDyadmino;
     [weakSelf setScale:1.f];
-    [weakSelf selectAndPositionSpritesZRotation:0.f];
+    [weakSelf selectAndPositionSpritesZRotation:0.f resize:YES];
     [weakSelf.delegate decrementDyadminoesInFluxWithLayoutLast:layout];
   };
   
-  [self animateExcessivelyToPosition:reposition withRescale:rescale duration:kConstantTime withKey:@"replayAction" middleBlock:nil completion:completion];
+    // 0.75f because zoom animation should be a little quicker than usual
+  CGFloat duration = rescale ? kConstantTime * 0.75f : kConstantTime;
+  [self animateExcessivelyToPosition:reposition withRescale:rescale duration:duration middleBlock:nil completion:completion];
 }
 
 -(void)animateEaseIntoNodeAfterHover {
@@ -334,7 +346,6 @@
   [self animateEasilyToPosition:settledPosition
                        duration:kConstantTime
                      timingMode:SKActionTimingEaseOut
-                        withKey:kActionEaseIntoNode
                      completion:completion];
 }
 
@@ -370,7 +381,8 @@
   }
   
   if (calledFromRack) {
-    [self animateEasilyToPosition:point duration:kConstantTime timingMode:SKActionTimingEaseOut withKey:kActionMoveToPoint completion:completion];
+    [self animateEasilyToPosition:point duration:kConstantTime timingMode:SKActionTimingEaseOut completion:completion];
+    
   } else {
     
     void(^middleBlock)(void) = ^void(void) {
@@ -380,27 +392,25 @@
       }
     };
     
-    [self animateExcessivelyToPosition:point withRescale:NO duration:kConstantTime withKey:kActionMoveToPoint middleBlock:middleBlock completion:completion];
+    [self animateExcessivelyToPosition:point withRescale:NO duration:kConstantTime middleBlock:middleBlock completion:completion];
   }
 }
 
 -(void)animateEasilyToPosition:(CGPoint)toPosition
                       duration:(CGFloat)duration
                     timingMode:(SKActionTimingMode)timingMode
-                       withKey:(NSString *)key
                     completion:(void(^)(void))completion {
   
   SKAction *moveAction = [SKAction moveTo:toPosition duration:duration];
   moveAction.timingMode = timingMode;
   SKAction *completionAction = [SKAction runBlock:completion];
   SKAction *sequence = [SKAction sequence:@[moveAction, completionAction]];
-  [self runAction:sequence withKey:key];
+  [self runAction:sequence withKey:kActionMove];
 }
 
 -(void)animateExcessivelyToPosition:(CGPoint)reposition
                         withRescale:(BOOL)rescale
                            duration:(CGFloat)duration
-                            withKey:(NSString *)key
                         middleBlock:(void(^)(void))middleBlock
                          completion:(void(^)(void))completion {
   
@@ -425,9 +435,10 @@
   
   if (rescale) {
       // between .6 and .99
+    NSLog(@"rescale in animate excessively");
     CGFloat randomResizeFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
-    CGFloat scaleTo = self.isZoomResized ? kZoomResizeFactor : 1 / kZoomResizeFactor;
-    SKAction *resizeAction = [SKAction scaleTo:scaleTo duration:duration * randomResizeFactor];
+    CGFloat scaleAction = self.isZoomResized ? kZoomResizeFactor : 1 / kZoomResizeFactor;
+    SKAction *resizeAction = [SKAction scaleTo:scaleAction duration:duration * randomResizeFactor];
     resizeAction.timingMode = SKActionTimingEaseIn;
     repositionAndMaybeResizeAction = [SKAction group:@[repositionSequence, resizeAction]];
     
@@ -438,13 +449,13 @@
   SKAction *completeAction = [SKAction runBlock:completion];
   SKAction *sequenceAction = [SKAction sequence:@[repositionAndMaybeResizeAction, completeAction]];
   
-  [self runAction:sequenceAction withKey:key];
+  [self runAction:sequenceAction withKey:kActionMove];
 }
 
 #pragma mark - animate rotation methods
 
 -(void)orientWithAnimation:(BOOL)animate {
-  NSLog(@"%@ orient with animate %i", self.name, animate);
+//  NSLog(@"%@ orient with animate %i", self.name, animate);
   
   NSInteger currentOrientation = self.orientation;
   DyadminoOrientation shouldBeOrientation;
@@ -468,12 +479,12 @@
     
   } else {
     self.orientation = shouldBeOrientation;
-    [self selectAndPositionSpritesZRotation:0.f];
+    [self selectAndPositionSpritesZRotation:0.f resize:YES];
   }
 }
 
 -(void)animateFlip {
-  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
+//  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   self.isRotating = YES;
   [self animateOneThirdFlipClockwise:YES times:3 withFullFlip:YES];
 }
@@ -491,12 +502,15 @@
     __weak typeof(self) weakSelf = self;
     SKAction *turnAction = [SKAction runBlock:^{
       
-      [weakSelf.pc1Sprite runAction:turnFace];
-      [weakSelf.pc2Sprite runAction:turnFace];
+      [weakSelf.pc1Sprite runAction:turnFace withKey:kActionRotateFace];
+      [weakSelf.pc2Sprite runAction:turnFace withKey:kActionRotateFace];
       
       [weakSelf runAction:turnDyadmino completion:^{
+        [weakSelf.pc1Sprite removeActionForKey:kActionRotateFace];
+        [weakSelf.pc2Sprite removeActionForKey:kActionRotateFace];
         weakSelf.orientation = (weakSelf.orientation + (clockwise ? 1 : 5)) % 6;
-        [weakSelf selectAndPositionSpritesZRotation:0.f];
+        NSLog(@"select and position sprites called from animate flip");
+        [weakSelf selectAndPositionSpritesZRotation:0.f resize:YES];
         counter--;
         _isPivotAnimating = NO;
         if (counter > 0) {
@@ -544,7 +558,7 @@
 
 -(void)animateShrinkPopIntoNodeWithResize:(BOOL)resize {
   
-  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
+//  [self removeActionsAndEstablishNotRotatingIncludingMove:YES];
   
   __weak typeof(self) weakSelf = self;
   
@@ -561,7 +575,7 @@
     if (resize) {
       weakSelf.isZoomResized = NO;
       [weakSelf resize];
-      [weakSelf selectAndPositionSpritesZRotation:0.f];
+      [weakSelf selectAndPositionSpritesZRotation:0.f resize:YES];
     }
     weakSelf.position = [weakSelf.delegate rackPositionForDyadmino:self];
   };
@@ -575,7 +589,7 @@
   
     SKAction *sequenceAction = [SKAction sequence:@[shrinkAction, repositionAction, refreshAction]];
 
-  [self runAction:sequenceAction withKey:kActionShrinkPopIn];
+  [self runAction:sequenceAction withKey:kActionScale];
 }
 
 -(void)animateGrowPopInWithCompletionBlock:(void(^)(void))completionBlock {
@@ -585,13 +599,13 @@
   settleBackAction.timingMode = SKActionTimingEaseIn;
   SKAction *completionAction = [SKAction runBlock:completionBlock];
   SKAction *sequence = [SKAction sequence:@[excessGrowAction, settleBackAction, completionAction]];
-  [self runAction:sequence withKey:kActionGrowPopIn];
+  [self runAction:sequence withKey:kActionScale];
 }
 
 #pragma mark - unique animation methods
 
 -(void)animateDyadminoesRecentlyPlayedWithColour:(UIColor *)colour {
-  [self removeActionsAndEstablishNotRotatingIncludingMove:NO];
+//  [self removeActionsAndEstablishNotRotatingIncludingMove:NO];
   self.color = (SKColor *)colour;
   
   CGFloat colourBlendFactor = [colour isEqual:kPlayerOrange] ?
@@ -606,7 +620,7 @@
 -(void)animateFaceForSound:(SKSpriteNode *)face {
   if (face.parent == self) {
     __weak typeof(self) weakSelf = self;
-    [face removeAnimationForKey:kActionSoundFace withCompletion:^{
+    [face removeAnimationForKey:kActionSound withCompletion:^{
       [weakSelf resetFaceScales];
     }];
     
@@ -619,7 +633,7 @@
     }];
     SKAction *sequence = [SKAction sequence:@[scaleUp, scaleOvershootDown, scaleBounceBackUp, complete]];
     
-    [face runAction:sequence withKey:kActionSoundFace];
+    [face runAction:sequence withKey:kActionSound];
   }
 }
 
@@ -643,7 +657,7 @@
   } else {
     [self removeActionForKey:kActionHover];
     [self resize];
-    [self selectAndPositionSpritesZRotation:0.f];
+    [self selectAndPositionSpritesZRotation:0.f resize:YES];
   }
 }
 
@@ -652,6 +666,7 @@
   
   if (shrink && !self.shrunkForReplay) {
     self.shrunkForReplay = YES;
+//    [self setScale:1.f];
     SKAction *shrinkAction = [SKAction scaleTo:0.5f duration:kConstantTime * 0.99f];
     shrinkAction.timingMode = SKActionTimingEaseIn;
     SKAction *fadeOutAction = [SKAction fadeAlphaTo:0.f duration:kConstantTime * 0.99f];
@@ -671,7 +686,7 @@
   } else if (!shrink && self.shrunkForReplay) {
     self.shrunkForReplay = NO;
     self.hidden = NO;
-    [self setScale:0.5f];
+//    [self setScale:0.5f];
     self.alpha = 0.f;
     SKAction *excessGrowAction = [SKAction scaleTo:1.1f duration:kConstantTime * 0.69f];
     excessGrowAction.timingMode = SKActionTimingEaseOut;
@@ -708,19 +723,19 @@
   
 }
 
--(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove {
-  
-  if (includingMove) {
-    [self removeActionForKey:kActionMoveToPoint];
-  }
-  
-  [self resetFaceScales];
-  [self removeActionForKey:kActionShrinkPopIn];
-  [self removeActionForKey:kActionGrowPopIn];
+//-(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove {
+//  
+//  if (includingMove) {
+//    [self removeActionForKey:kActionMove];
+//  }
+
+//  [self resetFaceScales];
+//  [self removeActionForKey:kActionShrinkPopIn];
+//  [self removeActionForKey:kActionGrowPopIn];
 //  [self removeActionForKey:kActionFlip];
-  [self removeActionForKey:kActionEaseIntoNode];
-  self.isRotating = NO;
-}
+//  [self removeActionForKey:kActionEaseIntoNode];
+//  self.isRotating = NO;
+//}
 
 #pragma mark - pivot methods
 
@@ -865,7 +880,7 @@
         
         CGFloat difference = ((newOrientation - self.orientation + 6) % 6) * 60;
         self.orientation = newOrientation;
-        [self selectAndPositionSpritesZRotation:dyadminoAngle + difference];
+        [self selectAndPositionSpritesZRotation:dyadminoAngle + difference resize:YES];
         [self determineNewAnchorPointDuringPivot:YES];
         return YES;
       }

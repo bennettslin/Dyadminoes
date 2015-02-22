@@ -106,10 +106,12 @@
 
 #pragma mark - orient, position, and size methods
 
--(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle;
+-(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle resize:(BOOL)resize;
 
   // called by rack
 -(CGPoint)addIfSwapToHomePosition:(CGPoint)homePosition;
+
+  // called by scene in handle touch end of dyadmino
 -(void)correctZRotationAfterHover;
 
 #pragma mark - change status methods
@@ -150,9 +152,9 @@
 -(void)animateWiggleForHover:(BOOL)animate;
 -(void)animateShrinkForReplayToShrink:(BOOL)shrink;
 
-#pragma mark - animation helper methods
+//#pragma mark - animation helper methods
 
--(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
+//-(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove;
 
 #pragma mark - pivot methods
 

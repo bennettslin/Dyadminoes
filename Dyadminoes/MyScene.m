@@ -461,7 +461,7 @@
         // not the best place to set tempReturnOrientation for dyadmino
       dyadmino.homeOrientation = dyadmino.orientation;
       
-      [dyadmino selectAndPositionSpritesZRotation:0.f];
+      [dyadmino selectAndPositionSpritesZRotation:0.f resize:YES];
       [tempDyadminoArray addObject:dyadmino];
     }
   }
@@ -494,7 +494,7 @@
     
     if (![tempSet containsObject:dyadmino]) {
       
-      [dyadmino selectAndPositionSpritesZRotation:0.f];
+      [dyadmino selectAndPositionSpritesZRotation:0.f resize:YES];
       [tempSet addObject:dyadmino];
     }
   }
@@ -534,7 +534,7 @@
       
     } else {
       dyadmino.position = [self homePositionForDyadmino:dyadmino];
-      [dyadmino selectAndPositionSpritesZRotation:0.f];
+      [dyadmino selectAndPositionSpritesZRotation:0.f resize:YES];
       [dyadmino orientWithAnimation:animated];
       
         // layout is called once afterwards
@@ -1089,7 +1089,7 @@
     
     dyadmino.position = tempNewPosition;
     
-    [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
+//    [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
     dyadmino.isTouchThenHoverResized = NO;
     dyadmino.isZoomResized = _boardZoomedOut;
     [self incrementDyadminoesInFluxWithLayoutFirst:NO minusDyadmino:nil];
@@ -1168,7 +1168,7 @@
   
     // reset hover count
   [dyadmino isHovering] ? [dyadmino changeHoveringStatus:kDyadminoContinuesHovering] : nil;
-  [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
+//  [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
   
     //--------------------------------------------------------------------------
   
@@ -1237,7 +1237,7 @@
     dyadmino.tempHexCoord = [self closestHexCoordForDyadmino:dyadmino];
     
       // start hovering
-    [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
+//    [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
     [self checkWhetherToEaseOrKeepHovering:dyadmino];
     
     if (dyadmino.isHovering || dyadmino.continuesToHover) {
@@ -1349,7 +1349,7 @@
 
 -(void)getReadyToPivotHoveringDyadmino:(Dyadmino *)dyadmino {
   
-  [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
+//  [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
   
     // this section just determines which pc to pivot on
     // it's not relevant after dyadmino is moved
@@ -1604,7 +1604,7 @@
     }];
     
     SKAction *sequence = [SKAction sequence:@[waitAction, soundAction, moveAction, lastDyadminoCompletionAction]];
-    [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
+//    [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
     [dyadmino runAction:sequence withKey:@"emptyDyadmino"];
   }
 }
@@ -2291,7 +2291,7 @@
   
   [_topBar node:_topBar.returnOrStartButton shouldBeEnabled:noActionsInProgress && !self.swapContainer && !thereIsATouchedOrHoveringDyadmino];
   [_topBar node:_topBar.replayButton shouldBeEnabled:noActionsInProgress && (gameHasEndedForPlayer || !currentPlayerHasTurn || (currentPlayerHasTurn && !self.swapContainer)) && (turns.count > 0) && !_pnpBarUp];
-  [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:!_fieldActionInProgress && (!gameHasEndedForPlayer && currentPlayerHasTurn) && !_pnpBarUp];
+  [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:(noActionsInProgress && (!gameHasEndedForPlayer && currentPlayerHasTurn) && !_pnpBarUp) || (thereIsATouchedOrHoveringDyadmino && !_fieldActionInProgress)];
   [_topBar node:_topBar.passPlayOrDoneButton shouldBeEnabled:noActionsInProgress && ((!gameHasEndedForPlayer && currentPlayerHasTurn) && (!thereIsATouchedOrHoveringDyadmino) && !_pnpBarUp && ((self.swapContainer && swapContainerNotEmpty) || !self.swapContainer) && (self.swapContainer || (!noBoardDyadminoesPlayedAndNoRecentRackDyadmino || (noBoardDyadminoesPlayedAndNoRecentRackDyadmino && [self.myMatch returnType] != kSelfGame))) && (!_recentRackDyadmino || (_recentRackDyadmino && _recentRackDyadminoFormsLegalChord)))];
   [_topBar node:_topBar.optionsButton shouldBeEnabled:noActionsInProgress && (!gameHasEndedForPlayer && (!currentPlayerHasTurn || (currentPlayerHasTurn && !self.swapContainer))) && !_pnpBarUp];
   
@@ -2301,7 +2301,7 @@
 
   } else if (thereIsATouchedOrHoveringDyadmino) {
     [_topBar changeSwapCancelOrUndo:kCancelButton];
-    [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:!_fieldActionInProgress];
+//    [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:!_fieldActionInProgress];
     [_topBar node:_topBar.replayButton shouldBeEnabled:NO];
     
       // no dyadminoes played, and no recent rack dyadmino
@@ -2314,19 +2314,9 @@
     
       // no pass option in self mode
     if ([self.myMatch returnType] == kSelfGame) {
-      if (noBoardDyadminoesPlayedAndNoRecentRackDyadmino) {
-        [_topBar changePassPlayOrDone:kPlayButton];
-      } else {
-        [_topBar changePassPlayOrDone:kDoneButton];
-      }
-      
+      [_topBar changePassPlayOrDone:(noBoardDyadminoesPlayedAndNoRecentRackDyadmino ? kPlayButton : kDoneButton)];
     } else {
-      
-      if (noBoardDyadminoesPlayedAndNoRecentRackDyadmino) {
-        [_topBar changePassPlayOrDone:kPassButton];
-      } else {
-        [_topBar changePassPlayOrDone:kDoneButton];
-      }
+      [_topBar changePassPlayOrDone:(noBoardDyadminoesPlayedAndNoRecentRackDyadmino ? kPassButton : kDoneButton)];
     }
     
       // there is a recent rack dyadmino placed on board
@@ -2984,9 +2974,7 @@
     Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
     
       // animate last played dyadminoes, and highlight dyadminoes currently in holding container
-    
     [lastContainerDataDyads containsObject:dataDyad] ? [dyadmino animateDyadminoesRecentlyPlayedWithColour:[self.myMatch colourForPlayer:lastPlayer forLabel:YES light:NO]] : nil;
-    
     [self.myMatch holdingsContainsDataDyadmino:dataDyad] ? [dyadmino highlightBoardDyadminoWithColour:[self.myMatch colourForPlayer:_myPlayer forLabel:YES light:NO]] : nil;
   }
 }
@@ -3348,7 +3336,7 @@
     if ([rackArray[i] isKindOfClass:[Dyadmino class]]) {
       Dyadmino *dyadmino = (Dyadmino *)rackArray[i];
       dyadmino.rackIndex = i;
-      NSLog(@"dyadmino %@ has index %i", dyadmino.name, dyadmino.rackIndex);
+//      NSLog(@"dyadmino %@ has index %i", dyadmino.name, dyadmino.rackIndex);
       DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
       dataDyad.myOrientation = @(dyadmino.orientation);
       dataDyad.myRackOrder = [NSNumber numberWithInteger:dyadmino.rackIndex];
@@ -3383,7 +3371,6 @@
 
 -(void)incrementDyadminoesInFluxWithLayoutFirst:(BOOL)layoutFirst minusDyadmino:(Dyadmino *)minusDyadmino {
     // with layout first called only in getReadyToMove (placed board dyadmino only) and undoLastPlayedDyadmino
-  
     // without layout first called only in removeDyadmino:FromParent, updateBoardForReplay, and toggleBoardZoom
   
   _dyadminoFluxCounter++;
@@ -3408,7 +3395,6 @@
 
 -(void)decrementDyadminoesInFluxWithLayoutLast:(BOOL)layoutLast {
     // with layout last called by completion in dyadmino for replay, ease into board node, and return home to board
-  
     // without layout last called only in removeDyadmino:FromParent (or with, if cancelled board dyadmino)
     // and by completion in dyadmino in returnToRack (for undo only)
   
