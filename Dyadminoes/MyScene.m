@@ -43,6 +43,8 @@
 @property (strong, nonatomic) NSSet *legalChordsForHoveringBoardDyadmino; // instantiated and nillified along with hovering dyadmino
 @property (strong, nonatomic) NSMutableSet *swapContainer; // whether this container exists is used to determine swap mode
 
+@property (strong, nonatomic) NSMutableSet *replayDyadminoesNotMovedThisTurn;
+
 @property (strong, nonatomic) NSSet *legalSonoritiesThisTurn;
 
 @end
@@ -350,6 +352,7 @@
   self.swapContainer = nil;
   [self toggleSwapFieldWithAnimation:NO];
   
+  self.replayDyadminoesNotMovedThisTurn = nil;
   self.boardDyadminoes = nil;
   
   for (SKNode *node in _boardField.children) {
@@ -3059,6 +3062,8 @@
 
 -(void)storeDyadminoAttributesBeforeReplay {
   
+  self.replayDyadminoesNotMovedThisTurn = [NSMutableSet new];
+  
   NSSet *holdingContainerAndRecentRackDyadminoes = [self allTurnDyadminoesPlusRecentRackDyadmino];
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
     
@@ -3076,6 +3081,8 @@
 
 -(void)restoreDyadminoAttributesAfterReplay {
   
+  [self.replayDyadminoesNotMovedThisTurn removeAllObjects];
+  
   NSSet *holdingContainerAndRecentRackDyadminoes = [self allTurnDyadminoesPlusRecentRackDyadmino];
   
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
@@ -3087,6 +3094,13 @@
       [dyadmino animateShrinkForReplayToShrink:NO];
       
     } else {
+      
+      if (dyadmino.tempHexCoord.x == dyadmino.preReplayHexCoord.x &&
+          dyadmino.tempHexCoord.y == dyadmino.preReplayHexCoord.y &&
+          dyadmino.homeOrientation == dyadmino.preReplayTempOrientation) {
+        [self.replayDyadminoesNotMovedThisTurn addObject:dyadmino];
+      }
+      
       dyadmino.tempHexCoord = dyadmino.preReplayHexCoord;
       
         // orientation will be animated in sendDyadminoHome method called by updateBoardForReplay
@@ -3103,6 +3117,10 @@
 }
 
 -(void)updateBoardForReplayInReplay:(BOOL)inReplay {
+  
+  if (inReplay) {
+    [self.replayDyadminoesNotMovedThisTurn removeAllObjects];
+  }
 
     // match already knows the turn number
     // get player and dyadminoes for this turn
@@ -3143,9 +3161,18 @@
         // if leaving replay, properties have already been reset
       if (inReplay) {
         
+        HexCoord turnHexCoord = [dataDyad getHexCoordForTurn:self.myMatch.replayTurn];
+        DyadminoOrientation turnOrientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
+        
+        if (dyadmino.tempHexCoord.x == turnHexCoord.x &&
+            dyadmino.tempHexCoord.y == turnHexCoord.y &&
+            dyadmino.homeOrientation == turnOrientation) {
+          [self.replayDyadminoesNotMovedThisTurn addObject:dyadmino];
+        }
+        
           // get position and orientation attributes
-        dyadmino.tempHexCoord = [dataDyad getHexCoordForTurn:self.myMatch.replayTurn];
-        dyadmino.homeOrientation = [dataDyad getOrientationForTurn:self.myMatch.replayTurn];
+        dyadmino.tempHexCoord = turnHexCoord;
+        dyadmino.homeOrientation = turnOrientation;
       }
       
         // position dyadmino
@@ -3159,9 +3186,9 @@
       }
     }
   }
-
-//  NSLog(@"layout called from update board for replay");
-//  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:dyadminoesOnBoardUpToThisPoint minusDyadmino:nil updateBounds:YES];
+  
+  NSLog(@"layout in update board for replay");
+  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.replayDyadminoesNotMovedThisTurn minusDyadmino:nil updateBounds:YES];
 }
 
 -(NSMutableSet *)dyadminoesOnBoardThisReplayTurn {
@@ -3403,8 +3430,8 @@
     }
     
     if (layoutFirst) {
-//      NSLog(@"Layout in first increment");
-      NSSet *dyadminoes = _replayMode ? [self dyadminoesOnBoardThisReplayTurn] : [self allBoardDyadminoesPlusRecentRackDyadmino];
+      NSLog(@"Layout in first increment");
+      NSSet *dyadminoes = _replayMode ? self.replayDyadminoesNotMovedThisTurn : [self allBoardDyadminoesPlusRecentRackDyadmino];
       [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:dyadminoes minusDyadmino:minusDyadmino updateBounds:YES];
     }
   }
@@ -3431,7 +3458,7 @@
     }
     
     if (layoutLast) {
-//      NSLog(@"Layout in last decrement");
+      NSLog(@"Layout in last decrement");
       NSSet *dyadminoes = _replayMode ? [self dyadminoesOnBoardThisReplayTurn] : [self allBoardDyadminoesPlusRecentRackDyadmino];
       [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:dyadminoes minusDyadmino:nil updateBounds:YES];
     }

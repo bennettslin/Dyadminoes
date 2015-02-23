@@ -395,12 +395,6 @@
     // first check to see if cell already exists
   Cell *cell = [self cellWithHexCoord:hexCoord];
   
-  
-//  if (hexCoord.x == -6 && hexCoord.y == 8) {
-//    NSLog(@"hexcoord -6, 8 recognised");
-//    NSLog(@"%@ parent is %@", cell.name, cell.cellNode.parent);
-//  }
-  
     // if not, get one from queue
   if (!cell) {
     cell = [self popDequeuedCellWithHexCoord:hexCoord];
@@ -413,10 +407,6 @@
 
 -(void)ignoreCell:(Cell *)cell {
   if (cell) {
-    
-//    if (cell.hexCoord.x == -6 && cell.hexCoord.y == 8) {
-//      NSLog(@"hexcoord -6, 8 ignored");
-//    }
 
     [self removeCellFromColumnOfRowsOfCells:cell];
     
@@ -432,10 +422,11 @@
 
 -(void)fadeOut:(BOOL)fadeOut cell:(Cell *)cell completion:(void(^)(void))completion {
   CGFloat fadeAlpha = fadeOut ? 0.f : 1.f;
+  CGFloat duration = fadeOut ? kConstantTime * 0.5f : kConstantTime;
   
   [cell removeActionForKey:@"cellFade"];
-  SKAction *fadeAction = [SKAction fadeAlphaTo:fadeAlpha duration:kConstantTime];
-  SKAction *shrinkAction = [SKAction scaleTo:fadeAlpha duration:kConstantTime];
+  SKAction *fadeAction = [SKAction fadeAlphaTo:fadeAlpha duration:duration];
+  SKAction *shrinkAction = [SKAction scaleTo:fadeAlpha duration:duration];
   SKAction *fadeShrinkGroup = [SKAction group:@[fadeAction, shrinkAction]];
   SKAction *completionAction = [SKAction runBlock:completion];
   SKAction *sequenceAction = [SKAction sequence:@[fadeShrinkGroup, completionAction]];
@@ -497,7 +488,6 @@
     }
   }
   
-//  NSLog(@"cells still in placeholder ignored in recalibrate");
   for (Cell *cell in tempIgnoredCellsSet) {
     [self ignoreCell:cell];
   }
