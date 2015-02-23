@@ -12,6 +12,8 @@
 
 @interface Cell ()
 
+@property (assign, nonatomic) NSUInteger minDistance;
+
 @end
 
 @implementation Cell {
@@ -77,6 +79,8 @@
 }
 
 -(void)resetColour {
+  
+  self.minDistance = kCellsAroundDyadmino;
 
   _myRed = 0.2f;
   _myGreen = 0.2f;
@@ -87,6 +91,10 @@
 }
 
 -(void)addColourValueForPC:(NSUInteger)pc atDistance:(NSUInteger)distance {
+  
+  if (distance < self.minDistance) {
+    self.minDistance = distance;
+  }
 
   _dominantPCArray[pc] += (kCellsAroundDyadmino - distance + 1);
   
@@ -99,20 +107,29 @@
 
 -(void)renderColour {
   
-  NSInteger maxPC = 0;
+  NSInteger maxPC1 = 0;
+  NSInteger maxPC2 = 0;
+  NSInteger maxPC3 = 0;
+  
   for (int i = 0; i < 12; i++) {
-    if (_dominantPCArray[i] > 0 && _dominantPCArray[i] > _dominantPCArray[maxPC]) {
-      maxPC = i;
+    if (_dominantPCArray[i] > 0 && _dominantPCArray[i] > _dominantPCArray[maxPC1]) {
+      maxPC3 = maxPC2;
+      maxPC2 = maxPC1;
+      maxPC1 = i;
     }
   }
   
-  if (_dominantPCArray[maxPC] == 0) {
-    maxPC = -1;
+  if (_dominantPCArray[maxPC1] == 0) {
+    maxPC1 = -1;
   }
   
-  SKColor *pureColour = [self colourForPC:maxPC];
+  SKColor *pureColour = [self colourForPC:maxPC1];
   SKColor *colourWithAlpha = (SKColor *)[pureColour colorWithAlphaComponent:_myAlpha];
   self.color = colourWithAlpha;
+}
+
+-(UIColor *)colourForMaxPC1:(NSInteger)maxPC1 maxPC2:(NSInteger)maxPC2 maxPC3:(NSInteger)maxPC3 {
+  return nil;
 }
 
 -(UIColor *)colourForPC:(NSInteger)pc {

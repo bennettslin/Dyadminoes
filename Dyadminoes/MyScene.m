@@ -555,6 +555,7 @@
   
   if (!animated) {
       // layout is necessary again to dequeue cells
+    NSLog(@"layout called once in populate board");
     [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino] minusDyadmino:nil updateBounds:YES];
   }
   
@@ -1694,6 +1695,8 @@
 
 -(void)resetBoardFromPass:(BOOL)fromPass {
   
+  self.replayDyadminoesNotMovedThisTurn = [NSMutableSet new];
+  
   [self.myDelegate fadeChordMessage];
   [self updateOrderOfDataDyadsThisTurnToReflectRackOrder];
     
@@ -1703,11 +1706,21 @@
   for (Dyadmino *dyadmino in self.boardDyadminoes) {
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     
+    if (dyadmino.homeHexCoord.x == dataDyad.myHexCoord.x &&
+        dyadmino.homeHexCoord.y == dataDyad.myHexCoord.y &&
+        dyadmino.homeOrientation == (DyadminoOrientation)[dataDyad returnMyOrientation]) {
+      [self.replayDyadminoesNotMovedThisTurn addObject:dyadmino];
+    }
+    
     dyadmino.homeOrientation = (DyadminoOrientation)[dataDyad returnMyOrientation];
     
     dyadmino.homeHexCoord = dataDyad.myHexCoord;
     dyadmino.tempHexCoord = dyadmino.homeHexCoord;
+
+    [self incrementDyadminoesInFluxWithLayoutFirst:NO minusDyadmino:nil];
   }
+
+  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.replayDyadminoesNotMovedThisTurn minusDyadmino:nil updateBounds:YES];
   
   if (![self populateBoardWithDyadminoesAnimated:YES]) {
     NSLog(@"Dyadminoes were not placed on board properly.");

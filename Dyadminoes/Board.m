@@ -365,6 +365,7 @@
             Cell *addedCell = [self recogniseCellWithHexCoord:[self hexCoordFromX:newX andY:newY]];
 
             NSUInteger distance = [self distanceGivenHexXDifference:x andHexYDifference:y];
+//            NSLog(@"distance for cell %@ is %i", addedCell.name, distance);
             [addedCell addColourValueForPC:pc atDistance:distance];
             [tempIgnoredCellsSet removeObject:addedCell];
           }
@@ -373,7 +374,6 @@
     }
   }
   
-//  NSLog(@"cells still in placeholder ignored in layout");
   for (Cell *cell in tempIgnoredCellsSet) {
     [self ignoreCell:cell];
   }
@@ -422,14 +422,26 @@
 
 -(void)fadeOut:(BOOL)fadeOut cell:(Cell *)cell completion:(void(^)(void))completion {
   CGFloat fadeAlpha = fadeOut ? 0.f : 1.f;
-  CGFloat duration = fadeOut ? kConstantTime * 0.5f : kConstantTime;
+  
+  CGFloat duration = fadeOut ? kConstantTime * 0.4f : kConstantTime * 0.8f;
+  
+  CGFloat wait;
+  
+  if (fadeOut) {
+    wait = (kCellsAroundDyadmino - cell.minDistance) * 0.05f;
+  } else {
+    wait = cell.minDistance * 0.05f;
+  }
+  
+  NSLog(@"wait for cell %@ is %.2f, with min distance %i", cell.name, wait, cell.minDistance);
   
   [cell removeActionForKey:@"cellFade"];
+  SKAction *waitAction = [SKAction waitForDuration:wait];
   SKAction *fadeAction = [SKAction fadeAlphaTo:fadeAlpha duration:duration];
   SKAction *shrinkAction = [SKAction scaleTo:fadeAlpha duration:duration];
   SKAction *fadeShrinkGroup = [SKAction group:@[fadeAction, shrinkAction]];
   SKAction *completionAction = [SKAction runBlock:completion];
-  SKAction *sequenceAction = [SKAction sequence:@[fadeShrinkGroup, completionAction]];
+  SKAction *sequenceAction = [SKAction sequence:@[waitAction, fadeShrinkGroup, completionAction]];
 //  [cell.cellNode runAction:sequenceAction];
   [cell runAction:sequenceAction withKey:@"cellFade"];
 

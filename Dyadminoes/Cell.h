@@ -29,6 +29,8 @@
 @property (assign, nonatomic) CGFloat myBlue;
 @property (assign, nonatomic) CGFloat myAlpha;
 
+@property (readonly, nonatomic) NSUInteger minDistance;
+
   // called to instantiate new cell
 -(id)initWithTexture:(SKTexture *)texture
          andHexCoord:(HexCoord)hexCoord
