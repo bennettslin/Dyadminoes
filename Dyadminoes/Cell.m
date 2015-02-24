@@ -72,12 +72,11 @@
   self.name = [NSString stringWithFormat:@"cell %li, %li", (long)self.hexCoord.x, (long)self.hexCoord.y];
   
   [self resetColour];
+  self.color = (SKColor *)[UIColor clearColor];
   
-  if (self) {
-    [self renderColour];
-    [self updateHexCoordLabel];
-    [self updatePCLabel];
-  }
+  [self renderColour];
+  [self updateHexCoordLabel];
+  [self updatePCLabel];
 }
 
 -(void)resetColour {
@@ -101,7 +100,7 @@
   _dominantPCArray[pc] += (kCellsAroundDyadmino - distance + 1);
   
     // alpha is full when next to a dyadmino, and 0.2f at furthest distance
-  CGFloat tempAlpha = (1.f / kCellsAroundDyadmino) * (kCellsAroundDyadmino - distance + 1);
+  CGFloat tempAlpha = 0.2 + 0.8 * (1.f / kCellsAroundDyadmino) * (kCellsAroundDyadmino - distance + 1);
   if (tempAlpha > _myAlpha) {
     _myAlpha = tempAlpha;
   }
@@ -154,10 +153,10 @@
   CGFloat duration;
   
   if (fadeOut) {
-    duration = kConstantTime * (0.75f - self.minDistance * 0.075f);
+    duration = kConstantTime * (0.75f - self.minDistance * (0.15f / kCellsAroundDyadmino));
   } else {
     self.hidden = NO;
-    duration = kConstantTime * (0.75f - (kCellsAroundDyadmino - self.minDistance) * 0.075f);
+    duration = kConstantTime * (0.75f - (kCellsAroundDyadmino - self.minDistance) * (0.15f / kCellsAroundDyadmino));
   }
 
   SKAction *shrinkAction = [SKAction scaleTo:fadeAlpha duration:duration];

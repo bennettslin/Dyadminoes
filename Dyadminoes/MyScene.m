@@ -1108,10 +1108,6 @@
     dyadmino.isZoomResized = _boardZoomedOut;
     [self incrementDyadminoesInFluxWithLayoutFirst:NO minusDyadmino:nil];
     [dyadmino goToTempPositionWithLayout:NO andRescale:YES andOrient:NO];
-    
-    if (dyadmino == _recentRackDyadmino) {
-      NSLog(@"%@ orientation %i, hexCoord %i, %i", dyadmino.name, dyadmino.orientation, dyadmino.tempHexCoord.x, dyadmino.tempHexCoord.y);
-    }
   }
 }
 
