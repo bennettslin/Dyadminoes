@@ -274,7 +274,7 @@
   
   [_boardField establishHexOriginForCenteringBoardBasedOnBoardDyadminoes:self.boardDyadminoes];
   
-  if (![self populateBoardWithDyadminoesAnimated:NO]) {
+  if (![self populateBoardWithDyadminoesAnimated:NO andSound:NO]) {
     NSLog(@"Dyadminoes were not placed on board properly.");
     abort();
   }
@@ -525,7 +525,7 @@
   [_boardField repositionBoardWithHomePosition:homePosition andOrigin:homePosition];
 }
 
--(BOOL)populateBoardWithDyadminoesAnimated:(BOOL)animated {
+-(BOOL)populateBoardWithDyadminoesAnimated:(BOOL)animated andSound:(BOOL)sound {
   
   for (Dyadmino *dyadmino in self.boardDyadminoes) {
     dyadmino.delegate = self;
@@ -533,7 +533,7 @@
       //------------------------------------------------------------------------
     
     if (animated) {
-      [self moveDyadminoHome:dyadmino];
+      [self moveDyadminoHome:dyadmino andSound:sound];
       
     } else {
       dyadmino.position = [self homePositionForDyadmino:dyadmino];
@@ -664,7 +664,7 @@
   
   if (_hoveringDyadmino) {
 //    NSLog(@"move hovering dyadmino home from pinch gesture");
-    [self moveDyadminoHome:_hoveringDyadmino];
+    [self moveDyadminoHome:_hoveringDyadmino andSound:YES];
   }
   
     // kludge way to fix issue with pinch cancelling touched dyadmino that has not yet been assigned as hovering dyadmino
@@ -672,7 +672,7 @@
     Dyadmino *dyadmino = _touchedDyadmino;
     _touchedDyadmino = nil;
 //    NSLog(@"move touched dyadmino home from pinch gesture");
-    [self moveDyadminoHome:dyadmino];
+    [self moveDyadminoHome:dyadmino andSound:YES];
   }
   
     // sceneVC sends Y upside down
@@ -897,11 +897,11 @@
       // if rack dyadmino is moved to board, send home recentRack dyadmino
     if (_recentRackDyadmino && _touchedDyadmino != _recentRackDyadmino) {
       
-      [self moveDyadminoHome:_recentRackDyadmino];
+      [self moveDyadminoHome:_recentRackDyadmino andSound:YES];
       
         // or same thing with hovering dyadmino (it will only ever be one or the other)
     } else if (_hoveringDyadmino && _touchedDyadmino != _hoveringDyadmino) {
-      [self moveDyadminoHome:_hoveringDyadmino];
+      [self moveDyadminoHome:_hoveringDyadmino andSound:YES];
     }
     
       // buttons updated once
@@ -1124,7 +1124,7 @@
       // rack dyadmino will do so upon move out of rack
       // (this needs to come before legal chords are checked, so that its placement on board is included)
     if (_hoveringDyadmino && [dyadmino isOnBoard]) {
-      [self moveDyadminoHome:_hoveringDyadmino];
+      [self moveDyadminoHome:_hoveringDyadmino andSound:YES];
     }
   }
   
@@ -1200,7 +1200,7 @@
         [dyadmino animateFlip];
         
       } else {
-        [self moveDyadminoHome:dyadmino];
+        [self moveDyadminoHome:dyadmino andSound:YES];
         
           // just settles into rack or swap
         [self updateTopBarButtons];
@@ -1214,7 +1214,7 @@
         dyadmino.tempHexCoord = dyadmino.homeHexCoord;
       }
       
-      [self moveDyadminoHome:dyadmino];
+      [self moveDyadminoHome:dyadmino andSound:YES];
       
         // or if dyadmino is in rack but belongs on board (this seems to work)
     } else if (dyadmino.home == kBoard && [dyadmino isInRack]) {
@@ -1222,7 +1222,7 @@
       [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField withLayout:NO];
       dyadmino.position = [_boardField getOffsetFromPoint:dyadmino.position];
 //      [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:dyadmino.position];
-      [self moveDyadminoHome:dyadmino];
+      [self moveDyadminoHome:dyadmino andSound:YES];
       
         // otherwise, prepare it for hover
     } else {
@@ -1252,7 +1252,7 @@
   }
 }
 
--(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingInForUndo:(BOOL)popInForUndo {
+-(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingInForUndo:(BOOL)popInForUndo andSound:(BOOL)sound {
     // only called by moveDyadminoHome and popDyadminoHome
   
   if ([dyadmino isOnBoard]) {
@@ -1279,7 +1279,7 @@
   } else {
     
     dyadmino.tempHexCoord = dyadmino.homeHexCoord;
-    [dyadmino returnHomeToBoardWithLayout:YES];
+    [dyadmino returnHomeToBoardWithLayout:YES andSound:sound];
   }
 
     // reset properties
@@ -1312,7 +1312,7 @@
 -(void)sendHomeRecentRackDyadminoFromBoardDyadminoMove {
     // if there's a recent rack dyadmino, send home recentRack dyadmino
   if (_recentRackDyadmino) {
-    [self moveDyadminoHome:_recentRackDyadmino];
+    [self moveDyadminoHome:_recentRackDyadmino andSound:YES];
   }
   
     // buttons updated once
@@ -1417,11 +1417,11 @@
       
         // else send dyadmino home
     } else if (_hoveringDyadmino) {
-      [self moveDyadminoHome:_hoveringDyadmino];
+      [self moveDyadminoHome:_hoveringDyadmino andSound:YES];
 
         // recent rack dyadmino is sent home
     } else if (_recentRackDyadmino) {
-      [self moveDyadminoHome:_recentRackDyadmino];
+      [self moveDyadminoHome:_recentRackDyadmino andSound:YES];
     }
     
       /// reset button
@@ -1720,9 +1720,9 @@
     [self incrementDyadminoesInFluxWithLayoutFirst:NO minusDyadmino:nil];
   }
 
-  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.replayDyadminoesNotMovedThisTurn minusDyadmino:nil updateBounds:YES];
+  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.replayDyadminoesNotMovedThisTurn minusDyadmino:nil updateBounds:NO];
   
-  if (![self populateBoardWithDyadminoesAnimated:YES]) {
+  if (![self populateBoardWithDyadminoesAnimated:YES andSound:NO]) {
     NSLog(@"Dyadminoes were not placed on board properly.");
     abort();
   }
@@ -2502,7 +2502,7 @@
     // technically, this will never actually get called
     // because replay button is not enabled when dyadmino is hovering
   if (_hoveringDyadmino) {
-    [self moveDyadminoHome:_hoveringDyadmino];
+    [self moveDyadminoHome:_hoveringDyadmino andSound:YES];
   }
   
     // cells will toggle faster than replayBars moves
@@ -3012,12 +3012,12 @@
   }
 }
 
--(void)moveDyadminoHome:(Dyadmino *)dyadmino {
-  [self sendDyadminoHome:dyadmino byPoppingInForUndo:NO];
+-(void)moveDyadminoHome:(Dyadmino *)dyadmino andSound:(BOOL)sound {
+  [self sendDyadminoHome:dyadmino byPoppingInForUndo:NO andSound:sound];
 }
 
 -(void)popDyadminoHome:(Dyadmino *)dyadmino {
-  [self sendDyadminoHome:dyadmino byPoppingInForUndo:YES];
+  [self sendDyadminoHome:dyadmino byPoppingInForUndo:YES andSound:NO];
 }
 
 -(CGPoint)homePositionForDyadmino:(Dyadmino *)dyadmino {
@@ -3195,13 +3195,13 @@
         [dyadmino goToTempPositionWithLayout:YES andRescale:NO andOrient:YES];
         
       } else {
-        [dyadmino returnHomeToBoardWithLayout:YES];
+        [dyadmino returnHomeToBoardWithLayout:YES andSound:NO];
       }
     }
   }
   
   NSLog(@"layout in update board for replay");
-  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.replayDyadminoesNotMovedThisTurn minusDyadmino:nil updateBounds:YES];
+  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.replayDyadminoesNotMovedThisTurn minusDyadmino:nil updateBounds:NO];
 }
 
 -(NSMutableSet *)dyadminoesOnBoardThisReplayTurn {
@@ -3352,7 +3352,7 @@
         [self finishHoveringAfterCheckDyadmino:_hoveringDyadmino];
         
       } else if ([buttonText isEqualToString:@"Cancel"]) {
-        [self moveDyadminoHome:_hoveringDyadmino];
+        [self moveDyadminoHome:_hoveringDyadmino andSound:YES];
       }
       break;
       
@@ -3431,11 +3431,8 @@
     // without layout first called only in removeDyadmino:FromParent, updateBoardForReplay, and toggleBoardZoom
   
   _dyadminoFluxCounter++;
-//  NSLog(@"increment counter is %i", _dyadminoFluxCounter);
   
   if (_dyadminoFluxCounter == 1) {
-    
-//    NSLog(@"First increment!");
     
     [self updateTopBarButtons];
     if (_replayMode) {
@@ -3458,12 +3455,9 @@
   if (_dyadminoFluxCounter > 0) {
     _dyadminoFluxCounter--;
   }
-//  NSLog(@"decrement counter is %i", _dyadminoFluxCounter);
   
     // allows for layout when touched rack dyadmino sends home hovering board dyadmino
   if (_dyadminoFluxCounter == 0 || (_dyadminoFluxCounter == 1 && _touchedDyadmino)) {
-    
-//    NSLog(@"Last decrement!");
     
     [self updateTopBarButtons];
     if (_replayMode) {
@@ -3487,7 +3481,7 @@
 -(void)toggleDebugMode {
   
   if (_hoveringDyadmino) {
-    [self moveDyadminoHome:_hoveringDyadmino];
+    [self moveDyadminoHome:_hoveringDyadmino andSound:YES];
   }
 
   for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {

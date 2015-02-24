@@ -284,14 +284,14 @@
     
     self.colorBlendFactor = 0.f;
     [self orientWithAnimation:YES];
-    [self animateMoveToPoint:[self addIfSwapToHomePosition:rackPosition] withLayout:NO];
+    [self animateMoveToPoint:[self addIfSwapToHomePosition:rackPosition] withLayout:NO andSound:NO];
   }
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
--(void)returnHomeToBoardWithLayout:(BOOL)layout {
+-(void)returnHomeToBoardWithLayout:(BOOL)layout andSound:(BOOL)sound {
   [self orientWithAnimation:YES];
-  [self animateMoveToPoint:[self.delegate homePositionForDyadmino:self] withLayout:layout];
+  [self animateMoveToPoint:[self.delegate homePositionForDyadmino:self] withLayout:layout andSound:sound];
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
@@ -352,14 +352,14 @@
 #pragma mark - animate basic placement methods
 
 -(void)animateMoveToPointCalledFromRack:(CGPoint)point {
-  [self animateMoveToPoint:point withLayout:NO andCalledFromRack:YES];
+  [self animateMoveToPoint:point withLayout:NO andSound:NO andCalledFromRack:YES];
 }
 
--(void)animateMoveToPoint:(CGPoint)point withLayout:(BOOL)layout {
-  [self animateMoveToPoint:point withLayout:layout andCalledFromRack:NO];
+-(void)animateMoveToPoint:(CGPoint)point withLayout:(BOOL)layout andSound:(BOOL)sound {
+  [self animateMoveToPoint:point withLayout:layout andSound:sound andCalledFromRack:NO];
 }
 
--(void)animateMoveToPoint:(CGPoint)point withLayout:(BOOL)layout andCalledFromRack:(BOOL)calledFromRack {
+-(void)animateMoveToPoint:(CGPoint)point withLayout:(BOOL)layout andSound:(BOOL)sound andCalledFromRack:(BOOL)calledFromRack {
   
     // if called from rack, does not include orientation
     // otherwise it is called from self, and does include orientation animation
@@ -387,7 +387,7 @@
     
     void(^middleBlock)(void) = ^void(void) {
         // will not sound if laying out
-      if (weakSelf.home == kRack || layout) {
+      if (sound && (weakSelf.home == kRack || layout)) {
         [weakSelf.delegate postSoundNotification:kNotificationEaseIntoNode];
       }
     };

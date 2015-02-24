@@ -365,7 +365,6 @@
             Cell *addedCell = [self recogniseCellWithHexCoord:[self hexCoordFromX:newX andY:newY]];
 
             NSUInteger distance = [self distanceGivenHexXDifference:x andHexYDifference:y];
-//            NSLog(@"distance for cell %@ is %i", addedCell.name, distance);
             [addedCell addColourValueForPC:pc atDistance:distance];
             [tempIgnoredCellsSet removeObject:addedCell];
           }
@@ -433,9 +432,9 @@
     wait = cell.minDistance * 0.05f;
   }
   
-  NSLog(@"wait for cell %@ is %.2f, with min distance %i", cell.name, wait, cell.minDistance);
+//  NSLog(@"wait for cell %@ is %.2f, with min distance %i", cell.name, wait, cell.minDistance);
   
-  [cell removeActionForKey:@"cellFade"];
+//  [cell removeActionForKey:@"cellFade"];
   SKAction *waitAction = [SKAction waitForDuration:wait];
   SKAction *fadeAction = [SKAction fadeAlphaTo:fadeAlpha duration:duration];
   SKAction *shrinkAction = [SKAction scaleTo:fadeAlpha duration:duration];

@@ -18,7 +18,7 @@
 
 @implementation Cell {
   
-  CGFloat _dominantPCArray[12];
+  NSInteger _dominantPCArray[12];
   CGFloat _myRed, _myGreen, _myBlue, _myAlpha;
 }
 
@@ -34,7 +34,7 @@
     self.texture = self.cellNodeTexture;
     
     self.zPosition = kZPositionBoardCell;
-    self.colorBlendFactor = .9f;
+    self.colorBlendFactor = 1.f;
     
     [self createHexCoordLabel];
     [self updateHexCoordLabel];
@@ -82,10 +82,10 @@
   
   self.minDistance = kCellsAroundDyadmino;
 
-  _myRed = 0.2f;
-  _myGreen = 0.2f;
-  _myBlue = 0.2f;
-  _myAlpha = 0.2f;
+  _myRed = 0.f;
+  _myGreen = 0.f;
+  _myBlue = 0.f;
+  _myAlpha = 0.f;
   
   memset(_dominantPCArray, 0, sizeof(_dominantPCArray));
 }
@@ -107,33 +107,49 @@
 
 -(void)renderColour {
   
-  NSInteger maxPC1 = 0;
-  NSInteger maxPC2 = 0;
-  NSInteger maxPC3 = 0;
-  
+    // first figure out the total number of values to compare
+  NSUInteger total = 0;
   for (int i = 0; i < 12; i++) {
-    if (_dominantPCArray[i] > 0 && _dominantPCArray[i] > _dominantPCArray[maxPC1]) {
-      maxPC3 = maxPC2;
-      maxPC2 = maxPC1;
-      maxPC1 = i;
+    total += _dominantPCArray[i];
+  }
+  
+  if (total > 0) {
+      // next, adjust colour of each pc based on values
+    for (int i = 0; i < 12; i++) {
+      NSUInteger valueForPC = _dominantPCArray[i];
+      
+      if (valueForPC > 0) {
+        CGFloat multiplier = (CGFloat)valueForPC / (CGFloat)total;
+        
+        CGFloat red = 0.f, green = 0.f, blue = 0.f;
+        UIColor *colourForPC = [self rawColourForPC:i];
+        [colourForPC getRed:&red green:&green blue:&blue alpha:nil];
+        
+        _myRed += red * multiplier;
+        _myBlue += blue * multiplier;
+        _myGreen += green * multiplier;
+      }
     }
+    
+    NSLog(@"colour is %.2f, %.2f, %.2f, %.2f", _myRed, _myGreen, _myBlue, _myAlpha);
+    
+    [self removeActionForKey:@"colour"];
+    SKColor *finalColour = (SKColor *)[UIColor colorWithRed:_myRed green:_myGreen blue:_myBlue alpha:_myAlpha];
+    SKAction *colourAction = [SKAction colorizeWithColor:finalColour colorBlendFactor:self.colorBlendFactor duration:kConstantTime * 0.75];
+    [self runAction:colourAction withKey:@"colour"];
   }
-  
-  if (_dominantPCArray[maxPC1] == 0) {
-    maxPC1 = -1;
-  }
-  
-  SKColor *pureColour = [self colourForPC:maxPC1];
-  SKColor *colourWithAlpha = (SKColor *)[pureColour colorWithAlphaComponent:_myAlpha];
-  self.color = colourWithAlpha;
 }
 
 -(UIColor *)colourForMaxPC1:(NSInteger)maxPC1 maxPC2:(NSInteger)maxPC2 maxPC3:(NSInteger)maxPC3 {
   return nil;
 }
 
--(UIColor *)colourForPC:(NSInteger)pc {
-  switch (pc) {
+-(UIColor *)rawColourForPC:(NSInteger)pc {
+  
+    // this
+  NSUInteger adjustedPC = (pc + 6) % 12;
+  
+  switch (adjustedPC) {
     case 0:
       return [UIColor colorWithRed:100/100.f green:0/100.f blue:0/100.f alpha:100/100.f];
       break;

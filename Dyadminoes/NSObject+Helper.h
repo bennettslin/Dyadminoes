@@ -90,7 +90,7 @@
 #define kBoardCoverAlpha 0.4f
 #define kZoomResizeFactor 0.5f
 
-#define kCellsAroundDyadmino 3
+#define kCellsAroundDyadmino 3 // was 3
 
   // scene view constants
 #define kSceneMessageLabelFontSize 30.f
