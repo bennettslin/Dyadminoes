@@ -43,6 +43,8 @@
 -(void)resetColour;
 -(void)renderColour;
 
+-(void)fadeOut:(BOOL)fadeOut completion:(void(^)(void))completion;
+
 #pragma mark - cell view helper methods
 
 +(CGSize)cellSizeForResize:(BOOL)resize;

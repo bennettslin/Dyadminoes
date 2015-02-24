@@ -398,7 +398,7 @@
   if (!cell) {
     cell = [self popDequeuedCellWithHexCoord:hexCoord];
     [self addCellToColumnOfRowsOfCells:cell];
-    [self fadeOut:NO cell:cell completion:nil];
+//    [self fadeOut:NO cell:cell completion:nil];
   }
   
   return cell;
@@ -415,36 +415,13 @@
       [weakSelf pushDequeuedCell:cell];
     };
     
-    [self fadeOut:YES cell:cell completion:completion];
+    [cell fadeOut:YES completion:completion];
   }
 }
 
--(void)fadeOut:(BOOL)fadeOut cell:(Cell *)cell completion:(void(^)(void))completion {
-  CGFloat fadeAlpha = fadeOut ? 0.f : 1.f;
-  
-  CGFloat duration = fadeOut ? kConstantTime * 0.4f : kConstantTime * 0.8f;
-  
-  CGFloat wait;
-  
-  if (fadeOut) {
-    wait = (kCellsAroundDyadmino - cell.minDistance) * 0.05f;
-  } else {
-    wait = cell.minDistance * 0.05f;
-  }
-  
-//  NSLog(@"wait for cell %@ is %.2f, with min distance %i", cell.name, wait, cell.minDistance);
-  
-//  [cell removeActionForKey:@"cellFade"];
-  SKAction *waitAction = [SKAction waitForDuration:wait];
-  SKAction *fadeAction = [SKAction fadeAlphaTo:fadeAlpha duration:duration];
-  SKAction *shrinkAction = [SKAction scaleTo:fadeAlpha duration:duration];
-  SKAction *fadeShrinkGroup = [SKAction group:@[fadeAction, shrinkAction]];
-  SKAction *completionAction = [SKAction runBlock:completion];
-  SKAction *sequenceAction = [SKAction sequence:@[waitAction, fadeShrinkGroup, completionAction]];
-//  [cell.cellNode runAction:sequenceAction];
-  [cell runAction:sequenceAction withKey:@"cellFade"];
-
-}
+//-(void)fadeOut:(BOOL)fadeOut cell:(Cell *)cell completion:(void(^)(void))completion {
+//  [cell fadeOut:fadeOut completion:completion];
+//}
 
 -(void)ignoreAllCells {
   

@@ -34,11 +34,11 @@
     self.texture = self.cellNodeTexture;
     
     self.zPosition = kZPositionBoardCell;
-    self.colorBlendFactor = 1.f;
+    self.colorBlendFactor = 0.9f;
     
-    [self createHexCoordLabel];
+//    [self createHexCoordLabel];
     [self updateHexCoordLabel];
-    [self createPCLabel];
+//    [self createPCLabel];
     [self updatePCLabel];
 
     [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin forResize:resize];
@@ -64,6 +64,8 @@
 
 -(void)resetForReuse {
 
+  self.hidden = YES;
+  [self setScale:0.f];
   self.myDyadmino = nil;
   self.myPC = -1;
   self.hexCoord = [self hexCoordFromX:NSIntegerMax andY:NSIntegerMax];
@@ -107,6 +109,10 @@
 
 -(void)renderColour {
   
+  if (self.hidden) {
+    [self fadeOut:NO completion:nil];
+  }
+  
     // first figure out the total number of values to compare
   NSUInteger total = 0;
   for (int i = 0; i < 12; i++) {
@@ -131,23 +137,76 @@
       }
     }
     
-    NSLog(@"colour is %.2f, %.2f, %.2f, %.2f", _myRed, _myGreen, _myBlue, _myAlpha);
+    CGFloat duration = kConstantTime * (0.75f - (kCellsAroundDyadmino - self.minDistance) * 0.075f);
     
     [self removeActionForKey:@"colour"];
     SKColor *finalColour = (SKColor *)[UIColor colorWithRed:_myRed green:_myGreen blue:_myBlue alpha:_myAlpha];
-    SKAction *colourAction = [SKAction colorizeWithColor:finalColour colorBlendFactor:self.colorBlendFactor duration:kConstantTime * 0.75];
-    [self runAction:colourAction withKey:@"colour"];
+    SKAction *colourAction = [SKAction colorizeWithColor:finalColour colorBlendFactor:self.colorBlendFactor duration:duration];
+    SKAction *fadeAction = [SKAction fadeAlphaTo:_myAlpha duration:duration];
+    SKAction *groupAction = [SKAction group:@[colourAction, fadeAction]];
+    [self runAction:groupAction withKey:@"colour"];
   }
 }
 
--(UIColor *)colourForMaxPC1:(NSInteger)maxPC1 maxPC2:(NSInteger)maxPC2 maxPC3:(NSInteger)maxPC3 {
-  return nil;
+-(void)fadeOut:(BOOL)fadeOut completion:(void(^)(void))completion {
+  
+  CGFloat fadeAlpha = fadeOut ? 0.f : 1.f;
+  CGFloat duration;
+  
+  if (fadeOut) {
+    duration = kConstantTime * (0.75f - self.minDistance * 0.075f);
+  } else {
+    self.hidden = NO;
+    duration = kConstantTime * (0.75f - (kCellsAroundDyadmino - self.minDistance) * 0.075f);
+  }
+
+  SKAction *shrinkAction = [SKAction scaleTo:fadeAlpha duration:duration];
+  SKAction *completionAction = [SKAction runBlock:completion];
+  SKAction *sequenceAction = [SKAction sequence:@[shrinkAction, completionAction]];
+  [self runAction:sequenceAction withKey:@"cellFade"];
+}
+
+#pragma mark - cell view helper methods
+
+-(void)animateResizeAndRepositionOfCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize {
+  
+  __weak typeof(self) weakSelf = self;
+  CGFloat scaleTo = cellSize.height / self.size.height;
+  
+    // between .8 and .99
+  CGFloat randomScaleFactor = ((arc4random() % 100) / 100.f * 0.19) + 0.8f;
+  
+    // 0.75f because zoom animation should be a little quicker than usual
+  SKAction *scaleAction = [SKAction scaleTo:scaleTo duration:kConstantTime * 0.75f * randomScaleFactor];
+  SKAction *completionAction = [SKAction runBlock:^{
+    [weakSelf setScale:1.f];
+    weakSelf.size = cellSize;
+  }];
+  SKAction *sequenceAction = [SKAction sequence:@[scaleAction, completionAction]];
+  [self runAction:sequenceAction];
+  
+  CGPoint reposition = [Cell cellPositionWithHexOrigin:hexOrigin
+                                     andHexCoord:self.hexCoord
+                                       forResize:resize];
+  
+    // between .8 and .99
+  CGFloat randomRepositionFactor = ((arc4random() % 100) / 100.f * 0.19) + 0.8f;
+  
+  SKAction *moveAction = [SKAction moveTo:reposition duration:kConstantTime * 0.75f * randomRepositionFactor];
+  SKAction *moveCompletionAction = [SKAction runBlock:^{
+    weakSelf.position = reposition;
+  }];
+  SKAction *moveSequenceAction = [SKAction sequence:@[moveAction, moveCompletionAction]];
+  [self runAction:moveSequenceAction];
 }
 
 -(UIColor *)rawColourForPC:(NSInteger)pc {
   
-    // this
-  NSUInteger adjustedPC = (pc + 6) % 12;
+    // this makes surrounding cells contrast against pc
+    //  NSUInteger adjustedPC = (pc + 6) % 12;
+  
+    // this makes surrounding cells blend with pc
+  NSUInteger adjustedPC = pc;
   
   switch (adjustedPC) {
     case 0:
@@ -187,43 +246,9 @@
       return [UIColor colorWithRed:5/100.f green:40/100.f blue:94/100.f alpha:100/100.f];
       break;
     default:
-      return [UIColor darkGrayColor];
+      return [UIColor blackColor];
       break;
   }
-}
-
-#pragma mark - cell view helper methods
-
--(void)animateResizeAndRepositionOfCell:(BOOL)resize withHexOrigin:(CGVector)hexOrigin andSize:(CGSize)cellSize {
-  
-  __weak typeof(self) weakSelf = self;
-  CGFloat scaleTo = cellSize.height / self.size.height;
-  
-    // between .6 and .99
-  CGFloat randomScaleFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
-  
-    // 0.75f because zoom animation should be a little quicker than usual
-  SKAction *scaleAction = [SKAction scaleTo:scaleTo duration:kConstantTime * 0.75f * randomScaleFactor];
-  SKAction *completionAction = [SKAction runBlock:^{
-    [weakSelf setScale:1.f];
-    weakSelf.size = cellSize;
-  }];
-  SKAction *sequenceAction = [SKAction sequence:@[scaleAction, completionAction]];
-  [self runAction:sequenceAction];
-  
-  CGPoint reposition = [Cell cellPositionWithHexOrigin:hexOrigin
-                                     andHexCoord:self.hexCoord
-                                       forResize:resize];
-  
-    // between .6 and .99
-  CGFloat randomRepositionFactor = ((arc4random() % 100) / 100.f * 0.39) + 0.6f;
-  
-  SKAction *moveAction = [SKAction moveTo:reposition duration:kConstantTime * randomRepositionFactor];
-  SKAction *moveCompletionAction = [SKAction runBlock:^{
-    weakSelf.position = reposition;
-  }];
-  SKAction *moveSequenceAction = [SKAction sequence:@[moveAction, moveCompletionAction]];
-  [self runAction:moveSequenceAction];
 }
 
 #pragma mark - cell size and position helper methods

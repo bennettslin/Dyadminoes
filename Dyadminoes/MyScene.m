@@ -732,6 +732,18 @@
   _beganTouchLocation = [self findTouchLocationFromTouches:touches];
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
+  
+  if ([_touchNode isKindOfClass:Cell.class]) {
+    Cell *cell = (Cell *)_touchNode;
+    
+    CGFloat red = 0.f, green = 0.f, blue = 0.f, alpha = 0.f;
+    UIColor *cellColour = cell.color;
+    [cellColour getRed:&red green:&green blue:&blue alpha:&alpha];
+    
+    NSLog(@"Cell colour is %.2f, %.2f, %.2f, %.2f, minDistance is %i", red, green, blue, alpha, cell.minDistance);
+  }
+  
+  
 //  NSLog(@"touch node is %@ of class %@", _touchNode.name, _touchNode.class);
   
     //--------------------------------------------------------------------------
@@ -1092,12 +1104,14 @@
     }
     
     dyadmino.position = tempNewPosition;
-    
-//    [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
     dyadmino.isTouchThenHoverResized = NO;
     dyadmino.isZoomResized = _boardZoomedOut;
     [self incrementDyadminoesInFluxWithLayoutFirst:NO minusDyadmino:nil];
     [dyadmino goToTempPositionWithLayout:NO andRescale:YES andOrient:NO];
+    
+    if (dyadmino == _recentRackDyadmino) {
+      NSLog(@"%@ orientation %i, hexCoord %i, %i", dyadmino.name, dyadmino.orientation, dyadmino.tempHexCoord.x, dyadmino.tempHexCoord.y);
+    }
   }
 }
 
@@ -3026,7 +3040,7 @@
 
 -(CGPoint)tempPositionForDyadmino:(Dyadmino *)dyadmino withHomeOrientation:(BOOL)homeOrientation {
   
-  DyadminoOrientation orientation = homeOrientation ? dyadmino.homeOrientation : dyadmino.orientation;
+  DyadminoOrientation orientation = homeOrientation && (dyadmino != _recentRackDyadmino) ? dyadmino.homeOrientation : dyadmino.orientation;
   return [Cell snapPositionForHexCoord:dyadmino.tempHexCoord orientation:orientation andResize:_boardZoomedOut givenHexOrigin:_boardField.hexOrigin];
 }
 
