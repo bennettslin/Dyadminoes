@@ -322,7 +322,23 @@
                                             minusDyadmino:(Dyadmino *)minusDyadmino
                                              updateBounds:(BOOL)updateBounds {
   
-  NSSet *finalBoardDyadminoes = [self boardDyadminoes:boardDyadminoes minusDyadmino:minusDyadmino];
+  
+  Dyadmino *touchedDyadmino = [self.delegate touchDyadminoIfAny];
+  
+  NSSet *finalBoardDyadminoes;
+  if (minusDyadmino || touchedDyadmino) {
+    NSMutableSet *minusDyadminoes = [NSMutableSet new];
+    if (minusDyadmino) {
+      [minusDyadminoes addObject:minusDyadmino];
+    }
+    if (touchedDyadmino) {
+      [minusDyadminoes addObject:touchedDyadmino];
+    }
+    finalBoardDyadminoes = [self boardDyadminoes:boardDyadminoes minusDyadminoes:minusDyadminoes];
+    
+  } else {
+    finalBoardDyadminoes = boardDyadminoes;
+  }
   
   [self establishHexOriginForCenteringBoardBasedOnBoardDyadminoes:finalBoardDyadminoes];
   
@@ -1183,13 +1199,14 @@
 
 #pragma mark - dyadmino helper methods
 
--(NSSet *)boardDyadminoes:(NSSet *)boardDyadminoes minusDyadmino:(Dyadmino *)minusDyadmino {
+-(NSSet *)boardDyadminoes:(NSSet *)boardDyadminoes minusDyadminoes:(NSMutableSet *)minusDyadminoes {
   
   NSSet *finalBoardDyadminoes;
-  
-  if (minusDyadmino) {
+  if (minusDyadminoes) {
     NSMutableSet *tempFinalBoardDyadminoes = [NSMutableSet setWithSet:boardDyadminoes];
-    [tempFinalBoardDyadminoes removeObject:minusDyadmino];
+    for (Dyadmino *minusDyadmino in minusDyadminoes) {
+      [tempFinalBoardDyadminoes removeObject:minusDyadmino];
+    }
     finalBoardDyadminoes = [NSSet setWithSet:tempFinalBoardDyadminoes];
     
   } else {

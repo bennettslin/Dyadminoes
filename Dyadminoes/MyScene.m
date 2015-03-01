@@ -757,8 +757,10 @@
         // register sound if dyadmino tapped
     if ((!_pnpBarUp && !_replayMode && dyadmino && (!self.swapContainer || (self.swapContainer && [dyadmino isInRack])) && !_pivotInProgress) && (!_boardZoomedOut || (_boardZoomedOut && [dyadmino isInRack]))) {
       
-          // when face is nil, sound both faces
+          // when face is nil, sound both faces (but not in lock mode)
+      if (!_lockMode) {
         [self soundDyadmino:dyadmino withFace:nil];
+      }
       
         // register sound if face tapped
     } else {
@@ -2996,6 +2998,7 @@
     if (newParent == _boardField) {
       [self incrementDyadminoesInFluxWithLayoutFirst:NO minusDyadmino:nil];
     } else if (newParent == _rackField) {
+      NSLog(@"decrement called in method to remove %@", dyadmino);
       [self decrementDyadminoesInFluxWithLayoutLast:layout];
     }
   }
@@ -3432,6 +3435,12 @@
   if (_replayMode) {
     [self updateReplayButtons];
   }
+}
+
+-(Dyadmino *)touchDyadminoIfAny {
+    // kludge way of letting board know if there is a touched dyadmino
+    // because layout of cells will never acknowledge touched dyadmino
+  return _touchedDyadmino;
 }
 
 #pragma mark - increment and decrement methods for completing dyadmino animation to temp board cell

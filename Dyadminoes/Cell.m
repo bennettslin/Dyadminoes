@@ -36,9 +36,9 @@
     self.zPosition = kZPositionBoardCell;
     self.colorBlendFactor = 0.9f;
     
-//    [self createHexCoordLabel];
+    [self createHexCoordLabel];
     [self updateHexCoordLabel];
-//    [self createPCLabel];
+    [self createPCLabel];
     [self updatePCLabel];
 
     [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin forResize:resize];
@@ -245,7 +245,7 @@
       return [UIColor colorWithRed:5/100.f green:40/100.f blue:94/100.f alpha:100/100.f];
       break;
     default:
-      return [UIColor blackColor];
+      return [UIColor greenColor];
       break;
   }
 }

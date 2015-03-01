@@ -13,7 +13,7 @@
 @protocol BoardDelegate <NSObject>
 
 -(UIColor *)pivotColourForCurrentPlayerLight:(BOOL)light;
-
+-(Dyadmino *)touchDyadminoIfAny;
 -(void)correctBoardForPositionAfterZoom;
 -(NSSet *)allBoardDyadminoesPlusRecentRackDyadmino;
 -(BOOL)actionSheetShown;
