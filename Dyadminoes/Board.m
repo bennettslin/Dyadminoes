@@ -341,10 +341,10 @@
   }
   
     // for debugging purposes
-  NSLog(@"layout considers these dyadminoes:");
-  for (Dyadmino *dyadmino in finalBoardDyadminoes) {
-    NSLog(@"%@", dyadmino);
-  }
+//  NSLog(@"layout considers these dyadminoes:");
+//  for (Dyadmino *dyadmino in finalBoardDyadminoes) {
+//    NSLog(@"%@", dyadmino);
+//  }
   
   [self establishHexOriginForCenteringBoardBasedOnBoardDyadminoes:finalBoardDyadminoes];
   
@@ -1069,7 +1069,6 @@
 }
 
 -(void)hidePivotGuideAndShowPrePivotGuideForDyadmino:(Dyadmino *)dyadmino {
-  NSLog(@"hide pivot guide and show pre pivot guide");
   [self showPivotGuide:self.prePivotGuide forDyadmino:dyadmino];
   [self hidePivotGuide:self.pivotRotateGuide thenShowExtendedChordActionSheet:NO];
   [self hidePivotGuide:self.pivotAroundGuide thenShowExtendedChordActionSheet:NO];

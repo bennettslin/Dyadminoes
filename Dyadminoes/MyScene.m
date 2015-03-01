@@ -1139,7 +1139,13 @@
       // rack dyadmino will do so upon move out of rack
       // (this needs to come before legal chords are checked, so that its placement on board is included)
     if (_hoveringDyadmino && [dyadmino isOnBoard]) {
-      [self moveDyadminoHome:_hoveringDyadmino andSound:YES];
+      
+      if (_hoveringDyadmino.home == kBoard) {
+        [self moveDyadminoHome:_hoveringDyadmino andSound:YES withDecrement:NO];
+        [self decrementDyadminoesInFluxWithLayoutLast:YES];
+      } else {
+        [self moveDyadminoHome:_hoveringDyadmino andSound:YES withDecrement:NO];
+      }
     }
   }
   
@@ -1176,7 +1182,7 @@
 -(void)getReadyToMoveCurrentDyadmino:(Dyadmino *)dyadmino {
   
   if ([dyadmino isOnBoard] && dyadmino != _hoveringDyadmino) {
-    NSLog(@"increment called in get ready to move current %@", dyadmino);
+    NSLog(@"increment called in get ready to move current %@", dyadmino.name);
     [self incrementDyadminoesInFluxWithLayoutFirst:YES minusDyadmino:dyadmino];
     [self updateCellsForRemovedDyadmino:dyadmino];
   }
@@ -1266,7 +1272,7 @@
   }
 }
 
--(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingInForUndo:(BOOL)popInForUndo andSound:(BOOL)sound {
+-(void)sendDyadminoHome:(Dyadmino *)dyadmino byPoppingInForUndo:(BOOL)popInForUndo andSound:(BOOL)sound withDecrement:(BOOL)decrement {
     // only called by moveDyadminoHome and popDyadminoHome
   
   if ([dyadmino isOnBoard]) {
@@ -1293,7 +1299,7 @@
   } else {
     
     dyadmino.tempHexCoord = dyadmino.homeHexCoord;
-    [dyadmino returnHomeToBoardWithLayout:YES andSound:sound];
+    [dyadmino returnHomeToBoardWithLayout:YES andSound:sound withDecrement:decrement];
   }
 
     // reset properties
@@ -1881,7 +1887,6 @@
         _hoveringDyadmino.tempHexCoord = [self closestHexCoordForDyadmino:_hoveringDyadmino];
         
         if (!_canDoubleTapForDyadminoFlip && !_hoveringDyadmino.isRotating) {
-          NSLog(@"hide pivot guide and show pre pivot guide called in update for hovering dyadmino");
           [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
         }
         
@@ -2062,7 +2067,6 @@
         
         if (_hoveringDyadminoBeingCorrected == 0) {
           if (!_canDoubleTapForDyadminoFlip && !_hoveringDyadmino.isRotating) {
-            NSLog(@"hide pivot guide and show pre pivot guide called in update for board being corrected");
             [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
           }
         }
@@ -2276,7 +2280,6 @@
 }
 
 -(void)finishHoveringAfterCheckDyadmino:(Dyadmino *)dyadmino {
-  NSLog(@"finish hovering after check dyadmino");
   
   [dyadmino changeHoveringStatus:kDyadminoFinishedHovering];
   if (dyadmino.home == kBoard) {
@@ -3031,11 +3034,17 @@
 }
 
 -(void)moveDyadminoHome:(Dyadmino *)dyadmino andSound:(BOOL)sound {
-  [self sendDyadminoHome:dyadmino byPoppingInForUndo:NO andSound:sound];
+  [self sendDyadminoHome:dyadmino byPoppingInForUndo:NO andSound:sound withDecrement:YES];
+}
+
+-(void)moveDyadminoHome:(Dyadmino *)dyadmino andSound:(BOOL)sound withDecrement:(BOOL)decrement {
+    // the sole purpose of having the decrement bool here is when touched board dyadmino
+    // sends hovering dyadmino home
+  [self sendDyadminoHome:dyadmino byPoppingInForUndo:NO andSound:sound withDecrement:decrement];
 }
 
 -(void)popDyadminoHome:(Dyadmino *)dyadmino {
-  [self sendDyadminoHome:dyadmino byPoppingInForUndo:YES andSound:NO];
+  [self sendDyadminoHome:dyadmino byPoppingInForUndo:YES andSound:NO withDecrement:YES];
 }
 
 -(CGPoint)homePositionForDyadmino:(Dyadmino *)dyadmino {
@@ -3213,12 +3222,11 @@
         [dyadmino goToTempPositionWithLayout:YES andRescale:NO andOrient:YES];
         
       } else {
-        [dyadmino returnHomeToBoardWithLayout:YES andSound:NO];
+        [dyadmino returnHomeToBoardWithLayout:YES andSound:NO withDecrement:YES];
       }
     }
   }
   
-  NSLog(@"layout in update board for replay");
   [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.replayDyadminoesNotMovedThisTurn minusDyadmino:nil updateBounds:NO];
 }
 

@@ -126,7 +126,7 @@
 #pragma mark - animate detailed placement methods
 
 -(void)returnToRackByPoppingInForUndo:(BOOL)popInForUndo withResize:(BOOL)resize;
--(void)returnHomeToBoardWithLayout:(BOOL)layout andSound:(BOOL)sound;
+-(void)returnHomeToBoardWithLayout:(BOOL)layout andSound:(BOOL)sound withDecrement:(BOOL)decrement;
 
   // called by scene during replay and toggle board zoom
 -(void)goToTempPositionWithLayout:(BOOL)layout andRescale:(BOOL)rescale andOrient:(BOOL)orient;

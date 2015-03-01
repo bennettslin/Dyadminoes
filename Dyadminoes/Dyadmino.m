@@ -284,14 +284,14 @@
     
     self.colorBlendFactor = 0.f;
     [self orientWithAnimation:YES];
-    [self animateMoveToPoint:[self addIfSwapToHomePosition:rackPosition] withLayout:NO andSound:NO];
+    [self animateMoveToPoint:[self addIfSwapToHomePosition:rackPosition] withLayout:NO andSound:NO withDecrement:YES];
   }
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
--(void)returnHomeToBoardWithLayout:(BOOL)layout andSound:(BOOL)sound {
+-(void)returnHomeToBoardWithLayout:(BOOL)layout andSound:(BOOL)sound withDecrement:(BOOL)decrement {
   [self orientWithAnimation:YES];
-  [self animateMoveToPoint:[self.delegate homePositionForDyadmino:self] withLayout:layout andSound:sound];
+  [self animateMoveToPoint:[self.delegate homePositionForDyadmino:self] withLayout:layout andSound:sound withDecrement:decrement];
   [self changeHoveringStatus:kDyadminoFinishedHovering];
 }
 
@@ -352,14 +352,14 @@
 #pragma mark - animate basic placement methods
 
 -(void)animateMoveToPointCalledFromRack:(CGPoint)point {
-  [self animateMoveToPoint:point withLayout:NO andSound:NO andCalledFromRack:YES];
+  [self animateMoveToPoint:point withLayout:NO andSound:NO andCalledFromRack:YES withDecrement:YES];
 }
 
--(void)animateMoveToPoint:(CGPoint)point withLayout:(BOOL)layout andSound:(BOOL)sound {
-  [self animateMoveToPoint:point withLayout:layout andSound:sound andCalledFromRack:NO];
+-(void)animateMoveToPoint:(CGPoint)point withLayout:(BOOL)layout andSound:(BOOL)sound withDecrement:(BOOL)decrement {
+  [self animateMoveToPoint:point withLayout:layout andSound:sound andCalledFromRack:NO withDecrement:decrement];
 }
 
--(void)animateMoveToPoint:(CGPoint)point withLayout:(BOOL)layout andSound:(BOOL)sound andCalledFromRack:(BOOL)calledFromRack {
+-(void)animateMoveToPoint:(CGPoint)point withLayout:(BOOL)layout andSound:(BOOL)sound andCalledFromRack:(BOOL)calledFromRack withDecrement:(BOOL)decrement {
   
     // if called from rack, does not include orientation
     // otherwise it is called from self, and does include orientation animation
@@ -372,7 +372,9 @@
       if ([self isOnBoard]) {
 //        NSLog(@"update cells for placed dyadmino in animate move to point");
         [weakSelf.delegate updateCellsForPlacedDyadmino:self];
-        [weakSelf.delegate decrementDyadminoesInFluxWithLayoutLast:layout];
+        if (decrement) {
+          [weakSelf.delegate decrementDyadminoesInFluxWithLayoutLast:layout];
+        }
       }
     };
     
