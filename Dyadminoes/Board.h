@@ -17,6 +17,7 @@
 -(void)correctBoardForPositionAfterZoom;
 -(NSSet *)allBoardDyadminoesPlusRecentRackDyadmino;
 -(BOOL)actionSheetShown;
+-(void)presentActionSheetAfterPivotGuidesHidden;
 
 @end
 
@@ -105,6 +106,7 @@
 
 -(void)hidePivotGuideAndShowPrePivotGuideForDyadmino:(Dyadmino *)dyadmino;
 -(void)hideAllPivotGuides;
+-(void)hideAllPivotGuidesAndShowExtendedChordActionSheet;
 -(void)handleUserWantsPivotGuides;
 
 -(void)updatePositionsOfPivotGuidesForDyadminoPosition:(CGPoint)dyadminoPosition;

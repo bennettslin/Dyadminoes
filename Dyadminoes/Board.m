@@ -340,6 +340,12 @@
     finalBoardDyadminoes = boardDyadminoes;
   }
   
+    // for debugging purposes
+  NSLog(@"layout considers these dyadminoes:");
+  for (Dyadmino *dyadmino in finalBoardDyadminoes) {
+    NSLog(@"%@", dyadmino);
+  }
+  
   [self establishHexOriginForCenteringBoardBasedOnBoardDyadminoes:finalBoardDyadminoes];
   
 //  NSLog(@"add all current called from layout");
@@ -1049,24 +1055,36 @@
 
 }
 
--(void)hidePivotGuide:(SKNode *)pivotGuide {
+-(void)hidePivotGuide:(SKNode *)pivotGuide thenShowExtendedChordActionSheet:(BOOL)showActionSheet {
   if (self.userWantsPivotGuides && pivotGuide.parent) {
     [self animatePivotGuide:pivotGuide toShow:NO completion:^{
       [pivotGuide removeFromParent];
+      if (showActionSheet) {
+        if (!self.prePivotGuide.parent && !self.pivotAroundGuide.parent && !self.pivotRotateGuide.parent) {
+          [self.delegate presentActionSheetAfterPivotGuidesHidden];
+        }
+      }
     }];
   }
 }
 
 -(void)hidePivotGuideAndShowPrePivotGuideForDyadmino:(Dyadmino *)dyadmino {
+  NSLog(@"hide pivot guide and show pre pivot guide");
   [self showPivotGuide:self.prePivotGuide forDyadmino:dyadmino];
-  [self hidePivotGuide:self.pivotRotateGuide];
-  [self hidePivotGuide:self.pivotAroundGuide];
+  [self hidePivotGuide:self.pivotRotateGuide thenShowExtendedChordActionSheet:NO];
+  [self hidePivotGuide:self.pivotAroundGuide thenShowExtendedChordActionSheet:NO];
 }
 
 -(void)hideAllPivotGuides {
-  [self hidePivotGuide:self.prePivotGuide];
-  [self hidePivotGuide:self.pivotAroundGuide];
-  [self hidePivotGuide:self.pivotRotateGuide];
+  [self hidePivotGuide:self.prePivotGuide thenShowExtendedChordActionSheet:NO];
+  [self hidePivotGuide:self.pivotAroundGuide thenShowExtendedChordActionSheet:NO];
+  [self hidePivotGuide:self.pivotRotateGuide thenShowExtendedChordActionSheet:NO];
+}
+
+-(void)hideAllPivotGuidesAndShowExtendedChordActionSheet {
+  [self hidePivotGuide:self.prePivotGuide thenShowExtendedChordActionSheet:YES];
+  [self hidePivotGuide:self.pivotAroundGuide thenShowExtendedChordActionSheet:YES];
+  [self hidePivotGuide:self.pivotRotateGuide thenShowExtendedChordActionSheet:YES];
 }
 
 #pragma mark - pivot helper methods

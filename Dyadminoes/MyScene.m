@@ -127,6 +127,8 @@
   CGFloat _touchPivotOffsetAngle;
   
   NSUInteger _dyadminoFluxCounter;
+  
+  NSUInteger _pointsForExtending;
 }
 
 #pragma mark - set up methods
@@ -248,6 +250,7 @@
   _actionSheetShown = NO;
   _endTouchLocationToMeasureDoubleTap = CGPointMake(CGFLOAT_MAX, CGFLOAT_MAX);
   _dyadminoFluxCounter = 0;
+  _pointsForExtending = 0;
   
   if (_lockMode) {
     [self handleDoubleTapForLockModeWithSound:NO];
@@ -1173,6 +1176,7 @@
 -(void)getReadyToMoveCurrentDyadmino:(Dyadmino *)dyadmino {
   
   if ([dyadmino isOnBoard] && dyadmino != _hoveringDyadmino) {
+    NSLog(@"increment called in get ready to move current %@", dyadmino);
     [self incrementDyadminoesInFluxWithLayoutFirst:YES minusDyadmino:dyadmino];
     [self updateCellsForRemovedDyadmino:dyadmino];
   }
@@ -1253,11 +1257,9 @@
     dyadmino.tempHexCoord = [self closestHexCoordForDyadmino:dyadmino];
     
       // start hovering
-//    [dyadmino removeActionsAndEstablishNotRotatingIncludingMove:YES];
     [self checkWhetherToEaseOrKeepHovering:dyadmino];
     
-    if (dyadmino.isHovering || dyadmino.continuesToHover) {
-      
+    if ((dyadmino.isHovering || dyadmino.continuesToHover) && _pointsForExtending == 0) {
        // add !_canDoubleTapForDyadminoFlip to have delay after touch ends
       dyadmino.isRotating ? nil : [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:dyadmino];
     }
@@ -1879,6 +1881,7 @@
         _hoveringDyadmino.tempHexCoord = [self closestHexCoordForDyadmino:_hoveringDyadmino];
         
         if (!_canDoubleTapForDyadminoFlip && !_hoveringDyadmino.isRotating) {
+          NSLog(@"hide pivot guide and show pre pivot guide called in update for hovering dyadmino");
           [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
         }
         
@@ -2059,6 +2062,7 @@
         
         if (_hoveringDyadminoBeingCorrected == 0) {
           if (!_canDoubleTapForDyadminoFlip && !_hoveringDyadmino.isRotating) {
+            NSLog(@"hide pivot guide and show pre pivot guide called in update for board being corrected");
             [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
           }
         }
@@ -2072,7 +2076,7 @@
 -(void)updatePivotForDyadminoMoveWithoutBoardCorrected {
     // if board not shifted or corrected, show prepivot guide
   if (_hoveringDyadmino && _hoveringDyadminoBeingCorrected == 0 && _hoveringDyadmino.zRotationCorrectedAfterPivot && !_touchedDyadmino && !_currentTouch && !_boardBeingCorrectedWithinBounds && !_boardJustShiftedNotCorrected && ![_boardField.children containsObject:_boardField.prePivotGuide]) {
-    if (!_canDoubleTapForDyadminoFlip && !_hoveringDyadmino.isRotating) {
+    if (!_canDoubleTapForDyadminoFlip && !_hoveringDyadmino.isRotating && _pointsForExtending == 0) {
       [_boardField hidePivotGuideAndShowPrePivotGuideForDyadmino:_hoveringDyadmino];
     }
   }
@@ -2100,7 +2104,9 @@
       [dyadmino changeHoveringStatus:kDyadminoFinishedHovering];
     }
     
-    [dyadmino isFinishedHovering] ? [self checkWhetherToEaseOrKeepHovering:dyadmino] : nil;
+    if ([dyadmino isFinishedHovering]) {
+      [self checkWhetherToEaseOrKeepHovering:dyadmino];
+    }
   }
 }
 
@@ -2118,7 +2124,6 @@
         dyadmino.orientation == _uponTouchDyadminoOrientation) {
     
       NSLog(@"ease in right away, since dyadmino was not moved from original spot.");
-      
         // however, ensure that buttons are updated if chords are changed after flip
       [self updateTopBarButtons];
       [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
@@ -2206,12 +2211,12 @@
           // updates will be made from after action sheet button is clicked
         if (dyadmino.home == kBoard && [self.myMatch.board containsObject:dataDyad]) {
 
-          NSUInteger pointsForPlacement = [self.myMatch pointsForPlacingDyadmino:dataDyad
-                                                                onBottomHexCoord:dyadmino.tempHexCoord
-                                                                 withOrientation:dyadmino.orientation];
+          _pointsForExtending = [self.myMatch pointsForPlacingDyadmino:dataDyad
+                                                      onBottomHexCoord:dyadmino.tempHexCoord
+                                                       withOrientation:dyadmino.orientation];
           
-          [self presentActionSheet:kActionSheetNewLegalChord
-                        withPoints:pointsForPlacement];
+          [_boardField hideAllPivotGuidesAndShowExtendedChordActionSheet];
+          
           NSAttributedString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
                                                                          onBottomHexCoord:dyadmino.tempHexCoord
                                                                           withOrientation:dyadmino.orientation
@@ -3441,6 +3446,12 @@
     // kludge way of letting board know if there is a touched dyadmino
     // because layout of cells will never acknowledge touched dyadmino
   return _touchedDyadmino;
+}
+
+-(void)presentActionSheetAfterPivotGuidesHidden {
+  [self presentActionSheet:kActionSheetNewLegalChord
+                withPoints:_pointsForExtending];
+//  _pointsForExtending = 0;
 }
 
 #pragma mark - increment and decrement methods for completing dyadmino animation to temp board cell
