@@ -18,6 +18,13 @@
 #import "SettingsViewController.h"
 #import "GameEndedViewController.h"
 
+typedef enum chordMessageStatus {
+  kAccidentalsNowhere,
+  kAccidentalsFirstLine,
+  kAccidentalsSecondLine,
+  kAccidentalsBothLines
+} ChordMessageStatus;
+
 @interface SceneViewController () <SceneDelegate, UIGestureRecognizerDelegate, OptionsDelegate, GameEndedDelegate>
 
 @property (strong, nonatomic) SKView *mySceneView;
@@ -31,6 +38,7 @@
 @property (nonatomic) CGFloat topBarScoreLabelWidth;
 
 @property (strong, nonatomic) UILabel *chordMessageLabel;
+@property (strong, nonatomic) NSString *currentChordMessage;
 
 @end
 
@@ -41,6 +49,7 @@
 
 @synthesize optionsVC = _optionsVC;
 @synthesize gameEndedVC = _gameEndedVC;
+@synthesize chordMessageLabel = _chordMessageLabel;
 
 -(void)setTopBarPlayerLabelWidth:(CGFloat)topBarPlayerLabelWidth {
   _topBarPlayerLabelWidth = topBarPlayerLabelWidth;
@@ -49,12 +58,7 @@
 
 -(void)viewDidLoad {
   [super viewDidLoad];
-  
-//  self.optionsVC = [self.storyboard instantiateViewControllerWithIdentifier:@"OptionsViewController"];
-//  self.optionsVC.delegate = self;
-//  
-//  self.gameEndedVC = [self.storyboard instantiateViewControllerWithIdentifier:@"GameEndedViewController"];
-  
+
     // first version of app will not have device orientation
 //  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(saveManagedObjectContext) name:UIApplicationDidEnterBackgroundNotification object:nil];
@@ -69,6 +73,7 @@
 -(void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
   _pinchStillCounts = YES;
+  self.currentChordMessage = nil;
 }
 
 -(void)createAndConfigureScene {
@@ -94,9 +99,6 @@
   if (!self.mySceneView.scene) {
     NSLog(@"Scene was not properly presented.");
     abort();
-  } else {
-//    [self.myScene toggleRackGoOut:NO completion:nil];
-//    [self.myScene toggleTopBarGoOut:NO completion:nil];
   }
 }
 
@@ -187,6 +189,8 @@
     [self handleUserDefaults];
   }
   
+  self.currentChordMessage = nil;
+  
   [super backToParentViewWithAnimateRemoveVC:animateRemoveVC];
 }
 
@@ -264,19 +268,6 @@
   self.pnpWaitingLabel.numberOfLines = kIsIPhone ? 2 : 1;
   [self.view addSubview:self.pnpWaitingLabel];
   
-  self.chordMessageLabel = [UILabel new];
-  self.chordMessageLabel.textColor = [UIColor whiteColor];
-  self.chordMessageLabel.font = [UIFont fontWithName:kFontModern size:kChordMessageLabelFontSize];
-  self.chordMessageLabel.textAlignment = NSTextAlignmentCenter;
-  self.chordMessageLabel.adjustsFontSizeToFitWidth = YES;
-  self.chordMessageLabel.baselineAdjustment = UIBaselineAdjustmentAlignBaselines;
-  
-//  self.chordMessageLabel.lineBreakMode = NSLineBreakByWordWrapping;
-//  self.chordMessageLabel.numberOfLines = 0;
-  self.chordMessageLabel.layer.borderColor = [UIColor redColor].CGColor;
-  self.chordMessageLabel.layer.borderWidth = 2.f;
-  [self.view addSubview:self.chordMessageLabel];
-  
     // frames
   self.turnLabel.frame = CGRectMake(self.view.bounds.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize * 1.25);
   
@@ -294,8 +285,6 @@
   self.pnpWaitingLabel.frame = CGRectMake(kPnPXEdgeBuffer, desiredPnPY, self.view.bounds.size.width - (kPnPXEdgeBuffer * 2) - kLargeButtonWidth - kPnPPaddingBetweenLabelAndButton, kRackHeight);
   
   self.replayTurnLabel.frame = CGRectMake(kReplayXEdgeBuffer, -kTopBarHeight * 0.95, self.view.frame.size.width - (kReplayXEdgeBuffer * 2), kTopBarHeight);
-  
-  self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, self.view.bounds.size.height - kRackHeight - kChordMessageLabelHeight, self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight);
 }
 
 #pragma mark - label data methods
@@ -495,6 +484,20 @@
 
 -(void)showChordMessage:(NSString *)message sign:(ChordMessageSign)sign {
   
+  if ([message isEqualToString:self.currentChordMessage]) {
+    return;
+  }
+  
+//  message = @"Can't break B minor seventh and D(#)/E(b) diminished triadj.";
+  
+  if (self.chordMessageLabel) {
+    UILabel *oldChordMessageLabel = self.chordMessageLabel;
+    self.chordMessageLabel = nil;
+    [self fadeChordMessage:oldChordMessageLabel withScroll:YES];
+  }
+  
+  self.currentChordMessage = message;
+  
   UIColor *labelColour;
   switch (sign) {
     case kChordMessageGood:
@@ -519,20 +522,13 @@
                                       attributes:@{NSFontAttributeName: [UIFont fontWithName:kFontModern size:kChordMessageLabelFontSize]}
                                          context:context];
   
-  NSLog(@"label height should be %.2f for %@", rect.size.height, message);
-  
   self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, self.view.bounds.size.height - kRackHeight - kChordMessageLabelHeight, self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight);
   self.chordMessageLabel.numberOfLines = 1;
 
+    // if string is too long, divide into two lines
   if (rect.size.height > self.chordMessageLabel.frame.size.height) {
     
     self.chordMessageLabel.numberOfLines = 2;
-    
-    CGFloat labelYOrigin = kIsIPhone ?
-        self.view.bounds.size.height - kRackHeight - kChordMessageLabelHeight * 2.5 :
-        self.view.bounds.size.height - kRackHeight - kChordMessageLabelHeight * 2.25;
-    
-    self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, labelYOrigin, self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight * 4);
     
     BOOL lineBroken = NO;
     NSInteger counterUp = message.length / 2;
@@ -555,40 +551,110 @@
     message = [NSString stringWithString:mutableString];
   }
   
+    // add bold outline
   NSMutableAttributedString *mutableAttributedString = [[NSMutableAttributedString alloc] initWithString:@""];
   [mutableAttributedString appendAttributedString:[self stringWithAccidentals:message fontSize:kChordMessageLabelFontSize]];
   [mutableAttributedString addAttributes:@{NSStrokeWidthAttributeName: [NSNumber numberWithFloat:-(kChordMessageLabelFontSize / 30)],
                                            NSStrokeColorAttributeName:kPianoBlack,
                                            NSForegroundColorAttributeName:labelColour} range:NSMakeRange(0, mutableAttributedString.length)];
   
+  
   if (self.chordMessageLabel.numberOfLines == 2) {
     NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
     paragraphStyle.lineSpacing = 0;
     paragraphStyle.alignment = NSTextAlignmentCenter;
     
-      // FIXME: I just really don't understand why the device should matter...
-    if (kIsIPhone) {
+      // ensures that accidentals, with their baseline offsets, are accommodated
+    ChordMessageStatus messageStatus = [self chordMessageStatusOfString:[self stringWithPoundsAndYen:message]];
+    if (messageStatus == kAccidentalsFirstLine) { // yes
+//      NSLog(@"accidentals first line");
+      self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer,
+                                                self.view.bounds.size.height - kRackHeight - (kChordMessageLabelHeight * 2.2),
+                                                self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight * 4);
+      paragraphStyle.maximumLineHeight = kChordMessageLabelFontSize / 12;
+      
+    } else if (messageStatus == kAccidentalsSecondLine) {
+//      NSLog(@"accidentals second line");
+      self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer,
+                                                self.view.bounds.size.height - kRackHeight - (kChordMessageLabelHeight * 2.6),
+                                                self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight * 4);
       paragraphStyle.maximumLineHeight = kChordMessageLabelFontSize * 2;
-    } else {
-      paragraphStyle.maximumLineHeight = kChordMessageLabelFontSize / 4.5;
+      
+    } else if (messageStatus == kAccidentalsBothLines) {
+//      NSLog(@"accidentals both lines");
+      self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer,
+                                                self.view.bounds.size.height - kRackHeight - (kChordMessageLabelHeight * 2.2),
+                                                self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight * 4);
+      paragraphStyle.maximumLineHeight = kChordMessageLabelFontSize;
+      
+    } else if (messageStatus == kAccidentalsNowhere) {
+//      NSLog(@"accidentals no lines");
+      self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer,
+                                                self.view.bounds.size.height - kRackHeight - (kChordMessageLabelHeight * 2.9),
+                                                self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight * 4);
+      paragraphStyle.maximumLineHeight = kChordMessageLabelFontSize;
     }
     
     [mutableAttributedString addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, mutableAttributedString.length)];
   }
   
+  self.chordMessageLabel.alpha = 0.f;
   self.chordMessageLabel.attributedText = mutableAttributedString;
-  
-//  self.chordMessageLabel.textColor = labelColour;
+  [UIView animateWithDuration:kConstantTime * 0.2f animations:^{
+    self.chordMessageLabel.alpha = 1.f;
+  }];
 }
 
--(NSAttributedString *)stringWithAccidentals:(NSString *)myString fontSize:(CGFloat)size {
+-(ChordMessageStatus)chordMessageStatusOfString:(NSString *)string {
   
+  BOOL accidentalsInFirstLine = NO;
+  BOOL accidentalsInSecondLine = NO;
+  BOOL inSecondLine = NO;
+  
+  for (int i = 0; i < string.length; i++) {
+    unichar myChar = [string characterAtIndex:i];
+    if (myChar == (unichar)163 || myChar == (unichar)165) {
+      if (!inSecondLine) {
+        accidentalsInFirstLine = YES;
+      } else {
+        accidentalsInSecondLine = YES;
+      }
+    } else if (myChar == 0x000a) {
+      inSecondLine = YES;
+    }
+  }
+  
+  if (inSecondLine) {
+    if (accidentalsInFirstLine && accidentalsInSecondLine) {
+      return kAccidentalsBothLines;
+    } else if (accidentalsInFirstLine) {
+      return kAccidentalsFirstLine;
+    } else if (accidentalsInSecondLine) {
+      return kAccidentalsSecondLine;
+    } else {
+      NSLog(@"in second line, no accidentals");
+      return kAccidentalsNowhere;
+    }
+  } else {
+    NSLog(@"not in second line, no accidentals");
+    return kAccidentalsNowhere;
+  }
+}
+
+-(NSString *)stringWithPoundsAndYen:(NSString *)myString {
     // first replace all instances of (#) and (b) with pound and yen characters
   unichar pound[1] = {(unichar)163};
   unichar yen[1] = {(unichar)165};
   
   myString = [myString stringByReplacingOccurrencesOfString:@"(#)" withString:[NSString stringWithCharacters:pound length:1]];
   myString = [myString stringByReplacingOccurrencesOfString:@"(b)" withString:[NSString stringWithCharacters:yen length:1]];
+  
+  return myString;
+}
+
+-(NSAttributedString *)stringWithAccidentals:(NSString *)myString fontSize:(CGFloat)size {
+  
+  myString = [self stringWithPoundsAndYen:myString];
   
   NSMutableAttributedString *attString = [[NSMutableAttributedString alloc] initWithString:myString];
   
@@ -607,7 +673,7 @@
       
     } else if (myChar == (unichar)36) { // dollar sign turns into bullet
       [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolBullet]];
-      [attString addAttribute:NSKernAttributeName value:@(-size * .05) range:NSMakeRange(i, 1)];
+//      [attString addAttribute:NSKernAttributeName value:@(-size * .05) range:NSMakeRange(i, 1)];
     }
   }
   
@@ -615,9 +681,27 @@
 }
 
 -(void)fadeChordMessage {
-  self.chordMessageLabel.text = @"";
-  self.chordMessageLabel.numberOfLines = 1;
-  self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, self.view.bounds.size.height - kRackHeight - kChordMessageLabelHeight, self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight);
+  UILabel *oldChordMessageLabel = self.chordMessageLabel;
+  self.chordMessageLabel = nil;
+  [self fadeChordMessage:oldChordMessageLabel withScroll:NO];
+}
+
+-(void)fadeChordMessage:(UILabel *)messageLabel withScroll:(BOOL)scroll {
+  
+  self.currentChordMessage = nil;
+  
+  [UIView animateWithDuration:kConstantTime animations:^{
+    if (scroll) {
+      messageLabel.frame = CGRectMake(messageLabel.frame.origin.x, messageLabel.frame.origin.y - kChordMessageLabelHeight, messageLabel.frame.size.width, messageLabel.frame.size.height);
+    }
+    messageLabel.alpha = 0.f;
+    
+  } completion:^(BOOL finished) {
+    messageLabel.text = @"";
+    messageLabel.numberOfLines = 1;
+    messageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, self.view.bounds.size.height - kRackHeight - kChordMessageLabelHeight, self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight);
+    messageLabel.alpha = 1.f;
+  }];
 }
 
 #pragma mark - label animation methods
@@ -778,6 +862,25 @@
     _gameEndedVC = [self.storyboard instantiateViewControllerWithIdentifier:@"GameEndedViewController"];
   }
   return _gameEndedVC;
+}
+
+-(void)setChordMessageLabel:(UILabel *)chordMessageLabel {
+  _chordMessageLabel = chordMessageLabel;
+}
+
+-(UILabel *)chordMessageLabel {
+  if (!_chordMessageLabel) {
+    _chordMessageLabel = [UILabel new];
+    _chordMessageLabel.textColor = [UIColor whiteColor];
+    _chordMessageLabel.font = [UIFont fontWithName:kFontModern size:kChordMessageLabelFontSize];
+    _chordMessageLabel.textAlignment = NSTextAlignmentCenter;
+    _chordMessageLabel.adjustsFontSizeToFitWidth = YES;
+    _chordMessageLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+    
+    [self.view addSubview:_chordMessageLabel];
+    _chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, self.view.bounds.size.height - kRackHeight - kChordMessageLabelHeight, self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight);
+  }
+  return _chordMessageLabel;
 }
 
 #pragma mark - delegate methods
