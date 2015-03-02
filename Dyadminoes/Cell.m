@@ -36,9 +36,9 @@
     self.zPosition = kZPositionBoardCell;
     self.colorBlendFactor = 0.9f;
     
-    [self createHexCoordLabel];
+//    [self createHexCoordLabel];
     [self updateHexCoordLabel];
-    [self createPCLabel];
+//    [self createPCLabel];
     [self updatePCLabel];
 
     [self reuseCellWithHexCoord:hexCoord andHexOrigin:hexOrigin forResize:resize];

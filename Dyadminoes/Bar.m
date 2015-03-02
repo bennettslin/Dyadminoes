@@ -17,18 +17,18 @@
   NSUInteger _rotationFromDevice;
 }
 
--(id)initWithColor:(UIColor *)color andSize:(CGSize)size
+-(id)initWithColor:(UIColor *)color andSize:(CGSize)size andTop:(BOOL)top
     andAnchorPoint:(CGPoint)anchorPoint
        andPosition:(CGPoint)position
       andZPosition:(CGFloat)zPosition {
   self = [super init];
   if (self) {
-    self.color = color;
     self.size = size;
     self.anchorPoint = anchorPoint;
     self.position = position;
     self.zPosition = zPosition;
     _rotationFromDevice = 0;
+    [self addGradientBackgroundWithColour:color upsideDown:top];
   }
   return self;
 }
@@ -61,6 +61,55 @@
 
 -(void)postSoundNotification:(NotificationName)whichNotification {
   [self.delegate postSoundNotification:whichNotification];
+}
+
+#pragma mark - helper methods
+
+-(void)addGradientBackgroundWithColour:(UIColor *)colour upsideDown:(BOOL)upsideDown {
+  
+  const CGFloat bounceBuffer = 16.f / 15.f;
+  
+  UIGraphicsBeginImageContext(CGSizeMake(self.size.width, self.size.height * bounceBuffer));
+  CGContextRef context = UIGraphicsGetCurrentContext();
+  
+  CGGradientRef gradient;
+  CGColorSpaceRef colorSpace;
+  
+  CGFloat location[] = {1};
+
+  UIColor *colourTwo = [UIColor clearColor];
+  
+  NSArray *colours;
+  CGGradientDrawingOptions option;
+  if (!upsideDown) {
+    colours = @[(id)colour.CGColor, (id)colourTwo.CGColor];
+    option = kCGGradientDrawsBeforeStartLocation;
+  } else {
+    colours = @[(id)colourTwo.CGColor, (id)colour.CGColor];
+    option = kCGGradientDrawsAfterEndLocation;
+  }
+  
+  colorSpace = CGColorSpaceCreateDeviceRGB();
+  gradient = CGGradientCreateWithColors(colorSpace, (CFArrayRef) colours, location);
+  
+  CGPoint startPoint = CGPointMake(self.size.width / 2, 0);
+  CGPoint endPoint = CGPointMake(self.size.width / 2, self.size.height * bounceBuffer);
+  
+  
+  CGContextDrawLinearGradient(context, gradient, startPoint, endPoint, option);
+  
+  CGColorSpaceRelease(colorSpace);
+  CGGradientRelease(gradient);
+  
+  UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+  SKTexture *newTexture = [SKTexture textureWithImage:newImage];
+  newTexture.filteringMode = SKTextureFilteringNearest;
+  
+  SKSpriteNode *newNode = [SKSpriteNode spriteNodeWithTexture:newTexture];
+  newNode.zPosition = -10;
+  newNode.position = CGPointMake(self.size.width / 2, self.size.height * bounceBuffer / 2);
+  
+  [self addChild:newNode];
 }
 
 /*

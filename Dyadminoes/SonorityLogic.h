@@ -26,9 +26,9 @@
 
 #pragma mark - chord label methods
 
--(NSAttributedString *)stringForSonorities:(NSSet *)sonorities
-                         withInitialString:(NSString *)initialString
-                           andEndingString:(NSString *)endingString;
+-(NSString *)stringForSonorities:(NSSet *)sonorities
+               withInitialString:(NSString *)initialString
+                 andEndingString:(NSString *)endingString;
 
   // only used for logging and testing purposes
 -(Chord)testChordFromSonorityPlusCheckIncompleteSeventh:(NSSet *)sonority;

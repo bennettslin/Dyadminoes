@@ -450,12 +450,12 @@
   return tentativeResult;
 }
 
--(NSAttributedString *)stringForPlacementOfDataDyadmino:(DataDyadmino *)dataDyad
-                                       onBottomHexCoord:(HexCoord)bottomHexCoord
-                                        withOrientation:(DyadminoOrientation)orientation
-                                          withCondition:(GetNewOrExtendedChords)condition
-                                      withInitialString:(NSString *)initialString
-                                        andEndingString:(NSString *)endingString {
+-(NSString *)stringForPlacementOfDataDyadmino:(DataDyadmino *)dataDyad
+                             onBottomHexCoord:(HexCoord)bottomHexCoord
+                              withOrientation:(DyadminoOrientation)orientation
+                                withCondition:(GetNewOrExtendedChords)condition
+                            withInitialString:(NSString *)initialString
+                              andEndingString:(NSString *)endingString {
   
   NSSet *checkedFormation = [self sonoritiesFromPlacingDyadminoID:[dataDyad returnMyID]
                                                  onBottomHexCoord:bottomHexCoord

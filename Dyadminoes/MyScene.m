@@ -129,6 +129,7 @@
   NSUInteger _dyadminoFluxCounter;
   
   NSUInteger _pointsForExtending;
+  BOOL _movedDyadminoMustCheck;
 }
 
 #pragma mark - set up methods
@@ -220,7 +221,6 @@
     // called both when scene is loaded, and when player finalises turn in PnP mode
   
   [self.mySoundEngine removeAllActions];
-  
   _boardDyadminoMovedShowResetButton = NO;
   _zoomChangedCellsAlpha = NO;
   _rackExchangeInProgress = NO;
@@ -251,6 +251,7 @@
   _endTouchLocationToMeasureDoubleTap = CGPointMake(CGFLOAT_MAX, CGFLOAT_MAX);
   _dyadminoFluxCounter = 0;
   _pointsForExtending = 0;
+  _movedDyadminoMustCheck = NO;
   
   if (_lockMode) {
     [self handleDoubleTapForLockModeWithSound:NO];
@@ -584,8 +585,9 @@
 
 -(BOOL)layoutTopBar {
   
-  _topBar = [[TopBar alloc] initWithColor:[UIColor clearColor] // kBarBrown
+  _topBar = [[TopBar alloc] initWithColor:[UIColor blackColor] // kBarBrown
                                andSize:CGSizeMake(self.frame.size.width, kTopBarHeight)
+                                andTop:YES
                         andAnchorPoint:CGPointZero
                            andPosition:CGPointMake(0, self.frame.size.height - kTopBarHeight)
                           andZPosition:kZPositionTopBar];
@@ -599,7 +601,7 @@
 
 -(BOOL)layoutPnPBar {
   
-  _pnpBar = [[PnPBar alloc] initWithColor:kFieldPurple andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointZero andZPosition:kZPositionReplayBottom];
+  _pnpBar = [[PnPBar alloc] initWithColor:kFieldPurple andSize:CGSizeMake(self.frame.size.width, kRackHeight) andTop:NO andAnchorPoint:CGPointZero andPosition:CGPointZero andZPosition:kZPositionReplayBottom];
   _pnpBar.name = @"pnpBar";
   _pnpBar.delegate = self;
   [self addChild:_pnpBar];
@@ -612,11 +614,11 @@
 -(BOOL)layoutReplayBars {
   
     // initial position is beyond screen
-  _replayTop = [[ReplayBar alloc] initWithColor:kReplayTopColour andSize:CGSizeMake(self.frame.size.width, kTopBarHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, self.frame.size.height) andZPosition:kZPositionReplayTop];
+  _replayTop = [[ReplayBar alloc] initWithColor:kReplayTopColour andSize:CGSizeMake(self.frame.size.width, kTopBarHeight) andTop:YES andAnchorPoint:CGPointZero andPosition:CGPointMake(0, self.frame.size.height) andZPosition:kZPositionReplayTop];
   _replayTop.name = @"replayTop";
   [self addChild:_replayTop];
   
-  _replayBottom = [[ReplayBar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andAnchorPoint:CGPointZero andPosition:CGPointMake(0, -kRackHeight) andZPosition:kZPositionReplayBottom];
+  _replayBottom = [[ReplayBar alloc] initWithColor:kReplayBottomColour andSize:CGSizeMake(self.frame.size.width, kRackHeight) andTop:NO andAnchorPoint:CGPointZero andPosition:CGPointMake(0, -kRackHeight) andZPosition:kZPositionReplayBottom];
   _replayBottom.name = @"replayBottom";
   _replayBottom.delegate = self;
   [self addChild:_replayBottom];
@@ -743,7 +745,7 @@
     UIColor *cellColour = cell.color;
     [cellColour getRed:&red green:&green blue:&blue alpha:&alpha];
     
-    NSLog(@"Cell colour is %.2f, %.2f, %.2f, %.2f, minDistance is %i", red, green, blue, alpha, cell.minDistance);
+    NSLog(@"Cell colour is %.2f, %.2f, %.2f, %.2f, minDistance is %lu", red, green, blue, alpha, (unsigned long)cell.minDistance);
   }
   
   
@@ -754,6 +756,8 @@
   
     // dyadmino is not registered if face is touched
   Dyadmino *dyadmino = [self selectDyadminoFromTouchPoint:_currentTouchLocation];
+  
+  _movedDyadminoMustCheck = YES;
   
   if (!dyadmino.hidden && !_canDoubleTapForDyadminoFlip && ([dyadmino isOnBoard] || !dyadmino.isRotating)) {
     
@@ -1644,7 +1648,7 @@
     DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
     
       // show chord message
-    NSAttributedString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
+    NSString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
                                                                    onBottomHexCoord:dyadmino.tempHexCoord
                                                                     withOrientation:dyadmino.orientation
                                                                       withCondition:kBothNewAndExtendedChords
@@ -2115,165 +2119,169 @@
 }
 
 -(void)checkWhetherToEaseOrKeepHovering:(Dyadmino *)dyadmino {
+  
+  if (TRUE) {
+//    _movedDyadminoMustCheck = NO;
 
-      // finish hovering only if placement is legal
-  if ([dyadmino isOnBoard] && _touchedDyadmino != dyadmino) {
+        // finish hovering only if placement is legal
+    if ([dyadmino isOnBoard] && _touchedDyadmino != dyadmino) {
 
-      // ensures that validation takes place only if placement is uncertain
-      // will not get called if returning home from top bar
+        // ensures that validation takes place only if placement is uncertain
+        // will not get called if returning home from top bar
 
-      // ease in right away if dyadmino was not moved from original spot, or if it's a rack dyadmino
-    if (dyadmino.tempHexCoord.x == _uponTouchDyadminoHexCoord.x &&
-        dyadmino.tempHexCoord.y == _uponTouchDyadminoHexCoord.y &&
-        dyadmino.orientation == _uponTouchDyadminoOrientation) {
-    
-      NSLog(@"ease in right away, since dyadmino was not moved from original spot.");
-        // however, ensure that buttons are updated if chords are changed after flip
-      [self updateTopBarButtons];
-      [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
+        // ease in right away if dyadmino was not moved from original spot, or if it's a rack dyadmino
+      if (dyadmino.tempHexCoord.x == _uponTouchDyadminoHexCoord.x &&
+          dyadmino.tempHexCoord.y == _uponTouchDyadminoHexCoord.y &&
+          dyadmino.orientation == _uponTouchDyadminoOrientation) {
       
-    } else {
-      
-      NSString *messageString;
-      DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
-      PlacementResult placementResult = [self.myMatch checkPlacementOfDataDyadmino:dataDyad
-                                                                  onBottomHexCoord:dyadmino.tempHexCoord
-                                                                   withOrientation:dyadmino.orientation];
-      
-//----------------------------------------------------------------------------
-// illegal placement, either lone dyadmino or stacked dyadminoes
-//----------------------------------------------------------------------------
-          
-      if (placementResult == kIllegalPhysicalPlacement) {
-        [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
-          // ensure that buttons are updated if chords are changed after flip
+        NSLog(@"ease in right away, since dyadmino was not moved from original spot.");
+          // however, ensure that buttons are updated if chords are changed after flip
         [self updateTopBarButtons];
-        return;
-        
-//----------------------------------------------------------------------------
-// illegal sonorities: either excess notes, repeated notes, or illegal chord
-//----------------------------------------------------------------------------
-        
-      } else if (placementResult == kExcessNotesResult ||
-                 placementResult == kDoublePCsResult ||
-                 placementResult == kIllegalSonorityResult) {
-        
-        switch (placementResult) {
-          case kExcessNotesResult:
-            messageString = @"Can't have excess notes.";
-            break;
-          case kDoublePCsResult:
-            messageString = @"Can't repeat notes.";
-            break;
-          case kIllegalSonorityResult:
-            messageString = @"Sonority isn't legal.";
-            break;
-            default:
-            break;
-        }
-        
-          // if board dyadmino, keep hovering
-        if (dyadmino.home == kBoard) {
-          [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
-             // ensure that buttons are updated if chords are changed after flip
-          [self updateTopBarButtons];
-          
-            // if rack dyadmino, allow to ease into node but do nothing else
-        } else if (dyadmino.home == kRack) {
-          [self finishHoveringAfterCheckDyadmino:dyadmino];
-        }
-        
-        [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:messageString] sign:kChordMessageBad];
-        return;
-      
-    //------------------------------------------------------------------------
-    // moved board dyadmino broke existing chords
-    //------------------------------------------------------------------------
-
-      } else if (placementResult == kBreaksExistingChords) {
-
-        NSAttributedString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
-                                                                       onBottomHexCoord:dyadmino.tempHexCoord
-                                                                        withOrientation:dyadmino.orientation
-                                                                          withCondition:kNeitherNewNorExtendedChords
-                                                                      withInitialString:@"Can't break "
-                                                                        andEndingString:@"."];
-
-        [self.myDelegate showChordMessage:chordsText sign:kChordMessageBad];
-        
         [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
-        return;
         
-    //------------------------------------------------------------------------
-    // dyadmino adds or extends new chords
-    //------------------------------------------------------------------------
+      } else {
         
-      } else if (placementResult == kAddsOrExtendsNewChords) {
+        NSString *messageString;
+        DataDyadmino *dataDyad = [self getDataDyadminoFromDyadmino:dyadmino];
+        PlacementResult placementResult = [self.myMatch checkPlacementOfDataDyadmino:dataDyad
+                                                                    onBottomHexCoord:dyadmino.tempHexCoord
+                                                                     withOrientation:dyadmino.orientation];
         
-          // it's a preTurn dyadmino
-          // show action sheet with potential points from newly built chord
-          // updates will be made from after action sheet button is clicked
-        if (dyadmino.home == kBoard && [self.myMatch.board containsObject:dataDyad]) {
+  //----------------------------------------------------------------------------
+  // illegal placement, either lone dyadmino or stacked dyadminoes
+  //----------------------------------------------------------------------------
+            
+        if (placementResult == kIllegalPhysicalPlacement) {
+          [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
+            // ensure that buttons are updated if chords are changed after flip
+          [self updateTopBarButtons];
+          return;
+          
+  //----------------------------------------------------------------------------
+  // illegal sonorities: either excess notes, repeated notes, or illegal chord
+  //----------------------------------------------------------------------------
+          
+        } else if (placementResult == kExcessNotesResult ||
+                   placementResult == kDoublePCsResult ||
+                   placementResult == kIllegalSonorityResult) {
+          
+          switch (placementResult) {
+            case kExcessNotesResult:
+              messageString = @"Can't have excess notes.";
+              break;
+            case kDoublePCsResult:
+              messageString = @"Can't repeat notes.";
+              break;
+            case kIllegalSonorityResult:
+              messageString = @"Sonority isn't legal.";
+              break;
+              default:
+              break;
+          }
+          
+            // if board dyadmino, keep hovering
+          if (dyadmino.home == kBoard) {
+            [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
+               // ensure that buttons are updated if chords are changed after flip
+            [self updateTopBarButtons];
+            
+              // if rack dyadmino, allow to ease into node but do nothing else
+          } else if (dyadmino.home == kRack) {
+            [self finishHoveringAfterCheckDyadmino:dyadmino];
+          }
+          
+          [self.myDelegate showChordMessage:messageString sign:kChordMessageBad];
+          return;
+        
+      //------------------------------------------------------------------------
+      // moved board dyadmino broke existing chords
+      //------------------------------------------------------------------------
 
-          _pointsForExtending = [self.myMatch pointsForPlacingDyadmino:dataDyad
-                                                      onBottomHexCoord:dyadmino.tempHexCoord
-                                                       withOrientation:dyadmino.orientation];
-          
-          [_boardField hideAllPivotGuidesAndShowExtendedChordActionSheet];
-          
-          NSAttributedString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
-                                                                         onBottomHexCoord:dyadmino.tempHexCoord
-                                                                          withOrientation:dyadmino.orientation
-                                                                            withCondition:kBothNewAndExtendedChords
-                                                                        withInitialString:@"Build "
-                                                                          andEndingString:@"?"];
-          [self.myDelegate showChordMessage:chordsText sign:kChordMessageNeutral];
+        } else if (placementResult == kBreaksExistingChords) {
+
+          NSString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
+                                                               onBottomHexCoord:dyadmino.tempHexCoord
+                                                                withOrientation:dyadmino.orientation
+                                                                  withCondition:kNeitherNewNorExtendedChords
+                                                              withInitialString:@"Can't break "
+                                                                andEndingString:@"."];
+
+          [self.myDelegate showChordMessage:chordsText sign:kChordMessageBad];
           
           [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
           return;
           
-            // thisTurn dyadmino
-            // just keep the new chord
-        } else if (dyadmino.home == kBoard && [self.myMatch.holdingIndexContainer containsObject:dataDyad.myID]) {
-          NSAttributedString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
-                                                                         onBottomHexCoord:dyadmino.tempHexCoord
-                                                                          withOrientation:dyadmino.orientation
-                                                                            withCondition:kBothNewAndExtendedChords
-                                                                        withInitialString:@"Built "
-                                                                          andEndingString:@"."];
-          [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
+      //------------------------------------------------------------------------
+      // dyadmino adds or extends new chords
+      //------------------------------------------------------------------------
           
-            // recent rack dyadmino
-        } else if (dyadmino == _recentRackDyadmino) {
-          _recentRackDyadminoFormsLegalChord = YES;
-          NSAttributedString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
-                                                                         onBottomHexCoord:dyadmino.tempHexCoord
-                                                                          withOrientation:dyadmino.orientation
-                                                                            withCondition:kBothNewAndExtendedChords
-                                                                        withInitialString:@"Building "
-                                                                          andEndingString:@"."];
-          [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
-        }
-        
-        [self finishHoveringAfterCheckDyadmino:dyadmino];
-        [self updateTopBarLabelsFinalTurn:NO animated:YES];
-        return;
-        
-    //------------------------------------------------------------------------
-    // no new chord made, so it can finish hovering, but it can't be played
-    //------------------------------------------------------------------------
-      } else if (placementResult == kNoChange) {
-          // if preTurn or thisTurn dyadmino, obviously this works fine
-        if (dyadmino.home == kBoard) {
-          [self.myDelegate fadeChordMessage];
+        } else if (placementResult == kAddsOrExtendsNewChords) {
           
-            // however, recent rack dyadmino must form new chord
-        } else {
-          _recentRackDyadminoFormsLegalChord = NO;
-          [self.myDelegate showChordMessage:[[NSAttributedString alloc] initWithString:@"Must build new chord."] sign:kChordMessageNeutral];
+            // it's a preTurn dyadmino
+            // show action sheet with potential points from newly built chord
+            // updates will be made from after action sheet button is clicked
+          if (dyadmino.home == kBoard && [self.myMatch.board containsObject:dataDyad]) {
+
+            _pointsForExtending = [self.myMatch pointsForPlacingDyadmino:dataDyad
+                                                        onBottomHexCoord:dyadmino.tempHexCoord
+                                                         withOrientation:dyadmino.orientation];
+            
+            [_boardField hideAllPivotGuidesAndShowExtendedChordActionSheet];
+            
+            NSString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
+                                                                 onBottomHexCoord:dyadmino.tempHexCoord
+                                                                  withOrientation:dyadmino.orientation
+                                                                    withCondition:kBothNewAndExtendedChords
+                                                                withInitialString:@"Build "
+                                                                  andEndingString:@"?"];
+            [self.myDelegate showChordMessage:chordsText sign:kChordMessageNeutral];
+            
+            [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
+            return;
+            
+              // thisTurn dyadmino
+              // just keep the new chord
+          } else if (dyadmino.home == kBoard && [self.myMatch.holdingIndexContainer containsObject:dataDyad.myID]) {
+            NSString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
+                                                                 onBottomHexCoord:dyadmino.tempHexCoord
+                                                                  withOrientation:dyadmino.orientation
+                                                                    withCondition:kBothNewAndExtendedChords
+                                                                withInitialString:@"Built "
+                                                                  andEndingString:@"."];
+            [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
+            
+              // recent rack dyadmino
+          } else if (dyadmino == _recentRackDyadmino) {
+            _recentRackDyadminoFormsLegalChord = YES;
+            NSString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:dataDyad
+                                                                 onBottomHexCoord:dyadmino.tempHexCoord
+                                                                  withOrientation:dyadmino.orientation
+                                                                    withCondition:kBothNewAndExtendedChords
+                                                                withInitialString:@"Building "
+                                                                  andEndingString:@"."];
+            [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
+          }
+          
+          [self finishHoveringAfterCheckDyadmino:dyadmino];
+          [self updateTopBarLabelsFinalTurn:NO animated:YES];
+          return;
+          
+      //------------------------------------------------------------------------
+      // no new chord made, so it can finish hovering, but it can't be played
+      //------------------------------------------------------------------------
+        } else if (placementResult == kNoChange) {
+            // if preTurn or thisTurn dyadmino, obviously this works fine
+          if (dyadmino.home == kBoard) {
+            [self.myDelegate fadeChordMessage];
+            
+              // however, recent rack dyadmino must form new chord
+          } else {
+            _recentRackDyadminoFormsLegalChord = NO;
+            [self.myDelegate showChordMessage:@"Must build new chord." sign:kChordMessageNeutral];
+          }
+          
+          [self finishHoveringAfterCheckDyadmino:dyadmino];
         }
-        
-        [self finishHoveringAfterCheckDyadmino:dyadmino];
       }
     }
   }
@@ -3369,7 +3377,7 @@
       if ([buttonText isEqualToString:@"Build"]) {
         NSLog(@"_hovering dyadmino is %@", _hoveringDyadmino.name);
         
-        NSAttributedString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] onBottomHexCoord:_hoveringDyadmino.tempHexCoord withOrientation:_hoveringDyadmino.orientation withCondition:kBothNewAndExtendedChords withInitialString:@"Built " andEndingString:@"."];
+        NSString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] onBottomHexCoord:_hoveringDyadmino.tempHexCoord withOrientation:_hoveringDyadmino.orientation withCondition:kBothNewAndExtendedChords withInitialString:@"Built " andEndingString:@"."];
         
         [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
         

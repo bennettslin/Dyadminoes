@@ -569,62 +569,31 @@
         break;
     }
   }
-  return [NSString stringWithFormat:@"%@ %@", rootString, [self stringForChordType:chordType]];
+  
+    // nonbreaking line space
+  return [NSString stringWithFormat:@"%@\u00a0%@", rootString, [self stringForChordType:chordType]];
 }
 
--(NSAttributedString *)stringWithAccidentals:(NSString *)myString fontSize:(CGFloat)size {
+-(NSString *)stringForSonorities:(NSSet *)sonorities
+               withInitialString:(NSString *)initialString
+                 andEndingString:(NSString *)endingString {
   
-    // first replace all instances of (#) and (b) with pound and yen characters
-  unichar pound[1] = {(unichar)163};
-  unichar yen[1] = {(unichar)165};
-  
-  myString = [myString stringByReplacingOccurrencesOfString:@"(#)" withString:[NSString stringWithCharacters:pound length:1]];
-  myString = [myString stringByReplacingOccurrencesOfString:@"(b)" withString:[NSString stringWithCharacters:yen length:1]];
-  
-  NSMutableAttributedString *attString = [[NSMutableAttributedString alloc] initWithString:myString];
-  
-  for (int i = 0; i < myString.length; i++) {
-    unichar myChar = [myString characterAtIndex:i];
-    
-    if (myChar == (unichar)163) {
-      [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolSharp]];
-      [attString addAttribute:NSBaselineOffsetAttributeName value:@(size / 2.75) range:NSMakeRange(i, 1)];
-      [attString addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontSonata size:size * 0.95f] range:NSMakeRange(i, 1)];
-      
-    } else if (myChar == (unichar)165) {
-      [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolFlat]];
-      [attString addAttribute:NSBaselineOffsetAttributeName value:@(size / 5.4) range:NSMakeRange(i, 1)];
-      [attString addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontSonata size:size * 1.15f] range:NSMakeRange(i, 1)];
-      
-    } else if (myChar == (unichar)36) { // dollar sign turns into bullet
-      [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolBullet]];
-      [attString addAttribute:NSKernAttributeName value:@(-size * .05) range:NSMakeRange(i, 1)];
-    }
-  }
-  
-  return attString;
-}
-
--(NSAttributedString *)stringForSonorities:(NSSet *)sonorities
-                         withInitialString:(NSString *)initialString
-                           andEndingString:(NSString *)endingString {
-  
-  NSMutableAttributedString *initialText = [[NSMutableAttributedString alloc] initWithString:initialString];
-//  [initialText addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontModern size:kChordMessageLabelFontSize] range:NSMakeRange(0, initialText.length)];
+//  NSMutableAttributedString *initialText = [[NSMutableAttributedString alloc] initWithString:initialString];
   
   NSSet *chords = [self chordSonoritiesForSonorities:sonorities];
-  NSAttributedString *chordsText = [self stringForLegalChords:chords];
+  NSString *chordsText = [self stringForLegalChords:chords];
+//  
+//  NSAttributedString *attributedChordsText = [self stringWithAccidentals:chordsText fontSize:kChordMessageLabelFontSize];
   
-  NSMutableAttributedString *endingText = [[NSMutableAttributedString alloc] initWithString:endingString];
-//  [endingText addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontModern size:kChordMessageLabelFontSize] range:NSMakeRange(0, endingText.length)];
+//  NSMutableAttributedString *endingText = [[NSMutableAttributedString alloc] initWithString:endingString];
   
-  [initialText appendAttributedString:chordsText];
-  [initialText appendAttributedString:endingText];
+//  [initialText appendAttributedString:attributedChordsText];
+//  [initialText appendAttributedString:endingText];
   
-  return initialText;
+  return [NSString stringWithFormat:@"%@%@%@", initialString, chordsText, endingString];
 }
 
--(NSAttributedString *)stringForLegalChords:(NSSet *)chords {
+-(NSString *)stringForLegalChords:(NSSet *)chords {
   
     // sort chords based on chord type
   NSMutableArray *tempDictionaryArray = [NSMutableArray new];
@@ -662,17 +631,18 @@
         finalString = [NSString stringWithFormat:@"%@, ", string];
       }
       
-      NSAttributedString *attributedString = [self stringWithAccidentals:finalString fontSize:kChordMessageLabelFontSize];
-      [tempStringArray addObject:attributedString];
+      [tempStringArray addObject:finalString];
     }
   }
   
-  NSMutableAttributedString *mutableAttributedString = [[NSMutableAttributedString alloc] initWithString:@""];
+  NSMutableString *mutableString = [[NSMutableString alloc] initWithString:@""];
   for (int i = 0; i < tempStringArray.count; i++) {
-    [mutableAttributedString appendAttributedString:tempStringArray[i]];
+    [mutableString appendString:tempStringArray[i]];
   }
-
-  return mutableAttributedString;
+  
+  NSString *string = [NSString stringWithString:mutableString];
+  
+  return string;
 }
 
 #pragma mark - test methods
@@ -684,7 +654,7 @@
 -(NSString *)testStringForLegalChordSonoritiesWithSonorities:(NSSet *)sonorities {
   
   NSSet *chords = [self chordSonoritiesForSonorities:sonorities];
-  return [[self stringForLegalChords:chords] string];
+  return [self stringForLegalChords:chords];
 }
 
 #pragma mark - singleton method

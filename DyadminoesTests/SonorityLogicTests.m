@@ -47,7 +47,7 @@
   for (int i = 0; i < 12; i++) {
     Chord myChord = [self chordFromRoot:i andChordType:kChordMajorTriad];
     NSString *myString = [self.sonorityLogic stringForChord:myChord];
-    NSArray *myStringComponents = [myString componentsSeparatedByString:@" "];
+    NSArray *myStringComponents = [myString componentsSeparatedByString:@"\u00a0"];
     if (![myStringComponents[0] isEqualToString:rootsArray[i]]) {
       allAsymmetricRootsMatch = NO;
     }
@@ -69,7 +69,7 @@
   for (int i = 0; i < 12; i++) {
     Chord myChord = [self chordFromRoot:i andChordType:kChordFullyDiminishedSeventh];
     NSString *myString = [self.sonorityLogic stringForChord:myChord];
-    NSArray *myStringComponents = [myString componentsSeparatedByString:@" "];
+    NSArray *myStringComponents = [myString componentsSeparatedByString:@"\u00a0"];
     if (![myStringComponents[0] isEqualToString:dimRootsArray[i % 3]]) {
       allSymmetricRootsMatch = NO;
     }
@@ -79,7 +79,7 @@
   for (int i = 0; i < 12; i++) {
     Chord myChord = [self chordFromRoot:i andChordType:kChordAugmentedTriad];
     NSString *myString = [self.sonorityLogic stringForChord:myChord];
-    NSArray *myStringComponents = [myString componentsSeparatedByString:@" "];
+    NSArray *myStringComponents = [myString componentsSeparatedByString:@"\u00a0"];
     if (![myStringComponents[0] isEqualToString:augRootsArray[i % 4]]) {
       allSymmetricRootsMatch = NO;
     }
@@ -89,7 +89,7 @@
   for (int i = 0; i < 12; i++) {
     Chord myChord = [self chordFromRoot:i andChordType:kChordFrenchSixth];
     NSString *myString = [self.sonorityLogic stringForChord:myChord];
-    NSArray *myStringComponents = [myString componentsSeparatedByString:@" "];
+    NSArray *myStringComponents = [myString componentsSeparatedByString:@"\u00a0"];
     if (![myStringComponents[0] isEqualToString:frenchRootsArray[i % 6]]) {
       allSymmetricRootsMatch = NO;
     }
@@ -107,7 +107,7 @@
   for (ChordType i = 0; i < kChordNoChord; i++) {
     Chord myChord = [self chordFromRoot:0 andChordType:i];
     NSString *myString = [self.sonorityLogic stringForChord:myChord];
-    NSArray *myStringComponents = [myString componentsSeparatedByString:@" "];
+    NSArray *myStringComponents = [myString componentsSeparatedByString:@"\u00a0"];
     NSMutableArray *mutableComponents = [NSMutableArray arrayWithArray:myStringComponents];
     [mutableComponents removeObjectAtIndex:0];
     NSString *chordTypeString = [mutableComponents componentsJoinedByString:@" "];

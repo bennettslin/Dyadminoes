@@ -30,10 +30,12 @@
 
 @property (strong, nonatomic) Button *returnOrStartButton;
 
--(id)initWithColor:(UIColor *)color andSize:(CGSize)size
+-(id)initWithColor:(UIColor *)color andSize:(CGSize)size andTop:(BOOL)top
     andAnchorPoint:(CGPoint)anchorPoint
        andPosition:(CGPoint)position
       andZPosition:(CGFloat)zPosition;
+
+-(void)addGradientBackgroundWithColour:(UIColor *)colour upsideDown:(BOOL)upsideDown;
 
 #pragma mark - button methods
 

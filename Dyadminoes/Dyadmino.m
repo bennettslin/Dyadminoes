@@ -495,7 +495,7 @@
   if (!_isPivotAnimating) {
     CGFloat radians = [self getRadiansFromDegree:60] * (clockwise ? 1 : -1);
     __block NSUInteger counter = times;
-    CGFloat duration = fullFlip ? kConstantTime / 4.5f : kConstantTime / 4.5f; // was 4.5;
+    CGFloat duration = fullFlip ? kConstantTime / 6.f : kConstantTime / 6.f; // was 4.5;
     
     SKAction *turnDyadmino = [SKAction rotateByAngle:-radians duration:duration];
     SKAction *turnFace = [SKAction rotateByAngle:radians duration:duration];

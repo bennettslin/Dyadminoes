@@ -30,6 +30,8 @@
 @property (nonatomic) CGFloat topBarPlayerLabelWidth;
 @property (nonatomic) CGFloat topBarScoreLabelWidth;
 
+@property (strong, nonatomic) UILabel *chordMessageLabel;
+
 @end
 
 @implementation SceneViewController {
@@ -265,10 +267,14 @@
   self.chordMessageLabel = [UILabel new];
   self.chordMessageLabel.textColor = [UIColor whiteColor];
   self.chordMessageLabel.font = [UIFont fontWithName:kFontModern size:kChordMessageLabelFontSize];
-  self.chordMessageLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
   self.chordMessageLabel.textAlignment = NSTextAlignmentCenter;
   self.chordMessageLabel.adjustsFontSizeToFitWidth = YES;
-  self.chordMessageLabel.numberOfLines = kIsIPhone ? 2 : 1;
+  self.chordMessageLabel.baselineAdjustment = UIBaselineAdjustmentAlignBaselines;
+  
+//  self.chordMessageLabel.lineBreakMode = NSLineBreakByWordWrapping;
+//  self.chordMessageLabel.numberOfLines = 0;
+  self.chordMessageLabel.layer.borderColor = [UIColor redColor].CGColor;
+  self.chordMessageLabel.layer.borderWidth = 2.f;
   [self.view addSubview:self.chordMessageLabel];
   
     // frames
@@ -487,7 +493,7 @@
   }
 }
 
--(void)showChordMessage:(NSAttributedString *)message sign:(ChordMessageSign)sign {
+-(void)showChordMessage:(NSString *)message sign:(ChordMessageSign)sign {
   
   UIColor *labelColour;
   switch (sign) {
@@ -504,19 +510,114 @@
       break;
   }
   
-  NSMutableAttributedString *mutableString = [[NSMutableAttributedString alloc] initWithString:@""];
-  [mutableString appendAttributedString:message];
-  [mutableString addAttributes:@{NSStrokeWidthAttributeName: [NSNumber numberWithFloat:-(kChordMessageLabelFontSize / 30)],
-                                 NSStrokeColorAttributeName:kPianoBlack,
-                                 NSForegroundColorAttributeName:labelColour} range:NSMakeRange(0, mutableString.length)];
+    // figure out if string is too long
+  NSStringDrawingContext *context = [[NSStringDrawingContext alloc] init];
+  CGSize labelSize = (CGSize){self.chordMessageLabel.frame.size.width, CGFLOAT_MAX};
   
-  self.chordMessageLabel.attributedText = mutableString;
+  CGRect rect = [message boundingRectWithSize:labelSize
+                                         options:NSStringDrawingUsesLineFragmentOrigin
+                                      attributes:@{NSFontAttributeName: [UIFont fontWithName:kFontModern size:kChordMessageLabelFontSize]}
+                                         context:context];
+  
+  NSLog(@"label height should be %.2f for %@", rect.size.height, message);
+  
+  self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, self.view.bounds.size.height - kRackHeight - kChordMessageLabelHeight, self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight);
+  self.chordMessageLabel.numberOfLines = 1;
+
+  if (rect.size.height > self.chordMessageLabel.frame.size.height) {
+    
+    self.chordMessageLabel.numberOfLines = 2;
+    
+    CGFloat labelYOrigin = kIsIPhone ?
+        self.view.bounds.size.height - kRackHeight - kChordMessageLabelHeight * 2.5 :
+        self.view.bounds.size.height - kRackHeight - kChordMessageLabelHeight * 2.25;
+    
+    self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, labelYOrigin, self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight * 4);
+    
+    BOOL lineBroken = NO;
+    NSInteger counterUp = message.length / 2;
+    
+    NSMutableString *mutableString = [NSMutableString stringWithString:message];
+    while (!lineBroken && counterUp < message.length && ((NSInteger)message.length - counterUp) >= 0) {
+      
+      if ([message characterAtIndex:counterUp] == 0x0020) {
+        [mutableString replaceCharactersInRange:NSMakeRange(counterUp, 1) withString:@"\n"];
+        lineBroken = YES;
+        
+      } else if ([message characterAtIndex:(message.length - counterUp)] == 0x0020) {
+        [mutableString replaceCharactersInRange:NSMakeRange((message.length - counterUp), 1) withString:@"\n"];
+        lineBroken = YES;
+      }
+
+      counterUp++;
+    }
+    
+    message = [NSString stringWithString:mutableString];
+  }
+  
+  NSMutableAttributedString *mutableAttributedString = [[NSMutableAttributedString alloc] initWithString:@""];
+  [mutableAttributedString appendAttributedString:[self stringWithAccidentals:message fontSize:kChordMessageLabelFontSize]];
+  [mutableAttributedString addAttributes:@{NSStrokeWidthAttributeName: [NSNumber numberWithFloat:-(kChordMessageLabelFontSize / 30)],
+                                           NSStrokeColorAttributeName:kPianoBlack,
+                                           NSForegroundColorAttributeName:labelColour} range:NSMakeRange(0, mutableAttributedString.length)];
+  
+  if (self.chordMessageLabel.numberOfLines == 2) {
+    NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+    paragraphStyle.lineSpacing = 0;
+    paragraphStyle.alignment = NSTextAlignmentCenter;
+    
+      // FIXME: I just really don't understand why the device should matter...
+    if (kIsIPhone) {
+      paragraphStyle.maximumLineHeight = kChordMessageLabelFontSize * 2;
+    } else {
+      paragraphStyle.maximumLineHeight = kChordMessageLabelFontSize / 4.5;
+    }
+    
+    [mutableAttributedString addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, mutableAttributedString.length)];
+  }
+  
+  self.chordMessageLabel.attributedText = mutableAttributedString;
   
 //  self.chordMessageLabel.textColor = labelColour;
 }
 
+-(NSAttributedString *)stringWithAccidentals:(NSString *)myString fontSize:(CGFloat)size {
+  
+    // first replace all instances of (#) and (b) with pound and yen characters
+  unichar pound[1] = {(unichar)163};
+  unichar yen[1] = {(unichar)165};
+  
+  myString = [myString stringByReplacingOccurrencesOfString:@"(#)" withString:[NSString stringWithCharacters:pound length:1]];
+  myString = [myString stringByReplacingOccurrencesOfString:@"(b)" withString:[NSString stringWithCharacters:yen length:1]];
+  
+  NSMutableAttributedString *attString = [[NSMutableAttributedString alloc] initWithString:myString];
+  
+  for (int i = 0; i < myString.length; i++) {
+    unichar myChar = [myString characterAtIndex:i];
+    
+    if (myChar == (unichar)163) {
+      [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolSharp]];
+      [attString addAttribute:NSBaselineOffsetAttributeName value:@(size / 2.75) range:NSMakeRange(i, 1)]; // was size / 2.75
+      [attString addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontSonata size:size * 0.95f] range:NSMakeRange(i, 1)];
+      
+    } else if (myChar == (unichar)165) {
+      [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolFlat]];
+      [attString addAttribute:NSBaselineOffsetAttributeName value:@(size / 5.4) range:NSMakeRange(i, 1)]; // was size / 5.4
+      [attString addAttribute:NSFontAttributeName value:[UIFont fontWithName:kFontSonata size:size * 1.15f] range:NSMakeRange(i, 1)];
+      
+    } else if (myChar == (unichar)36) { // dollar sign turns into bullet
+      [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolBullet]];
+      [attString addAttribute:NSKernAttributeName value:@(-size * .05) range:NSMakeRange(i, 1)];
+    }
+  }
+  
+  return attString;
+}
+
 -(void)fadeChordMessage {
   self.chordMessageLabel.text = @"";
+  self.chordMessageLabel.numberOfLines = 1;
+  self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, self.view.bounds.size.height - kRackHeight - kChordMessageLabelHeight, self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight);
 }
 
 #pragma mark - label animation methods

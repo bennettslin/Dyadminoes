@@ -74,12 +74,12 @@
                               onBottomHexCoord:(HexCoord)bottomHexCoord
                                withOrientation:(DyadminoOrientation)orientation;
 
--(NSAttributedString *)stringForPlacementOfDataDyadmino:(DataDyadmino *)dataDyad
-                                       onBottomHexCoord:(HexCoord)bottomHexCoord
-                                        withOrientation:(DyadminoOrientation)orientation
-                                          withCondition:(GetNewOrExtendedChords)condition
-                                      withInitialString:(NSString *)initialString
-                                        andEndingString:(NSString *)endingString;
+-(NSString *)stringForPlacementOfDataDyadmino:(DataDyadmino *)dataDyad
+                             onBottomHexCoord:(HexCoord)bottomHexCoord
+                              withOrientation:(DyadminoOrientation)orientation
+                                withCondition:(GetNewOrExtendedChords)condition
+                            withInitialString:(NSString *)initialString
+                              andEndingString:(NSString *)endingString;
 
 -(NSUInteger)pointsForPlacingDyadmino:(DataDyadmino *)dataDyad
                      onBottomHexCoord:(HexCoord)bottomHexCoord
