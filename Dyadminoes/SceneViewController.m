@@ -482,7 +482,7 @@ typedef enum chordMessageStatus {
   }
 }
 
--(void)showChordMessage:(NSString *)message sign:(ChordMessageSign)sign {
+-(void)showChordMessage:(NSString *)message sign:(ChordMessageSign)sign autoFade:(BOOL)autoFade {
   
   if ([message isEqualToString:self.currentChordMessage]) {
     return;
@@ -566,29 +566,25 @@ typedef enum chordMessageStatus {
     
       // ensures that accidentals, with their baseline offsets, are accommodated
     ChordMessageStatus messageStatus = [self chordMessageStatusOfString:[self stringWithPoundsAndYen:message]];
-    if (messageStatus == kAccidentalsFirstLine) { // yes
-//      NSLog(@"accidentals first line");
+    if (messageStatus == kAccidentalsFirstLine) {
       self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer,
                                                 self.view.bounds.size.height - kRackHeight - (kChordMessageLabelHeight * 2.2),
                                                 self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight * 4);
       paragraphStyle.maximumLineHeight = kChordMessageLabelFontSize / 12;
       
     } else if (messageStatus == kAccidentalsSecondLine) {
-//      NSLog(@"accidentals second line");
       self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer,
                                                 self.view.bounds.size.height - kRackHeight - (kChordMessageLabelHeight * 2.6),
                                                 self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight * 4);
       paragraphStyle.maximumLineHeight = kChordMessageLabelFontSize * 2;
       
     } else if (messageStatus == kAccidentalsBothLines) {
-//      NSLog(@"accidentals both lines");
       self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer,
                                                 self.view.bounds.size.height - kRackHeight - (kChordMessageLabelHeight * 2.2),
                                                 self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight * 4);
       paragraphStyle.maximumLineHeight = kChordMessageLabelFontSize;
       
     } else if (messageStatus == kAccidentalsNowhere) {
-//      NSLog(@"accidentals no lines");
       self.chordMessageLabel.frame = CGRectMake(kTopBarXEdgeBuffer,
                                                 self.view.bounds.size.height - kRackHeight - (kChordMessageLabelHeight * 2.9),
                                                 self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight * 4);
@@ -598,12 +594,111 @@ typedef enum chordMessageStatus {
     [mutableAttributedString addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, mutableAttributedString.length)];
   }
   
-  self.chordMessageLabel.alpha = 0.f;
-  self.chordMessageLabel.attributedText = mutableAttributedString;
+  UILabel *chordMessageLabel = self.chordMessageLabel;
+  chordMessageLabel.alpha = 0.f;
+  chordMessageLabel.attributedText = mutableAttributedString;
   [UIView animateWithDuration:kConstantTime * 0.2f animations:^{
-    self.chordMessageLabel.alpha = 1.f;
+    chordMessageLabel.alpha = 1.f;
+  } completion:^(BOOL finished) {
+    
+    if (autoFade) {
+      
+      [UIView animateWithDuration:0.001f delay:5.f options:0 animations:^{
+        chordMessageLabel.alpha = 0.999f;
+      } completion:^(BOOL finished) {
+        
+          // finished bool ensures that completion block is not called if animation is cancelled
+        if (finished) {
+          [self fadeChordMessage:chordMessageLabel withScroll:YES];
+        }
+      }];
+    }
   }];
 }
+
+#pragma mark - label animation methods
+
+-(void)fadeChordMessage {
+  UILabel *oldChordMessageLabel = self.chordMessageLabel;
+  self.chordMessageLabel = nil;
+  [self fadeChordMessage:oldChordMessageLabel withScroll:NO];
+}
+
+-(void)fadeChordMessage:(UILabel *)messageLabel withScroll:(BOOL)scroll {
+  
+  [messageLabel.layer removeAllAnimations];
+  self.currentChordMessage = nil;
+    
+  [UIView animateWithDuration:kConstantTime * 0.7f animations:^{
+    if (scroll) {
+      messageLabel.frame = CGRectMake(messageLabel.frame.origin.x, messageLabel.frame.origin.y - kChordMessageLabelHeight, messageLabel.frame.size.width, messageLabel.frame.size.height);
+    }
+    messageLabel.alpha = 0.f;
+    
+  } completion:^(BOOL finished) {
+    messageLabel.text = @"";
+    messageLabel.numberOfLines = 1;
+    messageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, self.view.bounds.size.height - kRackHeight - kChordMessageLabelHeight, self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight);
+    messageLabel.alpha = 1.f;
+  }];
+}
+
+-(void)slideAnimateView:(UIView *)movingView toDestinationXPosition:(CGFloat)xPosition durationConstant:(CGFloat)constant {
+  
+  CGFloat originalXPosition = movingView.frame.origin.x;
+  CGFloat excessXPosition = ((xPosition - originalXPosition) / kBounceDivisor) + xPosition;
+  
+  [UIView animateWithDuration:(constant * 0.7f) delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    movingView.frame = CGRectMake(excessXPosition, movingView.frame.origin.y, movingView.frame.size.width, movingView.frame.size.height);
+  } completion:^(BOOL finished) {
+    
+    [UIView animateWithDuration:(constant * 0.3f) delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
+      movingView.frame = CGRectMake(xPosition, movingView.frame.origin.y, movingView.frame.size.width, movingView.frame.size.height);
+    } completion:nil];
+  }];
+}
+
+-(void)animateTopBarLabelsGoOut:(BOOL)goOut {
+  
+    // _topBarScoreLabelWidth / 4 is labelView padding
+  CGFloat desiredPlayerLabelsX = goOut ? -(kTopBarXEdgeBuffer + _widestPlayerLabelWidth + _topBarScoreLabelWidth + _topBarScoreLabelWidth / 4 + kTopBarPaddingBetweenStuff) : 0;
+  
+  [self slideAnimateView:self.playerLabelsField toDestinationXPosition:desiredPlayerLabelsX durationConstant:kConstantTime];
+  
+  CGFloat messageLabelWidth = (kButtonWidth * 5) + kTopBarPaddingBetweenStuff + kTopBarTurnPileLabelsWidth;
+  
+  CGFloat desiredSoundedChordLabelX = goOut ? -messageLabelWidth : kTopBarXEdgeBuffer;
+  
+  [self slideAnimateView:self.soundedChordLabel toDestinationXPosition:desiredSoundedChordLabelX durationConstant:kConstantTime];
+  
+  CGFloat desiredLastTurnLabelX = goOut ? self.view.frame.size.width : self.view.frame.size.width - messageLabelWidth - kTopBarXEdgeBuffer;
+  
+  [self slideAnimateView:self.lastTurnLabel toDestinationXPosition:desiredLastTurnLabelX durationConstant:kConstantTime];
+  
+  CGFloat desiredTurnPileLabelsX = goOut ? kTopBarXEdgeBuffer + kTopBarTurnPileLabelsWidth : 0;
+  
+  [self slideAnimateView:self.turnPileCountField toDestinationXPosition:desiredTurnPileLabelsX durationConstant:kConstantTime];
+}
+
+-(void)animateReplayLabelGoOut:(BOOL)goOut {
+  
+  CGFloat desiredY = goOut ? -kTopBarHeight * 0.95 : kTopBarHeight * 0.05;
+  [self slideAnimateView:self.replayTurnLabel toDestinationYPosition:desiredY durationConstant:kConstantTime];
+}
+
+-(void)animatePnPLabelGoOut:(BOOL)goOut {
+  
+  CGFloat desiredY = goOut ? self.view.frame.size.height + (kRackHeight * 0.05) :
+      self.view.frame.size.height - (kRackHeight * 0.95);
+  
+  [self slideAnimateView:self.pnpWaitingLabel toDestinationYPosition:desiredY durationConstant:kConstantTime];
+}
+
+-(void)animateScoreLabelFlash:(UILabel *)scoreLabel {
+  
+}
+
+#pragma mark - label helper methods
 
 -(ChordMessageStatus)chordMessageStatusOfString:(NSString *)string {
   
@@ -673,92 +768,11 @@ typedef enum chordMessageStatus {
       
     } else if (myChar == (unichar)36) { // dollar sign turns into bullet
       [attString replaceCharactersInRange:NSMakeRange(i, 1) withString:[self stringForMusicSymbol:kSymbolBullet]];
-//      [attString addAttribute:NSKernAttributeName value:@(-size * .05) range:NSMakeRange(i, 1)];
+        //      [attString addAttribute:NSKernAttributeName value:@(-size * .05) range:NSMakeRange(i, 1)];
     }
   }
   
   return attString;
-}
-
--(void)fadeChordMessage {
-  UILabel *oldChordMessageLabel = self.chordMessageLabel;
-  self.chordMessageLabel = nil;
-  [self fadeChordMessage:oldChordMessageLabel withScroll:NO];
-}
-
--(void)fadeChordMessage:(UILabel *)messageLabel withScroll:(BOOL)scroll {
-  
-  self.currentChordMessage = nil;
-  
-  [UIView animateWithDuration:kConstantTime animations:^{
-    if (scroll) {
-      messageLabel.frame = CGRectMake(messageLabel.frame.origin.x, messageLabel.frame.origin.y - kChordMessageLabelHeight, messageLabel.frame.size.width, messageLabel.frame.size.height);
-    }
-    messageLabel.alpha = 0.f;
-    
-  } completion:^(BOOL finished) {
-    messageLabel.text = @"";
-    messageLabel.numberOfLines = 1;
-    messageLabel.frame = CGRectMake(kTopBarXEdgeBuffer, self.view.bounds.size.height - kRackHeight - kChordMessageLabelHeight, self.view.bounds.size.width - (kTopBarXEdgeBuffer * 2), kChordMessageLabelHeight);
-    messageLabel.alpha = 1.f;
-  }];
-}
-
-#pragma mark - label animation methods
-
--(void)slideAnimateView:(UIView *)movingView toDestinationXPosition:(CGFloat)xPosition durationConstant:(CGFloat)constant {
-  
-  CGFloat originalXPosition = movingView.frame.origin.x;
-  CGFloat excessXPosition = ((xPosition - originalXPosition) / kBounceDivisor) + xPosition;
-  
-  [UIView animateWithDuration:(constant * 0.7f) delay:0.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    movingView.frame = CGRectMake(excessXPosition, movingView.frame.origin.y, movingView.frame.size.width, movingView.frame.size.height);
-  } completion:^(BOOL finished) {
-    
-    [UIView animateWithDuration:(constant * 0.3f) delay:0.f options:UIViewAnimationOptionCurveEaseIn animations:^{
-      movingView.frame = CGRectMake(xPosition, movingView.frame.origin.y, movingView.frame.size.width, movingView.frame.size.height);
-    } completion:nil];
-  }];
-}
-
--(void)animateTopBarLabelsGoOut:(BOOL)goOut {
-  
-    // _topBarScoreLabelWidth / 4 is labelView padding
-  CGFloat desiredPlayerLabelsX = goOut ? -(kTopBarXEdgeBuffer + _widestPlayerLabelWidth + _topBarScoreLabelWidth + _topBarScoreLabelWidth / 4 + kTopBarPaddingBetweenStuff) : 0;
-  
-  [self slideAnimateView:self.playerLabelsField toDestinationXPosition:desiredPlayerLabelsX durationConstant:kConstantTime];
-  
-  CGFloat messageLabelWidth = (kButtonWidth * 5) + kTopBarPaddingBetweenStuff + kTopBarTurnPileLabelsWidth;
-  
-  CGFloat desiredSoundedChordLabelX = goOut ? -messageLabelWidth : kTopBarXEdgeBuffer;
-  
-  [self slideAnimateView:self.soundedChordLabel toDestinationXPosition:desiredSoundedChordLabelX durationConstant:kConstantTime];
-  
-  CGFloat desiredLastTurnLabelX = goOut ? self.view.frame.size.width : self.view.frame.size.width - messageLabelWidth - kTopBarXEdgeBuffer;
-  
-  [self slideAnimateView:self.lastTurnLabel toDestinationXPosition:desiredLastTurnLabelX durationConstant:kConstantTime];
-  
-  CGFloat desiredTurnPileLabelsX = goOut ? kTopBarXEdgeBuffer + kTopBarTurnPileLabelsWidth : 0;
-  
-  [self slideAnimateView:self.turnPileCountField toDestinationXPosition:desiredTurnPileLabelsX durationConstant:kConstantTime];
-}
-
--(void)animateReplayLabelGoOut:(BOOL)goOut {
-  
-  CGFloat desiredY = goOut ? -kTopBarHeight * 0.95 : kTopBarHeight * 0.05;
-  [self slideAnimateView:self.replayTurnLabel toDestinationYPosition:desiredY durationConstant:kConstantTime];
-}
-
--(void)animatePnPLabelGoOut:(BOOL)goOut {
-  
-  CGFloat desiredY = goOut ? self.view.frame.size.height + (kRackHeight * 0.05) :
-      self.view.frame.size.height - (kRackHeight * 0.95);
-  
-  [self slideAnimateView:self.pnpWaitingLabel toDestinationYPosition:desiredY durationConstant:kConstantTime];
-}
-
--(void)animateScoreLabelFlash:(UILabel *)scoreLabel {
-  
 }
 
 #pragma mark - mainVC methods

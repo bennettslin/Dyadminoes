@@ -53,7 +53,7 @@
 -(void)animateReplayLabelGoOut:(BOOL)goOut;
 -(void)animatePnPLabelGoOut:(BOOL)goOut;
 -(void)animateScoreLabelFlash:(UILabel *)scoreLabel;
--(void)showChordMessage:(NSString *)message sign:(ChordMessageSign)sign;
+-(void)showChordMessage:(NSString *)message sign:(ChordMessageSign)sign autoFade:(BOOL)autoFade;
 -(void)fadeChordMessage;
 
 -(void)presentFromSceneOptionsVC;

@@ -1649,7 +1649,7 @@
                                                                       withCondition:kBothNewAndExtendedChords
                                                                   withInitialString:@"Built "
                                                                     andEndingString:@"."];
-    [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
+    [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood autoFade:YES];
     
       // confirm that the dyadmino was successfully played in match
     if (![self.myMatch playDataDyadmino:dataDyad
@@ -2182,7 +2182,7 @@
           [self finishHoveringAfterCheckDyadmino:dyadmino];
         }
         
-        [self.myDelegate showChordMessage:messageString sign:kChordMessageBad];
+        [self.myDelegate showChordMessage:messageString sign:kChordMessageBad autoFade:NO];
         return;
       
     //------------------------------------------------------------------------
@@ -2198,7 +2198,7 @@
                                                             withInitialString:@"Can't break "
                                                               andEndingString:@"."];
 
-        [self.myDelegate showChordMessage:chordsText sign:kChordMessageBad];
+        [self.myDelegate showChordMessage:chordsText sign:kChordMessageBad autoFade:NO];
         
         [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
         return;
@@ -2226,7 +2226,7 @@
                                                                   withCondition:kBothNewAndExtendedChords
                                                               withInitialString:@"Build "
                                                                 andEndingString:@"?"];
-          [self.myDelegate showChordMessage:chordsText sign:kChordMessageNeutral];
+          [self.myDelegate showChordMessage:chordsText sign:kChordMessageNeutral autoFade:NO];
           
           [dyadmino changeHoveringStatus:kDyadminoContinuesHovering];
           return;
@@ -2240,7 +2240,7 @@
                                                                   withCondition:kBothNewAndExtendedChords
                                                               withInitialString:@"Built "
                                                                 andEndingString:@"."];
-          [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
+          [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood autoFade:YES];
           
             // recent rack dyadmino
         } else if (dyadmino == _recentRackDyadmino) {
@@ -2251,7 +2251,7 @@
                                                                   withCondition:kBothNewAndExtendedChords
                                                               withInitialString:@"Building "
                                                                 andEndingString:@"."];
-          [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
+          [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood autoFade:NO];
         }
         
         [self finishHoveringAfterCheckDyadmino:dyadmino];
@@ -2269,7 +2269,7 @@
             // however, recent rack dyadmino must form new chord
         } else {
           _recentRackDyadminoFormsLegalChord = NO;
-          [self.myDelegate showChordMessage:@"Must build new chord." sign:kChordMessageNeutral];
+          [self.myDelegate showChordMessage:@"Must build new chord." sign:kChordMessageNeutral autoFade:NO];
         }
         
         [self finishHoveringAfterCheckDyadmino:dyadmino];
@@ -3370,7 +3370,7 @@
         
         NSString *chordsText = [self.myMatch stringForPlacementOfDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] onBottomHexCoord:_hoveringDyadmino.tempHexCoord withOrientation:_hoveringDyadmino.orientation withCondition:kBothNewAndExtendedChords withInitialString:@"Built " andEndingString:@"."];
         
-        [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood];
+        [self.myDelegate showChordMessage:chordsText sign:kChordMessageGood autoFade:YES];
         
         [self.myMatch moveBoardDataDyadmino:[self getDataDyadminoFromDyadmino:_hoveringDyadmino] toBottomHexCoord:_hoveringDyadmino.tempHexCoord withOrientation:_hoveringDyadmino.orientation];
         
