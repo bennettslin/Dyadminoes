@@ -7,16 +7,15 @@
 //
 
 #import "SettingsViewController.h"
+#import "SoundEngine.h"
 #import "AppDelegate.h"
 
 @interface SettingsViewController ()
 
-@property (weak, nonatomic) IBOutlet UISwitch *showPivotGuideSwitch;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *notationControl;
+@property (weak, nonatomic) IBOutlet UISwitch *soundSwitch;
 @property (weak, nonatomic) IBOutlet UISlider *musicSlider;
-@property (weak, nonatomic) IBOutlet UISlider *soundEffectsSlider;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *registerControl;
-
 @property (weak, nonatomic) IBOutlet UIButton *removeDefaultsButton;
 
 @end
@@ -33,8 +32,9 @@
   self.removeDefaultsButton.titleLabel.text = @"Restore defaults";
   [self.removeDefaultsButton.titleLabel sizeToFit];
   self.removeDefaultsButton.frame = self.removeDefaultsButton.titleLabel.frame;
+    [self.removeDefaultsButton addTarget:self action:@selector(removeDefaultsButtonPressed) forControlEvents:UIControlEventTouchDown];
   
-  [self.showPivotGuideSwitch setOnTintColor:kPlayerBlue];
+  [self.soundSwitch setOnTintColor:kPlayerBlue];
 }
 
 -(void)viewWillAppear:(BOOL)animated {
@@ -43,15 +43,17 @@
     // defaults are established in app delegate
     // here, just show views
   
-  NSArray *labels = @[@"Pivot guide", @"Notation", @"Sound Effects", @"Music", @"Register"];
-  NSArray *labelDetails = @[@"blah", @"blah", @"blah", @"blah", @"blah"];
+  NSArray *labels = @[@"Sound Effects", @"Note Volume", @"Note Register", @"Note Symbols"];
+  NSArray *labelDetails = @[@"blah", @"blah", @"blah", @"blah"];
   
-  NSArray *controls = @[self.showPivotGuideSwitch, self.notationControl, self.soundEffectsSlider, self.musicSlider, self.registerControl];
+  NSUInteger labelCountPlusPadding = labels.count + 1;
+  
+  NSArray *controls = @[self.soundSwitch, self.musicSlider, self.registerControl, self.notationControl];
   
   CGFloat labelHeight = kChildVCButtonSize * 0.75f;
   
     // half padding above top label and below bottom label
-  CGFloat paddingBetweenLabels = (self.view.frame.size.height - kChildVCTopMargin - kChildVCBottomMargin - (labelHeight * 6)) / 6;
+  CGFloat paddingBetweenLabels = (self.view.frame.size.height - kChildVCTopMargin - kChildVCBottomMargin - (labelHeight * labelCountPlusPadding)) / labelCountPlusPadding;
   
   for (int i = 0; i < labels.count; i++) {
     UILabel *label = [UILabel new];
@@ -75,12 +77,16 @@
   
   self.removeDefaultsButton.center = CGPointMake(self.view.frame.size.width * 0.5f, self.view.frame.size.height - kChildVCBottomMargin - self.removeDefaultsButton.frame.size.height * 0.5f);
   
-  [self establishControlViews];
+  [self establishControlViewsWithAnimation:NO];
 }
 
--(IBAction)pivotGuideSwitched {
-  [[NSUserDefaults standardUserDefaults] setBool:self.showPivotGuideSwitch.isOn forKey:@"pivotGuide"];
+-(IBAction)soundSwitched {
+  [[NSUserDefaults standardUserDefaults] setBool:self.soundSwitch.isOn forKey:@"sound"];
   [[NSUserDefaults standardUserDefaults] synchronize];
+  
+  if ([[NSUserDefaults standardUserDefaults] boolForKey:@"sound"]) {
+    [self soundWithVolume:1.f andNotificationName:kNotificationOptionsSoundEffects];
+  }
 }
 
 -(IBAction)notationChanged:(UISegmentedControl *)sender {
@@ -90,7 +96,7 @@
 
 -(IBAction)musicSliderTouchEnded:(UISlider *)sender {
   sender.value = [self moduloSliderValue:sender.value];
-  [[NSUserDefaults standardUserDefaults] setFloat:sender.value forKey:(sender == self.musicSlider) ? @"music" : @"soundEffects"];
+  [[NSUserDefaults standardUserDefaults] setFloat:sender.value forKey:@"music"];
   [[NSUserDefaults standardUserDefaults] synchronize];
   [self soundWithVolume:sender.value andNotificationName:kNotificationOptionsMusic];
 }
@@ -108,32 +114,38 @@
   return (integerValue - moduloValue) / 100.f;
 }
 
--(IBAction)removeDefaultsTapped:(UIButton *)sender {
-  [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"pivotGuide"];
+-(void)removeDefaultsButtonPressed {
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonSunkIn];
+}
+
+-(IBAction)removeDefaultsButtonLifted:(UIButton *)sender {
+  
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonLifted];
+  
   [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"notation"];
   [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"music"];
-  [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"soundEffects"];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"sound"];
   [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"register"];
   [[NSUserDefaults standardUserDefaults] synchronize];
   
   AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
   [appDelegate establishDefaults];
   
-  [self establishControlViews];
+  [self establishControlViewsWithAnimation:YES];
 }
 
--(void)establishControlViews {
-  [self.showPivotGuideSwitch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"pivotGuide"] animated:NO];
+-(void)establishControlViewsWithAnimation:(BOOL)animation {
   self.notationControl.selectedSegmentIndex = [[NSUserDefaults standardUserDefaults] integerForKey:@"notation"];
-  [self.musicSlider setValue:[[NSUserDefaults standardUserDefaults] floatForKey:@"music"]];
-  [self.soundEffectsSlider setValue:[[NSUserDefaults standardUserDefaults] floatForKey:@"soundEffects"]];
+  [self.soundSwitch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"sound"] animated:animation];
+  [self.musicSlider setValue:[[NSUserDefaults standardUserDefaults] floatForKey:@"music"] animated:animation];
   self.registerControl.selectedSegmentIndex = [[NSUserDefaults standardUserDefaults] integerForKey:@"register"];
 }
 
 -(void)soundWithVolume:(float)volume andNotificationName:(NotificationName)notificationName {
 
-  NSNumber *whichNotificationObject = [NSNumber numberWithUnsignedInteger:notificationName];
-  [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound" object:self userInfo:@{@"sound": whichNotificationObject}];
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:notificationName];
+//  NSNumber *whichNotificationObject = [NSNumber numberWithUnsignedInteger:notificationName];
+//  [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound" object:self userInfo:@{@"sound": whichNotificationObject}];
 }
 
 -(void)dealloc {

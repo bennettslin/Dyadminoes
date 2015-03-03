@@ -11,10 +11,26 @@
 #import "BPianoDelegate.h"
 #import "BAudioController.h"
 
-#define kOptionsNote 0
 #define kNoteDelay 0.05f
 
+#define kSoundFilePop @"hitCatLady"
+#define kSoundFileClick @"Click2-Sebastian-759472264"
+#define kSoundFileRing @"Electronic_Chime-KevanGC-495939803"
+#define kSoundFileSwoosh @"Slide_Closed_SoundBible_com_1521580537"
+
+typedef enum systemSound {
+  kSoundPop,
+  kSoundClick,
+  kSoundRing,
+  kSoundSwoosh
+} SystemSound;
+
 @interface SoundEngine () <BPianoDelegate>
+
+@property (assign, nonatomic) SystemSoundID kSoundPop;
+@property (assign, nonatomic) SystemSoundID kSoundClick;
+@property (assign, nonatomic) SystemSoundID kSoundRing;
+@property (assign, nonatomic) SystemSoundID kSoundSwoosh;
 
 @end
 
@@ -27,6 +43,21 @@
   int32_t _xBits;
   int32_t _yBits;
   BAudioController *_audioController;
+  
+  SystemSoundID _systemSoundIDs[4]; // same number as systemSound enum
+}
+
+-(void)initialiseSystemSounds {
+    // make sure this is consistent with systemSound enum
+  NSArray *systemSoundFileNames = @[kSoundFilePop, kSoundFileClick, kSoundFileRing, kSoundFileSwoosh];
+  
+  for (int i = 0; i < systemSoundFileNames.count; i++) {
+    NSString *soundPath = [[NSBundle mainBundle] pathForResource:systemSoundFileNames[i] ofType:@"wav"];
+    NSURL *soundURL = [NSURL fileURLWithPath:soundPath];
+    SystemSoundID mySound;
+    AudioServicesCreateSystemSoundID((CFURLRef)CFBridgingRetain(soundURL), &mySound);
+    _systemSoundIDs[i] = mySound;
+  }
 }
 
 -(id)init {
@@ -42,16 +73,20 @@
     _audioController = [[BAudioController alloc] init];
     [_audioController setInputVolume:1 withBus:0];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleNotificationOfSound:) name:@"playSound" object:nil];
+    [self initialiseSystemSounds];
+    
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleNotificationOfSound:) name:@"playSound" object:nil];
+    
+    
   }
   return self;
 }
 
+#pragma mark - music note methods
+
 -(NSUInteger)lowestNote {
   return 36 + [[NSUserDefaults standardUserDefaults] integerForKey:@"register"] * 12;
 }
-
-#pragma mark - piano delegate methods
 
 -(void) noteOn:(Byte)note {
   CGFloat volume = [[NSUserDefaults standardUserDefaults] floatForKey:@"music"] * 127;
@@ -62,8 +97,6 @@
   CGFloat volume = [[NSUserDefaults standardUserDefaults] floatForKey:@"music"] * 127;
   MusicDeviceMIDIEvent(_audioController.samplerUnit, 0x80, note, volume, 0);
 }
-
-#pragma mark - notification and sound methods
 
 -(void)handleMusicNote:(NSUInteger)note withHexCoord:(HexCoord)hexCoord {
     
@@ -143,50 +176,67 @@
   }
 }
 
--(void)handleNotificationOfSound:(NSNotification *)notification {
-  if (notification.userInfo) {
-    NotificationName notificationName = (NotificationName)[notification.userInfo[@"sound"] unsignedIntegerValue];
-    NSString *soundFile = [self fileNameForNotificationName:notificationName];
+#pragma mark - sound methods
+
+//-(void)handleNotificationOfSound:(NSNotification *)notification {
+//  if (notification.userInfo) {
+//    NotificationName notificationName = (NotificationName)[notification.userInfo[@"sound"] unsignedIntegerValue];
+//    
+//      // called from options page
+//    if (notificationName == kNotificationOptionsMusic || notificationName == kNotificationOptionsRegister) {
+//      [self handleMusicNote:0];
+//      
+//    } else {
+//      SystemSoundID soundID = [self systemSoundIDForNotificationName:notificationName];
+//      [self playSoundForSystemSoundID:soundID];
+//    }
+//  }
+//}
+
+-(void)playSoundNotificationName:(NotificationName)notificationName {
+    // called from options page
+  if (notificationName == kNotificationOptionsMusic || notificationName == kNotificationOptionsRegister) {
+    [self handleMusicNote:0];
     
-      // called from options page
-    if (notificationName == kNotificationOptionsMusic || notificationName == kNotificationOptionsRegister) {
-      [self handleMusicNote:kOptionsNote];
-    } else {
-      [self playSoundFile:soundFile];
-    }
+  } else if ([[NSUserDefaults standardUserDefaults] boolForKey:@"sound"]) {
+    SystemSoundID soundID = [self systemSoundIDForNotificationName:notificationName];
+    [self playSoundForSystemSoundID:soundID];
   }
 }
 
--(void)playSoundFile:(NSString *)soundFile {
-  SKAction *playAction = [SKAction playSoundFileNamed:soundFile waitForCompletion:NO];
-  [self removeActionForKey:soundFile];
-  [self runAction:playAction withKey:soundFile];
+-(void)playSoundForSystemSoundID:(SystemSoundID)mySound {
+  AudioServicesPlaySystemSound(mySound);
 }
 
--(NSString *)fileNameForNotificationName:(NotificationName)notificationName {
+-(SystemSoundID)systemSoundIDForNotificationName:(NotificationName)notificationName {
   
     // obviously, change this with better sound files
   switch (notificationName) {
+      
+    case kNotificationRackExchangeClick:
+      return 1104; // Apple button pressed
+      break;
     case kNotificationPivotClick:
     case kNotificationEaseIntoNode:
-    case kNotificationRackExchangeClick:
     case kNotificationButtonSunkIn:
     case kNotificationButtonLifted:
-      return kSoundFileClick;
+      return _systemSoundIDs[kSoundClick];
       break;
     case kNotificationDeviceOrientation:
     case kNotificationPopIntoNode:
     case kNotificationTogglePCs:
     case kNotificationBoardZoom:
     case kNotificationOptionsSoundEffects:
-      return kSoundFilePop;
+      return _systemSoundIDs[kSoundPop];
       break;
     case kNotificationToggleBarOrField:
-      return kSoundFileSwoosh;
+      return _systemSoundIDs[kSoundSwoosh];
       break;
+      
+        // this should never get called
     case kNotificationOptionsMusic:
     case kNotificationOptionsRegister:
-      return nil;
+      return UINT32_MAX;
       break;
   }
 }

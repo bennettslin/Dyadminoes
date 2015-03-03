@@ -7,6 +7,7 @@
 //
 
 #import "LocalGameViewController.h"
+#import "SoundEngine.h"
 
 #define kPlaceholder1Name @"Clara"
 #define kPlaceholder2Name @"Igor"
@@ -165,7 +166,12 @@
   }
 }
 
--(IBAction)startSelfOrPnPGameTapped:(id)sender {
+-(IBAction)startSelfOrPnpGameTapped:(id)sender {
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonSunkIn];
+}
+
+-(IBAction)startSelfOrPnPGameLifted:(id)sender {
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonLifted];
   
     // ensure at least one button is selected
   BOOL atLeastOneButtonSelected = NO;
@@ -195,6 +201,11 @@
 }
 
 -(IBAction)buttonTapped:(UIButton *)button {
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonSunkIn];
+}
+
+-(IBAction)buttonLifted:(UIButton *)button {
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonLifted];
   
   NSUInteger index = [self.playerButtons indexOfObject:button];
   UITextField *textField = self.playerNameFields[index];
@@ -245,7 +256,7 @@
   
     // automatically push join button
   UIButton *playerButton = self.playerButtons[[self.playerNameFields indexOfObject:textField]];
-  playerButton.selected ? nil : [self buttonTapped:playerButton];
+  playerButton.selected ? nil : [self buttonLifted:playerButton];
   
   self.startSelfOrPnPGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
   

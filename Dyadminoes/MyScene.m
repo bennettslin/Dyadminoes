@@ -139,7 +139,7 @@
     self.backgroundColor = kBackgroundBoardColour;
     self.name = @"scene";
     self.mySoundEngine = [SoundEngine sharedSoundEngine];
-    [self addChild:self.mySoundEngine];
+//    [self addChild:self.mySoundEngine];
     
     self.swapContainer = nil;
     _dyadminoesStationary = NO;
@@ -219,7 +219,7 @@
 -(void)prepareForNewTurn {
     // called both when scene is loaded, and when player finalises turn in PnP mode
   
-  [self.mySoundEngine removeAllActions];
+//  [self.mySoundEngine removeAllActions];
   _boardDyadminoMovedShowResetButton = NO;
   _zoomChangedCellsAlpha = NO;
   _rackExchangeInProgress = NO;
@@ -408,9 +408,13 @@
 #pragma mark - sound methods
 
 -(void)postSoundNotification:(NotificationName)whichNotification {
-  NSNumber *whichNotificationObject = [NSNumber numberWithUnsignedInteger:whichNotification];
-  [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound"
-                                                      object:self userInfo:@{@"sound": whichNotificationObject}];
+  
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:whichNotification];
+//  return;
+//  
+//  NSNumber *whichNotificationObject = [NSNumber numberWithUnsignedInteger:whichNotification];
+//  [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound"
+//                                                      object:self userInfo:@{@"sound": whichNotificationObject}];
 }
 
 -(void)soundDyadmino:(Dyadmino *)dyadmino withFace:(Face *)face {

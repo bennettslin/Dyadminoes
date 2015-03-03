@@ -135,7 +135,6 @@
 		3F3C8FF51990DA4E0061B208 /* TopBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TopBar.h; sourceTree = "<group>"; };
 		3F3C8FF61990DA4E0061B208 /* TopBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TopBar.m; sourceTree = "<group>"; };
 		3F463CBD1A182498004544AB /* Dyadminoes.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Dyadminoes.xcdatamodel; sourceTree = "<group>"; };
-		3F4EEA321A6AAFC0007A945B /* JR_elepiano.sf2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = JR_elepiano.sf2; sourceTree = "<group>"; };
 		3F5036E61A5500D700A99EF1 /* button_cancel.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = button_cancel.png; sourceTree = "<group>"; };
 		3F55E1FB18D7A8520048E67E /* Button.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Button.h; sourceTree = "<group>"; };
 		3F55E1FC18D7A8520048E67E /* Button.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Button.m; sourceTree = "<group>"; };
@@ -453,7 +452,6 @@
 			isa = PBXGroup;
 			children = (
 				3FE8CD5919FCA26E00D097B6 /* AJH_Piano.sf2 */,
-				3F4EEA321A6AAFC0007A945B /* JR_elepiano.sf2 */,
 			);
 			path = Resources;
 			sourceTree = "<group>";

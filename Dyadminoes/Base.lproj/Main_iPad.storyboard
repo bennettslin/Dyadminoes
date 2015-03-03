@@ -170,7 +170,8 @@
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="startSelfOrPnPGameTapped:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="As5-h5-MHW"/>
+                                    <action selector="startSelfOrPnPGameLifted:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="DOW-QP-32g"/>
+                                    <action selector="startSelfOrPnpGameTapped:" destination="X7K-Wy-mCB" eventType="touchDown" id="L5y-ey-dCz"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="V7T-gW-Kyt">
@@ -180,7 +181,8 @@
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="buttonTapped:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="cjV-FJ-lOv"/>
+                                    <action selector="buttonLifted:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="vfv-qy-rjf"/>
+                                    <action selector="buttonTapped:" destination="X7K-Wy-mCB" eventType="touchDown" id="V6q-1I-JgR"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="azc-Hb-bT2">
@@ -190,7 +192,8 @@
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="buttonTapped:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="uGt-HQ-ZSq"/>
+                                    <action selector="buttonLifted:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="gX6-HZ-IG8"/>
+                                    <action selector="buttonTapped:" destination="X7K-Wy-mCB" eventType="touchDown" id="RPI-GH-Q6U"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="cWD-Km-eJY">
@@ -200,7 +203,8 @@
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="buttonTapped:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="YhD-z3-Dva"/>
+                                    <action selector="buttonLifted:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="rcg-wb-YaY"/>
+                                    <action selector="buttonTapped:" destination="X7K-Wy-mCB" eventType="touchDown" id="hN2-Oo-Bha"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="nLh-Kq-Tmf">
@@ -210,7 +214,8 @@
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="buttonTapped:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="Lvh-SY-NeB"/>
+                                    <action selector="buttonLifted:" destination="X7K-Wy-mCB" eventType="touchUpInside" id="Pr9-lq-fwG"/>
+                                    <action selector="buttonTapped:" destination="X7K-Wy-mCB" eventType="touchDown" id="BJW-9B-KN3"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -240,13 +245,6 @@
                         <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" id="5La-tn-eEI">
-                                <rect key="frame" x="360" y="16" width="51" height="31"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <connections>
-                                    <action selector="pivotGuideSwitched" destination="CRf-ou-lUt" eventType="valueChanged" id="TKl-Gq-0Pz"/>
-                                </connections>
-                            </switch>
                             <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="yjQ-5G-zfX">
                                 <rect key="frame" x="322" y="75" width="125" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -258,14 +256,6 @@
                                     <action selector="notationChanged:" destination="CRf-ou-lUt" eventType="valueChanged" id="FLX-nW-ixo"/>
                                 </connections>
                             </segmentedControl>
-                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" id="au6-OC-Pw6">
-                                <rect key="frame" x="325" y="131" width="118" height="31"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <connections>
-                                    <action selector="musicSliderTouchEnded:" destination="CRf-ou-lUt" eventType="touchUpOutside" id="WQ2-cN-B0d"/>
-                                    <action selector="musicSliderTouchEnded:" destination="CRf-ou-lUt" eventType="touchUpInside" id="g3h-Cf-HSp"/>
-                                </connections>
-                            </slider>
                             <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" id="Cbb-FW-dna">
                                 <rect key="frame" x="325" y="188" width="118" height="31"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -274,20 +264,8 @@
                                     <action selector="musicSliderTouchEnded:" destination="CRf-ou-lUt" eventType="touchUpOutside" id="YB1-je-SRU"/>
                                 </connections>
                             </slider>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="+" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="uyg-JH-Z1L">
-                                <rect key="frame" x="449" y="135" width="11" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="+" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="w4u-gQ-qKM">
                                 <rect key="frame" x="449" y="192" width="11" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="-" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="EVg-7B-waP">
-                                <rect key="frame" x="312" y="135" width="7" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="highlightedColor"/>
@@ -298,18 +276,6 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="show" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="v2e-CX-8yU">
-                                <rect key="frame" x="417" y="24" width="30" height="15"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="hide" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="3L6-eA-Net">
-                                <rect key="frame" x="328" y="24" width="24" height="15"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="VBe-d3-RA3">
                                 <rect key="frame" x="20" y="255" width="99" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -317,7 +283,7 @@
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="removeDefaultsTapped:" destination="CRf-ou-lUt" eventType="touchUpInside" id="bs7-r0-aeZ"/>
+                                    <action selector="removeDefaultsButtonLifted:" destination="CRf-ou-lUt" eventType="touchUpInside" id="M00-AH-Ne7"/>
                                 </connections>
                             </button>
                             <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="Whm-YX-gr5">
@@ -334,6 +300,13 @@
                                     <action selector="registerChanged:" destination="CRf-ou-lUt" eventType="valueChanged" id="2Ly-Sz-juV"/>
                                 </connections>
                             </segmentedControl>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" id="p1h-CK-JTj">
+                                <rect key="frame" x="360" y="135" width="51" height="31"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <connections>
+                                    <action selector="soundSwitched" destination="CRf-ou-lUt" eventType="valueChanged" id="uMJ-Bx-ij8"/>
+                                </connections>
+                            </switch>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -342,8 +315,7 @@
                         <outlet property="notationControl" destination="yjQ-5G-zfX" id="G6C-gl-rr7"/>
                         <outlet property="registerControl" destination="Whm-YX-gr5" id="OrL-YY-lF1"/>
                         <outlet property="removeDefaultsButton" destination="VBe-d3-RA3" id="h0h-ta-2tr"/>
-                        <outlet property="showPivotGuideSwitch" destination="5La-tn-eEI" id="IXm-8J-kUF"/>
-                        <outlet property="soundEffectsSlider" destination="au6-OC-Pw6" id="vt6-Qj-DuF"/>
+                        <outlet property="soundSwitch" destination="p1h-CK-JTj" id="SEz-6z-0Xy"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cS4-7w-Al7" userLabel="First Responder" sceneMemberID="firstResponder"/>

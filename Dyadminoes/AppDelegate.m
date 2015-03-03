@@ -43,11 +43,7 @@
 
 -(void)establishDefaults {
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-  
-  if (![defaults objectForKey:@"pivotGuide"]) {
-    [defaults setBool:YES forKey:@"pivotGuide"];
-    [defaults synchronize];
-  }
+
   if (![defaults objectForKey:@"notation"]) {
     [defaults setInteger:0 forKey:@"notation"];
     [defaults synchronize];
@@ -56,8 +52,8 @@
     [defaults setFloat:0.5f forKey:@"music"];
     [defaults synchronize];
   }
-  if (![defaults objectForKey:@"soundEffects"]) {
-    [defaults setFloat:0.5f forKey:@"soundEffects"];
+  if (![defaults objectForKey:@"sound"]) {
+    [defaults setBool:YES forKey:@"sound"];
     [defaults synchronize];
   }
   if (![defaults objectForKey:@"register"]) {

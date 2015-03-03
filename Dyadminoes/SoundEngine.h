@@ -10,12 +10,13 @@
 #import <SpriteKit/SpriteKit.h>
 #import "NSObject+Helper.h"
 
-@interface SoundEngine : SKNode
+@interface SoundEngine : NSObject
 
 -(void)handleMusicNote:(NSUInteger)note;
 -(void)handleMusicNote:(NSUInteger)note withHexCoord:(HexCoord)hexCoord;
 -(void)handleMusicNote1:(NSUInteger)note1 andNote2:(NSUInteger)note2 withOrientation:(DyadminoOrientation)dyadminoOrientation;
 
+-(void)playSoundNotificationName:(NotificationName)notificationName;
 +(SoundEngine *)sharedSoundEngine;
 
 @end

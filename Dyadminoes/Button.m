@@ -73,7 +73,7 @@
   }
 }
 
--(void)sinkInWithAnimation:(BOOL)animation {
+-(void)sinkInWithAnimation:(BOOL)animation andSound:(BOOL)sound {
 
   const CGFloat scaleTo = (1 / 1.1f);
     // FIXME: highlight button
@@ -85,7 +85,9 @@
   }
   
   if (!_isSunkIn && _isEnabled) {
-    [self.delegate postSoundNotification:kNotificationButtonSunkIn];
+    if (sound) {
+      [self.delegate postSoundNotification:kNotificationButtonSunkIn];
+    }
     _isSunkIn = YES; // establish right away so method can't be called again
     SKAction *moveAction = [SKAction scaleTo:scaleTo duration:kConstantTime * 0.075];
     moveAction.timingMode = SKActionTimingEaseOut;
@@ -93,7 +95,7 @@
   }
 }
 
--(void)liftWithAnimation:(BOOL)animation andCompletion:(void (^)(void))completion {
+-(void)liftWithAnimation:(BOOL)animation andSound:(BOOL)sound andCompletion:(void (^)(void))completion {
   
   if (!animation) {
     _isSunkIn = NO;
@@ -102,7 +104,9 @@
   }
   
   if (_isEnabled && _isSunkIn) {
-    [self.delegate postSoundNotification:kNotificationButtonLifted];
+    if (sound) {
+      [self.delegate postSoundNotification:kNotificationButtonLifted];
+    }
     _isSunkIn = NO; // establish right away so method can't be called again
     SKAction *liftAction = [SKAction scaleTo:1.f duration:kConstantTime * 0.075];
     SKAction *completionAction = [SKAction runBlock:completion];
@@ -168,7 +172,7 @@
   if ([self isEnabled]) {
     BOOL frameContainsPoint = [self frameContainsTouchFromTouches:touches];
     if (frameContainsPoint && !_isSunkIn) {
-      [self sinkInWithAnimation:YES];
+      [self sinkInWithAnimation:YES andSound:YES];
     }
   }
 }
@@ -177,9 +181,9 @@
   if ([self isEnabled]) {
     BOOL frameContainsPoint = [self frameContainsTouchFromTouches:touches];
     if (frameContainsPoint && !_isSunkIn) {
-      [self sinkInWithAnimation:YES];
+      [self sinkInWithAnimation:YES andSound:NO];
     } else if (!frameContainsPoint && _isSunkIn) {
-      [self liftWithAnimation:YES andCompletion:nil];
+      [self liftWithAnimation:YES andSound:NO andCompletion:nil];
     }
   }
 }
@@ -204,7 +208,7 @@
       completion = nil;
     }
     
-    [self liftWithAnimation:YES andCompletion:completion];
+    [self liftWithAnimation:YES andSound:YES andCompletion:completion];
   }
 }
 

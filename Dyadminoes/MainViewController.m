@@ -23,6 +23,7 @@
 #import "Match.h"
 #import "Player.h"
 #import "CellBackgroundView.h"
+#import "SoundEngine.h"
 
 #define kTableViewXMargin (kIsIPhone ? 0.f : 60.f)
 #define kMainTopBarHeight (kIsIPhone ? 64.f : 86.f)
@@ -251,6 +252,8 @@
 }
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+  
+//  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonLifted];
   [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
@@ -475,11 +478,13 @@
 }
 
 -(IBAction)menuButtonPressedIn:(id)sender {
-
-    // FIXME: this will be a sound
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonSunkIn];
 }
 
 -(IBAction)menuButtonLifted:(UIButton *)sender {
+  
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonLifted];
+  
   ChildViewController *buttonVC;
   if (sender == self.helpButton) {
     buttonVC = self.helpVC;

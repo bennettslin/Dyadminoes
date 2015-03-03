@@ -15,6 +15,7 @@
 #import "AboutViewController.h"
 #import "ChildViewController.h"
 #import "GameEndedViewController.h"
+#import "SoundEngine.h"
 
 @interface ParentViewController () <ChildViewControllerDelegate>
 
@@ -64,6 +65,8 @@
 }
 
 -(void)presentChildViewController:(ChildViewController *)childVC {
+  
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationToggleBarOrField];
   
   self.vcIsAnimating = YES;
   (self.childVC && self.childVC != childVC) ? [self removeChildViewController:self.childVC] : nil;
@@ -189,6 +192,7 @@
 
 -(void)removeChildViewController:(ChildViewController *)childVC {
   
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationToggleBarOrField];
   self.vcIsAnimating = YES;
   __weak typeof(self) weakSelf = self;
   
