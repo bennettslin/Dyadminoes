@@ -1127,7 +1127,7 @@
 
 
 -(void)handleUserWantsPivotGuides {
-  [_boardField handleUserWantsPivotGuides];
+//  [_boardField handleUserWantsPivotGuides];
   [_boardField hideAllPivotGuides];
 }
 

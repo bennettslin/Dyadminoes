@@ -52,7 +52,7 @@
 
 @property (strong, nonatomic) NSMutableSet *dequeuedCells;
 @property (strong, nonatomic) SKTexture *cellTexture;
-@property (nonatomic) BOOL userWantsPivotGuides;
+//@property (nonatomic) BOOL userWantsPivotGuides;
 
 @end
 
@@ -74,7 +74,7 @@
     self.zPosition = kZPositionBoard;
     self.zoomedOut = NO;
     
-    self.userWantsPivotGuides = YES;
+//    self.userWantsPivotGuides = YES;
 
       // create new cells from get-go
     [self instantiateDequeuedCells];
@@ -982,10 +982,10 @@
   return pivotGuide;
 }
 
--(void)handleUserWantsPivotGuides {
-    // called before scene appears
-  self.userWantsPivotGuides = [[NSUserDefaults standardUserDefaults] boolForKey:@"pivotGuide"];
-}
+//-(void)handleUserWantsPivotGuides {
+//    // called before scene appears
+//  self.userWantsPivotGuides = [[NSUserDefaults standardUserDefaults] boolForKey:@"pivotGuide"];
+//}
 
 -(void)updatePositionsOfPivotGuidesForDyadminoPosition:(CGPoint)dyadminoPosition {
     
@@ -1001,7 +1001,7 @@
 }
 
 -(void)showPivotGuide:(SKNode *)pivotGuide forDyadmino:(Dyadmino *)dyadmino {
-  if (self.userWantsPivotGuides && !pivotGuide.parent && ![self.delegate actionSheetShown]) {
+  if (!pivotGuide.parent && ![self.delegate actionSheetShown]) {
     pivotGuide.position = (pivotGuide == self.prePivotGuide || pivotGuide == self.pivotRotateGuide) ?
         dyadmino.position : dyadmino.pivotAroundPoint;
     
@@ -1056,7 +1056,7 @@
 }
 
 -(void)hidePivotGuide:(SKNode *)pivotGuide thenShowExtendedChordActionSheet:(BOOL)showActionSheet {
-  if (self.userWantsPivotGuides && pivotGuide.parent) {
+  if (pivotGuide.parent) {
     [self animatePivotGuide:pivotGuide toShow:NO completion:^{
       [pivotGuide removeFromParent];
       if (showActionSheet) {

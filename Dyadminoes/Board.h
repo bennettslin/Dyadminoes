@@ -107,7 +107,7 @@
 -(void)hidePivotGuideAndShowPrePivotGuideForDyadmino:(Dyadmino *)dyadmino;
 -(void)hideAllPivotGuides;
 -(void)hideAllPivotGuidesAndShowExtendedChordActionSheet;
--(void)handleUserWantsPivotGuides;
+//-(void)handleUserWantsPivotGuides;
 
 -(void)updatePositionsOfPivotGuidesForDyadminoPosition:(CGPoint)dyadminoPosition;
 
