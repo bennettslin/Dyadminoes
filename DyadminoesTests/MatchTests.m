@@ -1351,7 +1351,7 @@
     if (strandedDyadminoes) {
       XCTAssertFalse(undoSuccessful, @"Undo should not be possible if it leaves dyadminoes stranded.");
     } else {
-      XCTAssertTrue(undoSuccessful, @"Undo should be possible if it leaves dyadminoes stranded.");
+      XCTAssertTrue(undoSuccessful, @"Undo should be possible if it doesn't leave dyadminoes stranded.");
     }
   }
   

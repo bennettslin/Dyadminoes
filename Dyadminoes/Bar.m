@@ -67,9 +67,9 @@
 
 -(void)addGradientBackgroundWithColour:(UIColor *)colour upsideDown:(BOOL)upsideDown {
   
-  const CGFloat bounceBuffer = 16.f / 15.f;
+//  const CGFloat bounceBuffer = 16.f / 15.f;
   
-  UIGraphicsBeginImageContext(CGSizeMake(self.size.width, self.size.height * bounceBuffer));
+  UIGraphicsBeginImageContext(CGSizeMake(self.size.width, self.size.height));
   CGContextRef context = UIGraphicsGetCurrentContext();
   
   CGGradientRef gradient;
@@ -81,6 +81,7 @@
   
   NSArray *colours;
   CGGradientDrawingOptions option;
+//  CGPoint endPoint;
   if (!upsideDown) {
     colours = @[(id)colour.CGColor, (id)colourTwo.CGColor];
     option = kCGGradientDrawsBeforeStartLocation;
@@ -93,7 +94,7 @@
   gradient = CGGradientCreateWithColors(colorSpace, (CFArrayRef) colours, location);
   
   CGPoint startPoint = CGPointMake(self.size.width / 2, 0);
-  CGPoint endPoint = CGPointMake(self.size.width / 2, self.size.height * bounceBuffer);
+  CGPoint endPoint = CGPointMake(self.size.width / 2, self.size.height);
   
   
   CGContextDrawLinearGradient(context, gradient, startPoint, endPoint, option);
@@ -107,7 +108,7 @@
   
   SKSpriteNode *newNode = [SKSpriteNode spriteNodeWithTexture:newTexture];
   newNode.zPosition = -10;
-  newNode.position = CGPointMake(self.size.width / 2, self.size.height * bounceBuffer / 2);
+  newNode.position = CGPointMake(self.size.width / 2, self.size.height / 2);
   
   [self addChild:newNode];
 }

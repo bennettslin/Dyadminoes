@@ -250,8 +250,8 @@
 #define kBarBrown [SKColor colorWithRed:0.3f green:0.15f blue:0.1f alpha:1.f]
 #define kPianoBlack [SKColor colorWithRed:0.1f green:0.05f blue:0.f alpha:1.f]
 
-#define kReplayTopColour [SKColor colorWithRed:0.1f green:0.15f blue:0.1f alpha:1.f]
-#define kReplayBottomColour [SKColor colorWithRed:0.1f green:0.15f blue:0.1f alpha:1.f]
+#define kReplayTopColour [UIColor yellowColor] // [SKColor colorWithRed:0.1f green:0.15f blue:0.1f alpha:1.f]
+#define kReplayBottomColour [UIColor yellowColor] // [SKColor colorWithRed:0.1f green:0.15f blue:0.1f alpha:1.f]
 
 #define kPivotOrange [SKColor colorWithRed:0.9f green:.8f blue:.6f alpha:1.f]
 #define kPivotRed [SKColor colorWithRed:1.f green:.8f blue:.8f alpha:1.f]

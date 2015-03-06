@@ -74,10 +74,6 @@ typedef enum systemSound {
     [_audioController setInputVolume:1 withBus:0];
     
     [self initialiseSystemSounds];
-    
-//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleNotificationOfSound:) name:@"playSound" object:nil];
-    
-    
   }
   return self;
 }
@@ -177,21 +173,6 @@ typedef enum systemSound {
 }
 
 #pragma mark - sound methods
-
-//-(void)handleNotificationOfSound:(NSNotification *)notification {
-//  if (notification.userInfo) {
-//    NotificationName notificationName = (NotificationName)[notification.userInfo[@"sound"] unsignedIntegerValue];
-//    
-//      // called from options page
-//    if (notificationName == kNotificationOptionsMusic || notificationName == kNotificationOptionsRegister) {
-//      [self handleMusicNote:0];
-//      
-//    } else {
-//      SystemSoundID soundID = [self systemSoundIDForNotificationName:notificationName];
-//      [self playSoundForSystemSoundID:soundID];
-//    }
-//  }
-//}
 
 -(void)playSoundNotificationName:(NotificationName)notificationName {
     // called from options page

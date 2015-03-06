@@ -253,8 +253,8 @@
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
   
-//  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonLifted];
   [tableView deselectRowAtIndexPath:indexPath animated:YES];
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationToggleBarOrField];
 }
 
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -286,7 +286,7 @@
 #pragma mark - Navigation
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-
+  
   if ([segue.identifier isEqualToString:@"sceneSegue"]) {
     [self activityIndicatorStart:YES];
     

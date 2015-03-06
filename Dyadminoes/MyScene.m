@@ -561,7 +561,6 @@
   
   if (!animated) {
       // layout is necessary again to dequeue cells
-    NSLog(@"layout called once in populate board");
     [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:[self allBoardDyadminoesPlusRecentRackDyadmino] minusDyadmino:nil updateBounds:YES];
   }
   
@@ -587,12 +586,12 @@
 
 -(BOOL)layoutTopBar {
   
-  _topBar = [[TopBar alloc] initWithColor:[UIColor blackColor] // kBarBrown
-                               andSize:CGSizeMake(self.frame.size.width, kTopBarHeight)
-                                andTop:YES
-                        andAnchorPoint:CGPointZero
-                           andPosition:CGPointMake(0, self.frame.size.height - kTopBarHeight)
-                          andZPosition:kZPositionTopBar];
+  _topBar = [[TopBar alloc] initWithColor:[UIColor yellowColor] // kBarBrown
+                                  andSize:CGSizeMake(self.frame.size.width, kTopBarHeight)
+                                   andTop:YES
+                           andAnchorPoint:CGPointZero
+                              andPosition:CGPointMake(0, self.frame.size.height - kTopBarHeight)
+                             andZPosition:kZPositionTopBar];
   _topBar.name = @"topBar";
   _topBar.delegate = self;
   [_topBar populateWithTopBarButtons];
@@ -603,7 +602,12 @@
 
 -(BOOL)layoutPnPBar {
   
-  _pnpBar = [[PnPBar alloc] initWithColor:kFieldPurple andSize:CGSizeMake(self.frame.size.width, kRackHeight) andTop:NO andAnchorPoint:CGPointZero andPosition:CGPointZero andZPosition:kZPositionReplayBottom];
+  _pnpBar = [[PnPBar alloc] initWithColor:[UIColor yellowColor]
+                                  andSize:CGSizeMake(self.frame.size.width, kRackHeight)
+                                   andTop:NO
+                           andAnchorPoint:CGPointZero
+                              andPosition:CGPointZero
+                             andZPosition:kZPositionReplayBottom];
   _pnpBar.name = @"pnpBar";
   _pnpBar.delegate = self;
   [self addChild:_pnpBar];
@@ -3278,8 +3282,9 @@
         break;
         
       case kActionSheetStrandedCannotUndo:
-        messageString = [NSString stringWithFormat:@"Can't undo dyadmino %@ without leaving others stranded. Reset board instead?", [self messageStringForStrandedCannotUndo]];
-        destructiveButtonString = @"Reset";
+        messageString = [NSString stringWithFormat:@"Can't undo dyadmino %@ without leaving others stranded.", [self messageStringForStrandedCannotUndo]];
+//        destructiveButtonString = @"Reset";
+        cancelButtonString = @"Okay";
         break;
         
       case kActionSheetReset:
@@ -3362,6 +3367,7 @@
       break;
 
     case kActionSheetStrandedCannotUndo:
+      break;
     case kActionSheetReset:
       if ([buttonText isEqualToString:@"Reset"]) {
         [self resetBoardFromPass:NO];

@@ -13,6 +13,7 @@
 #import "CellBackgroundView.h"
 #import "StavesView.h"
 #import "UIImage+colouredImage.h"
+#import "SoundEngine.h"
 
 @interface MatchTableViewCell ()
 
@@ -216,6 +217,20 @@
     // positions are 4, 4.5, 5, 5.5, 6 being resigned player
   CGFloat multFloat = (playerPosition == -1) ? 6 : ((maxPosition - playerPosition) / 2.f) + 4;
   return (multFloat * kStaveYHeight);
+}
+
+-(void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
+  [super setHighlighted:highlighted animated:animated];
+  if (highlighted) {
+    [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonSunkIn];
+  }
+}
+
+-(void)setSelected:(BOOL)selected animated:(BOOL)animated {
+  [super setSelected:selected animated:animated];
+  if (selected) {
+    [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonLifted];
+  }
 }
 
 #pragma mark - label update methods
