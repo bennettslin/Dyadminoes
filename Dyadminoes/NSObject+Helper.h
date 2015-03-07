@@ -241,6 +241,11 @@
 #define kPlayerLighterGreen [UIColor colorWithRed:0.5f green:1.f blue:0.59f alpha:1.f]
 #define kPlayerLighterOrange [UIColor colorWithRed:1.f green:0.80f blue:0.48f alpha:1.f]
 
+#define kPlayerDarkBlue [UIColor colorWithRed:0.f green:0.32f blue:0.71f alpha:1.f]
+#define kPlayerDarkRed [UIColor colorWithRed:0.61f green:0.11f blue:0.63f alpha:1.f]
+#define kPlayerDarkGreen [UIColor colorWithRed:0.f green:0.45f blue:0.f alpha:1.f]
+#define kPlayerDarkOrange [UIColor colorWithRed:0.65f green:0.30f blue:0.f alpha:1.f]
+
 #define kDarkBlue [SKColor colorWithRed:.29f green:.4f blue:.63f alpha:1.f]
 #define kSkyBlue [SKColor colorWithRed:.7f green:.8f blue:.9f alpha:1.f]
 #define kFieldPurple [SKColor colorWithRed:.3f green:.2f blue:.4f alpha:1.f]

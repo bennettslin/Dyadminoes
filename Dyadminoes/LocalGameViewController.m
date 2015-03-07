@@ -7,12 +7,11 @@
 //
 
 #import "LocalGameViewController.h"
-#import "SoundEngine.h"
 
-#define kPlaceholder1Name @"Clara"
-#define kPlaceholder2Name @"Igor"
-#define kPlaceholder3Name @"Miles"
-#define kPlaceholder4Name @"Astrud"
+#define kPlaceholder1Name @"Player 1"
+#define kPlaceholder2Name @"Player 2"
+#define kPlaceholder3Name @"Player 3"
+#define kPlaceholder4Name @"Player 4"
 
 #define kPlayer1Key @"player1Name"
 #define kPlayer2Key @"player2Name"
@@ -88,6 +87,7 @@
   for (UIButton *button in self.playerButtons) {
     [button setTitle:@"Join?" forState:UIControlStateNormal];
     [button setTitle:@"Joined!" forState:UIControlStateSelected];
+    button.titleLabel.font = [UIFont systemFontOfSize:24.f];
     [button.titleLabel sizeToFit];
   }
   
@@ -96,6 +96,7 @@
 
 -(void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
+  [self centreTitleLabelWithText:@"New Game" colour:kPlayerDarkOrange textAnimation:NO];
   
   [self initialiseButtonAndTextFieldState];
   
@@ -116,6 +117,25 @@
     }
   }
   
+  [self centreTextFieldsAndButtons];
+}
+
+-(void)centreTextFieldsAndButtons {
+  
+  const CGFloat textFieldHeight = 80.f;
+  const CGFloat buttonWidth = 120.f;
+  
+  for (int i = 0; i < self.playerNameFields.count; i++) {
+    UITextField *playerNameField = self.playerNameFields[i];
+    playerNameField.frame = CGRectMake(kChildVCSideMargin, kChildVCTopMargin + textFieldHeight * i, self.view.frame.size.width - kChildVCSideMargin * 2 - buttonWidth, textFieldHeight);
+    
+    UIButton *playerButton = self.playerButtons[i];
+    playerButton.frame = CGRectMake(0, 0, buttonWidth, textFieldHeight);
+    playerButton.center = CGPointMake(self.view.frame.size.width - kChildVCSideMargin - buttonWidth / 2, kChildVCTopMargin + textFieldHeight * (i + 0.5f));
+  }
+  
+  [self.startSelfOrPnPGameButton sizeToFit];
+  self.startSelfOrPnPGameButton.center = CGPointMake(self.view.frame.size.width / 2, kChildVCTopMargin + textFieldHeight * 4 + kChildVCButtonSize / 2);
 }
 
 #pragma mark - state change methods
@@ -167,11 +187,9 @@
 }
 
 -(IBAction)startSelfOrPnpGameTapped:(id)sender {
-  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonSunkIn];
 }
 
 -(IBAction)startSelfOrPnPGameLifted:(id)sender {
-  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonLifted];
   
     // ensure at least one button is selected
   BOOL atLeastOneButtonSelected = NO;
@@ -201,11 +219,9 @@
 }
 
 -(IBAction)buttonTapped:(UIButton *)button {
-  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonSunkIn];
 }
 
 -(IBAction)buttonLifted:(UIButton *)button {
-  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonLifted];
   
   NSUInteger index = [self.playerButtons indexOfObject:button];
   UITextField *textField = self.playerNameFields[index];

@@ -13,7 +13,6 @@
 #import "CellBackgroundView.h"
 #import "StavesView.h"
 #import "UIImage+colouredImage.h"
-#import "SoundEngine.h"
 
 @interface MatchTableViewCell ()
 
@@ -219,19 +218,17 @@
   return (multFloat * kStaveYHeight);
 }
 
--(void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
-  [super setHighlighted:highlighted animated:animated];
-  if (highlighted) {
-    [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonSunkIn];
-  }
-}
+//-(void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
+//  [super setHighlighted:highlighted animated:animated];
+//  if (highlighted) {
+//  }
+//}
 
--(void)setSelected:(BOOL)selected animated:(BOOL)animated {
-  [super setSelected:selected animated:animated];
-  if (selected) {
-    [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonLifted];
-  }
-}
+//-(void)setSelected:(BOOL)selected animated:(BOOL)animated {
+//  [super setSelected:selected animated:animated];
+//  if (selected) {
+//  }
+//}
 
 #pragma mark - label update methods
 

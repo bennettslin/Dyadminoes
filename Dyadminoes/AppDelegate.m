@@ -31,9 +31,9 @@
   }];
   
   UIPageControl *pageControl = [UIPageControl appearance];
-  pageControl.pageIndicatorTintColor = [UIColor yellowColor];
-  pageControl.currentPageIndicatorTintColor = [UIColor blackColor];
-  pageControl.backgroundColor = [UIColor orangeColor];
+//  pageControl.pageIndicatorTintColor = [UIColor yellowColor];
+//  pageControl.currentPageIndicatorTintColor = [UIColor blackColor];
+//  pageControl.backgroundColor = [UIColor orangeColor];
   
   MainViewController *mainVC = (MainViewController *)[[[[UIApplication sharedApplication] delegate] window] rootViewController];
   mainVC.managedObjectContext = self.managedObjectContext;
@@ -60,6 +60,10 @@
     [defaults setInteger:2 forKey:@"register"];
     [defaults synchronize];
   }
+//  if (![defaults objectForKey:@"helpPage"]) {
+//    [defaults setInteger:0 forKey:@"helpPage"];
+//    [defaults synchronize];
+//  }
 }
 							
 -(void)applicationWillResignActive:(UIApplication *)application {

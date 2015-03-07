@@ -185,41 +185,42 @@
     
     
     // tz change to play and record
-	// Assign the Playback category to the audio session.
+	// Originally assigned the Playback category to the audio session.
+  // However, I changed it to Ambient, as this observes the mute switch
     NSError *audioSessionError = nil;
     
     
     if (([[[UIDevice currentDevice] systemVersion] doubleValue] >= 6.0)) {
-        [_audioSession setCategory:AVAudioSessionCategoryPlayback
-                       withOptions:AVAudioSessionCategoryOptionMixWithOthers
-                             error:&audioSessionError];
-        
-        if (audioSessionError != nil) {
-            NSLog (@"Error setting audio session category.");
-        }
+      [_audioSession setCategory:AVAudioSessionCategoryAmbient
+                     withOptions:AVAudioSessionCategoryOptionMixWithOthers
+                           error:&audioSessionError];
+      
+      if (audioSessionError != nil) {
+          NSLog (@"Error setting audio session category.");
+      }
 
-        [_audioSession setPreferredSampleRate:bSampleRate
-                                        error:&audioSessionError];
-        
-        [self setBufferSize:1024.0];
+      [_audioSession setPreferredSampleRate:bSampleRate
+                                      error:&audioSessionError];
+      
+      [self setBufferSize:1024.0];
 
     }
     else {
-        [_audioSession setCategory:AVAudioSessionCategoryPlayback
-                             error:&audioSessionError];
-        
-        if (audioSessionError != nil) {
-            NSLog (@"Error setting audio session category.");
-        }
+      [_audioSession setCategory:AVAudioSessionCategoryAmbient
+                           error:&audioSessionError];
       
-        // see if this fixes deprecated warning (and works)
-        AVAudioSession *session = [AVAudioSession sharedInstance];
-        NSError *setCategoryError = nil;
-        if (![session setCategory:AVAudioSessionCategoryPlayback
-                      withOptions:AVAudioSessionCategoryOptionMixWithOthers
-                            error:&setCategoryError]) {
-          NSLog (@"Error enabling mixing.");
-        }
+      if (audioSessionError != nil) {
+          NSLog (@"Error setting audio session category.");
+      }
+    
+      // see if this fixes deprecated warning (and works)
+      AVAudioSession *session = [AVAudioSession sharedInstance];
+      NSError *setCategoryError = nil;
+      if (![session setCategory:AVAudioSessionCategoryAmbient
+                    withOptions:AVAudioSessionCategoryOptionMixWithOthers
+                          error:&setCategoryError]) {
+        NSLog (@"Error enabling mixing.");
+      }
       
       /*
         OSStatus propertySetError = 0;

@@ -40,6 +40,7 @@
 		3F7BD7D5192B09D6009274DE /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7D4192B09D6009274DE /* MainViewController.m */; };
 		3F7BD7DB192B0A37009274DE /* MatchTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */; };
 		3F7D0F2519A2CE0300F1FBD2 /* Sonata.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3F7D0F2419A2CE0300F1FBD2 /* Sonata.ttf */; };
+		3F86F7821AAB5FBB00DEFDB4 /* UIPageViewController+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F86F7811AAB5FBB00DEFDB4 /* UIPageViewController+Additions.m */; };
 		3F87AAAB188DEE4B008C4A0D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAA188DEE4B008C4A0D /* Foundation.framework */; };
 		3F87AAAD188DEE4B008C4A0D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAC188DEE4B008C4A0D /* CoreGraphics.framework */; };
 		3F87AAAF188DEE4B008C4A0D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F87AAAE188DEE4B008C4A0D /* UIKit.framework */; };
@@ -155,6 +156,8 @@
 		3F7BD7D9192B0A37009274DE /* MatchTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MatchTableViewCell.h; sourceTree = "<group>"; };
 		3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MatchTableViewCell.m; sourceTree = "<group>"; };
 		3F7D0F2419A2CE0300F1FBD2 /* Sonata.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Sonata.ttf; sourceTree = "<group>"; };
+		3F86F7801AAB5FBB00DEFDB4 /* UIPageViewController+Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIPageViewController+Additions.h"; sourceTree = "<group>"; };
+		3F86F7811AAB5FBB00DEFDB4 /* UIPageViewController+Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIPageViewController+Additions.m"; sourceTree = "<group>"; };
 		3F87AAA7188DEE4B008C4A0D /* Dyadminoes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dyadminoes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F87AAAA188DEE4B008C4A0D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		3F87AAAC188DEE4B008C4A0D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -469,6 +472,8 @@
 				3F0526C01936C877003D3C04 /* HelpViewController.m */,
 				3F0526CB1936D12A003D3C04 /* HelpContentViewController.h */,
 				3F0526CC1936D12A003D3C04 /* HelpContentViewController.m */,
+				3F86F7801AAB5FBB00DEFDB4 /* UIPageViewController+Additions.h */,
+				3F86F7811AAB5FBB00DEFDB4 /* UIPageViewController+Additions.m */,
 				3FECDE0819355B1600D774AB /* StoreViewController.h */,
 				3FECDE0919355B1600D774AB /* StoreViewController.m */,
 				3FECDE0B19355B2F00D774AB /* RankViewController.h */,
@@ -685,6 +690,7 @@
 				3F908C3F19973B0800650C36 /* Face.m in Sources */,
 				3FD06E2318D6544F00E2FF04 /* Cell.m in Sources */,
 				3F141F1D1A48E4CE00D6D25F /* OptionsViewController.m in Sources */,
+				3F86F7821AAB5FBB00DEFDB4 /* UIPageViewController+Additions.m in Sources */,
 				3FB49E361A4DF2AE007F2A1E /* ChildViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

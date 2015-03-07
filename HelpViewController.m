@@ -8,12 +8,13 @@
 
 #import "HelpViewController.h"
 #import "HelpContentViewController.h"
+//#import "UIPageViewController+Additions.h"
 
-@interface HelpViewController () <UIPageViewControllerDataSource>
+#define kNumberOfHelpPages 5
+
+@interface HelpViewController () <UIPageViewControllerDelegate, UIPageViewControllerDataSource>
 
 @property (strong, nonatomic) UIPageViewController *helpPageVC;
-@property (strong, nonatomic) NSArray *helpPageTitles;
-@property (strong, nonatomic) NSArray *helpPageImages;
 
 @end
 
@@ -24,19 +25,16 @@
   
   self.view.backgroundColor = kPlayerLighterRed;
   self.startingQuadrant = kQuadrantLeft;
-
-    // Create the data model
-  self.helpPageTitles = @[@"Over 200 Tips and Tricks", @"Discover Hidden Features", @"Bookmark Favorite Tip", @"Free Regular Update"];
-  self.helpPageImages = @[@"page1.png", @"page2.png", @"page3.png", @"page4.png"];
   
     // Create page view controller
   self.helpPageVC = [[UIPageViewController alloc] initWithTransitionStyle:UIPageViewControllerTransitionStyleScroll navigationOrientation:UIPageViewControllerNavigationOrientationHorizontal options:nil];
+  self.helpPageVC.delegate = self;
   self.helpPageVC.dataSource = self;
 
   if ([self viewControllerAtIndex:0]) {
     
       // Change the size of page view controller
-    self.helpPageVC.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 30);
+    self.helpPageVC.view.frame = CGRectMake(0, kChildVCTopMargin, self.view.frame.size.width, self.view.frame.size.height - kChildVCTopMargin);
     
     [self addChildViewController:self.helpPageVC];
     [self.view addSubview:self.helpPageVC.view];
@@ -46,7 +44,7 @@
 
 -(void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
-  [self resetToFirstPage];
+  [self resetToDefaultPage];
 }
 
 -(void)didReceiveMemoryWarning {
@@ -56,8 +54,10 @@
 
 #pragma mark - page view methods
 
--(void)resetToFirstPage {
+-(void)resetToDefaultPage {
   HelpContentViewController *startingViewController = [self viewControllerAtIndex:0];
+  NSString *titleLabelText = [startingViewController titleTextBasedOnPageIndex];
+  [self centreTitleLabelWithText:titleLabelText colour:kPlayerDarkRed textAnimation:NO];
   NSArray *viewControllers = @[startingViewController];
   [self.helpPageVC setViewControllers:viewControllers direction:UIPageViewControllerNavigationDirectionForward animated:NO completion:nil];
 }
@@ -76,7 +76,7 @@
 -(UIViewController *)pageViewController:(UIPageViewController *)pageViewController viewControllerAfterViewController:(UIViewController *)viewController {
   NSUInteger index = ((HelpContentViewController *)viewController).pageIndex;
   
-  if (index == self.helpPageTitles.count - 1 || index == NSNotFound) {
+  if (index == kNumberOfHelpPages - 1 || index == NSNotFound) {
     return nil;
   }
   
@@ -85,21 +85,34 @@
 }
 
 -(HelpContentViewController *)viewControllerAtIndex:(NSUInteger)index {
-  if (self.helpPageTitles.count == 0 || index >= self.helpPageTitles.count) {
+  if (kNumberOfHelpPages == 0 || index >= kNumberOfHelpPages) {
     return nil;
   }
-  
-    // Create a new view controller and pass suitable data.
+
   HelpContentViewController *helpContentVC = [self.storyboard instantiateViewControllerWithIdentifier:@"HelpContentViewController"];
-  helpContentVC.imageFile = self.helpPageImages[index];
-  helpContentVC.titleText = self.helpPageTitles[index];
   helpContentVC.pageIndex = index;
   
   return helpContentVC;
 }
 
+-(void)pageViewController:(UIPageViewController *)pageViewController didFinishAnimating:(BOOL)finished previousViewControllers:(NSArray *)previousViewControllers transitionCompleted:(BOOL)completed {
+
+  HelpContentViewController *currentVC = completed ?
+      [pageViewController.viewControllers objectAtIndex:0] :
+      [previousViewControllers objectAtIndex:0];
+  
+  NSString *titleLabelText = [currentVC titleTextBasedOnPageIndex];
+  
+  [self centreTitleLabelWithText:titleLabelText colour:kPlayerDarkRed textAnimation:YES];
+}
+
+-(void)pageViewController:(UIPageViewController *)pageViewController willTransitionToViewControllers:(NSArray *)pendingViewControllers {
+  
+  [self fadeTitleLabel];
+}
+
 -(NSInteger)presentationCountForPageViewController:(UIPageViewController *)pageViewController {
-  return self.helpPageTitles.count;
+  return kNumberOfHelpPages;
 }
 
 -(NSInteger)presentationIndexForPageViewController:(UIPageViewController *)pageViewController {

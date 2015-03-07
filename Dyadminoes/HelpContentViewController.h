@@ -7,14 +7,17 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ChildViewController.h"
 
 @interface HelpContentViewController : UIViewController
 
-@property (weak, nonatomic) IBOutlet UIImageView *backgroundImageView;
-@property (weak, nonatomic) IBOutlet UILabel *titleLabel;
+//@property (weak, nonatomic) IBOutlet UIImageView *backgroundImageView;
+//@property (weak, nonatomic) IBOutlet UILabel *titleLabel;
 
-@property NSUInteger pageIndex;
+@property (assign, nonatomic) NSUInteger pageIndex;
 @property (strong, nonatomic) NSString *titleText;
 @property (strong, nonatomic) NSString *imageFile;
+
+-(NSString *)titleTextBasedOnPageIndex;
 
 @end

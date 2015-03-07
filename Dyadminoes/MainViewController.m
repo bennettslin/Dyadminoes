@@ -23,7 +23,6 @@
 #import "Match.h"
 #import "Player.h"
 #import "CellBackgroundView.h"
-#import "SoundEngine.h"
 
 #define kTableViewXMargin (kIsIPhone ? 0.f : 60.f)
 #define kMainTopBarHeight (kIsIPhone ? 64.f : 86.f)
@@ -254,7 +253,6 @@
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
   
   [tableView deselectRowAtIndexPath:indexPath animated:YES];
-  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationToggleBarOrField];
 }
 
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -478,12 +476,9 @@
 }
 
 -(IBAction)menuButtonPressedIn:(id)sender {
-  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonSunkIn];
 }
 
 -(IBAction)menuButtonLifted:(UIButton *)sender {
-  
-  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonLifted];
   
   ChildViewController *buttonVC;
   if (sender == self.helpButton) {

@@ -12,7 +12,7 @@
 #define kChildVCButtonSize (kIsIPhone ? 44.f : 80.f)
 
 #define kCancelButtonEdge 48.f
-#define kChildVCTopMargin (kCancelButtonEdge * 1.5f)
+#define kChildVCTopMargin (kCancelButtonEdge * 2.f)
 #define kChildVCSideMargin (kChildVCTopMargin * 0.5f)
 #define kChildVCBottomMargin (kChildVCTopMargin * 0.75f)
 
@@ -28,5 +28,7 @@
 @property (weak, nonatomic) id<ChildViewControllerDelegate> parentDelegate;
 
 -(void)positionCancelButtonBasedOnWidth:(CGFloat)width;
+-(void)fadeTitleLabel;
+-(void)centreTitleLabelWithText:(NSString *)text colour:(UIColor *)colour textAnimation:(BOOL)animate;
 
 @end

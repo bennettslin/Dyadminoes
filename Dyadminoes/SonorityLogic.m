@@ -577,18 +577,9 @@
 -(NSString *)stringForSonorities:(NSSet *)sonorities
                withInitialString:(NSString *)initialString
                  andEndingString:(NSString *)endingString {
-  
-//  NSMutableAttributedString *initialText = [[NSMutableAttributedString alloc] initWithString:initialString];
-  
+    
   NSSet *chords = [self chordSonoritiesForSonorities:sonorities];
   NSString *chordsText = [self stringForLegalChords:chords];
-//  
-//  NSAttributedString *attributedChordsText = [self stringWithAccidentals:chordsText fontSize:kChordMessageLabelFontSize];
-  
-//  NSMutableAttributedString *endingText = [[NSMutableAttributedString alloc] initWithString:endingString];
-  
-//  [initialText appendAttributedString:attributedChordsText];
-//  [initialText appendAttributedString:endingText];
   
   return [NSString stringWithFormat:@"%@%@%@", initialString, chordsText, endingString];
 }

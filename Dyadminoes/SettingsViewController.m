@@ -40,6 +40,8 @@
 -(void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
   
+  [self centreTitleLabelWithText:@"Settings" colour:kPlayerDarkBlue textAnimation:NO];
+  
     // defaults are established in app delegate
     // here, just show views
   
@@ -59,6 +61,7 @@
     UILabel *label = [UILabel new];
     label.text = labels[i];
     label.font = [UIFont fontWithName:kFontModern size:kChildVCButtonSize * 0.75f];
+    label.textColor = kPlayerDarkBlue;
     [label sizeToFit];
     CGFloat yOrigin = kChildVCTopMargin + (paddingBetweenLabels * 0.5f) + (paddingBetweenLabels * i) + (labelHeight * i);
     label.frame = CGRectMake(kChildVCSideMargin, yOrigin, label.frame.size.width, labelHeight);
@@ -67,6 +70,7 @@
     UILabel *detailsLabel = [UILabel new];
     detailsLabel.text = labelDetails[i];
     detailsLabel.font = [UIFont fontWithName:kFontModern size:kChildVCButtonSize * 0.4f];
+    detailsLabel.textColor = kPlayerDarkBlue;
     [detailsLabel sizeToFit];
     detailsLabel.frame = CGRectMake(label.frame.origin.x, label.frame.origin.y + labelHeight, detailsLabel.frame.size.width, detailsLabel.frame.size.height);
     [self.view addSubview:detailsLabel];
@@ -115,7 +119,7 @@
 }
 
 -(void)removeDefaultsButtonPressed {
-  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationButtonSunkIn];
+  
 }
 
 -(IBAction)removeDefaultsButtonLifted:(UIButton *)sender {
