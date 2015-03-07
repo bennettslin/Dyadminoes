@@ -21,6 +21,8 @@
 
 @property (weak, nonatomic) id<LocalGameDelegate> delegate;
 
+  // parent needs this method when overlay is tapped with keyboard up
+-(UITextField *)checkTextFieldFirstResponder;
 -(void)resignTextField:(UITextField *)textField;
 
 @end

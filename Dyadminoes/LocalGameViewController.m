@@ -274,7 +274,7 @@
   UIButton *playerButton = self.playerButtons[[self.playerNameFields indexOfObject:textField]];
   playerButton.selected ? nil : [self buttonLifted:playerButton];
   
-  self.startSelfOrPnPGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
+  self.startSelfOrPnPGameButton.enabled = NO;
   
   [self.delegate disableOverlay];
 }

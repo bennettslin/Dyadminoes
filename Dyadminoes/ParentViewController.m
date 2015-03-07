@@ -49,6 +49,16 @@
 #pragma mark - navigation methods
 
 -(void)backToParentView {
+  if (self.childVC) {
+    if ([self.childVC isKindOfClass:LocalGameViewController.class]) {
+      LocalGameViewController *localGameVC = (LocalGameViewController *)self.childVC;
+      if ([localGameVC checkTextFieldFirstResponder]) {
+        [localGameVC resignTextField:nil];
+        return;
+      }
+    }
+  }
+  
   [self backToParentViewWithAnimateRemoveVC:YES];
 }
 
