@@ -9,6 +9,7 @@
 #import "AppDelegate.h"
 #import "MainViewController.h"
 #import <SpriteKit/SpriteKit.h>
+#import "NSObject+Helper.h" // for colour
 
 @interface AppDelegate ()
 
@@ -31,9 +32,8 @@
   }];
   
   UIPageControl *pageControl = [UIPageControl appearance];
-//  pageControl.pageIndicatorTintColor = [UIColor yellowColor];
-//  pageControl.currentPageIndicatorTintColor = [UIColor blackColor];
-//  pageControl.backgroundColor = [UIColor orangeColor];
+  pageControl.pageIndicatorTintColor = [UIColor whiteColor];
+  pageControl.currentPageIndicatorTintColor = kPlayerRed;
   
   MainViewController *mainVC = (MainViewController *)[[[[UIApplication sharedApplication] delegate] window] rootViewController];
   mainVC.managedObjectContext = self.managedObjectContext;

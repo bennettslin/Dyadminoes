@@ -56,6 +56,8 @@
     return kCancelButton;
   } else if ([self.name isEqualToString:@"undo"]) {
     return kUndoButton;
+  } else if ([self.name isEqualToString:@"unlock"]) {
+    return kUnlockButton;
   } else {
     return -1;
   }
@@ -162,7 +164,7 @@
 
 -(void)enable:(BOOL)isEnabled {
   
-  if ([self.name isEqualToString:@"play"] || [self.name isEqualToString:@"done"]) {
+  if ([self.name isEqualToString:@"play"] || [self.name isEqualToString:@"done"] || [self.name isEqualToString:@"unlock"]) {
     [self glowOn:isEnabled];
   }
   _isEnabled = isEnabled;

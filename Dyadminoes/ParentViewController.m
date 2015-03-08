@@ -76,8 +76,6 @@
 
 -(void)presentChildViewController:(ChildViewController *)childVC {
   
-//  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationToggleBarOrField];
-  
   self.vcIsAnimating = YES;
   (self.childVC && self.childVC != childVC) ? [self removeChildViewController:self.childVC] : nil;
   
@@ -162,7 +160,7 @@
     viewHeight = kIsIPhone ? self.screenHeight * 4 / 7 : self.screenHeight * 3 / 5;
     
   } else {
-    viewWidth = kIsIPhone ? self.screenWidth * 5 / 6 : self.screenWidth * 4 / 5;
+    viewWidth = kIsIPhone ? self.screenWidth * 9 / 10 : self.screenWidth * 4 / 5;
     viewHeight = kIsIPhone ? self.screenHeight * 6 / 7 : self.screenHeight * 4 / 5;
   }
   

@@ -722,6 +722,7 @@
 //    TextureDyadmino texture = _lockMode ? kTextureDyadminoLockedNoSo : kTextureDyadminoNoSo;
 //    [dyadmino changeTexture:texture];
 //  }
+  [self updateTopBarButtons];
 }
 
 #pragma mark - touch methods
@@ -1426,6 +1427,10 @@
     [self afterNewPlayerReady];
   
       /// swap button
+  } else if (button == _topBar.swapCancelOrUndoButton &&
+             [button confirmSwapCancelOrUndo] == kUnlockButton) {
+    [self handleDoubleTapForLockModeWithSound:YES];
+    
   } else if (button == _topBar.swapCancelOrUndoButton &&
              [button confirmSwapCancelOrUndo] == kSwapButton) {
     if (!self.swapContainer) {
@@ -2389,6 +2394,12 @@
   } else {
     [_topBar changeSwapCancelOrUndo:kUndoButton];
     [_topBar changePassPlayOrDone:kDoneButton];
+  }
+  
+  if (_lockMode) {
+    [_topBar changeSwapCancelOrUndo:kUnlockButton];
+    [_topBar node:_topBar.swapCancelOrUndoButton shouldBeEnabled:noActionsInProgress];
+    [_topBar node:_topBar.passPlayOrDoneButton shouldBeEnabled:NO];
   }
 }
 

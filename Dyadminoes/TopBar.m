@@ -82,6 +82,10 @@
       self.swapCancelOrUndoButton.color = [SKColor yellowColor];
       self.swapCancelOrUndoButton.name = @"undo";
       break;
+    case kUnlockButton:
+      self.swapCancelOrUndoButton.color = [SKColor grayColor];
+      self.swapCancelOrUndoButton.name = @"unlock";
+      break;
   }
   [self.swapCancelOrUndoButton changeName];
 }

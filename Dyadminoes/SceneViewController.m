@@ -235,22 +235,22 @@ typedef enum chordMessageStatus {
   self.pileCountLabel.textAlignment = NSTextAlignmentRight;
   [self.turnPileCountField addSubview:self.pileCountLabel];
   
-  self.soundedChordLabel = [UILabel new];
-  self.soundedChordLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneMessageLabelFontSize];
-  self.soundedChordLabel.textAlignment = NSTextAlignmentLeft;
-  self.soundedChordLabel.adjustsFontSizeToFitWidth = YES;
-  self.soundedChordLabel.layer.borderColor = [UIColor redColor].CGColor;
-  self.soundedChordLabel.layer.borderWidth = 2.f;
-  self.soundedChordLabel.layer.borderColor = [UIColor redColor].CGColor;
-  self.soundedChordLabel.layer.borderWidth = 2.f;
-
-  [self.view insertSubview:self.soundedChordLabel aboveSubview:self.playerLabelsField];
+//  self.soundedChordLabel = [UILabel new];
+//  self.soundedChordLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneMessageLabelFontSize];
+//  self.soundedChordLabel.textAlignment = NSTextAlignmentLeft;
+//  self.soundedChordLabel.adjustsFontSizeToFitWidth = YES;
+//  self.soundedChordLabel.layer.borderColor = [UIColor redColor].CGColor;
+//  self.soundedChordLabel.layer.borderWidth = 2.f;
+//  self.soundedChordLabel.layer.borderColor = [UIColor redColor].CGColor;
+//  self.soundedChordLabel.layer.borderWidth = 2.f;
+//
+//  [self.view insertSubview:self.soundedChordLabel aboveSubview:self.playerLabelsField];
   
-  self.lastTurnLabel = [UILabel new];
-  self.lastTurnLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneMessageLabelFontSize];
-  self.lastTurnLabel.textAlignment = NSTextAlignmentRight;
-  self.lastTurnLabel.adjustsFontSizeToFitWidth = YES;
-  [self.view insertSubview:self.lastTurnLabel aboveSubview:self.playerLabelsField];
+//  self.lastTurnLabel = [UILabel new];
+//  self.lastTurnLabel.font = [UIFont fontWithName:kFontHarmony size:kSceneMessageLabelFontSize];
+//  self.lastTurnLabel.textAlignment = NSTextAlignmentRight;
+//  self.lastTurnLabel.adjustsFontSizeToFitWidth = YES;
+//  [self.view insertSubview:self.lastTurnLabel aboveSubview:self.playerLabelsField];
   
   self.replayTurnLabel = [UILabel new];
   self.replayTurnLabel.font = [UIFont fontWithName:kFontHarmony size:(kIsIPhone ? 24 : 48)];
@@ -273,11 +273,11 @@ typedef enum chordMessageStatus {
   
   self.pileCountLabel.frame = CGRectMake(self.view.bounds.size.width - kTopBarXEdgeBuffer - kTopBarTurnPileLabelsWidth, kTopBarYEdgeBuffer + kSceneLabelFontSize, kTopBarTurnPileLabelsWidth, kSceneLabelFontSize * 1.25);
   
-  CGFloat messageLabelWidth = (kButtonWidth * 5) + kTopBarPaddingBetweenStuff + kTopBarTurnPileLabelsWidth;
+//  CGFloat messageLabelWidth = (kButtonWidth * 5) + kTopBarPaddingBetweenStuff + kTopBarTurnPileLabelsWidth;
   
-  self.soundedChordLabel.frame = CGRectMake(kTopBarXEdgeBuffer, kTopBarHeight, messageLabelWidth, kSceneMessageLabelFontSize);
+//  self.soundedChordLabel.frame = CGRectMake(kTopBarXEdgeBuffer, kTopBarHeight, messageLabelWidth, kSceneMessageLabelFontSize);
   
-  self.lastTurnLabel.frame = CGRectMake(self.view.bounds.size.width - messageLabelWidth - kTopBarXEdgeBuffer, kTopBarHeight, messageLabelWidth, kSceneMessageLabelFontSize);
+//  self.lastTurnLabel.frame = CGRectMake(self.view.bounds.size.width - messageLabelWidth - kTopBarXEdgeBuffer, kTopBarHeight, messageLabelWidth, kSceneMessageLabelFontSize);
   
   CGFloat desiredPnPY = ([self.myMatch returnType] == kPnPGame && ![self.myMatch returnGameHasEnded]) ?
   self.view.bounds.size.height - (kRackHeight * 0.95) :
@@ -314,18 +314,31 @@ typedef enum chordMessageStatus {
     
       // player labels----------------------------------------------------------
     playerLabel.frame = CGRectMake(kTopBarXEdgeBuffer, kTopBarYEdgeBuffer + (playerLabelHeight) * i, _topBarPlayerLabelWidth, playerLabelHeight);
+    playerLabel.font = [UIFont fontWithName:kFontModern size:playerLabelHeight];
+    playerLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+    
+    UIColor *borderColour;
+    if ([player returnResigned] && [self.myMatch returnType] != kSelfGame) {
+      playerLabel.textColor = kResignedGray;
+    } else if (player == [self.myMatch returnCurrentPlayer] && ![self.myMatch returnGameHasEnded]) {
+        //        playerLabel.textColor = [self.myMatch colourForPlayer:player forLabel:NO light:YES];
+      playerLabel.textColor = [UIColor whiteColor];
+//      borderColour = [self.myMatch colourForPlayer:player forLabel:YES light:NO];
+      borderColour = kPianoBlack;
+    } else {
+      playerLabel.textColor = [self.myMatch colourForPlayer:player forLabel:YES light:NO];
+      borderColour = kPianoBlack;
+    }
     
     if (player) {
       NSMutableAttributedString *mutableString = [[NSMutableAttributedString alloc] initWithString:player.name];
       [mutableString addAttributes:@{NSStrokeWidthAttributeName: [NSNumber numberWithFloat:-(playerLabelHeight / 30)],
-                                     NSStrokeColorAttributeName:kPianoBlack} range:NSMakeRange(0, mutableString.length)];
+                                     NSStrokeColorAttributeName:borderColour} range:NSMakeRange(0, mutableString.length)];
       playerLabel.attributedText = mutableString;
     } else {
       playerLabel.text = @"";
     }
     
-    playerLabel.font = [UIFont fontWithName:kFontModern size:playerLabelHeight];
-    playerLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     playerLabel.adjustsFontSizeToFitWidth = YES;
     [playerLabel sizeToFit];
     
@@ -351,12 +364,23 @@ typedef enum chordMessageStatus {
                                   kTopBarYEdgeBuffer + (playerLabel.frame.size.height * i * 1.025),
                                   _topBarScoreLabelWidth, playerLabel.frame.size.height);
   }
+  
+  [self updatePlayerLabelsWithFinalTurn:NO andAnimatedScore:NO];
 }
 
 -(void)updatePlayerLabelsWithFinalTurn:(BOOL)finalTurn andAnimatedScore:(BOOL)animated {
   
-//  NSLog(@"update player labels with final turn %i", finalTurn);
   NSUInteger pointsForThisTurnChords = [self.myMatch pointsForAllChordsThisTurn];
+  
+    // not DRY, repeats above
+    // if less than four players, divide in three; otherwise divide in four
+    // slightly larger than topBarHeight
+  
+    // this entire method is not DRY
+  
+  CGFloat playerLabelHeight = (kIsIPhone || self.myMatch.players.count < 4) ?
+  (kTopBarHeight * 1.12 - (kTopBarYEdgeBuffer)) / 3 :
+  (kTopBarHeight * 1.12 - (kTopBarYEdgeBuffer)) / 4;
   
   if (self.myMatch) {
     
@@ -368,8 +392,29 @@ typedef enum chordMessageStatus {
       UILabel *scoreLabel = self.scoreLabelsArray[i];
       
         // colour changes if player resigned
-      playerLabel.textColor = ([player returnResigned] && [self.myMatch returnType] != kSelfGame) ?
-          kResignedGray : [self.myMatch colourForPlayer:player forLabel:YES light:NO];
+      
+      UIColor *borderColour;
+      if ([player returnResigned] && [self.myMatch returnType] != kSelfGame) {
+        playerLabel.textColor = kResignedGray;
+      } else if (player == [self.myMatch returnCurrentPlayer] && ![self.myMatch returnGameHasEnded]) {
+//        playerLabel.textColor = [self.myMatch colourForPlayer:player forLabel:NO light:YES];
+        playerLabel.textColor = [UIColor whiteColor];
+//        borderColour = [self.myMatch colourForPlayer:player forLabel:YES light:NO];
+        borderColour = kPianoBlack;
+      } else {
+        playerLabel.textColor = [self.myMatch colourForPlayer:player forLabel:YES light:NO];
+        borderColour = kPianoBlack;
+      }
+
+      if (player) {
+        NSMutableAttributedString *mutableString = [[NSMutableAttributedString alloc] initWithString:player.name];
+        [mutableString addAttributes:@{NSStrokeWidthAttributeName: [NSNumber numberWithFloat:-(playerLabelHeight / 30)],
+                                       NSStrokeColorAttributeName:borderColour} range:NSMakeRange(0, mutableString.length)];
+        playerLabel.attributedText = mutableString;
+      } else {
+        playerLabel.text = @"";
+      }
+
       
       NSString *scoreText;
       
@@ -381,21 +426,14 @@ typedef enum chordMessageStatus {
         scoreText = [NSString stringWithFormat:@" %lu", (unsigned long)[player returnScore]];
       }
       
-        // not DRY, repeats above
-        // if less than four players, divide in three; otherwise divide in four
-        // slightly larger than topBarHeight
-      CGFloat playerLabelHeight = (kIsIPhone || self.myMatch.players.count < 4) ?
-      (kTopBarHeight * 1.12 - (kTopBarYEdgeBuffer)) / 3 :
-      (kTopBarHeight * 1.12 - (kTopBarYEdgeBuffer)) / 4;
-      
-      NSMutableAttributedString *mutableString = [[NSMutableAttributedString alloc] initWithString:scoreText];
-      [mutableString addAttributes:@{NSStrokeWidthAttributeName: [NSNumber numberWithFloat:-(playerLabelHeight / 30)],
-                                     NSStrokeColorAttributeName:kPianoBlack} range:NSMakeRange(0, mutableString.length)];
+      NSMutableAttributedString *mutableScoreString = [[NSMutableAttributedString alloc] initWithString:scoreText];
+      [mutableScoreString addAttributes:@{NSStrokeWidthAttributeName: [NSNumber numberWithFloat:-(playerLabelHeight / 30)],
+                                     NSStrokeColorAttributeName:borderColour} range:NSMakeRange(0, mutableScoreString.length)];
       
       if ([self.myMatch returnGameHasEnded]) {
         scoreLabel.textColor = [player returnWon] ? kScoreWonGold : kScoreLostGray;
       } else {
-        scoreLabel.textColor = kScoreNormalBrown;
+        scoreLabel.textColor = (player == [self.myMatch returnCurrentPlayer]) ? kScoreLightBrown : kScoreNormalBrown;
       }
       
         // FIXME: so that this is animated
@@ -404,19 +442,18 @@ typedef enum chordMessageStatus {
         
           // upon final turn, score is animated
         if (animated) {
-          scoreLabel.attributedText = mutableString;
+          scoreLabel.attributedText = mutableScoreString;
         } else {
-          scoreLabel.attributedText = mutableString;
+          scoreLabel.attributedText = mutableScoreString;
         }
         
       } else {
-        scoreLabel.text = scoreText;
+        scoreLabel.attributedText = mutableScoreString;
       }
       
         // background colours depending on match results
       self.labelView.backgroundColourCanBeChanged = YES;
       if ([self.myMatch returnGameHasEnded]) {
-//        self.labelView.backgroundColor = [UIColor clearColor];
         self.labelView.hidden = YES;
       } else {
         if (player == [self.myMatch returnCurrentPlayer]) {
@@ -429,9 +466,10 @@ typedef enum chordMessageStatus {
           
           self.labelView.layer.cornerRadius = self.labelView.frame.size.height / 2.f;
           self.labelView.clipsToBounds = YES;
-          self.labelView.layer.borderColor = kMainDarkerYellow.CGColor;
-          self.labelView.layer.borderWidth = self.labelView.frame.size.height * 0.05f;
-          [self addGradientToView:self.labelView WithColour:kMainEvenDarkerYellow andUpsideDown:NO];
+//          self.labelView.layer.borderColor = kMainDarkerYellow.CGColor;
+//          self.labelView.layer.borderWidth = self.labelView.frame.size.height * 0.05f;
+          UIColor *labelColour = [self.myMatch colourForPlayer:player forLabel:NO light:NO];
+          [self addGradientToView:self.labelView WithColour:labelColour andUpsideDown:YES];
           [self.playerLabelsField insertSubview:self.labelView atIndex:0];
         }
       }
@@ -444,9 +482,9 @@ typedef enum chordMessageStatus {
   
   UILabel *label;
   switch (sceneLabel) {
-    case kLastTurnLabel:
-      label = self.lastTurnLabel;
-      break;
+//    case kLastTurnLabel:
+//      label = self.lastTurnLabel;
+//      break;
     case kPnPWaitingLabel:
       label = self.pnpWaitingLabel;
       break;
@@ -458,6 +496,9 @@ typedef enum chordMessageStatus {
       break;
     case kTopBarPileCountLabel:
       label = self.pileCountLabel;
+      break;
+    default:
+      return;
       break;
   }
   
@@ -660,20 +701,15 @@ typedef enum chordMessageStatus {
 
 -(void)animateTopBarLabelsGoOut:(BOOL)goOut {
   
-    // _topBarScoreLabelWidth / 4 is labelView padding
   CGFloat desiredPlayerLabelsX = goOut ? -(kTopBarXEdgeBuffer + _widestPlayerLabelWidth + _topBarScoreLabelWidth + _topBarScoreLabelWidth / 4 + kTopBarPaddingBetweenStuff) : 0;
   
   [self slideAnimateView:self.playerLabelsField toDestinationXPosition:desiredPlayerLabelsX durationConstant:kConstantTime];
   
-  CGFloat messageLabelWidth = (kButtonWidth * 5) + kTopBarPaddingBetweenStuff + kTopBarTurnPileLabelsWidth;
+//  CGFloat messageLabelWidth = (kButtonWidth * 5) + kTopBarPaddingBetweenStuff + kTopBarTurnPileLabelsWidth;
   
-  CGFloat desiredSoundedChordLabelX = goOut ? -messageLabelWidth : kTopBarXEdgeBuffer;
+//  CGFloat desiredLastTurnLabelX = goOut ? self.view.frame.size.width : self.view.frame.size.width - messageLabelWidth - kTopBarXEdgeBuffer;
   
-  [self slideAnimateView:self.soundedChordLabel toDestinationXPosition:desiredSoundedChordLabelX durationConstant:kConstantTime];
-  
-  CGFloat desiredLastTurnLabelX = goOut ? self.view.frame.size.width : self.view.frame.size.width - messageLabelWidth - kTopBarXEdgeBuffer;
-  
-  [self slideAnimateView:self.lastTurnLabel toDestinationXPosition:desiredLastTurnLabelX durationConstant:kConstantTime];
+//  [self slideAnimateView:self.lastTurnLabel toDestinationXPosition:desiredLastTurnLabelX durationConstant:kConstantTime];
   
   CGFloat desiredTurnPileLabelsX = goOut ? kTopBarXEdgeBuffer + kTopBarTurnPileLabelsWidth : 0;
   
@@ -783,7 +819,7 @@ typedef enum chordMessageStatus {
 
 -(void)backToMainMenu {
   
-  self.lastTurnLabel.text = @"";
+//  self.lastTurnLabel.text = @"";
   self.pnpWaitingLabel.text = @"";
   self.replayTurnLabel.text = @"";
   

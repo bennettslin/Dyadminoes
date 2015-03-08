@@ -8,15 +8,19 @@
 
 #import "LocalGameViewController.h"
 
-#define kPlaceholder1Name @"Player 1"
-#define kPlaceholder2Name @"Player 2"
-#define kPlaceholder3Name @"Player 3"
-#define kPlaceholder4Name @"Player 4"
+#define kPlaceholder1Name @"Main player"
+#define kPlaceholder2Name @"Guest player 1"
+#define kPlaceholder3Name @"Guest player 2"
+#define kPlaceholder4Name @"Guest player 3"
 
 #define kPlayer1Key @"player1Name"
 #define kPlayer2Key @"player2Name"
 #define kPlayer3Key @"player3Name"
 #define kPlayer4Key @"player4Name"
+
+#define kLocalGameTextFieldHeight 80.f
+#define kLocalGameButtonWidth 120.f
+#define kLocalGameTopPadding (kLocalGameButtonWidth * 0.05f)
 
 @interface LocalGameViewController () <UITextFieldDelegate>
 
@@ -122,20 +126,33 @@
 
 -(void)centreTextFieldsAndButtons {
   
-  const CGFloat textFieldHeight = 80.f;
-  const CGFloat buttonWidth = 120.f;
+
   
   for (int i = 0; i < self.playerNameFields.count; i++) {
+    
+    CGFloat topPadding = i != 0 ? kLocalGameTopPadding : 0;
+    
     UITextField *playerNameField = self.playerNameFields[i];
-    playerNameField.frame = CGRectMake(kChildVCSideMargin, kChildVCTopMargin + textFieldHeight * i, self.view.frame.size.width - kChildVCSideMargin * 2 - buttonWidth, textFieldHeight);
+    playerNameField.frame = CGRectMake(kChildVCSideMargin, kChildVCTopMargin + (kLocalGameTextFieldHeight + topPadding) * i, self.view.frame.size.width - kChildVCSideMargin * 2 - kLocalGameButtonWidth, kLocalGameTextFieldHeight);
+    playerNameField.layer.cornerRadius = kLocalGameButtonWidth * 0.125f;
+    playerNameField.layer.borderColor = kPlayerLightOrange.CGColor;
+    playerNameField.layer.borderWidth = 1.f;
+    playerNameField.leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, kLocalGameButtonWidth * 0.125, 10)];
+    playerNameField.leftViewMode = UITextFieldViewModeAlways;
+    
+    playerNameField.borderStyle = UITextBorderStyleNone;
     
     UIButton *playerButton = self.playerButtons[i];
-    playerButton.frame = CGRectMake(0, 0, buttonWidth, textFieldHeight);
-    playerButton.center = CGPointMake(self.view.frame.size.width - kChildVCSideMargin - buttonWidth / 2, kChildVCTopMargin + textFieldHeight * (i + 0.5f));
+    playerButton.frame = CGRectMake(0, 0, kLocalGameButtonWidth, kLocalGameTextFieldHeight);
+    playerButton.center = CGPointMake(self.view.frame.size.width - kChildVCSideMargin - kLocalGameButtonWidth / 2, kChildVCTopMargin + (kLocalGameTextFieldHeight + topPadding) * (i + 0.5f));
   }
   
+  [self centreStartSelfButton];
+}
+
+-(void)centreStartSelfButton {
   [self.startSelfOrPnPGameButton sizeToFit];
-  self.startSelfOrPnPGameButton.center = CGPointMake(self.view.frame.size.width / 2, kChildVCTopMargin + textFieldHeight * 4 + kChildVCButtonSize / 2);
+  self.startSelfOrPnPGameButton.center = CGPointMake(self.view.frame.size.width / 2, kChildVCTopMargin + kLocalGameTextFieldHeight * 4 + kLocalGameTopPadding * 3 + kChildVCButtonSize / 2);
 }
 
 #pragma mark - state change methods
@@ -165,7 +182,7 @@
   if (numberOfPlayers == 0) {
     [self.startSelfOrPnPGameButton setTitle:@"Choose a player" forState:UIControlStateNormal];
   } else if (numberOfPlayers == 1) {
-    [self.startSelfOrPnPGameButton setTitle:@"Start solo practice game" forState:UIControlStateNormal];
+    [self.startSelfOrPnPGameButton setTitle:@"Start solo game" forState:UIControlStateNormal];
   } else if (numberOfPlayers >= 2) {
     NSString *numberText;
     switch (numberOfPlayers) {
@@ -184,6 +201,7 @@
     NSString *gameText = [NSString stringWithFormat:@"Start %@-player game", numberText];
     [self.startSelfOrPnPGameButton setTitle:gameText forState:UIControlStateNormal];
   }
+  [self centreStartSelfButton];
 }
 
 -(IBAction)startSelfOrPnpGameTapped:(id)sender {
@@ -238,7 +256,7 @@
     self.selectedPlayerCount++;
   }
   
-  self.startSelfOrPnPGameButton.enabled = (self.selectedPlayerCount == 0) ? NO : YES;
+  self.startSelfOrPnPGameButton.enabled = (self.selectedPlayerCount == 0 || [self checkTextFieldFirstResponder]) ? NO : YES;
   [self changeStartSelfOrPnPGameButtonText];
 }
 

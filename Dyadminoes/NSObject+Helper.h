@@ -209,6 +209,7 @@
 #define kResignedGray [UIColor colorWithRed:0.8f green:0.77f blue:0.75f alpha:1.f]
 
 #define kScoreNormalBrown [UIColor colorWithRed:0.62f green:0.42f blue:0.1f alpha:1.f]
+#define kScoreLightBrown [UIColor colorWithRed:1.f green:0.82f blue:0.5f alpha:1.f]
 #define kScoreWonGold [UIColor colorWithRed:0.82f green:0.62f blue:0.f alpha:1.f]
 #define kScoreLostGray [UIColor colorWithRed:0.7f green:0.67f blue:0.65f alpha:1.f]
 
@@ -241,29 +242,31 @@
 #define kPlayerLighterGreen [UIColor colorWithRed:0.5f green:1.f blue:0.59f alpha:1.f]
 #define kPlayerLighterOrange [UIColor colorWithRed:1.f green:0.80f blue:0.48f alpha:1.f]
 
-#define kPlayerDarkBlue [UIColor colorWithRed:0.f green:0.32f blue:0.71f alpha:1.f]
-#define kPlayerDarkRed [UIColor colorWithRed:0.61f green:0.11f blue:0.63f alpha:1.f]
-#define kPlayerDarkGreen [UIColor colorWithRed:0.f green:0.45f blue:0.f alpha:1.f]
-#define kPlayerDarkOrange [UIColor colorWithRed:0.65f green:0.30f blue:0.f alpha:1.f]
+#define kPlayerDarkBlue [UIColor colorWithRed:0.2f green:0.42f blue:0.71f alpha:1.f]
+#define kPlayerDarkRed [UIColor colorWithRed:0.61f green:0.31f blue:0.63f alpha:1.f]
+#define kPlayerDarkGreen [UIColor colorWithRed:0.2f green:0.45f blue:0.2f alpha:1.f]
+#define kPlayerDarkOrange [UIColor colorWithRed:0.65f green:0.45f blue:0.2f alpha:1.f]
 
-#define kDarkBlue [SKColor colorWithRed:.29f green:.4f blue:.63f alpha:1.f]
-#define kSkyBlue [SKColor colorWithRed:.7f green:.8f blue:.9f alpha:1.f]
-#define kFieldPurple [SKColor colorWithRed:.3f green:.2f blue:.4f alpha:1.f]
-#define kSolidBlue [SKColor colorWithRed:.15f green:.19f blue:.55f alpha:1.f]
+  // test colours
+#define kSolidBlue [SKColor colorWithRed:.15f green:.19f blue:.55f alpha:1.f] // this is just a test colour
 #define kTestRed [SKColor colorWithRed:1.f green:.7f blue:.7f alpha:1.f]
-#define kDarkGreen [SKColor colorWithRed:0.f green:.6f blue:.2f alpha:1.f]
-#define kBarBrown [SKColor colorWithRed:0.3f green:0.15f blue:0.1f alpha:1.f]
+
+//#define kDarkBlue [SKColor colorWithRed:.29f green:.4f blue:.63f alpha:1.f]
+//#define kSkyBlue [SKColor colorWithRed:.7f green:.8f blue:.9f alpha:1.f]
+//#define kFieldPurple [SKColor colorWithRed:.3f green:.2f blue:.4f alpha:1.f]
+//#define kDarkGreen [SKColor colorWithRed:0.f green:.6f blue:.2f alpha:1.f]
+//#define kBarBrown [SKColor colorWithRed:0.3f green:0.15f blue:0.1f alpha:1.f]
 #define kPianoBlack [SKColor colorWithRed:0.1f green:0.05f blue:0.f alpha:1.f]
 
 #define kReplayTopColour [UIColor yellowColor] // [SKColor colorWithRed:0.1f green:0.15f blue:0.1f alpha:1.f]
 #define kReplayBottomColour [UIColor yellowColor] // [SKColor colorWithRed:0.1f green:0.15f blue:0.1f alpha:1.f]
 
-#define kPivotOrange [SKColor colorWithRed:0.9f green:.8f blue:.6f alpha:1.f]
-#define kPivotRed [SKColor colorWithRed:1.f green:.8f blue:.8f alpha:1.f]
-#define kVanilla [SKColor colorWithRed:1.f green:1.f blue:.92f alpha:1.f]
-#define kWhite [SKColor colorWithRed:1.f green:1.f blue:1.f alpha:1.f]
-#define kYellow [SKColor colorWithRed:0.9f green:0.86f blue:.52f alpha:1.f]
-#define kCyanBlue [SKColor colorWithRed:.62f green:.96f blue:1.f alpha:1.f]
+//#define kPivotOrange [SKColor colorWithRed:0.9f green:.8f blue:.6f alpha:1.f]
+//#define kPivotRed [SKColor colorWithRed:1.f green:.8f blue:.8f alpha:1.f]
+//#define kVanilla [SKColor colorWithRed:1.f green:1.f blue:.92f alpha:1.f]
+//#define kWhite [SKColor colorWithRed:1.f green:1.f blue:1.f alpha:1.f]
+//#define kYellow [SKColor colorWithRed:0.9f green:0.86f blue:.52f alpha:1.f]
+//#define kCyanBlue [SKColor colorWithRed:.62f green:.96f blue:1.f alpha:1.f]
 
 #define kChordGoodGreen [UIColor colorWithRed:0.4f green:0.8f blue:0.3f alpha:1.f]
 #define kChordNeutralGray [UIColor colorWithRed:0.8f green:0.8f blue:0.8f alpha:1.f]
@@ -446,13 +449,14 @@ typedef enum swapCancelOrUndoButton {
   kSwapButton,
   kResetButton,
   kCancelButton,
-  kUndoButton
+  kUndoButton,
+  kUnlockButton
 } SwapCancelOrUndoButton;
 
 typedef enum passPlayOrDoneButton {
   kPassButton,
   kPlayButton,
-  kDoneButton
+  kDoneButton,
 } PassPlayOrDoneButton;
 
 typedef enum chordMessageSign {

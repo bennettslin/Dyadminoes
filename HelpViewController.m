@@ -8,9 +8,8 @@
 
 #import "HelpViewController.h"
 #import "HelpContentViewController.h"
-//#import "UIPageViewController+Additions.h"
 
-#define kNumberOfHelpPages 5
+#define kNumberOfHelpPages 3
 
 @interface HelpViewController () <UIPageViewControllerDelegate, UIPageViewControllerDataSource>
 
