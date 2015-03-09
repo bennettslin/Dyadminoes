@@ -2431,15 +2431,13 @@
 
 -(void)toggleCellsAndDyadminoesAlphaAnimated:(BOOL)animated {
   
-    // without animation:
+    // called without animation:
     // called by did move to view and will move from view to reset cells and dyadminoes
   
-    // with animation
+    // called with animation
     // called by replay, swap, handle double tap
   
-    // for PnP games, handle button pressed and handle switch
-  
-    // also toggle alpha of board's zoomed in background node
+    // for PnP games, called by handle button pressed and handle switch
   
     // check http://stackoverflow.com/questions/23007535/fade-between-two-different-sktextures-on-skspritenode
   

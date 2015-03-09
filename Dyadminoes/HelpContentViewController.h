@@ -14,6 +14,8 @@
 //@property (weak, nonatomic) IBOutlet UIImageView *backgroundImageView;
 //@property (weak, nonatomic) IBOutlet UILabel *titleLabel;
 
+@property (strong, nonatomic) UIScrollView *scrollView;
+
 @property (assign, nonatomic) NSUInteger pageIndex;
 @property (strong, nonatomic) NSString *titleText;
 @property (strong, nonatomic) NSString *imageFile;

@@ -27,8 +27,13 @@
 
 -(void)viewDidLoad {
   [super viewDidLoad];
+  self.scrollView = [UIScrollView new];
+  self.scrollView.frame = CGRectMake(0, 0, self.parentViewController.view.frame.size.width, self.parentViewController.view.frame.size.height);
+  self.scrollView.contentSize = CGSizeMake(self.parentViewController.view.frame.size.width, self.parentViewController.view.frame.size.height);
+  [self.view addSubview:self.scrollView];
   self.view.backgroundColor = [UIColor clearColor];
   [self createTextViews];
+  [self createImageViews];
 }
 
 -(void)createTextViews {
@@ -49,10 +54,35 @@
     textView.frame = CGRectMake(0, 0, self.parentViewController.view.frame.size.width - (kChildVCSideMargin * 2), kChildVCButtonSize * 0.45);
     [textView sizeToFit];
     [tempTextViews addObject:textView];
-    [self.view addSubview:textView];
+    [self.scrollView addSubview:textView];
   }
   
   self.textViews = [NSArray arrayWithArray:tempTextViews];
+}
+
+-(void)createImageViews {
+  
+  NSMutableArray *tempImageViews = [NSMutableArray new];
+  NSArray *imageViewNames = [self imageViewNamesForPage:self.pageIndex];
+  
+  for (int i = 0; i < imageViewNames.count; i++) {
+    
+    NSString *imageName = imageViewNames[i];
+    UIImage *image = [UIImage imageNamed:imageName];
+    UIImageView *imageView = [UIImageView new];
+    imageView.image = image;
+
+    imageView.userInteractionEnabled = NO;
+
+    imageView.layer.borderColor = [UIColor redColor].CGColor;
+    imageView.layer.borderWidth = 2.f;
+    imageView.frame = CGRectMake(0, 0, image.size.width / 2, image.size.height / 2);
+    
+    [tempImageViews addObject:imageView];
+    [self.scrollView addSubview:imageView];
+  }
+  
+  self.imageViews = [NSArray arrayWithArray:tempImageViews];
 }
 
 -(void)viewWillAppear:(BOOL)animated {
@@ -65,27 +95,30 @@
   CGFloat yOrigin = 0;
   for (int i = 0; i < self.textViews.count; i++) {
     UITextView *textView = self.textViews[i];
-    
     textView.frame = CGRectMake(kChildVCSideMargin, yOrigin, textView.frame.size.width, textView.frame.size.height);
-    
     yOrigin += textView.frame.size.height;
+    
+    if (i < self.imageViews.count) {
+      UIImageView *imageView = self.imageViews[i];
+      imageView.frame = CGRectMake(kChildVCSideMargin + (self.parentViewController.view.frame.size.width - imageView.frame.size.width - (kChildVCSideMargin * 2)) / 2, yOrigin, imageView.frame.size.width, imageView.frame.size.height);
+      yOrigin += imageView.frame.size.height;
+    }
   }
+  
+  self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, yOrigin);
 }
 
 -(NSArray *)imageViewNamesForPage:(NSUInteger)pageIndex {
   NSArray *imageViews;
   switch (pageIndex) {
     case 0:
-      imageViews = @[];
+      imageViews = @[@"button_cancel", @"button_cancel", @"button_cancel", @"button_cancel", @"button_cancel"];
       break;
     case 1:
-      imageViews = @[];
+      imageViews = @[@"button_cancel", @"button_cancel", @"button_cancel", @"button_cancel", @"button_cancel"];
       break;
     case 2:
-      imageViews = @[];
-      break;
-    case 3:
-      imageViews = @[];
+      imageViews = @[@"button_cancel"];
       break;
     default:
       break;
