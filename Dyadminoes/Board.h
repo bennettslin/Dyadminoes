@@ -18,6 +18,7 @@
 -(NSSet *)allBoardDyadminoesPlusRecentRackDyadmino;
 -(BOOL)actionSheetShown;
 -(void)presentActionSheetAfterPivotGuidesHidden;
+-(BOOL)cellsShouldBeHollowed;
 
 @end
 
@@ -100,7 +101,8 @@
 #pragma mark - cell zoom methods
 
 -(CGPoint)repositionCellsForZoomWithSwap:(BOOL)swap;
--(void)changeAllCellsToAlpha:(CGFloat)desiredAlpha animated:(BOOL)animated;
+//-(void)changeAllCellsToAlpha:(CGFloat)desiredAlpha animated:(BOOL)animated;
+-(void)changeAllCellsToFactor:(CGFloat)factor animated:(BOOL)animated;
 
 #pragma mark - pivot guide methods
 

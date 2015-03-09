@@ -388,7 +388,6 @@
   [self postSoundNotification:kNotificationToggleBarOrField];
   
   _dyadminoesStationary = YES;
-  [self toggleCellsAndDyadminoesAlphaAnimated:YES];
   
   if (_pnpBarUp) {
     _pnpBarUp = NO;
@@ -1426,11 +1425,12 @@
     [self toggleCellsAndDyadminoesAlphaAnimated:YES];
     [self afterNewPlayerReady];
   
-      /// swap button
+      /// unlock button
   } else if (button == _topBar.swapCancelOrUndoButton &&
              [button confirmSwapCancelOrUndo] == kUnlockButton) {
     [self handleDoubleTapForLockModeWithSound:YES];
     
+      /// swap button
   } else if (button == _topBar.swapCancelOrUndoButton &&
              [button confirmSwapCancelOrUndo] == kSwapButton) {
     if (!self.swapContainer) {
@@ -2430,6 +2430,15 @@
 #pragma mark - field animation methods
 
 -(void)toggleCellsAndDyadminoesAlphaAnimated:(BOOL)animated {
+  
+    // without animation:
+    // called by did move to view and will move from view to reset cells and dyadminoes
+  
+    // with animation
+    // called by replay, swap, handle double tap
+  
+    // for PnP games, handle button pressed and handle switch
+  
     // also toggle alpha of board's zoomed in background node
   
     // check http://stackoverflow.com/questions/23007535/fade-between-two-different-sktextures-on-skspritenode
@@ -2439,19 +2448,38 @@
     return;
   }
   
-  /*
-  CGFloat desiredCellAlpha = _dyadminoesStationary ? 0.f : 1.f;  
-  [_boardField changeAllCellsToAlpha:desiredCellAlpha animated:animated];
+  _fieldActionInProgress = YES;
+  [self updateTopBarButtons];
+  
+  CGFloat desiredFactor = _dyadminoesStationary ? 0.f : 1.f;  
+  [_boardField changeAllCellsToFactor:desiredFactor animated:animated];
   
   CGFloat desiredDyadminoAlpha = _dyadminoesStationary ? 0.5f : 1.f;
-  SKAction *fadeDyadminoAlpha = [SKAction fadeAlphaTo:desiredDyadminoAlpha duration:kConstantTime]; // a little faster than field move
-  for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
-    animated ? [dyadmino runAction:fadeDyadminoAlpha withKey:@"fadeDyadminoAlpha"] : [dyadmino setAlpha:desiredDyadminoAlpha];
-  }
-   */
+  SKAction *fadeDyadminoAlpha = [SKAction fadeAlphaTo:desiredDyadminoAlpha duration:kConstantTime * 0.99f]; // a little faster than field move
   
-    // confirm that dyadminoes reflect whether they should be stationary
-  _dyadminoesHollowed = _dyadminoesStationary;
+  for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
+    if (animated) {
+      [dyadmino runAction:fadeDyadminoAlpha withKey:@"fadeDyadminoAlpha"];
+    } else {
+      [dyadmino setAlpha:desiredDyadminoAlpha];
+    }
+  }
+  
+  if (animated) {
+      // wait for field action in progress
+    SKAction *waitAction = [SKAction waitForDuration:kConstantTime];
+    SKAction *completionAction = [SKAction runBlock:^{
+      _fieldActionInProgress = NO;
+      [self updateTopBarButtons];
+      _dyadminoesHollowed = _dyadminoesStationary;
+    }];
+    SKAction *sequence = [SKAction sequence:@[waitAction, completionAction]];
+    [self runAction:sequence];
+    
+  } else {
+      // confirm that dyadminoes reflect whether they should be stationary
+    _dyadminoesHollowed = _dyadminoesStationary;
+  }
 }
 
 -(void)toggleTopBarGoOut:(BOOL)goOut completion:(void(^)(void))completion {
@@ -2544,8 +2572,12 @@
   }
   
     // cells will toggle faster than replayBars moves
-  _dyadminoesStationary = _replayMode;
-  [self toggleCellsAndDyadminoesAlphaAnimated:YES];
+  
+  if (!_lockMode) {
+    _dyadminoesStationary = _replayMode;
+    [self toggleCellsAndDyadminoesAlphaAnimated:YES];
+  }
+
   [self postSoundNotification:kNotificationToggleBarOrField];
   
   [self toggleFieldActionInProgress:YES];
@@ -3532,6 +3564,10 @@
 
 -(BOOL)noActionsInProgress {
   return _dyadminoFluxCounter == 0 && !_fieldActionInProgress;
+}
+
+-(BOOL)cellsShouldBeHollowed {
+  return _dyadminoesStationary;
 }
 
 #pragma mark - debugging methods

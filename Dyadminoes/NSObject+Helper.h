@@ -199,7 +199,8 @@
 
   // colours
 //#define kBackgroundBoardColour [UIColor colorWithRed:0.2f green:0.15f blue:0.1f alpha:1.f]
-#define kBackgroundBoardColour [UIColor colorWithRed:0.25f green:0.2f blue:0.15f alpha:1.f]
+//#define kBackgroundBoardColour [UIColor colorWithRed:0.25f green:0.2f blue:0.15f alpha:1.f] // original
+#define kBackgroundBoardColour [UIColor colorWithRed:0.15f green:0.1f blue:0.05f alpha:1.f]
 
 #define kMainLighterYellow [UIColor colorWithRed:0.95f green:0.95f blue:0.85f alpha:1.f]
 #define kMainDarkerYellow [UIColor colorWithRed:0.85f green:0.85f blue:0.75f alpha:1.f]

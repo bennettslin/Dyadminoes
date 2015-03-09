@@ -421,6 +421,9 @@
     cell = [self popDequeuedCellWithHexCoord:hexCoord];
     [self addCellToColumnOfRowsOfCells:cell];
 //    [self fadeOut:NO cell:cell completion:nil];
+    
+      // FIXME: change this to be about image texture, not colour blend factor
+    cell.colorBlendFactor = [self.delegate cellsShouldBeHollowed] ? 0.f : 1.f;
   }
   
   return cell;
@@ -595,6 +598,14 @@
   }
 }
 
+//-(void)performBlockOnDequeuedCells:(void(^)(Cell *))block {
+//  
+//  for (Cell *cell in self.dequeuedCells) {
+//    block(cell);
+//  }
+//}
+
+
 -(NSMutableSet *)placeholderContainerForIgnoredCells {
 
 //  NSLog(@"all cells count is %i", self.allCells.count);
@@ -745,21 +756,39 @@
     //  self.backgroundNodeZoomedOut.position = [self subtractFromThisPoint:self.origin thisPoint:self.position];
 }
 
--(void)changeAllCellsToAlpha:(CGFloat)desiredAlpha animated:(BOOL)animated {
+//-(void)changeAllCellsToAlpha:(CGFloat)desiredAlpha animated:(BOOL)animated {
+//  
+//  void(^block)(Cell *) = ^void(Cell *cell) {
+//    if (animated) {
+//      
+//      SKAction *changeAlphaAction = [SKAction fadeAlphaTo:desiredAlpha duration:kConstantTime];
+//      [cell runAction:changeAlphaAction withKey:@"fadeCellAlpha"];
+//
+//    } else {
+//      [cell setMyAlpha:desiredAlpha];
+////      cell.alpha = desiredAlpha;
+//    }
+//  };
+//
+//  [self performBlockOnAllCells:block];
+//}
+
+-(void)changeAllCellsToFactor:(CGFloat)factor animated:(BOOL)animated {
   
   void(^block)(Cell *) = ^void(Cell *cell) {
     if (animated) {
-      SKAction *changeAlphaAction = [SKAction fadeAlphaTo:desiredAlpha duration:kConstantTime];
-      [cell runAction:changeAlphaAction withKey:@"fadeCellAlpha"];
-//      [cell.cellNode runAction:changeAlphaAction withKey:@"fadeCellAlpha"];
-
+      
+      SKAction *colourBlendAction = [SKAction colorizeWithColorBlendFactor:factor duration:kConstantTime];
+      [cell runAction:colourBlendAction withKey:@"colourBlend"];
+      
     } else {
-      [cell setMyAlpha:desiredAlpha];
-//      [cell.cellNode setAlpha:desiredAlpha];
+      NSLog(@"cell colour blend factor is %.2f", factor);
+      cell.colorBlendFactor = factor;
     }
   };
-
+  
   [self performBlockOnAllCells:block];
+//  [self performBlockOnDequeuedCells:block];
 }
 
 #pragma mark - cell and data dyadmino methods

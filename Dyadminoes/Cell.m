@@ -34,7 +34,7 @@
     self.texture = self.cellNodeTexture;
     
     self.zPosition = kZPositionBoardCell;
-    self.colorBlendFactor = 0.9f;
+//    self.colorBlendFactor = 0.9f;
     
 //    [self createHexCoordLabel];
     [self updateHexCoordLabel];
