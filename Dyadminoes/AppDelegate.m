@@ -27,7 +27,7 @@
     // establish user defaults if not yet initiated
   [self establishDefaults];
   
-  self.myAtlas = [SKTextureAtlas atlasNamed:@"DyadminoImages"];
+  self.myAtlas = [SKTextureAtlas atlasNamed:@"DyadminoImagesNew"];
   [self.myAtlas preloadWithCompletionHandler:^{
   }];
   
@@ -60,10 +60,6 @@
     [defaults setInteger:2 forKey:@"register"];
     [defaults synchronize];
   }
-//  if (![defaults objectForKey:@"helpPage"]) {
-//    [defaults setInteger:0 forKey:@"helpPage"];
-//    [defaults synchronize];
-//  }
 }
 							
 -(void)applicationWillResignActive:(UIApplication *)application {

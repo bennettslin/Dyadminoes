@@ -76,8 +76,10 @@
   BOOL _replayMode;
   BOOL _lockMode;
   BOOL _boardDyadminoMovedShowResetButton;
+  
   BOOL _dyadminoesStationary;
   BOOL _dyadminoesHollowed;
+  
   BOOL _rackExchangeInProgress;
   BOOL _fieldActionInProgress;
   BOOL _boardToBeMovedOrBeingMoved;
@@ -181,8 +183,6 @@
 -(BOOL)loadAfterNewMatchRetrievedForReset:(BOOL)forReset {
   
   _topBar.position = CGPointMake(0, self.frame.size.height - kTopBarHeight);
-//  _topBar.position = CGPointMake(0, self.frame.size.height);
-//  [self toggleTopBarGoOut:NO completion:nil];
   
    // it should not happen that previous match was left
    // while pnpBar was still moving, but just in case
@@ -219,7 +219,6 @@
 -(void)prepareForNewTurn {
     // called both when scene is loaded, and when player finalises turn in PnP mode
   
-//  [self.mySoundEngine removeAllActions];
   _boardDyadminoMovedShowResetButton = NO;
   _zoomChangedCellsAlpha = NO;
   _rackExchangeInProgress = NO;
@@ -281,11 +280,6 @@
     abort();
   }
   
-    // not for first version
-  /*
-   [self handleDeviceOrientationChange:[UIDevice currentDevice].orientation];
-   */
-  
     // kludge way to remove activity indicator
   SKAction *wait = [SKAction waitForDuration:1.f];
   
@@ -303,6 +297,7 @@
   
     // cell alphas are visible by default, hide if PnP mode and not for reset
   _dyadminoesStationary = ([self.myMatch returnType] == kPnPGame && ![self.myMatch returnGameHasEnded]);
+  NSLog(@"toggle cells called in did move to view");
   [self toggleCellsAndDyadminoesAlphaAnimated:NO];
   
     // don't call just yet if it's a PnP game, unless it's just for reset
@@ -349,6 +344,7 @@
     // establish that cell and dyadmino alphas are normal
     // important because next match might have different dyadminoes
   _dyadminoesStationary = NO;
+  NSLog(@"toggle cells called in will move from view");
   [self toggleCellsAndDyadminoesAlphaAnimated:NO];
   
   self.swapContainer = nil;
@@ -409,11 +405,6 @@
 -(void)postSoundNotification:(NotificationName)whichNotification {
   
   [[SoundEngine sharedSoundEngine] playSoundNotificationName:whichNotification];
-//  return;
-//  
-//  NSNumber *whichNotificationObject = [NSNumber numberWithUnsignedInteger:whichNotification];
-//  [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound"
-//                                                      object:self userInfo:@{@"sound": whichNotificationObject}];
 }
 
 -(void)soundDyadmino:(Dyadmino *)dyadmino withFace:(Face *)face {
@@ -673,7 +664,6 @@
 -(void)handlePinchGestureWithScale:(CGFloat)scale andVelocity:(CGFloat)velocity andLocation:(CGPoint)location {
   
   if (_hoveringDyadmino) {
-//    NSLog(@"move hovering dyadmino home from pinch gesture");
     [self moveDyadminoHome:_hoveringDyadmino andSound:YES];
   }
   
@@ -681,7 +671,6 @@
   if (_touchedDyadmino) {
     Dyadmino *dyadmino = _touchedDyadmino;
     _touchedDyadmino = nil;
-//    NSLog(@"move touched dyadmino home from pinch gesture");
     [self moveDyadminoHome:dyadmino andSound:YES];
   }
   
@@ -713,14 +702,8 @@
   }
   
   _dyadminoesStationary = _lockMode;
+  NSLog(@"toggle cells called in handle double tap");
   [self toggleCellsAndDyadminoesAlphaAnimated:YES];
-  
-//    // FIXME: this should change dyadmino texture
-//  SceneEngine *sceneEngine = [SceneEngine sharedSceneEngine];
-//  for (Dyadmino *dyadmino in sceneEngine.allDyadminoes) {
-//    TextureDyadmino texture = _lockMode ? kTextureDyadminoLockedNoSo : kTextureDyadminoNoSo;
-//    [dyadmino changeTexture:texture];
-//  }
   [self updateTopBarButtons];
 }
 
@@ -744,6 +727,7 @@
   _currentTouchLocation = _beganTouchLocation;
   _touchNode = [self nodeAtPoint:_currentTouchLocation];
   
+  /*
   if ([_touchNode isKindOfClass:Cell.class]) {
     Cell *cell = (Cell *)_touchNode;
     
@@ -753,6 +737,7 @@
     
     NSLog(@"Cell colour is %.2f, %.2f, %.2f, %.2f, minDistance is %lu", red, green, blue, alpha, (unsigned long)cell.minDistance);
   }
+   */
   
   
 //  NSLog(@"touch node is %@ of class %@", _touchNode.name, _touchNode.class);
@@ -1071,7 +1056,6 @@
 
 -(void)toggleBoardZoomWithTapCentering:(BOOL)tapCentering andCenterLocation:(CGPoint)location {
     // without tap centering, location is irrelevant
-  
   if (![self noActionsInProgress]) {
     return;
   }
@@ -1127,7 +1111,6 @@
 
 
 -(void)handleUserWantsPivotGuides {
-//  [_boardField handleUserWantsPivotGuides];
   [_boardField hideAllPivotGuides];
 }
 
@@ -1422,6 +1405,7 @@
 
     _pnpBarUp = NO;
     [self togglePnPBarSyncWithRack:YES animated:YES];
+    NSLog(@"toggle cells called in handle PNP button pressed");
     [self toggleCellsAndDyadminoesAlphaAnimated:YES];
     [self afterNewPlayerReady];
   
@@ -1797,6 +1781,7 @@
   if ([self.myMatch returnType] == kPnPGame) {
     
     _dyadminoesStationary = YES;
+    NSLog(@"toggle cells called in handle switch to next player (if PNP)");
     [self toggleCellsAndDyadminoesAlphaAnimated:YES];
     
     _pnpBarUp = YES;
@@ -2446,11 +2431,11 @@
     return;
   }
   
-  _fieldActionInProgress = YES;
+//  _fieldActionInProgress = YES;
   [self updateTopBarButtons];
   
-  CGFloat desiredFactor = _dyadminoesStationary ? 0.f : 1.f;  
-  [_boardField changeAllCellsToFactor:desiredFactor animated:animated];
+//  CGFloat desiredFactor = _dyadminoesStationary ? 0.f : 1.f;
+//  [_boardField changeAllCellsToFactor:desiredFactor animated:animated];
   
   CGFloat desiredDyadminoAlpha = _dyadminoesStationary ? 0.5f : 1.f;
   SKAction *fadeDyadminoAlpha = [SKAction fadeAlphaTo:desiredDyadminoAlpha duration:kConstantTime * 0.99f]; // a little faster than field move
@@ -2573,6 +2558,7 @@
   
   if (!_lockMode) {
     _dyadminoesStationary = _replayMode;
+    NSLog(@"toggle cells called in toggle replay fields");
     [self toggleCellsAndDyadminoesAlphaAnimated:YES];
   }
 
@@ -2655,6 +2641,7 @@
   
     // cells will toggle faster than field moves
   _dyadminoesStationary = (BOOL)self.swapContainer;
+  NSLog(@"toggle cells called in toggle swap field");
   [self toggleCellsAndDyadminoesAlphaAnimated:YES]; // only animate if board zoomed in
   
   [self postSoundNotification:kNotificationToggleBarOrField];
@@ -3509,7 +3496,10 @@
 -(void)presentActionSheetAfterPivotGuidesHidden {
   [self presentActionSheet:kActionSheetNewLegalChord
                 withPoints:_pointsForExtending];
-//  _pointsForExtending = 0;
+}
+
+-(BOOL)cellsShouldBeHollowed {
+  return _dyadminoesStationary;
 }
 
 #pragma mark - increment and decrement methods for completing dyadmino animation to temp board cell
@@ -3562,10 +3552,6 @@
 
 -(BOOL)noActionsInProgress {
   return _dyadminoFluxCounter == 0 && !_fieldActionInProgress;
-}
-
--(BOOL)cellsShouldBeHollowed {
-  return _dyadminoesStationary;
 }
 
 #pragma mark - debugging methods

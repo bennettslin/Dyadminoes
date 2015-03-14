@@ -32,9 +32,9 @@
     
     self.cellNodeTexture = texture;
     self.texture = self.cellNodeTexture;
+    self.colorBlendFactor = 1.f;
     
     self.zPosition = kZPositionBoardCell;
-//    self.colorBlendFactor = 0.9f;
     
 //    [self createHexCoordLabel];
     [self updateHexCoordLabel];
@@ -100,7 +100,7 @@
   _dominantPCArray[pc] += (kCellsAroundDyadmino - distance + 1);
   
     // alpha is full when next to a dyadmino, and 0.2f at furthest distance
-  CGFloat tempAlpha = 0.2 + 0.8 * (1.f / kCellsAroundDyadmino) * (kCellsAroundDyadmino - distance + 1);
+  CGFloat tempAlpha = 0.2 + 0.8 * (1.f / (kCellsAroundDyadmino - 1)) * (kCellsAroundDyadmino - distance + 1); // this ensures that alphas for distances of either 1 and 2 is the same
   if (tempAlpha > _myAlpha) {
     _myAlpha = tempAlpha;
   }

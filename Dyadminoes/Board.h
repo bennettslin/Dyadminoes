@@ -68,13 +68,6 @@
 
 -(CGPoint)centerBoardOnDyadminoesAverageCenterWithSwap:(BOOL)swap;
 
-#pragma mark - background image methods
-
-//-(void)initLoadBackgroundNodes;
-//-(void)colourBackgroundForReplay;
-//-(void)colourBackgroundForPnP;
-//-(void)colourBackgroundForNormalPlay;
-
 #pragma mark - board span methods
 
 -(CGVector)determineOutermostCellsBasedOnDyadminoes:(NSSet *)boardDyadminoes; // called by scene's toggle board zoom method only
@@ -88,8 +81,6 @@
                                             minusDyadmino:(Dyadmino *)minusDyadmino
                                              updateBounds:(BOOL)updateBounds;
 
-//-(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBoardNode:(SnapPoint *)snapPoint;
-//-(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBoardNode:(SnapPoint *)snapPoint;
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino placedOnBottomHexCoord:(HexCoord)bottomHexCoord;
 -(void)updateCellsForDyadmino:(Dyadmino *)dyadmino removedFromBottomHexCoord:(HexCoord)bottomHexCoord;
 
@@ -101,15 +92,13 @@
 #pragma mark - cell zoom methods
 
 -(CGPoint)repositionCellsForZoomWithSwap:(BOOL)swap;
-//-(void)changeAllCellsToAlpha:(CGFloat)desiredAlpha animated:(BOOL)animated;
--(void)changeAllCellsToFactor:(CGFloat)factor animated:(BOOL)animated;
+//-(void)changeAllCellsToFactor:(CGFloat)factor animated:(BOOL)animated;
 
 #pragma mark - pivot guide methods
 
 -(void)hidePivotGuideAndShowPrePivotGuideForDyadmino:(Dyadmino *)dyadmino;
 -(void)hideAllPivotGuides;
 -(void)hideAllPivotGuidesAndShowExtendedChordActionSheet;
-//-(void)handleUserWantsPivotGuides;
 
 -(void)updatePositionsOfPivotGuidesForDyadminoPosition:(CGPoint)dyadminoPosition;
 

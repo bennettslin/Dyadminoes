@@ -84,7 +84,7 @@
 #define kBoardCoverAlpha 0.4f
 #define kZoomResizeFactor 0.5f
 
-#define kCellsAroundDyadmino 3 // was 3
+#define kCellsAroundDyadmino 4 // was 3
 
   // scene view constants
 #define kSceneMessageLabelFontSize 30.f
@@ -475,30 +475,30 @@ typedef enum optionsVCOptions {
 
 typedef enum textureCell {
   kTextureCell,
-  kTextureCellZoomed,
+//  kTextureCellZoomed,
   kTextureCellLocked,
-  kTextureCellPnP,
-  kTextureCellReplay
+//  kTextureCellPnP,
+//  kTextureCellReplay
 } TextureCell;
 
 typedef enum textureDyadmino {
   kTextureDyadminoNoSo,
-  kTextureDyadminoZoomedNoSo,
+//  kTextureDyadminoZoomedNoSo,
   kTextureDyadminoLockedNoSo,
-  kTextureDyadminoPnPNoSo,
-  kTextureDyadminoReplayNoSo,
+//  kTextureDyadminoPnPNoSo,
+//  kTextureDyadminoReplayNoSo,
   
   kTextureDyadminoSwNe,
-  kTextureDyadminoZoomedSwNe,
+//  kTextureDyadminoZoomedSwNe,
   kTextureDyadminoLockedSwNe,
-  kTextureDyadminoPnPSwNe,
-  kTextureDyadminoReplaySwNe,
+//  kTextureDyadminoPnPSwNe,
+//  kTextureDyadminoReplaySwNe,
   
   kTextureDyadminoNwSe,
-  kTextureDyadminoZoomedNwSe,
+//  kTextureDyadminoZoomedNwSe,
   kTextureDyadminoLockedNwSe,
-  kTextureDyadminoPnPNwSe,
-  kTextureDyadminoReplayNwSe
+//  kTextureDyadminoPnPNwSe,
+//  kTextureDyadminoReplayNwSe
 } TextureDyadmino;
 
 typedef enum startingQuadrant {

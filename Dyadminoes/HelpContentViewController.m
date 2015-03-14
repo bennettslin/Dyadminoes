@@ -105,7 +105,7 @@
     }
   }
   
-  self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, yOrigin);
+  self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, yOrigin + kChildVCBottomMargin);
 }
 
 -(NSArray *)imageViewNamesForPage:(NSUInteger)pageIndex {

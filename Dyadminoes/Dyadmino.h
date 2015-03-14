@@ -18,6 +18,7 @@
 -(CGPoint)homePositionForDyadmino:(Dyadmino *)dyadmino;
 -(CGPoint)tempPositionForDyadmino:(Dyadmino *)dyadmino withHomeOrientation:(BOOL)homeOrientation;
 -(CGPoint)rackPositionForDyadmino:(Dyadmino *)dyadmino;
+-(BOOL)cellsShouldBeHollowed; // rename
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino;
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
@@ -55,6 +56,7 @@
 
   // sprites
 @property (strong, nonatomic) NSArray *rotationFrameArray;
+@property (strong, nonatomic) NSArray *rotationFrameLockedArray;
 
 @property (strong, nonatomic) Face *pc1LetterSprite;
 @property (strong, nonatomic) Face *pc2LetterSprite;

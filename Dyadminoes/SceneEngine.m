@@ -49,6 +49,12 @@
   [tempRotationArray addObject:[self textureForTextureDyadmino:kTextureDyadminoNwSe]];
   NSArray *rotationFrameArray = [NSArray arrayWithArray:tempRotationArray];
   
+  NSMutableArray *tempRotationLockedArray = [[NSMutableArray alloc] initWithCapacity:3];
+  [tempRotationLockedArray addObject:[self textureForTextureDyadmino:kTextureDyadminoLockedNoSo]];
+  [tempRotationLockedArray addObject:[self textureForTextureDyadmino:kTextureDyadminoLockedSwNe]];
+  [tempRotationLockedArray addObject:[self textureForTextureDyadmino:kTextureDyadminoLockedNwSe]];
+  NSArray *rotationFrameLockedArray = [NSArray arrayWithArray:tempRotationLockedArray];
+  
     // dyadmino IDs start from 0
   NSUInteger myID = 0;
   
@@ -68,7 +74,7 @@
         
           // instantiate dyadmino
         Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1 andPC2:pc2 andPCMode:kPCModeLetter andRotationFrameArray:rotationFrameArray andPC1LetterSprite:pc1LetterSprite andPC2LetterSprite:pc2LetterSprite andPC1NumberSprite:pc1NumberSprite andPC2NumberSprite:pc2NumberSprite];
-        
+        dyadmino.rotationFrameLockedArray = rotationFrameLockedArray;
         dyadmino.myID = myID;
         
         myID++;
@@ -100,16 +106,7 @@
       return [textureAtlas textureNamed:@"blankSpace"];
       break;
     case kTextureCellLocked:
-      return [textureAtlas textureNamed:@"blankSpace"];
-      break;
-    case kTextureCellPnP:
-      return [textureAtlas textureNamed:@"blankSpace"];
-      break;
-    case kTextureCellReplay:
-      return [textureAtlas textureNamed:@"blankSpace"];
-      break;
-    case kTextureCellZoomed:
-      return [textureAtlas textureNamed:@"blankSpace"];
+      return [textureAtlas textureNamed:@"blankSpaceLocked"];
       break;
   }
   return nil;
@@ -133,43 +130,13 @@
       break;
 
     case kTextureDyadminoLockedNoSo:
-      return [textureAtlas textureNamed:@"blankTileNoSo"];
+      return [textureAtlas textureNamed:@"blankTileLockedNoSo"];
       break;
     case kTextureDyadminoLockedSwNe:
-      return [textureAtlas textureNamed:@"blankTileSwNe"];
+      return [textureAtlas textureNamed:@"blankTileLockedSwNe"];
       break;
     case kTextureDyadminoLockedNwSe:
-      return [textureAtlas textureNamed:@"blankTileNwSe"];
-      break;
-      
-    case kTextureDyadminoPnPNoSo:
-      return [textureAtlas textureNamed:@"blankTileNoSo"];
-      break;
-    case kTextureDyadminoPnPSwNe:
-      return [textureAtlas textureNamed:@"blankTileSwNe"];
-      break;
-    case kTextureDyadminoPnPNwSe:
-      return [textureAtlas textureNamed:@"blankTileNwSe"];
-      break;
-      
-    case kTextureDyadminoReplayNoSo:
-      return [textureAtlas textureNamed:@"blankTileNoSo"];
-      break;
-    case kTextureDyadminoReplaySwNe:
-      return [textureAtlas textureNamed:@"blankTileSwNe"];
-      break;
-    case kTextureDyadminoReplayNwSe:
-      return [textureAtlas textureNamed:@"blankTileNwSe"];
-      break;
-      
-    case kTextureDyadminoZoomedNoSo:
-      return [textureAtlas textureNamed:@"blankTileNoSo"];
-      break;
-    case kTextureDyadminoZoomedSwNe:
-      return [textureAtlas textureNamed:@"blankTileSwNe"];
-      break;
-    case kTextureDyadminoZoomedNwSe:
-      return [textureAtlas textureNamed:@"blankTileNwSe"];
+      return [textureAtlas textureNamed:@"blankTileLockedNwSe"];
       break;
   }
   return nil;

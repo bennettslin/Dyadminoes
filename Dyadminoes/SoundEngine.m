@@ -193,11 +193,10 @@ typedef enum systemSound {
   
     // obviously, change this with better sound files
   switch (notificationName) {
-      
+    case kNotificationPivotClick: 
     case kNotificationRackExchangeClick:
       return 1104; // Apple button pressed
       break;
-    case kNotificationPivotClick:
     case kNotificationEaseIntoNode:
     case kNotificationButtonSunkIn:
     case kNotificationButtonLifted:

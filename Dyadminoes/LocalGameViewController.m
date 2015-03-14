@@ -89,12 +89,14 @@
   
   self.playerButtons = @[self.player1Button, self.player2Button, self.player3Button, self.player4Button];
   for (UIButton *button in self.playerButtons) {
+    button.tintColor = kPlayerOrange;
     [button setTitle:@"Join?" forState:UIControlStateNormal];
     [button setTitle:@"Joined!" forState:UIControlStateSelected];
     button.titleLabel.font = [UIFont systemFontOfSize:24.f];
     [button.titleLabel sizeToFit];
   }
   
+  self.startSelfOrPnPGameButton.tintColor = kPlayerOrange;
   self.defaults = [NSUserDefaults standardUserDefaults];
 }
 

@@ -77,7 +77,7 @@
   self.titleLogo.textColor = [UIColor whiteColor];
   self.titleLogo.textAlignment = NSTextAlignmentCenter;
   
-  self.tableView.backgroundColor = [UIColor clearColor];
+  self.tableView.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"paper_background.jpg"]];
   self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
   self.tableView.showsVerticalScrollIndicator = NO;
   
@@ -92,10 +92,11 @@
   self.activityIndicator.center = self.view.center;
   [self.view addSubview:self.activityIndicator];
   
-  self.bottomBar.backgroundColor = kMainBarsColour;
-  self.topBar.backgroundColor = kMainBarsColour;
+//  self.bottomBar.backgroundColor = kMainBarsColour;
+  self.topBar.backgroundColor = [UIColor clearColor];
   
-  [self addShadowToView:self.topBar upsideDown:NO];
+  [self addShadowToTableView];
+//  [self addShadowToView:self.tableView upsideDown:NO];
   [self addShadowToView:self.bottomBar upsideDown:YES];
   
   self.aboutVC = [[AboutViewController alloc] init];
@@ -188,7 +189,7 @@
     button.center = CGPointMake(button.center.x, kMainBottomBarHeight / 2);
   }
   
-  [self addGradientToView:self.topBar WithColour:kMainBarsColour andUpsideDown:YES];
+//  [self addGradientToView:self.topBar WithColour:kMainBarsColour andUpsideDown:YES];
   [self addGradientToView:self.bottomBar WithColour:kMainBarsColour andUpsideDown:NO];
   
   self.tableView.frame = CGRectMake(kTableViewXMargin, kMainTopBarHeight, self.screenWidth - kTableViewXMargin * 2, self.screenHeight - kMainTopBarHeight - kMainBottomBarHeight);
@@ -521,6 +522,31 @@
   }
   
   [self fadeOverlayOutWithNewMatch:newMatch];
+}
+
+#pragma mark - helper methods
+
+-(void)addShadowToTableView {
+  
+  const CGFloat padding = 10.f;
+  
+  self.tableView.layer.masksToBounds = NO;
+  self.tableView.layer.shadowColor = [UIColor blackColor].CGColor;
+  self.tableView.layer.shadowOffset = CGSizeMake(0, 5);
+  self.tableView.layer.shadowOpacity = 0.15f;
+  self.tableView.layer.shadowRadius = 3.f;
+  
+  UIBezierPath *path = [UIBezierPath bezierPath];
+  
+  
+    // top left, then top right, then bottom right, then bottom left
+  [path moveToPoint:CGPointMake(-padding, -padding)];
+  [path addLineToPoint:CGPointMake(CGRectGetWidth(self.tableView.frame) + padding, -padding)];
+  [path addLineToPoint:CGPointMake(CGRectGetWidth(self.tableView.frame) + padding, CGRectGetHeight(self.tableView.frame) + padding)];
+  [path addLineToPoint:CGPointMake(-padding, CGRectGetHeight(self.tableView.frame) + padding)];
+  [path closePath];
+  
+  self.tableView.layer.shadowPath = path.CGPath;
 }
 
 #pragma mark - background view methods

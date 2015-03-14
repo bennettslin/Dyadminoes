@@ -218,18 +218,6 @@
   return (multFloat * kStaveYHeight);
 }
 
-//-(void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
-//  [super setHighlighted:highlighted animated:animated];
-//  if (highlighted) {
-//  }
-//}
-
-//-(void)setSelected:(BOOL)selected animated:(BOOL)animated {
-//  [super setSelected:selected animated:animated];
-//  if (selected) {
-//  }
-//}
-
 #pragma mark - label update methods
 
 -(void)updateLastPlayedLabel {
@@ -238,16 +226,16 @@
   
     // backgroundColour and lastPlayedLabel are not async
   if ([self.myMatch returnGameHasEnded]) {
-    self.selectedBackgroundView.backgroundColor = kEndedMatchCellSelectedColour;
-    self.backgroundColor = kEndedMatchCellLightColour;
+    self.selectedBackgroundView.backgroundColor = [kEndedMatchCellSelectedColour colorWithAlphaComponent:0.45f];
+    self.backgroundColor = [kEndedMatchCellLightColour colorWithAlphaComponent:0.45f];
     
       // game ended, so lastPlayed label shows date
     self.lastPlayedLabel.textColor = kStaveEndedGameColour;
     self.lastPlayedLabel.text = [self returnGameEndedDateStringFromDate:self.myMatch.lastPlayed];
     
   } else {
-    self.selectedBackgroundView.backgroundColor = kMainSelectedYellow;
-    self.backgroundColor = kMainLighterYellow;
+    self.selectedBackgroundView.backgroundColor = [kMainSelectedYellow colorWithAlphaComponent:0.45f];
+    self.backgroundColor = [kMainLighterYellow colorWithAlphaComponent:0.45f];
     
       // game still in play, so lastPlayed label shows time since last played
     self.lastPlayedLabel.textColor = kStaveColour;

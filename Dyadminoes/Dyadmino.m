@@ -135,10 +135,8 @@
 }
 
 -(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle resize:(BOOL)resize {
-//  NSLog(@"select and position sprites for %@, rotation angle %.2f", self.name, rotationAngle);
   if (self.pcMode == kPCModeLetter) {
     if (!self.pc1Sprite || self.pc1Sprite == self.pc1NumberSprite) {
-//      _alreadyAddedChildren = YES;
       [self removeAllChildren];
       self.pc1Sprite = self.pc1LetterSprite;
       self.pc2Sprite = self.pc2LetterSprite;
@@ -147,7 +145,6 @@
     }
   } else if (self.pcMode == kPCModeNumber) {
     if (!self.pc1Sprite || self.pc1Sprite == self.pc1LetterSprite) {
-//      _alreadyAddedChildren = YES;
       [self removeAllChildren];
       self.pc1Sprite = self.pc1NumberSprite;
       self.pc2Sprite = self.pc2NumberSprite;
@@ -166,32 +163,32 @@
   
   switch (self.orientation) {
     case kPC1atTwelveOClock:
-      self.texture = self.rotationFrameArray[0];
+      self.texture = [self.delegate cellsShouldBeHollowed] ? self.rotationFrameLockedArray[0] : self.rotationFrameArray[0];
       self.pc1Sprite.position = CGPointMake(0, yVertical);
       self.pc2Sprite.position = CGPointMake(0, -yVertical);
       break;
     case kPC1atTwoOClock:
-      self.texture = self.rotationFrameArray[1];
+      self.texture = [self.delegate cellsShouldBeHollowed] ? self.rotationFrameLockedArray[1] : self.rotationFrameArray[1];
       self.pc1Sprite.position = CGPointMake(xSlant, ySlant);
       self.pc2Sprite.position = CGPointMake(-xSlant, -ySlant);
       break;
     case kPC1atFourOClock:
-      self.texture = self.rotationFrameArray[2];
+      self.texture = [self.delegate cellsShouldBeHollowed] ? self.rotationFrameLockedArray[2] : self.rotationFrameArray[2];
       self.pc1Sprite.position = CGPointMake(xSlant, -ySlant);
       self.pc2Sprite.position = CGPointMake(-xSlant, ySlant);
       break;
     case kPC1atSixOClock:
-      self.texture = self.rotationFrameArray[0];
+      self.texture = [self.delegate cellsShouldBeHollowed] ? self.rotationFrameLockedArray[0] : self.rotationFrameArray[0];
       self.pc1Sprite.position = CGPointMake(0, -yVertical);
       self.pc2Sprite.position = CGPointMake(0, yVertical);
       break;
     case kPC1atEightOClock:
-      self.texture = self.rotationFrameArray[1];
+      self.texture = [self.delegate cellsShouldBeHollowed] ? self.rotationFrameLockedArray[1] : self.rotationFrameArray[1];
       self.pc1Sprite.position = CGPointMake(-xSlant, -ySlant);
       self.pc2Sprite.position = CGPointMake(xSlant, ySlant);
       break;
     case kPC1atTenOClock:
-      self.texture = self.rotationFrameArray[2];
+      self.texture = [self.delegate cellsShouldBeHollowed] ? self.rotationFrameLockedArray[2] : self.rotationFrameArray[2];
       self.pc1Sprite.position = CGPointMake(-xSlant, ySlant);
       self.pc2Sprite.position = CGPointMake(xSlant, -ySlant);
       break;

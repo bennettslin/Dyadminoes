@@ -34,7 +34,55 @@
   self.removeDefaultsButton.frame = self.removeDefaultsButton.titleLabel.frame;
     [self.removeDefaultsButton addTarget:self action:@selector(removeDefaultsButtonPressed) forControlEvents:UIControlEventTouchDown];
   
-  [self.soundSwitch setOnTintColor:kPlayerBlue];
+  self.soundSwitch.onTintColor = kPlayerBlue;
+  self.notationControl.tintColor = kPlayerBlue;
+  self.musicSlider.tintColor = kPlayerBlue;
+  self.registerControl.tintColor = kPlayerBlue;
+  self.removeDefaultsButton.tintColor = kPlayerBlue;
+  
+  [self establishRegisterControlProperties];
+  [self establishNotationControlProperties];
+}
+
+-(void)establishRegisterControlProperties {
+  UIFont *font = [UIFont fontWithName:kFontSonata size:kChildVCButtonSize * 0.4];
+  NSDictionary *attributes = [NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName];
+  
+  [self.registerControl setTitleTextAttributes:attributes forState:UIControlStateNormal];
+  CGRect registerFrame = self.registerControl.frame;
+  registerFrame.size.width = kChildVCButtonSize * 3;
+  registerFrame.size.height = kChildVCButtonSize * 0.75f;
+  self.registerControl.frame = registerFrame;
+  
+  NSArray *textArray = @[[self stringForMusicSymbol:kSymbolBassClef],
+                         [self stringForMusicSymbol:kSymbolBassClef],
+                         [self stringForMusicSymbol:kSymbolTenorClef],
+                         [self stringForMusicSymbol:kSymbolAltoClef],
+                         [self stringForMusicSymbol:kSymbolTrebleClef]];
+  
+  for (int i = 0; i < 5; i++) {
+    [self.registerControl setWidth:registerFrame.size.width / 5 forSegmentAtIndex:i];
+    [self.registerControl setTitle:textArray[i] forSegmentAtIndex:i];
+  }
+}
+
+-(void)establishNotationControlProperties {
+  UIFont *font = [UIFont fontWithName:kFontSonata size:kChildVCButtonSize * 0.4];
+  NSDictionary *attributes = [NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName];
+  
+  [self.notationControl setTitleTextAttributes:attributes forState:UIControlStateNormal];
+  CGRect notationFrame = self.notationControl.frame;
+  notationFrame.size.width = kChildVCButtonSize * 2;
+  notationFrame.size.height = kChildVCButtonSize * 0.75f;
+  self.notationControl.frame = notationFrame;
+  
+  NSArray *textArray = @[[self stringForMusicSymbol:kSymbolBassClef],
+                         [self stringForMusicSymbol:kSymbolBassClef]];
+  
+  for (int i = 0; i < 2; i++) {
+    [self.notationControl setWidth:notationFrame.size.width / 2 forSegmentAtIndex:i];
+    [self.notationControl setTitle:textArray[i] forSegmentAtIndex:i];
+  }
 }
 
 -(void)viewWillAppear:(BOOL)animated {
@@ -89,7 +137,8 @@
   [[NSUserDefaults standardUserDefaults] synchronize];
   
   if ([[NSUserDefaults standardUserDefaults] boolForKey:@"sound"]) {
-    [self soundWithVolume:1.f andNotificationName:kNotificationOptionsSoundEffects];
+    [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationOptionsSoundEffects];
+//    [self soundWithVolume:1.f andNotificationName:kNotificationOptionsSoundEffects];
   }
 }
 
@@ -102,14 +151,16 @@
   sender.value = [self moduloSliderValue:sender.value];
   [[NSUserDefaults standardUserDefaults] setFloat:sender.value forKey:@"music"];
   [[NSUserDefaults standardUserDefaults] synchronize];
-  [self soundWithVolume:sender.value andNotificationName:kNotificationOptionsMusic];
+//  [self soundWithVolume:sender.value andNotificationName:kNotificationOptionsMusic];
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationOptionsMusic];
 }
 
 -(IBAction)registerChanged:(UISegmentedControl *)sender {
   [[NSUserDefaults standardUserDefaults] setInteger:sender.selectedSegmentIndex forKey:@"register"];
   [[NSUserDefaults standardUserDefaults] synchronize];
-  NSUInteger soundedValue = 36 + sender.selectedSegmentIndex * 12;
-  [self soundWithVolume:soundedValue andNotificationName:kNotificationOptionsRegister];
+//  NSUInteger soundedValue = 36 + sender.selectedSegmentIndex * 12;
+//  [self soundWithVolume:soundedValue andNotificationName:kNotificationOptionsRegister];
+  [[SoundEngine sharedSoundEngine] playSoundNotificationName:kNotificationOptionsRegister];
 }
 
 -(float)moduloSliderValue:(float)value {
@@ -145,12 +196,12 @@
   self.registerControl.selectedSegmentIndex = [[NSUserDefaults standardUserDefaults] integerForKey:@"register"];
 }
 
--(void)soundWithVolume:(float)volume andNotificationName:(NotificationName)notificationName {
+//-(void)soundWithVolume:(float)volume andNotificationName:(NotificationName)notificationName {
 
-  [[SoundEngine sharedSoundEngine] playSoundNotificationName:notificationName];
+//  [[SoundEngine sharedSoundEngine] playSoundNotificationName:notificationName];
 //  NSNumber *whichNotificationObject = [NSNumber numberWithUnsignedInteger:notificationName];
 //  [[NSNotificationCenter defaultCenter] postNotificationName:@"playSound" object:self userInfo:@{@"sound": whichNotificationObject}];
-}
+//}
 
 -(void)dealloc {
   NSLog(@"Settings VC deallocated.");
