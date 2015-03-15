@@ -75,10 +75,14 @@
         pc2NumberSprite.name = [NSString stringWithFormat:@"%i", pc2];
         
           // instantiate dyadmino
-        Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1 andPC2:pc2 andPCMode:kPCModeLetter andRotationFrameArray:self.rotationFrameArray andPC1LetterSprite:pc1LetterSprite andPC2LetterSprite:pc2LetterSprite andPC1NumberSprite:pc1NumberSprite andPC2NumberSprite:pc2NumberSprite];
-//        dyadmino.rotationFrameLockedArray = self.rotationFrameLockedArray;
+        Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1
+                                                    andPC2:pc2
+                                                 andPCMode:kPCModeLetter
+                                        andPC1LetterSprite:pc1LetterSprite
+                                        andPC2LetterSprite:pc2LetterSprite
+                                        andPC1NumberSprite:pc1NumberSprite
+                                        andPC2NumberSprite:pc2NumberSprite];
         dyadmino.myID = myID;
-        
         myID++;
         
         [tempAllDyadminoes addObject:dyadmino];
@@ -98,7 +102,7 @@
 }
 
 -(SKTexture *)textureForTextureCell:(TextureCell)textureCell {
-    // FIXME: will eventually be different for each one
+    // FIXME: there is no locked texture cell
   
   AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
   SKTextureAtlas *textureAtlas = appDelegate.myAtlas;
@@ -204,39 +208,3 @@
 }
 
 @end
-
-/*
- -(BOOL)rotateDyadminoesBasedOnDeviceOrientation:(UIDeviceOrientation)deviceOrientation {
- 
- NSUInteger rotation = _rotationFromDevice;
- switch (deviceOrientation) {
- case UIDeviceOrientationPortrait:
- rotation = 0;
- break;
- case UIDeviceOrientationLandscapeRight:
- rotation = 90;
- break;
- case UIDeviceOrientationPortraitUpsideDown:
- rotation = 180;
- break;
- case UIDeviceOrientationLandscapeLeft:
- rotation = 270;
- break;
- default:
- break;
- }
- 
- if (rotation != _rotationFromDevice) {
- for (Dyadmino *dyadmino in self.allDyadminoes) {
- dyadmino.pc1LetterSprite.zRotation = [self getRadiansFromDegree:rotation];
- dyadmino.pc2LetterSprite.zRotation = [self getRadiansFromDegree:rotation];
- dyadmino.pc1NumberSprite.zRotation = [self getRadiansFromDegree:rotation];
- dyadmino.pc2NumberSprite.zRotation = [self getRadiansFromDegree:rotation];
- }
- _rotationFromDevice = rotation;
- return YES;
- } else {
- return NO;
- }
- }
- */

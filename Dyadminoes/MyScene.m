@@ -298,7 +298,7 @@
     // cell alphas are visible by default, hide if PnP mode and not for reset
 //  _dyadminoesStationary = ([self.myMatch returnType] == kPnPGame && ![self.myMatch returnGameHasEnded]);
   NSLog(@"toggle cells called in did move to view");
-  [self toggleCellsAndDyadminoesAlphaAnimated:NO];
+  [self toggleDyadminoesLockedAnimated:NO];
   
     // don't call just yet if it's a PnP game, unless it's just for reset
   if ([self.myMatch returnType] != kPnPGame) {
@@ -345,7 +345,7 @@
     // important because next match might have different dyadminoes
 //  _dyadminoesStationary = NO;
   NSLog(@"toggle cells called in will move from view");
-  [self toggleCellsAndDyadminoesAlphaAnimated:NO];
+  [self toggleDyadminoesLockedAnimated:NO];
   
   self.swapContainer = nil;
   [self toggleSwapFieldWithAnimation:NO];
@@ -704,7 +704,7 @@
   
 //  _dyadminoesStationary = _lockMode;
   NSLog(@"toggle cells called in handle double tap");
-  [self toggleCellsAndDyadminoesAlphaAnimated:YES];
+  [self toggleDyadminoesLockedAnimated:YES];
   [self updateTopBarButtons];
 }
 
@@ -1407,7 +1407,7 @@
     _pnpBarUp = NO;
     [self togglePnPBarSyncWithRack:YES animated:YES];
     NSLog(@"toggle cells called in handle PNP button pressed");
-    [self toggleCellsAndDyadminoesAlphaAnimated:YES];
+    [self toggleDyadminoesLockedAnimated:YES];
     [self afterNewPlayerReady];
   
       /// unlock button
@@ -1783,7 +1783,7 @@
     
 //    _dyadminoesStationary = YES;
     NSLog(@"toggle cells called in handle switch to next player (if PNP)");
-    [self toggleCellsAndDyadminoesAlphaAnimated:YES];
+    [self toggleDyadminoesLockedAnimated:YES];
     
     _pnpBarUp = YES;
     [self togglePnPBarSyncWithRack:YES animated:YES];
@@ -2415,7 +2415,7 @@
 
 #pragma mark - field animation methods
 
--(void)toggleCellsAndDyadminoesAlphaAnimated:(BOOL)animated {
+-(void)toggleDyadminoesLockedAnimated:(BOOL)animated {
   
     // called without animation:
     // called by did move to view and will move from view to reset cells and dyadminoes
@@ -2428,21 +2428,14 @@
     // check http://stackoverflow.com/questions/23007535/fade-between-two-different-sktextures-on-skspritenode
   
     // if dyadminoes already hollowed, just return
-  BOOL dyadminoesShouldBeLocked = [self dyadminoesShouldBeLocked];
+  BOOL dyadminoesShouldBeLocked = [self dyadminoShouldBeLocked:nil];
   if (dyadminoesShouldBeLocked == _dyadminoesAreLocked) {
     return;
   }
   
-//  _fieldActionInProgress = YES;
   [self updateTopBarButtons];
   
-//  CGFloat desiredFactor = _dyadminoesStationary ? 0.f : 1.f;
-//  [_boardField changeAllCellsToFactor:desiredFactor animated:animated];
-  
-//  CGFloat desiredDyadminoAlpha = dyadminoesShouldBeLocked ? 0.5f : 1.f;
-//  SKAction *fadeDyadminoAlpha = [SKAction fadeAlphaTo:desiredDyadminoAlpha duration:kConstantTime * 0.99f]; // a little faster than field move
-  
-  for (Dyadmino *dyadmino in [self allBoardDyadminoesPlusRecentRackDyadmino]) {
+  for (Dyadmino *dyadmino in [self allSceneDyadminoes]) {
     if (animated) {
 //      [dyadmino runAction:fadeDyadminoAlpha withKey:@"fadeDyadminoAlpha"];
       [dyadmino selectAndPositionSpritesZRotation:0.f];
@@ -2564,7 +2557,7 @@
   if (!_lockMode) {
 //    _dyadminoesStationary = _replayMode;
     NSLog(@"toggle cells called in toggle replay fields");
-    [self toggleCellsAndDyadminoesAlphaAnimated:YES];
+    [self toggleDyadminoesLockedAnimated:YES];
   }
 
   [self postSoundNotification:kNotificationToggleBarOrField];
@@ -2647,7 +2640,7 @@
     // cells will toggle faster than field moves
 //  _dyadminoesStationary = (BOOL)self.swapContainer;
   NSLog(@"toggle cells called in toggle swap field");
-  [self toggleCellsAndDyadminoesAlphaAnimated:YES]; // only animate if board zoomed in
+  [self toggleDyadminoesLockedAnimated:YES]; // only animate if board zoomed in
   
   [self postSoundNotification:kNotificationToggleBarOrField];
   
@@ -2769,6 +2762,17 @@
     // only called in willMoveFromView and getReadyToMoveCurrentDyadmino and sendDyadminoHome
 
   [_boardField updateCellsForDyadmino:dyadmino removedFromBottomHexCoord:dyadmino.tempHexCoord];
+}
+
+-(NSSet *)allSceneDyadminoes {
+  
+  NSMutableSet *dyadminoesInScene = [NSMutableSet setWithSet:self.boardDyadminoes];
+  
+    // add dyadmino to set if dyadmino is a recent rack dyadmino
+  for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
+    [dyadminoesInScene addObject:dyadmino];
+  }
+  return [NSSet setWithSet:dyadminoesInScene];
 }
 
 -(NSSet *)allBoardDyadminoesPlusRecentRackDyadmino {
@@ -3503,8 +3507,16 @@
                 withPoints:_pointsForExtending];
 }
 
--(BOOL)dyadminoesShouldBeLocked {
-  return _lockMode || _replayMode || self.swapContainer || _pnpBarUp;
+-(BOOL)dyadminoShouldBeLocked:(Dyadmino *)dyadmino {
+  if (_lockMode) {
+    return YES;
+  } else if (_replayMode || self.swapContainer || _pnpBarUp) {
+    if (!dyadmino) {
+      return YES;
+    }
+    return dyadmino.home == kBoard;
+  }
+  return NO;
 }
 
 -(SKTexture *)textureForTextureDyadmino:(TextureDyadmino)textureDyadmino {

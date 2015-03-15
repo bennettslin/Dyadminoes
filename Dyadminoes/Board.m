@@ -393,10 +393,6 @@
   if (!cell) {
     cell = [self popDequeuedCellWithHexCoord:hexCoord];
     [self addCellToColumnOfRowsOfCells:cell];
-    
-      // FIXME: change this to be about image texture, not colour blend factor
-//    cell.colorBlendFactor = [self.delegate cellsShouldBeHollowed] ? 0.f : 1.f;
-//    NSLog(@"recognise cell, colour blend factor is %.2f", cell.colorBlendFactor);
   }
   
   return cell;

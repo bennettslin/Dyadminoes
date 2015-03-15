@@ -18,7 +18,7 @@
 -(CGPoint)homePositionForDyadmino:(Dyadmino *)dyadmino;
 -(CGPoint)tempPositionForDyadmino:(Dyadmino *)dyadmino withHomeOrientation:(BOOL)homeOrientation;
 -(CGPoint)rackPositionForDyadmino:(Dyadmino *)dyadmino;
--(BOOL)dyadminoesShouldBeLocked;
+-(BOOL)dyadminoShouldBeLocked:(Dyadmino *)dyadmino;
 -(SKTexture *)textureForTextureDyadmino:(TextureDyadmino)textureDyadmino;
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino;
@@ -54,10 +54,6 @@
   // orientations
 @property (assign, nonatomic) DyadminoOrientation orientation;
 @property (assign, nonatomic) DyadminoOrientation homeOrientation;
-
-  // sprites
-//@property (strong, nonatomic) NSArray *rotationFrameArray;
-//@property (strong, nonatomic) NSArray *rotationFrameLockedArray;
 
 @property (strong, nonatomic) Face *pc1LetterSprite;
 @property (strong, nonatomic) Face *pc2LetterSprite;
@@ -95,17 +91,12 @@
 #pragma mark - init and layout methods
 
 -(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode
-                  andRotationFrameArray:(NSArray *)rotationFrameArray
                      andPC1LetterSprite:(SKSpriteNode *)pc1LetterSprite
                      andPC2LetterSprite:(SKSpriteNode *)pc2LetterSprite
                      andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite
                      andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite;
 
 -(void)resetForNewMatch;
-
-#pragma mark - texture methods
-
--(void)changeTexture:(TextureDyadmino)texture;
 
 #pragma mark - orient, position, and size methods
 

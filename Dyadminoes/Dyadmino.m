@@ -38,7 +38,6 @@
 @end
 
 @implementation Dyadmino {
-//  BOOL _alreadyAddedChildren;
   BOOL _isPivotAnimating;
   PivotOnPC _pivotOnPC;
   BOOL _movedDueToChangeInAnchorPoint;
@@ -51,7 +50,6 @@
 #pragma mark - init and layout methods
 
 -(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode
-  andRotationFrameArray:(NSArray *)rotationFrameArray
   andPC1LetterSprite:(Face *)pc1LetterSprite
   andPC2LetterSprite:(Face *)pc2LetterSprite
   andPC1NumberSprite:(Face *)pc1NumberSprite
@@ -63,7 +61,6 @@
     self.pc1 = pc1;
     self.pc2 = pc2;
     self.pcMode = pcMode;
-//    self.rotationFrameArray = rotationFrameArray;
     self.pc1LetterSprite = pc1LetterSprite;
     self.pc1LetterSprite.zPosition = kZPositionDyadminoFace;
     self.pc2LetterSprite = pc2LetterSprite;
@@ -98,14 +95,6 @@
   self.shrunkForReplay = NO;
   [self removeFromParent];
   [self removeAllActions];
-}
-
-#pragma mark - texture methods
-
--(void)changeTexture:(TextureDyadmino)texture {
-  
-    // FIXME: change texture here
-  
 }
 
 #pragma mark - orient, position, and size methods
@@ -164,32 +153,32 @@
   TextureDyadmino textureDyadmino;
   switch (self.orientation) {
     case kPC1atTwelveOClock:
-      textureDyadmino = [self.delegate dyadminoesShouldBeLocked] ? kTextureDyadminoLockedNoSo : kTextureDyadminoNoSo;
+      textureDyadmino = [self.delegate dyadminoShouldBeLocked:self] ? kTextureDyadminoLockedNoSo : kTextureDyadminoNoSo;
       self.pc1Sprite.position = CGPointMake(0, yVertical);
       self.pc2Sprite.position = CGPointMake(0, -yVertical);
       break;
     case kPC1atTwoOClock:
-      textureDyadmino = [self.delegate dyadminoesShouldBeLocked] ? kTextureDyadminoLockedSwNe : kTextureDyadminoSwNe;
+      textureDyadmino = [self.delegate dyadminoShouldBeLocked:self] ? kTextureDyadminoLockedSwNe : kTextureDyadminoSwNe;
       self.pc1Sprite.position = CGPointMake(xSlant, ySlant);
       self.pc2Sprite.position = CGPointMake(-xSlant, -ySlant);
       break;
     case kPC1atFourOClock:
-      textureDyadmino = [self.delegate dyadminoesShouldBeLocked] ? kTextureDyadminoLockedNwSe : kTextureDyadminoNwSe;
+      textureDyadmino = [self.delegate dyadminoShouldBeLocked:self] ? kTextureDyadminoLockedNwSe : kTextureDyadminoNwSe;
       self.pc1Sprite.position = CGPointMake(xSlant, -ySlant);
       self.pc2Sprite.position = CGPointMake(-xSlant, ySlant);
       break;
     case kPC1atSixOClock:
-      textureDyadmino = [self.delegate dyadminoesShouldBeLocked] ? kTextureDyadminoLockedNoSo : kTextureDyadminoNoSo;
+      textureDyadmino = [self.delegate dyadminoShouldBeLocked:self] ? kTextureDyadminoLockedNoSo : kTextureDyadminoNoSo;
       self.pc1Sprite.position = CGPointMake(0, -yVertical);
       self.pc2Sprite.position = CGPointMake(0, yVertical);
       break;
     case kPC1atEightOClock:
-      textureDyadmino = [self.delegate dyadminoesShouldBeLocked] ? kTextureDyadminoLockedSwNe : kTextureDyadminoSwNe;
+      textureDyadmino = [self.delegate dyadminoShouldBeLocked:self] ? kTextureDyadminoLockedSwNe : kTextureDyadminoSwNe;
       self.pc1Sprite.position = CGPointMake(-xSlant, -ySlant);
       self.pc2Sprite.position = CGPointMake(xSlant, ySlant);
       break;
     case kPC1atTenOClock:
-      textureDyadmino = [self.delegate dyadminoesShouldBeLocked] ? kTextureDyadminoLockedNwSe : kTextureDyadminoNwSe;
+      textureDyadmino = [self.delegate dyadminoShouldBeLocked:self] ? kTextureDyadminoLockedNwSe : kTextureDyadminoNwSe;
       self.pc1Sprite.position = CGPointMake(-xSlant, ySlant);
       self.pc2Sprite.position = CGPointMake(xSlant, -ySlant);
       break;
@@ -702,34 +691,6 @@
     [self runAction:sequence withKey:@"replayGrow"];
   }
 }
-
-#pragma mark - animation helper methods
-
--(void)removeMoveAction {
-  
-}
-
--(void)removeScaleAction {
-  
-}
-
--(void)removeRotateAction {
-  
-}
-
-//-(void)removeActionsAndEstablishNotRotatingIncludingMove:(BOOL)includingMove {
-//  
-//  if (includingMove) {
-//    [self removeActionForKey:kActionMove];
-//  }
-
-//  [self resetFaceScales];
-//  [self removeActionForKey:kActionShrinkPopIn];
-//  [self removeActionForKey:kActionGrowPopIn];
-//  [self removeActionForKey:kActionFlip];
-//  [self removeActionForKey:kActionEaseIntoNode];
-//  self.isRotating = NO;
-//}
 
 #pragma mark - pivot methods
 
