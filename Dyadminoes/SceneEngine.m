@@ -12,7 +12,7 @@
 #import "AppDelegate.h"
 #import "Face.h"
 
-@interface SceneEngine ()
+@interface SceneEngine () <DyadminoSceneDelegate>
 
 @property (readwrite, nonatomic) PCMode myPCMode;
 @property (strong, nonatomic) NSArray *rotationFrameArray;
@@ -82,6 +82,7 @@
                                         andPC2LetterSprite:pc2LetterSprite
                                         andPC1NumberSprite:pc1NumberSprite
                                         andPC2NumberSprite:pc2NumberSprite];
+        dyadmino.sceneDelegate = self;
         dyadmino.myID = myID;
         myID++;
         

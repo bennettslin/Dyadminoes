@@ -115,6 +115,7 @@
   CGFloat xSize = widthToHeightRatio * ySize;
   
   sprite.size = CGSizeMake(xSize * hoverRescaleFactor * zoomRescaleFactor, ySize * hoverRescaleFactor * zoomRescaleFactor);
+//  NSLog(@"size of %@ for %@ is %.2f, %.2f", sprite.name, self.name, sprite.size.width, sprite.size.height);
 }
 
 -(void)resize {
@@ -150,7 +151,7 @@
   CGFloat ySlant = kDyadminoFaceRadius * 0.5 * hoverResizeFactor * zoomResizeFactor;
   CGFloat xSlant = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * hoverResizeFactor * zoomResizeFactor;
   
-  TextureDyadmino textureDyadmino;
+  TextureDyadmino textureDyadmino = kTextureDyadminoNoSo; // default
   switch (self.orientation) {
     case kPC1atTwelveOClock:
       textureDyadmino = [self.delegate dyadminoShouldBeLocked:self] ? kTextureDyadminoLockedNoSo : kTextureDyadminoNoSo;
@@ -184,7 +185,8 @@
       break;
   }
   
-  self.texture = [self.delegate textureForTextureDyadmino:textureDyadmino];
+  self.texture = [self.sceneDelegate textureForTextureDyadmino:textureDyadmino];
+  NSLog(@"texture %@ for %@ is %i", self.texture, self.name, textureDyadmino);
   [self resize];
 }
 

@@ -141,10 +141,8 @@
     self.backgroundColor = kBackgroundBoardColour;
     self.name = @"scene";
     self.mySoundEngine = [SoundEngine sharedSoundEngine];
-//    [self addChild:self.mySoundEngine];
     
     self.swapContainer = nil;
-//    _dyadminoesStationary = NO;
     _dyadminoesAreLocked = NO;
 
     if (![self layoutRackField]) {
@@ -296,8 +294,7 @@
   [self updateTopBarButtons];
   
     // cell alphas are visible by default, hide if PnP mode and not for reset
-//  _dyadminoesStationary = ([self.myMatch returnType] == kPnPGame && ![self.myMatch returnGameHasEnded]);
-  NSLog(@"toggle cells called in did move to view");
+  NSLog(@"toggle dyadminoes locked in did move to view");
   [self toggleDyadminoesLockedAnimated:NO];
   
     // don't call just yet if it's a PnP game, unless it's just for reset
@@ -343,8 +340,6 @@
   
     // establish that cell and dyadmino alphas are normal
     // important because next match might have different dyadminoes
-//  _dyadminoesStationary = NO;
-  NSLog(@"toggle cells called in will move from view");
   [self toggleDyadminoesLockedAnimated:NO];
   
   self.swapContainer = nil;
@@ -455,6 +450,7 @@
     if (![self.myMatch holdingsContainsDataDyadmino:dataDyad]) {
       Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
       dyadmino.delegate = self;
+      NSLog(@"%@ has delegate", dyadmino.name);
       
       dyadmino.orientation = [dataDyad returnMyOrientation];
       dyadmino.rackIndex = [dataDyad returnMyRackOrder];
@@ -647,12 +643,12 @@
     // match is still in play
   if (![self.myMatch returnGameHasEnded]) {
 
-    [_rackField repositionDyadminoes:self.playerRackDyadminoes fromUndo:undo withAnimation:animation];
-    
     for (Dyadmino *dyadmino in self.playerRackDyadminoes) {
       dyadmino.delegate = self;
     }
-
+    
+    [_rackField repositionDyadminoes:self.playerRackDyadminoes fromUndo:undo withAnimation:animation];
+    
   } else {
     [_rackField repositionDyadminoes:self.playerRackDyadminoes fromUndo:undo withAnimation:animation];
   }
@@ -702,10 +698,8 @@
     [self postSoundNotification:kNotificationTogglePCs];
   }
   
-//  _dyadminoesStationary = _lockMode;
-  NSLog(@"toggle cells called in handle double tap");
   [self toggleDyadminoesLockedAnimated:YES];
-  [self updateTopBarButtons];
+//  [self updateTopBarButtons];
 }
 
 #pragma mark - touch methods
@@ -786,6 +780,7 @@
     _previousTouchWasDyadmino = _currentTouchIsDyadmino;
     _currentTouchIsDyadmino = YES;
     
+    NSLog(@"begin touch or pivot of %@", dyadmino.name);
     [self beginTouchOrPivotOfDyadmino:dyadmino];
   
     //--------------------------------------------------------------------------
@@ -810,9 +805,10 @@
             [self handleDoubleTapForLockModeWithSound:YES];
           }
         }
+      } else {
+        _boardToBeMovedOrBeingMoved = YES;
       }
       
-      _boardToBeMovedOrBeingMoved = YES;
       _canDoubleTapForBoardZoom = YES;
       
         // check to see if hovering dyadmino should be moved along with board or not
@@ -866,7 +862,7 @@
       _soundedDyadminoFace = nil;
     }
   }
-  
+    
     //--------------------------------------------------------------------------
     /// 3a. board is being moved
   
@@ -1234,7 +1230,6 @@
       dyadmino.tempHexCoord = dyadmino.homeHexCoord;
       [self removeDyadmino:dyadmino fromParentAndAddToNewParent:_boardField withLayout:NO];
       dyadmino.position = [_boardField getOffsetFromPoint:dyadmino.position];
-//      [_boardField updatePositionsOfPivotGuidesForDyadminoPosition:dyadmino.position];
       [self moveDyadminoHome:dyadmino andSound:YES];
       
         // otherwise, prepare it for hover
@@ -1402,11 +1397,9 @@
     
       /// pnp button
   } else if (button == _pnpBar.returnOrStartButton) {
-//    _dyadminoesStationary = NO;
 
     _pnpBarUp = NO;
     [self togglePnPBarSyncWithRack:YES animated:YES];
-    NSLog(@"toggle cells called in handle PNP button pressed");
     [self toggleDyadminoesLockedAnimated:YES];
     [self afterNewPlayerReady];
   
@@ -1781,8 +1774,6 @@
   
   if ([self.myMatch returnType] == kPnPGame) {
     
-//    _dyadminoesStationary = YES;
-    NSLog(@"toggle cells called in handle switch to next player (if PNP)");
     [self toggleDyadminoesLockedAnimated:YES];
     
     _pnpBarUp = YES;
@@ -2416,24 +2407,13 @@
 #pragma mark - field animation methods
 
 -(void)toggleDyadminoesLockedAnimated:(BOOL)animated {
-  
-    // called without animation:
-    // called by did move to view and will move from view to reset cells and dyadminoes
-  
-    // called with animation
-    // called by replay, swap, handle double tap
-  
-    // for PnP games, called by handle button pressed and handle switch
-  
     // check http://stackoverflow.com/questions/23007535/fade-between-two-different-sktextures-on-skspritenode
   
-    // if dyadminoes already hollowed, just return
+    // if dyadminoes already locked, just return
   BOOL dyadminoesShouldBeLocked = [self dyadminoShouldBeLocked:nil];
   if (dyadminoesShouldBeLocked == _dyadminoesAreLocked) {
     return;
   }
-  
-  [self updateTopBarButtons];
   
   for (Dyadmino *dyadmino in [self allSceneDyadminoes]) {
     if (animated) {
@@ -2448,11 +2428,12 @@
   if (animated) {
       // wait for field action in progress
     _fieldActionInProgress = YES;
+    [self updateTopBarButtons];
     SKAction *waitAction = [SKAction waitForDuration:kConstantTime];
     SKAction *completionAction = [SKAction runBlock:^{
       _fieldActionInProgress = NO;
-      [self updateTopBarButtons];
       _dyadminoesAreLocked = dyadminoesShouldBeLocked;
+      [self updateTopBarButtons];
     }];
     SKAction *sequence = [SKAction sequence:@[waitAction, completionAction]];
     [self runAction:sequence];
@@ -2460,6 +2441,8 @@
   } else {
       // confirm that dyadminoes reflect whether they should be stationary
     _dyadminoesAreLocked = dyadminoesShouldBeLocked;
+    NSLog(@"update top bar buttons in toggle dyadminoes");
+    [self updateTopBarButtons];
   }
 }
 
@@ -2555,8 +2538,6 @@
     // cells will toggle faster than replayBars moves
   
   if (!_lockMode) {
-//    _dyadminoesStationary = _replayMode;
-    NSLog(@"toggle cells called in toggle replay fields");
     [self toggleDyadminoesLockedAnimated:YES];
   }
 
@@ -2638,8 +2619,6 @@
   }
   
     // cells will toggle faster than field moves
-//  _dyadminoesStationary = (BOOL)self.swapContainer;
-  NSLog(@"toggle cells called in toggle swap field");
   [self toggleDyadminoesLockedAnimated:YES]; // only animate if board zoomed in
   
   [self postSoundNotification:kNotificationToggleBarOrField];
@@ -2648,7 +2627,6 @@
     [self toggleFieldActionInProgress:YES];
     
       // swap field action
-    
     CGFloat desiredX = -self.frame.size.width;
     void (^swapCompletion)(void) = ^void(void) {
       [self toggleFieldActionInProgress:NO];
@@ -3519,10 +3497,10 @@
   return NO;
 }
 
--(SKTexture *)textureForTextureDyadmino:(TextureDyadmino)textureDyadmino {
-  SceneEngine *sceneEngine = [SceneEngine sharedSceneEngine];
-  return [sceneEngine textureForTextureDyadmino:textureDyadmino];
-}
+//-(SKTexture *)textureForTextureDyadmino:(TextureDyadmino)textureDyadmino {
+//  SceneEngine *sceneEngine = [SceneEngine sharedSceneEngine];
+//  return [sceneEngine textureForTextureDyadmino:textureDyadmino];
+//}
 
 #pragma mark - increment and decrement methods for completing dyadmino animation to temp board cell
 

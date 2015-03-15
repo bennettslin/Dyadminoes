@@ -19,7 +19,6 @@
 -(CGPoint)tempPositionForDyadmino:(Dyadmino *)dyadmino withHomeOrientation:(BOOL)homeOrientation;
 -(CGPoint)rackPositionForDyadmino:(Dyadmino *)dyadmino;
 -(BOOL)dyadminoShouldBeLocked:(Dyadmino *)dyadmino;
--(SKTexture *)textureForTextureDyadmino:(TextureDyadmino)textureDyadmino;
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino;
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
@@ -29,10 +28,17 @@
 
 @end
 
+@protocol DyadminoSceneDelegate <NSObject>
+
+-(SKTexture *)textureForTextureDyadmino:(TextureDyadmino)textureDyadmino;
+
+@end
+
 @interface Dyadmino : SKSpriteNode
 
 @property (assign, nonatomic) NSUInteger myID;
 @property (weak, nonatomic) id<DyadminoDelegate> delegate;
+@property (weak, nonatomic) id<DyadminoSceneDelegate> sceneDelegate;
 
   // pcs
 @property (assign, nonatomic) NSUInteger pc1;
