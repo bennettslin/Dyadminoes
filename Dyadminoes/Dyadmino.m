@@ -63,7 +63,7 @@
     self.pc1 = pc1;
     self.pc2 = pc2;
     self.pcMode = pcMode;
-    self.rotationFrameArray = rotationFrameArray;
+//    self.rotationFrameArray = rotationFrameArray;
     self.pc1LetterSprite = pc1LetterSprite;
     self.pc1LetterSprite.zPosition = kZPositionDyadminoFace;
     self.pc2LetterSprite = pc2LetterSprite;
@@ -73,7 +73,7 @@
     self.pc2NumberSprite = pc2NumberSprite;
     self.pc2NumberSprite.zPosition = kZPositionDyadminoFace;
     self.hoveringStatus = kDyadminoNoHoverStatus;
-    [self selectAndPositionSpritesZRotation:0.f resize:YES];
+    [self selectAndPositionSpritesZRotation:0.f];
   }
   return self;
 }
@@ -134,7 +134,7 @@
   [self establishSizeOfSprite:self.pc2Sprite];
 }
 
--(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle resize:(BOOL)resize {
+-(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle {
   if (self.pcMode == kPCModeLetter) {
     if (!self.pc1Sprite || self.pc1Sprite == self.pc1NumberSprite) {
       [self removeAllChildren];
@@ -161,43 +161,42 @@
   CGFloat ySlant = kDyadminoFaceRadius * 0.5 * hoverResizeFactor * zoomResizeFactor;
   CGFloat xSlant = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * hoverResizeFactor * zoomResizeFactor;
   
+  TextureDyadmino textureDyadmino;
   switch (self.orientation) {
     case kPC1atTwelveOClock:
-      self.texture = [self.delegate cellsShouldBeHollowed] ? self.rotationFrameLockedArray[0] : self.rotationFrameArray[0];
+      textureDyadmino = [self.delegate dyadminoesShouldBeLocked] ? kTextureDyadminoLockedNoSo : kTextureDyadminoNoSo;
       self.pc1Sprite.position = CGPointMake(0, yVertical);
       self.pc2Sprite.position = CGPointMake(0, -yVertical);
       break;
     case kPC1atTwoOClock:
-      self.texture = [self.delegate cellsShouldBeHollowed] ? self.rotationFrameLockedArray[1] : self.rotationFrameArray[1];
+      textureDyadmino = [self.delegate dyadminoesShouldBeLocked] ? kTextureDyadminoLockedSwNe : kTextureDyadminoSwNe;
       self.pc1Sprite.position = CGPointMake(xSlant, ySlant);
       self.pc2Sprite.position = CGPointMake(-xSlant, -ySlant);
       break;
     case kPC1atFourOClock:
-      self.texture = [self.delegate cellsShouldBeHollowed] ? self.rotationFrameLockedArray[2] : self.rotationFrameArray[2];
+      textureDyadmino = [self.delegate dyadminoesShouldBeLocked] ? kTextureDyadminoLockedNwSe : kTextureDyadminoNwSe;
       self.pc1Sprite.position = CGPointMake(xSlant, -ySlant);
       self.pc2Sprite.position = CGPointMake(-xSlant, ySlant);
       break;
     case kPC1atSixOClock:
-      self.texture = [self.delegate cellsShouldBeHollowed] ? self.rotationFrameLockedArray[0] : self.rotationFrameArray[0];
+      textureDyadmino = [self.delegate dyadminoesShouldBeLocked] ? kTextureDyadminoLockedNoSo : kTextureDyadminoNoSo;
       self.pc1Sprite.position = CGPointMake(0, -yVertical);
       self.pc2Sprite.position = CGPointMake(0, yVertical);
       break;
     case kPC1atEightOClock:
-      self.texture = [self.delegate cellsShouldBeHollowed] ? self.rotationFrameLockedArray[1] : self.rotationFrameArray[1];
+      textureDyadmino = [self.delegate dyadminoesShouldBeLocked] ? kTextureDyadminoLockedSwNe : kTextureDyadminoSwNe;
       self.pc1Sprite.position = CGPointMake(-xSlant, -ySlant);
       self.pc2Sprite.position = CGPointMake(xSlant, ySlant);
       break;
     case kPC1atTenOClock:
-      self.texture = [self.delegate cellsShouldBeHollowed] ? self.rotationFrameLockedArray[2] : self.rotationFrameArray[2];
+      textureDyadmino = [self.delegate dyadminoesShouldBeLocked] ? kTextureDyadminoLockedNwSe : kTextureDyadminoNwSe;
       self.pc1Sprite.position = CGPointMake(-xSlant, ySlant);
       self.pc2Sprite.position = CGPointMake(xSlant, -ySlant);
       break;
   }
   
-    // FIXME: resize bool is actually unnecessary, they all say yes
-  if (resize) {
-    [self resize];
-  }
+  self.texture = [self.delegate textureForTextureDyadmino:textureDyadmino];
+  [self resize];
 }
 
 -(CGPoint)addIfSwapToHomePosition:(CGPoint)homePosition {
@@ -237,13 +236,13 @@
 -(void)startTouchThenHoverResize {
   self.isTouchThenHoverResized = YES;
   [self resize];
-  [self selectAndPositionSpritesZRotation:0.f resize:YES];
+  [self selectAndPositionSpritesZRotation:0.f];
 }
 
 -(void)endTouchThenHoverResize {
   self.isTouchThenHoverResized = NO;
   [self resize];
-  [self selectAndPositionSpritesZRotation:0.f resize:YES];
+  [self selectAndPositionSpritesZRotation:0.f];
 }
 
 -(void)changeHoveringStatus:(DyadminoHoveringStatus)hoveringStatus {
@@ -276,7 +275,7 @@
     if (resize) {
       self.isZoomResized = NO;
       [self resize];
-      [self selectAndPositionSpritesZRotation:0.f resize:YES];
+      [self selectAndPositionSpritesZRotation:0.f];
     }
     
     self.colorBlendFactor = 0.f;
@@ -307,7 +306,7 @@
   void(^completion)(void) = ^void(void) {
     weakSelf.zPosition = kZPositionBoardRestingDyadmino;
     [weakSelf setScale:1.f];
-    [weakSelf selectAndPositionSpritesZRotation:0.f resize:YES];
+    [weakSelf selectAndPositionSpritesZRotation:0.f];
     [weakSelf.delegate decrementDyadminoesInFluxWithLayoutLast:layout];
   };
   
@@ -477,7 +476,7 @@
     
   } else {
     self.orientation = shouldBeOrientation;
-    [self selectAndPositionSpritesZRotation:0.f resize:YES];
+    [self selectAndPositionSpritesZRotation:0.f];
   }
 }
 
@@ -507,7 +506,7 @@
         [weakSelf.pc1Sprite removeActionForKey:kActionRotateFace];
         [weakSelf.pc2Sprite removeActionForKey:kActionRotateFace];
         weakSelf.orientation = (weakSelf.orientation + (clockwise ? 1 : 5)) % 6;
-        [weakSelf selectAndPositionSpritesZRotation:0.f resize:YES];
+        [weakSelf selectAndPositionSpritesZRotation:0.f];
         counter--;
         _isPivotAnimating = NO;
         if (counter > 0) {
@@ -572,7 +571,7 @@
     if (resize) {
       weakSelf.isZoomResized = NO;
       [weakSelf resize];
-      [weakSelf selectAndPositionSpritesZRotation:0.f resize:YES];
+      [weakSelf selectAndPositionSpritesZRotation:0.f];
     }
     weakSelf.position = [weakSelf.delegate rackPositionForDyadmino:self];
   };
@@ -654,7 +653,7 @@
   } else {
     [self removeActionForKey:kActionHover];
     [self resize];
-    [self selectAndPositionSpritesZRotation:0.f resize:YES];
+    [self selectAndPositionSpritesZRotation:0.f];
   }
 }
 
@@ -875,7 +874,7 @@
         
         CGFloat difference = ((newOrientation - self.orientation + 6) % 6) * 60;
         self.orientation = newOrientation;
-        [self selectAndPositionSpritesZRotation:dyadminoAngle + difference resize:YES];
+        [self selectAndPositionSpritesZRotation:dyadminoAngle + difference];
         [self determineNewAnchorPointDuringPivot:YES];
         return YES;
       }

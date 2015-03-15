@@ -32,6 +32,7 @@
 		3F582EF519A4A4E90022C92E /* GameEndedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F582EF419A4A4E90022C92E /* GameEndedViewController.m */; };
 		3F5D7B771A3E5565007FA92B /* SonorityLogic+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F5D7B761A3E5565007FA92B /* SonorityLogic+Helper.m */; };
 		3F6AE50E18D4D1E7000528C1 /* Bar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F6AE50D18D4D1E7000528C1 /* Bar.m */; };
+		3F79D9431AB4F5E500B79E7F /* SpriteTextures.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 3F79D9421AB4F5E500B79E7F /* SpriteTextures.atlas */; };
 		3F7BD7C9192AF45D009274DE /* Match.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7C8192AF45D009274DE /* Match.m */; };
 		3F7BD7D5192B09D6009274DE /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7D4192B09D6009274DE /* MainViewController.m */; };
 		3F7BD7DB192B0A37009274DE /* MatchTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F7BD7DA192B0A37009274DE /* MatchTableViewCell.m */; };
@@ -64,7 +65,6 @@
 		3FBC6AD4194E1BBD00420CB8 /* SoundEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FBC6AD3194E1BBD00420CB8 /* SoundEngine.m */; };
 		3FBC6AD7194E208300420CB8 /* hitCat.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3FBC6AD5194E208300420CB8 /* hitCat.wav */; };
 		3FBC6AD8194E208300420CB8 /* hitCatLady.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3FBC6AD6194E208300420CB8 /* hitCatLady.wav */; };
-		3FC5CCA81AAEB42600F5E919 /* DyadminoImagesNew.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 3FC5CCA71AAEB42600F5E919 /* DyadminoImagesNew.atlas */; };
 		3FCCA71B18948AF200E0E4B5 /* Dyadmino.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCA71A18948AF200E0E4B5 /* Dyadmino.m */; };
 		3FCCA71E18948B0500E0E4B5 /* SceneEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FCCA71D18948B0500E0E4B5 /* SceneEngine.m */; };
 		3FCD39851979D4FA00F17DF4 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F59D92019784B6A00A1265D /* AVFoundation.framework */; };
@@ -140,6 +140,7 @@
 		3F5D7B761A3E5565007FA92B /* SonorityLogic+Helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "SonorityLogic+Helper.m"; sourceTree = "<group>"; };
 		3F6AE50C18D4D1E7000528C1 /* Bar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bar.h; sourceTree = "<group>"; };
 		3F6AE50D18D4D1E7000528C1 /* Bar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Bar.m; sourceTree = "<group>"; };
+		3F79D9421AB4F5E500B79E7F /* SpriteTextures.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = SpriteTextures.atlas; sourceTree = "<group>"; };
 		3F7BD7C7192AF45D009274DE /* Match.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Match.h; sourceTree = "<group>"; };
 		3F7BD7C8192AF45D009274DE /* Match.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Match.m; sourceTree = "<group>"; };
 		3F7BD7D3192B09D6009274DE /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
@@ -189,7 +190,6 @@
 		3FBC6AD3194E1BBD00420CB8 /* SoundEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoundEngine.m; sourceTree = "<group>"; };
 		3FBC6AD5194E208300420CB8 /* hitCat.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = hitCat.wav; sourceTree = "<group>"; };
 		3FBC6AD6194E208300420CB8 /* hitCatLady.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = hitCatLady.wav; sourceTree = "<group>"; };
-		3FC5CCA71AAEB42600F5E919 /* DyadminoImagesNew.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = DyadminoImagesNew.atlas; sourceTree = "<group>"; };
 		3FCCA71918948AF200E0E4B5 /* Dyadmino.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dyadmino.h; sourceTree = "<group>"; };
 		3FCCA71A18948AF200E0E4B5 /* Dyadmino.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Dyadmino.m; sourceTree = "<group>"; };
 		3FCCA71C18948B0500E0E4B5 /* SceneEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SceneEngine.h; sourceTree = "<group>"; };
@@ -347,9 +347,9 @@
 				3FFBE2251931B959002A1EDC /* Data Objects */,
 				3FFD6BE518B3CCE7000D2DA4 /* Scene Objects */,
 				3F4C06B318CC5F12003C4265 /* Logic and Helpers */,
+				3F79D9421AB4F5E500B79E7F /* SpriteTextures.atlas */,
 				3F0526C21936CE92003D3C04 /* Images and Sounds */,
 				3F87AACC188DEE4B008C4A0D /* Images.xcassets */,
-				3FC5CCA71AAEB42600F5E919 /* DyadminoImagesNew.atlas */,
 				3F87AAB3188DEE4B008C4A0D /* Supporting Files */,
 			);
 			path = Dyadminoes;
@@ -598,6 +598,7 @@
 				3F580BDE194F710F0040B5D0 /* Click2-Sebastian-759472264.wav in Resources */,
 				3F87AACD188DEE4B008C4A0D /* Images.xcassets in Resources */,
 				3FBC6AD8194E208300420CB8 /* hitCatLady.wav in Resources */,
+				3F79D9431AB4F5E500B79E7F /* SpriteTextures.atlas in Resources */,
 				3F87AAC3188DEE4B008C4A0D /* Main_iPad.storyboard in Resources */,
 				3F580BE0194F71DF0040B5D0 /* Slide_Closed_SoundBible_com_1521580537.wav in Resources */,
 				3FE8CD6C19FCA26E00D097B6 /* AJH_Piano.sf2 in Resources */,
@@ -608,7 +609,6 @@
 				3F87AAB7188DEE4B008C4A0D /* InfoPlist.strings in Resources */,
 				3F86BF871AB043A600583AD8 /* paper_background.jpg in Resources */,
 				3FF255C3197A3F6500B40D8D /* Filmotype-Modern.otf in Resources */,
-				3FC5CCA81AAEB42600F5E919 /* DyadminoImagesNew.atlas in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

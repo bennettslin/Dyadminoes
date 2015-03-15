@@ -15,6 +15,8 @@
 @interface SceneEngine ()
 
 @property (readwrite, nonatomic) PCMode myPCMode;
+@property (strong, nonatomic) NSArray *rotationFrameArray;
+@property (strong, nonatomic) NSArray *rotationFrameLockedArray;
 
 @end
 
@@ -47,13 +49,13 @@
   [tempRotationArray addObject:[self textureForTextureDyadmino:kTextureDyadminoNoSo]];
   [tempRotationArray addObject:[self textureForTextureDyadmino:kTextureDyadminoSwNe]];
   [tempRotationArray addObject:[self textureForTextureDyadmino:kTextureDyadminoNwSe]];
-  NSArray *rotationFrameArray = [NSArray arrayWithArray:tempRotationArray];
+  self.rotationFrameArray = [NSArray arrayWithArray:tempRotationArray];
   
   NSMutableArray *tempRotationLockedArray = [[NSMutableArray alloc] initWithCapacity:3];
   [tempRotationLockedArray addObject:[self textureForTextureDyadmino:kTextureDyadminoLockedNoSo]];
   [tempRotationLockedArray addObject:[self textureForTextureDyadmino:kTextureDyadminoLockedSwNe]];
   [tempRotationLockedArray addObject:[self textureForTextureDyadmino:kTextureDyadminoLockedNwSe]];
-  NSArray *rotationFrameLockedArray = [NSArray arrayWithArray:tempRotationLockedArray];
+  self.rotationFrameLockedArray = [NSArray arrayWithArray:tempRotationLockedArray];
   
     // dyadmino IDs start from 0
   NSUInteger myID = 0;
@@ -73,8 +75,8 @@
         pc2NumberSprite.name = [NSString stringWithFormat:@"%i", pc2];
         
           // instantiate dyadmino
-        Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1 andPC2:pc2 andPCMode:kPCModeLetter andRotationFrameArray:rotationFrameArray andPC1LetterSprite:pc1LetterSprite andPC2LetterSprite:pc2LetterSprite andPC1NumberSprite:pc1NumberSprite andPC2NumberSprite:pc2NumberSprite];
-        dyadmino.rotationFrameLockedArray = rotationFrameLockedArray;
+        Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1 andPC2:pc2 andPCMode:kPCModeLetter andRotationFrameArray:self.rotationFrameArray andPC1LetterSprite:pc1LetterSprite andPC2LetterSprite:pc2LetterSprite andPC1NumberSprite:pc1NumberSprite andPC2NumberSprite:pc2NumberSprite];
+//        dyadmino.rotationFrameLockedArray = self.rotationFrameLockedArray;
         dyadmino.myID = myID;
         
         myID++;
@@ -113,7 +115,6 @@
 }
 
 -(SKTexture *)textureForTextureDyadmino:(TextureDyadmino)textureDyadmino {
-    // FIXME: will eventually be different for each one
   
   AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
   SKTextureAtlas *textureAtlas = appDelegate.myAtlas;
@@ -187,7 +188,7 @@
     // change views
   for (Dyadmino *dyadmino in self.allDyadminoes) {
     dyadmino.pcMode = (dyadmino.pcMode == kPCModeLetter) ? kPCModeNumber : kPCModeLetter;
-    [dyadmino selectAndPositionSpritesZRotation:0.f resize:YES];
+    [dyadmino selectAndPositionSpritesZRotation:0.f];
   }
 }
 

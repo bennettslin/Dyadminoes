@@ -18,7 +18,7 @@
 -(NSSet *)allBoardDyadminoesPlusRecentRackDyadmino;
 -(BOOL)actionSheetShown;
 -(void)presentActionSheetAfterPivotGuidesHidden;
--(BOOL)cellsShouldBeHollowed;
+//-(BOOL)dyadminoesShouldBeLocked;
 
 @end
 

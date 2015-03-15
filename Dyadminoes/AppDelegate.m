@@ -27,7 +27,7 @@
     // establish user defaults if not yet initiated
   [self establishDefaults];
   
-  self.myAtlas = [SKTextureAtlas atlasNamed:@"DyadminoImagesNew"];
+  self.myAtlas = [SKTextureAtlas atlasNamed:@"SpriteTextures"];
   [self.myAtlas preloadWithCompletionHandler:^{
   }];
   

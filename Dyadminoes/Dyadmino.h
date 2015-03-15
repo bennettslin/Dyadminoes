@@ -18,7 +18,8 @@
 -(CGPoint)homePositionForDyadmino:(Dyadmino *)dyadmino;
 -(CGPoint)tempPositionForDyadmino:(Dyadmino *)dyadmino withHomeOrientation:(BOOL)homeOrientation;
 -(CGPoint)rackPositionForDyadmino:(Dyadmino *)dyadmino;
--(BOOL)cellsShouldBeHollowed; // rename
+-(BOOL)dyadminoesShouldBeLocked;
+-(SKTexture *)textureForTextureDyadmino:(TextureDyadmino)textureDyadmino;
 
 -(void)updateCellsForPlacedDyadmino:(Dyadmino *)dyadmino;
 -(void)prepareForHoverThisDyadmino:(Dyadmino *)dyadmino;
@@ -55,8 +56,8 @@
 @property (assign, nonatomic) DyadminoOrientation homeOrientation;
 
   // sprites
-@property (strong, nonatomic) NSArray *rotationFrameArray;
-@property (strong, nonatomic) NSArray *rotationFrameLockedArray;
+//@property (strong, nonatomic) NSArray *rotationFrameArray;
+//@property (strong, nonatomic) NSArray *rotationFrameLockedArray;
 
 @property (strong, nonatomic) Face *pc1LetterSprite;
 @property (strong, nonatomic) Face *pc2LetterSprite;
@@ -108,7 +109,7 @@
 
 #pragma mark - orient, position, and size methods
 
--(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle resize:(BOOL)resize;
+-(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle;
 
   // called by rack
 -(CGPoint)addIfSwapToHomePosition:(CGPoint)homePosition;
