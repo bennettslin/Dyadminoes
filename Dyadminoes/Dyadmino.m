@@ -151,7 +151,7 @@
   CGFloat ySlant = kDyadminoFaceRadius * 0.5 * hoverResizeFactor * zoomResizeFactor;
   CGFloat xSlant = kDyadminoFaceRadius * 0.5 * kSquareRootOfThree * hoverResizeFactor * zoomResizeFactor;
   
-  TextureDyadmino textureDyadmino = kTextureDyadminoNoSo; // default
+  TextureDyadmino textureDyadmino;
   switch (self.orientation) {
     case kPC1atTwelveOClock:
       textureDyadmino = [self.delegate dyadminoShouldBeLocked:self] ? kTextureDyadminoLockedNoSo : kTextureDyadminoNoSo;
@@ -186,7 +186,7 @@
   }
   
   self.texture = [self.sceneDelegate textureForTextureDyadmino:textureDyadmino];
-  NSLog(@"texture %@ for %@ is %i", self.texture, self.name, textureDyadmino);
+//  NSLog(@"texture %@ for %@ is %i", self.texture, self.name, textureDyadmino);
   [self resize];
 }
 

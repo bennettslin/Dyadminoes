@@ -450,7 +450,6 @@
     if (![self.myMatch holdingsContainsDataDyadmino:dataDyad]) {
       Dyadmino *dyadmino = [self getDyadminoFromDataDyadmino:dataDyad];
       dyadmino.delegate = self;
-      NSLog(@"%@ has delegate", dyadmino.name);
       
       dyadmino.orientation = [dataDyad returnMyOrientation];
       dyadmino.rackIndex = [dataDyad returnMyRackOrder];
@@ -862,7 +861,7 @@
       _soundedDyadminoFace = nil;
     }
   }
-    
+  
     //--------------------------------------------------------------------------
     /// 3a. board is being moved
   
