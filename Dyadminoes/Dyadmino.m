@@ -44,31 +44,27 @@
 }
 
 @synthesize name = _name;
-@synthesize pcMode = _pcMode;
 @synthesize home = _home;
 
 #pragma mark - init and layout methods
 
--(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode
-  andPC1LetterSprite:(Face *)pc1LetterSprite
-  andPC2LetterSprite:(Face *)pc2LetterSprite
-  andPC1NumberSprite:(Face *)pc1NumberSprite
-  andPC2NumberSprite:(Face *)pc2NumberSprite {
+-(id)initWithPC1:(NSUInteger)pc1
+          andPC2:(NSUInteger)pc2
+andSceneDelegate:(id)sceneDelegate {
+  
   self = [super init];
   if (self) {
     self.color = (SKColor *)kNeutralYellow; // for color blend factor
     self.zPosition = kZPositionRackRestingDyadmino;
     self.pc1 = pc1;
     self.pc2 = pc2;
-    self.pcMode = pcMode;
-    self.pc1LetterSprite = pc1LetterSprite;
-    self.pc1LetterSprite.zPosition = kZPositionDyadminoFace;
-    self.pc2LetterSprite = pc2LetterSprite;
-    self.pc2LetterSprite.zPosition = kZPositionDyadminoFace;
-    self.pc1NumberSprite = pc1NumberSprite;
-    self.pc1NumberSprite.zPosition = kZPositionDyadminoFace;
-    self.pc2NumberSprite = pc2NumberSprite;
-    self.pc2NumberSprite.zPosition = kZPositionDyadminoFace;
+    self.sceneDelegate = sceneDelegate;
+    
+    self.pc1Sprite = [Face new];
+    self.pc2Sprite = [Face new];
+    [self addChild:self.pc1Sprite];
+    [self addChild:self.pc2Sprite];
+    
     self.hoveringStatus = kDyadminoNoHoverStatus;
     [self selectAndPositionSpritesZRotation:0.f];
   }
@@ -125,23 +121,9 @@
 }
 
 -(void)selectAndPositionSpritesZRotation:(CGFloat)rotationAngle {
-  if (self.pcMode == kPCModeLetter) {
-    if (!self.pc1Sprite || self.pc1Sprite == self.pc1NumberSprite) {
-      [self removeAllChildren];
-      self.pc1Sprite = self.pc1LetterSprite;
-      self.pc2Sprite = self.pc2LetterSprite;
-      [self addChild:self.pc1Sprite];
-      [self addChild:self.pc2Sprite];
-    }
-  } else if (self.pcMode == kPCModeNumber) {
-    if (!self.pc1Sprite || self.pc1Sprite == self.pc1LetterSprite) {
-      [self removeAllChildren];
-      self.pc1Sprite = self.pc1NumberSprite;
-      self.pc2Sprite = self.pc2NumberSprite;
-      [self addChild:self.pc1Sprite];
-      [self addChild:self.pc2Sprite];
-    }
-  }
+  
+  self.pc1Sprite.texture = [self.sceneDelegate textureForPC:self.pc1];
+  self.pc2Sprite.texture = [self.sceneDelegate textureForPC:self.pc2];
 
   [self zRotateToAngle:rotationAngle];
   
@@ -1013,18 +995,6 @@
 
 #pragma mark - custom accessor methods
 
--(PCMode)pcMode {
-  if (!_pcMode) {
-    _pcMode = kPCModeLetter;
-  }
-  return _pcMode;
-}
-
--(void)setPcMode:(PCMode)pcMode {
-  _pcMode = pcMode;
-  self.name = [self updateName];
-}
-
 -(NSString *)name {
   if (!_name) {
     _name = [self updateName];
@@ -1050,7 +1020,8 @@
 
     // Unicode u2011 is non-breaking hyphen, u2013 is N-dash, u2014 is M-dash
     // u2022 is bullet
-  switch (self.pcMode) {
+  PCMode pcMode = self.sceneDelegate.myPCMode;
+  switch (pcMode) {
     case kPCModeLetter:
       return [NSString stringWithFormat:@"%@\u2013%@", [self stringForPC:self.pc1], [self stringForPC:self.pc2]];
       break;

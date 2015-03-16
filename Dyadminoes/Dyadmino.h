@@ -30,7 +30,9 @@
 
 @protocol DyadminoSceneDelegate <NSObject>
 
+@property (readonly, nonatomic) PCMode myPCMode;
 -(SKTexture *)textureForTextureDyadmino:(TextureDyadmino)textureDyadmino;
+-(SKTexture *)textureForPC:(NSInteger)pc;
 
 @end
 
@@ -43,7 +45,7 @@
   // pcs
 @property (assign, nonatomic) NSUInteger pc1;
 @property (assign, nonatomic) NSUInteger pc2;
-@property (assign, nonatomic) PCMode pcMode;
+//@property (assign, nonatomic) PCMode pcMode;
 
   // cells
 @property (strong, nonatomic) Cell *cellForPC1;
@@ -61,10 +63,6 @@
 @property (assign, nonatomic) DyadminoOrientation orientation;
 @property (assign, nonatomic) DyadminoOrientation homeOrientation;
 
-@property (strong, nonatomic) Face *pc1LetterSprite;
-@property (strong, nonatomic) Face *pc2LetterSprite;
-@property (strong, nonatomic) Face *pc1NumberSprite;
-@property (strong, nonatomic) Face *pc2NumberSprite;
 @property (strong, nonatomic) Face *pc1Sprite;
 @property (strong, nonatomic) Face *pc2Sprite;
 
@@ -96,11 +94,9 @@
 
 #pragma mark - init and layout methods
 
--(id)initWithPC1:(NSUInteger)pc1 andPC2:(NSUInteger)pc2 andPCMode:(PCMode)pcMode
-                     andPC1LetterSprite:(SKSpriteNode *)pc1LetterSprite
-                     andPC2LetterSprite:(SKSpriteNode *)pc2LetterSprite
-                     andPC1NumberSprite:(SKSpriteNode *)pc1NumberSprite
-                     andPC2NumberSprite:(SKSpriteNode *)pc2NumberSprite;
+-(id)initWithPC1:(NSUInteger)pc1
+          andPC2:(NSUInteger)pc2
+andSceneDelegate:(id)sceneDelegate;
 
 -(void)resetForNewMatch;
 

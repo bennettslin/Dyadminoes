@@ -21,7 +21,7 @@
 +(SceneEngine *)sharedSceneEngine;
 -(SKTexture *)textureForTextureCell:(TextureCell)textureCell;
 -(SKTexture *)textureForTextureDyadmino:(TextureDyadmino)textureDyadmino;
--(SKTexture *)textureForPC:(NSInteger)pc inMode:(PCMode)mode;
+-(SKTexture *)textureForPC:(NSInteger)pc;
 
 #pragma mark - player preference methods
 

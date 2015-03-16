@@ -29,8 +29,7 @@
   if (self) {
     _rotationFromDevice = 0;
     
-    self.myPCMode = kPCModeLetter;
-    
+    self.myPCMode = [[NSUserDefaults standardUserDefaults] integerForKey:@"notation"];
     self.allDyadminoes = [self createPile];
     if (self.allDyadminoes.count != kPileCount) {
       NSLog(@"Scene dyadminoes were not created properly.");
@@ -64,25 +63,10 @@
     for (int pc2 = pc1 + 1; pc2 < 12; pc2++) {
       if (pc1 < pc2) {
         
-          //get pc textures
-        Face *pc1LetterSprite = [Face spriteNodeWithTexture:[self textureForPC:pc1 inMode:kPCModeLetter]];
-        Face *pc1NumberSprite = [Face spriteNodeWithTexture:[self textureForPC:pc1 inMode:kPCModeNumber]];
-        Face *pc2LetterSprite = [Face spriteNodeWithTexture:[self textureForPC:pc2 inMode:kPCModeLetter]];
-        Face *pc2NumberSprite = [Face spriteNodeWithTexture:[self textureForPC:pc2 inMode:kPCModeNumber]];
-        pc1LetterSprite.name = [NSString stringWithFormat:@"%i", pc1];
-        pc1NumberSprite.name = [NSString stringWithFormat:@"%i", pc1];
-        pc2LetterSprite.name = [NSString stringWithFormat:@"%i", pc2];
-        pc2NumberSprite.name = [NSString stringWithFormat:@"%i", pc2];
-        
           // instantiate dyadmino
         Dyadmino *dyadmino = [[Dyadmino alloc] initWithPC1:pc1
                                                     andPC2:pc2
-                                                 andPCMode:kPCModeLetter
-                                        andPC1LetterSprite:pc1LetterSprite
-                                        andPC2LetterSprite:pc2LetterSprite
-                                        andPC1NumberSprite:pc1NumberSprite
-                                        andPC2NumberSprite:pc2NumberSprite];
-        dyadmino.sceneDelegate = self;
+                                          andSceneDelegate:self];
         dyadmino.myID = myID;
         myID++;
         
@@ -148,7 +132,8 @@
   return nil;
 }
 
--(SKTexture *)textureForPC:(NSInteger)pc inMode:(PCMode)mode {
+-(SKTexture *)textureForPC:(NSInteger)pc {
+  
   AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
   SKTextureAtlas *textureAtlas = appDelegate.myAtlas;
   
@@ -156,7 +141,7 @@
   if (pc >= 0 && pc < 12) {
     
     NSString *filename;
-    switch (mode) {
+    switch (self.myPCMode) {
       case kPCModeLetter:
         filename = [NSString stringWithFormat:@"pcLetter%ld", (long)pc];
         break;
@@ -192,7 +177,6 @@
   
     // change views
   for (Dyadmino *dyadmino in self.allDyadminoes) {
-    dyadmino.pcMode = (dyadmino.pcMode == kPCModeLetter) ? kPCModeNumber : kPCModeLetter;
     [dyadmino selectAndPositionSpritesZRotation:0.f];
   }
 }
