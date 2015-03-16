@@ -304,8 +304,7 @@
 -(BOOL)layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:(NSSet *)boardDyadminoes
                                             minusDyadmino:(Dyadmino *)minusDyadmino
                                              updateBounds:(BOOL)updateBounds {
-  
-  
+    
   Dyadmino *touchedDyadmino = [self.delegate touchDyadminoIfAny];
   
   NSSet *finalBoardDyadminoes;

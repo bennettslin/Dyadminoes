@@ -779,7 +779,6 @@
     _previousTouchWasDyadmino = _currentTouchIsDyadmino;
     _currentTouchIsDyadmino = YES;
     
-    NSLog(@"begin touch or pivot of %@", dyadmino.name);
     [self beginTouchOrPivotOfDyadmino:dyadmino];
   
     //--------------------------------------------------------------------------
@@ -1728,8 +1727,6 @@
 
     [self incrementDyadminoesInFluxWithLayoutFirst:NO minusDyadmino:nil];
   }
-
-  [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:self.replayDyadminoesNotMovedThisTurn minusDyadmino:nil updateBounds:NO];
   
   if (![self populateBoardWithDyadminoesAnimated:YES andSound:NO]) {
     NSLog(@"Dyadminoes were not placed on board properly.");
@@ -3517,7 +3514,7 @@
     }
     
     if (layoutFirst) {
-      NSLog(@"Layout in first increment");
+//      NSLog(@"Layout in first increment");
       NSSet *dyadminoes = _replayMode ? self.replayDyadminoesNotMovedThisTurn : [self allBoardDyadminoesPlusRecentRackDyadmino];
       [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:dyadminoes minusDyadmino:minusDyadmino updateBounds:YES];
     }
@@ -3542,7 +3539,7 @@
     }
     
     if (layoutLast) {
-      NSLog(@"Layout in last decrement");
+//      NSLog(@"Layout in last decrement");
       NSSet *dyadminoes = _replayMode ? [self dyadminoesOnBoardThisReplayTurn] : [self allBoardDyadminoesPlusRecentRackDyadmino];
       [_boardField layoutAndColourBoardCellsAndSnapPointsOfDyadminoes:dyadminoes minusDyadmino:nil updateBounds:YES];
     }
